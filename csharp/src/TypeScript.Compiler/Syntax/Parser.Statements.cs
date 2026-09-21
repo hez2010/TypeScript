@@ -9,14 +9,30 @@ public sealed partial class Parser
     private SyntaxNode ParseStatement()
     {
         TokenFlags trivia = scanner.Flags;
+        bool parenthesized = Token == K.OpenParenToken;
         NodeFlags saved = context;
-        try { return WithJSDoc(ParseStatementWorker(), trivia); }
+        try
+        {
+            SyntaxNode node = ParseStatementWorker();
+            return WithJSDoc(node, parenthesized && node is ExpressionStatementNode ? 0 : trivia);
+        }
         finally { context = saved; }
     }
-    private static T WithJSDoc<T>(T node, TokenFlags trivia) where T : SyntaxNode
+    private T WithJSDoc<T>(T node, TokenFlags trivia) where T : SyntaxNode
     {
         if ((trivia & TokenFlags.PrecedingJSDocComment) != 0) node.Flags |= NodeFlags.HasJSDoc;
         if ((trivia & TokenFlags.PrecedingJSDocWithDeprecated) != 0) node.Flags |= NodeFlags.PossiblyContainsDeprecatedTag;
+        if ((trivia & TokenFlags.PrecedingJSDocComment) != 0 && options.ScriptKind is ScriptKind.JS or ScriptKind.JSX)
+        {
+            var reader = new DocumentationParser(source, options.ScriptKind, context);
+            JSDocNode[] comments = reader.Leading(node.Pos, node.End);
+            documentation[node] = comments;
+            foreach (JSDocNode comment in comments) comment.Parent = node;
+            documentationDiagnostics.AddRange(reader.Diagnostics);
+            sourceFlags |= reader.SourceFlags;
+            foreach (JSDocNode comment in comments) ReparseUnhostedDocumentation(node, comment);
+            if (comments.Length != 0) ReparseDocumentation(node, comments[^1]);
+        }
         return node;
     }
     private void AmbientModifiers(NodeList? modifiers)
@@ -25,7 +41,7 @@ public sealed partial class Parser
         context |= NodeFlags.Ambient;
         foreach (SyntaxNode modifier in modifiers) modifier.Flags |= NodeFlags.Ambient;
     }
-    private SyntaxNode ParseStatementWorker()
+    private SyntaxNode ParseStatementWorker(bool skipExportDispatch = false)
     {
         int start = Pos;
         switch (Token)
@@ -56,7 +72,7 @@ public sealed partial class Parser
                 Next(); Semicolon(); return Finish(factory.NewDebuggerStatement(), start);
             case K.SwitchKeyword: return Switch();
             case K.TryKeyword: return Try();
-            case K.ExportKeyword: return Export();
+            case K.ExportKeyword when !skipExportDispatch: return Export();
             case K.ImportKeyword:
                 if (!Peek(() => Next() is K.OpenParenToken or K.DotToken or K.LessThanToken)) return Import(null, start);
                 break;
@@ -113,7 +129,7 @@ public sealed partial class Parser
         int start = Pos; Expected(K.OpenBraceToken); bool multiline = LineBreak;
         statementDepth++;
         NodeList statements;
-        try { statements = List(K.CloseBraceToken, ParseStatement); }
+        try { statements = List(K.CloseBraceToken, ParseStatement, true); }
         finally { statementDepth--; }
         Expected(K.CloseBraceToken);
         return Finish(factory.NewBlock(statements, multiline), start);
@@ -313,7 +329,7 @@ public sealed partial class Parser
         {
             int blockStart = Pos; Next(); statementDepth++;
             NodeList statements;
-            try { statements = List(K.CloseBraceToken, ParseStatement); }
+            try { statements = List(K.CloseBraceToken, ParseStatement, true); }
             finally { statementDepth--; }
             Expected(K.CloseBraceToken); body = Finish(factory.NewModuleBlock(statements), blockStart);
         }
@@ -402,20 +418,5 @@ public sealed partial class Parser
         scanner.ResetPosition(start); Next(false);
         return DeclarationWithExport();
     }
-    private SyntaxNode DeclarationWithExport()
-    {
-        // Re-enter after consuming export via the common modifier parser, not Export().
-        int start = Pos; NodeList? modifiers = Modifiers();
-        AmbientModifiers(modifiers);
-        if (Token == K.ImportKeyword) return Import(modifiers, start);
-        if (Token == K.FunctionKeyword) return Function(false, modifiers, start);
-        if (Token == K.ClassKeyword) return Class(false, modifiers, start);
-        if (Token == K.InterfaceKeyword) return Interface(modifiers, start);
-        if (Token is K.NamespaceKeyword or K.ModuleKeyword) return Module(modifiers, start);
-        if (Token == K.TypeKeyword)
-        { Next(); var name = Identifier(); var parameters = TypeParameters(); Expected(K.EqualsToken); var type = Type(); Semicolon(); return Finish(factory.NewTypeAliasDeclaration(K.TypeAliasDeclaration, modifiers, name, parameters, type), start); }
-        if (Token is K.VarKeyword or K.LetKeyword or K.ConstKeyword or K.UsingKeyword)
-        { var list = VariableDeclarations(); Semicolon(); return Finish(factory.NewVariableStatement(modifiers, list), start); }
-        Error(Messages.Declaration_expected); return Finish(factory.NewMissingDeclaration(modifiers), start);
-    }
+    private SyntaxNode DeclarationWithExport() => ParseStatementWorker(true);
 }

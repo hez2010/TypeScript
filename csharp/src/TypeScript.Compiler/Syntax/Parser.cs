@@ -22,10 +22,15 @@ public sealed partial class Parser
     private bool hasError;
     private int scannedDiagnostics;
     private int statementDepth;
+    private int objectLiteralDepth;
+    private readonly Dictionary<SyntaxNode, JSDocNode[]> documentation = new(ReferenceEqualityComparer.Instance);
+    private readonly List<Diagnostic> documentationDiagnostics = [];
+    private readonly List<SyntaxNode> reparsedClones = [];
+    private List<SyntaxNode> reparsedStatements = [];
     private K Token => scanner.Kind;
     private int Pos => scanner.FullStart;
     private bool LineBreak => scanner.HasPrecedingLineBreak;
-    private Parser(ParseOptions options, SourceText source, CancellationToken cancellation)
+    private Parser(ParseOptions options, SourceText source, CancellationToken cancellation, int initialPosition = 0, int? endPosition = null, bool documentation = false)
     {
         ScriptKind kind = options.ScriptKind;
         if (kind == ScriptKind.Unknown) kind = CompilerPath.Extension(options.FileName).ToLowerInvariant() switch
@@ -35,6 +40,12 @@ public sealed partial class Parser
         if (kind is ScriptKind.JS or ScriptKind.JSX or ScriptKind.JSON) context = NodeFlags.JavaScriptFile;
         if (kind == ScriptKind.JSON) context |= NodeFlags.JsonFile;
         if (CompilerPath.IsDeclarationFile(options.FileName)) context |= NodeFlags.Ambient;
+        scanner.SetTextRange(initialPosition, endPosition ?? source.Length);
+        if (documentation)
+        {
+            context = NodeFlags.JSDoc | (kind is ScriptKind.JS or ScriptKind.JSX ? NodeFlags.JavaScriptFile : 0);
+            scanner.SetSkipJSDocLeadingAsterisks(true);
+        }
         Next();
     }
     public static SourceFileNode ParseSourceFile(ParseOptions options, SourceText source, CancellationToken cancellation = default) => new Parser(options, source, cancellation).ParseFile();
@@ -63,11 +74,14 @@ public sealed partial class Parser
             while (Token != K.EndOfFile)
             {
                 int before = scanner.Position;
-                statements.Add(ParseStatement());
+                SyntaxNode statement = ParseStatement();
+                statements.AddRange(reparsedStatements); reparsedStatements.Clear(); statements.Add(statement);
                 if (scanner.Position == before) { Error(Messages.Declaration_or_statement_expected); Next(); }
             }
         int end = Pos;
-        var eof = ParseToken();
+        TokenFlags endTrivia = scanner.Flags;
+        var eof = WithJSDoc(ParseToken(), endTrivia);
+        statements.AddRange(reparsedStatements); reparsedStatements.Clear();
         SourceFileNode file = Finish(factory.NewSourceFile(new(statements.ToArray(), start, end), eof), start);
         file.Flags |= sourceFlags;
         file.FileName = options.FileName; file.Source = source; file.ScriptKind = options.ScriptKind;
@@ -75,6 +89,11 @@ public sealed partial class Parser
         // Source positions remain bytes at the public AST boundary; scanning uses UTF-16.
         foreach (SyntaxNode node in file.DescendantsAndSelf())
             node.ConvertPositions(source.ToBytePosition);
+        foreach (JSDocNode comment in documentation.Values.SelectMany(nodes => nodes).Distinct())
+            foreach (SyntaxNode node in comment.DescendantsAndSelf()) node.ConvertPositions(source.ToBytePosition);
+        file.SetDocumentation(documentation);
+        file.JSDocDiagnostics = documentationDiagnostics.Select(d => d with { Start = source.ToBytePosition(d.Start), Length = source.ToBytePosition(d.Start + d.Length) - source.ToBytePosition(d.Start), FileName = options.FileName }).ToArray();
+        file.ReparsedClones = reparsedClones.OrderBy(n => n.Pos).ThenBy(n => n.End).ToArray();
         file.ParseDiagnostics = diagnostics.Select(d => d with { Start = source.ToBytePosition(d.Start), Length = source.ToBytePosition(d.Start + d.Length) - source.ToBytePosition(d.Start), FileName = options.FileName }).ToArray();
         file.CommentDirectives = scanner.CommentDirectives.Select(d => d with { Start = source.ToBytePosition(d.Start), End = source.ToBytePosition(d.End) }).ToArray();
         return file;
@@ -149,16 +168,27 @@ public sealed partial class Parser
         }
         return new(nodes.ToArray(), start, Pos);
     }
-    private NodeList List(K end, Func<SyntaxNode> element)
+    private NodeList List(K end, Func<SyntaxNode> element, bool statementList = false)
     {
         int start = Pos;
         var nodes = new List<SyntaxNode>();
-        while (Token != end && Token != K.EndOfFile)
+        var outerReparses = reparsedStatements;
+        reparsedStatements = [];
+        try
         {
-            int before = scanner.Position;
-            nodes.Add(element());
-            if (scanner.Position == before) { Error(Messages.Declaration_or_statement_expected); Next(); }
+            while (Token != end && Token != K.EndOfFile)
+            {
+                int before = scanner.Position;
+                SyntaxNode node = element();
+                foreach (SyntaxNode reparse in reparsedStatements)
+                    if (!statementList && reparse.Kind is K.JSTypeAliasDeclaration or K.JSImportDeclaration) outerReparses.Add(reparse);
+                    else nodes.Add(reparse);
+                reparsedStatements.Clear();
+                nodes.Add(node);
+                if (scanner.Position == before) { Error(Messages.Declaration_or_statement_expected); Next(); }
+            }
         }
+        finally { reparsedStatements = outerReparses; }
         return new(nodes.ToArray(), start, Pos);
     }
     private SyntaxNode Literal()
@@ -187,7 +217,11 @@ public sealed partial class Parser
     {
         int start = Pos;
         SyntaxNode name = Identifier(true);
-        while (Take(K.DotToken)) name = Finish(factory.NewQualifiedName(name, Identifier(true)), start);
+        while (Take(K.DotToken))
+        {
+            if (Token == K.LessThanToken) break;
+            name = Finish(factory.NewQualifiedName(name, Identifier(true)), start);
+        }
         return name;
     }
     private SyntaxNode? Annotation() => Take(K.ColonToken) ? Type() : null;

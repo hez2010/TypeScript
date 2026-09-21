@@ -162,13 +162,19 @@ public sealed partial class Parser
                 sourceFlags |= NodeFlags.PossiblyContainsDynamicImport;
                 return Finish(factory.NewKeywordExpression(K.ImportKeyword), start);
             case K.OpenParenToken:
+                TokenFlags trivia = scanner.Flags;
                 Next(); NodeFlags saved = context; context &= ~(NodeFlags.DisallowInContext | NodeFlags.DecoratorContext);
-                SyntaxNode inner = Expression(); Expected(K.CloseParenToken); context = saved; return Finish(factory.NewParenthesizedExpression(inner), start);
+                SyntaxNode inner = Expression(); Expected(K.CloseParenToken); context = saved;
+                return WithJSDoc(Finish(factory.NewParenthesizedExpression(inner), start), trivia);
             case K.OpenBracketToken:
                 Next(); bool arrayLines = LineBreak; var elements = Delimited(K.CloseBracketToken, Argument); Expected(K.CloseBracketToken);
                 return Finish(factory.NewArrayLiteralExpression(elements, arrayLines), start);
             case K.OpenBraceToken:
-                Next(); bool objectLines = LineBreak; var properties = Delimited(K.CloseBraceToken, ObjectProperty); Expected(K.CloseBraceToken);
+                Next(); bool objectLines = LineBreak; objectLiteralDepth++;
+                NodeList properties;
+                try { properties = Delimited(K.CloseBraceToken, ObjectProperty); }
+                finally { objectLiteralDepth--; }
+                Expected(K.CloseBraceToken);
                 return Finish(factory.NewObjectLiteralExpression(properties, objectLines), start);
             case K.LessThanToken when scanner.Jsx: return JsxElement(true);
         }
@@ -216,6 +222,11 @@ public sealed partial class Parser
         return Expression(2);
     }
     private SyntaxNode ObjectProperty()
+    {
+        TokenFlags trivia = scanner.Flags;
+        return WithJSDoc(ObjectPropertyWorker(), trivia);
+    }
+    private SyntaxNode ObjectPropertyWorker()
     {
         int start = Pos;
         if (Take(K.DotDotDotToken)) return Finish(factory.NewSpreadAssignment(Expression(2)), start);

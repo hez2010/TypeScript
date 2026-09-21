@@ -102,6 +102,26 @@ internal static class FoundationTests
         Check(clone.GetChild(0).Parent == clone, "Clone parent ownership");
         var unicode = Parser.ParseSourceFile(new("/unicode.ts"), new SourceText("const 日本語 = '😀';"));
         Check(unicode.ParseDiagnostics.Count == 0 && unicode.Statements!.End == unicode.Source.Bytes.Length, "AST list byte positions");
+        const string documentedText = "/** @template T\n * @param {T} value input\n * @returns {T} result\n */\nfunction identity(value) { return value; }";
+        var documented = Parser.ParseSourceFile(new("/documented.js"), new SourceText(documentedText));
+        var function = (FunctionDeclarationNode)documented.Statements![0];
+        Check(function.TypeParameters?.Count == 1 && function.Type is TypeReferenceNode, "JSDoc template and return annotation");
+        Check(function.Parameters![0] is ParameterDeclarationNode { Type: TypeReferenceNode }, "JSDoc parameter annotation");
+        var documentation = documented.GetDocumentation(function);
+        Check(documentation.Count == 1 && documentation[0].Tags?.Count == 3 && documentation[0].Parent == function, "JSDoc source ownership and tags");
+        Parallel.For(0, 32, _ =>
+        {
+            if (!ReferenceEquals(documented.GetDocumentation(function)[0], documentation[0])) throw new InvalidDataException("JSDoc query identity changed");
+        });
+        assertions++;
+        var documentedClone = documented.DeepClone<SourceFileNode>();
+        Check(documentedClone.ReparsedClones.Count == documented.ReparsedClones.Count, "Cloned source retains reparse mapping");
+        Check(!ReferenceEquals(documentedClone.GetDocumentation(documentedClone.Statements![0])[0], documentation[0]), "Cloned source owns its documentation cache");
+        var declarationDocs = Parser.ParseSourceFile(new("/documented.ts"), new SourceText("/** A value. {@link Other} */\nconst x = 1;"));
+        var lazyDocs = declarationDocs.GetDocumentation(declarationDocs.Statements![0]);
+        Check(lazyDocs.Count == 1 && lazyDocs[0].DescendantsAndSelf().Any(n => n.Kind == SyntaxKind.JSDocLink), "Lazy TypeScript documentation links");
+        try { documented.GetDocumentation(declarationDocs.Statements[0]); throw new InvalidDataException("Accepted foreign documentation owner"); }
+        catch (ArgumentException) { assertions++; }
         using var canceled = new CancellationTokenSource(); canceled.Cancel();
         try { Parser.ParseSourceFile(new("/canceled.ts"), new("const value = 1;"), canceled.Token); throw new InvalidDataException("Parser ignored cancellation"); }
         catch (OperationCanceledException) { assertions++; }

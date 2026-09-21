@@ -229,7 +229,7 @@ public sealed partial class WhileStatementNode : SyntaxNode
     }
 }
 
-public sealed partial class ForStatementNode : SyntaxNode
+public sealed partial class ForStatementNode : SyntaxNode, IInitializedNode
 {
     public ForStatementNode() : base(SyntaxKind.ForStatement)
     {
@@ -260,7 +260,7 @@ public sealed partial class ForStatementNode : SyntaxNode
     }
 }
 
-public sealed partial class ForInOrOfStatementNode : SyntaxNode
+public sealed partial class ForInOrOfStatementNode : SyntaxNode, IInitializedNode
 {
     public ForInOrOfStatementNode(SyntaxKind kind) : base(kind)
     {
@@ -635,7 +635,7 @@ public sealed partial class BlockNode : SyntaxNode
     }
 }
 
-public sealed partial class VariableStatementNode : SyntaxNode
+public sealed partial class VariableStatementNode : SyntaxNode, IModifiedNode
 {
     public VariableStatementNode() : base(SyntaxKind.VariableStatement)
     {
@@ -665,7 +665,7 @@ public sealed partial class VariableStatementNode : SyntaxNode
     }
 }
 
-public sealed partial class VariableDeclarationNode : SyntaxNode
+public sealed partial class VariableDeclarationNode : SyntaxNode, ITypedNode, IInitializedNode, INamedNode
 {
     public VariableDeclarationNode() : base(SyntaxKind.VariableDeclaration)
     {
@@ -674,6 +674,7 @@ public sealed partial class VariableDeclarationNode : SyntaxNode
     public SyntaxNode? ExclamationToken { get; set; }
     public SyntaxNode? Type { get; set; }
     public SyntaxNode? Initializer { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Name is null ? 0 : 1) + (ExclamationToken is null ? 0 : 1) + (Type is null ? 0 : 1) + (Initializer is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -751,7 +752,7 @@ public sealed partial class BindingPatternNode : SyntaxNode
     }
 }
 
-public sealed partial class ParameterDeclarationNode : SyntaxNode
+public sealed partial class ParameterDeclarationNode : SyntaxNode, ITypedNode, IInitializedNode, IModifiedNode, INamedNode
 {
     public ParameterDeclarationNode() : base(SyntaxKind.Parameter)
     {
@@ -762,6 +763,7 @@ public sealed partial class ParameterDeclarationNode : SyntaxNode
     public SyntaxNode? QuestionToken { get; set; }
     public SyntaxNode? Type { get; set; }
     public SyntaxNode? Initializer { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (DotDotDotToken is null ? 0 : 1) + (Name is null ? 0 : 1) + (QuestionToken is null ? 0 : 1) + (Type is null ? 0 : 1) + (Initializer is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -793,7 +795,7 @@ public sealed partial class ParameterDeclarationNode : SyntaxNode
     }
 }
 
-public sealed partial class BindingElementNode : SyntaxNode
+public sealed partial class BindingElementNode : SyntaxNode, IInitializedNode, INamedNode
 {
     public BindingElementNode() : base(SyntaxKind.BindingElement)
     {
@@ -802,6 +804,7 @@ public sealed partial class BindingElementNode : SyntaxNode
     public SyntaxNode? PropertyName { get; set; }
     public SyntaxNode? Name { get; set; }
     public SyntaxNode? Initializer { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (DotDotDotToken is null ? 0 : 1) + (PropertyName is null ? 0 : 1) + (Name is null ? 0 : 1) + (Initializer is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -824,7 +827,7 @@ public sealed partial class BindingElementNode : SyntaxNode
     }
 }
 
-public sealed partial class MissingDeclarationNode : SyntaxNode
+public sealed partial class MissingDeclarationNode : SyntaxNode, IModifiedNode
 {
     public MissingDeclarationNode() : base(SyntaxKind.MissingDeclaration)
     {
@@ -851,7 +854,7 @@ public sealed partial class MissingDeclarationNode : SyntaxNode
     }
 }
 
-public sealed partial class FunctionDeclarationNode : SyntaxNode
+public sealed partial class FunctionDeclarationNode : SyntaxNode, ITypedNode, IFullSignatureNode, IFunctionSignature, IModifiedNode, INamedNode
 {
     public FunctionDeclarationNode() : base(SyntaxKind.FunctionDeclaration)
     {
@@ -864,6 +867,7 @@ public sealed partial class FunctionDeclarationNode : SyntaxNode
     public SyntaxNode? Type { get; set; }
     public SyntaxNode? FullSignature { get; set; }
     public SyntaxNode? Body { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (AsteriskToken is null ? 0 : 1) + (Name is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1) + (FullSignature is null ? 0 : 1) + (Body is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -909,7 +913,7 @@ public sealed partial class FunctionDeclarationNode : SyntaxNode
     }
 }
 
-public sealed partial class ClassDeclarationNode : SyntaxNode
+public sealed partial class ClassDeclarationNode : SyntaxNode, IModifiedNode, INamedNode
 {
     public ClassDeclarationNode() : base(SyntaxKind.ClassDeclaration)
     {
@@ -919,6 +923,7 @@ public sealed partial class ClassDeclarationNode : SyntaxNode
     public NodeList? TypeParameters { get; set; }
     public NodeList? HeritageClauses { get; set; }
     public NodeList? Members { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (HeritageClauses?.Count ?? 0) + (Members?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -963,7 +968,7 @@ public sealed partial class ClassDeclarationNode : SyntaxNode
     }
 }
 
-public sealed partial class ClassExpressionNode : SyntaxNode
+public sealed partial class ClassExpressionNode : SyntaxNode, IModifiedNode, INamedNode
 {
     public ClassExpressionNode() : base(SyntaxKind.ClassExpression)
     {
@@ -973,6 +978,7 @@ public sealed partial class ClassExpressionNode : SyntaxNode
     public NodeList? TypeParameters { get; set; }
     public NodeList? HeritageClauses { get; set; }
     public NodeList? Members { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (HeritageClauses?.Count ?? 0) + (Members?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -1045,7 +1051,7 @@ public sealed partial class HeritageClauseNode : SyntaxNode
     }
 }
 
-public sealed partial class InterfaceDeclarationNode : SyntaxNode
+public sealed partial class InterfaceDeclarationNode : SyntaxNode, IModifiedNode, INamedNode
 {
     public InterfaceDeclarationNode() : base(SyntaxKind.InterfaceDeclaration)
     {
@@ -1055,6 +1061,7 @@ public sealed partial class InterfaceDeclarationNode : SyntaxNode
     public NodeList? TypeParameters { get; set; }
     public NodeList? HeritageClauses { get; set; }
     public NodeList? Members { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (HeritageClauses?.Count ?? 0) + (Members?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -1099,7 +1106,7 @@ public sealed partial class InterfaceDeclarationNode : SyntaxNode
     }
 }
 
-public sealed partial class TypeAliasDeclarationNode : SyntaxNode
+public sealed partial class TypeAliasDeclarationNode : SyntaxNode, ITypedNode, IModifiedNode, INamedNode
 {
     public TypeAliasDeclarationNode(SyntaxKind kind) : base(kind)
     {
@@ -1109,6 +1116,7 @@ public sealed partial class TypeAliasDeclarationNode : SyntaxNode
     public IdentifierNode? Name { get; set; }
     public NodeList? TypeParameters { get; set; }
     public SyntaxNode? Type { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -1141,13 +1149,14 @@ public sealed partial class TypeAliasDeclarationNode : SyntaxNode
     }
 }
 
-public sealed partial class EnumMemberNode : SyntaxNode
+public sealed partial class EnumMemberNode : SyntaxNode, IInitializedNode, INamedNode
 {
     public EnumMemberNode() : base(SyntaxKind.EnumMember)
     {
     }
     public SyntaxNode? Name { get; set; }
     public SyntaxNode? Initializer { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Name is null ? 0 : 1) + (Initializer is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -1166,7 +1175,7 @@ public sealed partial class EnumMemberNode : SyntaxNode
     }
 }
 
-public sealed partial class EnumDeclarationNode : SyntaxNode
+public sealed partial class EnumDeclarationNode : SyntaxNode, IModifiedNode, INamedNode
 {
     public EnumDeclarationNode() : base(SyntaxKind.EnumDeclaration)
     {
@@ -1174,6 +1183,7 @@ public sealed partial class EnumDeclarationNode : SyntaxNode
     public NodeList? Modifiers { get; set; }
     public IdentifierNode? Name { get; set; }
     public NodeList? Members { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (Members?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -1269,7 +1279,7 @@ public sealed partial class NotEmittedTypeElementNode : SyntaxNode
     }
 }
 
-public sealed partial class ImportDeclarationNode : SyntaxNode
+public sealed partial class ImportDeclarationNode : SyntaxNode, IModifiedNode
 {
     public ImportDeclarationNode(SyntaxKind kind) : base(kind)
     {
@@ -1328,12 +1338,13 @@ public sealed partial class ExternalModuleReferenceNode : SyntaxNode
     }
 }
 
-public sealed partial class NamespaceImportNode : SyntaxNode
+public sealed partial class NamespaceImportNode : SyntaxNode, INamedNode
 {
     public NamespaceImportNode() : base(SyntaxKind.NamespaceImport)
     {
     }
     public IdentifierNode? Name { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -1377,7 +1388,7 @@ public sealed partial class NamedImportsNode : SyntaxNode
     }
 }
 
-public sealed partial class ExportAssignmentNode : SyntaxNode
+public sealed partial class ExportAssignmentNode : SyntaxNode, ITypedNode, IModifiedNode
 {
     public ExportAssignmentNode() : base(SyntaxKind.ExportAssignment)
     {
@@ -1411,13 +1422,14 @@ public sealed partial class ExportAssignmentNode : SyntaxNode
     }
 }
 
-public sealed partial class NamespaceExportDeclarationNode : SyntaxNode
+public sealed partial class NamespaceExportDeclarationNode : SyntaxNode, IModifiedNode, INamedNode
 {
     public NamespaceExportDeclarationNode() : base(SyntaxKind.NamespaceExportDeclaration)
     {
     }
     public NodeList? Modifiers { get; set; }
     public IdentifierNode? Name { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -1441,12 +1453,13 @@ public sealed partial class NamespaceExportDeclarationNode : SyntaxNode
     }
 }
 
-public sealed partial class NamespaceExportNode : SyntaxNode
+public sealed partial class NamespaceExportNode : SyntaxNode, INamedNode
 {
     public NamespaceExportNode() : base(SyntaxKind.NamespaceExport)
     {
     }
     public SyntaxNode? Name { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -1490,7 +1503,7 @@ public sealed partial class NamedExportsNode : SyntaxNode
     }
 }
 
-public sealed partial class ExportSpecifierNode : SyntaxNode
+public sealed partial class ExportSpecifierNode : SyntaxNode, INamedNode
 {
     public ExportSpecifierNode() : base(SyntaxKind.ExportSpecifier)
     {
@@ -1498,6 +1511,7 @@ public sealed partial class ExportSpecifierNode : SyntaxNode
     public bool IsTypeOnly { get; set; }
     public SyntaxNode? PropertyName { get; set; }
     public SyntaxNode? Name { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (PropertyName is null ? 0 : 1) + (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -1516,7 +1530,7 @@ public sealed partial class ExportSpecifierNode : SyntaxNode
     }
 }
 
-public sealed partial class CallSignatureDeclarationNode : SyntaxNode
+public sealed partial class CallSignatureDeclarationNode : SyntaxNode, ITypedNode, IFunctionSignature
 {
     public CallSignatureDeclarationNode() : base(SyntaxKind.CallSignature)
     {
@@ -1554,7 +1568,7 @@ public sealed partial class CallSignatureDeclarationNode : SyntaxNode
     }
 }
 
-public sealed partial class ConstructSignatureDeclarationNode : SyntaxNode
+public sealed partial class ConstructSignatureDeclarationNode : SyntaxNode, ITypedNode, IFunctionSignature
 {
     public ConstructSignatureDeclarationNode() : base(SyntaxKind.ConstructSignature)
     {
@@ -1592,7 +1606,7 @@ public sealed partial class ConstructSignatureDeclarationNode : SyntaxNode
     }
 }
 
-public sealed partial class ConstructorDeclarationNode : SyntaxNode
+public sealed partial class ConstructorDeclarationNode : SyntaxNode, ITypedNode, IFullSignatureNode, IFunctionSignature, IModifiedNode
 {
     public ConstructorDeclarationNode() : base(SyntaxKind.Constructor)
     {
@@ -1644,7 +1658,7 @@ public sealed partial class ConstructorDeclarationNode : SyntaxNode
     }
 }
 
-public sealed partial class GetAccessorDeclarationNode : SyntaxNode
+public sealed partial class GetAccessorDeclarationNode : SyntaxNode, ITypedNode, IFullSignatureNode, IFunctionSignature, IModifiedNode, INamedNode
 {
     public GetAccessorDeclarationNode() : base(SyntaxKind.GetAccessor)
     {
@@ -1656,6 +1670,7 @@ public sealed partial class GetAccessorDeclarationNode : SyntaxNode
     public SyntaxNode? Type { get; set; }
     public SyntaxNode? FullSignature { get; set; }
     public SyntaxNode? Body { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1) + (FullSignature is null ? 0 : 1) + (Body is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -1699,7 +1714,7 @@ public sealed partial class GetAccessorDeclarationNode : SyntaxNode
     }
 }
 
-public sealed partial class SetAccessorDeclarationNode : SyntaxNode
+public sealed partial class SetAccessorDeclarationNode : SyntaxNode, ITypedNode, IFullSignatureNode, IFunctionSignature, IModifiedNode, INamedNode
 {
     public SetAccessorDeclarationNode() : base(SyntaxKind.SetAccessor)
     {
@@ -1711,6 +1726,7 @@ public sealed partial class SetAccessorDeclarationNode : SyntaxNode
     public SyntaxNode? Type { get; set; }
     public SyntaxNode? FullSignature { get; set; }
     public SyntaxNode? Body { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1) + (FullSignature is null ? 0 : 1) + (Body is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -1754,7 +1770,7 @@ public sealed partial class SetAccessorDeclarationNode : SyntaxNode
     }
 }
 
-public sealed partial class IndexSignatureDeclarationNode : SyntaxNode
+public sealed partial class IndexSignatureDeclarationNode : SyntaxNode, ITypedNode, IModifiedNode
 {
     public IndexSignatureDeclarationNode() : base(SyntaxKind.IndexSignature)
     {
@@ -1792,7 +1808,7 @@ public sealed partial class IndexSignatureDeclarationNode : SyntaxNode
     }
 }
 
-public sealed partial class MethodSignatureDeclarationNode : SyntaxNode
+public sealed partial class MethodSignatureDeclarationNode : SyntaxNode, ITypedNode, IFunctionSignature, IModifiedNode, INamedNode
 {
     public MethodSignatureDeclarationNode() : base(SyntaxKind.MethodSignature)
     {
@@ -1803,6 +1819,7 @@ public sealed partial class MethodSignatureDeclarationNode : SyntaxNode
     public NodeList? TypeParameters { get; set; }
     public NodeList? Parameters { get; set; }
     public SyntaxNode? Type { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (PostfixToken is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -1844,7 +1861,7 @@ public sealed partial class MethodSignatureDeclarationNode : SyntaxNode
     }
 }
 
-public sealed partial class MethodDeclarationNode : SyntaxNode
+public sealed partial class MethodDeclarationNode : SyntaxNode, ITypedNode, IFullSignatureNode, IFunctionSignature, IModifiedNode, INamedNode
 {
     public MethodDeclarationNode() : base(SyntaxKind.MethodDeclaration)
     {
@@ -1858,6 +1875,7 @@ public sealed partial class MethodDeclarationNode : SyntaxNode
     public SyntaxNode? Type { get; set; }
     public SyntaxNode? FullSignature { get; set; }
     public SyntaxNode? Body { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (AsteriskToken is null ? 0 : 1) + (Name is null ? 0 : 1) + (PostfixToken is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1) + (FullSignature is null ? 0 : 1) + (Body is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -1905,7 +1923,7 @@ public sealed partial class MethodDeclarationNode : SyntaxNode
     }
 }
 
-public sealed partial class PropertySignatureDeclarationNode : SyntaxNode
+public sealed partial class PropertySignatureDeclarationNode : SyntaxNode, ITypedNode, IInitializedNode, IModifiedNode, INamedNode
 {
     public PropertySignatureDeclarationNode() : base(SyntaxKind.PropertySignature)
     {
@@ -1915,6 +1933,7 @@ public sealed partial class PropertySignatureDeclarationNode : SyntaxNode
     public SyntaxNode? PostfixToken { get; set; }
     public SyntaxNode? Type { get; set; }
     public SyntaxNode? Initializer { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (PostfixToken is null ? 0 : 1) + (Type is null ? 0 : 1) + (Initializer is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -1944,7 +1963,7 @@ public sealed partial class PropertySignatureDeclarationNode : SyntaxNode
     }
 }
 
-public sealed partial class PropertyDeclarationNode : SyntaxNode
+public sealed partial class PropertyDeclarationNode : SyntaxNode, ITypedNode, IInitializedNode, IModifiedNode, INamedNode
 {
     public PropertyDeclarationNode() : base(SyntaxKind.PropertyDeclaration)
     {
@@ -1954,6 +1973,7 @@ public sealed partial class PropertyDeclarationNode : SyntaxNode
     public SyntaxNode? PostfixToken { get; set; }
     public SyntaxNode? Type { get; set; }
     public SyntaxNode? Initializer { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (PostfixToken is null ? 0 : 1) + (Type is null ? 0 : 1) + (Initializer is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -2002,7 +2022,7 @@ public sealed partial class SemicolonClassElementNode : SyntaxNode
     }
 }
 
-public sealed partial class ClassStaticBlockDeclarationNode : SyntaxNode
+public sealed partial class ClassStaticBlockDeclarationNode : SyntaxNode, IModifiedNode
 {
     public ClassStaticBlockDeclarationNode() : base(SyntaxKind.ClassStaticBlockDeclaration)
     {
@@ -2175,7 +2195,7 @@ public sealed partial class NoSubstitutionTemplateLiteralNode : SyntaxNode
     }
 }
 
-public sealed partial class BinaryExpressionNode : SyntaxNode
+public sealed partial class BinaryExpressionNode : SyntaxNode, ITypedNode, IModifiedNode
 {
     public BinaryExpressionNode() : base(SyntaxKind.BinaryExpression)
     {
@@ -2285,7 +2305,7 @@ public sealed partial class YieldExpressionNode : SyntaxNode
     }
 }
 
-public sealed partial class ArrowFunctionNode : SyntaxNode
+public sealed partial class ArrowFunctionNode : SyntaxNode, ITypedNode, IFullSignatureNode, IFunctionSignature, IModifiedNode
 {
     public ArrowFunctionNode() : base(SyntaxKind.ArrowFunction)
     {
@@ -2340,7 +2360,7 @@ public sealed partial class ArrowFunctionNode : SyntaxNode
     }
 }
 
-public sealed partial class FunctionExpressionNode : SyntaxNode
+public sealed partial class FunctionExpressionNode : SyntaxNode, ITypedNode, IFullSignatureNode, IFunctionSignature, IModifiedNode, INamedNode
 {
     public FunctionExpressionNode() : base(SyntaxKind.FunctionExpression)
     {
@@ -2353,6 +2373,7 @@ public sealed partial class FunctionExpressionNode : SyntaxNode
     public SyntaxNode? Type { get; set; }
     public SyntaxNode? FullSignature { get; set; }
     public SyntaxNode? Body { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (AsteriskToken is null ? 0 : 1) + (Name is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1) + (FullSignature is null ? 0 : 1) + (Body is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -2398,7 +2419,7 @@ public sealed partial class FunctionExpressionNode : SyntaxNode
     }
 }
 
-public sealed partial class AsExpressionNode : SyntaxNode
+public sealed partial class AsExpressionNode : SyntaxNode, ITypedNode
 {
     public AsExpressionNode() : base(SyntaxKind.AsExpression)
     {
@@ -2423,7 +2444,7 @@ public sealed partial class AsExpressionNode : SyntaxNode
     }
 }
 
-public sealed partial class SatisfiesExpressionNode : SyntaxNode
+public sealed partial class SatisfiesExpressionNode : SyntaxNode, ITypedNode
 {
     public SatisfiesExpressionNode() : base(SyntaxKind.SatisfiesExpression)
     {
@@ -2482,7 +2503,7 @@ public sealed partial class ConditionalExpressionNode : SyntaxNode
     }
 }
 
-public sealed partial class PropertyAccessExpressionNode : SyntaxNode
+public sealed partial class PropertyAccessExpressionNode : SyntaxNode, INamedNode
 {
     public PropertyAccessExpressionNode() : base(SyntaxKind.PropertyAccessExpression)
     {
@@ -2490,6 +2511,7 @@ public sealed partial class PropertyAccessExpressionNode : SyntaxNode
     public SyntaxNode? Expression { get; set; }
     public SyntaxNode? QuestionDotToken { get; set; }
     public SyntaxNode? Name { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Expression is null ? 0 : 1) + (QuestionDotToken is null ? 0 : 1) + (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -2617,13 +2639,14 @@ public sealed partial class NewExpressionNode : SyntaxNode
     }
 }
 
-public sealed partial class MetaPropertyNode : SyntaxNode
+public sealed partial class MetaPropertyNode : SyntaxNode, INamedNode
 {
     public MetaPropertyNode() : base(SyntaxKind.MetaProperty)
     {
     }
     public SyntaxKind KeywordToken { get; set; }
     public IdentifierNode? Name { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -2875,7 +2898,7 @@ public sealed partial class SpreadAssignmentNode : SyntaxNode
     }
 }
 
-public sealed partial class PropertyAssignmentNode : SyntaxNode
+public sealed partial class PropertyAssignmentNode : SyntaxNode, ITypedNode, IInitializedNode, IModifiedNode, INamedNode
 {
     public PropertyAssignmentNode() : base(SyntaxKind.PropertyAssignment)
     {
@@ -2885,6 +2908,7 @@ public sealed partial class PropertyAssignmentNode : SyntaxNode
     public SyntaxNode? PostfixToken { get; set; }
     public SyntaxNode? Type { get; set; }
     public SyntaxNode? Initializer { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (PostfixToken is null ? 0 : 1) + (Type is null ? 0 : 1) + (Initializer is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -2914,7 +2938,7 @@ public sealed partial class PropertyAssignmentNode : SyntaxNode
     }
 }
 
-public sealed partial class ShorthandPropertyAssignmentNode : SyntaxNode
+public sealed partial class ShorthandPropertyAssignmentNode : SyntaxNode, ITypedNode, IModifiedNode, INamedNode
 {
     public ShorthandPropertyAssignmentNode() : base(SyntaxKind.ShorthandPropertyAssignment)
     {
@@ -2925,6 +2949,7 @@ public sealed partial class ShorthandPropertyAssignmentNode : SyntaxNode
     public SyntaxNode? Type { get; set; }
     public SyntaxNode? EqualsToken { get; set; }
     public SyntaxNode? ObjectAssignmentInitializer { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (PostfixToken is null ? 0 : 1) + (Type is null ? 0 : 1) + (EqualsToken is null ? 0 : 1) + (ObjectAssignmentInitializer is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -3044,7 +3069,7 @@ public sealed partial class AwaitExpressionNode : SyntaxNode
     }
 }
 
-public sealed partial class TypeAssertionNode : SyntaxNode
+public sealed partial class TypeAssertionNode : SyntaxNode, ITypedNode
 {
     public TypeAssertionNode() : base(SyntaxKind.TypeAssertionExpression)
     {
@@ -3173,7 +3198,7 @@ public sealed partial class ConditionalTypeNode : SyntaxNode
     }
 }
 
-public sealed partial class TypeOperatorNode : SyntaxNode
+public sealed partial class TypeOperatorNode : SyntaxNode, ITypedNode
 {
     public TypeOperatorNode() : base(SyntaxKind.TypeOperator)
     {
@@ -3366,7 +3391,7 @@ public sealed partial class ThisTypeNode : SyntaxNode
     }
 }
 
-public sealed partial class TypePredicateNode : SyntaxNode
+public sealed partial class TypePredicateNode : SyntaxNode, ITypedNode
 {
     public TypePredicateNode() : base(SyntaxKind.TypePredicate)
     {
@@ -3394,13 +3419,14 @@ public sealed partial class TypePredicateNode : SyntaxNode
     }
 }
 
-public sealed partial class ImportAttributeNode : SyntaxNode
+public sealed partial class ImportAttributeNode : SyntaxNode, INamedNode
 {
     public ImportAttributeNode() : base(SyntaxKind.ImportAttribute)
     {
     }
     public SyntaxNode? Name { get; set; }
     public SyntaxNode? Value { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Name is null ? 0 : 1) + (Value is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -3478,7 +3504,7 @@ public sealed partial class TypeQueryNode : SyntaxNode
     }
 }
 
-public sealed partial class MappedTypeNode : SyntaxNode
+public sealed partial class MappedTypeNode : SyntaxNode, ITypedNode
 {
     public MappedTypeNode() : base(SyntaxKind.MappedType)
     {
@@ -3574,7 +3600,7 @@ public sealed partial class TupleTypeNode : SyntaxNode
     }
 }
 
-public sealed partial class NamedTupleMemberNode : SyntaxNode
+public sealed partial class NamedTupleMemberNode : SyntaxNode, ITypedNode, INamedNode
 {
     public NamedTupleMemberNode() : base(SyntaxKind.NamedTupleMember)
     {
@@ -3583,6 +3609,7 @@ public sealed partial class NamedTupleMemberNode : SyntaxNode
     public IdentifierNode? Name { get; set; }
     public SyntaxNode? QuestionToken { get; set; }
     public SyntaxNode? Type { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (DotDotDotToken is null ? 0 : 1) + (Name is null ? 0 : 1) + (QuestionToken is null ? 0 : 1) + (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -3605,7 +3632,7 @@ public sealed partial class NamedTupleMemberNode : SyntaxNode
     }
 }
 
-public sealed partial class OptionalTypeNode : SyntaxNode
+public sealed partial class OptionalTypeNode : SyntaxNode, ITypedNode
 {
     public OptionalTypeNode() : base(SyntaxKind.OptionalType)
     {
@@ -3627,7 +3654,7 @@ public sealed partial class OptionalTypeNode : SyntaxNode
     }
 }
 
-public sealed partial class RestTypeNode : SyntaxNode
+public sealed partial class RestTypeNode : SyntaxNode, ITypedNode
 {
     public RestTypeNode() : base(SyntaxKind.RestType)
     {
@@ -3649,7 +3676,7 @@ public sealed partial class RestTypeNode : SyntaxNode
     }
 }
 
-public sealed partial class ParenthesizedTypeNode : SyntaxNode
+public sealed partial class ParenthesizedTypeNode : SyntaxNode, ITypedNode
 {
     public ParenthesizedTypeNode() : base(SyntaxKind.ParenthesizedType)
     {
@@ -3671,7 +3698,7 @@ public sealed partial class ParenthesizedTypeNode : SyntaxNode
     }
 }
 
-public sealed partial class FunctionTypeNode : SyntaxNode
+public sealed partial class FunctionTypeNode : SyntaxNode, ITypedNode, IFunctionSignature
 {
     public FunctionTypeNode() : base(SyntaxKind.FunctionType)
     {
@@ -3709,7 +3736,7 @@ public sealed partial class FunctionTypeNode : SyntaxNode
     }
 }
 
-public sealed partial class ConstructorTypeNode : SyntaxNode
+public sealed partial class ConstructorTypeNode : SyntaxNode, ITypedNode, IFunctionSignature, IModifiedNode
 {
     public ConstructorTypeNode() : base(SyntaxKind.ConstructorType)
     {
@@ -3851,7 +3878,7 @@ public sealed partial class TemplateLiteralTypeNode : SyntaxNode
     }
 }
 
-public sealed partial class TemplateLiteralTypeSpanNode : SyntaxNode
+public sealed partial class TemplateLiteralTypeSpanNode : SyntaxNode, ITypedNode
 {
     public TemplateLiteralTypeSpanNode() : base(SyntaxKind.TemplateLiteralTypeSpan)
     {
@@ -3982,13 +4009,14 @@ public sealed partial class JsxAttributesNode : SyntaxNode
     }
 }
 
-public sealed partial class JsxNamespacedNameNode : SyntaxNode
+public sealed partial class JsxNamespacedNameNode : SyntaxNode, INamedNode
 {
     public JsxNamespacedNameNode() : base(SyntaxKind.JsxNamespacedName)
     {
     }
     public IdentifierNode? Namespace { get; set; }
     public IdentifierNode? Name { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Namespace is null ? 0 : 1) + (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -4144,13 +4172,14 @@ public sealed partial class JsxClosingFragmentNode : SyntaxNode
     }
 }
 
-public sealed partial class JsxAttributeNode : SyntaxNode
+public sealed partial class JsxAttributeNode : SyntaxNode, IInitializedNode, INamedNode
 {
     public JsxAttributeNode() : base(SyntaxKind.JsxAttribute)
     {
     }
     public SyntaxNode? Name { get; set; }
     public SyntaxNode? Initializer { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Name is null ? 0 : 1) + (Initializer is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -4320,7 +4349,7 @@ public sealed partial class JSDocNode : SyntaxNode
     }
 }
 
-public sealed partial class JSDocTypeExpressionNode : SyntaxNode
+public sealed partial class JSDocTypeExpressionNode : SyntaxNode, ITypedNode
 {
     public JSDocTypeExpressionNode() : base(SyntaxKind.JSDocTypeExpression)
     {
@@ -4342,7 +4371,7 @@ public sealed partial class JSDocTypeExpressionNode : SyntaxNode
     }
 }
 
-public sealed partial class JSDocNonNullableTypeNode : SyntaxNode
+public sealed partial class JSDocNonNullableTypeNode : SyntaxNode, ITypedNode
 {
     public JSDocNonNullableTypeNode() : base(SyntaxKind.JSDocNonNullableType)
     {
@@ -4364,7 +4393,7 @@ public sealed partial class JSDocNonNullableTypeNode : SyntaxNode
     }
 }
 
-public sealed partial class JSDocNullableTypeNode : SyntaxNode
+public sealed partial class JSDocNullableTypeNode : SyntaxNode, ITypedNode
 {
     public JSDocNullableTypeNode() : base(SyntaxKind.JSDocNullableType)
     {
@@ -4405,7 +4434,7 @@ public sealed partial class JSDocAllTypeNode : SyntaxNode
     }
 }
 
-public sealed partial class JSDocVariadicTypeNode : SyntaxNode
+public sealed partial class JSDocVariadicTypeNode : SyntaxNode, ITypedNode
 {
     public JSDocVariadicTypeNode() : base(SyntaxKind.JSDocVariadicType)
     {
@@ -4427,7 +4456,7 @@ public sealed partial class JSDocVariadicTypeNode : SyntaxNode
     }
 }
 
-public sealed partial class JSDocOptionalTypeNode : SyntaxNode
+public sealed partial class JSDocOptionalTypeNode : SyntaxNode, ITypedNode
 {
     public JSDocOptionalTypeNode() : base(SyntaxKind.JSDocOptionalType)
     {
@@ -4449,7 +4478,7 @@ public sealed partial class JSDocOptionalTypeNode : SyntaxNode
     }
 }
 
-public sealed partial class JSDocTypeTagNode : SyntaxNode
+public sealed partial class JSDocTypeTagNode : SyntaxNode, ITypeExpressionNode
 {
     public JSDocTypeTagNode() : base(SyntaxKind.JSDocTypeTag)
     {
@@ -4553,7 +4582,7 @@ public sealed partial class JSDocTemplateTagNode : SyntaxNode
     }
 }
 
-public sealed partial class JSDocReturnTagNode : SyntaxNode
+public sealed partial class JSDocReturnTagNode : SyntaxNode, ITypeExpressionNode
 {
     public JSDocReturnTagNode() : base(SyntaxKind.JSDocReturnTag)
     {
@@ -4865,7 +4894,7 @@ public sealed partial class JSDocAugmentsTagNode : SyntaxNode
     }
 }
 
-public sealed partial class JSDocSatisfiesTagNode : SyntaxNode
+public sealed partial class JSDocSatisfiesTagNode : SyntaxNode, ITypeExpressionNode
 {
     public JSDocSatisfiesTagNode() : base(SyntaxKind.JSDocSatisfiesTag)
     {
@@ -4898,7 +4927,7 @@ public sealed partial class JSDocSatisfiesTagNode : SyntaxNode
     }
 }
 
-public sealed partial class JSDocThrowsTagNode : SyntaxNode
+public sealed partial class JSDocThrowsTagNode : SyntaxNode, ITypeExpressionNode
 {
     public JSDocThrowsTagNode() : base(SyntaxKind.JSDocThrowsTag)
     {
@@ -4931,7 +4960,7 @@ public sealed partial class JSDocThrowsTagNode : SyntaxNode
     }
 }
 
-public sealed partial class JSDocThisTagNode : SyntaxNode
+public sealed partial class JSDocThisTagNode : SyntaxNode, ITypeExpressionNode
 {
     public JSDocThisTagNode() : base(SyntaxKind.JSDocThisTag)
     {
@@ -5003,7 +5032,7 @@ public sealed partial class JSDocImportTagNode : SyntaxNode
     }
 }
 
-public sealed partial class JSDocCallbackTagNode : SyntaxNode
+public sealed partial class JSDocCallbackTagNode : SyntaxNode, ITypeExpressionNode, INamedNode
 {
     public JSDocCallbackTagNode() : base(SyntaxKind.JSDocCallbackTag)
     {
@@ -5012,6 +5041,7 @@ public sealed partial class JSDocCallbackTagNode : SyntaxNode
     public SyntaxNode? TypeExpression { get; set; }
     public SyntaxNode? Name { get; set; }
     public NodeList? Comment { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (TagName is null ? 0 : 1) + (TypeExpression is null ? 0 : 1) + (Name is null ? 0 : 1) + (Comment?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -5039,7 +5069,7 @@ public sealed partial class JSDocCallbackTagNode : SyntaxNode
     }
 }
 
-public sealed partial class JSDocOverloadTagNode : SyntaxNode
+public sealed partial class JSDocOverloadTagNode : SyntaxNode, ITypeExpressionNode
 {
     public JSDocOverloadTagNode() : base(SyntaxKind.JSDocOverloadTag)
     {
@@ -5072,7 +5102,7 @@ public sealed partial class JSDocOverloadTagNode : SyntaxNode
     }
 }
 
-public sealed partial class JSDocTypedefTagNode : SyntaxNode
+public sealed partial class JSDocTypedefTagNode : SyntaxNode, ITypeExpressionNode, INamedNode
 {
     public JSDocTypedefTagNode() : base(SyntaxKind.JSDocTypedefTag)
     {
@@ -5081,6 +5111,7 @@ public sealed partial class JSDocTypedefTagNode : SyntaxNode
     public SyntaxNode? TypeExpression { get; set; }
     public SyntaxNode? Name { get; set; }
     public NodeList? Comment { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (TagName is null ? 0 : 1) + (TypeExpression is null ? 0 : 1) + (Name is null ? 0 : 1) + (Comment?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -5108,7 +5139,7 @@ public sealed partial class JSDocTypedefTagNode : SyntaxNode
     }
 }
 
-public sealed partial class JSDocSignatureNode : SyntaxNode
+public sealed partial class JSDocSignatureNode : SyntaxNode, ITypedNode, IFunctionSignature
 {
     public JSDocSignatureNode() : base(SyntaxKind.JSDocSignature)
     {
@@ -5146,12 +5177,13 @@ public sealed partial class JSDocSignatureNode : SyntaxNode
     }
 }
 
-public sealed partial class JSDocNameReferenceNode : SyntaxNode
+public sealed partial class JSDocNameReferenceNode : SyntaxNode, INamedNode
 {
     public JSDocNameReferenceNode() : base(SyntaxKind.JSDocNameReference)
     {
     }
     public SyntaxNode? Name { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -5198,7 +5230,7 @@ public sealed partial class SourceFileNode : SyntaxNode
     }
 }
 
-public sealed partial class ModuleDeclarationNode : SyntaxNode
+public sealed partial class ModuleDeclarationNode : SyntaxNode, IModifiedNode, INamedNode
 {
     public ModuleDeclarationNode() : base(SyntaxKind.ModuleDeclaration)
     {
@@ -5208,6 +5240,7 @@ public sealed partial class ModuleDeclarationNode : SyntaxNode
     public SyntaxNode? Name { get; set; }
     public TypeLiteralNode? Attributes { get; set; }
     public SyntaxNode? Body { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (Attributes is null ? 0 : 1) + (Body is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -5235,7 +5268,7 @@ public sealed partial class ModuleDeclarationNode : SyntaxNode
     }
 }
 
-public sealed partial class ImportEqualsDeclarationNode : SyntaxNode
+public sealed partial class ImportEqualsDeclarationNode : SyntaxNode, IModifiedNode, INamedNode
 {
     public ImportEqualsDeclarationNode() : base(SyntaxKind.ImportEqualsDeclaration)
     {
@@ -5244,6 +5277,7 @@ public sealed partial class ImportEqualsDeclarationNode : SyntaxNode
     public bool IsTypeOnly { get; set; }
     public IdentifierNode? Name { get; set; }
     public SyntaxNode? ModuleReference { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (ModuleReference is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -5269,7 +5303,7 @@ public sealed partial class ImportEqualsDeclarationNode : SyntaxNode
     }
 }
 
-public sealed partial class ExportDeclarationNode : SyntaxNode
+public sealed partial class ExportDeclarationNode : SyntaxNode, IModifiedNode
 {
     public ExportDeclarationNode() : base(SyntaxKind.ExportDeclaration)
     {
@@ -5343,7 +5377,7 @@ public sealed partial class ImportTypeNode : SyntaxNode
     }
 }
 
-public sealed partial class ImportClauseNode : SyntaxNode
+public sealed partial class ImportClauseNode : SyntaxNode, INamedNode
 {
     public ImportClauseNode() : base(SyntaxKind.ImportClause)
     {
@@ -5351,6 +5385,7 @@ public sealed partial class ImportClauseNode : SyntaxNode
     public SyntaxKind PhaseModifier { get; set; }
     public IdentifierNode? Name { get; set; }
     public SyntaxNode? NamedBindings { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Name is null ? 0 : 1) + (NamedBindings is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -5369,7 +5404,7 @@ public sealed partial class ImportClauseNode : SyntaxNode
     }
 }
 
-public sealed partial class ImportSpecifierNode : SyntaxNode
+public sealed partial class ImportSpecifierNode : SyntaxNode, INamedNode
 {
     public ImportSpecifierNode() : base(SyntaxKind.ImportSpecifier)
     {
@@ -5377,6 +5412,7 @@ public sealed partial class ImportSpecifierNode : SyntaxNode
     public bool IsTypeOnly { get; set; }
     public SyntaxNode? PropertyName { get; set; }
     public IdentifierNode? Name { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (PropertyName is null ? 0 : 1) + (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -5416,13 +5452,14 @@ public sealed partial class JSDocTextNode : SyntaxNode
     }
 }
 
-public sealed partial class JSDocLinkNode : SyntaxNode
+public sealed partial class JSDocLinkNode : SyntaxNode, INamedNode
 {
     public JSDocLinkNode() : base(SyntaxKind.JSDocLink)
     {
     }
     public SyntaxNode? Name { get; set; }
     public string[] Text { get; set; } = [];
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -5440,13 +5477,14 @@ public sealed partial class JSDocLinkNode : SyntaxNode
     }
 }
 
-public sealed partial class JSDocLinkPlainNode : SyntaxNode
+public sealed partial class JSDocLinkPlainNode : SyntaxNode, INamedNode
 {
     public JSDocLinkPlainNode() : base(SyntaxKind.JSDocLinkPlain)
     {
     }
     public SyntaxNode? Name { get; set; }
     public string[] Text { get; set; } = [];
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -5464,13 +5502,14 @@ public sealed partial class JSDocLinkPlainNode : SyntaxNode
     }
 }
 
-public sealed partial class JSDocLinkCodeNode : SyntaxNode
+public sealed partial class JSDocLinkCodeNode : SyntaxNode, INamedNode
 {
     public JSDocLinkCodeNode() : base(SyntaxKind.JSDocLinkCode)
     {
     }
     public SyntaxNode? Name { get; set; }
     public string[] Text { get; set; } = [];
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -5488,7 +5527,7 @@ public sealed partial class JSDocLinkCodeNode : SyntaxNode
     }
 }
 
-public sealed partial class TypeParameterDeclarationNode : SyntaxNode
+public sealed partial class TypeParameterDeclarationNode : SyntaxNode, IModifiedNode, INamedNode
 {
     public TypeParameterDeclarationNode() : base(SyntaxKind.TypeParameter)
     {
@@ -5498,6 +5537,7 @@ public sealed partial class TypeParameterDeclarationNode : SyntaxNode
     public SyntaxNode? Constraint { get; set; }
     public SyntaxNode? Expression { get; set; }
     public SyntaxNode? DefaultType { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (Constraint is null ? 0 : 1) + (Expression is null ? 0 : 1) + (DefaultType is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -5579,7 +5619,7 @@ public sealed partial class JSDocTypeLiteralNode : SyntaxNode
     }
 }
 
-public sealed partial class JSDocParameterOrPropertyTagNode : SyntaxNode
+public sealed partial class JSDocParameterOrPropertyTagNode : SyntaxNode, ITypeExpressionNode, INamedNode
 {
     public JSDocParameterOrPropertyTagNode(SyntaxKind kind) : base(kind)
     {
@@ -5591,6 +5631,7 @@ public sealed partial class JSDocParameterOrPropertyTagNode : SyntaxNode
     public SyntaxNode? TypeExpression { get; set; }
     public bool IsNameFirst { get; set; }
     public NodeList? Comment { get; set; }
+    SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (TagName is null ? 0 : 1) + (Name is null ? 0 : 1) + (TypeExpression is null ? 0 : 1) + (Comment?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {

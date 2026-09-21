@@ -1,0 +1,27 @@
+{
+    "timestamp": "2026-09-21T20:40:29.245Z",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "configuration": "Release",
+    "runtimeIdentifier": "win-x64",
+    "optimizationPreference": "Speed",
+    "instructionSet": "native",
+    "embedded": {
+        "candidateSha256": "9a719b24e8a6225d1d29d7498e1a33e28388b4f463a09390e37feea2636d742c",
+        "assertions": 4704
+    },
+    "nonembedded": {
+        "candidateSha256": "0dbd2cafaf6f992983f4d02c83ea9f2cb013f2a2460d2f2d8e6b786338bfe841",
+        "assertions": 4703
+    },
+    "diagnostics": 2213,
+    "locales": 13,
+    "libraries": 108,
+    "priorPrimitiveAssertions": 458098,
+    "priorPipeline": {
+        "cases": 15,
+        "nodes": 3886,
+        "relations": 90212,
+        "deepAndCancellation": true
+    },
+    "scope": "Foundation and regression checks only; the full phase-2 parser and host/configuration gates are open."
+}

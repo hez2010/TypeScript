@@ -16,6 +16,7 @@ public readonly record struct ScannerState(int Position, int FullStart, int Toke
 public sealed partial class Scanner(SourceText source, bool skipTrivia = true, bool jsx = false)
 {
     private readonly string text = source.Text;
+    private int end = source.Length;
     private int pos;
     private int jsDocDepth;
     private static readonly SearchValues<char> IdentifierAscii = SearchValues.Create("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_$");
@@ -25,6 +26,7 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
     public int FullStart { get; private set; }
     public int TokenStart { get; private set; }
     public int Position => pos;
+    public int End => end;
     public SyntaxKind Kind { get; private set; }
     public string Value { get; private set; } = "";
     public TokenFlags Flags { get; private set; }
@@ -32,12 +34,12 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
     public List<CommentDirective> CommentDirectives { get; } = [];
     public ReadOnlySpan<char> TokenText => text.AsSpan(TokenStart, pos - TokenStart);
     public bool HasPrecedingLineBreak => (Flags & TokenFlags.PrecedingLineBreak) != 0;
-    private int Char(int offset = 0) => pos + offset < text.Length ? text[pos + offset] : -1;
+    private int Char(int offset = 0) => pos + offset < end ? text[pos + offset] : -1;
     private int CodePoint(out int width)
     {
-        if (pos >= text.Length) { width = 0; return -1; }
+        if (pos >= end) { width = 0; return -1; }
         char ch = text[pos];
-        if (char.IsHighSurrogate(ch) && pos + 1 < text.Length && char.IsLowSurrogate(text[pos + 1]))
+        if (char.IsHighSurrogate(ch) && pos + 1 < end && char.IsLowSurrogate(text[pos + 1]))
         { width = 2; return char.ConvertToUtf32(ch, text[pos + 1]); }
         width = 1;
         return ch;
@@ -55,8 +57,16 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
     public void ResetPosition(int position)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(position);
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(position, text.Length);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(position, end);
         pos = FullStart = TokenStart = position; Kind = SyntaxKind.Unknown; Flags = 0; Value = "";
+    }
+    public void SetTextRange(int start, int end)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(start);
+        ArgumentOutOfRangeException.ThrowIfLessThan(end, start);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(end, Source.Length);
+        this.end = end;
+        ResetPosition(start);
     }
     public void SetSkipJSDocLeadingAsterisks(bool enabled)
     {
@@ -94,10 +104,10 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
                 bool doc = multi && Char() == '*' && Char(1) != '/';
                 bool closed = !multi;
                 int lastLine = TokenStart;
-                while (pos < text.Length)
+                while (pos < end)
                 {
-                    int next = text.AsSpan(pos).IndexOfAny(multi ? "*\r\n\u2028\u2029" : "\r\n\u2028\u2029");
-                    if (next < 0) { pos = text.Length; break; }
+                    int next = text.AsSpan(pos, end - pos).IndexOfAny(multi ? "*\r\n\u2028\u2029" : "\r\n\u2028\u2029");
+                    if (next < 0) { pos = end; break; }
                     pos += next;
                     if (!multi) break;
                     if (Char() == '*' && Char(1) == '/') { pos += 2; closed = true; break; }
@@ -126,8 +136,8 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
             if (ch == '#' && Char(1) == '!')
             {
                 if (pos != 0) { Error(Messages.X_can_only_be_used_at_the_start_of_a_file, pos, 2); pos += 2; return Kind = SyntaxKind.Unknown; }
-                int end = text.AsSpan(pos).IndexOfAny("\r\n\u2028\u2029");
-                pos = end < 0 ? text.Length : pos + end;
+                int nextLine = text.AsSpan(pos, end - pos).IndexOfAny("\r\n\u2028\u2029");
+                pos = nextLine < 0 ? end : pos + nextLine;
                 continue;
             }
             if (ch is '\'' or '"') { Value = ScanString(false); return Kind = SyntaxKind.StringLiteral; }
@@ -144,7 +154,7 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
             if (ch == '?' && Char(1) == '.' && IsDigit(Char(2))) { pos++; return Kind = SyntaxKind.QuestionToken; }
             if (ch == '*' && jsDocDepth != 0 && HasPrecedingLineBreak && (Flags & TokenFlags.PrecedingJSDocLeadingAsterisks) == 0 && Char(1) is not ('*' or '='))
             { pos++; Flags |= TokenFlags.PrecedingJSDocLeadingAsterisks; continue; }
-            for (int length = Math.Min(3, text.Length - pos); length > 0; length--)
+            for (int length = Math.Min(3, end - pos); length > 0; length--)
             {
                 SyntaxKind punctuation = FromText(text.AsSpan(pos, length));
                 if (punctuation is SyntaxKind.Unknown or SyntaxKind.HashToken or SyntaxKind.BacktickToken) continue;
@@ -156,7 +166,7 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
             if (point == 0xFFFD || point is >= 0xD800 and <= 0xDFFF)
             {
                 Error(Messages.File_appears_to_be_binary, 0);
-                pos = text.Length;
+                pos = end;
                 return Kind = SyntaxKind.NonTextFileMarkerTrivia;
             }
             Error(Messages.Invalid_character, pos, width);
@@ -184,14 +194,14 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         if (tail.StartsWith("@ts-expect-error", StringComparison.Ordinal)) CommentDirectives.Add(new(start, end, true));
         else if (tail.StartsWith("@ts-ignore", StringComparison.Ordinal)) CommentDirectives.Add(new(start, end, false));
     }
-    private bool IsConflictMarker(int at) => at + 7 < text.Length && (at == 0 || IsLineBreak(text[at - 1])) &&
+    private bool IsConflictMarker(int at) => at + 7 < end && (at == 0 || IsLineBreak(text[at - 1])) &&
         text.AsSpan(at, 7).IndexOfAnyExcept(text[at]) < 0 && (text[at] == '=' || text[at + 7] == ' ');
     private void ScanConflictMarker()
     {
         Error(Messages.Merge_conflict_marker_encountered, pos, 7);
         char first = text[pos];
-        if (first is '<' or '>') while (pos < text.Length && !IsLineBreak(Char())) pos++;
-        else while (pos < text.Length)
+        if (first is '<' or '>') while (pos < end && !IsLineBreak(Char())) pos++;
+        else while (pos < end)
         {
             if (Char() is '=' or '>' && Char() != first && IsConflictMarker(pos)) break;
             pos++;
@@ -212,10 +222,10 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         else if (IsIdentifierStart(ch)) pos += width;
         else return false;
         int part = builder is null ? start : pos;
-        while (pos < text.Length)
+        while (pos < end)
         {
-            int ascii = text.AsSpan(pos).IndexOfAnyExcept(IdentifierAscii);
-            pos = ascii < 0 ? text.Length : pos + ascii;
+            int ascii = text.AsSpan(pos, end - pos).IndexOfAnyExcept(IdentifierAscii);
+            pos = ascii < 0 ? end : pos + ascii;
             ch = CodePoint(out width);
             if (IsIdentifierPart(ch, jsxName)) { pos += width; continue; }
             if (ch != '\\') break;
@@ -251,7 +261,7 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         int quote = Char();
         if (quote == '\'') Flags |= TokenFlags.SingleQuote;
         int start = ++pos;
-        int closing = text.AsSpan(start).IndexOf((char)quote);
+        int closing = text.AsSpan(start, end - start).IndexOf((char)quote);
         if (closing >= 0 && (jsxAttribute || text.AsSpan(start, closing).IndexOfAny('\\', '\r', '\n') < 0))
         { pos += closing + 1; return text.Substring(start, closing); }
         var result = new StringBuilder();
@@ -274,8 +284,8 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         var result = new StringBuilder();
         while (true)
         {
-            int next = text.AsSpan(pos).IndexOfAny("`$\\\r");
-            pos = next < 0 ? text.Length : pos + next;
+            int next = text.AsSpan(pos, end - pos).IndexOfAny("`$\\\r");
+            pos = next < 0 ? end : pos + next;
             int ch = Char();
             if (ch < 0 || ch == '`')
             {
@@ -406,8 +416,13 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
             if (digits.Length == 0)
             { Error(radix == 16 ? Messages.Hexadecimal_digit_expected : radix == 8 ? Messages.Octal_digit_expected : Messages.Binary_digit_expected); digits = "0"; }
             Flags |= radix == 16 ? TokenFlags.HexSpecifier : radix == 8 ? TokenFlags.OctalSpecifier : TokenFlags.BinarySpecifier;
-            BigInteger integer = BigInteger.Zero;
-            foreach (char digit in digits) integer = integer * radix + HexDigit(digit);
+            // The leading zero makes the BCL's signed hexadecimal/binary grammar unsigned.
+            BigInteger integer = radix switch
+            {
+                16 => BigInteger.Parse("0" + digits, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture),
+                2 => BigInteger.Parse("0" + digits, NumberStyles.AllowBinarySpecifier, CultureInfo.InvariantCulture),
+                _ => OctalInteger(digits),
+            };
             if (Char() == 'n')
             {
                 pos++;
@@ -437,11 +452,11 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
                 else if (!octal) Flags |= TokenFlags.ContainsLeadingZero;
                 else
                 {
-                    BigInteger integer = 0;
-                    foreach (char digit in fixedPart) integer = integer * 8 + digit - '0';
+                    BigInteger integer = OctalInteger(fixedPart);
                     Value = NumberText((double)integer); Flags |= TokenFlags.Octal;
                     bool minus = Kind == SyntaxKind.MinusToken;
-                    Error(Messages.Octal_literals_are_not_allowed_Use_the_syntax_0, minus ? start - 1 : start, pos - start + (minus ? 1 : 0), (minus ? "-" : "") + "0o" + fixedPart.TrimStart('0'));
+                    string octalText = fixedPart.TrimStart('0');
+                    Error(Messages.Octal_literals_are_not_allowed_Use_the_syntax_0, minus ? start - 1 : start, pos - start + (minus ? 1 : 0), (minus ? "-" : "") + "0o" + (octalText.Length == 0 ? "0" : octalText));
                     return SyntaxKind.NumericLiteral;
                 }
             }
@@ -481,5 +496,20 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
             pos = idStart;
         }
         return result;
+    }
+    private static BigInteger OctalInteger(ReadOnlySpan<char> digits)
+    {
+        // BigInteger.Parse has no octal mode. Pack three bits per digit, then let
+        // the BCL construct the integer; repeated big-integer multiplication is quadratic.
+        int length = checked((int)(((long)digits.Length * 3 + 7) / 8));
+        byte[] bytes = new byte[length];
+        long bit = 0;
+        for (int i = digits.Length - 1; i >= 0; i--, bit += 3)
+        {
+            int index = checked((int)(bit >> 3)); int value = (digits[i] - '0') << (int)(bit & 7);
+            bytes[index] |= (byte)value;
+            if (index + 1 < bytes.Length) bytes[index + 1] |= (byte)(value >> 8);
+        }
+        return new BigInteger(bytes, isUnsigned: true);
     }
 }

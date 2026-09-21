@@ -3,6 +3,18 @@ using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Ast;
 
+public interface ITypedNode { SyntaxNode? Type { get; set; } }
+public interface IInitializedNode { SyntaxNode? Initializer { get; set; } }
+public interface IFullSignatureNode { SyntaxNode? FullSignature { get; set; } }
+public interface ITypeExpressionNode { SyntaxNode? TypeExpression { get; set; } }
+public interface IFunctionSignature : ITypedNode
+{
+    NodeList? TypeParameters { get; set; }
+    NodeList? Parameters { get; set; }
+}
+public interface IModifiedNode { NodeList? Modifiers { get; set; } }
+public interface INamedNode { SyntaxNode? Name { get; } }
+
 public abstract class SyntaxNode(SyntaxKind kind)
 {
     public SyntaxKind Kind { get; } = kind;
@@ -13,7 +25,7 @@ public abstract class SyntaxNode(SyntaxKind kind)
     public abstract int ChildCount { get; }
     public abstract SyntaxNode GetChild(int index);
     internal abstract void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies);
-    internal SyntaxNode ShallowClone() => (SyntaxNode)MemberwiseClone();
+    internal virtual SyntaxNode ShallowClone() => (SyntaxNode)MemberwiseClone();
     internal virtual void ConvertPositions(Func<int, int> convert) { Pos = convert(Pos); End = convert(End); }
 
     public IEnumerable<SyntaxNode> DescendantsAndSelf()
@@ -54,6 +66,8 @@ public abstract class SyntaxNode(SyntaxKind kind)
         }
         var result = (T)copies[this];
         result.SetParents();
+        if (this is SourceFileNode originalFile && result is SourceFileNode clonedFile)
+            clonedFile.ReparsedClones = originalFile.ReparsedClones.Where(copies.ContainsKey).Select(n => copies[n]).ToArray();
         return result;
     }
 }

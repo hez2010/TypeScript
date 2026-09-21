@@ -48,7 +48,17 @@ for (const [name, definition] of Object.entries(definitions)) {
     const options = Array.isArray(kind) ? kind : Array.isArray(kindMember?.type) ? kindMember.type.map(k => k.replace("SyntaxKind.", "")) : undefined;
     if (name === "KeywordExpression" || name === "KeywordTypeNode" || name === "Token" || options) kind = undefined;
     if (!kind && !kindMember && !options) throw new Error(`Unmapped syntax kind ${name}`);
-    lines.push(`public sealed partial class ${className} : SyntaxNode`, "{");
+    const has = (name, expected) => fields.some(m => upper(m.name) === name && type(m) === expected);
+    const interfaces = [];
+    if (has("Type", "SyntaxNode?")) interfaces.push("ITypedNode");
+    if (has("Initializer", "SyntaxNode?")) interfaces.push("IInitializedNode");
+    if (has("FullSignature", "SyntaxNode?")) interfaces.push("IFullSignatureNode");
+    if (has("TypeExpression", "SyntaxNode?")) interfaces.push("ITypeExpressionNode");
+    if (has("TypeParameters", "NodeList?") && has("Parameters", "NodeList?") && has("Type", "SyntaxNode?")) interfaces.push("IFunctionSignature");
+    if (has("Modifiers", "NodeList?")) interfaces.push("IModifiedNode");
+    const nameField = fields.find(m => upper(m.name) === "Name" && isChild(m) && !m.list);
+    if (nameField) interfaces.push("INamedNode");
+    lines.push(`public sealed partial class ${className} : SyntaxNode${interfaces.length ? ", " + interfaces.join(", ") : ""}`, "{");
     lines.push(`    public ${className}(${kind ? "" : "SyntaxKind kind"}) : base(${kind ? `SyntaxKind.${kind}` : "kind"})`, "    {");
     if (options) lines.push(`        if (kind is not (${options.map(k => `SyntaxKind.${k}`).join(" or ")})) throw new ArgumentOutOfRangeException(nameof(kind));`);
     lines.push("    }");
@@ -57,6 +67,7 @@ for (const [name, definition] of Object.entries(definitions)) {
         const t = type(m);
         lines.push(`    public ${t} ${upper(m.name)} { get; set; }${t === "string" ? ' = "";' : t.endsWith("[]") ? " = [];" : ""}`);
     }
+    if (nameField) lines.push("    SyntaxNode? INamedNode.Name => Name;");
     const children = fields.filter(isChild);
     lines.push(`    public override int ChildCount => ${children.length ? children.map(m => m.list === "raw" ? `${upper(m.name)}.Length` : m.list ? `(${upper(m.name)}?.Count ?? 0)` : `(${upper(m.name)} is null ? 0 : 1)`).join(" + ") : "0"};`);
     lines.push("    public override SyntaxNode GetChild(int index)", "    {");

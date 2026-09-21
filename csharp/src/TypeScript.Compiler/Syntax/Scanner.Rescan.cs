@@ -10,7 +10,7 @@ public sealed partial class Scanner
     {
         if (Kind != SyntaxKind.GreaterThanToken) return Kind;
         pos = TokenStart;
-        int length = Math.Min(4, text.Length - pos);
+        int length = Math.Min(4, end - pos);
         for (; length > 0; length--)
         {
             SyntaxKind kind = FromText(text.AsSpan(pos, length));
@@ -107,7 +107,7 @@ public sealed partial class Scanner
             case '{': pos++; return Kind = SyntaxKind.OpenBraceToken;
         }
         int firstNonWhitespace = 0;
-        while (pos < text.Length)
+        while (pos < end)
         {
             int ch = CodePoint(out int width);
             if (ch == '{') break;
@@ -169,8 +169,8 @@ public sealed partial class Scanner
     {
         FullStart = TokenStart = pos;
         Flags = 0;
-        if (pos >= text.Length) return Kind = SyntaxKind.EndOfFile;
-        while (pos < text.Length)
+        if (pos >= end) return Kind = SyntaxKind.EndOfFile;
+        while (pos < end)
         {
             int ch = CodePoint(out int width);
             if (IsLineBreak(ch) || ch == '`') break;
@@ -181,5 +181,5 @@ public sealed partial class Scanner
         Value = text[TokenStart..pos];
         return Kind = SyntaxKind.JSDocCommentTextToken;
     }
-    public bool CanFollowJSDocAt() => pos == text.Length || IsIdentifierStart(CodePoint(out _)) || IsWhiteSpace(Char()) || IsLineBreak(Char());
+    public bool CanFollowJSDocAt() => pos == end || IsIdentifierStart(CodePoint(out _)) || IsWhiteSpace(Char()) || IsLineBreak(Char());
 }

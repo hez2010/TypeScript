@@ -45,8 +45,16 @@ public sealed partial class Parser
         {
             int start = Pos;
             SyntaxNode type = PrimaryType();
-            while (!LineBreak && Take(K.OpenBracketToken))
+            while (!LineBreak)
             {
+                if ((context & NodeFlags.JSDoc) != 0 && Token == K.ExclamationToken)
+                { Next(); type = Finish(factory.NewJSDocNonNullableType(type), start); continue; }
+                if ((context & NodeFlags.JSDoc) != 0 && Token == K.QuestionToken)
+                {
+                    if (Peek(() => { Next(); return StartsType(); })) break;
+                    Next(); type = Finish(factory.NewJSDocNullableType(type), start); continue;
+                }
+                if (!Take(K.OpenBracketToken)) break;
                 if (Take(K.CloseBracketToken)) type = Finish(factory.NewArrayTypeNode(type), start);
                 else { SyntaxNode index = Type(); Expected(K.CloseBracketToken); type = Finish(factory.NewIndexedAccessTypeNode(type, index), start); }
             }
@@ -57,6 +65,8 @@ public sealed partial class Parser
     private SyntaxNode PrimaryType()
     {
         int start = Pos;
+        if (Token == K.AsteriskEqualsToken) { scanner.RescanAsteriskEqualsToken(); Next(); return Finish(factory.NewJSDocAllType(), start); }
+        if (Token == K.QuestionQuestionToken) scanner.RescanQuestionToken();
         switch (Token)
         {
             case K.AnyKeyword:
@@ -142,12 +152,17 @@ public sealed partial class Parser
             case K.DotDotDotToken:
                 Next(); return Finish(factory.NewJSDocVariadicType(Type()), start);
         }
-        if (!IsIdentifier)
+        if (Token != K.Identifier && Token is not (>= K.FirstKeyword and <= K.LastKeyword))
         { Error(Messages.Type_expected); return Finish(factory.NewTypeReferenceNode(Finish(factory.NewIdentifier(""), Pos, Pos), null), start, start); }
         SyntaxNode name = EntityName();
         if (name is IdentifierNode && !LineBreak && Take(K.IsKeyword)) return Finish(factory.NewTypePredicateNode(null, name, Type()), start);
         return Finish(factory.NewTypeReferenceNode(name, TypeArguments()), start);
     }
+    private bool StartsType() => IsIdentifier || Token is K.AnyKeyword or K.UnknownKeyword or K.StringKeyword or K.NumberKeyword or K.BigIntKeyword
+        or K.BooleanKeyword or K.VoidKeyword or K.UndefinedKeyword or K.NeverKeyword or K.ObjectKeyword or K.TypeOfKeyword or K.ThisKeyword
+        or K.OpenBraceToken or K.OpenBracketToken or K.OpenParenToken or K.LessThanToken or K.BarToken or K.AmpersandToken
+        or K.NewKeyword or K.StringLiteral or K.NumericLiteral or K.BigIntLiteral or K.TrueKeyword or K.FalseKeyword or K.NullKeyword
+        or K.QuestionToken or K.ExclamationToken or K.AsteriskToken or K.DotDotDotToken or K.TemplateHead or K.NoSubstitutionTemplateLiteral;
     private bool IsFunctionType() => Peek(() =>
     {
         if (Token != K.OpenParenToken) return false;
