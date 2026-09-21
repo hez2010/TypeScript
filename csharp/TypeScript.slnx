@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/TypeScript.Compiler/TypeScript.Compiler.csproj" />
+  <Project Path="tests/TypeScript.Compatibility/TypeScript.Compatibility.csproj" />
+</Solution>

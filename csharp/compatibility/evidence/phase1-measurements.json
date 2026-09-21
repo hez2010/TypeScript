@@ -1,0 +1,1988 @@
+{
+    "timestamp": "2026-09-21T18:07:32.895Z",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "cpu": "13th Gen Intel(R) Core(TM) i7-13700K",
+    "instructionSet": "native",
+    "optimizationPreference": "Speed",
+    "candidateSha256": "e3e5b178c253b10e1a2d41afaff42ec4d0ca8824302be6b53bff8881a9db2130",
+    "candidateBytes": 5144576,
+    "inputSha256": "c70c5a0fff40ef20795e08f6c8a6c6701521bfd30b9b2c7ef1cd11ca9b670585",
+    "oracleSha256": "09603edb09180943d86ae621aa2bd2cfb2e26b398fc76dcba12fe911b484e245",
+    "outputSha256": "0daaeb860347403c38e21b39663ff0766d9dbf48b121833d4ab48c439280e3bf",
+    "cases": 15,
+    "comparedNodes": 3886,
+    "relations": 90212,
+    "decoder": "unchanged packages/typescript/src/api/node/node.ts",
+    "deepAndCancellation": true,
+    "experiment": "Independent C# parse, bind, check and encode; 2 files with 100 exported type aliases, 200 variables and 100 import declarations",
+    "processes": 5,
+    "samplesPerProcess": 15,
+    "iterationsPerSample": 20,
+    "workloads": [
+        {
+            "name": "classes-utf8",
+            "samples": [
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.87361,
+                    "allocatedBytes": 1704210,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.78225,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.8084749999999999,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.830575,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.8211600000000001,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.852445,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.795185,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.856535,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.79893,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.80493,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.78132,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.8076000000000001,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.78062,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.818535,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.80541,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.8635249999999999,
+                    "allocatedBytes": 1704210,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.7734300000000001,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.787505,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.815395,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.77919,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.7853950000000001,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.790355,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.79938,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.82623,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.780845,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.784,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.798125,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.777525,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.779955,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.7957650000000001,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.8498150000000001,
+                    "allocatedBytes": 1704210,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.784655,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.8021800000000001,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.75942,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.795375,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.7934249999999999,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.788815,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.7860050000000001,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.75271,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.766625,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.766835,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.788795,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.8237450000000001,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.83116,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.7817999999999999,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.903655,
+                    "allocatedBytes": 1704210,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.79375,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.79107,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.78922,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.77644,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.774015,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.77186,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.808775,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.8253349999999999,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.831555,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.8641949999999999,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.8347899999999999,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.832005,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.78841,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.820435,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.86402,
+                    "allocatedBytes": 1704210,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.80159,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.780255,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.7765500000000001,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.79984,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.777115,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.8085800000000001,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.784065,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.756675,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.79659,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.77392,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.800975,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.7822899999999999,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.789135,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf8",
+                    "milliseconds": 0.78163,
+                    "allocatedBytes": 1704208,
+                    "checksum": 2708080
+                }
+            ],
+            "medianMilliseconds": 0.79375,
+            "allocatedBytes": 1704208,
+            "processMedians": [
+                0.8076000000000001,
+                0.787505,
+                0.788795,
+                0.808775,
+                0.784065
+            ],
+            "spreadPercent": 3.1326263477836456
+        },
+        {
+            "name": "classes-utf16",
+            "samples": [
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.7551,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.75318,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.76119,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.73143,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.7937700000000001,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.759285,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.777055,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.774555,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.7638499999999999,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.7461599999999999,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.75621,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.746865,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.74092,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.7364200000000001,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.79287,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.7345900000000001,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.7853,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.7313500000000001,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.7378899999999999,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.73048,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.7321799999999999,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.75265,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.73214,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.742625,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.7263200000000001,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.721625,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.7381800000000001,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.718435,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.751905,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.73601,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.759105,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.76239,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.734695,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.7397,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.77416,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.75154,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.75844,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.731115,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.706035,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.727965,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.71645,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.762795,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.72863,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.73838,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.7272000000000001,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.767035,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.73346,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.777435,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.7318100000000001,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.747295,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.7559549999999999,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.72417,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.78389,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.770495,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.76321,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.769865,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.7590600000000001,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.78273,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.75074,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.7554350000000001,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.72886,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.7821049999999999,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.743065,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.7280300000000001,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.75874,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.74386,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.7133499999999999,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.72965,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.713505,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.7460549999999999,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.707475,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.737345,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.7488699999999999,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.70645,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "classes-utf16",
+                    "milliseconds": 0.7498199999999999,
+                    "allocatedBytes": 1730920,
+                    "checksum": 2708080
+                }
+            ],
+            "medianMilliseconds": 0.7460549999999999,
+            "allocatedBytes": 1730920,
+            "processMedians": [
+                0.75621,
+                0.7345900000000001,
+                0.73838,
+                0.7590600000000001,
+                0.737345
+            ],
+            "spreadPercent": 3.3140117554646644
+        },
+        {
+            "name": "arena-utf8",
+            "samples": [
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.979925,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 1.001965,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9842549999999999,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.96752,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9843299999999999,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9674950000000001,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 1.021765,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.91844,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.946735,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.93639,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9400000000000001,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.96614,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.946885,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.96606,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.932345,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9958600000000001,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9567399999999999,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.929055,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9254849999999999,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.89564,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.91547,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.944655,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.95618,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9066649999999999,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.930345,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9242699999999999,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.92125,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.968475,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9381550000000001,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.908855,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 1.0040749999999998,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9391,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.940745,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.966625,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.937345,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.92178,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9543699999999999,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.900785,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9091950000000001,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.964175,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9392799999999999,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9388249999999999,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.93894,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9358700000000001,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9255800000000001,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.965385,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9205650000000001,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9314399999999999,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.925025,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9821,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9326549999999999,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.91798,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.99222,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9944000000000001,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9823000000000001,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 1.00444,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 1.0136049999999999,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.95985,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.97629,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9708,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.998235,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9774749999999999,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9487349999999999,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.92484,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9386300000000001,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 1.002395,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.92271,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9507300000000001,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.985065,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9242100000000001,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9375600000000001,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9554199999999999,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.906585,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.9377000000000001,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf8",
+                    "milliseconds": 0.93361,
+                    "allocatedBytes": 1628320,
+                    "checksum": 2708080
+                }
+            ],
+            "medianMilliseconds": 0.940745,
+            "allocatedBytes": 1628320,
+            "processMedians": [
+                0.96614,
+                0.929055,
+                0.93894,
+                0.9708,
+                0.9386300000000001
+            ],
+            "spreadPercent": 4.445970988561573
+        },
+        {
+            "name": "arena-utf16",
+            "samples": [
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.936835,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.97395,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.969095,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.949235,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.9186,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.90419,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.943535,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.91593,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.9241849999999999,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.9203950000000001,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.9131500000000001,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.896115,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.8842000000000001,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.927895,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.9173500000000001,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.9112349999999999,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.90169,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.898945,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.9248200000000001,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.8841749999999999,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.88745,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.891995,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.8938349999999999,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.8827299999999999,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.8723050000000001,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.9006000000000001,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.8994500000000001,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.912835,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.90503,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.89957,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.90891,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.95745,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.9091250000000001,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.8994949999999999,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.9324899999999999,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.889795,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.903435,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.87158,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.88803,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.8971399999999999,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.88422,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.89355,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.89428,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.9270099999999999,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.9279550000000001,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.8848900000000001,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.90467,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.918115,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.8724449999999999,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.8846299999999999,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.8828699999999999,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.8450300000000001,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.8931850000000001,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.93956,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.940525,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.95375,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.91038,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.89748,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.958305,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.95203,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.90909,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.93079,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.874085,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.87464,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.87593,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.8980499999999999,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.9331400000000001,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.8968400000000001,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.932005,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.8786799999999999,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.8774599999999999,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.9075049999999999,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.8646699999999999,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.926145,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                },
+                {
+                    "name": "arena-utf16",
+                    "milliseconds": 0.89184,
+                    "allocatedBytes": 1655032,
+                    "checksum": 2708080
+                }
+            ],
+            "medianMilliseconds": 0.903435,
+            "allocatedBytes": 1655032,
+            "processMedians": [
+                0.9203950000000001,
+                0.8994500000000001,
+                0.8994949999999999,
+                0.90467,
+                0.8968400000000001
+            ],
+            "spreadPercent": 2.618691599175092
+        }
+    ],
+    "startupWallMilliseconds": [
+        42.998899999999594,
+        39.42020000000048,
+        36.15050000000065,
+        36.413799999999355,
+        37.10069999999996,
+        37.90660000000025,
+        39.08669999999984,
+        36.58250000000044,
+        38.76850000000013,
+        39.83250000000044,
+        37.226699999999255,
+        37.751900000000205,
+        39.88200000000052,
+        41.50770000000011,
+        43.826200000000426,
+        37.50170000000071,
+        38.28759999999966,
+        40.4341000000004,
+        37.294200000000274,
+        44.9966000000004,
+        41.49260000000049,
+        39.54210000000057,
+        37.49619999999959,
+        44.58440000000064,
+        38.80029999999988,
+        40.89860000000044,
+        36.452800000000025,
+        38.40589999999975,
+        37.9341000000004,
+        40.73030000000017,
+        36.6264000000001,
+        36.769100000000435,
+        38.02109999999993,
+        40.95899999999983,
+        40.3128999999999,
+        37.09560000000056,
+        38.022500000000036,
+        38.04770000000008,
+        41.45679999999993,
+        41.07639999999992,
+        40.29700000000048,
+        36.47869999999966,
+        36.895300000000134,
+        39.077800000000025,
+        36.75969999999961,
+        35.41949999999997,
+        46.11120000000028,
+        39.73409999999967,
+        36.48120000000017,
+        40.1886999999997,
+        38.64019999999982,
+        42.832800000000134,
+        40.46429999999964,
+        41.12049999999999,
+        42.29740000000038,
+        41.17979999999989,
+        39.75330000000031,
+        43.26119999999992,
+        46.27859999999964,
+        49.03939999999966,
+        40.925500000000284,
+        41.541299999999865,
+        44.69579999999951,
+        40.95389999999861,
+        40.16810000000078,
+        41.23360000000139,
+        40.926799999999275,
+        42.04620000000068,
+        41.132000000001426,
+        41.3104000000003,
+        41.41450000000077,
+        42.858799999999974,
+        39.36360000000059,
+        43.03350000000137,
+        41.27150000000074,
+        41.23060000000078,
+        42.14219999999841,
+        39.698199999998906,
+        42.01349999999911,
+        42.141599999999016,
+        40.591199999998935,
+        41.79600000000028,
+        41.037500000000364,
+        42.06739999999991,
+        41.811100000000806,
+        42.69210000000021,
+        40.53060000000005,
+        41.016200000000026,
+        45.778700000000754,
+        41.08970000000045,
+        42.23899999999958,
+        41.621500000001106,
+        38.5041999999994,
+        44.165500000000975,
+        55.29480000000149,
+        49.3150999999998,
+        42.71509999999944,
+        40.645300000000134,
+        44.79370000000017,
+        45.443999999999505
+    ],
+    "startupMedianMilliseconds": 40.925500000000284,
+    "environment": "Sequential existing-artifact execution; no concurrent agent builds/tests/profiling. OS background activity is not controlled."
+}

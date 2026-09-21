@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <PublishAot>true</PublishAot>
+    <IlcGenerateMapFile>true</IlcGenerateMapFile>
+    <EventSourceSupport>true</EventSourceSupport>
+    <JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/TypeScript.Compiler/TypeScript.Compiler.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,21 @@
+{
+    "sdk": "11.0.100-rc.2.26470.103",
+    "candidateSha256": "732e7c44a17068fb31beb2a78e000de496be21179bd80f14764db2b38f3125ff",
+    "instructionSet": "native",
+    "toolVersion": "10.0.745401+cef304c50763bf24f99566cb31d55540842e7ae9",
+    "host": "win32-x64",
+    "traceSha256": "a801c22e947b1b295fe5a836efc08f045fc12ff5c5cbd33ed2726ae1ef460315",
+    "bytes": 8277686,
+    "profiles": 1,
+    "frames": [
+        "Process64 TypeScript.Compatibility (40880) Args:  --profile-workload 3 ",
+        "(Non-Activities)",
+        "Threads",
+        "Thread (28840)",
+        "?!?",
+        "CPU_TIME",
+        "UNMANAGED_CODE_TIME"
+    ],
+    "hasNamedWorkloadFrame": false,
+    "assessment": "EventPipe transport and custom counters tested; CPU symbolization, allocation stacks, live heap sampling, and compatible profile export require further validation. This does not close the profiling gate."
+}

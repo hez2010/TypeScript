@@ -1,0 +1,46 @@
+{
+    "version": 1,
+    "dependencies": {
+        "net11.0": {
+            "Microsoft.DotNet.ILCompiler": {
+                "type": "Direct",
+                "requested": "[11.0.0-rc.2.26470.103, )",
+                "resolved": "11.0.0-rc.2.26470.103",
+                "contentHash": "R1p2oXZCxrI2Ue13wkGAUJmOHW+G17UCRAeVOZU3wugk27xZUqQ2eganQUVNixO5P/WQV+Q4i1I2q0Lw/MWjCw=="
+            },
+            "Microsoft.NET.ILLink.Tasks": {
+                "type": "Direct",
+                "requested": "[11.0.0-rc.2.26470.103, )",
+                "resolved": "11.0.0-rc.2.26470.103",
+                "contentHash": "jpVQB6z+uPMdb4K7LHoSCEPhj2UH/AVBgbDl0j2kLqJ6yFANKHPWYeyLH7JnNC5qxQkkfBHFph5KAO2W2W4NSw=="
+            },
+            "System.IO.Hashing": {
+                "type": "Transitive",
+                "resolved": "11.0.0-rc.2.26470.103",
+                "contentHash": "iMhM4rtD/Y7+/HEiwSMs+8Op5W05cS1v5oBdhjTsLLJkMtkRYHz9dE6TAGflro8pPKNUYsYrhxR9YcUZfoKciA=="
+            },
+            "typescript.compiler": {
+                "type": "Project",
+                "dependencies": {
+                    "System.IO.Hashing": "[11.0.0-rc.2.26470.103, )"
+                }
+            }
+        },
+        "net11.0/win-x64": {
+            "Microsoft.DotNet.ILCompiler": {
+                "type": "Direct",
+                "requested": "[11.0.0-rc.2.26470.103, )",
+                "resolved": "11.0.0-rc.2.26470.103",
+                "contentHash": "R1p2oXZCxrI2Ue13wkGAUJmOHW+G17UCRAeVOZU3wugk27xZUqQ2eganQUVNixO5P/WQV+Q4i1I2q0Lw/MWjCw==",
+                "dependencies": {
+                    "runtime.win-x64.Microsoft.DotNet.ILCompiler": "11.0.0-rc.2.26470.103"
+                }
+            },
+            "runtime.win-x64.Microsoft.DotNet.ILCompiler": {
+                "type": "Transitive",
+                "resolved": "11.0.0-rc.2.26470.103",
+                "contentHash": "lis0eomeupl+NaO1ZcFvC/prVcdGSK30Z0W6J1MpZgaAJ8jVYH2k9MjtWeewpmJJ4WQ7jCjbrqesgDLqbPqhyQ=="
+            }
+        }
+    }
+}

@@ -1,0 +1,70 @@
+{
+    "timestamp": "2026-09-21T18:11:54.636Z",
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "instructionSet": "native",
+    "optimizationPreference": "Speed",
+    "candidateSha256": "e3e5b178c253b10e1a2d41afaff42ec4d0ca8824302be6b53bff8881a9db2130",
+    "consumer": "go version go1.27.1 windows/amd64",
+    "semantics": {
+        "iterations": 1568,
+        "releasedOwnerCollected": true,
+        "cpu": "instrumented phase thread CPU nanoseconds",
+        "allocation": "managed bytes allocated on instrumented threads",
+        "heap": "whole-process live managed bytes, plus separately labeled retained-source bytes and syntax-node counts"
+    },
+    "profiles": {
+        "cpu": {
+            "sha256": "09000fe793bfc8675edb4e10bba408efba88cc8e3bfb158b9449c53160a77d6e",
+            "bytes": 535,
+            "totals": [
+                1921875000
+            ],
+            "sampleCount": 11
+        },
+        "alloc": {
+            "sha256": "d3505c3cd6260cf227e93245216f9923f9595d5df104ab476a0597ae96b053b0",
+            "bytes": 520,
+            "totals": [
+                2715986088
+            ],
+            "sampleCount": 11
+        },
+        "cpu-stacks": {
+            "sha256": "ba9b410d4fdab2e105f0b3e957cdb79a20669cc40d69d60b6b7d5e6de1369836",
+            "bytes": 1208,
+            "totals": [
+                1906250000
+            ],
+            "sampleCount": 20
+        },
+        "alloc-stacks": {
+            "sha256": "34d4eea0df40b4ff631dc0b32bb48ccce6c6abc25dbbf4a1249ac73d90103712",
+            "bytes": 1211,
+            "totals": [
+                2610408536
+            ],
+            "sampleCount": 20
+        },
+        "heap-retained": {
+            "sha256": "18feb28c4b0bbcad27f0c5eee371ebadd5f8cf6cf560525591cee45c50f059e1",
+            "bytes": 379,
+            "totals": [
+                4874056,
+                4194304,
+                123
+            ],
+            "sampleCount": 2
+        },
+        "heap-released": {
+            "sha256": "a43214c745d1e8137b07d92e6865f0d0b1c8b3ff7686000cdc041838a155cf61",
+            "bytes": 304,
+            "totals": [
+                562464,
+                0,
+                0
+            ],
+            "sampleCount": 1
+        }
+    },
+    "interpretation": "NativeAOT emits these profiles directly, without an external runtime or Go dependency. CPU/allocation attribution is instrumented by compiler phase, not statistical stack sampling. Heap exposes measured whole-process managed bytes and separate live-source counters."
+}

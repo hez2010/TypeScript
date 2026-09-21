@@ -1,0 +1,167 @@
+{
+    "policy": "ecmascript-power-approximation",
+    "differences": [
+        {
+            "pairIndex": 112,
+            "goBits": "3fe6a09e667f3bcc",
+            "candidateBits": "3fe6a09e667f3bcd",
+            "nodeBits": "3fe6a09e667f3bcd"
+        },
+        {
+            "pairIndex": 113,
+            "goBits": "4006a09e667f3bcc",
+            "candidateBits": "4006a09e667f3bcd",
+            "nodeBits": "4006a09e667f3bcd"
+        },
+        {
+            "pairIndex": 164,
+            "goBits": "3fe279a74590331d",
+            "candidateBits": "3fe279a74590331c",
+            "nodeBits": "3fe279a74590331c"
+        },
+        {
+            "pairIndex": 190,
+            "goBits": "3ff6a09e667f3bcc",
+            "candidateBits": "3ff6a09e667f3bcd",
+            "nodeBits": "3ff6a09e667f3bcd"
+        },
+        {
+            "pairIndex": 192,
+            "goBits": "4006a09e667f3bcc",
+            "candidateBits": "4006a09e667f3bcd",
+            "nodeBits": "4006a09e667f3bcd"
+        },
+        {
+            "pairIndex": 242,
+            "goBits": "3fea20bd700c2c3f",
+            "candidateBits": "3fea20bd700c2c3e",
+            "nodeBits": "3fea20bd700c2c3e"
+        },
+        {
+            "pairIndex": 296,
+            "goBits": "3f77bb27b6e9a173",
+            "candidateBits": "3f77bb27b6e9a172",
+            "nodeBits": "3f77bb27b6e9a172"
+        },
+        {
+            "pairIndex": 320,
+            "goBits": "3fc6a09e667f3bcc",
+            "candidateBits": "3fc6a09e667f3bcd",
+            "nodeBits": "3fc6a09e667f3bcd"
+        },
+        {
+            "pairIndex": 321,
+            "goBits": "4066a09e667f3bcc",
+            "candidateBits": "4066a09e667f3bcd",
+            "nodeBits": "4066a09e667f3bcd"
+        },
+        {
+            "pairIndex": 348,
+            "goBits": "3f759b52a2911af9",
+            "candidateBits": "3f759b52a2911afa",
+            "nodeBits": "3f759b52a2911afa"
+        },
+        {
+            "pairIndex": 373,
+            "goBits": "40781d887ee2889e",
+            "candidateBits": "40781d887ee2889d",
+            "nodeBits": "40781d887ee2889d"
+        },
+        {
+            "pairIndex": 374,
+            "goBits": "3f653b350ad1c857",
+            "candidateBits": "3f653b350ad1c858",
+            "nodeBits": "3f653b350ad1c858"
+        },
+        {
+            "pairIndex": 398,
+            "goBits": "3fc02061446ffa99",
+            "candidateBits": "3fc02061446ffa9a",
+            "nodeBits": "3fc02061446ffa9a"
+        },
+        {
+            "pairIndex": 425,
+            "goBits": "42d6a09e663b59f4",
+            "candidateBits": "42d6a09e663b59f1",
+            "nodeBits": "42d6a09e663b59f1"
+        },
+        {
+            "pairIndex": 426,
+            "goBits": "3d06a09e66c31da5",
+            "candidateBits": "3d06a09e66c31da8",
+            "nodeBits": "3d06a09e66c31da8"
+        },
+        {
+            "pairIndex": 450,
+            "goBits": "3ef6a09e667f3bcc",
+            "candidateBits": "3ef6a09e667f3bcd",
+            "nodeBits": "3ef6a09e667f3bcd"
+        },
+        {
+            "pairIndex": 451,
+            "goBits": "42d6a09e667f3bd0",
+            "candidateBits": "42d6a09e667f3bcd",
+            "nodeBits": "42d6a09e667f3bcd"
+        },
+        {
+            "pairIndex": 452,
+            "goBits": "3d06a09e667f3bc9",
+            "candidateBits": "3d06a09e667f3bcd",
+            "nodeBits": "3d06a09e667f3bcd"
+        },
+        {
+            "pairIndex": 477,
+            "goBits": "42efffffffcffffd",
+            "candidateBits": "42efffffffd00000",
+            "nodeBits": "42efffffffd00000"
+        },
+        {
+            "pairIndex": 478,
+            "goBits": "3cf0000000180002",
+            "candidateBits": "3cf0000000180000",
+            "nodeBits": "3cf0000000180000"
+        },
+        {
+            "pairIndex": 503,
+            "goBits": "42effffffffffffd",
+            "candidateBits": "42f0000000000000",
+            "nodeBits": "42f0000000000000"
+        },
+        {
+            "pairIndex": 504,
+            "goBits": "3cf0000000000002",
+            "candidateBits": "3cf0000000000000",
+            "nodeBits": "3cf0000000000000"
+        },
+        {
+            "pairIndex": 523,
+            "goBits": "3ca0000000000001",
+            "candidateBits": "3ca0000000000000",
+            "nodeBits": "3ca0000000000000"
+        },
+        {
+            "pairIndex": 529,
+            "goBits": "44e6a09e667f3bc9",
+            "candidateBits": "44e6a09e667f3bcc",
+            "nodeBits": "44e6a09e667f3bcc"
+        },
+        {
+            "pairIndex": 530,
+            "goBits": "3af6a09e667f3bd0",
+            "candidateBits": "3af6a09e667f3bce",
+            "nodeBits": "3af6a09e667f3bce"
+        },
+        {
+            "pairIndex": 579,
+            "goBits": "5fefffffffffffff",
+            "candidateBits": "5ff0000000000000",
+            "nodeBits": "5fefffffffffffff"
+        },
+        {
+            "pairIndex": 580,
+            "goBits": "1ff0000000000001",
+            "candidateBits": "1ff0000000000000",
+            "nodeBits": "1ff0000000000000"
+        }
+    ]
+}

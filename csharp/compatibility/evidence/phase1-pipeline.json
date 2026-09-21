@@ -1,0 +1,18 @@
+{
+    "timestamp": "2026-09-21T18:05:20.591Z",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "cpu": "13th Gen Intel(R) Core(TM) i7-13700K",
+    "instructionSet": "native",
+    "optimizationPreference": "Speed",
+    "candidateSha256": "e3e5b178c253b10e1a2d41afaff42ec4d0ca8824302be6b53bff8881a9db2130",
+    "candidateBytes": 5144576,
+    "inputSha256": "c70c5a0fff40ef20795e08f6c8a6c6701521bfd30b9b2c7ef1cd11ca9b670585",
+    "oracleSha256": "09603edb09180943d86ae621aa2bd2cfb2e26b398fc76dcba12fe911b484e245",
+    "outputSha256": "0daaeb860347403c38e21b39663ff0766d9dbf48b121833d4ab48c439280e3bf",
+    "cases": 15,
+    "comparedNodes": 3886,
+    "relations": 90212,
+    "decoder": "unchanged packages/typescript/src/api/node/node.ts",
+    "deepAndCancellation": true
+}

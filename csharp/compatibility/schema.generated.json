@@ -1,0 +1,491 @@
+{
+    "source": "tools/scripts/tsc/ast.json",
+    "sha256": "9ab3dfc6a2ff155ec1e315c6fee3deba8fe77c74256761ed38f475296a569574",
+    "kinds": 351,
+    "definitions": [
+        "Token",
+        "Identifier",
+        "PrivateIdentifier",
+        "QualifiedName",
+        "ComputedPropertyName",
+        "Decorator",
+        "EmptyStatement",
+        "IfStatement",
+        "DoStatement",
+        "WhileStatement",
+        "ForStatement",
+        "ForInOrOfStatement",
+        "BreakStatement",
+        "ContinueStatement",
+        "ReturnStatement",
+        "WithStatement",
+        "SwitchStatement",
+        "CaseBlock",
+        "CaseOrDefaultClause",
+        "ThrowStatement",
+        "TryStatement",
+        "CatchClause",
+        "DebuggerStatement",
+        "LabeledStatement",
+        "ExpressionStatement",
+        "Block",
+        "VariableStatement",
+        "VariableDeclaration",
+        "VariableDeclarationList",
+        "BindingPattern",
+        "ParameterDeclaration",
+        "BindingElement",
+        "MissingDeclaration",
+        "FunctionDeclaration",
+        "ClassDeclaration",
+        "ClassExpression",
+        "HeritageClause",
+        "InterfaceDeclaration",
+        "TypeAliasDeclaration",
+        "EnumMember",
+        "EnumDeclaration",
+        "ModuleBlock",
+        "NotEmittedStatement",
+        "NotEmittedTypeElement",
+        "ImportDeclaration",
+        "ExternalModuleReference",
+        "NamespaceImport",
+        "NamedImports",
+        "ExportAssignment",
+        "NamespaceExportDeclaration",
+        "NamespaceExport",
+        "NamedExports",
+        "ExportSpecifier",
+        "CallSignatureDeclaration",
+        "ConstructSignatureDeclaration",
+        "ConstructorDeclaration",
+        "GetAccessorDeclaration",
+        "SetAccessorDeclaration",
+        "IndexSignatureDeclaration",
+        "MethodSignatureDeclaration",
+        "MethodDeclaration",
+        "PropertySignatureDeclaration",
+        "PropertyDeclaration",
+        "SemicolonClassElement",
+        "ClassStaticBlockDeclaration",
+        "OmittedExpression",
+        "KeywordExpression",
+        "StringLiteral",
+        "NumericLiteral",
+        "BigIntLiteral",
+        "RegularExpressionLiteral",
+        "NoSubstitutionTemplateLiteral",
+        "BinaryExpression",
+        "PrefixUnaryExpression",
+        "PostfixUnaryExpression",
+        "YieldExpression",
+        "ArrowFunction",
+        "FunctionExpression",
+        "AsExpression",
+        "SatisfiesExpression",
+        "ConditionalExpression",
+        "PropertyAccessExpression",
+        "ElementAccessExpression",
+        "CallExpression",
+        "NewExpression",
+        "MetaProperty",
+        "NonNullExpression",
+        "SpreadElement",
+        "TemplateExpression",
+        "TemplateSpan",
+        "TaggedTemplateExpression",
+        "ParenthesizedExpression",
+        "ArrayLiteralExpression",
+        "ObjectLiteralExpression",
+        "SpreadAssignment",
+        "PropertyAssignment",
+        "ShorthandPropertyAssignment",
+        "DeleteExpression",
+        "TypeOfExpression",
+        "VoidExpression",
+        "AwaitExpression",
+        "TypeAssertion",
+        "KeywordTypeNode",
+        "UnionTypeNode",
+        "IntersectionTypeNode",
+        "ConditionalTypeNode",
+        "TypeOperatorNode",
+        "InferTypeNode",
+        "ArrayTypeNode",
+        "IndexedAccessTypeNode",
+        "TypeReferenceNode",
+        "ExpressionWithTypeArguments",
+        "LiteralTypeNode",
+        "ThisTypeNode",
+        "TypePredicateNode",
+        "ImportAttribute",
+        "ImportAttributes",
+        "TypeQueryNode",
+        "MappedTypeNode",
+        "TypeLiteralNode",
+        "TupleTypeNode",
+        "NamedTupleMember",
+        "OptionalTypeNode",
+        "RestTypeNode",
+        "ParenthesizedTypeNode",
+        "FunctionTypeNode",
+        "ConstructorTypeNode",
+        "TemplateHead",
+        "TemplateMiddle",
+        "TemplateTail",
+        "TemplateLiteralTypeNode",
+        "TemplateLiteralTypeSpan",
+        "SyntheticExpression",
+        "PartiallyEmittedExpression",
+        "JsxElement",
+        "JsxAttributes",
+        "JsxNamespacedName",
+        "JsxOpeningElement",
+        "JsxSelfClosingElement",
+        "JsxFragment",
+        "JsxOpeningFragment",
+        "JsxClosingFragment",
+        "JsxAttribute",
+        "JsxSpreadAttribute",
+        "JsxClosingElement",
+        "JsxExpression",
+        "JsxText",
+        "SyntaxList",
+        "JSDoc",
+        "JSDocTypeExpression",
+        "JSDocNonNullableType",
+        "JSDocNullableType",
+        "JSDocAllType",
+        "JSDocVariadicType",
+        "JSDocOptionalType",
+        "JSDocTypeTag",
+        "JSDocUnknownTag",
+        "JSDocTemplateTag",
+        "JSDocReturnTag",
+        "JSDocPublicTag",
+        "JSDocPrivateTag",
+        "JSDocProtectedTag",
+        "JSDocReadonlyTag",
+        "JSDocOverrideTag",
+        "JSDocDeprecatedTag",
+        "JSDocSeeTag",
+        "JSDocImplementsTag",
+        "JSDocAugmentsTag",
+        "JSDocSatisfiesTag",
+        "JSDocThrowsTag",
+        "JSDocThisTag",
+        "JSDocImportTag",
+        "JSDocCallbackTag",
+        "JSDocOverloadTag",
+        "JSDocTypedefTag",
+        "JSDocSignature",
+        "JSDocNameReference",
+        "SourceFile",
+        "ModuleDeclaration",
+        "ImportEqualsDeclaration",
+        "ExportDeclaration",
+        "ImportTypeNode",
+        "ImportClause",
+        "ImportSpecifier",
+        "JSDocText",
+        "JSDocLink",
+        "JSDocLinkPlain",
+        "JSDocLinkCode",
+        "TypeParameterDeclaration",
+        "SyntheticReferenceExpression",
+        "JSDocTypeLiteral",
+        "JSDocParameterOrPropertyTag"
+    ],
+    "flags": [
+        {
+            "location": "$.bases.DeclarationBase.fields.Symbol.goOnly",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.bases.ExportableBase.fields.LocalSymbol.goOnly",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.bases.ModifiersBase.fields.modifiers.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.bases.ModifiersBase.fields.modifierFlags.noGo",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.bases.ModifiersBase.fields.modifierFlags.noFactory",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.bases.LocalsContainerBase.fields.Locals.goOnly",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.bases.LocalsContainerBase.fields.NextContainer.goOnly",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.bases.FlowNodeBase.fields.FlowNode.goOnly",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.bases.CompositeBase.fields.facts.goOnly",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.bases.BodyBase.fields.EndFlowNode.goOnly",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.bases.FunctionLikeWithBodyBase.fields.Body.noGo",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.bases.ClassLikeBase.fields.name.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.bases.NamedMemberBase.fields.name.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.bases.JSDocCommentBase.fields.text.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.CaseOrDefaultClause.members.3.goOnly",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.VariableDeclaration.members.0.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.ParameterDeclaration.members.2.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.BindingElement.members.2.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.FunctionDeclaration.members.2.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.FunctionDeclaration.members.6.noTS",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.FunctionDeclaration.members.8.goOnly",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.InterfaceDeclaration.members.1.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.TypeAliasDeclaration.members.1.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.EnumDeclaration.members.1.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.NamespaceImport.members.0.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.NamespaceExportDeclaration.members.1.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.NamespaceExport.members.0.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.ExportSpecifier.members.2.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.ConstructorDeclaration.members.4.noTS",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.ConstructorDeclaration.members.6.goOnly",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.GetAccessorDeclaration.members.5.noTS",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.SetAccessorDeclaration.members.5.noTS",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.MethodDeclaration.members.7.noTS",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.ClassStaticBlockDeclaration.members.2.goOnly",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.ArrowFunction.members.4.noTS",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.FunctionExpression.members.2.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.FunctionExpression.members.6.noTS",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.FunctionExpression.members.8.goOnly",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.PropertyAccessExpression.members.2.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.MetaProperty.members.1.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.ImportAttribute.members.0.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.NamedTupleMember.members.1.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.JsxNamespacedName.members.1.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.JsxAttribute.members.0.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.JSDocCallbackTag.members.2.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.JSDocTypedefTag.members.2.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.JSDocNameReference.members.0.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.SourceFile.handWritten",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.ModuleDeclaration.members.2.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.ImportEqualsDeclaration.members.2.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.ImportClause.members.1.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.ImportSpecifier.members.2.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.JSDocLink.members.0.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.JSDocLinkPlain.members.0.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.JSDocLinkCode.members.0.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.TypeParameterDeclaration.members.1.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.JSDocParameterOrPropertyTag.handWrittenVisitor",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        },
+        {
+            "location": "$.nodes.definitions.JSDocParameterOrPropertyTag.members.2.private",
+            "value": true,
+            "disposition": "requires explicit C# field/hook mapping before syntax port completion"
+        }
+    ]
+}

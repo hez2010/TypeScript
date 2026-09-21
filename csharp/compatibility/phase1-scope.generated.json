@@ -1,0 +1,84 @@
+{
+    "schemaSha256": "9ab3dfc6a2ff155ec1e315c6fee3deba8fe77c74256761ed38f475296a569574",
+    "productions": {
+        "SourceFile": [
+            "Statements",
+            "EndOfFileToken"
+        ],
+        "Identifier": [
+            "Text:string"
+        ],
+        "KeywordTypeNode": [],
+        "Token": [],
+        "StringLiteral": [
+            "Text:string",
+            "TokenFlags:uint"
+        ],
+        "NumericLiteral": [
+            "Text:string",
+            "TokenFlags:uint"
+        ],
+        "LiteralTypeNode": [
+            "Literal"
+        ],
+        "UnionTypeNode": [
+            "Types"
+        ],
+        "ParenthesizedTypeNode": [
+            "Type"
+        ],
+        "TypeReferenceNode": [
+            "TypeName",
+            "TypeArguments"
+        ],
+        "TypeAliasDeclaration": [
+            "modifiers",
+            "name",
+            "TypeParameters",
+            "Type"
+        ],
+        "ImportDeclaration": [
+            "modifiers",
+            "ImportClause",
+            "ModuleSpecifier",
+            "Attributes"
+        ],
+        "ImportClause": [
+            "PhaseModifier:SyntaxKind",
+            "name",
+            "NamedBindings"
+        ],
+        "NamedImports": [
+            "Elements"
+        ],
+        "ImportSpecifier": [
+            "IsTypeOnly:bool",
+            "PropertyName",
+            "name"
+        ],
+        "VariableStatement": [
+            "modifiers",
+            "DeclarationList"
+        ],
+        "VariableDeclarationList": [
+            "Declarations"
+        ],
+        "VariableDeclaration": [
+            "name",
+            "ExclamationToken",
+            "Type",
+            "Initializer"
+        ],
+        "PrefixUnaryExpression": [
+            "Operator:SyntaxKind",
+            "Operand"
+        ]
+    },
+    "representation": "One generated payload model, generic typed class wrappers and typed managed arenas; child dispatch and cloning are generated from the same selection.",
+    "hooks": {
+        "SourceFile": "Source ownership, text/hash/path, imports and external-module metadata handled by SliceFile/SliceEncoder; top-level statements remain in schema order.",
+        "privateNames": "Selected name fields are explicit NodeId payload members; binding/identity belongs to the snapshot, not a duplicated hidden node field.",
+        "Kind": "Token and keyword type kinds live in NodeHeader; no runtime generic construction."
+    },
+    "outsidePhase1": "Other grammar, full AST generation, package/global resolution, control flow, JSDoc, transforms, declaration emit, source maps, language services and all-target shipping are later phases, not implied by these experiment passes."
+}
