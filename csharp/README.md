@@ -2,6 +2,8 @@
 
 This directory executes the early work in [the rewrite plan](../docs/csharp-rewrite-plan.md). It does not contain a usable replacement compiler. The published program is a compatibility/measurement harness and never forwards candidate work to Go. Go is compiled separately as a pinned development oracle.
 
+Phase 2 implementation is underway. See the [phase-2 checkpoint](../docs/csharp-phase-2-results.md) for the production scanner/AST/parser and host work, NativeAOT checks, reproduction commands, and the explicitly failing parser gate. Phase 2 has not been declared complete.
+
 The development SDK is pinned to .NET nightly `11.0.100-rc.2.26470.103`, with C# 15, `OptimizationPreference=Speed`, NativeAOT/trimming analysis, warning errors, and NuGet lockfiles. `NuGet.Config` adds the public `dotnet11` feed for matching nightly packs. The final target is .NET 11 GA; upgrades require refreshing and revalidating the evidence. Node 24 and Go 1.27.1 are required for the reference tooling. The existing Go backend and JS clients remain untouched.
 
 From the repository root (PowerShell example):

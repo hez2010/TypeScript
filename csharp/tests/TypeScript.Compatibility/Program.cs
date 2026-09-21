@@ -13,6 +13,16 @@ internal static class Program
     {
         try
         {
+            if (args is ["--foundations", var repository])
+            {
+                FoundationTests.Run(repository);
+                return 0;
+            }
+            if (args is ["--scan-lines"])
+            {
+                SyntaxTests.ScanLines();
+                return 0;
+            }
             if (args is ["--profile-pipeline", var profileInputs, var profileDirectory])
             {
                 ProfileExperiments.Run(profileInputs, profileDirectory);

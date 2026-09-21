@@ -349,6 +349,8 @@ The first milestone should deliver a reproducible Go oracle, test/contract manif
 
 **Phase-1 outcome (2026-09-22).** This milestone is implemented and validated on Windows x64; see the [completion matrix and evidence](csharp-phase-0-1-results.md). The full typed pipeline favors class nodes and a temporary UTF-16 scanning view, while retaining original UTF-8/WTF-8 bytes for exact source and wire contracts. Use that measured choice for phase 2 rather than adopting the earlier arena hypothesis. Native profiling now produces `pprof` artifacts directly, with exact phase/process counters and explicitly labeled cooperative stack attribution and retained-source metrics. This is not Go-identical statistical sampling. Full syntax/services/product integration and the retained-platform release blockers remain later work.
 
+**Phase-2 implementation status.** Implementation has started; see the [checkpoint and open gates](csharp-phase-2-results.md). Scanner, directive extraction, and bundled-library parser comparisons pass in NativeAOT. The full parser and foundation-host/option gates remain open. This checkpoint does not authorize treating phase 2 as complete or beginning phase 3 against an assumed complete syntax layer.
+
 Do not begin with a toy language parser, a fresh type system, or a wholesale automated translation. They do not retire the main compatibility risks in this codebase. The shortest credible path is shared fixtures and generation, faithful algorithms, stable external clients, and incremental performance improvements behind exact comparisons.
 
 Completion requires all of the following:

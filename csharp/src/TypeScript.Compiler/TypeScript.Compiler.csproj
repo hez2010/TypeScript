@@ -1,8 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <EmbedTypeScriptLibraries Condition="'$(EmbedTypeScriptLibraries)' == ''">true</EmbedTypeScriptLibraries>
+    <DefineConstants Condition="'$(EmbedTypeScriptLibraries)' == 'true'">$(DefineConstants);EMBED_TYPESCRIPT_LIBRARIES</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.IO.Hashing" Version="11.0.0-rc.2.26470.103" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="../../../tsc/internal/diagnostics/loc/*.json.gz" LogicalName="TypeScript.Locales.%(Filename)%(Extension)" />
+    <EmbeddedResource Condition="'$(EmbedTypeScriptLibraries)' == 'true'" Include="../../../tsc/internal/bundled/libs/*.d.ts" LogicalName="TypeScript.Libraries.%(Filename)%(Extension)" />
+    <Content Condition="'$(EmbedTypeScriptLibraries)' != 'true'" Include="../../../tsc/internal/bundled/libs/*.d.ts" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

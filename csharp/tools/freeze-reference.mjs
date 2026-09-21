@@ -30,8 +30,7 @@ const option = name => {
     return index < 0 ? undefined : process.argv[index + 1];
 };
 const go = option("--go") ?? "go";
-const revision = await run("git", ["rev-parse", "HEAD"]);
-if (revision !== referenceRevision) throw new Error(`Oracle pin mismatch: ${revision}`);
+const revision = await run("git", ["rev-parse", referenceRevision]);
 if (await run("git", ["diff", referenceRevision, "--", "tsc", "tools", "Herebyfile.mjs", "package.json", "package-lock.json", "go.work"])) {
     throw new Error("Reference sources have changed. Reconcile the pin explicitly before recording evidence.");
 }

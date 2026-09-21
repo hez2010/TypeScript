@@ -1,0 +1,18 @@
+{
+    "timestamp": "2026-09-21T19:38:27.281Z",
+    "suite": "parser",
+    "expanded": false,
+    "candidate": "NativeAOT",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "instructionSet": "native",
+    "optimizationPreference": "Speed",
+    "candidateSha256": "9ee2ae6230eccf9bdc70c9866177876c66e2563a3bb9e921f9110bbd37de17a1",
+    "inputSha256": "f9c15ceb198d49b84c7e9536ca5d1dbb5951d42be81a5a2e163967d649bae6df",
+    "cases": 108,
+    "records": 183538,
+    "passed": 108,
+    "failed": 0,
+    "failures": [],
+    "oracleSha256": "2b83b9140716c45c2f1851969d0272a0e8e9dda04045b1cba52213c3ef1536c3"
+}
