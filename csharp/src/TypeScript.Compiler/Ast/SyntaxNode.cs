@@ -67,7 +67,10 @@ public abstract class SyntaxNode(SyntaxKind kind)
         var result = (T)copies[this];
         result.SetParents();
         if (this is SourceFileNode originalFile && result is SourceFileNode clonedFile)
+        {
             clonedFile.ReparsedClones = originalFile.ReparsedClones.Where(copies.ContainsKey).Select(n => copies[n]).ToArray();
+            clonedFile.RemapSourceMetadata(originalFile, copies);
+        }
         return result;
     }
 }

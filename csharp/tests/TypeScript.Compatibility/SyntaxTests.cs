@@ -55,8 +55,17 @@ internal static class SyntaxTests
                 writer.WriteStartArray(); writer.WriteStartArray();
                 if (file is not null)
                 {
+                    var visited = new HashSet<SyntaxNode>(ReferenceEqualityComparer.Instance);
+                    Func<int, int> position = file.Source.ToUtf16Position;
                     foreach (SyntaxNode node in file.DescendantsAndSelf())
                     {
+                        if (!visited.Add(node)) throw new InvalidDataException($"{name}: duplicate or cyclic AST node {node.Kind} at {node.Pos}.");
+                        if (!(node.Pos == -1 && node.End == -1)
+                            && (node.Pos < 0 || node.End < node.Pos || node.End > file.Source.Bytes.Length))
+                            throw new InvalidDataException($"{name}: invalid byte range [{node.Pos}, {node.End}) for {node.Kind}.");
+                        for (int childIndex = 0; childIndex < node.ChildCount; childIndex++)
+                            if (!ReferenceEquals(node.GetChild(childIndex).Parent, node))
+                                throw new InvalidDataException($"{name}: {node.Kind} child {childIndex} has the wrong parent.");
                         writer.WriteStartArray(); writer.WriteNumberValue((int)node.Kind);
                         writer.WriteNumberValue(file.Source.ToUtf16Position(node.Pos)); writer.WriteNumberValue(file.Source.ToUtf16Position(node.End));
                         writer.WriteNumberValue((uint)node.Flags);
@@ -75,7 +84,10 @@ internal static class SyntaxTests
                             JsxTextNode n => n.Text,
                             _ => "",
                         };
-                        writer.WriteBase64StringValue(Wtf8.Encode(value)); writer.WriteNumberValue(node.ChildCount); writer.WriteEndArray(); tokens++;
+                        writer.WriteBase64StringValue(Wtf8.Encode(value)); writer.WriteNumberValue(node.ChildCount);
+                        AstScalarProperties.Write(writer, node);
+                        AstScalarProperties.WriteLists(writer, node, position);
+                        writer.WriteEndArray(); tokens++;
                     }
                 }
                 else
@@ -99,17 +111,42 @@ internal static class SyntaxTests
                     int length = file is null ? error.Length : file.Source.ToUtf16Position(error.Start + error.Length) - start;
                     writer.WriteStartArray(); writer.WriteNumberValue(error.Code); writer.WriteNumberValue(start); writer.WriteNumberValue(length); writer.WriteEndArray();
                 }
+                writer.WriteEndArray(); writer.WriteStartArray();
+                if (file is not null)
+                    foreach (var error in file.JSDiagnostics.OrderBy(d => d.Code).ThenBy(d => d.Start).ThenBy(d => d.Length))
+                    {
+                        int start = file.Source.ToUtf16Position(error.Start);
+                        int length = file.Source.ToUtf16Position(error.Start + error.Length) - start;
+                        writer.WriteStartArray(); writer.WriteNumberValue(error.Code); writer.WriteNumberValue(start); writer.WriteNumberValue(length); writer.WriteEndArray();
+                    }
                 writer.WriteEndArray(); writer.WriteEndArray();
             }
             using var output = new MemoryStream();
             using (var writer = new Utf8JsonWriter(output))
             {
                 writer.WriteStartObject(); writer.WriteString("name", name); writer.WriteNumber("tokens", tokens); writer.WriteNumber("diagnostics", file?.ParseDiagnostics.Count ?? scanner.Diagnostics.Count);
+                writer.WriteNumber("jsDiagnostics", file?.JSDiagnostics.Count ?? 0);
                 writer.WriteString("hash", Convert.ToHexStringLower(SHA256.HashData(buffer.GetBuffer().AsSpan(0, (int)buffer.Length))));
                 if (Bool("details")) { writer.WritePropertyName("details"); writer.WriteRawValue(buffer.GetBuffer().AsSpan(0, (int)buffer.Length)); }
+                if (Bool("jsDetails") && file is not null)
+                {
+                    writer.WriteStartArray("jsDetails");
+                    foreach (var error in file.JSDiagnostics.OrderBy(d => d.Code).ThenBy(d => d.Start).ThenBy(d => d.Length))
+                        WriteJavaScriptDiagnostic(writer, file.Source, error);
+                    writer.WriteEndArray();
+                }
                 writer.WriteEndObject();
             }
             Console.WriteLine(System.Text.Encoding.UTF8.GetString(output.GetBuffer().AsSpan(0, (int)output.Length)));
         }
+    }
+    internal static void WriteJavaScriptDiagnostic(Utf8JsonWriter writer, SourceText source, TypeScript.Compiler.Diagnostics.Diagnostic diagnostic)
+    {
+        int start = source.ToUtf16Position(diagnostic.Start);
+        writer.WriteStartArray(); writer.WriteNumberValue(diagnostic.Code); writer.WriteNumberValue(start);
+        writer.WriteNumberValue(source.ToUtf16Position(diagnostic.Start + diagnostic.Length) - start);
+        writer.WriteStartArray(); foreach (string argument in diagnostic.Arguments) writer.WriteStringValue(argument); writer.WriteEndArray();
+        writer.WriteStartArray(); foreach (var related in diagnostic.RelatedInformation) WriteJavaScriptDiagnostic(writer, source, related); writer.WriteEndArray();
+        writer.WriteEndArray();
     }
 }

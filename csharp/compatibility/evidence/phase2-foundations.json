@@ -1,17 +1,28 @@
 {
-    "timestamp": "2026-09-21T20:40:29.245Z",
+    "timestamp": "2026-09-22T04:30:24.840Z",
     "sdk": "11.0.100-rc.2.26470.103",
     "configuration": "Release",
     "runtimeIdentifier": "win-x64",
     "optimizationPreference": "Speed",
     "instructionSet": "native",
+    "runtimeAsync": true,
     "embedded": {
-        "candidateSha256": "9a719b24e8a6225d1d29d7498e1a33e28388b4f463a09390e37feea2636d742c",
-        "assertions": 4704
+        "candidatePath": "built/csharp/phase2-native/TypeScript.Compatibility.exe",
+        "candidateSha256": "6d0aef7babdfd83cf37672e5865645f317de8063c5daec43e314103311e6f594",
+        "assertions": 4704,
+        "hostAssertions": 67,
+        "moduleAssertions": 42,
+        "javascriptSyntaxCases": 28,
+        "javascriptDiagnostics": 58,
+        "parserSafetyCases": 36,
+        "parserSafetyNodes": 1421783
     },
     "nonembedded": {
-        "candidateSha256": "0dbd2cafaf6f992983f4d02c83ea9f2cb013f2a2460d2f2d8e6b786338bfe841",
-        "assertions": 4703
+        "candidatePath": "built/csharp/hosts-side-by-side/TypeScript.Compatibility.exe",
+        "candidateSha256": "5b0ff66ff50f55a618fb6778e61ab138dea755370809f7c422ae16b5f7a94131",
+        "assertions": 4703,
+        "hostAssertions": 62,
+        "moduleAssertions": 42
     },
     "diagnostics": 2213,
     "locales": 13,
@@ -23,5 +34,5 @@
         "relations": 90212,
         "deepAndCancellation": true
     },
-    "scope": "Foundation and regression checks only; the full phase-2 parser and host/configuration gates are open."
+    "scope": "Combined final NativeAOT foundation and phase-1 regression checks. Full syntax, documentation, metadata, regex, host and constrained-worker evidence is recorded separately."
 }

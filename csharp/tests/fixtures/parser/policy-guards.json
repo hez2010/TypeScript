@@ -1,0 +1,228 @@
+[
+    {
+        "fixture": {
+            "name": "policy-guard-0.ts",
+            "fileName": "policy-guard-0.ts",
+            "mode": "parse",
+            "details": true,
+            "text": "ICBsZXQgdmFsdWUgPSBvcmlnaW5hbDsK"
+        },
+        "expected": {
+            "details": [
+                [
+                    [
+                        307,
+                        0,
+                        24,
+                        0,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Statements": [
+                                1,
+                                0,
+                                23,
+                                false
+                            ]
+                        }
+                    ],
+                    [
+                        244,
+                        0,
+                        23,
+                        0,
+                        "",
+                        1,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ],
+                    [
+                        262,
+                        0,
+                        22,
+                        1,
+                        "",
+                        1,
+                        {},
+                        {
+                            "Declarations": [
+                                1,
+                                5,
+                                22,
+                                false
+                            ]
+                        }
+                    ],
+                    [
+                        261,
+                        5,
+                        22,
+                        0,
+                        "",
+                        2,
+                        {},
+                        {}
+                    ],
+                    [
+                        79,
+                        5,
+                        11,
+                        0,
+                        "dmFsdWU=",
+                        0,
+                        {
+                            "Text": "dmFsdWU="
+                        },
+                        {}
+                    ],
+                    [
+                        79,
+                        13,
+                        22,
+                        0,
+                        "b3JpZ2luYWw=",
+                        0,
+                        {
+                            "Text": "b3JpZ2luYWw="
+                        },
+                        {}
+                    ],
+                    [
+                        1,
+                        23,
+                        24,
+                        0,
+                        "",
+                        0,
+                        {},
+                        {}
+                    ]
+                ],
+                []
+            ],
+            "diagnostics": 0,
+            "hash": "41e4fe1c9a30a626646a3b607a94c6a433e61b65277eb8bc089de13381ef7d90",
+            "name": "policy-guard-0.ts",
+            "tokens": 7
+        }
+    },
+    {
+        "fixture": {
+            "name": "policy-guard-1.ts",
+            "fileName": "policy-guard-1.ts",
+            "mode": "parse",
+            "details": true,
+            "text": "Y29uc3QgdmFsdWUgPSA7"
+        },
+        "expected": {
+            "details": [
+                [
+                    [
+                        307,
+                        0,
+                        15,
+                        0,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Statements": [
+                                1,
+                                0,
+                                15,
+                                false
+                            ]
+                        }
+                    ],
+                    [
+                        244,
+                        0,
+                        15,
+                        0,
+                        "",
+                        1,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ],
+                    [
+                        262,
+                        0,
+                        13,
+                        2,
+                        "",
+                        1,
+                        {},
+                        {
+                            "Declarations": [
+                                1,
+                                5,
+                                13,
+                                false
+                            ]
+                        }
+                    ],
+                    [
+                        261,
+                        5,
+                        13,
+                        0,
+                        "",
+                        2,
+                        {},
+                        {}
+                    ],
+                    [
+                        79,
+                        5,
+                        11,
+                        0,
+                        "dmFsdWU=",
+                        0,
+                        {
+                            "Text": "dmFsdWU="
+                        },
+                        {}
+                    ],
+                    [
+                        79,
+                        13,
+                        13,
+                        32768,
+                        "",
+                        0,
+                        {
+                            "Text": ""
+                        },
+                        {}
+                    ],
+                    [
+                        1,
+                        15,
+                        15,
+                        0,
+                        "",
+                        0,
+                        {},
+                        {}
+                    ]
+                ],
+                [
+                    [
+                        1109,
+                        14,
+                        1
+                    ]
+                ]
+            ],
+            "diagnostics": 1,
+            "hash": "a2ed6085df66c3bc366e60e3b5721cacafa3959f5e5b4b50b0e7cf4375ca6c31",
+            "name": "policy-guard-1.ts",
+            "tokens": 7
+        }
+    }
+]

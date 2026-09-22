@@ -1,0 +1,157 @@
+{
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "cases": [
+        {
+            "name": "tsc/testdata/tests/cases/compiler/regexInvalidUtf8WithUnicodeFlag.ts::0",
+            "fileName": "regexInvalidUtf8WithUnicodeFlag.ts",
+            "sourceSha256": "35ec9883467930c4c3d91bd6cc8d20cc5c7e8a24a6e42f04678b3ba204615a32",
+            "expectedSha256": "7e0479e6248e8a979707d999f04177e1e22ef18ae0df21a7e930629730a9c020",
+            "actualSha256": "6ae3348ba175c331eac9ed436ae234dbe6204d228304389b41b6fe6fae77e2d3",
+            "policy": "utf8-source-decoding",
+            "rationale": "The original file contains a lone invalid UTF-8 byte 0x80 inside a regular-expression literal. C# exposes its UTF-16 decoded text with U+FFFD, matching the TypeScript JavaScript parser after standard UTF-8 file decoding. Go exposes the original invalid byte in its string payload. The C# SourceText retains the original bytes and all byte positions; only the literal text view differs.",
+            "independentEvidence": {
+                "typescript": "6.0.3",
+                "parseDiagnostics": [],
+                "literal": "/�/u"
+            },
+            "strictCompatibilityWork": "Represent raw regular-expression literal payloads as byte slices or a separate raw-byte value when serializing Go-compatible AST strings. Retain the decoded UTF-16 text for C# language operations.",
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --filter regexInvalidUtf8WithUnicodeFlag --strict",
+            "input": {
+                "name": "tsc/testdata/tests/cases/compiler/regexInvalidUtf8WithUnicodeFlag.ts::0",
+                "fileName": "regexInvalidUtf8WithUnicodeFlag.ts",
+                "text": "L4AvdQo=",
+                "mode": "parse",
+                "details": true
+            },
+            "expected": {
+                "details": [
+                    [
+                        [
+                            307,
+                            0,
+                            5,
+                            0,
+                            "",
+                            2,
+                            {},
+                            {
+                                "Statements": [
+                                    1,
+                                    0,
+                                    4,
+                                    false
+                                ]
+                            }
+                        ],
+                        [
+                            245,
+                            0,
+                            4,
+                            0,
+                            "",
+                            1,
+                            {},
+                            {}
+                        ],
+                        [
+                            13,
+                            0,
+                            4,
+                            0,
+                            "L4AvdQ==",
+                            0,
+                            {
+                                "Text": "L4AvdQ==",
+                                "TokenFlags": 0
+                            },
+                            {}
+                        ],
+                        [
+                            1,
+                            4,
+                            5,
+                            0,
+                            "",
+                            0,
+                            {},
+                            {}
+                        ]
+                    ],
+                    [],
+                    []
+                ],
+                "diagnostics": 0,
+                "hash": "7e0479e6248e8a979707d999f04177e1e22ef18ae0df21a7e930629730a9c020",
+                "jsDiagnostics": 0,
+                "name": "tsc/testdata/tests/cases/compiler/regexInvalidUtf8WithUnicodeFlag.ts::0",
+                "tokens": 4
+            },
+            "actual": {
+                "name": "tsc/testdata/tests/cases/compiler/regexInvalidUtf8WithUnicodeFlag.ts::0",
+                "tokens": 4,
+                "diagnostics": 0,
+                "jsDiagnostics": 0,
+                "hash": "6ae3348ba175c331eac9ed436ae234dbe6204d228304389b41b6fe6fae77e2d3",
+                "details": [
+                    [
+                        [
+                            307,
+                            0,
+                            5,
+                            0,
+                            "",
+                            2,
+                            {},
+                            {
+                                "Statements": [
+                                    1,
+                                    0,
+                                    4,
+                                    false
+                                ]
+                            }
+                        ],
+                        [
+                            245,
+                            0,
+                            4,
+                            0,
+                            "",
+                            1,
+                            {},
+                            {}
+                        ],
+                        [
+                            13,
+                            0,
+                            4,
+                            0,
+                            "L++/vS91",
+                            0,
+                            {
+                                "Text": "L++/vS91",
+                                "TokenFlags": 0
+                            },
+                            {}
+                        ],
+                        [
+                            1,
+                            4,
+                            5,
+                            0,
+                            "",
+                            0,
+                            {},
+                            {}
+                        ]
+                    ],
+                    [],
+                    []
+                ]
+            },
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        }
+    ],
+    "recordFormat": "AST records with scalar/list fields; parse and JavaScript diagnostic buckets"
+}

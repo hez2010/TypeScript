@@ -1,5 +1,5 @@
 using System.Text.Json;
-using System.Text.RegularExpressions;
+using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Hosts;
 
@@ -7,12 +7,20 @@ namespace TypeScript.Compiler.Configuration;
 
 public sealed record ProjectReference(string Path, bool Prepend = false, bool Circular = false);
 public sealed record ParsedConfig(string FileName, CompilerOptions Options, string[] FileNames,
-    ProjectReference[] References, Diagnostic[] Diagnostics, string[] ExtendedConfigFiles);
-
-public sealed class ConfigParser(IFileSystem fileSystem, string currentDirectory)
+    ProjectReference[] References, Diagnostic[] Diagnostics, string[] ExtendedConfigFiles)
 {
-    private sealed record ConfigLayer(string Path, JsonElement Root, string[] Parents);
-    private sealed record ConfigValues(CompilerOptions Options, string[]? Files, string[]? Include, string[]? Exclude);
+    public CompilerOptions WatchOptions { get; init; } = new();
+    public CompilerOptions TypeAcquisition { get; init; } = new();
+    public bool CompileOnSave { get; init; }
+    public SourceFileNode? SourceFile { get; init; }
+    public ContentMapper[] ContentMappers { get; init; } = [];
+    public IReadOnlyDictionary<string, bool> WildcardDirectories { get; init; } = new Dictionary<string, bool>();
+}
+
+public sealed partial class ConfigParser(IFileSystem fileSystem, string currentDirectory)
+{
+    private sealed record ConfigLayer(ConfigSyntax Syntax, string[] Parents, string Identity);
+    private sealed record ConfigValues(CompilerOptions Options, CompilerOptions Watch, CompilerOptions Acquisition, string[]? Files, string[]? Include, string[]? Exclude, bool? CompileOnSave, JsonElement? Mappers, ConfigSyntax? MapperSource);
     private static readonly JsonDocumentOptions JsonOptions = new() { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true, MaxDepth = int.MaxValue };
     public string? FindConfig(string startDirectory, string name = "tsconfig.json")
     {
@@ -34,7 +42,6 @@ public sealed class ConfigParser(IFileSystem fileSystem, string currentDirectory
         var values = new Dictionary<string, ConfigValues>(comparer);
         var active = new HashSet<string>(comparer);
         var errors = new List<Diagnostic>(); var extended = new List<string>();
-        void Error(DiagnosticMessage message, string file, params string[] args) => errors.Add(new(message, 0, 0, args) { FileName = file });
         var work = new Stack<(string Path, bool Finish)>(); work.Push((fileName, false));
         while (work.TryPop(out var item))
         {
@@ -42,154 +49,211 @@ public sealed class ConfigParser(IFileSystem fileSystem, string currentDirectory
             if (values.ContainsKey(item.Path)) continue;
             if (!item.Finish)
             {
-                if (!active.Add(item.Path)) { Error(Messages.Circularity_detected_while_resolving_configuration_Colon_0, item.Path, item.Path); continue; }
+                string identity = fileSystem.RealPath(item.Path);
+                if (!active.Add(identity)) { errors.Add(new(Messages.Circularity_detected_while_resolving_configuration_Colon_0, 0, 0, [string.Join(" -> ", active.Append(item.Path))])); continue; }
                 byte[]? bytes = fileSystem.ReadFile(item.Path);
-                if (bytes is null) { Error(Messages.Cannot_read_file_0, item.Path, item.Path); active.Remove(item.Path); continue; }
-                JsonElement root;
-                try { using var document = JsonDocument.Parse(SourceEncoding.Decode(bytes), JsonOptions); root = document.RootElement.Clone(); }
-                catch (JsonException e) { Error(Messages.X_0_expected, item.Path, "JSON value: " + e.Message); active.Remove(item.Path); continue; }
-                if (root.ValueKind != JsonValueKind.Object) { Error(Messages.The_root_value_of_a_0_file_must_be_an_object, item.Path, "tsconfig.json"); active.Remove(item.Path); continue; }
+                if (bytes is null) { errors.Add(new(Messages.Cannot_read_file_0, 0, 0, [item.Path])); active.Remove(identity); continue; }
+                var syntax = new ConfigSyntax(item.Path, bytes, errors, cancellation);
+                JsonElement root = syntax.Root;
                 var parents = new List<string>();
                 if (root.TryGetProperty("extends", out var extends))
                 {
                     IEnumerable<JsonElement> elements = extends.ValueKind == JsonValueKind.Array ? extends.EnumerateArray() : [extends];
                     foreach (var element in elements)
                     {
-                        if (element.ValueKind != JsonValueKind.String) { Error(Messages.Compiler_option_0_requires_a_value_of_type_1, item.Path, "extends", "string"); continue; }
-                        string specifier = element.GetString()!;
+                        if (element.ValueKind != JsonValueKind.String) { errors.Add(syntax.Diagnostic(Messages.Compiler_option_0_requires_a_value_of_type_1, syntax.Value("extends"), "extends", "string or Array")); continue; }
+                        string specifier = JsonStrings.GetString(element);
+                        if (specifier.Length == 0) { errors.Add(syntax.Diagnostic(Messages.Compiler_option_0_cannot_be_given_an_empty_string, syntax.Value("extends"), "extends")); continue; }
                         string? parent = ResolveExtends(specifier, CompilerPath.DirectoryName(item.Path));
-                        if (parent is null) Error(Messages.File_0_not_found, item.Path, specifier);
+                        if (parent is null) errors.Add(syntax.Diagnostic(Messages.File_0_not_found, syntax.Value("extends"), specifier));
                         else parents.Add(parent);
                     }
                 }
-                var layer = new ConfigLayer(item.Path, root, parents.ToArray()); layers[item.Path] = layer;
+                layers[item.Path] = new(syntax, parents.ToArray(), identity);
                 work.Push((item.Path, true));
                 for (int i = parents.Count - 1; i >= 0; i--) work.Push((parents[i], false));
                 continue;
             }
-            ConfigLayer current = layers[item.Path];
-            var options = new CompilerOptions(); string[]? files = null, include = null, exclude = null;
+            ConfigLayer current = layers[item.Path]; ConfigSyntax source = current.Syntax; JsonElement currentRoot = source.Root;
+            var options = new CompilerOptions(); var watch = new CompilerOptions(); var acquisition = new CompilerOptions();
+            string[]? files = null, include = null, exclude = null; bool? compileOnSave = null;
+            JsonElement? mappers = null; ConfigSyntax? mapperSource = null;
             foreach (string parent in current.Parents)
                 if (values.TryGetValue(parent, out var inherited))
-                { options.Merge(inherited.Options); files = inherited.Files ?? files; include = inherited.Include ?? include; exclude = inherited.Exclude ?? exclude; }
-            string directory = CompilerPath.DirectoryName(current.Path);
-            if (current.Root.TryGetProperty("compilerOptions", out var compiler))
+                { options.Merge(inherited.Options); watch.Merge(inherited.Watch); files = inherited.Files ?? files; include = inherited.Include ?? include; exclude = inherited.Exclude ?? exclude; compileOnSave = inherited.CompileOnSave ?? compileOnSave; if (inherited.Mappers is { } value) { mappers = value; mapperSource = inherited.MapperSource; } }
+            if (CompilerPath.BaseName(item.Path) == "jsconfig.json")
             {
-                if (compiler.ValueKind != JsonValueKind.Object && compiler.ValueKind != JsonValueKind.Null) Error(Messages.Compiler_option_0_requires_a_value_of_type_1, current.Path, "compilerOptions", "object");
-                if (compiler.ValueKind == JsonValueKind.Object)
-                    foreach (var property in compiler.EnumerateObject())
+                foreach (string name in new[] { "allowJs", "skipLibCheck", "noEmit" }) if (options.Get(name) is null) options.SetRaw(name, "true");
+                if (options.Get("maxNodeModuleJsDepth") is null) options.SetRaw("maxNodeModuleJsDepth", "2");
+                acquisition.SetRaw("enable", "true");
+            }
+            string directory = CompilerPath.DirectoryName(item.Path);
+            void Error(DiagnosticMessage message, SyntaxNode? node, params string[] args) => errors.Add(source.Diagnostic(message, node, args));
+            void ReadOptions(string section, OptionGroup group, CompilerOptions output)
+            {
+                if (!currentRoot.TryGetProperty(section, out var container) || container.ValueKind == JsonValueKind.Null) return;
+                if (container.ValueKind != JsonValueKind.Object) { Error(Messages.Compiler_option_0_requires_a_value_of_type_1, source.Value(section), section, "object"); return; }
+                foreach (var property in container.EnumerateObject())
+                {
+                    var definition = OptionDefinitions.Find(JsonStrings.GetName(property), group);
+                    if (definition is null || definition.Name != JsonStrings.GetName(property))
                     {
-                        var definition = OptionDefinitions.Find(property.Name);
-                        if (definition is null || definition.ShortName == property.Name) { Error(Messages.Unknown_compiler_option_0, current.Path, property.Name); continue; }
-                        if (definition.IsCommandLineOnly) { Error(Messages.Option_0_can_only_be_specified_on_command_line, current.Path, property.Name); continue; }
-                        if (!ValidateValue(definition, property.Value)) { Error(Messages.Compiler_option_0_requires_a_value_of_type_1, current.Path, property.Name, definition.Kind.ToString().ToLowerInvariant()); continue; }
-                        if (property.Value.ValueKind == JsonValueKind.String && definition.IsFilePath)
-                            options.SetString(definition.Name, CompilerPath.Resolve(directory, property.Value.GetString()!.Replace("${configDir}", directory, StringComparison.Ordinal)));
-                        else options.Set(definition.Name, property.Value);
+                        if (OptionDefinitions.Suggest(JsonStrings.GetName(property), group) is { } suggestion)
+                            Error(group == OptionGroup.Watch ? Messages.Unknown_watch_option_0_Did_you_mean_1 : group == OptionGroup.TypeAcquisition ? Messages.Unknown_type_acquisition_option_0_Did_you_mean_1 : Messages.Unknown_compiler_option_0_Did_you_mean_1, source.PropertyName(section, JsonStrings.GetName(property)), JsonStrings.GetName(property), suggestion.Name);
+                        else Error(group == OptionGroup.Watch ? Messages.Unknown_watch_option_0 : group == OptionGroup.TypeAcquisition ? Messages.Unknown_type_acquisition_option_0 : Messages.Unknown_compiler_option_0, source.PropertyName(section, JsonStrings.GetName(property)), JsonStrings.GetName(property));
+                        continue;
                     }
+                    if (definition.IsCommandLineOnly) { Error(Messages.Option_0_can_only_be_specified_on_command_line, source.PropertyName(section, JsonStrings.GetName(property)), JsonStrings.GetName(property)); continue; }
+                    if (OptionValues.Convert(definition, property.Value, directory, (message, args) => Error(message, source.Value(section, JsonStrings.GetName(property)), args)) is { } converted) output.Set(definition.Name, converted);
+                    else output.SetRaw(definition.Name, "null");
+                    if (JsonStrings.GetName(property) == "paths" && property.Value.ValueKind == JsonValueKind.Object) output.SetString("pathsBasePath", directory);
+                }
+            }
+            ReadOptions("compilerOptions", OptionGroup.Compiler, options);
+            ReadOptions("watchOptions", OptionGroup.Watch, watch);
+            ReadOptions("typeAcquisition", OptionGroup.TypeAcquisition, acquisition);
+            if (!currentRoot.TryGetProperty("compilerOptions", out _))
+                foreach (var property in currentRoot.EnumerateObject())
+                    if (OptionDefinitions.Find(JsonStrings.GetName(property)) is { } definition && definition.Name == JsonStrings.GetName(property))
+                    { Error(Messages.X_0_should_be_set_inside_the_compilerOptions_object_of_the_config_json_file, source.PropertyName("", JsonStrings.GetName(property)), JsonStrings.GetName(property)); break; }
+            if (currentRoot.TryGetProperty("excludes", out _)) Error(Messages.Unknown_option_excludes_Did_you_mean_exclude, source.PropertyName("", "excludes"));
+            if (currentRoot.TryGetProperty("compileOnSave", out var compile))
+            {
+                if (compile.ValueKind is not (JsonValueKind.True or JsonValueKind.False or JsonValueKind.Null)) Error(Messages.Compiler_option_0_requires_a_value_of_type_1, source.Value("compileOnSave"), "compileOnSave", "boolean");
+                compileOnSave = compile.ValueKind == JsonValueKind.True;
             }
             string[]? Paths(string key, string[]? inherited)
             {
-                if (!current.Root.TryGetProperty(key, out var property)) return inherited;
-                if (property.ValueKind != JsonValueKind.Array) { Error(Messages.Compiler_option_0_requires_a_value_of_type_1, current.Path, key, "Array"); return null; }
-                var list = new List<string>();
+                if (!currentRoot.TryGetProperty(key, out var property)) return inherited;
+                if (property.ValueKind == JsonValueKind.Null) return null;
+                if (property.ValueKind != JsonValueKind.Array) { Error(Messages.Compiler_option_0_requires_a_value_of_type_1, source.Value(key), key, "Array"); return null; }
+                var list = new List<string>(); int index = 0;
                 foreach (var element in property.EnumerateArray())
                 {
-                    if (element.ValueKind != JsonValueKind.String) { Error(Messages.Compiler_option_0_requires_a_value_of_type_1, current.Path, key, "string"); continue; }
-                    list.Add(CompilerPath.Resolve(directory, element.GetString()!.Replace("${configDir}", directory, StringComparison.Ordinal)));
+                    SyntaxNode? node = source.Value(key) is ArrayLiteralExpressionNode array && index < (array.Elements?.Count ?? 0) ? array.Elements![index] : source.Value(key); index++;
+                    if (element.ValueKind != JsonValueKind.String) { if (element.ValueKind != JsonValueKind.Null) Error(Messages.Compiler_option_0_requires_a_value_of_type_1, node, key, "string"); continue; }
+                    string text = JsonStrings.GetString(element);
+                    if (key != "files" && OptionValues.SpecError(text, key == "include") is { } error) { Error(error, node, text); continue; }
+                    list.Add(OptionValues.PathValue(text, directory));
                 }
                 return list.ToArray();
             }
             files = Paths("files", files); include = Paths("include", include); exclude = Paths("exclude", exclude);
-            values[item.Path] = new(options, files, include, exclude);
+            if (currentRoot.TryGetProperty("contentMappers", out var ownMappers)) { mappers = ownMappers; mapperSource = source; }
+            values[item.Path] = new(options, watch, acquisition, files, include, exclude, compileOnSave, mappers, mapperSource);
             if (item.Path != fileName) extended.Add(item.Path);
-            active.Remove(item.Path);
+            active.Remove(current.Identity);
         }
         if (!values.TryGetValue(fileName, out var result)) return new(fileName, existing ?? new(), [], [], errors.ToArray(), extended.ToArray());
-        if (existing is not null) result.Options.Merge(existing);
         string rootDirectory = CompilerPath.DirectoryName(fileName);
-        string[] includes = result.Include ?? (result.Files is null ? [CompilerPath.Combine(rootDirectory, "**/*")] : []);
-        string[] excludes = result.Exclude ?? new[] { "node_modules", "bower_components", "jspm_packages" }.Select(n => CompilerPath.Combine(rootDirectory, "**/" + n + "/**/*")).Concat(result.Options.String("outDir") is { } outDir ? [CompilerPath.Combine(outDir, "**/*")] : []).ToArray();
-        var selected = new HashSet<string>(result.Files ?? [], comparer);
-        if (includes.Length != 0)
+        string Substitute(string value) => OptionValues.IsTemplate(value) ? OptionValues.PathValue("./" + value["${configDir}".Length..], rootDirectory) : value;
+        void SubstituteOptions(CompilerOptions options, OptionGroup group)
         {
-            Regex[] includePatterns = includes.Select(p => GlobRegex(p, fileSystem.CaseSensitive)).ToArray();
-            Regex[] excludePatterns = excludes.Select(p => GlobRegex(p, fileSystem.CaseSensitive)).ToArray();
-            var pending = new Stack<string>();
-            foreach (string include in includes)
+            foreach (var pair in options.Values.ToArray())
             {
-                int wildcard = include.AsSpan().IndexOfAny('*', '?');
-                string searchRoot = wildcard >= 0 ? CompilerPath.DirectoryName(include[..wildcard]) : fileSystem.DirectoryExists(include) ? include : CompilerPath.DirectoryName(include);
-                pending.Push(searchRoot.Length == 0 ? rootDirectory : searchRoot);
-            }
-            var visited = new HashSet<string>(comparer);
-            while (pending.TryPop(out string? directory))
-            {
-                cancellation.ThrowIfCancellationRequested();
-                if (!visited.Add(fileSystem.RealPath(directory))) continue;
-                DirectoryEntries entries = fileSystem.GetAccessibleEntries(directory);
-                foreach (string file in entries.Files)
+                var definition = OptionDefinitions.Find(pair.Key, group);
+                if (definition?.AllowConfigDir != true) continue;
+                if (pair.Value.ValueKind == JsonValueKind.String) options.SetString(pair.Key, Substitute(JsonStrings.GetString(pair.Value)));
+                else if (pair.Value.ValueKind == JsonValueKind.Array) options.SetArray(pair.Key, pair.Value.EnumerateArray().Select(v => v.ValueKind == JsonValueKind.String ? OptionValues.String(Substitute(JsonStrings.GetString(v))) : v));
+                else if (pair.Key == "paths" && pair.Value.ValueKind == JsonValueKind.Object)
                 {
-                    string path = CompilerPath.Combine(directory, file), extension = CompilerPath.Extension(file);
-                    bool supported = extension is ".ts" or ".tsx" or ".mts" or ".cts" || result.Options.Boolean("allowJs") == true && extension is ".js" or ".jsx" or ".mjs" or ".cjs" || result.Options.Boolean("resolveJsonModule") == true && extension == ".json";
-                    if (supported && includePatterns.Any(p => p.IsMatch(path)) && !excludePatterns.Any(p => p.IsMatch(path))) selected.Add(path);
-                }
-                foreach (string child in entries.Directories.Reverse())
-                {
-                    string path = CompilerPath.Combine(directory, child);
-                    if (child is "node_modules" or "bower_components" or "jspm_packages" && !includes.Any(p => p.Contains("/" + child + "/", StringComparison.Ordinal))) continue;
-                    pending.Push(path);
+                    using var buffer = new MemoryStream();
+                    var namePatches = new List<(int Start, int End, string Name)>();
+                    using (var writer = new Utf8JsonWriter(buffer))
+                    {
+                        writer.WriteStartObject();
+                        foreach (var property in pair.Value.EnumerateObject())
+                        {
+                            JsonStrings.WriteName(writer, JsonStrings.GetName(property), namePatches);
+                            var value = property.Value.ValueKind == JsonValueKind.Array ? OptionValues.Array(property.Value.EnumerateArray().Select(v => v.ValueKind == JsonValueKind.String ? OptionValues.String(Substitute(JsonStrings.GetString(v))) : v)) : property.Value;
+                            JsonStrings.WriteValue(writer, value);
+                        }
+                        writer.WriteEndObject();
+                    }
+                    options.Set(pair.Key, JsonStrings.Parse(buffer, namePatches));
                 }
             }
         }
+        SubstituteOptions(result.Options, OptionGroup.Compiler); SubstituteOptions(result.Watch, OptionGroup.Watch);
+        if (existing is not null) result.Options.Merge(existing);
+        string[] includes = (result.Include ?? (result.Files is null ? [CompilerPath.Combine(rootDirectory, "**/*")] : [])).Select(Substitute).ToArray();
+        string[] excludes = (result.Exclude ?? new[] { result.Options.String("outDir"), result.Options.String("declarationDir") }.OfType<string>().ToArray()).Select(Substitute).ToArray();
+        ConfigSyntax main = layers[fileName].Syntax;
+        ContentMapper[] contentMappers = ReadContentMappers(result.Mappers, result.MapperSource ?? main, result.Options, rootDirectory, errors);
+        string[] filesSelected = SelectFiles(result.Files?.Select(Substitute) ?? [], includes, excludes, result.Options, contentMappers.SelectMany(m => m.Extensions).ToArray(), rootDirectory, cancellation);
         var references = new List<ProjectReference>();
-        if (layers[fileName].Root.TryGetProperty("references", out var refs) && refs.ValueKind == JsonValueKind.Array)
-            foreach (var reference in refs.EnumerateArray())
-                if (reference.ValueKind == JsonValueKind.Object && reference.TryGetProperty("path", out var referencePath) && referencePath.ValueKind == JsonValueKind.String)
-                    references.Add(new(CompilerPath.Resolve(rootDirectory, referencePath.GetString()!)));
-        return new(fileName, result.Options, selected.Order(StringComparer.Ordinal).ToArray(), references.ToArray(), errors.ToArray(), extended.Distinct(comparer).ToArray());
+        if (main.Root.TryGetProperty("references", out var refs) && refs.ValueKind != JsonValueKind.Null)
+        {
+            if (refs.ValueKind != JsonValueKind.Array) errors.Add(main.Diagnostic(Messages.Compiler_option_0_requires_a_value_of_type_1, main.Value("references"), "references", "Array"));
+            else foreach (var reference in refs.EnumerateArray())
+            {
+                if (reference.ValueKind != JsonValueKind.Object) { if (reference.ValueKind != JsonValueKind.Null) errors.Add(main.Diagnostic(Messages.Compiler_option_0_requires_a_value_of_type_1, main.Value("references"), "references", "object")); continue; }
+                if (!reference.TryGetProperty("path", out var referencePath) || referencePath.ValueKind != JsonValueKind.String) { errors.Add(main.Diagnostic(Messages.Compiler_option_0_requires_a_value_of_type_1, main.Value("references"), "reference.path", "string")); continue; }
+                if (JsonStrings.GetString(referencePath) == "") { errors.Add(main.Diagnostic(Messages.Compiler_option_0_cannot_be_given_an_empty_string, main.Value("references"), "reference.path")); continue; }
+                bool circular = false;
+                if (reference.TryGetProperty("circular", out var circularValue))
+                {
+                    if (circularValue.ValueKind is not (JsonValueKind.True or JsonValueKind.False)) errors.Add(main.Diagnostic(Messages.Compiler_option_0_requires_a_value_of_type_1, main.Value("references"), "reference.circular", "boolean"));
+                    circular = circularValue.ValueKind == JsonValueKind.True;
+                }
+                references.Add(new(CompilerPath.Resolve(rootDirectory, JsonStrings.GetString(referencePath)), Circular: circular));
+            }
+        }
+        if (filesSelected.Length == 0 && result.Files is null && !main.Root.TryGetProperty("references", out _))
+            errors.Add(new(Messages.No_inputs_were_found_in_config_file_0_Specified_include_paths_were_1_and_exclude_paths_were_2, 0, 0, [fileName, OptionValues.Array(includes.Select(OptionValues.String)).GetRawText(), OptionValues.Array(excludes.Select(OptionValues.String)).GetRawText()]));
+        if (main.Root.TryGetProperty("files", out var filesProperty) && filesProperty.ValueKind == JsonValueKind.Array && filesProperty.GetArrayLength() == 0 && references.Count == 0 && !main.Root.TryGetProperty("extends", out _))
+            errors.Add(main.Diagnostic(Messages.The_files_list_in_config_file_0_is_empty, main.Value("files"), fileName));
+        return new(fileName, result.Options, filesSelected, references.ToArray(), errors.ToArray(), extended.Distinct(comparer).ToArray()) { WatchOptions = result.Watch, TypeAcquisition = result.Acquisition, CompileOnSave = result.CompileOnSave ?? false, SourceFile = main.Source, ContentMappers = contentMappers, WildcardDirectories = FileMatcher.WildcardDirectories(includes, excludes, rootDirectory, fileSystem.CaseSensitive) };
     }
-    private static bool ValidateValue(OptionDefinition definition, JsonElement value) => value.ValueKind == JsonValueKind.Null || definition.Kind switch
+    private string[] SelectFiles(IEnumerable<string> literalFiles, string[] includes, string[] excludes, CompilerOptions options, string[] extraExtensions, string root, CancellationToken cancellation)
     {
-        OptionKind.Boolean => value.ValueKind is JsonValueKind.True or JsonValueKind.False,
-        OptionKind.String => value.ValueKind == JsonValueKind.String,
-        OptionKind.Enum => value.ValueKind == JsonValueKind.String && definition.Values.Contains(value.GetString()!, StringComparer.OrdinalIgnoreCase),
-        OptionKind.Number => value.ValueKind == JsonValueKind.Number,
-        OptionKind.Object => value.ValueKind == JsonValueKind.Object,
-        OptionKind.List => value.ValueKind == JsonValueKind.Array,
-        OptionKind.ListOrElement => value.ValueKind is JsonValueKind.Array or JsonValueKind.String,
-        _ => false,
-    };
+        StringComparer comparer = fileSystem.CaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
+        var literals = new HashSet<string>(literalFiles, comparer);
+        var wildcards = new List<string>(); var jsonFiles = new List<string>();
+        bool allowJs = options.Boolean("allowJs") ?? options.Boolean("checkJs") ?? false;
+        bool resolveJson = options.Boolean("resolveJsonModule") ?? options.String("moduleResolution") == "bundler";
+        string[] extensions = new[] { ".ts", ".tsx", ".mts", ".cts" }.Concat(allowJs ? [".js", ".jsx", ".mjs", ".cjs"] : []).Concat(resolveJson ? [".json"] : []).Concat(extraExtensions).ToArray();
+        string[] candidates = includes.Length == 0 ? [] : FileMatcher.ReadDirectory(fileSystem, root, root, extensions, excludes, includes, cancellation: cancellation);
+        FilePattern[] jsonPatterns = includes.Where(p => p.EndsWith(".json", StringComparison.Ordinal)).Select(p => new FilePattern(p, fileSystem.CaseSensitive)).ToArray();
+        string[][] groups = [[".ts", ".tsx", ".d.ts", ".js", ".jsx"], [".cts", ".d.cts", ".cjs"], [".mts", ".d.mts", ".mjs"]];
+        foreach (string file in candidates)
+        {
+            if (literals.Contains(file) || wildcards.Contains(file, comparer)) continue;
+            if (file.EndsWith(".json", StringComparison.Ordinal)) { if (jsonPatterns.Any(p => p.Matches(file)) && !jsonFiles.Contains(file, comparer)) jsonFiles.Add(file); continue; }
+            string[]? group = groups.FirstOrDefault(g => g.Any(e => file.EndsWith(e, StringComparison.Ordinal)));
+            if (group is not null)
+            {
+                string extension = group.OrderByDescending(e => e.Length).First(e => file.EndsWith(e, StringComparison.Ordinal));
+                string stem = file[..^extension.Length]; int rank = Array.IndexOf(group, extension);
+                if (group.Take(rank).Any(e => !(e == ".d.ts" && extension is ".js" or ".jsx") && (literals.Contains(stem + e) || wildcards.Contains(stem + e, comparer)))) continue;
+                wildcards.RemoveAll(p => group.Skip(rank + 1).Any(e => comparer.Equals(p, stem + e)));
+            }
+            wildcards.Add(file);
+        }
+        return literals.Concat(wildcards).Concat(jsonFiles).ToArray();
+    }
     private string? ResolveExtends(string specifier, string directory)
     {
-        string? File(string path) => fileSystem.FileExists(path) ? path : fileSystem.FileExists(path + ".json") ? path + ".json" : null;
-        if (CompilerPath.IsAbsolute(specifier) || specifier.StartsWith('.')) return File(CompilerPath.Resolve(directory, specifier));
+        string? File(string path) => fileSystem.FileExists(path) ? path : !path.EndsWith(".json", StringComparison.Ordinal) && fileSystem.FileExists(path + ".json") ? path + ".json" : null;
+        specifier = CompilerPath.NormalizeSlashes(specifier);
+        if (CompilerPath.IsAbsolute(specifier) || specifier.StartsWith("./", StringComparison.Ordinal) || specifier.StartsWith("../", StringComparison.Ordinal)) return File(CompilerPath.Resolve(directory, specifier));
         while (true)
         {
             string candidate = CompilerPath.Combine(directory, "node_modules", specifier);
-            string? exact = File(candidate); if (exact is not null) return exact;
+            string? exact = File(candidate); if (exact is not null) return fileSystem.RealPath(exact);
             if (fileSystem.ReadFile(CompilerPath.Combine(candidate, "package.json")) is { } bytes)
             {
                 try
                 {
-                    using var package = JsonDocument.Parse(bytes, JsonOptions);
-                    if (package.RootElement.TryGetProperty("tsconfig", out var config) && config.ValueKind == JsonValueKind.String)
-                    { string? target = File(CompilerPath.Resolve(candidate, config.GetString()!)); if (target is not null) return target; }
+                    using var package = JsonDocument.Parse(SourceEncoding.Decode(bytes), JsonOptions);
+                    if (package.RootElement.ValueKind == JsonValueKind.Object && package.RootElement.TryGetProperty("tsconfig", out var config) && config.ValueKind == JsonValueKind.String)
+                    { string? target = File(CompilerPath.Resolve(candidate, JsonStrings.GetString(config))); if (target is not null) return fileSystem.RealPath(target); }
                 }
                 catch (JsonException) { }
             }
-            exact = File(CompilerPath.Combine(candidate, "tsconfig.json")); if (exact is not null) return exact;
+            exact = File(CompilerPath.Combine(candidate, "tsconfig.json")); if (exact is not null) return fileSystem.RealPath(exact);
             string parent = CompilerPath.DirectoryName(directory); if (parent == directory) return null; directory = parent;
         }
     }
-    public static bool GlobMatches(string pattern, string path, bool caseSensitive)
-        => GlobRegex(pattern, caseSensitive).IsMatch(CompilerPath.NormalizeSlashes(path));
-    private static Regex GlobRegex(string pattern, bool caseSensitive)
-    {
-        pattern = CompilerPath.NormalizeSlashes(pattern);
-        if (!pattern.Contains('*') && !pattern.Contains('?'))
-            return new("^" + Regex.Escape(CompilerPath.RemoveTrailingSeparator(pattern)) + "(?:/.*)?$", RegexOptions.CultureInvariant | RegexOptions.NonBacktracking | (caseSensitive ? RegexOptions.None : RegexOptions.IgnoreCase));
-        string expression = Regex.Escape(pattern).Replace(@"\*\*/", "(?:.*/)?", StringComparison.Ordinal).Replace(@"\*\*", ".*", StringComparison.Ordinal).Replace(@"\*", "[^/]*", StringComparison.Ordinal).Replace(@"\?", "[^/]", StringComparison.Ordinal);
-        return new("^" + expression + "$", RegexOptions.CultureInvariant | RegexOptions.NonBacktracking | (caseSensitive ? RegexOptions.None : RegexOptions.IgnoreCase));
-    }
+    public static bool GlobMatches(string pattern, string path, bool caseSensitive, bool exclude = false) => new FilePattern(pattern, caseSensitive, exclude).Matches(path);
 }

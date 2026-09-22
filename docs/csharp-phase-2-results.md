@@ -1,50 +1,60 @@
-# Phase 2 implementation checkpoint
+# Phase 2: syntax and host foundations
 
-Phase 2 is **in progress**, not complete. The new implementation is independent C# code, but it is not a replacement compiler. The original Go backend remains the product backend. The compatibility policy in the [rewrite plan](csharp-rewrite-plan.md) still governs this work: semantic correctness is required; unexplained differences are not accepted just to make a comparison pass.
+Phase 2 is implemented and validated on Windows x64. It provides the C# scanner, typed AST, parser, JavaScript syntax diagnostics, JSDoc parsing and rewriting, source metadata, diagnostics/resources, compiler paths, filesystem abstractions, configuration, options, and test-directive expansion. The original Go backend remains the product backend; program construction/binding, the complete checker, emit, watch/build execution, LSP, and API integration follow the later phases of the [rewrite plan](csharp-rewrite-plan.md).
 
-The current implementation adds:
+Compatibility follows the user's semantic policy. The complete parser gate passes with **686 documented strict Go differences**. The [parser audit](csharp-parser-compatibility.md) explains the policies, exact fixtures, retained results, and `--strict` reproductions for a future requirement to match Go completely. The older `phase2-parser-open-gate.json` is historical checkpoint evidence, superseded by the completed gate below.
 
-- A UTF-16 scanner over owned UTF-8/WTF-8 source, including trivia, identifiers, literals, JSX/JSDoc lexical modes, and rescanning. It uses pinned Unicode tables and BCL span/search operations.
-- 192 generated AST classes and typed factories, child traversal, iterative cloning, parent ownership, and byte-position conversion. Generated interfaces share operations on typed nodes, signatures, modifiers, and initializers without reflection. Data comes from the shared AST schema.
-- An initial parser for declarations, statements, expressions, types, JSX, JSON, and JSDoc. Documentation has source-local query identity and participates in JavaScript annotation, typedef, callback, overload, and import rewriting. JSDoc edge cases, recovery, and some grammar and context rules remain unfinished.
-- 2,213 diagnostic definitions, 13 embedded locales, and embedded or side-by-side access to all 108 library files.
-- Compiler paths, physical and memory filesystems, source encoding, configuration/response-file parsing, generated option declarations, and compiler test directive expansion. Broader option/host differential coverage remains necessary.
+All release checks use SDK `11.0.100-rc.2.26470.103`, .NET 11, C# 15, `runtime-async=on`, `OptimizationPreference=Speed`, NativeAOT/trimming warnings as errors, and `IlcInstructionSet=native`. The final product target remains .NET 11 GA. There are no additional NuGet dependencies. Other operating systems and architectures remain release gates in the plan.
 
-The SDK remains `11.0.100-rc.2.26470.103`, with C# 15, `OptimizationPreference=Speed`, NativeAOT/trimming warnings as errors, and `IlcInstructionSet=native`. There are no new NuGet dependencies. These results are Windows x64 execution evidence; the platform release blockers in the plan remain open.
-
-| Check on the published NativeAOT executable | Checkpoint result |
+| Published NativeAOT check | Result |
 | --- | --- |
-| Scanner corpus, including explicit rescan/malformed/Unicode cases | 12,895 cases and 1,828,290 token records matched Go. |
-| Test directives, virtual files, options, and symlinks | 12,866 cases and 17,433 units matched Go, including BOM and invalid UTF-8 handling. |
-| All bundled declaration libraries | 108 files and 183,538 AST nodes matched Go, including flags, positions, literal text, child structure, and parse diagnostics. |
-| Expanded parser corpus | 15,896 of 17,448 files matched; **1,552 comparisons failed**. This gate remains open. |
-| Focused foundation tests | 4,704 assertions passed with embedded libraries; 4,703 with side-by-side libraries. Covers locales/resources, ownership, encodings, configuration inheritance/response cycles, cancellation, a 20,000-node AST clone, and concurrent documentation queries and cloning. |
-| Previous phase-1 primitives | 458,098 assertions passed on the new native executable. |
-| Previous phase-1 pipeline and unchanged JS decoder | 15 projects, 3,886 decoded nodes and 90,212 type relations passed, including deep input, snapshot and cancellation checks. |
-| Repository validation | `npx --no-install hereby validate --all` passed after the documentation changes; local log: `logs/csharp-phase2-validation.log`. This validates the original Go/JS backend and repository tooling, not the unfinished C# parser. |
+| Scanner, rescanning, malformed input and Unicode | 12,895 cases; 1,828,290 token records; exact Go matches. |
+| Test directives, virtual files, options and symlinks | 12,866 cases; 17,433 units; exact Go matches. |
+| All bundled declaration libraries | 108 files; 183,538 AST nodes; exact Go matches. |
+| Complete expanded parser corpus | 17,448 files; 1,699,364 AST records; 16,762 exact matches and 686 documented differences; zero unexplained failures. |
+| JavaScript-only syntax diagnostics | 28 focused cases; 58 diagnostics, including arguments and related information; 27 exact results and one documented malformed-source recovery. Also compared across the complete parser corpus. |
+| Explicit documentation trees | 839 physical files, including all 108 libraries; 1,228 expanded units; 12,599 trees and 50,944 nodes. 332 exact outputs and 896 individually pinned differences; zero unexplained failures. |
+| Regular-expression grammar | 103,248 cases; 103,211 exact matches and 37 documented corrections; 11 deep-input checks. |
+| Source metadata | 6,778 comparisons, six extension checks, 19 clone checks and 42 semantic assertions; all passed. |
+| Paths, CLI/configuration and VFS | 3,152 cases per resource layout; 3,135 exact matches and 17 documented differences; zero unexplained failures. |
+| Foundation/resources and focused hosts/modules | 4,704 / 4,703 foundation assertions and 67 / 62 host assertions for embedded / side-by-side resources; 42 module assertions per layout. Includes 2,213 diagnostics, 13 locales and 108 libraries. |
+| Production parser safety | 36 deep cases; 1,421,783 nodes; depth 21,000, cancellation, byte ranges, parent ownership and a hostile synchronization context passed. |
+| Earlier phase-1 regressions | 458,098 primitive assertions; 15 pipeline projects, 3,886 decoded nodes and 90,212 type relations; unchanged JS decoder, deep input, snapshots and cancellation passed. |
 
-The checked-in [scanner evidence](../csharp/compatibility/evidence/phase2-scanner.json), [directive evidence](../csharp/compatibility/evidence/phase2-directives.json), [library parser evidence](../csharp/compatibility/evidence/phase2-library-parser.json), and [open parser gate](../csharp/compatibility/evidence/phase2-parser-open-gate.json) record the executable/input/oracle hashes. The open gate includes every failing case name. Detailed differences are retained locally in `built/csharp/syntax-differences.json`.
+The parser comparison checks tree structure, source ranges, flags, literal text, all 50 schema scalar properties, and all 127 NodeList/ModifierList fields. Parse diagnostics and JavaScript-only diagnostics occupy separate comparison buckets. Every candidate tree is checked for bounds, duplicate/cyclic nodes and parent identity. Documentation has its own tree and host-identity checks. Policy tests include 21 parser regression guards and 20 documentation negative controls, including moving a comment to another declaration of the same kind.
 
-[Foundation evidence](../csharp/compatibility/evidence/phase2-foundations.json) records both resource-layout artifacts and the previous phase's regression checks. C# formatting, all schema-generator freshness checks, and CRLF-aware Git whitespace checks passed.
+## Async execution and ownership
 
-The parser comparison serializes independently produced trees; it does not reuse Go ASTs in the candidate. Corpus files are split into their declared virtual files, decoded according to source BOMs, and parsed using their actual extensions. The directive extractor preserves invalid source bytes. The Go directive package needs `runtime.Caller` source paths, so this development oracle is built without `-trimpath`; that is not a shipped dependency.
+Production parsing uses BCL `ValueTask<T>` and direct configured awaits. When `RuntimeHelpers.TryEnsureSufficientExecutionStack` reports insufficient space, the BCL forced-yield option schedules the continuation on a fresh stack. There is no custom task type, async builder, scheduler, nesting limit or enlarged thread stack. `ParseSourceFileAsync` and `GetDocumentationAsync` await the complete documentation/type/import chain. Synchronous facades remain available for synchronous callers.
 
-Scanner type ranges borrow the original source rather than copying comment prefixes. Hexadecimal and binary integers use BCL `BigInteger.Parse`. Octal input uses linear bit packing into the BCL integer constructor because the BCL has no octal parse mode; it does not repeatedly multiply growing big integers. This is a semantic API gap, not a replacement for an available BCL helper.
+The constrained-worker regression caught and fixed a nested synchronous wait in documentation parsing. A separate NativeAOT artifact with the **test-only** setting `UseWindowsThreadPool=false` passes the strict one-worker test for eager JS documentation, lazy TS documentation, Unicode ranges, cloning and cache identity. The normal Windows NativeAOT artifact uses the SDK's default Windows pool, which does not expose worker-count controls; the same operations pass there without imposing that unsupported control.
 
-Remaining exit work includes JavaScript/JSDoc parsing and rewriting, full regex grammar validation, malformed-input recovery, remaining syntax/context rules and source-file metadata, deep-input safety across production parser paths, and the complete configuration/path/VFS option suites. No failing cases have been removed or normalized away. The phase-1 deep-parser experiments are not proof of deep-input safety for the new production parser.
+Cloning copies cached documentation associations by reference identity, preserving synthetic typedef aliases and shared comment associations while remapping module references to the clone's own nodes. Unqueried documentation remains lazy. Cloning performs no parser calls or synchronous waits. Recursive documentation traversal/grouping and host/configuration traversal use explicit work stacks.
 
-Reproduce from the repository root with Node 24:
+## Evidence and reproduction
+
+Checked-in summaries contain executable, input and oracle hashes: [parser](../csharp/compatibility/evidence/phase2-parser.json), [parser differences](../csharp/compatibility/evidence/phase2-parser-differences.json), [scanner](../csharp/compatibility/evidence/phase2-scanner.json), [directives](../csharp/compatibility/evidence/phase2-directives.json), [libraries](../csharp/compatibility/evidence/phase2-library-parser.json), [JavaScript diagnostics](../csharp/compatibility/evidence/phase2-javascript-syntax.json), [documentation](../csharp/compatibility/evidence/phase2-documentation.json), [regex](../csharp/compatibility/evidence/phase2-regex.json), [metadata](../csharp/compatibility/evidence/phase2-metadata.json), [safety](../csharp/compatibility/evidence/phase2-parser-safety.json), and [combined regressions](../csharp/compatibility/evidence/phase2-foundations.json).
+
+The [host](csharp-host-compatibility.md), [regex](csharp-regex-validation.md), [metadata](csharp-source-metadata.md), and [JSDoc](csharp-jsdoc-validation.md) reports describe their separate native artifacts, scope, exact difference ledgers and commands. Intentional differences retain their original inputs and complete results or reproducible strict comparisons. No source fixture is removed from a gate because it fails.
 
 ```powershell
 node csharp/tools/generate-foundations.mjs --check
 node csharp/tools/generate-ast.mjs --check
 node csharp/tools/generate-options.mjs --check
-node csharp/tools/syntax.mjs --corpus
+node csharp/tools/generate-regex.mjs --check
+node csharp/tools/syntax.mjs --parse --corpus --expanded --record phase2-parser
+node csharp/tools/syntax.mjs --no-build --corpus
 node csharp/tools/syntax.mjs --no-build --units --corpus
 node csharp/tools/syntax.mjs --no-build --parse --corpus --filter tsc/internal/bundled
-# This command currently fails and reports the remaining parser differences:
-node csharp/tools/syntax.mjs --no-build --parse --corpus --expanded
 & ./built/csharp/phase2-native/TypeScript.Compatibility.exe --foundations $PWD
+& ./built/csharp/phase2-native/TypeScript.Compatibility.exe --hosts $PWD
+& ./built/csharp/phase2-native/TypeScript.Compatibility.exe --modules
+& ./built/csharp/phase2-native/TypeScript.Compatibility.exe --javascript-syntax $PWD
+& ./built/csharp/phase2-native/TypeScript.Compatibility.exe --parser-safety
 ```
 
-The runner accepts explicit `--go` and `--dotnet` paths and defaults to the user-supplied installations. `--managed` is for fast development checks; passing it does not establish the NativeAOT gate. The runner sorts corpus paths for deterministic selection. No phase-2 performance claim is made from these correctness runs.
+The syntax runner accepts `--go` and `--dotnet` and defaults to the supplied installations. `--managed` is a development check; recorded release evidence comes from NativeAOT. BCL span/search operations provide portable SIMD opportunities; measured workloads have not required storage beyond BCL array limits. These are correctness and ownership checks, with no new compiler performance claim.
+
+Repository validation `npx --no-install hereby validate --all` passed, including the original Go/JS suites, API/tool checks, generation, linting and formatting. Its Go run reported 163,380 tests with 2,152 existing skips. The run also executes the repository's one-iteration benchmark smoke tests; their timings are not used as performance baselines. The log is `logs/csharp-phase2-final-validation.log`, with its hash retained in the [validation record](../csharp/compatibility/evidence/phase2-validation.json).
+
+For workspace-loading tools such as `dotnet format`, run from `csharp/` with `DOTNET_ROOT` and the start of `PATH` set to the pinned SDK directory. This also pins MSBuild SDK discovery; using the executable path alone allowed a design-time load to restore machine-wide RC1 packs. The final lockfiles and format verification use the requested RC2 SDK and package graph.

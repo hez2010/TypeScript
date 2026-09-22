@@ -6,24 +6,30 @@ using K = TypeScript.Compiler.Syntax.SyntaxKind;
 
 namespace TypeScript.Compiler.Syntax;
 
-internal sealed class DocumentationParser(SourceText source, ScriptKind scriptKind, NodeFlags context = 0)
+internal sealed class DocumentationParser(SourceText source, ScriptKind scriptKind, NodeFlags context = 0, CancellationToken cancellation = default)
 {
     private readonly NodeFactory factory = new();
     private readonly string text = source.Text;
     private readonly NodeFlags flags = context | NodeFlags.JSDoc | (scriptKind is ScriptKind.JS or ScriptKind.JSX ? NodeFlags.JavaScriptFile : 0);
+    private Scanner? identifierScanner;
     public List<Diagnostic> Diagnostics { get; } = [];
     public NodeFlags SourceFlags { get; private set; }
 
-    public JSDocNode[] Leading(int start, int end)
+    public JSDocNode[] Leading(int start, int end, K hostKind = K.Unknown) => Parser.RunParse(LeadingAsync(start, end, hostKind));
+    public async ValueTask<JSDocNode[]> LeadingAsync(int start, int end, K hostKind = K.Unknown)
     {
         var scanner = new Scanner(source, false);
-        scanner.SetTextRange(Math.Max(0, start), Math.Min(source.Length, end));
+        scanner.SetTextRange(Math.Max(0, start), source.Length);
+        bool collect = start == 0 || hostKind is K.Parameter or K.TypeParameter or K.FunctionExpression or K.ArrowFunction or K.ParenthesizedExpression or K.VariableDeclaration or K.ExportSpecifier;
         var comments = new List<JSDocNode>();
         while (true)
         {
+            cancellation.ThrowIfCancellationRequested();
             K kind = scanner.Scan();
-            if (kind == K.MultiLineCommentTrivia && scanner.TokenText.StartsWith("/**", StringComparison.Ordinal) && !scanner.TokenText.StartsWith("/**/", StringComparison.Ordinal))
-                comments.Add(Parse(scanner.TokenStart, scanner.Position));
+            if (kind == K.NewLineTrivia) collect = true;
+            if (scanner.Position > end) break;
+            if (collect && kind == K.MultiLineCommentTrivia && scanner.TokenText.StartsWith("/**", StringComparison.Ordinal) && !scanner.TokenText.StartsWith("/**/", StringComparison.Ordinal))
+                comments.Add(await ParseAsync(scanner.TokenStart, scanner.Position).ConfigureAwait(false));
             else if (kind is not (K.WhitespaceTrivia or K.NewLineTrivia or K.SingleLineCommentTrivia or K.MultiLineCommentTrivia)) break;
         }
         return comments.ToArray();
@@ -34,13 +40,15 @@ internal sealed class DocumentationParser(SourceText source, ScriptKind scriptKi
         for (int i = 0; i < node.ChildCount; i++) node.GetChild(i).Parent = node;
         return node;
     }
-    private JSDocNode Parse(int start, int end)
+    private async ValueTask<JSDocNode> ParseAsync(int start, int end)
     {
         int contentStart = start + 3, contentEnd = text.AsSpan(start, end - start).EndsWith("*/", StringComparison.Ordinal) ? end - 2 : end;
         var positions = new List<int>();
         int ticks = 0; bool fenced = false, quoted = false;
         for (int i = contentStart; i < contentEnd; i++)
         {
+            cancellation.ThrowIfCancellationRequested();
+            if (!fenced && TokenFacts.IsLineBreak(text[i])) quoted = false;
             if (text[i] == '`')
             {
                 ticks = 1; while (i + 1 < contentEnd && text[i + 1] == '`') { ticks++; i++; }
@@ -51,10 +59,20 @@ internal sealed class DocumentationParser(SourceText source, ScriptKind scriptKi
             if (i != contentStart && !char.IsWhiteSpace(text[i - 1]) && text[i - 1] != '*') continue;
             if (i + 1 == contentEnd || TokenFacts.IsIdentifierStart(text[i + 1]) || char.IsWhiteSpace(text[i + 1])) positions.Add(i);
         }
-        NodeList? comment = Comments(contentStart, positions.Count == 0 ? contentEnd : positions[0]);
+        NodeList? comment = Comments(contentStart, positions.Count == 0 ? contentEnd : positions[0], true);
         var tags = new List<SyntaxNode>();
-        for (int i = 0; i < positions.Count; i++) tags.Add(Tag(positions[i], i + 1 < positions.Count ? positions[i + 1] : contentEnd));
+        int commentIndent = Column(SkipSpace(contentStart, contentEnd, false));
+        for (int i = 0; i < positions.Count; i++)
+        { cancellation.ThrowIfCancellationRequested(); tags.Add(await TagAsync(positions[i], i + 1 < positions.Count ? positions[i + 1] : contentEnd, commentIndent).ConfigureAwait(false)); }
         GroupTags(tags);
+        var singletons = new HashSet<K>();
+        foreach (SyntaxNode tag in tags)
+            if (tag.Kind is K.JSDocReturnTag or K.JSDocTypeTag && !singletons.Add(tag.Kind))
+            {
+                IdentifierNode tagName = tag is JSDocReturnTagNode returns ? returns.TagName! : ((JSDocTypeTagNode)tag).TagName!;
+                Diagnostics.Add(new(Messages.X_0_tag_already_specified, tagName.Pos, SkipSpace(tagName.End, tag.End) - tagName.Pos, [tagName.Text]));
+                tag.Flags |= NodeFlags.ThisNodeHasError;
+            }
         NodeList? tagList = tags.Count == 0 ? null : new(tags.ToArray(), tags[0].Pos, tags[^1].End);
         return Finish(factory.NewJSDoc(comment, tagList), start, end);
     }
@@ -71,37 +89,43 @@ internal sealed class DocumentationParser(SourceText source, ScriptKind scriptKi
         }
         return pos == end && preserveTrailing ? original : pos;
     }
-    private IdentifierNode Identifier(ref int pos, int end)
+    private IdentifierNode Identifier(ref int pos, int end, bool reportMissing = true)
     {
         int start = pos;
-        while (pos < end)
-        {
-            int point = char.IsHighSurrogate(text[pos]) && pos + 1 < end && char.IsLowSurrogate(text[pos + 1]) ? char.ConvertToUtf32(text[pos], text[pos + 1]) : text[pos];
-            if (!TokenFacts.IsIdentifierPart(point) && point != '-') break;
-            pos += point > 0xFFFF ? 2 : 1;
-        }
-        if (pos == start) Diagnostics.Add(new(Messages.Identifier_expected, pos, 0, []));
-        var node = Finish(factory.NewIdentifier(text[start..pos]), start, pos);
-        if (pos == start) node.Flags |= NodeFlags.ThisNodeHasError;
+        Scanner scanner = identifierScanner ??= new Scanner(source, false);
+        scanner.SetTextRange(pos, end); scanner.Diagnostics.Clear();
+        K kind = scanner.ScanJSDocToken();
+        string value = "";
+        if (kind == K.Identifier || kind is >= K.FirstKeyword and <= K.LastKeyword) { pos = scanner.Position; value = scanner.Value; }
+        Diagnostics.AddRange(scanner.Diagnostics);
+        if (pos == start && reportMissing) Diagnostics.Add(new(Messages.Identifier_expected, pos, 0, []));
+        var node = Finish(factory.NewIdentifier(value), start, pos);
+        if (pos == start && reportMissing) node.Flags |= NodeFlags.ThisNodeHasError;
         return node;
     }
-    private SyntaxNode Name(ref int pos, int end)
+    private SyntaxNode Name(ref int pos, int end, bool arrayQualifiers = false, bool reportMissing = true, bool linkName = false)
     {
         int start = pos;
-        SyntaxNode name = Identifier(ref pos, end);
-        while (pos < end && text[pos] is '.' or '#')
-        { pos++; name = Finish(factory.NewQualifiedName(name, Identifier(ref pos, end)), start, pos); }
+        SyntaxNode name = Identifier(ref pos, end, reportMissing);
+        if (arrayQualifiers && pos + 1 < end && text[pos] == '[' && text[pos + 1] == ']') pos += 2;
+        while (pos < end && (text[pos] == '.' || !arrayQualifiers && text[pos] == '#'))
+        {
+            pos++;
+            var right = Identifier(ref pos, end, !linkName || pos >= end || text[pos] != '#');
+            if (arrayQualifiers && pos + 1 < end && text[pos] == '[' && text[pos + 1] == ']') pos += 2;
+            name = Finish(factory.NewQualifiedName(name, right), start, pos);
+        }
         return name;
     }
-    private JSDocTypeExpressionNode? Type(ref int pos, int end, bool optional, bool mayOmitBraces = false)
+    private async ValueTask<(JSDocTypeExpressionNode? Type, int Position)> TypeAsync(int pos, int end, bool optional, bool mayOmitBraces = false)
     {
         pos = SkipSpace(pos, end);
-        if (optional && (pos == end || text[pos] != '{' || pos + 1 < end && text[pos + 1] == '@')) return null;
-        var result = Parser.DocumentationType(source, scriptKind, pos, end, mayOmitBraces, context);
+        if (optional && (pos == end || text[pos] != '{' || pos + 1 < end && text[pos + 1] == '@')) return (null, pos);
+        var result = await Parser.DocumentationTypeAsync(source, scriptKind, pos, end, mayOmitBraces, context, cancellation).ConfigureAwait(false);
         pos = result.End; Diagnostics.AddRange(result.Diagnostics); SourceFlags |= result.SourceFlags;
-        return result.Node;
+        return (result.Node, pos);
     }
-    private SyntaxNode Tag(int start, int end)
+    private async ValueTask<SyntaxNode> TagAsync(int start, int end, int docIndent)
     {
         int pos = start + 1;
         IdentifierNode tagName = Identifier(ref pos, end);
@@ -113,20 +137,23 @@ internal sealed class DocumentationParser(SourceText source, ScriptKind scriptKi
         string tag = tagName.Text;
         if (tag == "import")
         {
-            var imported = Parser.DocumentationImport(source, scriptKind, start + 1, end);
+            var imported = await Parser.DocumentationImportAsync(source, scriptKind, start + 1, end, cancellation).ConfigureAwait(false);
             Diagnostics.AddRange(imported.Diagnostics);
             NodeList? importedComment = Comments(imported.End, end);
             return Finish(factory.NewJSDocImportTag(tagName, imported.Node?.ImportClause, imported.Node?.ModuleSpecifier, imported.Node?.Attributes, importedComment), start, end);
         }
         if (tag is "implements" or "augments" or "extends")
         {
-            var parsedType = Type(ref pos, end, false, true);
+            var parsed = await TypeAsync(pos, end, false, true).ConfigureAwait(false);
+            JSDocTypeExpressionNode? parsedType = parsed.Type; pos = parsed.Position;
             SyntaxNode? expression = parsedType?.Type;
             NodeList? arguments = null;
             if (expression is TypeReferenceNode reference) { expression = reference.TypeName; arguments = reference.TypeArguments; }
-            SyntaxNode ToExpression(SyntaxNode node) => node is QualifiedNameNode { Left: { } left, Right: { } right }
-                ? Finish(factory.NewPropertyAccessExpression(ToExpression(left), null, right, 0), node.Pos, node.End) : node;
-            if (expression is not null) expression = ToExpression(expression);
+            var qualifiers = new Stack<QualifiedNameNode>();
+            while (expression is QualifiedNameNode { Left: { }, Right: { } } qualified)
+            { qualifiers.Push(qualified); expression = qualified.Left; }
+            while (qualifiers.TryPop(out QualifiedNameNode? qualified))
+                expression = Finish(factory.NewPropertyAccessExpression(expression, null, qualified.Right, 0), qualified.Pos, qualified.End);
             var className = Finish(factory.NewExpressionWithTypeArguments(expression, arguments), parsedType?.Type?.Pos ?? pos, parsedType?.Type?.End ?? pos);
             var comments = Comments(pos, end);
             return tag == "implements" ? Finish(factory.NewJSDocImplementsTag(tagName, className, comments), start, end)
@@ -134,11 +161,11 @@ internal sealed class DocumentationParser(SourceText source, ScriptKind scriptKi
         }
         if (tag is "param" or "arg" or "argument" or "property" or "prop")
         {
-            type = Type(ref pos, end, true); nameFirst = type is null;
+            (type, pos) = await TypeAsync(pos, end, true).ConfigureAwait(false); nameFirst = type is null;
             pos = SkipSpace(pos, end);
             bracketed = pos < end && text[pos] == '['; if (bracketed) pos = SkipSpace(pos + 1, end);
             bool backquoted = pos < end && text[pos] == '`'; if (backquoted) pos++;
-            name = Name(ref pos, end);
+            name = Name(ref pos, end, true, tag is "property" or "prop");
             if (backquoted && pos < end && text[pos] == '`') pos++;
             if (bracketed)
             {
@@ -151,43 +178,53 @@ internal sealed class DocumentationParser(SourceText source, ScriptKind scriptKi
                 if (pos < end && text[pos] == ']') pos++;
                 else Diagnostics.Add(new(Messages.X_0_expected, pos, 0, ["]"]));
             }
-            if (nameFirst) type = Type(ref pos, end, true);
+            if (nameFirst) (type, pos) = await TypeAsync(pos, end, true).ConfigureAwait(false);
         }
-        else if (tag is "type" or "this") type = Type(ref pos, end, false, true);
-        else if (tag is "returns" or "return" or "throws" or "exception" or "typedef") type = Type(ref pos, end, true);
-        else if (tag == "satisfies") type = Type(ref pos, end, false);
+        else if (tag is "type" or "this") (type, pos) = await TypeAsync(pos, end, false, true).ConfigureAwait(false);
+        else if (tag is "returns" or "return" or "throws" or "exception" or "typedef") (type, pos) = await TypeAsync(pos, end, true).ConfigureAwait(false);
+        else if (tag == "satisfies") (type, pos) = await TypeAsync(pos, end, false).ConfigureAwait(false);
         else if (tag == "template")
         {
-            type = Type(ref pos, end, true);
+            (type, pos) = await TypeAsync(pos, end, true).ConfigureAwait(false);
             int parameterStart = SkipSpace(pos, end); pos = parameterStart;
             var list = new List<SyntaxNode>();
             while (pos < end)
             {
-                int current = pos;
-                bool optional = text[pos] == '['; if (optional) pos++;
-                IdentifierNode id = Identifier(ref pos, end); pos = SkipSpace(pos, end);
-                int parameterEnd = id.End;
-                SyntaxNode? defaultType = null;
-                if (pos < end && text[pos] == '=')
-                { pos++; var expression = Type(ref pos, end, false, true); defaultType = expression?.Type; parameterEnd = pos; }
-                if (optional && pos < end && text[pos] == ']') parameterEnd = ++pos;
-                list.Add(Finish(factory.NewTypeParameterDeclaration(null, id, null, null, defaultType), current, parameterEnd));
+                var parsed = await Parser.DocumentationTypeParameterAsync(source, scriptKind, pos, end, cancellation).ConfigureAwait(false);
+                Diagnostics.AddRange(parsed.Diagnostics); SourceFlags |= parsed.SourceFlags;
+                if (parsed.Node is not null) list.Add(parsed.Node);
+                pos = SkipSpace(parsed.End, end);
                 if (pos >= end || text[pos] != ',') break;
                 pos = SkipSpace(pos + 1, end);
             }
             parameters = new(list.ToArray(), parameterStart, list.Count == 0 ? parameterStart : list[^1].End);
         }
         if (tag is "typedef" or "callback")
-        { pos = SkipSpace(pos, end); name = Name(ref pos, end); }
+        { pos = SkipSpace(pos, end); name = NamespaceName(Name(ref pos, end)); }
         if (tag == "see")
         {
-            int possibleName = pos;
+            int nameStart = pos;
+            bool braces = pos < end && text[pos] == '{';
+            int identifierStart = braces ? SkipSpace(pos + 1, end) : pos;
+            int possibleName = identifierStart;
             while (possibleName < end && !char.IsWhiteSpace(text[possibleName])) possibleName++;
-            if (!text.AsSpan(pos, possibleName - pos).Contains("://", StringComparison.Ordinal) && pos < end && TokenFacts.IsIdentifierStart(text[pos]))
-            { int nameStart = pos; name = Finish(factory.NewJSDocNameReference(Name(ref pos, end)), nameStart, pos); }
+            if (!text.AsSpan(identifierStart, possibleName - identifierStart).Contains("://", StringComparison.Ordinal) && StartsIdentifier(identifierStart, end))
+            {
+                pos = identifierStart;
+                SyntaxNode target = Name(ref pos, end, linkName: true);
+                if (braces)
+                {
+                    pos = SkipSpace(pos, end);
+                    if (pos < end && text[pos] == '}') pos++;
+                    else Diagnostics.Add(new(Messages.X_0_expected, pos, 0, ["}"]));
+                }
+                name = Finish(factory.NewJSDocNameReference(target), nameStart, pos);
+            }
         }
         int nodeEnd = end;
-        NodeList? comment = Comments(pos, end);
+        bool commentOnNextLine = text.AsSpan(pos, SkipSpace(pos, end, false) - pos).IndexOfAny("\r\n\u2028\u2029") >= 0;
+        int? commentIndent = tag is "typedef" or "callback" or "overload" || commentOnNextLine ? docIndent : null;
+        NodeList? comment = Comments(pos, end, preserveLineIndentation: type is not null && (type.Flags & NodeFlags.ThisNodeHasError) != 0, baseIndent: commentIndent);
         if (tag == "typedef" && comment is null) nodeEnd = name?.End ?? type?.End ?? tagName.End;
         SyntaxNode result = tag switch
         {
@@ -212,56 +249,143 @@ internal sealed class DocumentationParser(SourceText source, ScriptKind scriptKi
         };
         return Finish(result, start, nodeEnd);
     }
+    private SyntaxNode NamespaceName(SyntaxNode name)
+    {
+        if (name is not QualifiedNameNode) return name;
+        var parts = new List<IdentifierNode>();
+        var pending = new Stack<SyntaxNode>(); pending.Push(name);
+        while (pending.TryPop(out SyntaxNode? part))
+        {
+            if (part is QualifiedNameNode { Left: { } left, Right: { } right }) { pending.Push(right); pending.Push(left); }
+            else if (part is IdentifierNode identifier) parts.Add(identifier);
+        }
+        SyntaxNode? result = parts[^1].Text.Length == 0 ? null : parts[^1];
+        if (result is not null) result.Flags |= NodeFlags.IdentifierIsInJSDocNamespace;
+        for (int i = parts.Count - 2; i >= 0; i--)
+        {
+            result = Finish(factory.NewModuleDeclaration(null, K.NamespaceKeyword, parts[i], null, result), parts[i].Pos, name.End);
+            if (i != 0) result.Flags |= NodeFlags.NestedNamespace;
+        }
+        return result!;
+    }
     private void GroupTags(List<SyntaxNode> tags)
     {
+        var grouped = new List<SyntaxNode>();
         for (int i = 0; i < tags.Count; i++)
         {
+            cancellation.ThrowIfCancellationRequested();
             SyntaxNode tag = tags[i];
-            if (tag is JSDocParameterOrPropertyTagNode { TypeExpression: JSDocTypeExpressionNode { Type: { } declaredType } } parentTag && IsObject(declaredType))
+            grouped.Add(tag);
+            if (tag is JSDocTypedefTagNode typeDef && (typeDef.TypeExpression is null || typeDef.TypeExpression is JSDocTypeExpressionNode { Type: { } type } && IsObject(type)))
             {
-                string parentName = FullName(parentTag.Name);
                 var children = new List<SyntaxNode>();
-                while (i + 1 < tags.Count && tags[i + 1] is JSDocParameterOrPropertyTagNode child && child.Kind == parentTag.Kind && FullName(child.Name).StartsWith(parentName + ".", StringComparison.Ordinal))
-                { children.Add(child); tags.RemoveAt(i + 1); }
-                if (children.Count != 0)
+                JSDocTypeTagNode? childType = null;
+                bool hasChildren = false;
+                while (i + 1 < tags.Count && tags[i + 1].Kind is K.JSDocPropertyTag or K.JSDocThisTag or K.JSDocTypeTag or K.JSDocTemplateTag)
                 {
-                    GroupTags(children);
-                    var literal = Finish(factory.NewJSDocTypeLiteral(children.ToArray(), declaredType is ArrayTypeNode), children[0].Pos, children[^1].End);
-                    parentTag.TypeExpression = Finish(factory.NewJSDocTypeExpression(literal), literal.Pos, literal.End);
-                    parentTag.TypeExpression.Parent = parentTag; parentTag.IsNameFirst = true; parentTag.End = literal.End;
+                    SyntaxNode child = tags[++i]; hasChildren = true;
+                    if (child is JSDocTemplateTagNode template) Diagnostics.Add(new(Messages.A_JSDoc_template_tag_may_not_follow_a_typedef_callback_or_overload_tag, template.TagName!.Pos, template.TagName.End - template.TagName.Pos, []));
+                    else if (child is JSDocTypeTagNode typed)
+                    {
+                        if (childType is null) childType = typed;
+                        else Diagnostics.Add(new(Messages.A_JSDoc_typedef_comment_may_not_contain_multiple_type_tags, typed.Pos, typed.End - typed.Pos, []));
+                    }
+                    else children.Add(child);
+                }
+                if (hasChildren)
+                {
+                    bool array = typeDef.TypeExpression is JSDocTypeExpressionNode { Type: ArrayTypeNode };
+                    children = GroupPropertyTags(children);
+                    typeDef.TypeExpression = childType?.TypeExpression is JSDocTypeExpressionNode { Type: { } declared } explicitType && !IsObject(declared)
+                        ? explicitType : Finish(factory.NewJSDocTypeLiteral(children.ToArray(), array), children.Count == 0 ? typeDef.Pos : children[0].Pos, tags[i].End);
+                    typeDef.TypeExpression.Parent = typeDef; typeDef.End = typeDef.TypeExpression.End;
+                    if (typeDef.Comment is null && childType?.Comment is { } description)
+                    {
+                        typeDef.Comment = description;
+                        foreach (SyntaxNode part in description) part.Parent = typeDef;
+                    }
                 }
             }
-            if (tag is JSDocTypedefTagNode typeDef && (typeDef.TypeExpression is null || typeDef.TypeExpression is JSDocTypeExpressionNode { Type: KeywordTypeNode { Kind: K.ObjectKeyword } } or JSDocTypeExpressionNode { Type: TypeReferenceNode { TypeName: IdentifierNode { Text: "Object" } } }))
-            {
-                var children = new List<SyntaxNode>();
-                while (i + 1 < tags.Count && tags[i + 1].Kind == K.JSDocPropertyTag) { children.Add(tags[i + 1]); tags.RemoveAt(i + 1); }
-                if (children.Count != 0)
-                { typeDef.TypeExpression = Finish(factory.NewJSDocTypeLiteral(children.ToArray(), false), children[0].Pos, children[^1].End); typeDef.TypeExpression.Parent = typeDef; typeDef.End = children[^1].End; }
-            }
-            if (tag is JSDocCallbackTagNode or JSDocOverloadTagNode)
+            else if (tag is JSDocCallbackTagNode or JSDocOverloadTagNode)
             {
                 var parameters = new List<SyntaxNode>(); SyntaxNode? result = null;
-                while (i + 1 < tags.Count && tags[i + 1].Kind is K.JSDocParameterTag or K.JSDocThisTag or K.JSDocReturnTag)
-                { var child = tags[i + 1]; tags.RemoveAt(i + 1); if (child.Kind == K.JSDocReturnTag) result = child; else parameters.Add(child); }
-                GroupTags(parameters);
+                while (i + 1 < tags.Count && tags[i + 1].Kind is K.JSDocParameterTag or K.JSDocThisTag or K.JSDocTemplateTag)
+                {
+                    SyntaxNode child = tags[++i];
+                    if (child is JSDocTemplateTagNode template) Diagnostics.Add(new(Messages.A_JSDoc_template_tag_may_not_follow_a_typedef_callback_or_overload_tag, template.TagName!.Pos, template.TagName.End - template.TagName.Pos, []));
+                    else parameters.Add(child);
+                }
+                if (i + 1 < tags.Count && tags[i + 1].Kind == K.JSDocReturnTag) result = tags[++i];
+                parameters = GroupPropertyTags(parameters);
                 int start = parameters.Count != 0 ? parameters[0].Pos : tag.End;
-                int end = result?.End ?? (parameters.Count != 0 ? parameters[^1].End : tag.End);
-                ((ITypeExpressionNode)tag).TypeExpression = Finish(factory.NewJSDocSignature(null, new(parameters.ToArray(), start, end), result), start, end);
-                ((ITypeExpressionNode)tag).TypeExpression!.Parent = tag; tag.End = end;
+                int parametersEnd = parameters.Count != 0 ? parameters[^1].End : tag.End;
+                int end = result?.End ?? parametersEnd;
+                var signature = Finish(factory.NewJSDocSignature(null, new(parameters.ToArray(), start, parametersEnd), result), start, end);
+                ((ITypeExpressionNode)tag).TypeExpression = signature; signature.Parent = tag; tag.End = end;
             }
+            else if (tag is JSDocParameterOrPropertyTagNode { Kind: K.JSDocParameterTag })
+            {
+                var properties = new List<SyntaxNode> { tag };
+                while (i + 1 < tags.Count && tags[i + 1].Kind == K.JSDocParameterTag) properties.Add(tags[++i]);
+                grouped.RemoveAt(grouped.Count - 1);
+                grouped.AddRange(GroupPropertyTags(properties));
+            }
+            else if (tag is JSDocParameterOrPropertyTagNode { Kind: K.JSDocPropertyTag } property)
+                grouped[^1] = Finish(factory.NewJSDocUnknownTag(property.TagName, Comments(property.TagName!.End, property.End)), property.Pos, property.End);
+        }
+        tags.Clear(); tags.AddRange(grouped);
+    }
+    private List<SyntaxNode> GroupPropertyTags(List<SyntaxNode> tags)
+    {
+        var result = new List<SyntaxNode>();
+        var parents = new Stack<(JSDocParameterOrPropertyTagNode Tag, SyntaxNode Type, string Prefix, List<SyntaxNode> Children)>();
+        foreach (SyntaxNode tag in tags)
+        {
+            cancellation.ThrowIfCancellationRequested();
+            string? name = tag is JSDocParameterOrPropertyTagNode property ? SyntaxNameText.Get(property.Name, false) : null;
+            while (parents.TryPeek(out var parent) && (tag.Kind != parent.Tag.Kind || name is null || !name.StartsWith(parent.Prefix, StringComparison.Ordinal) || name.AsSpan(parent.Prefix.Length).Contains('.'))) Complete();
+            (parents.TryPeek(out var current) ? current.Children : result).Add(tag);
+            if (tag is JSDocParameterOrPropertyTagNode { TypeExpression: JSDocTypeExpressionNode { Type: { } declaredType } } parentTag && IsObject(declaredType))
+                parents.Push((parentTag, declaredType, name + ".", []));
+        }
+        while (parents.Count != 0) Complete();
+        return result;
+        void Complete()
+        {
+            var parent = parents.Pop();
+            if (parent.Children.Count == 0) return;
+            var literal = Finish(factory.NewJSDocTypeLiteral(parent.Children.ToArray(), parent.Type is ArrayTypeNode), parent.Children[0].Pos, parent.Children[^1].End);
+            parent.Tag.TypeExpression = Finish(factory.NewJSDocTypeExpression(literal), literal.Pos, literal.End);
+            parent.Tag.TypeExpression.Parent = parent.Tag; parent.Tag.IsNameFirst = true; parent.Tag.End = literal.End;
         }
     }
-    private static bool IsObject(SyntaxNode type) => type is KeywordTypeNode { Kind: K.ObjectKeyword } or TypeReferenceNode { TypeName: IdentifierNode { Text: "Object" }, TypeArguments: null }
-        || type is ArrayTypeNode { ElementType: { } element } && IsObject(element);
-    private static string FullName(SyntaxNode? node) => node switch
+    private static bool IsObject(SyntaxNode type)
     {
-        IdentifierNode identifier => identifier.Text,
-        QualifiedNameNode qualified => FullName(qualified.Left) + "." + FullName(qualified.Right),
-        _ => "",
-    };
-    private NodeList? Comments(int start, int end)
+        while (type is ArrayTypeNode { ElementType: { } element }) type = element;
+        return type is KeywordTypeNode { Kind: K.ObjectKeyword } or TypeReferenceNode { TypeName: IdentifierNode { Text: "Object" }, TypeArguments: null };
+    }
+    private bool StartsIdentifier(int pos, int end)
     {
+        if (pos >= end) return false;
+        int point = char.IsHighSurrogate(text[pos]) && pos + 1 < end && char.IsLowSurrogate(text[pos + 1]) ? char.ConvertToUtf32(text[pos], text[pos + 1]) : text[pos];
+        return point == '\\' || TokenFacts.IsIdentifierStart(point);
+    }
+    private int Column(int pos)
+    {
+        int start = pos;
+        while (start > 0 && !TokenFacts.IsLineBreak(text[start - 1])) start--;
+        return pos - start;
+    }
+    private NodeList? Comments(int start, int end, bool fullComment = false, bool preserveLineIndentation = false, int? baseIndent = null)
+    {
+        int untrimmedStart = start;
         start = SkipSpace(start, end, false);
+        int margin = baseIndent ?? Column(start), leadingLines = 0;
+        int initialPadding = baseIndent is not null && text.AsSpan(untrimmedStart, start - untrimmedStart).IndexOfAny("\r\n\u2028\u2029") >= 0 ? Math.Max(0, Column(start) - margin) : 0;
+        if (fullComment)
+            for (int i = untrimmedStart; i < start; i++)
+                if (TokenFacts.IsLineBreak(text[i])) { leadingLines++; if (text[i] == '\r' && i + 1 < start && text[i + 1] == '\n') i++; }
+        int rawEnd = end;
         while (end > start && char.IsWhiteSpace(text[end - 1])) end--;
         if (start >= end) return null;
         var nodes = new List<SyntaxNode>(); int cursor = start;
@@ -270,33 +394,61 @@ internal sealed class DocumentationParser(SourceText source, ScriptKind scriptKi
             int relative = text.AsSpan(cursor, end - cursor).IndexOf("{@link", StringComparison.Ordinal);
             if (relative < 0) { AddText(cursor, end); break; }
             int link = cursor + relative;
-            AddText(cursor, link);
             int pos = link + 2; int nameStart = pos;
             while (pos < end && char.IsAsciiLetter(text[pos])) pos++;
             string kind = text[nameStart..pos];
-            int close = text.IndexOf('}', pos, end - pos); if (close < 0) close = end;
+            if (kind is not ("link" or "linkcode" or "linkplain")) { AddText(cursor, pos); cursor = pos; continue; }
+            AddText(cursor, link, true);
+            int argumentsStart = pos;
+            int close = text.IndexOf('}', pos, rawEnd - pos); bool terminated = close >= 0; if (!terminated) close = rawEnd;
             pos = SkipSpace(pos, close); SyntaxNode? target = null;
             int targetEnd = pos;
             while (targetEnd < close && !char.IsWhiteSpace(text[targetEnd]) && text[targetEnd] != '|') targetEnd++;
-            if (pos < targetEnd && !text.AsSpan(pos, targetEnd - pos).Contains("://", StringComparison.Ordinal) && TokenFacts.IsIdentifierStart(text[pos])) target = Name(ref pos, targetEnd);
-            string[] value = [text[pos..close]];
+            if (pos < targetEnd && !text.AsSpan(pos, targetEnd - pos).Contains("://", StringComparison.Ordinal) && StartsIdentifier(pos, targetEnd)) target = Name(ref pos, targetEnd, linkName: true);
+            if (target is not null) pos = SkipSpace(pos, close);
+            string[] value = [text[(!terminated && target is null ? argumentsStart : pos)..close]];
             SyntaxNode node = kind switch { "linkcode" => factory.NewJSDocLinkCode(target, value), "linkplain" => factory.NewJSDocLinkPlain(target, value), _ => factory.NewJSDocLink(target, value) };
             cursor = close < end ? close + 1 : end;
             nodes.Add(Finish(node, link, cursor));
         }
+        if (fullComment && nodes.Count != 0 && nodes[^1].Kind is K.JSDocLink or K.JSDocLinkCode or K.JSDocLinkPlain)
+            AddText(end, end, true);
         return nodes.Count == 0 ? null : new(nodes.ToArray(), start, end);
-        void AddText(int from, int to)
+        void AddText(int from, int to, bool force = false)
         {
-            if (from == to) return;
+            if (from == to && !force) return;
             string raw = text[from..to].Replace("\r\n", "\n", StringComparison.Ordinal).Replace('\r', '\n');
             string[] lines = raw.Split('\n');
             for (int i = 1; i < lines.Length; i++)
             {
                 int star = 0; while (star < lines[i].Length && lines[i][star] is ' ' or '\t') star++;
+                int prefix = star;
                 if (star < lines[i].Length && lines[i][star] == '*')
-                { star++; if (star < lines[i].Length && lines[i][star] == ' ') star++; lines[i] = lines[i][star..]; }
+                {
+                    prefix++;
+                    while (prefix < lines[i].Length && lines[i][prefix] is ' ' or '\t') prefix++;
+                    if (fullComment && !preserveLineIndentation)
+                    {
+                        string beforeStar = star > margin ? lines[i][margin..star] : "";
+                        int skip = margin - star - 1;
+                        if (skip < 0) skip += prefix - star - 1;
+                        skip = Math.Clamp(skip, 0, prefix - star - 1);
+                        lines[i] = beforeStar + lines[i][(star + 1 + skip)..];
+                    }
+                    else
+                    {
+                        int remove = preserveLineIndentation ? star + 1 + (star + 1 < lines[i].Length && lines[i][star + 1] == ' ' ? 1 : 0) : Math.Max(star + 1, Math.Min(prefix, margin));
+                        lines[i] = lines[i][remove..];
+                    }
+                }
+                else lines[i] = lines[i][Math.Min(prefix, margin)..];
             }
-            nodes.Add(Finish(factory.NewJSDocText([string.Join('\n', lines)]), from, to));
+            string value = string.Join('\n', lines);
+            if (nodes.Count == 0 && initialPadding != 0) value = new string(' ', initialPadding) + value;
+            if (nodes.Count == 0 && leadingLines > 1) value = new string('\n', leadingLines - 1) + value;
+            if (to == end) value = value.TrimEnd();
+            if (value.Length == 0 && !force) return;
+            nodes.Add(Finish(factory.NewJSDocText([value]), from, to));
         }
     }
 }

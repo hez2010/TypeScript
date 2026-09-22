@@ -54,15 +54,21 @@ public sealed partial class Parser
             while (work.TryPop(out var part))
             {
                 if (part is QualifiedNameNode { Left: { } left, Right: { } right }) { work.Push(right); work.Push(left); }
+                else if (part is ModuleDeclarationNode { Name: { } moduleName } module)
+                {
+                    // A trailing dot retains a namespace even when its final
+                    // name is missing. The recoverable alias uses that last
+                    // namespace name inside the namespace, never at file scope.
+                    work.Push(module.Body ?? moduleName); work.Push(moduleName);
+                }
                 else if (part is IdentifierNode identifier) names.Add(identifier);
             }
             if (names.Count == 0) continue;
             if (!ValidDocumentationIdentifier(names[^1].Text))
                 ErrorAt(Diagnostics.Messages.Identifier_expected, names[^1].Pos == names[^1].End ? names[^1].Pos - 1 : names[^1].Pos, Math.Max(1, names[^1].End - names[^1].Pos));
-            NodeList? typeParameters = DocumentationTypeParameters(comment);
+            NodeList? typeParameters = DocumentationTypeParameters(comment, true);
             NodeList? modifiers = names.Count > 1 ? DocumentationExport(tag) : null;
             var aliasName = (IdentifierNode)CloneDocumentationType(names[^1]);
-            if (names.Count > 1) aliasName.Flags |= NodeFlags.IdentifierIsInJSDocNamespace;
             SyntaxNode declaration = factory.NewTypeAliasDeclaration(K.JSTypeAliasDeclaration, modifiers, aliasName, typeParameters, type);
             FinishReparse(declaration, tag); declaration.Flags |= NodeFlags.HasJSDoc;
             documentation[declaration] = [comment];
@@ -87,6 +93,7 @@ public sealed partial class Parser
                 {
                     var name = factory.NewIdentifier("this"); FinishReparse(name, tag);
                     parameter = factory.NewParameterDeclaration(null, null, name, null, thisTag.TypeExpression is ITypedNode { Type: { } type } ? CloneDocumentationType(type) : null, null);
+                    if (thisTag.Comment is not null) CopyDocumentationComment(parameter, thisTag, thisTag.Comment);
                 }
                 else if (tag is JSDocParameterOrPropertyTagNode { Name: IdentifierNode parameterName } parameterTag)
                 {
@@ -126,9 +133,10 @@ public sealed partial class Parser
         var modifier = factory.NewToken(K.ExportKeyword); FinishReparse(modifier, original);
         return new([modifier], original.Pos, original.End);
     }
-    private NodeList? DocumentationTypeParameters(JSDocNode comment)
+    private NodeList? DocumentationTypeParameters(JSDocNode comment, bool typedefOrCallback = false)
     {
         if (comment.Tags is null) return null;
+        if (!typedefOrCallback && comment.Tags.Any(t => t is JSDocTypedefTagNode or JSDocCallbackTagNode)) return null;
         var parameters = new List<SyntaxNode>();
         foreach (JSDocTemplateTagNode template in comment.Tags.OfType<JSDocTemplateTagNode>())
             if (template.TypeParameters is { } typeParameters)
@@ -136,29 +144,58 @@ public sealed partial class Parser
                 bool first = true;
                 foreach (TypeParameterDeclarationNode parameter in typeParameters.OfType<TypeParameterDeclarationNode>())
                 {
-                    var copy = (TypeParameterDeclarationNode)CloneDocumentationType(parameter);
-                    if (first && template.Constraint is ITypedNode { Type: { } constraint }) { copy.Constraint = CloneDocumentationType(constraint); copy.Constraint.Parent = copy; }
+                    TypeParameterDeclarationNode copy;
+                    if (first && template.Constraint is ITypedNode { Type: { } constraint })
+                    {
+                        NodeList? modifiers = parameter.Modifiers is { } original ? new(original.Select(CloneDocumentationType).ToArray(), original.Pos, original.End) : null;
+                        copy = factory.NewTypeParameterDeclaration(modifiers, parameter.Name is null ? null : (IdentifierNode)CloneDocumentationType(parameter.Name), CloneDocumentationType(constraint), null,
+                            parameter.DefaultType is null ? null : CloneDocumentationType(parameter.DefaultType));
+                        FinishReparse(copy, parameter);
+                    }
+                    else copy = (TypeParameterDeclarationNode)CloneDocumentationType(parameter);
                     first = false; parameters.Add(copy);
                 }
             }
-        return parameters.Count == 0 ? null : new(parameters.ToArray(), parameters[0].Pos, parameters[^1].End);
+        var templates = comment.Tags.OfType<JSDocTemplateTagNode>().ToArray();
+        return parameters.Count == 0 ? null : new(parameters.ToArray(), templates[0].Pos, templates[^1].End);
     }
     private SyntaxNode CloneDocumentationType(SyntaxNode type)
     {
-        if (type is JSDocTypeLiteralNode literal)
+        SyntaxNode CloneLeaf(SyntaxNode node)
         {
+            SyntaxNode clone = node.DeepClone<SyntaxNode>(factory);
+            clone.Flags |= NodeFlags.Reparsed;
+            reparsedClones.Add(clone);
+            return clone;
+        }
+        if (type is not JSDocTypeLiteralNode) return CloneLeaf(type);
+        var copies = new Dictionary<SyntaxNode, SyntaxNode>(ReferenceEqualityComparer.Instance);
+        var pending = new Stack<(SyntaxNode Node, bool Visited)>();
+        pending.Push((type, false));
+        while (pending.TryPop(out var item))
+        {
+            cancellation.ThrowIfCancellationRequested();
+            if (item.Node is not JSDocTypeLiteralNode literal)
+            { copies[item.Node] = CloneLeaf(item.Node); continue; }
+            if (!item.Visited)
+            {
+                pending.Push((literal, true));
+                foreach (var property in literal.JSDocPropertyTags.OfType<JSDocParameterOrPropertyTagNode>())
+                    if (property.TypeExpression is ITypedNode { Type: { } propertyType }) pending.Push((propertyType, false));
+                continue;
+            }
             var properties = new List<SyntaxNode>();
             foreach (var property in literal.JSDocPropertyTags.OfType<JSDocParameterOrPropertyTagNode>())
             {
                 SyntaxNode? name = property.Name is QualifiedNameNode qualified ? qualified.Right : property.Name;
-                SyntaxNode? cloneName = name is null ? null : CloneDocumentationType(name);
+                SyntaxNode? cloneName = name is null ? null : CloneLeaf(name);
                 if (name is IdentifierNode identifier && !ValidDocumentationIdentifier(identifier.Text))
                 {
                     cloneName = factory.NewStringLiteral(identifier.Text, 0); FinishReparse(cloneName, identifier);
                     cloneName.Flags |= NodeFlags.ReparserTransformedLiteral;
                 }
                 var cloneProperty = factory.NewPropertySignatureDeclaration(null, cloneName, OptionalDocumentationParameter(property),
-                    property.TypeExpression is ITypedNode { Type: { } propertyType } ? CloneDocumentationType(propertyType) : null, null);
+                    property.TypeExpression is ITypedNode { Type: { } propertyType } ? copies[propertyType] : null, null);
                 FinishReparse(cloneProperty, property);
                 if (property.Comment is not null) CopyDocumentationComment(cloneProperty, property, property.Comment);
                 properties.Add(cloneProperty);
@@ -166,12 +203,9 @@ public sealed partial class Parser
             SyntaxNode result = factory.NewTypeLiteralNode(new(properties.ToArray(), literal.Pos, literal.End));
             FinishReparse(result, literal);
             if (literal.IsArrayType) { result = factory.NewArrayTypeNode(result); FinishReparse(result, literal); }
-            return result;
+            copies[literal] = result;
         }
-        SyntaxNode clone = type.DeepClone<SyntaxNode>(factory);
-        clone.Flags |= NodeFlags.Reparsed;
-        reparsedClones.Add(clone);
-        return clone;
+        return copies[type];
     }
     private void FinishReparse(SyntaxNode result, SyntaxNode original)
     {
@@ -183,19 +217,27 @@ public sealed partial class Parser
         if (!tag.IsBracketed && tag.TypeExpression is not ITypedNode { Type: JSDocOptionalTypeNode }) return null;
         var question = factory.NewToken(K.QuestionToken); FinishReparse(question, tag); return question;
     }
-    private static SyntaxNode? FunctionHost(SyntaxNode node) => node switch
+    private static SyntaxNode? FunctionHost(SyntaxNode node)
     {
-        IFunctionSignature => node,
-        VariableStatementNode { DeclarationList.Declarations: { Count: > 0 } declarations } => FunctionHost(declarations[0]),
-        IInitializedNode { Initializer: { } initializer } => FunctionHost(initializer),
-        ExpressionStatementNode { Expression: { } expression } => FunctionHost(expression),
-        BinaryExpressionNode { Right: { } right } => FunctionHost(right),
-        ParenthesizedExpressionNode { Expression: { } expression } => FunctionHost(expression),
-        ReturnStatementNode { Expression: { } expression } => FunctionHost(expression),
-        ExportAssignmentNode { Expression: { } expression } => FunctionHost(expression),
-        SatisfiesExpressionNode { Expression: { } expression } => FunctionHost(expression),
-        _ => null,
-    };
+        while (true)
+        {
+            if (node is IFunctionSignature) return node;
+            SyntaxNode? next = node switch
+            {
+                VariableStatementNode { DeclarationList.Declarations: { Count: > 0 } declarations } => declarations[0],
+                IInitializedNode { Initializer: { } initializer } => initializer,
+                ExpressionStatementNode { Expression: { } expression } => expression,
+                BinaryExpressionNode { Right: { } right } => right,
+                ParenthesizedExpressionNode { Expression: { } expression } => expression,
+                ReturnStatementNode { Expression: { } expression } => expression,
+                ExportAssignmentNode { Expression: { } expression } => expression,
+                SatisfiesExpressionNode { Expression: { } expression } => expression,
+                _ => null,
+            };
+            if (next is null) return null;
+            node = next;
+        }
+    }
     private void ReparseDocumentation(SyntaxNode parent, JSDocNode comment)
     {
         if (comment.Tags is null) return;
@@ -219,26 +261,44 @@ public sealed partial class Parser
                     else if (parent is ExpressionStatementNode { Expression: BinaryExpressionNode binary })
                     { binary.Type = CloneDocumentationType(taggedType); binary.Type.Parent = binary; }
                     else if (parent is ParenthesizedExpressionNode or ReturnStatementNode) ApplyDocumentationCast(parent, taggedType, true);
-                    else if (host is IFullSignatureNode signature && host is IFunctionSignature function && function.Type is null && signature.FullSignature is null)
+                    else if (host is IFullSignatureNode signature && host is IFunctionSignature { Type: null, TypeParameters: null } function && signature.FullSignature is null &&
+                        function.Parameters?.OfType<ParameterDeclarationNode>().Any(p => p.Type is not null) != true)
                     { signature.FullSignature = CloneDocumentationType(taggedType); signature.FullSignature.Parent = host; }
                     break;
                 case JSDocSatisfiesTagNode when taggedType is not null:
                     ApplyDocumentationCast(parent, taggedType, false);
                     break;
-                case JSDocReturnTagNode when taggedType is not null && host is IFunctionSignature function:
+                case JSDocReturnTagNode when taggedType is not null && host is IFunctionSignature function && host is not IFullSignatureNode { FullSignature: not null }:
                     if (function.Type is null) { function.Type = CloneDocumentationType(taggedType); function.Type.Parent = host; }
                     break;
-                case JSDocParameterOrPropertyTagNode { Kind: K.JSDocParameterTag, Name: IdentifierNode name } parameterTag when host is IFunctionSignature { Parameters: { } parameters }:
+                case JSDocParameterOrPropertyTagNode { Kind: K.JSDocParameterTag } parameterTag when host is IFunctionSignature { Parameters: { } parameters } && host is not IFullSignatureNode { FullSignature: not null }:
+                    int tagIndex = 0;
+                    foreach (SyntaxNode sibling in comment.Tags)
+                    { if (ReferenceEquals(sibling, parameterTag)) break; if (sibling.Kind == K.JSDocParameterTag) tagIndex++; }
+                    int parameterIndex = 0;
                     foreach (ParameterDeclarationNode parameter in parameters.OfType<ParameterDeclarationNode>())
                     {
-                        if (parameter.Name is not IdentifierNode { Text: var parameterName } || parameterName != name.Text) continue;
+                        if (parameter.Name is IdentifierNode { Text: "this" } || parameter.Name?.Kind == K.ThisKeyword) continue;
+                        bool matches = parameter.Name is IdentifierNode parameterName
+                            ? parameterTag.Name is IdentifierNode tagName && (parameterName.Text == tagName.Text || tagName.Text.Length == 0 && parameterIndex == tagIndex)
+                            : parameterIndex == tagIndex;
+                        parameterIndex++;
+                        if (!matches) continue;
                         if (parameter.Type is null && taggedType is not null) { parameter.Type = CloneDocumentationType(taggedType); parameter.Type.Parent = parameter; }
                         parameter.QuestionToken ??= OptionalDocumentationParameter(parameterTag);
                         if (parameter.QuestionToken is not null) parameter.QuestionToken.Parent = parameter;
                         break;
                     }
                     break;
+                case JSDocThisTagNode thisTag when host is IFunctionSignature function:
+                    if (function.Parameters is { Count: > 0 } existingParameters && existingParameters[0] is ParameterDeclarationNode { Name: IdentifierNode { Text: "this" } }) break;
+                    var thisName = factory.NewIdentifier("this"); FinishReparse(thisName, thisTag.TagName!);
+                    var thisParameter = factory.NewParameterDeclaration(null, null, thisName, null, taggedType is null ? null : CloneDocumentationType(taggedType), null);
+                    FinishReparse(thisParameter, thisTag.TagName!); thisParameter.Parent = host;
+                    function.Parameters = new([thisParameter, .. (IEnumerable<SyntaxNode>?)function.Parameters ?? []], function.Parameters?.Pos ?? thisTag.Pos, function.Parameters?.End ?? thisTag.End);
+                    break;
                 case JSDocTemplateTagNode:
+                    if (host is IFullSignatureNode { FullSignature: not null }) break;
                     if (host is not IFunctionSignature { TypeParameters: null } && parent is not ClassDeclarationNode { TypeParameters: null } && parent is not ClassExpressionNode { TypeParameters: null }) break;
                     var list = DocumentationTypeParameters(comment);
                     if (list is null) break;
@@ -247,6 +307,7 @@ public sealed partial class Parser
                     else if (parent is ClassExpressionNode e && e.TypeParameters is null) { e.TypeParameters = list; foreach (var node in list) node.Parent = e; }
                     break;
                 case JSDocReadonlyTagNode or JSDocPrivateTagNode or JSDocPublicTagNode or JSDocProtectedTagNode or JSDocOverrideTagNode:
+                    if (parent is ExpressionStatementNode { Expression: { } assignment }) parent = assignment;
                     if (objectLiteralDepth != 0 && parent.Kind is K.MethodDeclaration or K.GetAccessor or K.SetAccessor) break;
                     if (parent is IModifiedNode modified && parent.Kind is K.PropertyDeclaration or K.MethodDeclaration or K.GetAccessor or K.SetAccessor or K.Constructor or K.BinaryExpression)
                     {
@@ -315,11 +376,5 @@ public sealed partial class Parser
         }
         return !first;
     }
-    private static string NameText(SyntaxNode? node) => node switch
-    {
-        IdentifierNode identifier => identifier.Text,
-        PropertyAccessExpressionNode property => NameText(property.Expression) + "." + NameText(property.Name),
-        QualifiedNameNode qualified => NameText(qualified.Left) + "." + NameText(qualified.Right),
-        _ => "",
-    };
+    private static string NameText(SyntaxNode? node) => SyntaxNameText.Get(node);
 }

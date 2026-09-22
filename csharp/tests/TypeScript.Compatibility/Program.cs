@@ -13,6 +13,36 @@ internal static class Program
     {
         try
         {
+            if (args is ["--javascript-syntax", var syntaxRepository])
+            {
+                JavaScriptSyntaxTests.Run(syntaxRepository);
+                return 0;
+            }
+            if (args is ["--parser-single-worker"])
+            {
+                ParserSafetyTests.RunSingleWorkerDocumentation();
+                return 0;
+            }
+            if (args is ["--modules"])
+            {
+                ModuleTests.Run();
+                return 0;
+            }
+            if (args is ["--hosts", var hostRepository])
+            {
+                HostTests.Run(hostRepository);
+                return 0;
+            }
+            if (args is ["--host-lines"])
+            {
+                HostTests.RunLines();
+                return 0;
+            }
+            if (args is ["--parser-safety"])
+            {
+                ParserSafetyTests.Run();
+                return 0;
+            }
             if (args is ["--foundations", var repository])
             {
                 FoundationTests.Run(repository);

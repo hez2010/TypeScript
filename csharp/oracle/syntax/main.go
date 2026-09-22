@@ -21,14 +21,15 @@ import (
 )
 
 type input struct {
-	Name     string `json:"name"`
-	FileName string `json:"fileName"`
-	Path     string `json:"path"`
-	Text     string `json:"text"`
-	Trivia   bool   `json:"trivia"`
-	Jsx      bool   `json:"jsx"`
-	Mode     string `json:"mode"`
-	Details  bool   `json:"details"`
+	Name      string `json:"name"`
+	FileName  string `json:"fileName"`
+	Path      string `json:"path"`
+	Text      string `json:"text"`
+	Trivia    bool   `json:"trivia"`
+	Jsx       bool   `json:"jsx"`
+	Mode      string `json:"mode"`
+	Details   bool   `json:"details"`
+	JSDetails bool   `json:"jsDetails"`
 }
 
 func main() {
@@ -95,6 +96,8 @@ func main() {
 			s.SetLanguageVariant(core.LanguageVariantJSX)
 		}
 		var errors [][3]int
+		jsErrors := make([][3]int, 0)
+		var javascriptDiagnostics []*ast.Diagnostic
 		s.SetOnError(func(message *diagnostics.Message, start, length int, _ ...any) {
 			errors = append(errors, [3]int{int(message.Code()), position(start), position(start+length) - position(start)})
 		})
@@ -123,13 +126,17 @@ func main() {
 				case ast.KindJsxText:
 					value = node.AsJsxText().Text
 				}
-				tokens = append(tokens, []any{int(node.Kind), position(node.Pos()), position(node.End()), uint32(node.Flags), base64.StdEncoding.EncodeToString([]byte(value)), len(children)})
+				tokens = append(tokens, []any{int(node.Kind), position(node.Pos()), position(node.End()), uint32(node.Flags), base64.StdEncoding.EncodeToString([]byte(value)), len(children), ast.CSharpScalarProperties(node), ast.CSharpListProperties(node, position)})
 				for i := len(children) - 1; i >= 0; i-- {
 					stack = append(stack, children[i])
 				}
 			}
 			for _, d := range file.Diagnostics() {
 				errors = append(errors, [3]int{int(d.Code()), position(d.Pos()), position(d.End()) - position(d.Pos())})
+			}
+			javascriptDiagnostics = file.JSDiagnostics()
+			for _, d := range javascriptDiagnostics {
+				jsErrors = append(jsErrors, [3]int{int(d.Code()), position(d.Pos()), position(d.End()) - position(d.Pos())})
 			}
 		} else {
 			for {
@@ -161,11 +168,44 @@ func main() {
 		if errors == nil {
 			errors = make([][3]int, 0)
 		}
-		payload, _ := json.Marshal([]any{tokens, errors})
+		sort.Slice(jsErrors, func(i, j int) bool {
+			for k := range 3 {
+				if jsErrors[i][k] != jsErrors[j][k] {
+					return jsErrors[i][k] < jsErrors[j][k]
+				}
+			}
+			return false
+		})
+		payload, _ := json.Marshal([]any{tokens, errors, jsErrors})
 		hash := sha256.Sum256(payload)
 		result := map[string]any{"name": request.Name, "tokens": len(tokens), "diagnostics": len(errors), "hash": hex.EncodeToString(hash[:])}
+		result["jsDiagnostics"] = len(jsErrors)
 		if request.Details {
 			result["details"] = json.RawMessage(payload)
+		}
+		if request.JSDetails && request.Mode == "parse" {
+			details := make([][]any, 0, len(javascriptDiagnostics))
+			var describe func(*ast.Diagnostic) []any
+			describe = func(d *ast.Diagnostic) []any {
+				arguments := append([]string{}, d.MessageArgs()...)
+				related := make([][]any, 0, len(d.RelatedInformation()))
+				for _, r := range d.RelatedInformation() {
+					related = append(related, describe(r))
+				}
+				return []any{int(d.Code()), position(d.Pos()), position(d.End()) - position(d.Pos()), arguments, related}
+			}
+			for _, d := range javascriptDiagnostics {
+				details = append(details, describe(d))
+			}
+			sort.Slice(details, func(i, j int) bool {
+				for k := range 3 {
+					if details[i][k] != details[j][k] {
+						return details[i][k].(int) < details[j][k].(int)
+					}
+				}
+				return false
+			})
+			result["jsDetails"] = details
 		}
 		if err := output.Encode(result); err != nil {
 			panic(err)

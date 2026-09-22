@@ -19,10 +19,13 @@ for (const [name, variable] of Object.entries(enumNames)) {
     if (identities[name].length !== enums[name].length) throw new Error(`Unmapped enum values ${name}`);
 }
 const rows = [];
+const elementText = (await readFile(path.join(root, "tsc/internal/tsoptions/commandlineoption.go"), "utf8")).replace(/^\s*\/\/.*$/gm, "");
+const elements = Object.fromEntries([...elementText.slice(elementText.indexOf("var commandLineOptionElements")).matchAll(/"([^"]+)":\s*\{([^}]+)\}/g)].map(m => [m[1], m[2]]));
 for (const [group, file] of Object.entries(groups)) {
-    const text = await readFile(path.join(root, "tsc/internal/tsoptions", file), "utf8");
+    const text = (await readFile(path.join(root, "tsc/internal/tsoptions", file), "utf8")).replace(/^\s*\/\/.*$/gm, "");
     for (const match of text.matchAll(/\bName:\s*"([^"]+)"/g)) {
         const name = match[1], start = text.lastIndexOf("{", match.index);
+        if (group === "TypeAcquisition" && name === "typeAcquisition") continue;
         const body = text.slice(start, text.indexOf("}", match.index));
         const rawKind = body.match(/Kind:\s*CommandLineOptionType(\w+)/)?.[1] ?? body.match(/Kind:\s*"(\w+)"/)?.[1];
         const kind = rawKind && rawKind[0].toUpperCase() + rawKind.slice(1);
@@ -30,7 +33,10 @@ for (const [group, file] of Object.entries(groups)) {
         const short = body.match(/ShortName:\s*"([^"]+)"/)?.[1] ?? "";
         const flag = key => new RegExp(`${key}:\\s*true`).test(body);
         const vary = ["Boolean", "Enum"].includes(kind) && !flag("IsCommandLineOnly") && (/Affects\w+:\s*true/.test(body) || ["noEmit", "isolatedModules"].includes(name));
-        const row = `        new(${JSON.stringify(name)}, ${JSON.stringify(short)}, OptionGroup.${group}, OptionKind.${kind}, ${flag("IsFilePath")}, ${flag("IsTSConfigOnly")}, ${flag("IsCommandLineOnly")}, [${(enums[name] ?? []).map(s => JSON.stringify(s)).join(", ")}], [${(identities[name] ?? []).map(s => JSON.stringify(s)).join(", ")}], ${vary}),`;
+        const element = elements[name] ?? "";
+        const elementKind = element.match(/Kind:\s*CommandLineOptionType(\w+)/)?.[1] ?? "String";
+        const extra = (body + element).match(/extraValidation:\s*extraValidation(\w+)/)?.[1] ?? "None";
+        const row = `        new(${JSON.stringify(name)}, ${JSON.stringify(short)}, OptionGroup.${group}, OptionKind.${kind}, ${flag("IsFilePath")}, ${flag("IsTSConfigOnly")}, ${flag("IsCommandLineOnly")}, [${(enums[name] ?? []).map(s => JSON.stringify(s)).join(", ")}], [${(identities[name] ?? []).map(s => JSON.stringify(s)).join(", ")}], ${vary}) { ElementKind = OptionKind.${elementKind}, ElementIsFilePath = ${/IsFilePath:\s*true/.test(element)}, Minimum = ${body.match(/minValue:\s*(\d+)/)?.[1] ?? 0}, AllowConfigDir = ${flag("allowConfigDirTemplateSubstitution") || flag("IsFilePath")}, PreserveFalsy = ${flag("listPreserveFalsyValues")}, Validation = OptionValidation.${extra} },`;
         rows.push(row);
         if (group === "Compiler" && match.index < text.indexOf("var optionsForCompiler")) rows.push(row.replace("OptionGroup.Compiler", "OptionGroup.Build"));
     }

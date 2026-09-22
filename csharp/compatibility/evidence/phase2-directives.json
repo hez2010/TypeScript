@@ -1,5 +1,6 @@
 {
-    "timestamp": "2026-09-21T20:37:53.471Z",
+    "timestamp": "2026-09-22T04:27:51.518Z",
+    "recordFormat": "virtual files, options, symlinks and directory",
     "suite": "directives",
     "expanded": false,
     "candidate": "NativeAOT",
@@ -7,12 +8,18 @@
     "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
     "instructionSet": "native",
     "optimizationPreference": "Speed",
-    "candidateSha256": "9a719b24e8a6225d1d29d7498e1a33e28388b4f463a09390e37feea2636d742c",
+    "candidateSha256": "6d0aef7babdfd83cf37672e5865645f317de8063c5daec43e314103311e6f594",
     "inputSha256": "30b08a8643c65701709e17cc22ce2c7a28fa7576b81376dac4df13b3ce56a923",
     "cases": 12866,
     "records": 17433,
+    "runtimeAsync": true,
+    "comparison": "strict",
+    "independentParserVersion": null,
     "passed": 12866,
     "failed": 0,
+    "strictPassed": 12866,
+    "strictFailed": 0,
+    "permittedDifferences": 0,
     "failures": [],
-    "oracleSha256": "2b83b9140716c45c2f1851969d0272a0e8e9dda04045b1cba52213c3ef1536c3"
+    "oracleSha256": "72feabc2dcabd2da9b3805d6486224c071cedae5a7d3a1b888959b3fa4e80f42"
 }

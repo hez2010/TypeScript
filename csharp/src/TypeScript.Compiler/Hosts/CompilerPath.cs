@@ -49,6 +49,7 @@ public static class CompilerPath
     public static string Normalize(string path)
     {
         path = NormalizeSlashes(path);
+        if (path.Length == 2 && char.IsAsciiLetter(path[0]) && path[1] == ':') return path;
         int root = RootLength(path);
         var parts = new List<string>();
         foreach (Range range in path.AsSpan(root).Split('/'))
@@ -91,15 +92,24 @@ public static class CompilerPath
         int dot = name.LastIndexOf('.');
         return dot < 0 ? "" : name[dot..];
     }
-    public static bool IsDeclarationFile(string path) => path.EndsWith(".d.ts", StringComparison.Ordinal) || path.EndsWith(".d.mts", StringComparison.Ordinal) || path.EndsWith(".d.cts", StringComparison.Ordinal);
+    public static bool IsDeclarationFile(string path) => path.EndsWith(".d.ts", StringComparison.Ordinal) || path.EndsWith(".d.mts", StringComparison.Ordinal) || path.EndsWith(".d.cts", StringComparison.Ordinal) || path.EndsWith(".ts", StringComparison.Ordinal) && BaseName(path).Contains(".d.", StringComparison.Ordinal);
     public static bool Contains(string parent, string child, bool caseSensitive)
     {
         StringComparison comparison = caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-        parent = RemoveTrailingSeparator(Normalize(parent)); child = Normalize(child);
-        return child.Equals(parent, comparison) || child.StartsWith(EnsureTrailingSeparator(parent), comparison);
+        if (parent.Length == 0 || child.Length == 0) return false;
+        parent = NormalizeSlashes(parent); child = NormalizeSlashes(child);
+        if (!parent.AsSpan(0, RootLength(parent)).Equals(child.AsSpan(0, RootLength(child)), StringComparison.OrdinalIgnoreCase)) return false;
+        parent = Normalize(parent); child = Normalize(child);
+        string[] from = parent[RootLength(parent)..].Split('/', StringSplitOptions.RemoveEmptyEntries);
+        string[] target = child[RootLength(child)..].Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if (from.Length > target.Length) return false;
+        for (int i = 0; i < from.Length; i++) if (!from[i].Equals(target[i], comparison)) return false;
+        return true;
     }
     public static string Relative(string fromDirectory, string to, bool caseSensitive)
     {
+        fromDirectory = NormalizeSlashes(fromDirectory); to = NormalizeSlashes(to);
+        if (!fromDirectory.AsSpan(0, RootLength(fromDirectory)).Equals(to.AsSpan(0, RootLength(to)), StringComparison.OrdinalIgnoreCase)) return Normalize(to);
         fromDirectory = Normalize(fromDirectory); to = Normalize(to);
         StringComparison comparison = caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
         int fromRoot = RootLength(fromDirectory), toRoot = RootLength(to);

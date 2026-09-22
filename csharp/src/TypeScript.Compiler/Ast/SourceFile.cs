@@ -5,6 +5,14 @@ using TypeScript.Compiler.Text;
 
 namespace TypeScript.Compiler.Ast;
 
+public readonly record struct SourceCommentRange(SyntaxKind Kind, int Pos, int End, bool HasTrailingNewLine);
+public sealed record PragmaArgument(string Name, string Value, int Pos, int End);
+public sealed record SourcePragma(string Name, SourceCommentRange Range, IReadOnlyDictionary<string, PragmaArgument> Arguments);
+public enum ReferenceResolutionMode { Unspecified = 0, Require = 1, Import = 99 }
+public sealed record FileReference(string FileName, int Pos, int End, ReferenceResolutionMode ResolutionMode = ReferenceResolutionMode.Unspecified, bool Preserve = false);
+public sealed record CheckJsDirective(bool Enabled, SourceCommentRange Range);
+public sealed record AmdDependency(string Path, string? Name);
+
 public sealed partial class SourceFileNode
 {
     public string FileName { get; internal set; } = "";
@@ -14,30 +22,44 @@ public sealed partial class SourceFileNode
     public IReadOnlyList<Diagnostic> ParseDiagnostics { get; internal set; } = [];
     public IReadOnlyList<CommentDirective> CommentDirectives { get; internal set; } = [];
     public IReadOnlyList<Diagnostic> JSDocDiagnostics { get; internal set; } = [];
+    public IReadOnlyList<Diagnostic> JSDiagnostics { get; internal set; } = [];
     public IReadOnlyList<SyntaxNode> ReparsedClones { get; internal set; } = [];
+    public IReadOnlyList<SourcePragma> Pragmas { get; internal set; } = [];
+    public IReadOnlyList<FileReference> ReferencedFiles { get; internal set; } = [];
+    public IReadOnlyList<FileReference> TypeReferenceDirectives { get; internal set; } = [];
+    public IReadOnlyList<FileReference> LibReferenceDirectives { get; internal set; } = [];
+    public CheckJsDirective? CheckJsDirective { get; internal set; }
+    public IReadOnlyList<AmdDependency> AmdDependencies { get; internal set; } = [];
+    public string? ModuleName { get; internal set; }
+    public bool HasNoDefaultLib { get; internal set; }
+    public SyntaxNode? ExternalModuleIndicator { get; internal set; }
+    public IReadOnlyList<SyntaxNode> Imports { get; internal set; } = [];
+    public IReadOnlyList<SyntaxNode> ModuleAugmentations { get; internal set; } = [];
+    public IReadOnlyList<string> AmbientModuleNames { get; internal set; } = [];
     private ConcurrentDictionary<SyntaxNode, JSDocNode[]>? documentation;
     internal void SetDocumentation(IDictionary<SyntaxNode, JSDocNode[]> values)
     {
         if (values.Count != 0) documentation = new(values, ReferenceEqualityComparer.Instance);
     }
-    public IReadOnlyList<JSDocNode> GetDocumentation(SyntaxNode node)
+    public IReadOnlyList<JSDocNode> GetDocumentation(SyntaxNode node) => Parser.RunParse(GetDocumentationAsync(node));
+
+    public async ValueTask<IReadOnlyList<JSDocNode>> GetDocumentationAsync(SyntaxNode node, CancellationToken cancellation = default)
     {
+        cancellation.ThrowIfCancellationRequested();
         SyntaxNode owner = node;
         while (owner.Parent is { } parent) owner = parent;
         if (!ReferenceEquals(owner, this)) throw new ArgumentException("Node does not belong to this source file", nameof(node));
         if ((node.Flags & NodeFlags.HasJSDoc) == 0) return [];
         if (documentation is null) Interlocked.CompareExchange(ref documentation, new(ReferenceEqualityComparer.Instance), null);
-        return documentation.GetOrAdd(node, target =>
+        if (documentation.TryGetValue(node, out JSDocNode[]? cached)) return cached;
+        var parser = new DocumentationParser(Source, ScriptKind, cancellation: cancellation);
+        var nodes = await parser.LeadingAsync(Source.ToUtf16Position(node.Pos), Source.ToUtf16Position(node.End), node.Kind).ConfigureAwait(false);
+        foreach (JSDocNode comment in nodes)
         {
-            var parser = new DocumentationParser(Source, ScriptKind);
-            var nodes = parser.Leading(Source.ToUtf16Position(target.Pos), Source.ToUtf16Position(target.End));
-            foreach (JSDocNode comment in nodes)
-            {
-                foreach (SyntaxNode child in comment.DescendantsAndSelf()) child.ConvertPositions(Source.ToBytePosition);
-                comment.Parent = target;
-            }
-            return nodes;
-        });
+            foreach (SyntaxNode child in comment.DescendantsAndSelf()) child.ConvertPositions(Source.ToBytePosition);
+            comment.Parent = node;
+        }
+        return documentation.GetOrAdd(node, nodes);
     }
     internal override SyntaxNode ShallowClone()
     {
@@ -45,5 +67,42 @@ public sealed partial class SourceFileNode
         clone.documentation = null;
         clone.ReparsedClones = [];
         return clone;
+    }
+    internal void RemapSourceMetadata(SourceFileNode original, IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
+    {
+        Dictionary<SyntaxNode, SyntaxNode>? documentationCopies = null;
+        if (original.documentation is { } originalDocumentation)
+            foreach (var entry in originalDocumentation)
+            {
+                if (!copies.TryGetValue(entry.Key, out SyntaxNode? clonedOwner)) continue;
+                documentationCopies ??= new(ReferenceEqualityComparer.Instance);
+                var comments = new JSDocNode[entry.Value.Length];
+                for (int i = 0; i < comments.Length; i++)
+                {
+                    JSDocNode comment = entry.Value[i];
+                    if (!documentationCopies.TryGetValue(comment, out SyntaxNode? copiedComment))
+                    {
+                        JSDocNode clonedComment = comment.DeepClone<JSDocNode>();
+                        foreach (var pair in comment.DescendantsAndSelf().Zip(clonedComment.DescendantsAndSelf()))
+                            documentationCopies.Add(pair.First, pair.Second);
+                        clonedComment.Parent = comment.Parent is { } parent && copies.TryGetValue(parent, out SyntaxNode? parentCopy) ? parentCopy : clonedOwner;
+                        copiedComment = clonedComment;
+                    }
+                    comments[i] = (JSDocNode)copiedComment;
+                }
+                // Synthesized aliases may begin inside their comment. Preserve
+                // cached associations instead of trying to parse their node ranges.
+                (documentation ??= new(ReferenceEqualityComparer.Instance))[clonedOwner] = comments;
+            }
+        ExternalModuleIndicator = original.ExternalModuleIndicator is { } indicator ? copies[indicator] : null;
+        Imports = Array.AsReadOnly(original.Imports.Select(MapReference).ToArray());
+        ModuleAugmentations = Array.AsReadOnly(original.ModuleAugmentations.Select(node => copies[node]).ToArray());
+
+        SyntaxNode MapReference(SyntaxNode node)
+        {
+            if (copies.TryGetValue(node, out SyntaxNode? clone)) return clone;
+            if (documentationCopies?.TryGetValue(node, out clone) == true) return clone;
+            throw new InvalidOperationException("Module reference does not belong to the cloned source file");
+        }
     }
 }

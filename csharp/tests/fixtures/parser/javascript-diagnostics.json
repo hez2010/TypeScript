@@ -1,0 +1,674 @@
+{
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "format": "Each diagnostic is [code, UTF16 start, length, arguments, related diagnostics].",
+    "cases": [
+        {
+            "name": "js-diag-0.js",
+            "fileName": "a.js",
+            "text": "let n:number=1; function f<T>(x?: number): string {return \"\";}",
+            "parseErrors": false,
+            "goJavaScriptDiagnostics": [
+                [
+                    8004,
+                    27,
+                    1,
+                    [],
+                    []
+                ],
+                [
+                    8009,
+                    31,
+                    1,
+                    [
+                        "?"
+                    ],
+                    []
+                ],
+                [
+                    8010,
+                    6,
+                    6,
+                    [],
+                    []
+                ],
+                [
+                    8010,
+                    34,
+                    6,
+                    [],
+                    []
+                ],
+                [
+                    8010,
+                    43,
+                    6,
+                    [],
+                    []
+                ]
+            ]
+        },
+        {
+            "name": "js-diag-1.js",
+            "fileName": "a.js",
+            "text": "class C<T> extends B<T> implements I { public p?:number; constructor(private x:number){} f(x:number):void; get x():number{return 1;} }",
+            "parseErrors": false,
+            "goJavaScriptDiagnostics": [
+                [
+                    8004,
+                    8,
+                    1,
+                    [],
+                    []
+                ],
+                [
+                    8005,
+                    24,
+                    12,
+                    [],
+                    []
+                ],
+                [
+                    8009,
+                    39,
+                    6,
+                    [
+                        "public"
+                    ],
+                    []
+                ],
+                [
+                    8009,
+                    47,
+                    1,
+                    [
+                        "?"
+                    ],
+                    []
+                ],
+                [
+                    8010,
+                    49,
+                    6,
+                    [],
+                    []
+                ],
+                [
+                    8010,
+                    79,
+                    6,
+                    [],
+                    []
+                ],
+                [
+                    8010,
+                    93,
+                    6,
+                    [],
+                    []
+                ],
+                [
+                    8010,
+                    115,
+                    6,
+                    [],
+                    []
+                ],
+                [
+                    8011,
+                    21,
+                    1,
+                    [],
+                    []
+                ],
+                [
+                    8012,
+                    69,
+                    7,
+                    [],
+                    []
+                ],
+                [
+                    8017,
+                    89,
+                    17,
+                    [],
+                    []
+                ]
+            ]
+        },
+        {
+            "name": "js-diag-2.js",
+            "fileName": "a.js",
+            "text": "function f(x:(a:number)=>string):{x:number}{}",
+            "parseErrors": false,
+            "goJavaScriptDiagnostics": [
+                [
+                    8010,
+                    13,
+                    18,
+                    [],
+                    []
+                ],
+                [
+                    8010,
+                    33,
+                    10,
+                    [],
+                    []
+                ]
+            ]
+        },
+        {
+            "name": "js-diag-3.js",
+            "fileName": "a.js",
+            "text": "interface I<T> {p?:number; f(x:number):string; get p():number; set p(x:number); [x:string]:number;}",
+            "parseErrors": false,
+            "goJavaScriptDiagnostics": [
+                [
+                    8006,
+                    10,
+                    1,
+                    [
+                        "interface"
+                    ],
+                    []
+                ],
+                [
+                    8010,
+                    71,
+                    6,
+                    [],
+                    []
+                ]
+            ]
+        },
+        {
+            "name": "js-diag-4.js",
+            "fileName": "a.js",
+            "text": "type T = { f(x:number): void; get p():number; set p(x:number);};",
+            "parseErrors": false,
+            "goJavaScriptDiagnostics": [
+                [
+                    8008,
+                    5,
+                    1,
+                    [],
+                    []
+                ],
+                [
+                    8010,
+                    54,
+                    6,
+                    [],
+                    []
+                ]
+            ]
+        },
+        {
+            "name": "js-diag-5.js",
+            "fileName": "a.js",
+            "text": "enum E{A}; namespace N{export let x:number;} module M{}",
+            "parseErrors": false,
+            "goJavaScriptDiagnostics": [
+                [
+                    8006,
+                    5,
+                    1,
+                    [
+                        "enum"
+                    ],
+                    []
+                ],
+                [
+                    8006,
+                    21,
+                    1,
+                    [
+                        "namespace"
+                    ],
+                    []
+                ],
+                [
+                    8006,
+                    52,
+                    1,
+                    [
+                        "module"
+                    ],
+                    []
+                ],
+                [
+                    8010,
+                    36,
+                    6,
+                    [],
+                    []
+                ]
+            ]
+        },
+        {
+            "name": "js-diag-6.js",
+            "fileName": "a.js",
+            "text": "import type X from \"m\"; export type {X}; import {type Y} from \"m\"; export {type Y}; import A=require(\"m\"); export = A;",
+            "parseErrors": false,
+            "goJavaScriptDiagnostics": [
+                [
+                    8002,
+                    84,
+                    22,
+                    [],
+                    []
+                ],
+                [
+                    8003,
+                    107,
+                    11,
+                    [],
+                    []
+                ],
+                [
+                    8006,
+                    0,
+                    23,
+                    [
+                        "import type"
+                    ],
+                    []
+                ],
+                [
+                    8006,
+                    24,
+                    16,
+                    [
+                        "export type"
+                    ],
+                    []
+                ],
+                [
+                    8006,
+                    49,
+                    6,
+                    [
+                        "import...type"
+                    ],
+                    []
+                ],
+                [
+                    8006,
+                    75,
+                    6,
+                    [
+                        "export...type"
+                    ],
+                    []
+                ]
+            ]
+        },
+        {
+            "name": "js-diag-7.js",
+            "fileName": "a.js",
+            "text": "const x=a as number; const y=a satisfies number; const z=a!;",
+            "parseErrors": false,
+            "goJavaScriptDiagnostics": [
+                [
+                    8013,
+                    57,
+                    2,
+                    [],
+                    []
+                ],
+                [
+                    8016,
+                    13,
+                    6,
+                    [],
+                    []
+                ],
+                [
+                    8037,
+                    41,
+                    6,
+                    [],
+                    []
+                ]
+            ]
+        },
+        {
+            "name": "js-diag-8.js",
+            "fileName": "a.js",
+            "text": "class C extends B<number> {}",
+            "parseErrors": false,
+            "goJavaScriptDiagnostics": [
+                [
+                    8011,
+                    18,
+                    6,
+                    [],
+                    []
+                ]
+            ]
+        },
+        {
+            "name": "js-diag-9.js",
+            "fileName": "a.js",
+            "text": "const x=new Foo<number>();const y=tag<number>`x`;",
+            "parseErrors": true,
+            "goJavaScriptDiagnostics": []
+        },
+        {
+            "name": "js-diag-10.js",
+            "fileName": "a.js",
+            "text": "@dec function f(){}",
+            "parseErrors": false,
+            "goJavaScriptDiagnostics": [
+                [
+                    1206,
+                    0,
+                    4,
+                    [],
+                    []
+                ]
+            ]
+        },
+        {
+            "name": "js-diag-11.js",
+            "fileName": "a.js",
+            "text": "@dec const x=1; @dec type T=number; @dec interface I{}; @dec enum E{}; @dec namespace N{}",
+            "parseErrors": false,
+            "goJavaScriptDiagnostics": [
+                [
+                    1206,
+                    0,
+                    4,
+                    [],
+                    []
+                ],
+                [
+                    1206,
+                    16,
+                    4,
+                    [],
+                    []
+                ],
+                [
+                    1206,
+                    36,
+                    4,
+                    [],
+                    []
+                ],
+                [
+                    1206,
+                    56,
+                    4,
+                    [],
+                    []
+                ],
+                [
+                    1206,
+                    71,
+                    4,
+                    [],
+                    []
+                ],
+                [
+                    8006,
+                    51,
+                    1,
+                    [
+                        "interface"
+                    ],
+                    []
+                ],
+                [
+                    8006,
+                    66,
+                    1,
+                    [
+                        "enum"
+                    ],
+                    []
+                ],
+                [
+                    8006,
+                    86,
+                    1,
+                    [
+                        "namespace"
+                    ],
+                    []
+                ],
+                [
+                    8008,
+                    26,
+                    1,
+                    [],
+                    []
+                ]
+            ]
+        },
+        {
+            "name": "js-diag-12.js",
+            "fileName": "a.js",
+            "text": "@before export @after class C{}",
+            "parseErrors": false,
+            "goJavaScriptDiagnostics": [
+                [
+                    8038,
+                    15,
+                    6,
+                    [],
+                    [
+                        [
+                            1486,
+                            0,
+                            7,
+                            [],
+                            []
+                        ]
+                    ]
+                ]
+            ]
+        },
+        {
+            "name": "js-diag-13.js",
+            "fileName": "a.js",
+            "text": "export @dec default class C{}",
+            "parseErrors": false,
+            "goJavaScriptDiagnostics": [
+                [
+                    1206,
+                    7,
+                    4,
+                    [],
+                    []
+                ]
+            ]
+        },
+        {
+            "name": "js-diag-14.js",
+            "fileName": "a.js",
+            "text": "@dec class C { @d method(@p x){} }",
+            "parseErrors": false,
+            "goJavaScriptDiagnostics": []
+        },
+        {
+            "name": "js-diag-15.js",
+            "fileName": "a.js",
+            "text": "/** @type {number} */let x=1;/** @template T\n@param {T} x\n@returns {T} */function f(x){return x;}",
+            "parseErrors": false,
+            "goJavaScriptDiagnostics": []
+        },
+        {
+            "name": "js-diag-16.js",
+            "fileName": "a.js",
+            "text": "/** @param {number} [x] */ function f(x){}",
+            "parseErrors": false,
+            "goJavaScriptDiagnostics": []
+        },
+        {
+            "name": "js-diag-17.js",
+            "fileName": "a.js",
+            "text": "/*\u00e9\ud83d\ude00*/ let x: /*comment*/ string = \"\";",
+            "parseErrors": false,
+            "goJavaScriptDiagnostics": [
+                [
+                    8010,
+                    27,
+                    6,
+                    [],
+                    []
+                ]
+            ]
+        },
+        {
+            "name": "js-diag-18.js",
+            "fileName": "a.jsx",
+            "text": "const x=<Comp<number>/>;",
+            "parseErrors": true,
+            "goJavaScriptDiagnostics": []
+        },
+        {
+            "name": "js-diag-19.js",
+            "fileName": "a.js",
+            "text": "class C {readonly a; declare b; abstract f():number; async f<T>(x:T):T{return x;}}",
+            "parseErrors": false,
+            "goJavaScriptDiagnostics": [
+                [
+                    8004,
+                    61,
+                    1,
+                    [],
+                    []
+                ],
+                [
+                    8009,
+                    9,
+                    8,
+                    [
+                        "readonly"
+                    ],
+                    []
+                ],
+                [
+                    8009,
+                    21,
+                    7,
+                    [
+                        "declare"
+                    ],
+                    []
+                ],
+                [
+                    8009,
+                    32,
+                    8,
+                    [
+                        "abstract"
+                    ],
+                    []
+                ],
+                [
+                    8010,
+                    66,
+                    1,
+                    [],
+                    []
+                ],
+                [
+                    8010,
+                    69,
+                    1,
+                    [],
+                    []
+                ],
+                [
+                    8017,
+                    32,
+                    20,
+                    [],
+                    []
+                ]
+            ]
+        },
+        {
+            "name": "js-diag-20.js",
+            "fileName": "a.js",
+            "text": "const obj={@d p:1, @d f(x:number){}};",
+            "parseErrors": true,
+            "goJavaScriptDiagnostics": [],
+            "candidateJavaScriptDiagnostics": [
+                [
+                    8010,
+                    26,
+                    6,
+                    [],
+                    []
+                ]
+            ],
+            "requiredParseDiagnostic": [
+                1136,
+                11,
+                1
+            ],
+            "reason": "Both parsers reject the object-literal decorator. The candidate retains the malformed method and additionally reports its source-written parameter annotation; Go abandons that method during recovery."
+        },
+        {
+            "name": "js-diag-21.js",
+            "fileName": "a.js",
+            "text": "class C{@d static {}}",
+            "parseErrors": false,
+            "goJavaScriptDiagnostics": []
+        },
+        {
+            "name": "ts-no-js-diags.ts",
+            "fileName": "a.ts",
+            "text": "let n:number=1; function f<T>(x?: number): string {return \"\";}",
+            "parseErrors": false,
+            "goJavaScriptDiagnostics": []
+        },
+        {
+            "name": "jsdoc-exemption-0.js",
+            "fileName": "a.js",
+            "text": "const x=/** @type {number} */(value);",
+            "parseErrors": false,
+            "goJavaScriptDiagnostics": []
+        },
+        {
+            "name": "jsdoc-exemption-1.js",
+            "fileName": "a.js",
+            "text": "/** @satisfies {string} */ const x=\"a\";",
+            "parseErrors": false,
+            "goJavaScriptDiagnostics": []
+        },
+        {
+            "name": "jsdoc-exemption-2.js",
+            "fileName": "a.js",
+            "text": "/** @template T */ class C { /** @type {T} */ x; }",
+            "parseErrors": false,
+            "goJavaScriptDiagnostics": []
+        },
+        {
+            "name": "jsdoc-exemption-3.js",
+            "fileName": "a.js",
+            "text": "/** @typedef {import(\"module\").T} T */ const x=1;",
+            "parseErrors": false,
+            "goJavaScriptDiagnostics": []
+        },
+        {
+            "name": "jsdoc-wrapper-keeps-source-assertion.js",
+            "fileName": "a.js",
+            "text": "const x=/** @type {number} */(value as string);",
+            "parseErrors": false,
+            "goJavaScriptDiagnostics": [
+                [
+                    8016,
+                    39,
+                    6,
+                    [],
+                    []
+                ]
+            ]
+        }
+    ]
+}

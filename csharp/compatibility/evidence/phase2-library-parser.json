@@ -1,5 +1,6 @@
 {
-    "timestamp": "2026-09-21T20:37:56.185Z",
+    "timestamp": "2026-09-22T04:27:53.482Z",
+    "recordFormat": "kind-range-flags-text-children-scalars-lists; parse and JavaScript diagnostic buckets",
     "suite": "parser",
     "expanded": false,
     "candidate": "NativeAOT",
@@ -7,12 +8,18 @@
     "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
     "instructionSet": "native",
     "optimizationPreference": "Speed",
-    "candidateSha256": "9a719b24e8a6225d1d29d7498e1a33e28388b4f463a09390e37feea2636d742c",
+    "candidateSha256": "6d0aef7babdfd83cf37672e5865645f317de8063c5daec43e314103311e6f594",
     "inputSha256": "f9c15ceb198d49b84c7e9536ca5d1dbb5951d42be81a5a2e163967d649bae6df",
     "cases": 108,
     "records": 183538,
+    "runtimeAsync": true,
+    "comparison": "semantic policies with strict audit",
+    "independentParserVersion": "6.0.3",
     "passed": 108,
     "failed": 0,
+    "strictPassed": 108,
+    "strictFailed": 0,
+    "permittedDifferences": 0,
     "failures": [],
-    "oracleSha256": "2b83b9140716c45c2f1851969d0272a0e8e9dda04045b1cba52213c3ef1536c3"
+    "oracleSha256": "72feabc2dcabd2da9b3805d6486224c071cedae5a7d3a1b888959b3fa4e80f42"
 }

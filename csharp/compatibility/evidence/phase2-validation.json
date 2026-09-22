@@ -1,0 +1,22 @@
+{
+    "timestamp": "2026-09-22T04:36:05.483Z",
+    "command": "npx --no-install hereby validate --all",
+    "exitCode": 0,
+    "log": "logs/csharp-phase2-final-validation.log",
+    "logSha256": "ea8f3485f5f18015b19a3366ca953869aaeac40851dbe6aa56ed2e2929af6fc7",
+    "go": {
+        "totalTests": 163380,
+        "existingSkips": 2152
+    },
+    "benchmarkScope": "Repository-required one-iteration smoke checks only; not used as performance evidence.",
+    "additionalChecks": [
+        "all four C# generators fresh",
+        "C# whitespace verification with the pinned SDK discovery environment",
+        "dprint formatting",
+        "21 parser-policy acceptance/regression guards",
+        "20 documentation-policy negative controls",
+        "CRLF-aware git diff whitespace verification"
+    ],
+    "sdk": "11.0.100-rc.2.26470.103",
+    "sourceScope": "C# rewrite foundations and development oracles; original Go/JS product source unchanged"
+}

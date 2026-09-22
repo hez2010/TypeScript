@@ -1,0 +1,955 @@
+{
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "managed": false,
+    "cases": 3152,
+    "matched": 3135,
+    "permittedDifferences": [
+        {
+            "name": "internal/tsoptions/tsconfigparsing_test.go:976:/project/bad.jsontrue",
+            "input": {
+                "directory": "/project",
+                "files": {
+                    "/project/bad.json": "{ this is not json",
+                    "/project/main.ts": "export const x = 1;",
+                    "/project/tsconfig.json": "{\n  \"extends\": \"./bad.json\"\n}"
+                },
+                "mode": "config",
+                "name": "internal/tsoptions/tsconfigparsing_test.go:976:/project/bad.jsontrue",
+                "path": "/project/bad.json",
+                "sensitive": true
+            },
+            "expected": {
+                "compileOnSave": false,
+                "diagnostics": [
+                    1328,
+                    1136,
+                    1136
+                ],
+                "files": [
+                    "/project/main.ts"
+                ],
+                "options": {},
+                "references": []
+            },
+            "actual": {
+                "references": [],
+                "compileOnSave": false,
+                "options": {},
+                "files": [
+                    "/project/main.ts"
+                ],
+                "diagnostics": [
+                    1005,
+                    1005,
+                    1005,
+                    1005,
+                    1136,
+                    1136,
+                    1136,
+                    1136
+                ]
+            },
+            "policy": "Malformed JSON recovery diagnostic choice",
+            "goRawJson": "{\"compileOnSave\":false,\"diagnostics\":[1328,1136,1136],\"files\":[\"/project/main.ts\"],\"options\":{},\"references\":[]}",
+            "csharpRawJson": "{\"references\":[],\"compileOnSave\":false,\"options\":{},\"files\":[\"/project/main.ts\"],\"diagnostics\":[1005,1005,1005,1005,1136,1136,1136,1136]}",
+            "goRawSha256": "c3ad78abafe3ea3be2a018236cf4eef0ed4d41da6d1ea28c42855efd601b4b34",
+            "csharpRawSha256": "b0b3784b3b8a0d930da3179ddc431454421f2d5d92505fb9f1ac057b9365b53d",
+            "inputSha256": "7d3f0f16843bab2492e5211d9ca1b02c597eb3bd9a0495887885a8ef45f72f1c",
+            "rationale": "The exact malformed input '{ this is not json' is rejected by both implementations; options, discovered files, references and compileOnSave agree. C# retains located parser recovery diagnostics while Go's entry points collect different parser/conversion diagnostics. HostTests separately asserts the candidate diagnostics refer to the malformed file and bounded source positions. This policy covers only the four enumerated direct/inherited case-sensitive/case-insensitive instances of this input.",
+            "reproducer": "node csharp/tools/hosts.mjs --no-build --candidate 'built/csharp/hosts-side-by-side/TypeScript.Compatibility.exe' --case 'internal/tsoptions/tsconfigparsing_test.go:976:/project/bad.jsontrue'"
+        },
+        {
+            "name": "internal/tsoptions/tsconfigparsing_test.go:976:/project/bad.jsonfalse",
+            "input": {
+                "directory": "/project",
+                "files": {
+                    "/project/bad.json": "{ this is not json",
+                    "/project/main.ts": "export const x = 1;",
+                    "/project/tsconfig.json": "{\n  \"extends\": \"./bad.json\"\n}"
+                },
+                "mode": "config",
+                "name": "internal/tsoptions/tsconfigparsing_test.go:976:/project/bad.jsonfalse",
+                "path": "/project/bad.json",
+                "sensitive": false
+            },
+            "expected": {
+                "compileOnSave": false,
+                "diagnostics": [
+                    1328,
+                    1136,
+                    1136
+                ],
+                "files": [
+                    "/project/main.ts"
+                ],
+                "options": {},
+                "references": []
+            },
+            "actual": {
+                "references": [],
+                "compileOnSave": false,
+                "options": {},
+                "files": [
+                    "/project/main.ts"
+                ],
+                "diagnostics": [
+                    1005,
+                    1005,
+                    1005,
+                    1005,
+                    1136,
+                    1136,
+                    1136,
+                    1136
+                ]
+            },
+            "policy": "Malformed JSON recovery diagnostic choice",
+            "goRawJson": "{\"compileOnSave\":false,\"diagnostics\":[1328,1136,1136],\"files\":[\"/project/main.ts\"],\"options\":{},\"references\":[]}",
+            "csharpRawJson": "{\"references\":[],\"compileOnSave\":false,\"options\":{},\"files\":[\"/project/main.ts\"],\"diagnostics\":[1005,1005,1005,1005,1136,1136,1136,1136]}",
+            "goRawSha256": "c3ad78abafe3ea3be2a018236cf4eef0ed4d41da6d1ea28c42855efd601b4b34",
+            "csharpRawSha256": "b0b3784b3b8a0d930da3179ddc431454421f2d5d92505fb9f1ac057b9365b53d",
+            "inputSha256": "83e48595842ab00f824dccd4ec822eb23d7b875dcbd8a01bf7c28dea971bf486",
+            "rationale": "The exact malformed input '{ this is not json' is rejected by both implementations; options, discovered files, references and compileOnSave agree. C# retains located parser recovery diagnostics while Go's entry points collect different parser/conversion diagnostics. HostTests separately asserts the candidate diagnostics refer to the malformed file and bounded source positions. This policy covers only the four enumerated direct/inherited case-sensitive/case-insensitive instances of this input.",
+            "reproducer": "node csharp/tools/hosts.mjs --no-build --candidate 'built/csharp/hosts-side-by-side/TypeScript.Compatibility.exe' --case 'internal/tsoptions/tsconfigparsing_test.go:976:/project/bad.jsonfalse'"
+        },
+        {
+            "name": "internal/tsoptions/tsconfigparsing_test.go:976:/project/tsconfig.jsontrue",
+            "input": {
+                "directory": "/project",
+                "files": {
+                    "/project/bad.json": "{ this is not json",
+                    "/project/main.ts": "export const x = 1;",
+                    "/project/tsconfig.json": "{\n  \"extends\": \"./bad.json\"\n}"
+                },
+                "mode": "config",
+                "name": "internal/tsoptions/tsconfigparsing_test.go:976:/project/tsconfig.jsontrue",
+                "path": "/project/tsconfig.json",
+                "sensitive": true
+            },
+            "expected": {
+                "compileOnSave": false,
+                "diagnostics": [
+                    1005,
+                    1005,
+                    1005,
+                    1005,
+                    1327,
+                    1328,
+                    1136,
+                    1136
+                ],
+                "files": [
+                    "/project/main.ts"
+                ],
+                "options": {},
+                "references": []
+            },
+            "actual": {
+                "references": [],
+                "compileOnSave": false,
+                "options": {},
+                "files": [
+                    "/project/main.ts"
+                ],
+                "diagnostics": [
+                    1005,
+                    1005,
+                    1005,
+                    1005,
+                    1136,
+                    1136,
+                    1136,
+                    1136
+                ]
+            },
+            "policy": "Malformed JSON recovery diagnostic choice",
+            "goRawJson": "{\"compileOnSave\":false,\"diagnostics\":[1005,1005,1005,1005,1327,1328,1136,1136],\"files\":[\"/project/main.ts\"],\"options\":{},\"references\":[]}",
+            "csharpRawJson": "{\"references\":[],\"compileOnSave\":false,\"options\":{},\"files\":[\"/project/main.ts\"],\"diagnostics\":[1005,1005,1005,1005,1136,1136,1136,1136]}",
+            "goRawSha256": "6c3798d567c77ef0b4e6f194e921cd43b3a3fc0ba915d219a2bbe86e104461db",
+            "csharpRawSha256": "b0b3784b3b8a0d930da3179ddc431454421f2d5d92505fb9f1ac057b9365b53d",
+            "inputSha256": "248363547662fc0292ff9a0c433250ab6789656a42943b8f707e41e2ece33b54",
+            "rationale": "The exact malformed input '{ this is not json' is rejected by both implementations; options, discovered files, references and compileOnSave agree. C# retains located parser recovery diagnostics while Go's entry points collect different parser/conversion diagnostics. HostTests separately asserts the candidate diagnostics refer to the malformed file and bounded source positions. This policy covers only the four enumerated direct/inherited case-sensitive/case-insensitive instances of this input.",
+            "reproducer": "node csharp/tools/hosts.mjs --no-build --candidate 'built/csharp/hosts-side-by-side/TypeScript.Compatibility.exe' --case 'internal/tsoptions/tsconfigparsing_test.go:976:/project/tsconfig.jsontrue'"
+        },
+        {
+            "name": "internal/tsoptions/tsconfigparsing_test.go:976:/project/tsconfig.jsonfalse",
+            "input": {
+                "directory": "/project",
+                "files": {
+                    "/project/bad.json": "{ this is not json",
+                    "/project/main.ts": "export const x = 1;",
+                    "/project/tsconfig.json": "{\n  \"extends\": \"./bad.json\"\n}"
+                },
+                "mode": "config",
+                "name": "internal/tsoptions/tsconfigparsing_test.go:976:/project/tsconfig.jsonfalse",
+                "path": "/project/tsconfig.json",
+                "sensitive": false
+            },
+            "expected": {
+                "compileOnSave": false,
+                "diagnostics": [
+                    1005,
+                    1005,
+                    1005,
+                    1005,
+                    1327,
+                    1328,
+                    1136,
+                    1136
+                ],
+                "files": [
+                    "/project/main.ts"
+                ],
+                "options": {},
+                "references": []
+            },
+            "actual": {
+                "references": [],
+                "compileOnSave": false,
+                "options": {},
+                "files": [
+                    "/project/main.ts"
+                ],
+                "diagnostics": [
+                    1005,
+                    1005,
+                    1005,
+                    1005,
+                    1136,
+                    1136,
+                    1136,
+                    1136
+                ]
+            },
+            "policy": "Malformed JSON recovery diagnostic choice",
+            "goRawJson": "{\"compileOnSave\":false,\"diagnostics\":[1005,1005,1005,1005,1327,1328,1136,1136],\"files\":[\"/project/main.ts\"],\"options\":{},\"references\":[]}",
+            "csharpRawJson": "{\"references\":[],\"compileOnSave\":false,\"options\":{},\"files\":[\"/project/main.ts\"],\"diagnostics\":[1005,1005,1005,1005,1136,1136,1136,1136]}",
+            "goRawSha256": "6c3798d567c77ef0b4e6f194e921cd43b3a3fc0ba915d219a2bbe86e104461db",
+            "csharpRawSha256": "b0b3784b3b8a0d930da3179ddc431454421f2d5d92505fb9f1ac057b9365b53d",
+            "inputSha256": "704f90e6d6c01c81c158f85c697b7d8582ce0d40914947510d54be9393f9cbe6",
+            "rationale": "The exact malformed input '{ this is not json' is rejected by both implementations; options, discovered files, references and compileOnSave agree. C# retains located parser recovery diagnostics while Go's entry points collect different parser/conversion diagnostics. HostTests separately asserts the candidate diagnostics refer to the malformed file and bounded source positions. This policy covers only the four enumerated direct/inherited case-sensitive/case-insensitive instances of this input.",
+            "reproducer": "node csharp/tools/hosts.mjs --no-build --candidate 'built/csharp/hosts-side-by-side/TypeScript.Compatibility.exe' --case 'internal/tsoptions/tsconfigparsing_test.go:976:/project/tsconfig.jsonfalse'"
+        },
+        {
+            "name": "schema-config:plugins:[\"entry\"]",
+            "input": {
+                "name": "schema-config:plugins:[\"entry\"]",
+                "mode": "config",
+                "directory": "/project",
+                "path": "/project/tsconfig.json",
+                "sensitive": true,
+                "files": {
+                    "/project/input.ts": "",
+                    "/project/tsconfig.json": "{\"compilerOptions\":{\"plugins\":[\"entry\"]}}"
+                }
+            },
+            "expected": {
+                "compileOnSave": false,
+                "diagnostics": [
+                    5024
+                ],
+                "files": [
+                    "/project/input.ts"
+                ],
+                "options": {},
+                "references": []
+            },
+            "actual": {
+                "references": [],
+                "compileOnSave": false,
+                "options": {
+                    "plugins": []
+                },
+                "files": [
+                    "/project/input.ts"
+                ],
+                "diagnostics": [
+                    5024
+                ]
+            },
+            "policy": "Retain an empty validated plugin list",
+            "goRawJson": "{\"compileOnSave\":false,\"diagnostics\":[5024],\"files\":[\"/project/input.ts\"],\"options\":{},\"references\":[]}",
+            "csharpRawJson": "{\"references\":[],\"compileOnSave\":false,\"options\":{\"plugins\":[]},\"files\":[\"/project/input.ts\"],\"diagnostics\":[5024]}",
+            "goRawSha256": "5bf8fea6ae3afe1e751d987765e1be5786abf769138e52a7d1cedd841fd645ca",
+            "csharpRawSha256": "ca68e5f78b14d2ed8208f1a31dbc0b830abfd58ea093c3bfd6fbcdb8047c3a9b",
+            "inputSha256": "842ba7f2395b2507ac01558071ef6bf8738aa1822935ec479a16da5414c6c0ca",
+            "rationale": "The invalid plugin string is rejected with diagnostic 5024 by both implementations. C# retains the resulting empty list; Go core.CompilerOptions has no Plugins field. An empty plugin list and an absent plugin list request no plugin execution. Only that field differs; every remaining result field is asserted equal.",
+            "reproducer": "node csharp/tools/hosts.mjs --no-build --candidate 'built/csharp/hosts-side-by-side/TypeScript.Compatibility.exe' --case 'schema-config:plugins:[\"entry\"]'"
+        },
+        {
+            "name": "glob:src/?.ts:/project/src/😀.ts:false",
+            "input": {
+                "name": "glob:src/?.ts:/project/src/😀.ts:false",
+                "mode": "glob",
+                "path": "src/?.ts",
+                "other": "/project/src/😀.ts",
+                "directory": "/project",
+                "sensitive": true,
+                "exclude": false
+            },
+            "expected": true,
+            "actual": false,
+            "policy": "TypeScript UTF-16 glob character units",
+            "goRawJson": "true",
+            "csharpRawJson": "false",
+            "goRawSha256": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b",
+            "csharpRawSha256": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa",
+            "inputSha256": "19b5652f71fad8f0042e06439642b6010d9cbdc88caeb355dd0dffd7fbc3b012",
+            "rationale": "The original TypeScript matcher uses regular expressions without the Unicode flag; BCL FileSystemName has the same UTF-16 '?' units. The reference vfsmatch/MATCHING_ALGORITHM.md section 9 explicitly allows its scalar-based matching to differ. Each permitted output is independently asserted against a JavaScript regular expression without /u.",
+            "reproducer": "node csharp/tools/hosts.mjs --no-build --candidate 'built/csharp/hosts-side-by-side/TypeScript.Compatibility.exe' --case 'glob:src/?.ts:/project/src/😀.ts:false'"
+        },
+        {
+            "name": "glob:src/?.ts:/project/src/😀.ts:true",
+            "input": {
+                "name": "glob:src/?.ts:/project/src/😀.ts:true",
+                "mode": "glob",
+                "path": "src/?.ts",
+                "other": "/project/src/😀.ts",
+                "directory": "/project",
+                "sensitive": true,
+                "exclude": true
+            },
+            "expected": true,
+            "actual": false,
+            "policy": "TypeScript UTF-16 glob character units",
+            "goRawJson": "true",
+            "csharpRawJson": "false",
+            "goRawSha256": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b",
+            "csharpRawSha256": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa",
+            "inputSha256": "b0a89c03d6af5b3fd0bef39acbf76e2acb4d789cf0d01402f4fc8685515a7334",
+            "rationale": "The original TypeScript matcher uses regular expressions without the Unicode flag; BCL FileSystemName has the same UTF-16 '?' units. The reference vfsmatch/MATCHING_ALGORITHM.md section 9 explicitly allows its scalar-based matching to differ. Each permitted output is independently asserted against a JavaScript regular expression without /u.",
+            "reproducer": "node csharp/tools/hosts.mjs --no-build --candidate 'built/csharp/hosts-side-by-side/TypeScript.Compatibility.exe' --case 'glob:src/?.ts:/project/src/😀.ts:true'"
+        },
+        {
+            "name": "glob:src/??.ts:/project/src/😀.ts:false",
+            "input": {
+                "name": "glob:src/??.ts:/project/src/😀.ts:false",
+                "mode": "glob",
+                "path": "src/??.ts",
+                "other": "/project/src/😀.ts",
+                "directory": "/project",
+                "sensitive": true,
+                "exclude": false
+            },
+            "expected": false,
+            "actual": true,
+            "policy": "TypeScript UTF-16 glob character units",
+            "goRawJson": "false",
+            "csharpRawJson": "true",
+            "goRawSha256": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa",
+            "csharpRawSha256": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b",
+            "inputSha256": "5a5126bbf29c075902aa988d1fefc085ed2a1e6cbc0c2c096f95b1c613c284eb",
+            "rationale": "The original TypeScript matcher uses regular expressions without the Unicode flag; BCL FileSystemName has the same UTF-16 '?' units. The reference vfsmatch/MATCHING_ALGORITHM.md section 9 explicitly allows its scalar-based matching to differ. Each permitted output is independently asserted against a JavaScript regular expression without /u.",
+            "reproducer": "node csharp/tools/hosts.mjs --no-build --candidate 'built/csharp/hosts-side-by-side/TypeScript.Compatibility.exe' --case 'glob:src/??.ts:/project/src/😀.ts:false'"
+        },
+        {
+            "name": "glob:src/??.ts:/project/src/😀.ts:true",
+            "input": {
+                "name": "glob:src/??.ts:/project/src/😀.ts:true",
+                "mode": "glob",
+                "path": "src/??.ts",
+                "other": "/project/src/😀.ts",
+                "directory": "/project",
+                "sensitive": true,
+                "exclude": true
+            },
+            "expected": false,
+            "actual": true,
+            "policy": "TypeScript UTF-16 glob character units",
+            "goRawJson": "false",
+            "csharpRawJson": "true",
+            "goRawSha256": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa",
+            "csharpRawSha256": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b",
+            "inputSha256": "e3316a4946ecdd7834ac4dd26dbdb2ff9f24cddb6f90a4f458cdd5e01941210f",
+            "rationale": "The original TypeScript matcher uses regular expressions without the Unicode flag; BCL FileSystemName has the same UTF-16 '?' units. The reference vfsmatch/MATCHING_ALGORITHM.md section 9 explicitly allows its scalar-based matching to differ. Each permitted output is independently asserted against a JavaScript regular expression without /u.",
+            "reproducer": "node csharp/tools/hosts.mjs --no-build --candidate 'built/csharp/hosts-side-by-side/TypeScript.Compatibility.exe' --case 'glob:src/??.ts:/project/src/😀.ts:true'"
+        },
+        {
+            "name": "config-number:option-positive-overflow",
+            "input": {
+                "name": "config-number:option-positive-overflow",
+                "mode": "config",
+                "path": "/project/tsconfig.json",
+                "directory": "/project",
+                "sensitive": true,
+                "files": {
+                    "/project/main.ts": "",
+                    "/project/tsconfig.json": "{\"compilerOptions\":{\"maxNodeModuleJsDepth\":1e309},\"files\":[\"main.ts\"]}"
+                }
+            },
+            "expected": {
+                "compileOnSave": false,
+                "diagnostics": [],
+                "files": [
+                    "/project/main.ts"
+                ],
+                "options": {
+                    "maxNodeModuleJsDepth": -9223372036854776000
+                },
+                "references": []
+            },
+            "actual": {
+                "references": [],
+                "compileOnSave": false,
+                "options": {
+                    "maxNodeModuleJsDepth": {
+                        "numberValue": "Infinity"
+                    }
+                },
+                "files": [
+                    "/project/main.ts"
+                ],
+                "diagnostics": []
+            },
+            "policy": "Preserve TypeScript numeric option semantics",
+            "independentTypeScript": {
+                "version": "6.0.3",
+                "diagnostics": [],
+                "maxNodeModuleJsDepth": "Infinity"
+            },
+            "goRawJson": "{\"compileOnSave\":false,\"diagnostics\":[],\"files\":[\"/project/main.ts\"],\"options\":{\"maxNodeModuleJsDepth\":-9223372036854775808},\"references\":[]}",
+            "csharpRawJson": "{\"references\":[],\"compileOnSave\":false,\"options\":{\"maxNodeModuleJsDepth\":1e309},\"files\":[\"/project/main.ts\"],\"diagnostics\":[]}",
+            "goRawSha256": "dda13a37603263e324a38aac839771edd8d0e1a6117cfae0b3908f7214c68994",
+            "csharpRawSha256": "eacb78840f006529e27681a49ed84272e444595a3f40c595814f50f619cd6376",
+            "inputSha256": "2b40b74c07cb90d48b93875576fc1dcccc26d2c85ef730107a93dbe7799c123e",
+            "rationale": "TypeScript's maxNodeModuleJsDepth is a Number-valued option. Independent TypeScript 6.0.3 config parsing accepts the fixture and produces the same fractional/large/infinite value as C#. C# preserves valid JSON numeric spelling and exposes Number(), avoiding the Go backend's truncation or unchecked float-to-int overflow. Other parsed configuration fields are asserted equal. Raw JSON outputs below are authoritative for nonfinite and beyond-safe-integer values.",
+            "reproducer": "node csharp/tools/hosts.mjs --no-build --candidate 'built/csharp/hosts-side-by-side/TypeScript.Compatibility.exe' --case 'config-number:option-positive-overflow'"
+        },
+        {
+            "name": "config-number:option-negative-overflow",
+            "input": {
+                "name": "config-number:option-negative-overflow",
+                "mode": "config",
+                "path": "/project/tsconfig.json",
+                "directory": "/project",
+                "sensitive": true,
+                "files": {
+                    "/project/main.ts": "",
+                    "/project/tsconfig.json": "{\"compilerOptions\":{\"maxNodeModuleJsDepth\":-1e309},\"files\":[\"main.ts\"]}"
+                }
+            },
+            "expected": {
+                "compileOnSave": false,
+                "diagnostics": [],
+                "files": [
+                    "/project/main.ts"
+                ],
+                "options": {
+                    "maxNodeModuleJsDepth": -9223372036854776000
+                },
+                "references": []
+            },
+            "actual": {
+                "references": [],
+                "compileOnSave": false,
+                "options": {
+                    "maxNodeModuleJsDepth": {
+                        "numberValue": "-Infinity"
+                    }
+                },
+                "files": [
+                    "/project/main.ts"
+                ],
+                "diagnostics": []
+            },
+            "policy": "Preserve TypeScript numeric option semantics",
+            "independentTypeScript": {
+                "version": "6.0.3",
+                "diagnostics": [],
+                "maxNodeModuleJsDepth": "-Infinity"
+            },
+            "goRawJson": "{\"compileOnSave\":false,\"diagnostics\":[],\"files\":[\"/project/main.ts\"],\"options\":{\"maxNodeModuleJsDepth\":-9223372036854775808},\"references\":[]}",
+            "csharpRawJson": "{\"references\":[],\"compileOnSave\":false,\"options\":{\"maxNodeModuleJsDepth\":-1e309},\"files\":[\"/project/main.ts\"],\"diagnostics\":[]}",
+            "goRawSha256": "dda13a37603263e324a38aac839771edd8d0e1a6117cfae0b3908f7214c68994",
+            "csharpRawSha256": "763ff91ca2ffd6dfad0b171b817391ccaca99c2d41ffbef89c445fee6c72d992",
+            "inputSha256": "6fd87501ac1b6cdd6f2518a59c4ffb3be1e05484fec1cd2bcb605944ad841195",
+            "rationale": "TypeScript's maxNodeModuleJsDepth is a Number-valued option. Independent TypeScript 6.0.3 config parsing accepts the fixture and produces the same fractional/large/infinite value as C#. C# preserves valid JSON numeric spelling and exposes Number(), avoiding the Go backend's truncation or unchecked float-to-int overflow. Other parsed configuration fields are asserted equal. Raw JSON outputs below are authoritative for nonfinite and beyond-safe-integer values.",
+            "reproducer": "node csharp/tools/hosts.mjs --no-build --candidate 'built/csharp/hosts-side-by-side/TypeScript.Compatibility.exe' --case 'config-number:option-negative-overflow'"
+        },
+        {
+            "name": "config-number:option-int64-overflow",
+            "input": {
+                "name": "config-number:option-int64-overflow",
+                "mode": "config",
+                "path": "/project/tsconfig.json",
+                "directory": "/project",
+                "sensitive": true,
+                "files": {
+                    "/project/main.ts": "",
+                    "/project/tsconfig.json": "{\"compilerOptions\":{\"maxNodeModuleJsDepth\":9223372036854775808},\"files\":[\"main.ts\"]}"
+                }
+            },
+            "expected": {
+                "compileOnSave": false,
+                "diagnostics": [],
+                "files": [
+                    "/project/main.ts"
+                ],
+                "options": {
+                    "maxNodeModuleJsDepth": -9223372036854776000
+                },
+                "references": []
+            },
+            "actual": {
+                "references": [],
+                "compileOnSave": false,
+                "options": {
+                    "maxNodeModuleJsDepth": 9223372036854776000
+                },
+                "files": [
+                    "/project/main.ts"
+                ],
+                "diagnostics": []
+            },
+            "policy": "Preserve TypeScript numeric option semantics",
+            "independentTypeScript": {
+                "version": "6.0.3",
+                "diagnostics": [],
+                "maxNodeModuleJsDepth": "9223372036854776000"
+            },
+            "goRawJson": "{\"compileOnSave\":false,\"diagnostics\":[],\"files\":[\"/project/main.ts\"],\"options\":{\"maxNodeModuleJsDepth\":-9223372036854775808},\"references\":[]}",
+            "csharpRawJson": "{\"references\":[],\"compileOnSave\":false,\"options\":{\"maxNodeModuleJsDepth\":9223372036854775808},\"files\":[\"/project/main.ts\"],\"diagnostics\":[]}",
+            "goRawSha256": "dda13a37603263e324a38aac839771edd8d0e1a6117cfae0b3908f7214c68994",
+            "csharpRawSha256": "d95ceda2dfb7d0db8e716d993e52900bce9abe9bdfe3208915d375e3faca7561",
+            "inputSha256": "216f38d0302fa19e18334fdc77fe23037cefeeb2a2c2df1ab7f3cc829be85b57",
+            "rationale": "TypeScript's maxNodeModuleJsDepth is a Number-valued option. Independent TypeScript 6.0.3 config parsing accepts the fixture and produces the same fractional/large/infinite value as C#. C# preserves valid JSON numeric spelling and exposes Number(), avoiding the Go backend's truncation or unchecked float-to-int overflow. Other parsed configuration fields are asserted equal. Raw JSON outputs below are authoritative for nonfinite and beyond-safe-integer values.",
+            "reproducer": "node csharp/tools/hosts.mjs --no-build --candidate 'built/csharp/hosts-side-by-side/TypeScript.Compatibility.exe' --case 'config-number:option-int64-overflow'"
+        },
+        {
+            "name": "config-number:option-fraction",
+            "input": {
+                "name": "config-number:option-fraction",
+                "mode": "config",
+                "path": "/project/tsconfig.json",
+                "directory": "/project",
+                "sensitive": true,
+                "files": {
+                    "/project/main.ts": "",
+                    "/project/tsconfig.json": "{\"compilerOptions\":{\"maxNodeModuleJsDepth\":1.5},\"files\":[\"main.ts\"]}"
+                }
+            },
+            "expected": {
+                "compileOnSave": false,
+                "diagnostics": [],
+                "files": [
+                    "/project/main.ts"
+                ],
+                "options": {
+                    "maxNodeModuleJsDepth": 1
+                },
+                "references": []
+            },
+            "actual": {
+                "references": [],
+                "compileOnSave": false,
+                "options": {
+                    "maxNodeModuleJsDepth": 1.5
+                },
+                "files": [
+                    "/project/main.ts"
+                ],
+                "diagnostics": []
+            },
+            "policy": "Preserve TypeScript numeric option semantics",
+            "independentTypeScript": {
+                "version": "6.0.3",
+                "diagnostics": [],
+                "maxNodeModuleJsDepth": "1.5"
+            },
+            "goRawJson": "{\"compileOnSave\":false,\"diagnostics\":[],\"files\":[\"/project/main.ts\"],\"options\":{\"maxNodeModuleJsDepth\":1},\"references\":[]}",
+            "csharpRawJson": "{\"references\":[],\"compileOnSave\":false,\"options\":{\"maxNodeModuleJsDepth\":1.5},\"files\":[\"/project/main.ts\"],\"diagnostics\":[]}",
+            "goRawSha256": "895769174eaad6df29098a5c920fd327ecbf7d1d06c5a37db67bf9e2d424bfe1",
+            "csharpRawSha256": "838c9136251be2ff1a39cc463c3ddb4e4ea758ed55f9008ead686cb110955bd3",
+            "inputSha256": "6ebc706d51d6f8c40dfed8520eac77d16e7618ed4afbfef55824b03c4865393c",
+            "rationale": "TypeScript's maxNodeModuleJsDepth is a Number-valued option. Independent TypeScript 6.0.3 config parsing accepts the fixture and produces the same fractional/large/infinite value as C#. C# preserves valid JSON numeric spelling and exposes Number(), avoiding the Go backend's truncation or unchecked float-to-int overflow. Other parsed configuration fields are asserted equal. Raw JSON outputs below are authoritative for nonfinite and beyond-safe-integer values.",
+            "reproducer": "node csharp/tools/hosts.mjs --no-build --candidate 'built/csharp/hosts-side-by-side/TypeScript.Compatibility.exe' --case 'config-number:option-fraction'"
+        },
+        {
+            "name": "config-number:option-int64-maximum",
+            "input": {
+                "name": "config-number:option-int64-maximum",
+                "mode": "config",
+                "path": "/project/tsconfig.json",
+                "directory": "/project",
+                "sensitive": true,
+                "files": {
+                    "/project/main.ts": "",
+                    "/project/tsconfig.json": "{\"compilerOptions\":{\"maxNodeModuleJsDepth\":9223372036854775807},\"files\":[\"main.ts\"]}"
+                }
+            },
+            "expected": {
+                "compileOnSave": false,
+                "diagnostics": [],
+                "files": [
+                    "/project/main.ts"
+                ],
+                "options": {
+                    "maxNodeModuleJsDepth": -9223372036854776000
+                },
+                "references": []
+            },
+            "actual": {
+                "references": [],
+                "compileOnSave": false,
+                "options": {
+                    "maxNodeModuleJsDepth": 9223372036854776000
+                },
+                "files": [
+                    "/project/main.ts"
+                ],
+                "diagnostics": []
+            },
+            "policy": "Preserve TypeScript numeric option semantics",
+            "independentTypeScript": {
+                "version": "6.0.3",
+                "diagnostics": [],
+                "maxNodeModuleJsDepth": "9223372036854776000"
+            },
+            "goRawJson": "{\"compileOnSave\":false,\"diagnostics\":[],\"files\":[\"/project/main.ts\"],\"options\":{\"maxNodeModuleJsDepth\":-9223372036854775808},\"references\":[]}",
+            "csharpRawJson": "{\"references\":[],\"compileOnSave\":false,\"options\":{\"maxNodeModuleJsDepth\":9223372036854775807},\"files\":[\"/project/main.ts\"],\"diagnostics\":[]}",
+            "goRawSha256": "dda13a37603263e324a38aac839771edd8d0e1a6117cfae0b3908f7214c68994",
+            "csharpRawSha256": "de9b13e2538ebde67dc1cfef510188527b9ec453f29a35ee8f81c3e6727de496",
+            "inputSha256": "de9e5a258681f260d41a18a465ed5787b84f78dea7bb9448b8930ad3fbf12e93",
+            "rationale": "TypeScript's maxNodeModuleJsDepth is a Number-valued option. Independent TypeScript 6.0.3 config parsing accepts the fixture and produces the same fractional/large/infinite value as C#. C# preserves valid JSON numeric spelling and exposes Number(), avoiding the Go backend's truncation or unchecked float-to-int overflow. Other parsed configuration fields are asserted equal. Raw JSON outputs below are authoritative for nonfinite and beyond-safe-integer values.",
+            "reproducer": "node csharp/tools/hosts.mjs --no-build --candidate 'built/csharp/hosts-side-by-side/TypeScript.Compatibility.exe' --case 'config-number:option-int64-maximum'"
+        },
+        {
+            "name": "config-native-number:checkers:1e309",
+            "input": {
+                "name": "config-native-number:checkers:1e309",
+                "mode": "config",
+                "path": "/project/tsconfig.json",
+                "directory": "/project",
+                "sensitive": true,
+                "files": {
+                    "/project/main.ts": "",
+                    "/project/tsconfig.json": "{\"compilerOptions\":{\"checkers\":1e309},\"files\":[\"main.ts\"]}"
+                }
+            },
+            "expected": {
+                "compileOnSave": false,
+                "diagnostics": [],
+                "files": [
+                    "/project/main.ts"
+                ],
+                "options": {
+                    "checkers": -9223372036854776000
+                },
+                "references": []
+            },
+            "actual": {
+                "references": [],
+                "compileOnSave": false,
+                "options": {},
+                "files": [
+                    "/project/main.ts"
+                ],
+                "diagnostics": [
+                    5024
+                ]
+            },
+            "policy": "Reject native worker-count integer overflow",
+            "goRawJson": "{\"compileOnSave\":false,\"diagnostics\":[],\"files\":[\"/project/main.ts\"],\"options\":{\"checkers\":-9223372036854775808},\"references\":[]}",
+            "csharpRawJson": "{\"references\":[],\"compileOnSave\":false,\"options\":{},\"files\":[\"/project/main.ts\"],\"diagnostics\":[5024]}",
+            "goRawSha256": "c59eb8b39617a8c77915977e5071e64f37e4b9d340b76a0b0365ffa2e8281317",
+            "csharpRawSha256": "e1522bc0e8e8457de80461cc11b9b7bae1f25bbfa4465bb3928780084a80c5fb",
+            "inputSha256": "b831272d2cc71ca27d92e590e1630330e58cddbd8233a2d6104d6e164024e6ef",
+            "rationale": "The Go-only checkers option is an integer worker count. For the three explicitly listed nonfinite/out-of-Int64-range inputs, Go's unchecked conversion silently stores Int64.MinValue. C# reports a located range error instead; ordinary finite config values retain the existing integer conversion. This policy does not restrict the TypeScript-native maxNodeModuleJsDepth Number option.",
+            "reproducer": "node csharp/tools/hosts.mjs --no-build --candidate 'built/csharp/hosts-side-by-side/TypeScript.Compatibility.exe' --case 'config-native-number:checkers:1e309'"
+        },
+        {
+            "name": "config-native-number:checkers:-1e309",
+            "input": {
+                "name": "config-native-number:checkers:-1e309",
+                "mode": "config",
+                "path": "/project/tsconfig.json",
+                "directory": "/project",
+                "sensitive": true,
+                "files": {
+                    "/project/main.ts": "",
+                    "/project/tsconfig.json": "{\"compilerOptions\":{\"checkers\":-1e309},\"files\":[\"main.ts\"]}"
+                }
+            },
+            "expected": {
+                "compileOnSave": false,
+                "diagnostics": [],
+                "files": [
+                    "/project/main.ts"
+                ],
+                "options": {
+                    "checkers": -9223372036854776000
+                },
+                "references": []
+            },
+            "actual": {
+                "references": [],
+                "compileOnSave": false,
+                "options": {},
+                "files": [
+                    "/project/main.ts"
+                ],
+                "diagnostics": [
+                    5024
+                ]
+            },
+            "policy": "Reject native worker-count integer overflow",
+            "goRawJson": "{\"compileOnSave\":false,\"diagnostics\":[],\"files\":[\"/project/main.ts\"],\"options\":{\"checkers\":-9223372036854775808},\"references\":[]}",
+            "csharpRawJson": "{\"references\":[],\"compileOnSave\":false,\"options\":{},\"files\":[\"/project/main.ts\"],\"diagnostics\":[5024]}",
+            "goRawSha256": "c59eb8b39617a8c77915977e5071e64f37e4b9d340b76a0b0365ffa2e8281317",
+            "csharpRawSha256": "e1522bc0e8e8457de80461cc11b9b7bae1f25bbfa4465bb3928780084a80c5fb",
+            "inputSha256": "438427f45036b9548c4f875964eca2eca5c2428cc43424f43a8dd7beed6997fa",
+            "rationale": "The Go-only checkers option is an integer worker count. For the three explicitly listed nonfinite/out-of-Int64-range inputs, Go's unchecked conversion silently stores Int64.MinValue. C# reports a located range error instead; ordinary finite config values retain the existing integer conversion. This policy does not restrict the TypeScript-native maxNodeModuleJsDepth Number option.",
+            "reproducer": "node csharp/tools/hosts.mjs --no-build --candidate 'built/csharp/hosts-side-by-side/TypeScript.Compatibility.exe' --case 'config-native-number:checkers:-1e309'"
+        },
+        {
+            "name": "config-native-number:checkers:9223372036854775808",
+            "input": {
+                "name": "config-native-number:checkers:9223372036854775808",
+                "mode": "config",
+                "path": "/project/tsconfig.json",
+                "directory": "/project",
+                "sensitive": true,
+                "files": {
+                    "/project/main.ts": "",
+                    "/project/tsconfig.json": "{\"compilerOptions\":{\"checkers\":9223372036854775808},\"files\":[\"main.ts\"]}"
+                }
+            },
+            "expected": {
+                "compileOnSave": false,
+                "diagnostics": [],
+                "files": [
+                    "/project/main.ts"
+                ],
+                "options": {
+                    "checkers": -9223372036854776000
+                },
+                "references": []
+            },
+            "actual": {
+                "references": [],
+                "compileOnSave": false,
+                "options": {},
+                "files": [
+                    "/project/main.ts"
+                ],
+                "diagnostics": [
+                    5024
+                ]
+            },
+            "policy": "Reject native worker-count integer overflow",
+            "goRawJson": "{\"compileOnSave\":false,\"diagnostics\":[],\"files\":[\"/project/main.ts\"],\"options\":{\"checkers\":-9223372036854775808},\"references\":[]}",
+            "csharpRawJson": "{\"references\":[],\"compileOnSave\":false,\"options\":{},\"files\":[\"/project/main.ts\"],\"diagnostics\":[5024]}",
+            "goRawSha256": "c59eb8b39617a8c77915977e5071e64f37e4b9d340b76a0b0365ffa2e8281317",
+            "csharpRawSha256": "e1522bc0e8e8457de80461cc11b9b7bae1f25bbfa4465bb3928780084a80c5fb",
+            "inputSha256": "17da24869acbff464f639739e3709c35b6084ac3ba40649c7a3f162982c25e09",
+            "rationale": "The Go-only checkers option is an integer worker count. For the three explicitly listed nonfinite/out-of-Int64-range inputs, Go's unchecked conversion silently stores Int64.MinValue. C# reports a located range error instead; ordinary finite config values retain the existing integer conversion. This policy does not restrict the TypeScript-native maxNodeModuleJsDepth Number option.",
+            "reproducer": "node csharp/tools/hosts.mjs --no-build --candidate 'built/csharp/hosts-side-by-side/TypeScript.Compatibility.exe' --case 'config-native-number:checkers:9223372036854775808'"
+        }
+    ],
+    "failed": 0,
+    "unextractedFixtures": [],
+    "expandedFixtureLoops": [
+        {
+            "expandedCases": 9,
+            "function": "TestContentMappersValidation",
+            "source": "internal/tsoptions/tsconfigparsing_test.go:1364"
+        },
+        {
+            "expandedCases": 4,
+            "function": "TestContentMapperExtensionValidationUsesHostCaseSensitivity",
+            "source": "internal/tsoptions/tsconfigparsing_test.go:1458"
+        },
+        {
+            "expandedCases": 8,
+            "function": "TestParseTypeAcquisition",
+            "source": "internal/tsoptions/tsconfigparsing_test.go:1630"
+        }
+    ],
+    "oracleSha256": "c30f777265a034543673d08264c900e3490ea9e4b2be358bb005c723feb10598",
+    "candidateSha256": "5b0ff66ff50f55a618fb6778e61ab138dea755370809f7c422ae16b5f7a94131",
+    "inputSha256": "49f864c8e6abd2992d62a3b5fd35f24209d55ad91b946cac69e9eb392786980a",
+    "failures": [],
+    "numericRegressions": [
+        {
+            "name": "config-number:unknown-positive-exponent",
+            "inputJson": "{\"custom\":1e309,\"files\":[\"main.ts\"]}",
+            "independentTypeScript": {
+                "version": "6.0.3",
+                "diagnostics": [],
+                "maxNodeModuleJsDepth": "undefined"
+            },
+            "goRawJson": "{\"compileOnSave\":false,\"diagnostics\":[],\"files\":[\"/project/main.ts\"],\"options\":{},\"references\":[]}",
+            "csharpRawJson": "{\"references\":[],\"compileOnSave\":false,\"options\":{},\"files\":[\"/project/main.ts\"],\"diagnostics\":[]}"
+        },
+        {
+            "name": "config-number:unknown-negative-exponent",
+            "inputJson": "{\"custom\":-1e309,\"files\":[\"main.ts\"]}",
+            "independentTypeScript": {
+                "version": "6.0.3",
+                "diagnostics": [],
+                "maxNodeModuleJsDepth": "undefined"
+            },
+            "goRawJson": "{\"compileOnSave\":false,\"diagnostics\":[],\"files\":[\"/project/main.ts\"],\"options\":{},\"references\":[]}",
+            "csharpRawJson": "{\"references\":[],\"compileOnSave\":false,\"options\":{},\"files\":[\"/project/main.ts\"],\"diagnostics\":[]}"
+        },
+        {
+            "name": "config-number:unknown-huge-integer",
+            "inputJson": "{\"custom\":9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999,\"files\":[\"main.ts\"]}",
+            "independentTypeScript": {
+                "version": "6.0.3",
+                "diagnostics": [],
+                "maxNodeModuleJsDepth": "undefined"
+            },
+            "goRawJson": "{\"compileOnSave\":false,\"diagnostics\":[],\"files\":[\"/project/main.ts\"],\"options\":{},\"references\":[]}",
+            "csharpRawJson": "{\"references\":[],\"compileOnSave\":false,\"options\":{},\"files\":[\"/project/main.ts\"],\"diagnostics\":[]}"
+        },
+        {
+            "name": "config-number:unknown-negative-hex",
+            "inputJson": "{\"custom\":-0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff,\"files\":[\"main.ts\"]}",
+            "independentTypeScript": {
+                "version": "6.0.3",
+                "diagnostics": [],
+                "maxNodeModuleJsDepth": "undefined"
+            },
+            "goRawJson": "{\"compileOnSave\":false,\"diagnostics\":[],\"files\":[\"/project/main.ts\"],\"options\":{},\"references\":[]}",
+            "csharpRawJson": "{\"references\":[],\"compileOnSave\":false,\"options\":{},\"files\":[\"/project/main.ts\"],\"diagnostics\":[]}"
+        },
+        {
+            "name": "config-number:option-positive-overflow",
+            "inputJson": "{\"compilerOptions\":{\"maxNodeModuleJsDepth\":1e309},\"files\":[\"main.ts\"]}",
+            "independentTypeScript": {
+                "version": "6.0.3",
+                "diagnostics": [],
+                "maxNodeModuleJsDepth": "Infinity"
+            },
+            "goRawJson": "{\"compileOnSave\":false,\"diagnostics\":[],\"files\":[\"/project/main.ts\"],\"options\":{\"maxNodeModuleJsDepth\":-9223372036854775808},\"references\":[]}",
+            "csharpRawJson": "{\"references\":[],\"compileOnSave\":false,\"options\":{\"maxNodeModuleJsDepth\":1e309},\"files\":[\"/project/main.ts\"],\"diagnostics\":[]}"
+        },
+        {
+            "name": "config-number:option-negative-overflow",
+            "inputJson": "{\"compilerOptions\":{\"maxNodeModuleJsDepth\":-1e309},\"files\":[\"main.ts\"]}",
+            "independentTypeScript": {
+                "version": "6.0.3",
+                "diagnostics": [],
+                "maxNodeModuleJsDepth": "-Infinity"
+            },
+            "goRawJson": "{\"compileOnSave\":false,\"diagnostics\":[],\"files\":[\"/project/main.ts\"],\"options\":{\"maxNodeModuleJsDepth\":-9223372036854775808},\"references\":[]}",
+            "csharpRawJson": "{\"references\":[],\"compileOnSave\":false,\"options\":{\"maxNodeModuleJsDepth\":-1e309},\"files\":[\"/project/main.ts\"],\"diagnostics\":[]}"
+        },
+        {
+            "name": "config-number:option-int64-overflow",
+            "inputJson": "{\"compilerOptions\":{\"maxNodeModuleJsDepth\":9223372036854775808},\"files\":[\"main.ts\"]}",
+            "independentTypeScript": {
+                "version": "6.0.3",
+                "diagnostics": [],
+                "maxNodeModuleJsDepth": "9223372036854776000"
+            },
+            "goRawJson": "{\"compileOnSave\":false,\"diagnostics\":[],\"files\":[\"/project/main.ts\"],\"options\":{\"maxNodeModuleJsDepth\":-9223372036854775808},\"references\":[]}",
+            "csharpRawJson": "{\"references\":[],\"compileOnSave\":false,\"options\":{\"maxNodeModuleJsDepth\":9223372036854775808},\"files\":[\"/project/main.ts\"],\"diagnostics\":[]}"
+        },
+        {
+            "name": "config-number:option-fraction",
+            "inputJson": "{\"compilerOptions\":{\"maxNodeModuleJsDepth\":1.5},\"files\":[\"main.ts\"]}",
+            "independentTypeScript": {
+                "version": "6.0.3",
+                "diagnostics": [],
+                "maxNodeModuleJsDepth": "1.5"
+            },
+            "goRawJson": "{\"compileOnSave\":false,\"diagnostics\":[],\"files\":[\"/project/main.ts\"],\"options\":{\"maxNodeModuleJsDepth\":1},\"references\":[]}",
+            "csharpRawJson": "{\"references\":[],\"compileOnSave\":false,\"options\":{\"maxNodeModuleJsDepth\":1.5},\"files\":[\"/project/main.ts\"],\"diagnostics\":[]}"
+        },
+        {
+            "name": "config-number:option-negative",
+            "inputJson": "{\"compilerOptions\":{\"maxNodeModuleJsDepth\":-1},\"files\":[\"main.ts\"]}",
+            "independentTypeScript": {
+                "version": "6.0.3",
+                "diagnostics": [],
+                "maxNodeModuleJsDepth": "-1"
+            },
+            "goRawJson": "{\"compileOnSave\":false,\"diagnostics\":[],\"files\":[\"/project/main.ts\"],\"options\":{\"maxNodeModuleJsDepth\":-1},\"references\":[]}",
+            "csharpRawJson": "{\"references\":[],\"compileOnSave\":false,\"options\":{\"maxNodeModuleJsDepth\":-1},\"files\":[\"/project/main.ts\"],\"diagnostics\":[]}"
+        },
+        {
+            "name": "config-number:option-exponent",
+            "inputJson": "{\"compilerOptions\":{\"maxNodeModuleJsDepth\":2e0},\"files\":[\"main.ts\"]}",
+            "independentTypeScript": {
+                "version": "6.0.3",
+                "diagnostics": [],
+                "maxNodeModuleJsDepth": "2"
+            },
+            "goRawJson": "{\"compileOnSave\":false,\"diagnostics\":[],\"files\":[\"/project/main.ts\"],\"options\":{\"maxNodeModuleJsDepth\":2},\"references\":[]}",
+            "csharpRawJson": "{\"references\":[],\"compileOnSave\":false,\"options\":{\"maxNodeModuleJsDepth\":2e0},\"files\":[\"/project/main.ts\"],\"diagnostics\":[]}"
+        },
+        {
+            "name": "config-number:option-hex",
+            "inputJson": "{\"compilerOptions\":{\"maxNodeModuleJsDepth\":0x10},\"files\":[\"main.ts\"]}",
+            "independentTypeScript": {
+                "version": "6.0.3",
+                "diagnostics": [],
+                "maxNodeModuleJsDepth": "16"
+            },
+            "goRawJson": "{\"compileOnSave\":false,\"diagnostics\":[],\"files\":[\"/project/main.ts\"],\"options\":{\"maxNodeModuleJsDepth\":16},\"references\":[]}",
+            "csharpRawJson": "{\"references\":[],\"compileOnSave\":false,\"options\":{\"maxNodeModuleJsDepth\":16},\"files\":[\"/project/main.ts\"],\"diagnostics\":[]}"
+        },
+        {
+            "name": "config-number:option-octal",
+            "inputJson": "{\"compilerOptions\":{\"maxNodeModuleJsDepth\":0o20},\"files\":[\"main.ts\"]}",
+            "independentTypeScript": {
+                "version": "6.0.3",
+                "diagnostics": [],
+                "maxNodeModuleJsDepth": "16"
+            },
+            "goRawJson": "{\"compileOnSave\":false,\"diagnostics\":[],\"files\":[\"/project/main.ts\"],\"options\":{\"maxNodeModuleJsDepth\":16},\"references\":[]}",
+            "csharpRawJson": "{\"references\":[],\"compileOnSave\":false,\"options\":{\"maxNodeModuleJsDepth\":16},\"files\":[\"/project/main.ts\"],\"diagnostics\":[]}"
+        },
+        {
+            "name": "config-number:option-binary",
+            "inputJson": "{\"compilerOptions\":{\"maxNodeModuleJsDepth\":0b10000},\"files\":[\"main.ts\"]}",
+            "independentTypeScript": {
+                "version": "6.0.3",
+                "diagnostics": [],
+                "maxNodeModuleJsDepth": "16"
+            },
+            "goRawJson": "{\"compileOnSave\":false,\"diagnostics\":[],\"files\":[\"/project/main.ts\"],\"options\":{\"maxNodeModuleJsDepth\":16},\"references\":[]}",
+            "csharpRawJson": "{\"references\":[],\"compileOnSave\":false,\"options\":{\"maxNodeModuleJsDepth\":16},\"files\":[\"/project/main.ts\"],\"diagnostics\":[]}"
+        },
+        {
+            "name": "config-number:option-int64-maximum",
+            "inputJson": "{\"compilerOptions\":{\"maxNodeModuleJsDepth\":9223372036854775807},\"files\":[\"main.ts\"]}",
+            "independentTypeScript": {
+                "version": "6.0.3",
+                "diagnostics": [],
+                "maxNodeModuleJsDepth": "9223372036854776000"
+            },
+            "goRawJson": "{\"compileOnSave\":false,\"diagnostics\":[],\"files\":[\"/project/main.ts\"],\"options\":{\"maxNodeModuleJsDepth\":-9223372036854775808},\"references\":[]}",
+            "csharpRawJson": "{\"references\":[],\"compileOnSave\":false,\"options\":{\"maxNodeModuleJsDepth\":9223372036854775807},\"files\":[\"/project/main.ts\"],\"diagnostics\":[]}"
+        }
+    ],
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "foundationOutput": "Hosts: 62 assertions; embedded=False",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "targetFramework": "net11.0",
+    "languageVersion": "15.0",
+    "optimizationPreference": "Speed",
+    "instructionSet": "native",
+    "groups": {
+        "path": 1148,
+        "cli": 1073,
+        "config": 520,
+        "readDirectory": 74,
+        "glob": 335,
+        "configUnits": 2
+    },
+    "scope": "Host/configuration foundation comparison and focused contracts; not a compiler, watch-service, content-mapper execution or language-server gate. Input extraction uses literal/table inputs from the named existing Go suites, plus generated option schema and focused cases. It does not execute their Go test assertions against C#.",
+    "additionalExecutedChecks": {
+        "modules": {
+            "assertions": 42
+        },
+        "foundations": {
+            "assertions": 4703,
+            "diagnostics": 2213,
+            "locales": 13,
+            "libraries": 108
+        }
+    }
+}

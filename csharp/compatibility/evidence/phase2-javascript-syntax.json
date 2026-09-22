@@ -1,0 +1,99 @@
+{
+    "status": "passed",
+    "recordedUtc": "2026-09-22T04:28:23.613864+00:00",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "runtime": ".NET 11.0.0-rc.2.26470.103",
+    "host": "win32-x64",
+    "languageVersion": "15.0",
+    "features": "runtime-async=on",
+    "optimizationPreference": "Speed",
+    "ilcInstructionSet": "native",
+    "recordFormat": "[AST records, parse-diagnostic triples, JavaScript-diagnostic triples]; the third bucket is sorted by code, UTF-16 start and length only for comparison",
+    "fixture": {
+        "path": "csharp/tests/fixtures/parser/javascript-diagnostics.json",
+        "sha256": "cf9fc92cbb20ad2e472c357010257ab750805dd02454ffc158c733b0d2b275e5"
+    },
+    "oracle": {
+        "path": "built/csharp/parser-jsdiagnostics-oracle.exe",
+        "sha256": "72feabc2dcabd2da9b3805d6486224c071cedae5a7d3a1b888959b3fa4e80f42"
+    },
+    "oracleInstrumentation": {
+        "mainSha256": "d9fb21fb7201d057896fde20b23a41a52b07e6e9a2e299c63f0c4db850847f85",
+        "generatedScalarAndListSha256": "715b3d030972c9079ba5660d2a9cce877d341b36fc4268c24361162a908c254e"
+    },
+    "managed": {
+        "path": "built/csharp/parser-type-managed/TypeScript.Compatibility.dll",
+        "sha256": "cb1d9d9cf40dce6250c003f48e944e4aafe33000c9925ab0ed9e49f82e1c1550"
+    },
+    "native": {
+        "path": "built/csharp/parser-safety-native/TypeScript.Compatibility.exe",
+        "sha256": "a16842d60bae277b54935ba426a122c6015558cc01809fb082df1625f0f544de"
+    },
+    "comparison": {
+        "scope": "JavaScript diagnostic codes, UTF-16 positions, message arguments, related-information diagnostics, and source acceptance/rejection",
+        "cases": 28,
+        "candidateDiagnostics": 58,
+        "exactPinnedGoResults": 27,
+        "documentedMalformedSourceRecovery": [
+            {
+                "name": "js-diag-20.js",
+                "sourceSha256": "65833e9b6773d322c7042eed385e75c00515b24a592eb0adc8cd2634f9801f1c",
+                "reason": "Both parsers reject the object-literal decorator. The candidate retains the malformed method and additionally reports its source-written parameter annotation; Go abandons that method during recovery.",
+                "goJavaScriptDiagnostics": [],
+                "candidateJavaScriptDiagnostics": [
+                    [
+                        8010,
+                        26,
+                        6,
+                        [],
+                        []
+                    ]
+                ],
+                "requiredParseDiagnostic": [
+                    1136,
+                    11,
+                    1
+                ]
+            }
+        ],
+        "formerCorpusJSDiagnosticDifferences": 47,
+        "formerCorpusDifferencesNowMatching": 47
+    },
+    "checks": [
+        "JavaScript-only diagnostics remain separate from ParseDiagnostics and JSDocDiagnostics",
+        "native diagnostic source positions and related-information ranges are UTF-8 byte positions",
+        "diagnostics and related information retain the source filename",
+        "TypeScript inputs have an empty JavaScript diagnostic bucket",
+        "JSDoc/reparsed annotations do not cause JavaScript syntax errors",
+        "source-written assertions nested under JSDoc casts still produce JavaScript syntax errors"
+    ],
+    "nativeCommands": [
+        "built/csharp/parser-safety-native/TypeScript.Compatibility.exe --native-check",
+        "built/csharp/parser-safety-native/TypeScript.Compatibility.exe --javascript-syntax <repository>",
+        "built/csharp/parser-safety-native/TypeScript.Compatibility.exe --parser-safety",
+        "built/csharp/parser-safety-portable-native/TypeScript.Compatibility.exe --parser-single-worker"
+    ],
+    "nativeSafety": {
+        "status": "passed",
+        "cases": 36,
+        "nodes": 1421783,
+        "depth": 21000,
+        "defaultPool": "Windows thread pool; unsupported worker-limit controls are reported, while the async documentation workload runs"
+    },
+    "singleWorkerNative": {
+        "status": "passed",
+        "artifact": {
+            "path": "built/csharp/parser-safety-portable-native/TypeScript.Compatibility.exe",
+            "sha256": "9cf95b3a3c29867317a90b47f2b410db087bb50b92f34bc62cbd90654147cc19"
+        },
+        "configuration": "UseWindowsThreadPool=false; test-only portable pool, one worker; product default unchanged",
+        "checks": [
+            "deep JS documentation parse",
+            "TypeScript lazy documentation query",
+            "source-local documentation cache cloning",
+            "synthetic alias shared-comment identity",
+            "UTF-8 positions and import metadata ownership"
+        ]
+    }
+}

@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <PublishAot>true</PublishAot>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../src/TypeScript.Compiler/Ast/*.cs" Link="Ast/%(Filename)%(Extension)" />
+    <Compile Include="../../src/TypeScript.Compiler/Syntax/*.cs" Exclude="../../src/TypeScript.Compiler/Syntax/Slice*.cs" Link="Syntax/%(Filename)%(Extension)" />
+    <Compile Include="../../src/TypeScript.Compiler/Text/*.cs" Link="Text/%(Filename)%(Extension)" />
+    <Compile Include="../../src/TypeScript.Compiler/Hosts/CompilerPath.cs" Link="Hosts/CompilerPath.cs" />
+    <Compile Include="../../src/TypeScript.Compiler/Semantics/JsNumber.cs" Link="Semantics/JsNumber.cs" />
+    <Compile Include="../../src/TypeScript.Compiler/Diagnostics/Diagnostic.cs" Link="Diagnostics/Diagnostic.cs" />
+    <Compile Include="../../src/TypeScript.Compiler/Diagnostics/Messages.generated.cs" Link="Diagnostics/Messages.generated.cs" />
+  </ItemGroup>
+</Project>

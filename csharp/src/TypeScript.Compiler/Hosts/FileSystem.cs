@@ -1,6 +1,3 @@
-using System.Collections.Frozen;
-using TypeScript.Compiler.Text;
-
 namespace TypeScript.Compiler.Hosts;
 
 public sealed record FileEntry(string Name, bool IsDirectory, long Length, DateTime LastWriteTimeUtc, bool IsSymbolicLink = false);
@@ -29,7 +26,7 @@ public sealed class PhysicalFileSystem : IFileSystem
     public byte[]? ReadFile(string path)
     {
         try { return File.ReadAllBytes(path); }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return null; }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException) { return null; }
     }
     public void WriteFile(string path, ReadOnlySpan<byte> contents)
     {
@@ -57,7 +54,7 @@ public sealed class PhysicalFileSystem : IFileSystem
                 ((info.Attributes & FileAttributes.Directory) != 0 ? directories : files).Add(info.Name);
             }
         }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException) { }
         files.Sort(StringComparer.Ordinal); directories.Sort(StringComparer.Ordinal);
         return new(files.ToArray(), directories.ToArray(), symlinks);
     }
@@ -70,7 +67,7 @@ public sealed class PhysicalFileSystem : IFileSystem
             var file = new FileInfo(path);
             return file.Exists ? new(file.Name, false, file.Length, file.LastWriteTimeUtc, file.LinkTarget is not null) : null;
         }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return null; }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException) { return null; }
     }
     public string RealPath(string path)
     {
@@ -94,70 +91,157 @@ public sealed class PhysicalFileSystem : IFileSystem
             }
             return CompilerPath.NormalizeSlashes(current);
         }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return path; }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException) { return path; }
     }
 }
 
-/// <summary>Immutable file contents with deterministic directory enumeration for compiler hosts and tests.</summary>
+/// <summary>Owned file contents, directories and symbolic links with deterministic host enumeration.</summary>
 public sealed class MemoryFileSystem : IFileSystem
 {
     private readonly Dictionary<string, (byte[] Contents, DateTime Time)> files;
+    private readonly HashSet<string> directories;
+    private readonly Dictionary<string, string> links;
     private readonly object gate = new();
+    private StringComparison Comparison => CaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
     public bool CaseSensitive { get; }
     public string CurrentDirectory { get; }
-    public MemoryFileSystem(IEnumerable<KeyValuePair<string, byte[]>> initialFiles, bool caseSensitive = true, string currentDirectory = "/")
+    public MemoryFileSystem(IEnumerable<KeyValuePair<string, byte[]>> initialFiles, bool caseSensitive = true, string currentDirectory = "/", IEnumerable<KeyValuePair<string, string>>? symbolicLinks = null)
     {
-        CaseSensitive = caseSensitive; CurrentDirectory = currentDirectory;
-        files = new(caseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
-        foreach (var entry in initialFiles) files.Add(Key(entry.Key), (entry.Value.ToArray(), DateTime.UnixEpoch));
+        CaseSensitive = caseSensitive; CurrentDirectory = CompilerPath.Resolve("/", currentDirectory);
+        var comparer = caseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
+        files = new(comparer); directories = new(comparer); links = new(comparer);
+        EnsureDirectories(CurrentDirectory);
+        foreach (var entry in initialFiles)
+        {
+            string key = Key(entry.Key);
+            if (directories.Contains(key)) throw new IOException("Path is a directory: " + entry.Key);
+            EnsureDirectories(CompilerPath.DirectoryName(key)); files[key] = (entry.Value.ToArray(), DateTime.UnixEpoch);
+        }
+        if (symbolicLinks is not null) foreach (var entry in symbolicLinks) CreateSymbolicLink(entry.Key, entry.Value);
     }
-    private string Key(string path) => CompilerPath.Resolve(CurrentDirectory, path);
-    public bool FileExists(string path) { lock (gate) return files.ContainsKey(Key(path)); }
-    public bool DirectoryExists(string path)
-    { string prefix = CompilerPath.EnsureTrailingSeparator(Key(path)); lock (gate) return files.Keys.Any(p => p.StartsWith(prefix, CaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase)); }
-    public byte[]? ReadFile(string path) { lock (gate) return files.TryGetValue(Key(path), out var file) ? file.Contents.ToArray() : null; }
-    public void WriteFile(string path, ReadOnlySpan<byte> contents) { lock (gate) files[Key(path)] = (contents.ToArray(), DateTime.UtcNow); }
-    public void AppendFile(string path, ReadOnlySpan<byte> contents)
+    private string Key(string path)
+    {
+        string key = CompilerPath.Resolve(CurrentDirectory, path);
+        return key.Length > CompilerPath.RootLength(key) ? CompilerPath.RemoveTrailingSeparator(key) : key;
+    }
+    private void EnsureDirectories(string path)
+    {
+        var missing = new List<string>();
+        while (true)
+        {
+            if (files.ContainsKey(path)) throw new IOException("Path is not a directory: " + path);
+            if (directories.Contains(path)) break;
+            missing.Add(path);
+            string parent = CompilerPath.DirectoryName(path); if (parent == path) break; path = parent;
+        }
+        foreach (string directory in missing) directories.Add(directory);
+    }
+    private string ResolveLinks(string path)
+    {
+        string key = Key(path);
+        if (links.Count == 0) return key;
+        var visited = new Dictionary<string, int>(links.Comparer);
+        while (true)
+        {
+            bool changed = false;
+            for (int end = CompilerPath.RootLength(key); end <= key.Length; end++)
+            {
+                if (end < key.Length && key[end] != '/') continue;
+                string prefix = key[..end];
+                if (!links.TryGetValue(prefix, out string? target)) continue;
+                int remaining = key.Length - end;
+                // Repeated directory aliases can consume another component (link/link/file).
+                // A repeated link that consumes no remaining path is a genuine cycle.
+                if (visited.TryGetValue(prefix, out int previousRemaining) && remaining >= previousRemaining) throw new IOException("Symbolic link cycle: " + path);
+                visited[prefix] = remaining;
+                key = CompilerPath.Resolve(target, key[end..].TrimStart('/')); changed = true; break;
+            }
+            if (!changed) return key;
+        }
+    }
+    public void CreateDirectory(string path) { lock (gate) EnsureDirectories(ResolveLinks(path)); }
+    public void CreateSymbolicLink(string path, string target)
     {
         lock (gate)
         {
             string key = Key(path);
+            if (files.ContainsKey(key) || directories.Contains(key) || links.ContainsKey(key)) throw new IOException("Path already exists: " + path);
+            links[key] = CompilerPath.Resolve(CompilerPath.DirectoryName(key), target); EnsureDirectories(CompilerPath.DirectoryName(key));
+        }
+    }
+    public bool FileExists(string path) { lock (gate) try { return files.ContainsKey(ResolveLinks(path)); } catch (IOException) { return false; } }
+    public bool DirectoryExists(string path) { lock (gate) try { return directories.Contains(ResolveLinks(path)); } catch (IOException) { return false; } }
+    public byte[]? ReadFile(string path) { lock (gate) try { return files.TryGetValue(ResolveLinks(path), out var file) ? file.Contents.ToArray() : null; } catch (IOException) { return null; } }
+    public void WriteFile(string path, ReadOnlySpan<byte> contents)
+    {
+        lock (gate)
+        {
+            string key = ResolveLinks(path); if (directories.Contains(key)) throw new IOException("Path is a directory: " + path);
+            EnsureDirectories(CompilerPath.DirectoryName(key)); files[key] = (contents.ToArray(), DateTime.UtcNow);
+        }
+    }
+    public void AppendFile(string path, ReadOnlySpan<byte> contents)
+    {
+        lock (gate)
+        {
+            string key = ResolveLinks(path);
             byte[] previous = files.TryGetValue(key, out var file) ? file.Contents : [];
             byte[] combined = new byte[checked(previous.Length + contents.Length)];
-            previous.CopyTo(combined, 0); contents.CopyTo(combined.AsSpan(previous.Length));
-            files[key] = (combined, DateTime.UtcNow);
+            previous.CopyTo(combined, 0); contents.CopyTo(combined.AsSpan(previous.Length)); WriteFile(key, combined);
         }
     }
     public void Remove(string path)
-    { string key = Key(path); lock (gate) foreach (string file in files.Keys.Where(p => CompilerPath.Contains(key, p, CaseSensitive)).ToArray()) files.Remove(file); }
-    public void SetTimes(string path, DateTime accessTimeUtc, DateTime writeTimeUtc)
-    { lock (gate) { string key = Key(path); if (!files.TryGetValue(key, out var file)) throw new FileNotFoundException(path); files[key] = (file.Contents, writeTimeUtc); } }
-    public DirectoryEntries GetAccessibleEntries(string path)
     {
-        string prefix = CompilerPath.EnsureTrailingSeparator(Key(path));
-        var directFiles = new HashSet<string>(files.Comparer); var directories = new HashSet<string>(files.Comparer);
         lock (gate)
         {
-            foreach (string key in files.Keys)
-            {
-                if (!key.StartsWith(prefix, CaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase)) continue;
-                string rest = key[prefix.Length..]; int slash = rest.IndexOf('/');
-                if (slash < 0) directFiles.Add(rest); else directories.Add(rest[..slash]);
-            }
+            string key = Key(path); if (links.Remove(key)) return;
+            key = ResolveLinks(key);
+            foreach (string file in files.Keys.Where(p => CompilerPath.Contains(key, p, CaseSensitive)).ToArray()) files.Remove(file);
+            foreach (string link in links.Keys.Where(p => CompilerPath.Contains(key, p, CaseSensitive)).ToArray()) links.Remove(link);
+            directories.RemoveWhere(p => CompilerPath.Contains(key, p, CaseSensitive));
         }
-        return new(directFiles.Order(StringComparer.Ordinal).ToArray(), directories.Order(StringComparer.Ordinal).ToArray());
+    }
+    public void SetTimes(string path, DateTime accessTimeUtc, DateTime writeTimeUtc)
+    { lock (gate) { string key = ResolveLinks(path); if (!files.TryGetValue(key, out var file)) throw new FileNotFoundException(path); files[key] = (file.Contents, writeTimeUtc); } }
+    public DirectoryEntries GetAccessibleEntries(string path)
+    {
+        lock (gate)
+        {
+            string key;
+            try { key = ResolveLinks(path); } catch (IOException) { return new([], []); }
+            string prefix = CompilerPath.EnsureTrailingSeparator(key);
+            var directFiles = new HashSet<string>(files.Comparer); var directDirectories = new HashSet<string>(files.Comparer); var symlinks = new HashSet<string>(files.Comparer);
+            void Add(string entry, bool directory, bool link)
+            {
+                if (!entry.StartsWith(prefix, Comparison)) return;
+                string rest = entry[prefix.Length..]; if (rest.Length == 0 || rest.Contains('/')) return;
+                (directory ? directDirectories : directFiles).Add(rest); if (link) symlinks.Add(rest);
+            }
+            foreach (string file in files.Keys) Add(file, false, false);
+            foreach (string directory in directories) Add(directory, true, false);
+            foreach (string link in links.Keys) { if (DirectoryExists(link)) Add(link, true, true); else if (FileExists(link)) Add(link, false, true); }
+            return new(directFiles.Order(StringComparer.Ordinal).ToArray(), directDirectories.Order(StringComparer.Ordinal).ToArray(), symlinks);
+        }
     }
     public FileEntry? Stat(string path)
     {
         lock (gate)
         {
-            if (files.TryGetValue(Key(path), out var file)) return new(CompilerPath.BaseName(path), false, file.Contents.Length, file.Time);
-            return DirectoryExists(path) ? new(CompilerPath.BaseName(path), true, 0, DateTime.UnixEpoch) : null;
+            string key;
+            try { key = ResolveLinks(path); } catch (IOException) { return null; }
+            bool link = links.ContainsKey(Key(path));
+            if (files.TryGetValue(key, out var file)) return new(CompilerPath.BaseName(path), false, file.Contents.Length, file.Time, link);
+            return directories.Contains(key) ? new(CompilerPath.BaseName(path), true, 0, DateTime.UnixEpoch, link) : null;
         }
     }
     public string RealPath(string path)
     {
-        string key = Key(path);
-        lock (gate) return files.Keys.FirstOrDefault(p => files.Comparer.Equals(p, key)) ?? key;
+        lock (gate)
+        {
+            string key;
+            try { key = ResolveLinks(path); } catch (IOException) { return Key(path); }
+            if (files.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(key, out string? actual, out _)) return actual;
+            return directories.TryGetValue(key, out actual) ? actual : key;
+        }
     }
 }

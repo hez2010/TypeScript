@@ -1,0 +1,3063 @@
+{
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "independentParserVersion": "6.0.3",
+    "snapshotSha256": "746687b7eba3cae0e53d65e45b768efcfbb31becf429aab31a5082cd5a5c84ed",
+    "outputsSha256": "039006df77f0a01b793b3058548b1f012551c678600c320588d61803f007ada0",
+    "coordinateSystem": "UTF-16 offsets in the shared syntax comparison records",
+    "scope": "Explicitly reviewed malformed-source cases only. Acceptance requires all three exact name/source/reference/candidate pins; changed outputs need another review. Full source and Go/C# records, including scalar properties, are retained in the adjacent gzip archive. This file is a strict-compatibility audit ledger, not a change to production diagnostics.",
+    "cases": [
+        {
+            "name": "tsc/testdata/tests/cases/compiler/badArrayIndex.ts::0",
+            "fileName": "badArrayIndex.ts",
+            "sourceSha256": "c66998d2a6ab67f5348430c5167328b72ad31ad7fe0580124c967a9cbae3f49e",
+            "expectedSha256": "e0b04e9244c89d8105889c7c59b72c3d5afd09591138ee4c918e3703a5c9e40a",
+            "actualSha256": "8103bfa494c3b9af145af6321ee0599f0a3e092f073eaeb225f0fdf7d1c97ba1",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "Both parsers reject empty element-access/index brackets, including new T[]. C# highlights the concrete closing bracket; Go highlights the zero-width missing index, sometimes before its trivia. Node kinds, source spans, names, children and scalar properties are identical; only error/context bookkeeping flags differ.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    1011,
+                    21,
+                    0
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1011,
+                    21,
+                    1
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1011,
+                    21,
+                    0
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/compiler/badArrayIndex.ts",
+            "flagDifferenceMask": 32768,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/compiler/badArraySyntax.ts::0",
+            "fileName": "badArraySyntax.ts",
+            "sourceSha256": "02cd1adee8e616ef685ca702d9cd9f0859c1c7caa6aecc2d5f24dadedab6c916",
+            "expectedSha256": "6ef208bfa9b8857de67ffda14e7f7dcdbbf906983b954a4660a7604150c0ec3f",
+            "actualSha256": "7e16a3db9d93879ad7141386a8096ac2761ab849c7810ed3f61986aba694c11b",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "Both parsers reject empty element-access/index brackets, including new T[]. C# highlights the concrete closing bracket; Go highlights the zero-width missing index, sometimes before its trivia. Node kinds, source spans, names, children and scalar properties are identical; only error/context bookkeeping flags differ.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    1011,
+                    62,
+                    0
+                ],
+                [
+                    1011,
+                    80,
+                    0
+                ],
+                [
+                    1011,
+                    105,
+                    0
+                ],
+                [
+                    1011,
+                    128,
+                    0
+                ],
+                [
+                    1011,
+                    162,
+                    0
+                ],
+                [
+                    1011,
+                    173,
+                    0
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1011,
+                    62,
+                    1
+                ],
+                [
+                    1011,
+                    80,
+                    1
+                ],
+                [
+                    1011,
+                    105,
+                    1
+                ],
+                [
+                    1011,
+                    128,
+                    1
+                ],
+                [
+                    1011,
+                    168,
+                    1
+                ],
+                [
+                    1011,
+                    175,
+                    1
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1011,
+                    62,
+                    0
+                ],
+                [
+                    1011,
+                    80,
+                    0
+                ],
+                [
+                    1011,
+                    105,
+                    0
+                ],
+                [
+                    1011,
+                    128,
+                    0
+                ],
+                [
+                    1011,
+                    162,
+                    0
+                ],
+                [
+                    1011,
+                    173,
+                    0
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/compiler/badArraySyntax.ts",
+            "flagDifferenceMask": 32768,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/compiler/cannotInvokeNewOnErrorExpression.ts::0",
+            "fileName": "cannotInvokeNewOnErrorExpression.ts",
+            "sourceSha256": "bbea42499dd383d3153de5258949f4b8af08eccfb4960f93b604fd699c19d0cc",
+            "expectedSha256": "dfb7c71486bc747ecfe79aaa2c1f9d5c2c15bccfa625ff322771fd6bc933ff09",
+            "actualSha256": "0907456f6cc3930dc9f6a8bdfacf749aec22b079d909e6ca100a3af42fc06a3d",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "Both parsers reject empty element-access/index brackets, including new T[]. C# highlights the concrete closing bracket; Go highlights the zero-width missing index, sometimes before its trivia. Node kinds, source spans, names, children and scalar properties are identical; only error/context bookkeeping flags differ.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    1011,
+                    57,
+                    0
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1011,
+                    57,
+                    1
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1011,
+                    57,
+                    0
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/compiler/cannotInvokeNewOnErrorExpression.ts",
+            "flagDifferenceMask": 32768,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/compiler/class2.ts::0",
+            "fileName": "class2.ts",
+            "sourceSha256": "6097d9ffa2e99fb31f1d996cd97cc97346065ffe885ac2665d2523cd5374c8c5",
+            "expectedSha256": "20c8b09e3b9cf1e8071cc9f9d72446d12c3a7ee58ea4ec569336573e0bbbb850",
+            "actualSha256": "7da0244970d7b556cadd3b4dd44e45c64f161fa31e3a09ecbdb8b2bd16d53e86",
+            "policy": "reviewed-invalid-construct-recovery",
+            "rationale": "A constructor body contains an illegal static local declaration. C# diagnoses the token after static and keeps recovery within the explicitly braced constructor/class; Go terminates the recovered class before its final brace. The entire fixture is this malformed class; no valid later declaration is lost.",
+            "sameSemanticNodes": false,
+            "expectedDiagnostics": [
+                [
+                    1128,
+                    28,
+                    6
+                ],
+                [
+                    1128,
+                    44,
+                    1
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1005,
+                    35,
+                    1
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1128,
+                    28,
+                    6
+                ],
+                [
+                    1128,
+                    44,
+                    1
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/compiler/class2.ts",
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/compiler/commonJsExportTypeDeclarationError.ts::2",
+            "fileName": "./types2.ts",
+            "sourceSha256": "e806a99412c77ab3c3ef41d68c3e966eff0e02d2f35d2b994a380ed08d252394",
+            "expectedSha256": "c4b249dce0c7df26b32e74efaba48c5400ba3e12fb7ff19ffe9b7b202c4c3cdc",
+            "actualSha256": "84f289f56826641573c3ca5242872eff7dafd524913d9250672102be1694c338",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "The exported type alias has no right-hand type. Both report type-expected; Go marks the missing node before trailing whitespace, while C# marks EOF after that whitespace. The recovered syntax and scalar properties are identical.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    1110,
+                    45,
+                    0
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1110,
+                    47,
+                    0
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1110,
+                    45,
+                    0
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/compiler/commonJsExportTypeDeclarationError.ts",
+            "flagDifferenceMask": 0,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/compiler/createArray.ts::0",
+            "fileName": "createArray.ts",
+            "sourceSha256": "871ef49a3625cf8c47e17e48a74e0097ab694e9ef6fa0267e5f23cafbbf39d95",
+            "expectedSha256": "5963c0d3183be31536ea1459403ba842370d1ab7af7103904e7da2ebe1596dd7",
+            "actualSha256": "bc2c039f662c13bd8eb5edfb03f7ccc25614d7529a35ac33b466a58add8bd019",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "Both parsers reject empty element-access/index brackets, including new T[]. C# highlights the concrete closing bracket; Go highlights the zero-width missing index, sometimes before its trivia. Node kinds, source spans, names, children and scalar properties are identical; only error/context bookkeeping flags differ.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    1011,
+                    18,
+                    0
+                ],
+                [
+                    1011,
+                    41,
+                    0
+                ],
+                [
+                    1011,
+                    63,
+                    0
+                ],
+                [
+                    1011,
+                    84,
+                    0
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1011,
+                    18,
+                    1
+                ],
+                [
+                    1011,
+                    41,
+                    1
+                ],
+                [
+                    1011,
+                    63,
+                    1
+                ],
+                [
+                    1011,
+                    84,
+                    1
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1011,
+                    18,
+                    0
+                ],
+                [
+                    1011,
+                    41,
+                    0
+                ],
+                [
+                    1011,
+                    63,
+                    0
+                ],
+                [
+                    1011,
+                    84,
+                    0
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/compiler/createArray.ts",
+            "flagDifferenceMask": 32768,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/compiler/disallowUnerasableAssertion.ts::0",
+            "fileName": "disallowUnerasableAssertion.ts",
+            "sourceSha256": "1cbc53b0be97cbf3e12f08b64bc4832157c91ff1ff8a4e624a8d5b83dd6d2a51",
+            "expectedSha256": "c398bf3ed997da65437aff92bab165d36dbae4ea906bb23d96d94182515c8f20",
+            "actualSha256": "5c17fb6cba9a1ead2210ffe911ff4de4532a80e7db0538abec73c0b78a84b5b9",
+            "policy": "reviewed-typescript7-assertion-error-marking",
+            "rationale": "The pinned TypeScript 7 regression explicitly rejects assertion erasure that changes operator grouping (see disallowUnerasableAssertion.ts header and // Error cases). Go and C# agree on every diagnostic, node span, name, child and scalar property; only placement of the ThisNodeHasError recovery flag differs. The secondary TypeScript 6 parser predates this grammar restriction, so its lack of diagnostics is not used to override the pinned TypeScript 7 rule.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    1005,
+                    324,
+                    1
+                ],
+                [
+                    1005,
+                    381,
+                    1
+                ],
+                [
+                    1005,
+                    1235,
+                    1
+                ],
+                [
+                    1005,
+                    1293,
+                    1
+                ],
+                [
+                    1005,
+                    1588,
+                    2
+                ],
+                [
+                    1005,
+                    1647,
+                    2
+                ],
+                [
+                    1005,
+                    1807,
+                    1
+                ],
+                [
+                    1005,
+                    1878,
+                    1
+                ],
+                [
+                    1005,
+                    2928,
+                    1
+                ],
+                [
+                    1005,
+                    3000,
+                    1
+                ],
+                [
+                    1005,
+                    3323,
+                    2
+                ],
+                [
+                    1005,
+                    3396,
+                    2
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1005,
+                    324,
+                    1
+                ],
+                [
+                    1005,
+                    381,
+                    1
+                ],
+                [
+                    1005,
+                    1235,
+                    1
+                ],
+                [
+                    1005,
+                    1293,
+                    1
+                ],
+                [
+                    1005,
+                    1588,
+                    2
+                ],
+                [
+                    1005,
+                    1647,
+                    2
+                ],
+                [
+                    1005,
+                    1807,
+                    1
+                ],
+                [
+                    1005,
+                    1878,
+                    1
+                ],
+                [
+                    1005,
+                    2928,
+                    1
+                ],
+                [
+                    1005,
+                    3000,
+                    1
+                ],
+                [
+                    1005,
+                    3323,
+                    2
+                ],
+                [
+                    1005,
+                    3396,
+                    2
+                ]
+            ],
+            "independentParseDiagnostics": [],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/compiler/disallowUnerasableAssertion.ts",
+            "flagDifferenceMask": 32768,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/compiler/errorSpanForUnclosedJsxTag.tsx::0",
+            "fileName": "errorSpanForUnclosedJsxTag.tsx",
+            "sourceSha256": "231315e71dd491a96d47ffe5b1ded4561f213e5f82ef33ac40ca24063385b8c4",
+            "expectedSha256": "4fb2c21dac409e0c84b8b2ac2d45a5a9c195d80e8a9afe42ace2b30c7fc07416",
+            "actualSha256": "fd2fdf4d2d201867b5aaf224f15e6c4093c30f6797a102b62ae05ddb6565ab8f",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "Both report the same unclosed JSX opening names and missing EOF closer. C# includes leading whitespace in the opening-name diagnostic span; Go trims it. The entire JSX recovery tree and scalar properties agree.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    17008,
+                    113,
+                    3
+                ],
+                [
+                    1005,
+                    123,
+                    0
+                ],
+                [
+                    17008,
+                    85,
+                    7
+                ],
+                [
+                    1005,
+                    123,
+                    0
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    17008,
+                    110,
+                    6
+                ],
+                [
+                    1005,
+                    123,
+                    0
+                ],
+                [
+                    17008,
+                    81,
+                    11
+                ],
+                [
+                    1005,
+                    123,
+                    0
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    17008,
+                    113,
+                    3
+                ],
+                [
+                    1005,
+                    123,
+                    0
+                ],
+                [
+                    17008,
+                    85,
+                    7
+                ],
+                [
+                    1005,
+                    123,
+                    0
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/compiler/errorSpanForUnclosedJsxTag.tsx",
+            "flagDifferenceMask": 32768,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/compiler/expressionWithJSDocTypeArguments.ts::0",
+            "fileName": "expressionWithJSDocTypeArguments.ts",
+            "sourceSha256": "8f61f2f08ab85b0251c33dae29bc83c2fd0157ccb553a367a449ae431144eb3f",
+            "expectedSha256": "c52bd414080ea3a841330b841998a49d8a129d8d826a31f2eca2b5d8a2a5b413",
+            "actualSha256": "e90d5e1f9bae545dd6b15e9f0c8d2e6a4a684575ed266b6713afdc0831582516",
+            "policy": "reviewed-jsdoc-type-grammar-recovery",
+            "rationale": "The TypeScript source uses JSDoc-only type forms outside documentation comments. The secondary TypeScript 6 parser accepts them into a tree, but its program grammar diagnostics independently reject them with 8020/17019/17020. Go and C# reject the same question-mark/function-type constructs with different missing-token recovery; diagnostic placement and recovered nodes are bounded, and the remaining declarations continue to be parsed.",
+            "sameSemanticNodes": false,
+            "expectedDiagnostics": [
+                [
+                    1110,
+                    173,
+                    1
+                ],
+                [
+                    1110,
+                    297,
+                    1
+                ],
+                [
+                    1110,
+                    435,
+                    1
+                ],
+                [
+                    1110,
+                    559,
+                    1
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1003,
+                    172,
+                    1
+                ],
+                [
+                    1003,
+                    173,
+                    1
+                ],
+                [
+                    1003,
+                    174,
+                    1
+                ],
+                [
+                    1110,
+                    297,
+                    1
+                ],
+                [
+                    1003,
+                    434,
+                    1
+                ],
+                [
+                    1003,
+                    435,
+                    1
+                ],
+                [
+                    1003,
+                    436,
+                    1
+                ],
+                [
+                    1110,
+                    559,
+                    1
+                ]
+            ],
+            "independentParseDiagnostics": [],
+            "independentGrammarDiagnostics": [
+                [
+                    8020,
+                    172,
+                    1,
+                    "JSDoc types can only be used inside documentation comments."
+                ],
+                [
+                    17019,
+                    195,
+                    7,
+                    "'?' at the end of a type is not valid TypeScript syntax. Did you mean to write 'string | undefined'?"
+                ],
+                [
+                    17020,
+                    225,
+                    7,
+                    "'?' at the start of a type is not valid TypeScript syntax. Did you mean to write 'string | null | undefined'?"
+                ],
+                [
+                    17020,
+                    257,
+                    8,
+                    "'?' at the start of a type is not valid TypeScript syntax. Did you mean to write 'string | null | undefined'?"
+                ],
+                [
+                    17019,
+                    258,
+                    7,
+                    "'?' at the end of a type is not valid TypeScript syntax. Did you mean to write 'string | undefined'?"
+                ],
+                [
+                    8020,
+                    296,
+                    1,
+                    "JSDoc types can only be used inside documentation comments."
+                ],
+                [
+                    17019,
+                    326,
+                    7,
+                    "'?' at the end of a type is not valid TypeScript syntax. Did you mean to write 'string | undefined'?"
+                ],
+                [
+                    17020,
+                    363,
+                    7,
+                    "'?' at the start of a type is not valid TypeScript syntax. Did you mean to write 'string | null | undefined'?"
+                ],
+                [
+                    17020,
+                    402,
+                    8,
+                    "'?' at the start of a type is not valid TypeScript syntax. Did you mean to write 'string | null | undefined'?"
+                ],
+                [
+                    17019,
+                    403,
+                    7,
+                    "'?' at the end of a type is not valid TypeScript syntax. Did you mean to write 'string | undefined'?"
+                ],
+                [
+                    8020,
+                    434,
+                    1,
+                    "JSDoc types can only be used inside documentation comments."
+                ],
+                [
+                    17019,
+                    457,
+                    7,
+                    "'?' at the end of a type is not valid TypeScript syntax. Did you mean to write 'string | undefined'?"
+                ],
+                [
+                    17020,
+                    487,
+                    7,
+                    "'?' at the start of a type is not valid TypeScript syntax. Did you mean to write 'string | null | undefined'?"
+                ],
+                [
+                    17020,
+                    519,
+                    8,
+                    "'?' at the start of a type is not valid TypeScript syntax. Did you mean to write 'string | null | undefined'?"
+                ],
+                [
+                    17019,
+                    520,
+                    7,
+                    "'?' at the end of a type is not valid TypeScript syntax. Did you mean to write 'string | undefined'?"
+                ],
+                [
+                    8020,
+                    558,
+                    1,
+                    "JSDoc types can only be used inside documentation comments."
+                ],
+                [
+                    17019,
+                    588,
+                    7,
+                    "'?' at the end of a type is not valid TypeScript syntax. Did you mean to write 'string | undefined'?"
+                ],
+                [
+                    17020,
+                    625,
+                    7,
+                    "'?' at the start of a type is not valid TypeScript syntax. Did you mean to write 'string | null | undefined'?"
+                ],
+                [
+                    17020,
+                    664,
+                    8,
+                    "'?' at the start of a type is not valid TypeScript syntax. Did you mean to write 'string | null | undefined'?"
+                ],
+                [
+                    17019,
+                    665,
+                    7,
+                    "'?' at the end of a type is not valid TypeScript syntax. Did you mean to write 'string | undefined'?"
+                ]
+            ],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/compiler/expressionWithJSDocTypeArguments.ts",
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/compiler/incompleteDottedExpressionAtEOF.ts::0",
+            "fileName": "incompleteDottedExpressionAtEOF.ts",
+            "sourceSha256": "c9941e384bcfff0ca21e633b61463e696656a82dbb7d5f5baf66a9af18bd2eed",
+            "expectedSha256": "27d5f7247ebfc3cf3b28068bea16000173180736ba4500dc1c95523c86e8be1d",
+            "actualSha256": "843dfaff6765da343d4d30417c13b50f9a2df6d8ff75f6625d4f32598148c3f6",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "Both report the absent member after window. at EOF. Their insertion points differ only across the trailing space; all recovered node positions, children and scalars agree.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    1003,
+                    61,
+                    0
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1003,
+                    62,
+                    0
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1003,
+                    61,
+                    0
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/compiler/incompleteDottedExpressionAtEOF.ts",
+            "flagDifferenceMask": 0,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/compiler/instantiateTypeParameter.ts::0",
+            "fileName": "instantiateTypeParameter.ts",
+            "sourceSha256": "438d8714fbfad435f126e699ebb55b2bfa1b3477c1a558a273f5b0a54bcd2b04",
+            "expectedSha256": "f336b830bf348cd4f37926668b3393d212802058635b897a59fd3dca656ca5aa",
+            "actualSha256": "be4d0031b0fe9abf34b7f9a7f2235fee011ef1a2dd8351904403fc4a8d681fa1",
+            "policy": "reviewed-invalid-construct-recovery",
+            "rationale": "An interface body contains an illegal var declaration. C# diagnoses the variable-name boundary and retains recovery inside the interface's braces; Go terminates the interface and recovers the var at outer scope. Both reject that same illegal member, and the fixture has no subsequent valid declaration.",
+            "sameSemanticNodes": false,
+            "expectedDiagnostics": [
+                [
+                    1131,
+                    23,
+                    3
+                ],
+                [
+                    1128,
+                    35,
+                    1
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1005,
+                    27,
+                    1
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1131,
+                    23,
+                    3
+                ],
+                [
+                    1128,
+                    35,
+                    1
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/compiler/instantiateTypeParameter.ts",
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/compiler/libMembers.ts::0",
+            "fileName": "libMembers.ts",
+            "sourceSha256": "2bc4552255cb398614a865ce4173df4add818c65f94b26a9892f820c734f8922",
+            "expectedSha256": "fd9b91d42e085a11df0448f82c4c89b577da6e1403c6905632f4b734e01c2191",
+            "actualSha256": "c0d0ff6bfbe66fbdec9385b05c0199f90974662527aa0c63fab52e5ffa461158",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "Both parsers reject empty element-access/index brackets, including new T[]. C# highlights the concrete closing bracket; Go highlights the zero-width missing index, sometimes before its trivia. Node kinds, source spans, names, children and scalar properties are identical; only error/context bookkeeping flags differ.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    1011,
+                    166,
+                    0
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1011,
+                    166,
+                    1
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1011,
+                    166,
+                    0
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/compiler/libMembers.ts",
+            "flagDifferenceMask": 32768,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/compiler/moduleProperty1.ts::0",
+            "fileName": "moduleProperty1.ts",
+            "sourceSha256": "ccb6c0faa7351c04ee8b241f0ad49e7c76697ddca1ecaec101a5ab98358c14c7",
+            "expectedSha256": "36e36813f86d2ff28b7d9af2973794aad7abbdbc40246b40febbfbd7b0f203a4",
+            "actualSha256": "906932ccd96e070b539951ed55ade4b43385da08a41584c70ae5add9bbe647f0",
+            "policy": "reviewed-invalid-construct-recovery",
+            "rationale": "The illegal private modifier is used on a namespace-level variable. C# retains a separate private identifier expression and diagnoses the missing separator at the variable name; Go drops the modifier and reports declaration-expected. The namespace boundaries and subsequent variable assignment remain intact, as do the preceding namespace declarations.",
+            "sameSemanticNodes": false,
+            "expectedDiagnostics": [
+                [
+                    1128,
+                    246,
+                    7
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1005,
+                    254,
+                    1
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1128,
+                    246,
+                    7
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/compiler/moduleProperty1.ts",
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/compiler/moduleResolution_packageJson_yesAtPackageRoot.ts::0",
+            "fileName": "/node_modules/foo/bar/index.js",
+            "sourceSha256": "105328f0c8e8d31c03acb54fab7a2ca8a163c808b243e1a76bb822a484e5ad35",
+            "expectedSha256": "6d2a381f21fbc875459779e505c32135bedf8cd2f659dca27cf9a29c5457cfac",
+            "actualSha256": "c333eb8cf0cb0fce711c522ea804969c2261c7585123f8647d0ff31ef7465adb",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "The fixture text is the invalid adjacent-identifier phrase 'not read'. Go reports an unexpected keyword on the first word; C# reports a missing separator at the second. Both retain the same two expression statements with identical positions and scalars.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    1434,
+                    0,
+                    3
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1005,
+                    4,
+                    4
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1434,
+                    0,
+                    3
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/compiler/moduleResolution_packageJson_yesAtPackageRoot.ts",
+            "flagDifferenceMask": 0,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/compiler/moduleResolution_packageJson_yesAtPackageRoot_fakeScopedPackage.ts::0",
+            "fileName": "/node_modules/foo/@bar/index.js",
+            "sourceSha256": "105328f0c8e8d31c03acb54fab7a2ca8a163c808b243e1a76bb822a484e5ad35",
+            "expectedSha256": "6d2a381f21fbc875459779e505c32135bedf8cd2f659dca27cf9a29c5457cfac",
+            "actualSha256": "c333eb8cf0cb0fce711c522ea804969c2261c7585123f8647d0ff31ef7465adb",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "The fixture text is the invalid adjacent-identifier phrase 'not read'. Go reports an unexpected keyword on the first word; C# reports a missing separator at the second. Both retain the same two expression statements with identical positions and scalars.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    1434,
+                    0,
+                    3
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1005,
+                    4,
+                    4
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1434,
+                    0,
+                    3
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/compiler/moduleResolution_packageJson_yesAtPackageRoot_fakeScopedPackage.ts",
+            "flagDifferenceMask": 0,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/compiler/nestedUnaryExpressionHang.ts::0",
+            "fileName": "nestedUnaryExpressionHang.ts",
+            "sourceSha256": "49180c400df3288cb1684819740a683e1c38ebf30c24e22e3a32fc369e72740f",
+            "expectedSha256": "0651293534c57957e0fd7699c51e7b20014291ee57fa1cd656fa7bf781213cc3",
+            "actualSha256": "38640571bc0a611615321c6e86b7395ccb08cd6fb80536b579d617cfbf6625c2",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "The fixture ends with an absent expression operand/RHS. Go reports expression-expected before trailing newline; C# reports identifier-expected at EOF after it. Both recover the same missing expression node and otherwise identical syntax/scalars.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    1109,
+                    33,
+                    0
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1003,
+                    34,
+                    0
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1109,
+                    33,
+                    0
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/compiler/nestedUnaryExpressionHang.ts",
+            "flagDifferenceMask": 0,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/compiler/newOperator.ts::0",
+            "fileName": "newOperator.ts",
+            "sourceSha256": "d1ad85837d9edb309eedbb5daf6ee95c0f2aa6d1e785246a18771edee11b1926",
+            "expectedSha256": "398808a6f6836cc1e9b06c3547d50f0d3868bad925dca392f6c09184fd7aac5b",
+            "actualSha256": "a9ecb2b83ca632000b6f63525f51e476acdcbc222feeb68cdde111010869ee50",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "Both parsers reject empty element-access/index brackets, including new T[]. C# highlights the concrete closing bracket; Go highlights the zero-width missing index, sometimes before its trivia. Node kinds, source spans, names, children and scalar properties are identical; only error/context bookkeeping flags differ.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    1011,
+                    343,
+                    0
+                ],
+                [
+                    1011,
+                    370,
+                    0
+                ],
+                [
+                    1011,
+                    1006,
+                    0
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1011,
+                    343,
+                    1
+                ],
+                [
+                    1011,
+                    375,
+                    1
+                ],
+                [
+                    1011,
+                    1006,
+                    1
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1011,
+                    343,
+                    0
+                ],
+                [
+                    1011,
+                    370,
+                    0
+                ],
+                [
+                    1011,
+                    1006,
+                    0
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/compiler/newOperator.ts",
+            "flagDifferenceMask": 32768,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/compiler/parseJsxElementInUnaryExpressionNoCrash2.ts::0",
+            "fileName": "a.js",
+            "sourceSha256": "8d9180d52e49b58ccf3d819137338ec6ca5290a78979ee44e0c9bbe95505f03b",
+            "expectedSha256": "ae3742c3980edce5bfaf959af107f9c6c136fc9a65b9dd21c1883ab2dace660d",
+            "actualSha256": "b5beca61fcc6d7c0520fe19db751717f1f5f91890b69624ff7e8cbd6c7f21753",
+            "policy": "reviewed-invalid-construct-recovery",
+            "rationale": "This nine-character fixture ends with an incomplete JSX/comparison tail after '~<></>'. Go reports the missing right expression; C# also reports adjacent JSX recovery while inserting a missing final name. Both reject the incomplete tail, reach EOF, and produce bounded structurally valid trees; there is no following valid construct.",
+            "sameSemanticNodes": false,
+            "expectedDiagnostics": [
+                [
+                    1109,
+                    8,
+                    0
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1003,
+                    9,
+                    0
+                ],
+                [
+                    2657,
+                    1,
+                    7
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1109,
+                    8,
+                    0
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/compiler/parseJsxElementInUnaryExpressionNoCrash2.ts",
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/compiler/parserPrivateIdentifierInArrayAssignment.ts::0",
+            "fileName": "parserPrivateIdentifierInArrayAssignment.ts",
+            "sourceSha256": "618e788ec651a2d5dff2b2833100ea5c61b92a505486601aac12d0013567963b",
+            "expectedSha256": "4f20aae60e9aa210c01adf7d901789fbd1a57be1ebcf8d39ff4bd9d917c135c2",
+            "actualSha256": "a05044b69525105c0787dbf6a973e1057b30ab2d553b841f4a31f9cd93f9dc3c",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "The fixture ends with an absent expression operand/RHS. Go reports expression-expected before trailing newline; C# reports identifier-expected at EOF after it. Both recover the same missing expression node and otherwise identical syntax/scalars.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    1109,
+                    7,
+                    0
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1003,
+                    8,
+                    0
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1109,
+                    7,
+                    0
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/compiler/parserPrivateIdentifierInArrayAssignment.ts",
+            "flagDifferenceMask": 0,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/compiler/staticClassProps.ts::0",
+            "fileName": "staticClassProps.ts",
+            "sourceSha256": "9d4d4d8cbb67202d94c2982ecba4ca744247710db0193af8c2190ee9178710bf",
+            "expectedSha256": "b2c05cf009b3685e3803932ce9a208e324cffa4f3223915cdee2adcea2b320a2",
+            "actualSha256": "e4a29a275927d68a3208d32a07d5cc2b5f7523197048900f79ff94fb4cc1d9d7",
+            "policy": "reviewed-invalid-construct-recovery",
+            "rationale": "A method body contains an illegal static local declaration. C# diagnoses the local-name boundary and retains the explicit method/class braces; Go drops static and cascades on the final brace. Both reject the same illegal local declaration; no separate later declaration is consumed.",
+            "sameSemanticNodes": false,
+            "expectedDiagnostics": [
+                [
+                    1128,
+                    37,
+                    6
+                ],
+                [
+                    1128,
+                    57,
+                    1
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1005,
+                    44,
+                    1
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1128,
+                    37,
+                    6
+                ],
+                [
+                    1128,
+                    57,
+                    1
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/compiler/staticClassProps.ts",
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/compiler/staticsInConstructorBodies.ts::0",
+            "fileName": "staticsInConstructorBodies.ts",
+            "sourceSha256": "1904561f4b394381ceccaf46646923bf228b41b0e68ff0ab419c4d04a0b681bf",
+            "expectedSha256": "946671aa0482e9ba95b73ea1291f2ae4f20a9610493963c5b3f458ff8a44eb78",
+            "actualSha256": "80b2a4e13ede403da512d406ed467dfe9534e41a35acc7c25976907252424d95",
+            "policy": "reviewed-invalid-construct-recovery",
+            "rationale": "The constructor body contains two illegal static declarations, one field-like and one method-like. C# reports separators at their names/call boundary and recovers within the constructor; Go drops static and cascades after its chosen closing brace. Both reject the source and retain bounded trees without losing an independent later declaration.",
+            "sameSemanticNodes": false,
+            "expectedDiagnostics": [
+                [
+                    1128,
+                    29,
+                    6
+                ],
+                [
+                    1128,
+                    82,
+                    1
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1005,
+                    36,
+                    2
+                ],
+                [
+                    1005,
+                    62,
+                    2
+                ],
+                [
+                    1005,
+                    67,
+                    1
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1128,
+                    29,
+                    6
+                ],
+                [
+                    1128,
+                    82,
+                    1
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/compiler/staticsInConstructorBodies.ts",
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/compiler/typeAliasDeclareKeywordNewlines.ts::0",
+            "fileName": "typeAliasDeclareKeywordNewlines.ts",
+            "sourceSha256": "bc83e55a95090f77cbb229f42d9ee720ba26da3e5cf6688bbf0d602c5b32fa04",
+            "expectedSha256": "3c03827345e4f84f0eb09e75122105d22aed780db19963459ab426531dff2d77",
+            "actualSha256": "f05221a6552305ea23295ea48794b7c7ad6231647ba9eb817d68f6c7ff377f90",
+            "policy": "reviewed-invalid-construct-recovery",
+            "rationale": "The sole invalid section is 'declare type' followed by a forbidden newline before T1. Go recovers a type alias and diagnoses that newline; C# recovers the same tokens as expression statements and diagnoses the missing separator at type. The subsequent const declarations and the remaining valid declaration/statement regions are retained at the same source positions.",
+            "sameSemanticNodes": false,
+            "expectedDiagnostics": [
+                [
+                    1142,
+                    164,
+                    2
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1005,
+                    136,
+                    4
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1142,
+                    164,
+                    2
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/compiler/typeAliasDeclareKeywordNewlines.ts",
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/compiler/unicodeSpellingSuggestions.ts::0",
+            "fileName": "unicodeSpellingSuggestions.ts",
+            "sourceSha256": "175c5cae9ddc9bf734645f179cae94c750678a7a5fb983a424a1873a2efae136",
+            "expectedSha256": "c9e468b6a2c0441e321bafa485fcfe5b3b89d7409634bdf329c4cb1a30ad71c2",
+            "actualSha256": "9de7636dc5faf797a866c0e0b1821356dcf685d36c5a6373b1238bcb00a16a65",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "The malformed class-like identifiers classAé/classAéé/classAééé lack a separator before their blocks. Go suggests the class keyword; C# reports the missing separator at each block. UTF-16 positions are bounded and the recovered identifiers, blocks and scalar properties are identical.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    1435,
+                    60,
+                    7
+                ],
+                [
+                    1435,
+                    73,
+                    8
+                ],
+                [
+                    1435,
+                    87,
+                    9
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1005,
+                    68,
+                    1
+                ],
+                [
+                    1005,
+                    82,
+                    1
+                ],
+                [
+                    1005,
+                    97,
+                    1
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1435,
+                    60,
+                    7
+                ],
+                [
+                    1435,
+                    73,
+                    8
+                ],
+                [
+                    1435,
+                    87,
+                    9
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/compiler/unicodeSpellingSuggestions.ts",
+            "flagDifferenceMask": 0,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/async/es2017/asyncArrowFunction/asyncArrowFunction9_es2017.ts::0",
+            "fileName": "asyncArrowFunction9_es2017.ts",
+            "sourceSha256": "90805a0a12ad445f03f20f56e4161efd4d2c413d22c436d61ce9b1da6ed6de53",
+            "expectedSha256": "0b107b661ef9ca8b83d9c9d4bfc55c764515cb50492a0deea3ca94df80005f83",
+            "actualSha256": "658a911b2a2b8893b07d92774aec0f9d2171b5daed646dc67cf033260b0207ec",
+            "policy": "reviewed-invalid-construct-recovery",
+            "rationale": "The async arrow's default initializer contains the invalid 'await => await' binding/expression sequence. C# diagnoses the first arrow after await and retains the outer async arrow; Go splits recovery around its return annotation and body. The whole fixture is this malformed initializer, so no later valid statement or declaration is lost.",
+            "sameSemanticNodes": false,
+            "expectedDiagnostics": [
+                [
+                    1005,
+                    36,
+                    1
+                ],
+                [
+                    1005,
+                    45,
+                    1
+                ],
+                [
+                    1109,
+                    52,
+                    2
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1003,
+                    27,
+                    2
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1005,
+                    36,
+                    1
+                ],
+                [
+                    1005,
+                    45,
+                    1
+                ],
+                [
+                    1109,
+                    52,
+                    2
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/async/es2017/asyncArrowFunction/asyncArrowFunction9_es2017.ts",
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/async/es5/asyncArrowFunction/asyncArrowFunction9_es5.ts::0",
+            "fileName": "asyncArrowFunction9_es5.ts",
+            "sourceSha256": "90805a0a12ad445f03f20f56e4161efd4d2c413d22c436d61ce9b1da6ed6de53",
+            "expectedSha256": "0b107b661ef9ca8b83d9c9d4bfc55c764515cb50492a0deea3ca94df80005f83",
+            "actualSha256": "658a911b2a2b8893b07d92774aec0f9d2171b5daed646dc67cf033260b0207ec",
+            "policy": "reviewed-invalid-construct-recovery",
+            "rationale": "The async arrow's default initializer contains the invalid 'await => await' binding/expression sequence. C# diagnoses the first arrow after await and retains the outer async arrow; Go splits recovery around its return annotation and body. The whole fixture is this malformed initializer, so no later valid statement or declaration is lost.",
+            "sameSemanticNodes": false,
+            "expectedDiagnostics": [
+                [
+                    1005,
+                    36,
+                    1
+                ],
+                [
+                    1005,
+                    45,
+                    1
+                ],
+                [
+                    1109,
+                    52,
+                    2
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1003,
+                    27,
+                    2
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1005,
+                    36,
+                    1
+                ],
+                [
+                    1005,
+                    45,
+                    1
+                ],
+                [
+                    1109,
+                    52,
+                    2
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/async/es5/asyncArrowFunction/asyncArrowFunction9_es5.ts",
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/async/es6/asyncArrowFunction/asyncArrowFunction9_es6.ts::0",
+            "fileName": "asyncArrowFunction9_es6.ts",
+            "sourceSha256": "90805a0a12ad445f03f20f56e4161efd4d2c413d22c436d61ce9b1da6ed6de53",
+            "expectedSha256": "0b107b661ef9ca8b83d9c9d4bfc55c764515cb50492a0deea3ca94df80005f83",
+            "actualSha256": "658a911b2a2b8893b07d92774aec0f9d2171b5daed646dc67cf033260b0207ec",
+            "policy": "reviewed-invalid-construct-recovery",
+            "rationale": "The async arrow's default initializer contains the invalid 'await => await' binding/expression sequence. C# diagnoses the first arrow after await and retains the outer async arrow; Go splits recovery around its return annotation and body. The whole fixture is this malformed initializer, so no later valid statement or declaration is lost.",
+            "sameSemanticNodes": false,
+            "expectedDiagnostics": [
+                [
+                    1005,
+                    36,
+                    1
+                ],
+                [
+                    1005,
+                    45,
+                    1
+                ],
+                [
+                    1109,
+                    52,
+                    2
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1003,
+                    27,
+                    2
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1005,
+                    36,
+                    1
+                ],
+                [
+                    1005,
+                    45,
+                    1
+                ],
+                [
+                    1109,
+                    52,
+                    2
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/async/es6/asyncArrowFunction/asyncArrowFunction9_es6.ts",
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/decorators/invalid/decoratorOnAwait.ts::0",
+            "fileName": "decoratorOnAwait.ts",
+            "sourceSha256": "bb40f410b001817429bde73815770b8d1b20e416ebf29451f2f2a23c11f34f19",
+            "expectedSha256": "23b820732f2043b62a9e0b8153c378c9c229da3c3f01b2f369b9d0f99d6cad6e",
+            "actualSha256": "b0535f75b2fbeecd21bef069d2a60fbd4d4d2fee0cd5602a7cc53154494b921d",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "A decorator is followed by an await expression instead of a declaration. Both report declaration-expected; C# highlights the offending await token rather than the insertion point preceding its newline. The missing declaration and following expression trees agree.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    1146,
+                    44,
+                    0
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1146,
+                    45,
+                    5
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1146,
+                    44,
+                    0
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/decorators/invalid/decoratorOnAwait.ts",
+            "flagDifferenceMask": 0,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/dynamicImport/importCallExpressionIncorrect1.ts::1",
+            "fileName": "1.ts",
+            "sourceSha256": "c7dcd852e7127a8187afbcc733413764b2c6b3f03f28ace12992705c1bf61211",
+            "expectedSha256": "df75b67fcbabfc780c5463cc9df077e2fd8299ee10ac7b987f3424c078a55c0b",
+            "actualSha256": "b0515e3a4ecec33b825169a6bd01e96835aaec1181fdd27e4d383b17ee764d3b",
+            "policy": "reviewed-invalid-construct-recovery",
+            "rationale": "A standalone incomplete import keyword precedes a complete import declaration on the next line. C# diagnoses and discards only the incomplete first keyword; Go retains an empty erroneous import node. The following complete import, its named binding and module specifier are preserved.",
+            "sameSemanticNodes": false,
+            "expectedDiagnostics": [
+                [
+                    1109,
+                    7,
+                    6
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1128,
+                    0,
+                    6
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1109,
+                    7,
+                    6
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/dynamicImport/importCallExpressionIncorrect1.ts",
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/es6/templates/templateStringInModuleName.ts::0",
+            "fileName": "templateStringInModuleName.ts",
+            "sourceSha256": "7b2581c23f17a0474b80ea2ff9a5e65d9881e705ec4930d3affde84482e29f8d",
+            "expectedSha256": "b4d76c6a7de6e9ad46e3d4f25b3791e72121580731577891939403cacd9c520c",
+            "actualSha256": "859290fd12ae50f9e5677ed84e8973439963d9312acf84516e009981f49d5323",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "The module declarations use forbidden template-literal names. Go identifies the invalid template name; C# reports missing separators while recovering the same declare/module/template expression statements and blocks. Every node position, name, child and scalar property agrees; no subsequent declaration is lost.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    1443,
+                    15,
+                    4
+                ],
+                [
+                    1443,
+                    40,
+                    7
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1005,
+                    8,
+                    6
+                ],
+                [
+                    1005,
+                    20,
+                    1
+                ],
+                [
+                    1005,
+                    33,
+                    6
+                ],
+                [
+                    1005,
+                    48,
+                    1
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1443,
+                    15,
+                    4
+                ],
+                [
+                    1443,
+                    40,
+                    7
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/es6/templates/templateStringInModuleName.ts",
+            "flagDifferenceMask": 32768,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/es6/templates/templateStringInModuleNameES6.ts::0",
+            "fileName": "templateStringInModuleNameES6.ts",
+            "sourceSha256": "7b2581c23f17a0474b80ea2ff9a5e65d9881e705ec4930d3affde84482e29f8d",
+            "expectedSha256": "b4d76c6a7de6e9ad46e3d4f25b3791e72121580731577891939403cacd9c520c",
+            "actualSha256": "859290fd12ae50f9e5677ed84e8973439963d9312acf84516e009981f49d5323",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "The module declarations use forbidden template-literal names. Go identifies the invalid template name; C# reports missing separators while recovering the same declare/module/template expression statements and blocks. Every node position, name, child and scalar property agrees; no subsequent declaration is lost.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    1443,
+                    15,
+                    4
+                ],
+                [
+                    1443,
+                    40,
+                    7
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1005,
+                    8,
+                    6
+                ],
+                [
+                    1005,
+                    20,
+                    1
+                ],
+                [
+                    1005,
+                    33,
+                    6
+                ],
+                [
+                    1005,
+                    48,
+                    1
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1443,
+                    15,
+                    4
+                ],
+                [
+                    1443,
+                    40,
+                    7
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/es6/templates/templateStringInModuleNameES6.ts",
+            "flagDifferenceMask": 32768,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/esDecorators/classDeclaration/esDecorators-classDeclaration-exportModifier.2.ts::13",
+            "fileName": "file13.ts",
+            "sourceSha256": "18ce84363fda380aae26edc957f5a0295f7356e8a99529bc44b3e2c33fd08252",
+            "expectedSha256": "b904f78d9e90f6e41ab3cc2b0f7fdb80cbe9a9ad4159e0dcd7f5181cd047da06",
+            "actualSha256": "9a08f9aa46f42291298641e7114166b0666898b480051585521371129aee35c0",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "The abstract modifier occurs before the decorator in an invalid order. Go reports the misplaced abstract token; C# reports the absent statement separator at the decorator. Both retain the same expression and decorated class with identical scalars and positions.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    1434,
+                    9,
+                    8
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1005,
+                    18,
+                    1
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1434,
+                    9,
+                    8
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/esDecorators/classDeclaration/esDecorators-classDeclaration-exportModifier.2.ts",
+            "flagDifferenceMask": 0,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/esDecorators/esDecorators-decoratorExpression.3.ts::0",
+            "fileName": "esDecorators-decoratorExpression.3.ts",
+            "sourceSha256": "088cccbddf2325d9f772c7bf6265d096dbaebba8771bbc34deebd4c96d658ce6",
+            "expectedSha256": "bce80202882b84ea5e7dcb80d667f323f3a6a8f6f1fe1ffb02eb9223ee6961f5",
+            "actualSha256": "03932b490c6637592404609505bbba52e1c251dd4ac83755f937b1856b0894ef",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "The decorator expressions use bare generic type arguments where this grammar requires a decorator expression followed by a declaration. Both diagnose declaration-expected at the angle bracket; C# highlights its one-character token instead of a zero-width location. Recovered syntax/scalars agree.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    1146,
+                    66,
+                    0
+                ],
+                [
+                    1146,
+                    95,
+                    0
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1146,
+                    66,
+                    1
+                ],
+                [
+                    1146,
+                    95,
+                    1
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1146,
+                    66,
+                    0
+                ],
+                [
+                    1146,
+                    95,
+                    0
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/esDecorators/esDecorators-decoratorExpression.3.ts",
+            "flagDifferenceMask": 0,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/interfaces/interfacesExtendingClasses/interfaceExtendingClass2.ts::0",
+            "fileName": "interfaceExtendingClass2.ts",
+            "sourceSha256": "351477542c8feec285763ef75d08bd387fe0e0fdb63c2a4a13c26d26bf9fad01",
+            "expectedSha256": "edc96308206122d2e54b72c16d6c79e91a43d8d20dc8d1ad3154d5d97e41c732",
+            "actualSha256": "a248754469054653140e1731d4af5737ff12d85d7136ffe451c43f5d441c7639",
+            "policy": "reviewed-invalid-construct-recovery",
+            "rationale": "An interface function type contains a return statement in the place of a return type literal. C# reports the illegal type-member boundary and keeps recovery in the interface; Go escapes the interface and cascades at the return/body braces. The valid preceding class is retained, and no later valid top-level declaration follows the malformed interface.",
+            "sameSemanticNodes": false,
+            "expectedDiagnostics": [
+                [
+                    1131,
+                    188,
+                    6
+                ],
+                [
+                    1128,
+                    206,
+                    1
+                ],
+                [
+                    1128,
+                    213,
+                    1
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1005,
+                    195,
+                    1
+                ],
+                [
+                    1005,
+                    214,
+                    0
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1131,
+                    188,
+                    6
+                ],
+                [
+                    1128,
+                    206,
+                    1
+                ],
+                [
+                    1128,
+                    213,
+                    1
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/interfaces/interfacesExtendingClasses/interfaceExtendingClass2.ts",
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/jsdoc/jsdocDisallowedInTypescript.ts::0",
+            "fileName": "jsdocDisallowedInTypescript.ts",
+            "sourceSha256": "f2efba26ad74aa0566cec662a52747dcbb4fe6711ef97698bb6867b997f625a4",
+            "expectedSha256": "010ac5cf25c69c5df31b07888bd5e68553e7542574e98d808dda375297d8f816",
+            "actualSha256": "d7dec2a8793b151897ae0c40b3ebcd9c75d32f4060b28ec6d7e6e083348cbf98",
+            "policy": "reviewed-jsdoc-type-grammar-recovery",
+            "rationale": "The TypeScript source uses JSDoc-only type forms outside documentation comments. The secondary TypeScript 6 parser accepts them into a tree, but its program grammar diagnostics independently reject them with 8020/17019/17020. Go and C# reject the same question-mark/function-type constructs with different missing-token recovery; diagnostic placement and recovered nodes are bounded, and the remaining declarations continue to be parsed.",
+            "sameSemanticNodes": false,
+            "expectedDiagnostics": [
+                [
+                    1005,
+                    171,
+                    1
+                ],
+                [
+                    1109,
+                    175,
+                    1
+                ],
+                [
+                    1005,
+                    191,
+                    1
+                ],
+                [
+                    1128,
+                    192,
+                    1
+                ],
+                [
+                    1005,
+                    250,
+                    1
+                ],
+                [
+                    1005,
+                    280,
+                    1
+                ],
+                [
+                    1110,
+                    348,
+                    1
+                ],
+                [
+                    1005,
+                    373,
+                    1
+                ],
+                [
+                    1005,
+                    389,
+                    1
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1005,
+                    171,
+                    1
+                ],
+                [
+                    1359,
+                    172,
+                    3
+                ],
+                [
+                    1003,
+                    175,
+                    1
+                ],
+                [
+                    1005,
+                    192,
+                    1
+                ],
+                [
+                    1005,
+                    250,
+                    1
+                ],
+                [
+                    1005,
+                    280,
+                    1
+                ],
+                [
+                    1110,
+                    348,
+                    1
+                ],
+                [
+                    1005,
+                    373,
+                    1
+                ],
+                [
+                    1005,
+                    389,
+                    1
+                ]
+            ],
+            "independentParseDiagnostics": [],
+            "independentGrammarDiagnostics": [
+                [
+                    8020,
+                    44,
+                    1,
+                    "JSDoc types can only be used inside documentation comments."
+                ],
+                [
+                    17020,
+                    80,
+                    7,
+                    "'?' at the start of a type is not valid TypeScript syntax. Did you mean to write 'number | null | undefined'?"
+                ],
+                [
+                    8020,
+                    97,
+                    1,
+                    "JSDoc types can only be used inside documentation comments."
+                ],
+                [
+                    8020,
+                    163,
+                    29,
+                    "JSDoc types can only be used inside documentation comments."
+                ],
+                [
+                    8020,
+                    242,
+                    38,
+                    "JSDoc types can only be used inside documentation comments."
+                ],
+                [
+                    8020,
+                    326,
+                    1,
+                    "JSDoc types can only be used inside documentation comments."
+                ],
+                [
+                    8020,
+                    346,
+                    1,
+                    "JSDoc types can only be used inside documentation comments."
+                ],
+                [
+                    8020,
+                    365,
+                    32,
+                    "JSDoc types can only be used inside documentation comments."
+                ],
+                [
+                    17020,
+                    426,
+                    7,
+                    "'!' at the start of a type is not valid TypeScript syntax. Did you mean to write 'string'?"
+                ],
+                [
+                    17019,
+                    464,
+                    7,
+                    "'!' at the end of a type is not valid TypeScript syntax. Did you mean to write 'number'?"
+                ],
+                [
+                    17019,
+                    495,
+                    7,
+                    "'?' at the end of a type is not valid TypeScript syntax. Did you mean to write 'number | undefined'?"
+                ],
+                [
+                    17020,
+                    532,
+                    7,
+                    "'?' at the start of a type is not valid TypeScript syntax. Did you mean to write 'number | null | undefined'?"
+                ],
+                [
+                    17020,
+                    557,
+                    7,
+                    "'!' at the start of a type is not valid TypeScript syntax. Did you mean to write 'number'?"
+                ],
+                [
+                    8020,
+                    583,
+                    1,
+                    "JSDoc types can only be used inside documentation comments."
+                ]
+            ],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/jsdoc/jsdocDisallowedInTypescript.ts",
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/jsx/jsxInvalidEsprimaTestSuite.tsx::17",
+            "fileName": "18.tsx",
+            "sourceSha256": "bd1de75b10f628b6fa5a67cdf3df85e0c75aa0b048f39f9c1f64153752a152dc",
+            "expectedSha256": "45fdae41fe6abb7c65c615443b0ab77b10a31cd4b06eef6628b4fb1129ab1a40",
+            "actualSha256": "cd62cf4b80c5e408fbda0accc95bd888ff0c89e87655251d683c6563c8fb9ad4",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "Both reject adjacent JSX roots with diagnostic 2657 and retain the same JSX recovery tree/scalars. C# includes leading whitespace or a leading comment in the diagnostic span; Go trims that trivia. The highlight still covers the same two offending JSX roots.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    2657,
+                    29,
+                    28
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    2657,
+                    7,
+                    50
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    2657,
+                    29,
+                    28
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/jsx/jsxInvalidEsprimaTestSuite.tsx",
+            "flagDifferenceMask": 0,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/jsx/jsxInvalidEsprimaTestSuite.tsx::18",
+            "fileName": "19.tsx",
+            "sourceSha256": "1d18400d705dde5b12b42a2032c062f0b3b481fbfcbcb74d5e56a14a63c626fc",
+            "expectedSha256": "50b1c6dd2b19b4fb04dc0998101c7cb83c6a577ed2eb384fc45423239a86571b",
+            "actualSha256": "490e42d76ac178308dd9a4877b57aa33385b4b75ad2d9a8d030ebb80128ec37f",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "Both reject adjacent JSX roots with diagnostic 2657 and retain the same JSX recovery tree/scalars. C# includes leading whitespace or a leading comment in the diagnostic span; Go trims that trivia. The highlight still covers the same two offending JSX roots.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    2657,
+                    8,
+                    55
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    2657,
+                    7,
+                    56
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    2657,
+                    8,
+                    55
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/jsx/jsxInvalidEsprimaTestSuite.tsx",
+            "flagDifferenceMask": 0,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/jsx/tsxErrorRecovery2.tsx::0",
+            "fileName": "file1.tsx",
+            "sourceSha256": "1d85a83faa3c543f691bac10d0707e23178916833d6f81619ac20803b2f9e237",
+            "expectedSha256": "58f1625eede3a4c3187f4c18df840aa15d58d5193ed0ab8a97fba06c4bc267c3",
+            "actualSha256": "eee243c0aacf16b0949ff3314039c402e0c5ff17653756d8da00a376002359b0",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "Both reject adjacent JSX roots with diagnostic 2657 and retain the same JSX recovery tree/scalars. C# includes leading whitespace or a leading comment in the diagnostic span; Go trims that trivia. The highlight still covers the same two offending JSX roots.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    2657,
+                    49,
+                    23
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    2657,
+                    47,
+                    25
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    2657,
+                    49,
+                    23
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/jsx/tsxErrorRecovery2.tsx",
+            "flagDifferenceMask": 0,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/jsx/tsxErrorRecovery2.tsx::1",
+            "fileName": "file2.tsx",
+            "sourceSha256": "e8afe80481962190eaa4331bf09d7dbd6e7052a972323b6f6cb094f935f14515",
+            "expectedSha256": "32872b19b90bb24b17b28b38c59d133cad95c6ee1907daaf7f0829b9c2c491d3",
+            "actualSha256": "4cb8feb84ddc2b196427e549c921e5aae51b5d64d4238a222d0e3295e240488b",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "Both reject adjacent JSX roots with diagnostic 2657 and retain the same JSX recovery tree/scalars. C# includes leading whitespace or a leading comment in the diagnostic span; Go trims that trivia. The highlight still covers the same two offending JSX roots.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    2657,
+                    8,
+                    22
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    2657,
+                    7,
+                    23
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    2657,
+                    8,
+                    22
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/jsx/tsxErrorRecovery2.tsx",
+            "flagDifferenceMask": 0,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/jsx/tsxErrorRecovery3.tsx::0",
+            "fileName": "file1.tsx",
+            "sourceSha256": "1d85a83faa3c543f691bac10d0707e23178916833d6f81619ac20803b2f9e237",
+            "expectedSha256": "58f1625eede3a4c3187f4c18df840aa15d58d5193ed0ab8a97fba06c4bc267c3",
+            "actualSha256": "eee243c0aacf16b0949ff3314039c402e0c5ff17653756d8da00a376002359b0",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "Both reject adjacent JSX roots with diagnostic 2657 and retain the same JSX recovery tree/scalars. C# includes leading whitespace or a leading comment in the diagnostic span; Go trims that trivia. The highlight still covers the same two offending JSX roots.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    2657,
+                    49,
+                    23
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    2657,
+                    47,
+                    25
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    2657,
+                    49,
+                    23
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/jsx/tsxErrorRecovery3.tsx",
+            "flagDifferenceMask": 0,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/jsx/tsxErrorRecovery3.tsx::1",
+            "fileName": "file2.tsx",
+            "sourceSha256": "e8afe80481962190eaa4331bf09d7dbd6e7052a972323b6f6cb094f935f14515",
+            "expectedSha256": "32872b19b90bb24b17b28b38c59d133cad95c6ee1907daaf7f0829b9c2c491d3",
+            "actualSha256": "4cb8feb84ddc2b196427e549c921e5aae51b5d64d4238a222d0e3295e240488b",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "Both reject adjacent JSX roots with diagnostic 2657 and retain the same JSX recovery tree/scalars. C# includes leading whitespace or a leading comment in the diagnostic span; Go trims that trivia. The highlight still covers the same two offending JSX roots.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    2657,
+                    8,
+                    22
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    2657,
+                    7,
+                    23
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    2657,
+                    8,
+                    22
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/jsx/tsxErrorRecovery3.tsx",
+            "flagDifferenceMask": 0,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/parser/ecmascript2018/asyncGenerators/parser.asyncGenerators.objectLiteralMethods.es2018.ts::23",
+            "fileName": "asyncGeneratorPropertyIsError.ts",
+            "sourceSha256": "ebb7a1f517c45d7ae917cbc36067540f742972b9e3442ecc359f2c005a13db4b",
+            "expectedSha256": "783b03a95e16be3b0f1474326be9ca34a085b1e5f3209aa19dbf3aaa7471190f",
+            "actualSha256": "e68432db20a69d471ded18a38e02d707c67fa7a07825839fb16b5874c2818924",
+            "policy": "reviewed-invalid-construct-recovery",
+            "rationale": "The object member 'async * x: 1;' mixes generator-method and property syntax. Go diagnoses the colon while synthesizing missing method syntax; C# diagnoses the semicolon while recovering the malformed member. Both reject the same single object initializer and retain bounded parented trees; there is no subsequent valid construct to lose.",
+            "sameSemanticNodes": false,
+            "expectedDiagnostics": [
+                [
+                    1005,
+                    27,
+                    1
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1005,
+                    30,
+                    1
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1005,
+                    27,
+                    1
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/parser/ecmascript2018/asyncGenerators/parser.asyncGenerators.objectLiteralMethods.es2018.ts",
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/parser/ecmascript2021/numericSeparators/parser.numericSeparators.decmialNegative.ts::15",
+            "fileName": "16.ts",
+            "sourceSha256": "3263139e80fd0de58bee66113bcfc4ee9187e0d043781f80db05e25601c64920",
+            "expectedSha256": "90d5dbc778f3740e133ab4cd953d9158522ae3fcaf047413213c188af000931f",
+            "actualSha256": "4f57d63e2f3723e53107a4df3a7254ed1e7434c2da9474b17ac18598b306fd12",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "The illegal leading underscore creates an identifier followed immediately by a numeric literal without an operator or statement separator. Go diagnoses the first token as an unexpected identifier; C# diagnoses the missing separator at the numeric token. Both recovered statements, positions and scalars agree.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    1434,
+                    0,
+                    2
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1005,
+                    2,
+                    4
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1434,
+                    0,
+                    2
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/parser/ecmascript2021/numericSeparators/parser.numericSeparators.decmialNegative.ts",
+            "flagDifferenceMask": 0,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/parser/ecmascript2021/numericSeparators/parser.numericSeparators.decmialNegative.ts::28",
+            "fileName": "29.ts",
+            "sourceSha256": "3f8ea8f3c2c3ed2511cce72733c0ad77889cd9ccb5de6a99fdfbefa969e4392f",
+            "expectedSha256": "00d728a4680ffc61a62da27ea37353e34eb6429cc2f9eff52b1178744b66e627",
+            "actualSha256": "56674f7eac8b89403bf8b9789a51244c2dc2a0793e4175486de65bc1271b092f",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "The illegal leading underscore creates an identifier followed immediately by a numeric literal without an operator or statement separator. Go diagnoses the first token as an unexpected identifier; C# diagnoses the missing separator at the numeric token. Both recovered statements, positions and scalars agree.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    1434,
+                    0,
+                    2
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1005,
+                    2,
+                    5
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1434,
+                    0,
+                    2
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/parser/ecmascript2021/numericSeparators/parser.numericSeparators.decmialNegative.ts",
+            "flagDifferenceMask": 0,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/parser/ecmascript2021/numericSeparators/parser.numericSeparators.decmialNegative.ts::41",
+            "fileName": "42.ts",
+            "sourceSha256": "6bc8f78c60de8f7ce706fb621a5d32b27d5ab13235c7bb3e90c41d782cd129b8",
+            "expectedSha256": "00d728a4680ffc61a62da27ea37353e34eb6429cc2f9eff52b1178744b66e627",
+            "actualSha256": "56674f7eac8b89403bf8b9789a51244c2dc2a0793e4175486de65bc1271b092f",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "The illegal leading underscore creates an identifier followed immediately by a numeric literal without an operator or statement separator. Go diagnoses the first token as an unexpected identifier; C# diagnoses the missing separator at the numeric token. Both recovered statements, positions and scalars agree.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    1434,
+                    0,
+                    2
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1005,
+                    2,
+                    5
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1434,
+                    0,
+                    2
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/parser/ecmascript2021/numericSeparators/parser.numericSeparators.decmialNegative.ts",
+            "flagDifferenceMask": 0,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/parser/ecmascript5/ErrorRecovery/ParameterLists/parserErrorRecovery_ParameterList5.ts::0",
+            "fileName": "parserErrorRecovery_ParameterList5.ts",
+            "sourceSha256": "8b88c87578994c1f46036c70fbd2cfe85a3fd52940a8bde46c794b6684c84d05",
+            "expectedSha256": "8e70c235bdfb5ac7876b7bc3d3ea1357df4431eb9ad65b8d6060cdb70bd6d8fd",
+            "actualSha256": "1e151168e0302a0dc6b0e61cff97d34d2ad77e5f056ce7123c11de79af6ad12a",
+            "policy": "reviewed-invalid-construct-recovery",
+            "rationale": "The sole fixture '(a:number => { }' omits the closing parenthesis of its intended arrow parameter list. Go commits to arrow recovery and diagnoses at the arrow/EOF; C# diagnoses the colon while recovering a parenthesized expression plus label. Both reject the malformed construct, terminate, and retain bounded trees; no independent statement follows it.",
+            "sameSemanticNodes": false,
+            "expectedDiagnostics": [
+                [
+                    1005,
+                    10,
+                    2
+                ],
+                [
+                    1005,
+                    16,
+                    0
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1005,
+                    2,
+                    1
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1005,
+                    10,
+                    2
+                ],
+                [
+                    1005,
+                    16,
+                    0
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/parser/ecmascript5/ErrorRecovery/ParameterLists/parserErrorRecovery_ParameterList5.ts",
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/parser/ecmascript5/ErrorRecovery/parserErrantAccessibilityModifierInModule1.ts::0",
+            "fileName": "parserErrantAccessibilityModifierInModule1.ts",
+            "sourceSha256": "916b37366ef98e74b2767beff915f606ab7f255798b75aeddc7b2c0c4c8c434c",
+            "expectedSha256": "a5d361b2b56e910091ddd95c6aee0887e8490ee0e51e77529ba1da62db35d9d7",
+            "actualSha256": "b631b4c1536291a8cbdc3518a901710663c439389576db37f6e4814ca0d8a47e",
+            "policy": "reviewed-invalid-construct-recovery",
+            "rationale": "A private modifier is placed on a namespace-level variable. C# retains a separate private identifier expression and reports a missing separator at y; Go discards private and diagnoses it directly. The following assignment and enclosing namespace remain intact.",
+            "sameSemanticNodes": false,
+            "expectedDiagnostics": [
+                [
+                    1128,
+                    71,
+                    7
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1005,
+                    79,
+                    1
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1128,
+                    71,
+                    7
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/parser/ecmascript5/ErrorRecovery/parserErrantAccessibilityModifierInModule1.ts",
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/parser/ecmascript5/ErrorRecovery/parserPublicBreak1.ts::0",
+            "fileName": "parserPublicBreak1.ts",
+            "sourceSha256": "97b4aefeef3b1151d2b7f9567c9622bba802e3018473a70906a5adc195d17cdc",
+            "expectedSha256": "5141279777eaee42dc935f9d67b547603d8d85c3f12a178aeef75dd63d0dab3c",
+            "actualSha256": "5cc16924dd7e46166a4f6924948e5c9ad800c377b4113153039513f4a9320fc2",
+            "policy": "reviewed-invalid-construct-recovery",
+            "rationale": "The public modifier cannot precede break. C# retains a separate identifier expression for public and diagnoses the missing separator at break; Go drops public and diagnoses the modifier. Both retain the same following break statement and reject the source.",
+            "sameSemanticNodes": false,
+            "expectedDiagnostics": [
+                [
+                    1128,
+                    0,
+                    6
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1005,
+                    7,
+                    5
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1128,
+                    0,
+                    6
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/parser/ecmascript5/ErrorRecovery/parserPublicBreak1.ts",
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/parser/ecmascript5/RealWorld/parserharness.ts::0",
+            "fileName": "parserharness.ts",
+            "sourceSha256": "f13df1fd16e8b72b3a57c5fe6bdcaf2a95e6e9638b41016d4cd4756c678fd360",
+            "expectedSha256": "2cdf31854832bc3fd4e4447e2c6c17b938f1bef03df1dd8460ae6adf12cf5639",
+            "actualSha256": "62dd18b955c8ef7bfb44b9d8029a9904ace8fbfbd59037dee35a8a2ac28303c5",
+            "policy": "reviewed-invalid-construct-recovery",
+            "rationale": "This large fixture contains one illegal private modifier before a namespace-level optionRegex assignment. C# retains the stray private expression and reports a missing separator at optionRegex; Go discards private and reports declaration-expected. The surrounding namespace and following assignment/declarations retain their source coverage and structure; no valid suffix is swallowed.",
+            "sameSemanticNodes": false,
+            "expectedDiagnostics": [
+                [
+                    1128,
+                    55839,
+                    7
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1005,
+                    55847,
+                    11
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1128,
+                    55839,
+                    7
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/parser/ecmascript5/RealWorld/parserharness.ts",
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/parser/ecmascript5/RegressionTests/parser509669.ts::0",
+            "fileName": "parser509669.ts",
+            "sourceSha256": "c83896ec297b4cf66a3419b817c8a6da24da280c33c80d6623d182573d36f615",
+            "expectedSha256": "cfa2ff1bcbd38e6ecf222ecb17c477bd96e4e481083c3503f5700bf130f4a383",
+            "actualSha256": "2fe5475ae8dd90148d28fd2d5fbd4525eceafb254aba879416f0ca0c25927a9e",
+            "policy": "reviewed-invalid-construct-recovery",
+            "rationale": "The returned typed arrow-like expression '():void {}' omits '=>'. Go synthesizes the arrow and diagnoses the body opener; C# diagnoses the empty parenthesized expression/type separator and retains recovery within the same function. Both reject the sole malformed return expression, keep the function boundaries and terminate at EOF.",
+            "sameSemanticNodes": false,
+            "expectedDiagnostics": [
+                [
+                    1005,
+                    37,
+                    1
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1003,
+                    30,
+                    1
+                ],
+                [
+                    1005,
+                    31,
+                    1
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1005,
+                    37,
+                    1
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/parser/ecmascript5/RegressionTests/parser509669.ts",
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/parser/ecmascript5/parserObjectCreationArrayLiteral1.ts::0",
+            "fileName": "parserObjectCreationArrayLiteral1.ts",
+            "sourceSha256": "99486c876a957909c73b99e6a7a054def5fb3f129742d701360b3e08cdc2a5b8",
+            "expectedSha256": "1b660748f9b3458724d87a94e7ba6a1a382c9d9ba397ed2d2281f10549be03c7",
+            "actualSha256": "0ac6d2cdeb932c5f2dc01debc2f5ad7748b2d5cf4a0f5c8cc35935140c02f2f8",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "Both parsers reject empty element-access/index brackets, including new T[]. C# highlights the concrete closing bracket; Go highlights the zero-width missing index, sometimes before its trivia. Node kinds, source spans, names, children and scalar properties are identical; only error/context bookkeeping flags differ.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    1011,
+                    8,
+                    0
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1011,
+                    8,
+                    1
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1011,
+                    8,
+                    0
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/parser/ecmascript5/parserObjectCreationArrayLiteral1.ts",
+            "flagDifferenceMask": 32768,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/parser/ecmascript5/parserObjectCreationArrayLiteral3.ts::0",
+            "fileName": "parserObjectCreationArrayLiteral3.ts",
+            "sourceSha256": "8eded515ce7d529404ed4f2da90aa535f15bf795a0d7dc0b831a4db03db57e13",
+            "expectedSha256": "ad5092fc30d2e44e9842db35547ece2568c5532f5e02d7187c1f9a5517426ecd",
+            "actualSha256": "bf2a91fb7a8a773aac7baa80af87f2e314470f61bb2b19df368136b0becad6c9",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "Both parsers reject empty element-access/index brackets, including new T[]. C# highlights the concrete closing bracket; Go highlights the zero-width missing index, sometimes before its trivia. Node kinds, source spans, names, children and scalar properties are identical; only error/context bookkeeping flags differ.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    1011,
+                    8,
+                    0
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1011,
+                    8,
+                    1
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1011,
+                    8,
+                    0
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/parser/ecmascript5/parserObjectCreationArrayLiteral3.ts",
+            "flagDifferenceMask": 32768,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/parser/ecmascript5/parserRealSource10.ts::0",
+            "fileName": "parserRealSource10.ts",
+            "sourceSha256": "de1a6039df63bd519f2845c076187ad816d670f2b4250f078721df07ad63b303",
+            "expectedSha256": "ee2449b6584953ac63ae8f4df121ea86c3ed5539ba4b8dad8ee2873e086a811e",
+            "actualSha256": "415d6cbdcaca5b0c834e38f3e12ee00d04a2a676b4c4c1e249f0c06f93cb7182",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "Both parsers reject empty element-access/index brackets, including new T[]. C# highlights the concrete closing bracket; Go highlights the zero-width missing index, sometimes before its trivia. Node kinds, source spans, names, children and scalar properties are identical; only error/context bookkeeping flags differ.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    1011,
+                    2529,
+                    0
+                ],
+                [
+                    1011,
+                    2574,
+                    0
+                ],
+                [
+                    1011,
+                    2624,
+                    0
+                ],
+                [
+                    1011,
+                    2669,
+                    0
+                ],
+                [
+                    1011,
+                    28293,
+                    0
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1011,
+                    2529,
+                    1
+                ],
+                [
+                    1011,
+                    2574,
+                    1
+                ],
+                [
+                    1011,
+                    2624,
+                    1
+                ],
+                [
+                    1011,
+                    2669,
+                    1
+                ],
+                [
+                    1011,
+                    28293,
+                    1
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1011,
+                    2529,
+                    0
+                ],
+                [
+                    1011,
+                    2574,
+                    0
+                ],
+                [
+                    1011,
+                    2624,
+                    0
+                ],
+                [
+                    1011,
+                    2669,
+                    0
+                ],
+                [
+                    1011,
+                    28293,
+                    0
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/parser/ecmascript5/parserRealSource10.ts",
+            "flagDifferenceMask": 32768,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/parser/ecmascript5/parserRealSource11.ts::0",
+            "fileName": "parserRealSource11.ts",
+            "sourceSha256": "d89ca5b0dd479751b093d9ca1b94b8ca51baf84894f424f6e3c7e10de509bc01",
+            "expectedSha256": "837c13f2846abf24ca0ba4b7d46e3da97e7fb33abee4b1a1275500efaa17d5b2",
+            "actualSha256": "b910b6df144ff773063c8e6dbc9c543e124e549b2f13f2a944b1f1c6e9cea153",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "Both parsers reject empty element-access/index brackets, including new T[]. C# highlights the concrete closing bracket; Go highlights the zero-width missing index, sometimes before its trivia. Node kinds, source spans, names, children and scalar properties are identical; only error/context bookkeeping flags differ.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    1011,
+                    7216,
+                    0
+                ],
+                [
+                    1011,
+                    38668,
+                    0
+                ],
+                [
+                    1011,
+                    39203,
+                    0
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1011,
+                    7216,
+                    1
+                ],
+                [
+                    1011,
+                    38668,
+                    1
+                ],
+                [
+                    1011,
+                    39203,
+                    1
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1011,
+                    7216,
+                    0
+                ],
+                [
+                    1011,
+                    38668,
+                    0
+                ],
+                [
+                    1011,
+                    39203,
+                    0
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/parser/ecmascript5/parserRealSource11.ts",
+            "flagDifferenceMask": 32768,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/parser/ecmascript5/parserRealSource4.ts::0",
+            "fileName": "parserRealSource4.ts",
+            "sourceSha256": "295d931c249acba86ca3d8fde0119c6ff59375f9dd633fd1dad5e8782ebab2f7",
+            "expectedSha256": "55f86e07eb68bc13bf87339dc4888510e1f02ef5c9514fa017a946150abeb02a",
+            "actualSha256": "9a5d992faeb5e0c6afb4472dc239124ce10bd82d9662f71c3308bbdc2dfa89f6",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "Both parsers reject empty element-access/index brackets, including new T[]. C# highlights the concrete closing bracket; Go highlights the zero-width missing index, sometimes before its trivia. Node kinds, source spans, names, children and scalar properties are identical; only error/context bookkeeping flags differ.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    1011,
+                    6130,
+                    0
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1011,
+                    6130,
+                    1
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1011,
+                    6130,
+                    0
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/parser/ecmascript5/parserRealSource4.ts",
+            "flagDifferenceMask": 33792,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/parser/ecmascript5/parserRealSource7.ts::0",
+            "fileName": "parserRealSource7.ts",
+            "sourceSha256": "0c5ee835188cddff7b4985ba199b1ad390198ca233f40e9b412fa9934946b74d",
+            "expectedSha256": "92f1855d8b6468cc3ae278c112770ee81a60362ab58f46853a356bf4920a0741",
+            "actualSha256": "bb293d0186844a6d07279eac2d5fa284250ce6a1e36b8f66c5dd7f4f26f7af26",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "Both parsers reject empty element-access/index brackets, including new T[]. C# highlights the concrete closing bracket; Go highlights the zero-width missing index, sometimes before its trivia. Node kinds, source spans, names, children and scalar properties are identical; only error/context bookkeeping flags differ.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    1011,
+                    588,
+                    0
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1011,
+                    588,
+                    1
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1011,
+                    588,
+                    0
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/parser/ecmascript5/parserRealSource7.ts",
+            "flagDifferenceMask": 32768,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/parser/ecmascript5/parserRealSource9.ts::0",
+            "fileName": "parserRealSource9.ts",
+            "sourceSha256": "c9d8736026ba32df5e956d85953482f83b79611a3c09b4986391c55b188bcfea",
+            "expectedSha256": "a4fe50152a110c7a31cba8f63ac520153f9fd5139468f3a1e842631cb79a5a03",
+            "actualSha256": "aa85c10c27e2cbed3d294b8c933b131ff8265b6ac2ae393352634090707ca822",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "Both parsers reject empty element-access/index brackets, including new T[]. C# highlights the concrete closing bracket; Go highlights the zero-width missing index, sometimes before its trivia. Node kinds, source spans, names, children and scalar properties are identical; only error/context bookkeeping flags differ.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    1011,
+                    507,
+                    0
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1011,
+                    507,
+                    1
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1011,
+                    507,
+                    0
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/parser/ecmascript5/parserRealSource9.ts",
+            "flagDifferenceMask": 32768,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        },
+        {
+            "name": "tsc/testdata/tests/cases/conformance/statements/VariableStatements/usingDeclarations/usingDeclarationsInForOf.2.ts::0",
+            "fileName": "usingDeclarationsInForOf.2.ts",
+            "sourceSha256": "cdf342d82eaa271c56d5ecf429c6f50fc6330711e73b9c934bd3537c3f4c1ee5",
+            "expectedSha256": "9ca5d69cfbf02a47212d9f34f223bea87d9ea16f6069629add70b7c1010bfa49",
+            "actualSha256": "851cfbc015079cc523a9ad5521a13bbca210ecbb9433c8448372c7378b8fcb88",
+            "policy": "reviewed-invalid-diagnostic-boundary",
+            "rationale": "Both parsers reject empty element-access/index brackets, including new T[]. C# highlights the concrete closing bracket; Go highlights the zero-width missing index, sometimes before its trivia. Node kinds, source spans, names, children and scalar properties are identical; only error/context bookkeeping flags differ.",
+            "sameSemanticNodes": true,
+            "expectedDiagnostics": [
+                [
+                    1011,
+                    18,
+                    0
+                ]
+            ],
+            "actualDiagnostics": [
+                [
+                    1011,
+                    18,
+                    1
+                ]
+            ],
+            "independentParseDiagnostics": [
+                [
+                    1011,
+                    18,
+                    0
+                ]
+            ],
+            "independentGrammarDiagnostics": [],
+            "outputsFile": "recovery-differences.outputs.json.gz",
+            "reproducer": "node csharp/tools/syntax.mjs --managed --no-build --parse --corpus --expanded --strict --filter tsc/testdata/tests/cases/conformance/statements/VariableStatements/usingDeclarations/usingDeclarationsInForOf.2.ts",
+            "flagDifferenceMask": 32768,
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": []
+        }
+    ],
+    "recordFormat": "AST records with scalar/list fields; parse and JavaScript diagnostic buckets"
+}

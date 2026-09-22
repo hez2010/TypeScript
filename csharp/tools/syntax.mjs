@@ -7,6 +7,7 @@ import {
     writeFile,
 } from "node:fs/promises";
 import path from "node:path";
+import { gzipSync } from "node:zlib";
 import {
     json,
     output,
@@ -14,6 +15,10 @@ import {
     run,
     sha256,
 } from "./common.mjs";
+import {
+    classifySyntaxDifference,
+    independentParserVersion,
+} from "./compare-syntax.mjs";
 const option = (key, fallback) => process.argv.includes(key) ? process.argv[process.argv.indexOf(key) + 1] : fallback;
 const go = option("--go", "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe");
 const dotnet = option("--dotnet", "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe");
@@ -21,6 +26,7 @@ const reference = JSON.parse(await readFile(path.join(output, "reference.json"),
 const source = path.join(output, reference.sourceRelativePath, "tsc");
 await mkdir(path.join(source, "cmd/syntax-probe"), { recursive: true });
 await copyFile(path.join(root, "csharp/oracle/syntax/main.go"), path.join(source, "cmd/syntax-probe/main.go"));
+await copyFile(path.join(root, "csharp/oracle/syntax/scalars.generated.go"), path.join(source, "internal/ast/csharp_scalars.generated.go"));
 const oracle = path.join(output, "syntax-oracle.exe");
 // The existing test-directive package locates fixtures using runtime.Caller.
 // Its development oracle must retain source paths; shipped C# binaries do not depend on it.
@@ -36,7 +42,16 @@ async function probe(command, args, cases) {
     return await new Promise((resolve, reject) => {
         const child = spawn(command, args, { windowsHide: true });
         const stdout = [], stderr = [];
-        child.stdout.on("data", bytes => stdout.push(bytes));
+        let traced = "";
+        child.stdout.on("data", bytes => {
+            stdout.push(bytes);
+            if (process.argv.includes("--trace")) {
+                traced += bytes.toString();
+                const lines = traced.split(/\r?\n/);
+                traced = lines.pop();
+                for (const line of lines) if (line) console.error(command, JSON.parse(line).name);
+            }
+        });
         child.stderr.on("data", bytes => stderr.push(bytes));
         let inputError;
         child.on("error", reject);
@@ -109,10 +124,39 @@ const actual = await probe(candidate, args, cases);
 assert.equal(expected.length, cases.length);
 assert.equal(actual.length, cases.length);
 const failures = cases.filter((_, i) => expected[i].hash !== actual[i].hash);
+const parserSuite = process.argv.includes("--parse") && !process.argv.includes("--units");
+const details = await Promise.all(failures.slice(0, parserSuite ? failures.length : Number(option("--details-limit", 30))).map(async c => ({ ...c, text: c.text ?? (await readFile(c.path)).toString("base64"), details: true })));
+const wanted = details.length ? await probe(oracle, [], details) : [];
+const got = details.length ? await probe(candidate, args, details) : [];
+const differences = details.map((c, i) => ({ case: c, expected: wanted[i], actual: got[i], policy: parserSuite ? classifySyntaxDifference(c, wanted[i], got[i]) : null }));
+await json(path.join(output, "syntax-differences.json"), differences);
+const unresolved = parserSuite ? differences.filter(d => !d.policy) : failures;
+const ledger = await Promise.all(differences.map(async ({ case: c, expected: a, actual: b, policy }) => {
+    const expectedRecords = a.details[0], actualRecords = b.details[0];
+    const first = expectedRecords.findIndex((record, i) => JSON.stringify(record) !== JSON.stringify(actualRecords[i]));
+    return {
+        name: c.name,
+        fileName: c.fileName,
+        sourceSha256: sha256(c.path ? await readFile(c.path) : Buffer.from(c.text, "base64")),
+        policy,
+        expectedSha256: a.hash,
+        actualSha256: b.hash,
+        expectedRecords: expectedRecords.length,
+        actualRecords: actualRecords.length,
+        firstDifferentRecord: first,
+        expectedRecord: expectedRecords[first],
+        actualRecord: actualRecords[first],
+        expectedDiagnostics: a.details[1],
+        actualDiagnostics: b.details[1],
+        expectedJavaScriptDiagnostics: a.details[2],
+        actualJavaScriptDiagnostics: b.details[2],
+    };
+}));
 const inputHashes = [];
 for (const c of cases) inputHashes.push({ ...c, path: c.path && path.relative(root, c.path).replaceAll("\\", "/"), sourceSha256: sha256(c.path ? await readFile(c.path) : Buffer.from(c.text, "base64")) });
 const summary = {
     timestamp: new Date().toISOString(),
+    recordFormat: process.argv.includes("--units") ? "virtual files, options, symlinks and directory" : parserSuite ? "kind-range-flags-text-children-scalars-lists; parse and JavaScript diagnostic buckets" : "kind-fullstart-start-end-tokenflags-value; scanner diagnostics and empty JavaScript diagnostic bucket",
     suite: process.argv.includes("--units") ? "directives" : process.argv.includes("--parse") ? "parser" : "scanner",
     expanded: process.argv.includes("--expanded"),
     candidate: managed ? "CoreCLR development check" : "NativeAOT",
@@ -124,22 +168,36 @@ const summary = {
     inputSha256: sha256(JSON.stringify(inputHashes)),
     cases: cases.length,
     records: expected.reduce((sum, c) => sum + c.tokens, 0),
-    passed: cases.length - failures.length,
-    failed: failures.length,
-    failures: failures.map(c => c.name),
+    runtimeAsync: true,
+    comparison: parserSuite && !process.argv.includes("--strict") ? "semantic policies with strict audit" : "strict",
+    independentParserVersion: parserSuite ? independentParserVersion : null,
+    passed: cases.length - unresolved.length,
+    failed: unresolved.length,
+    strictPassed: cases.length - failures.length,
+    strictFailed: failures.length,
+    permittedDifferences: differences.filter(d => d.policy).length,
+    failures: unresolved.map(d => d.case?.name ?? d.name),
     oracleSha256: sha256(await readFile(oracle)),
 };
 await json(path.join(output, "syntax-summary.json"), summary);
-if (process.argv.includes("--record")) await json(path.join(root, "csharp/compatibility/evidence", option("--record") + ".json"), summary);
-if (failures.length) {
-    const details = failures.slice(0, 30).map(c => ({ ...c, details: true }));
-    const wanted = await probe(oracle, [], details), got = await probe(candidate, args, details);
-    await json(path.join(output, "syntax-differences.json"), details.map((c, i) => ({ case: c, expected: wanted[i], actual: got[i] })));
-    for (let i = 0; i < Math.min(10, details.length); i++) {
-        const a = wanted[i].details[0], b = got[i].details[0];
-        const mismatch = a.findIndex((t, j) => JSON.stringify(t) !== JSON.stringify(b[j]));
-        console.log(JSON.stringify({ name: details[i].name, token: mismatch, expected: a[mismatch], actual: b[mismatch], expectedDiagnostics: wanted[i].details[1], actualDiagnostics: got[i].details[1] }).slice(0, 1500));
+await json(path.join(output, "syntax-difference-ledger.json"), { reference: reference.referenceRevision, independentParserVersion, cases: ledger });
+if (process.argv.includes("--record")) {
+    const name = option("--record");
+    await json(path.join(root, "csharp/compatibility/evidence", name + ".json"), summary);
+    if (parserSuite) {
+        const outputsFile = name + "-differences.outputs.json.gz";
+        const archive = gzipSync(JSON.stringify({ reference: reference.referenceRevision, differences }));
+        await writeFile(path.join(root, "csharp/compatibility/evidence", outputsFile), archive);
+        await json(path.join(root, "csharp/compatibility/evidence", name + "-differences.json"), { reference: reference.referenceRevision, independentParserVersion, outputsFile, outputsSha256: sha256(archive), cases: ledger });
     }
-    throw new Error(`${failures.length}/${cases.length} syntax comparisons failed (built/csharp/syntax-differences.json)`);
 }
-console.log(`Passed ${cases.length} ${process.argv.includes("--units") ? "directive" : process.argv.includes("--parse") ? "parser" : "scanner"} cases and ${expected.reduce((sum, c) => sum + c.tokens, 0)} records (${managed ? "CoreCLR" : "NativeAOT"})`);
+if (unresolved.length || process.argv.includes("--strict") && failures.length) {
+    const report = differences.filter(d => !d.policy || process.argv.includes("--strict")).slice(0, 10);
+    for (const d of report) {
+        const a = d.expected.details[0], b = d.actual.details[0];
+        const mismatch = a.findIndex((t, j) => JSON.stringify(t) !== JSON.stringify(b[j]));
+        console.log(JSON.stringify({ name: d.case.name, token: mismatch, expected: a[mismatch], actual: b[mismatch], expectedDiagnostics: d.expected.details[1], actualDiagnostics: d.actual.details[1] }).slice(0, 1500));
+    }
+    throw new Error(`${unresolved.length}/${cases.length} unresolved syntax comparisons; ${failures.length} strict differences (built/csharp/syntax-differences.json)`);
+}
+console.log(`Passed ${cases.length} ${process.argv.includes("--units") ? "directive" : process.argv.includes("--parse") ? "parser" : "scanner"} cases and ${expected.reduce((sum, c) => sum + c.tokens, 0)} records (${managed ? "CoreCLR" : "NativeAOT"}); ${failures.length} documented strict differences`);

@@ -1,0 +1,32 @@
+{
+    "timestamp": "2026-09-22T04:17:40.406Z",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "sourceFiles": 839,
+    "libraryFiles": 108,
+    "expandedUnits": 1228,
+    "hosts": 12365,
+    "documentationTrees": 12599,
+    "documentationNodes": 50944,
+    "exact": 332,
+    "permittedDifferences": 896,
+    "failures": 0,
+    "policyNegativeControls": 20,
+    "runtimeKind": "NativeAOT",
+    "runtime": ".NET 11.0.0-rc.2.26470.103",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "configuration": {
+        "optimizationPreference": "Speed",
+        "runtimeAsync": true,
+        "ilcInstructionSet": "native"
+    },
+    "inputSha256": "ada14063d3e4d255905e7b281d4e90ed9437abdbfbf05bccc6f5d764c79f1b09",
+    "candidateSha256": "0ef943682d6f4b9fd124cd0b765b401cb794d8f0cd8c69418760ec12b1c8ec9a",
+    "oracleSha256": "12d981b8e7bbbf85cdfe2bed3cdf1374ac782c16510874aa12d9f48e65e718f0",
+    "invariants": [
+        "acyclic documentation trees",
+        "unique node identity per comment tree",
+        "correct child-parent identity",
+        "source-bounded UTF-8 spans"
+    ],
+    "candidatePath": "built/csharp/metadata-native/TypeScript.SourceMetadata.exe"
+}

@@ -1,0 +1,24 @@
+{
+    "timestamp": "2026-09-22T04:14:18.203Z",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "runtimeKind": "NativeAOT",
+    "runtime": ".NET 11.0.0-rc.2.26470.103",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "typescriptPragmaReference": "6.0.3",
+    "configuration": {
+        "optimizationPreference": "Speed",
+        "runtimeAsync": true,
+        "ilcInstructionSet": "native"
+    },
+    "seed": "0x497a31f2",
+    "cases": 6778,
+    "failures": 0,
+    "extensionAssertions": 6,
+    "cloneAssertions": 19,
+    "semanticAssertions": 42,
+    "semanticDifferences": 48,
+    "inputSha256": "fdf15bb6a21a0b0874d93fbaf69a65b7591f4af8a19b17e54f4f51e3ccab4c5a",
+    "oracleSha256": "f3dd5a6db7d91c03c5569e55120369e78bfac83f4c2b020fff006a103e8802e6",
+    "candidateSha256": "0ef943682d6f4b9fd124cd0b765b401cb794d8f0cd8c69418760ec12b1c8ec9a",
+    "candidatePath": "built/csharp/metadata-native/TypeScript.SourceMetadata.exe"
+}

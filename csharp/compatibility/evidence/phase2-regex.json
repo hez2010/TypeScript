@@ -1,0 +1,25 @@
+{
+    "timestamp": "2026-09-22T03:04:11.392Z",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "runtimeKind": "NativeAOT",
+    "runtime": ".NET 11.0.0-rc.2.26470.103",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "node": "v24.21.0",
+    "configuration": {
+        "optimizationPreference": "Speed",
+        "ilcInstructionSet": "native",
+        "runtimeAsync": true
+    },
+    "seed": "0x63e27a19",
+    "cases": 103248,
+    "exact": 103211,
+    "permittedDifferences": 37,
+    "failures": 0,
+    "nodePermittedDifferences": 2,
+    "nodeFailures": 0,
+    "inputSha256": "9e3d519ab8be5f008064f362ec39fc357f03c5458204dad0d7f5870cd4b27b78",
+    "oracleSha256": "9de25bbbedc03210be604e55e9f34d18716e9973a9255a4523c81b4c661e3d86",
+    "candidateSha256": "57101dfc27fd8096cf1c55b5c097dec40c12d082e31026253fe75cafd3bf8b4a",
+    "deepInputAssertions": 11,
+    "candidatePath": "built/csharp/regex-native/TypeScript.RegularExpression.exe"
+}

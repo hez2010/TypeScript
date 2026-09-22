@@ -1,0 +1,3458 @@
+{
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "cases": [
+        {
+            "id": "parser-jsdoc-001",
+            "name": "tsc/testdata/tests/cases/compiler/jsDeclarationEmitDoesNotRenameImport.ts::2",
+            "sourceSha256": "0c06a1a5228859ce5c74156c6ccbca98a5a70510664f08a815a1597f7df5db86",
+            "expectedSha256": "7f209623f982eef7f17eb13af97b082ae686d19fbdeceb153c102465802e236c",
+            "actualSha256": "bc381fb563d6a0a3568dadfaf7763077cdbd3a91fea7b6c1daa593de4f5f46cd",
+            "policy": "equivalent-jsdoc-source-metadata",
+            "rationale": "Identical node kinds, literal values, scalar fields and child topology, with equal NodeList counts and trailing-comma results. Differences are documentation-tag/trivia range choices and reparse-context flags; synthetic this identifiers receive a real tag span instead of the Go -1 sentinel. Source text and all type information remain available.",
+            "independentEvidence": {
+                "identicalTopologyAndScalars": true,
+                "identicalListCountsAndTrailingCommas": true
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter jsDeclarationEmitDoesNotRenameImport.ts",
+            "expectedJSDocDiagnostics": [],
+            "actualJSDocDiagnostics": [],
+            "changedNodes": [
+                {
+                    "index": 5,
+                    "expected": [
+                        345,
+                        42,
+                        124,
+                        2162696,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Modifiers": null,
+                            "TypeParameters": null
+                        }
+                    ],
+                    "actual": [
+                        345,
+                        42,
+                        126,
+                        2162696,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Modifiers": null,
+                            "TypeParameters": null
+                        }
+                    ]
+                },
+                {
+                    "index": 7,
+                    "expected": [
+                        188,
+                        71,
+                        124,
+                        65544,
+                        "",
+                        1,
+                        {},
+                        {
+                            "Members": [
+                                1,
+                                71,
+                                124,
+                                false
+                            ]
+                        }
+                    ],
+                    "actual": [
+                        188,
+                        71,
+                        126,
+                        65544,
+                        "",
+                        1,
+                        {},
+                        {
+                            "Members": [
+                                1,
+                                71,
+                                126,
+                                false
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "index": 8,
+                    "expected": [
+                        172,
+                        71,
+                        124,
+                        65544,
+                        "",
+                        3,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ],
+                    "actual": [
+                        172,
+                        71,
+                        126,
+                        65544,
+                        "",
+                        3,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ]
+                },
+                {
+                    "index": 10,
+                    "expected": [
+                        57,
+                        71,
+                        124,
+                        65544,
+                        "",
+                        0,
+                        {},
+                        {}
+                    ],
+                    "actual": [
+                        57,
+                        71,
+                        126,
+                        65544,
+                        "",
+                        0,
+                        {},
+                        {}
+                    ]
+                }
+            ],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-002",
+            "name": "tsc/testdata/tests/cases/compiler/jsDocTypedefTagNamespace.ts::1",
+            "sourceSha256": "931c2bb386dfe748c4f8055a39ec4d8a9b350c6e9cadb44afd3bfa4426089e39",
+            "expectedSha256": "73fb8fb34ba5478cc956d69a00fb0395d473242a03f028208c73d19411a36258",
+            "actualSha256": "e27f19dca9ffd4d638e40aae3fad20bf05bd36f726221298e19be56a453bf097",
+            "policy": "equivalent-jsdoc-source-metadata",
+            "rationale": "Identical node kinds, literal values, scalar fields and child topology, with equal NodeList counts and trailing-comma results. Differences are documentation-tag/trivia range choices and reparse-context flags; synthetic this identifiers receive a real tag span instead of the Go -1 sentinel. Source text and all type information remain available.",
+            "independentEvidence": {
+                "identicalTopologyAndScalars": true,
+                "identicalListCountsAndTrailingCommas": true
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter jsDocTypedefTagNamespace.ts",
+            "expectedJSDocDiagnostics": [],
+            "actualJSDocDiagnostics": [],
+            "changedNodes": [
+                {
+                    "index": 4,
+                    "expected": [
+                        268,
+                        31,
+                        39,
+                        65544,
+                        "",
+                        3,
+                        {
+                            "Keyword": 145
+                        },
+                        {
+                            "Modifiers": [
+                                1,
+                                31,
+                                39,
+                                false
+                            ]
+                        }
+                    ],
+                    "actual": [
+                        268,
+                        31,
+                        39,
+                        65544,
+                        "",
+                        3,
+                        {
+                            "Keyword": 145
+                        },
+                        {
+                            "Modifiers": [
+                                1,
+                                29,
+                                39,
+                                false
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "index": 5,
+                    "expected": [
+                        94,
+                        31,
+                        39,
+                        65544,
+                        "",
+                        0,
+                        {},
+                        {}
+                    ],
+                    "actual": [
+                        94,
+                        29,
+                        39,
+                        65544,
+                        "",
+                        0,
+                        {},
+                        {}
+                    ]
+                }
+            ],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-003",
+            "name": "tsc/testdata/tests/cases/compiler/jsdocFunctionTypeFalsePositive.ts::0",
+            "sourceSha256": "0dc60642242261bfdb67adca741e4dc2480dbd062ae72762662cea5ddd55fffb",
+            "expectedSha256": "3a2ea85eca9eee99f12d95f952f5eeed743ffc1e3e49495def23f0530ccef014",
+            "actualSha256": "15c8916a211716c33fd48006fefbe635be34bfff3ec899d3638bd3cc75a8a1ea",
+            "policy": "malformed-jsdoc-type-recovery",
+            "rationale": "The annotation {<} is malformed. Go reports1139 and C# reports1003 at the same offending span; both retain the JavaScript function and a recoverable erroneous annotation. C# keeps an additional missing type-parameter placeholder.",
+            "independentEvidence": {
+                "goJSDocDiagnostics": [
+                    [
+                        1139,
+                        13,
+                        1
+                    ]
+                ],
+                "csharpJSDocDiagnostics": [
+                    [
+                        1003,
+                        13,
+                        1
+                    ]
+                ]
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter jsdocFunctionTypeFalsePositive.ts",
+            "expectedJSDocDiagnostics": [
+                [
+                    1139,
+                    13,
+                    1
+                ]
+            ],
+            "actualJSDocDiagnostics": [
+                [
+                    1003,
+                    13,
+                    1
+                ]
+            ],
+            "changedNodes": [],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-004",
+            "name": "tsc/testdata/tests/cases/compiler/jsdocPropertyTagInvalid.ts::0",
+            "sourceSha256": "342d438eba3c1f0278a4d3b841d17602d236a9b58c59fcd7892ef2d893110fc4",
+            "expectedSha256": "6151e200acbdb0913842539fd41c4f21a5b5dd3aa2e31fc54ad21a840e902dbb",
+            "actualSha256": "9145a67858ab00836228edc528f2fc9fa9513c128c4d353e61c34e64936715c5",
+            "policy": "equivalent-jsdoc-source-metadata",
+            "rationale": "Identical node kinds, literal values, scalar fields and child topology, with equal NodeList counts and trailing-comma results. Differences are documentation-tag/trivia range choices and reparse-context flags; synthetic this identifiers receive a real tag span instead of the Go -1 sentinel. Source text and all type information remain available.",
+            "independentEvidence": {
+                "identicalTopologyAndScalars": true,
+                "identicalListCountsAndTrailingCommas": true
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter jsdocPropertyTagInvalid.ts",
+            "expectedJSDocDiagnostics": [],
+            "actualJSDocDiagnostics": [],
+            "changedNodes": [
+                {
+                    "index": 1,
+                    "expected": [
+                        345,
+                        7,
+                        47,
+                        2162696,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Modifiers": null,
+                            "TypeParameters": null
+                        }
+                    ],
+                    "actual": [
+                        345,
+                        7,
+                        49,
+                        2162696,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Modifiers": null,
+                            "TypeParameters": null
+                        }
+                    ]
+                },
+                {
+                    "index": 3,
+                    "expected": [
+                        188,
+                        26,
+                        47,
+                        65544,
+                        "",
+                        1,
+                        {},
+                        {
+                            "Members": [
+                                1,
+                                26,
+                                47,
+                                false
+                            ]
+                        }
+                    ],
+                    "actual": [
+                        188,
+                        26,
+                        49,
+                        65544,
+                        "",
+                        1,
+                        {},
+                        {
+                            "Members": [
+                                1,
+                                26,
+                                49,
+                                false
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "index": 4,
+                    "expected": [
+                        172,
+                        26,
+                        47,
+                        65544,
+                        "",
+                        3,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ],
+                    "actual": [
+                        172,
+                        26,
+                        49,
+                        65544,
+                        "",
+                        3,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ]
+                },
+                {
+                    "index": 6,
+                    "expected": [
+                        57,
+                        26,
+                        47,
+                        65544,
+                        "",
+                        0,
+                        {},
+                        {}
+                    ],
+                    "actual": [
+                        57,
+                        26,
+                        49,
+                        65544,
+                        "",
+                        0,
+                        {},
+                        {}
+                    ]
+                }
+            ],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-005",
+            "name": "tsc/testdata/tests/cases/compiler/strictOptionalProperties3.ts::0",
+            "sourceSha256": "a809dc9f57707009977c0d330632bb05202fd9ce561a45eab98fc484fe6668d8",
+            "expectedSha256": "316849821bd35cbdd9c2545ac931eccadd857c2d3c98a9f5036d59d30e8853a9",
+            "actualSha256": "224640cc4dab59b87eec8238b4f91bf12399bc44c9d9725c5a8513eff1db6460",
+            "policy": "equivalent-jsdoc-source-metadata",
+            "rationale": "Identical node kinds, literal values, scalar fields and child topology, with equal NodeList counts and trailing-comma results. Differences are documentation-tag/trivia range choices and reparse-context flags; synthetic this identifiers receive a real tag span instead of the Go -1 sentinel. Source text and all type information remain available.",
+            "independentEvidence": {
+                "identicalTopologyAndScalars": true,
+                "identicalListCountsAndTrailingCommas": true
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter strictOptionalProperties3.ts",
+            "expectedJSDocDiagnostics": [],
+            "actualJSDocDiagnostics": [],
+            "changedNodes": [
+                {
+                    "index": 1,
+                    "expected": [
+                        345,
+                        7,
+                        56,
+                        2162696,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Modifiers": null,
+                            "TypeParameters": null
+                        }
+                    ],
+                    "actual": [
+                        345,
+                        7,
+                        58,
+                        2162696,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Modifiers": null,
+                            "TypeParameters": null
+                        }
+                    ]
+                },
+                {
+                    "index": 3,
+                    "expected": [
+                        188,
+                        30,
+                        56,
+                        65544,
+                        "",
+                        1,
+                        {},
+                        {
+                            "Members": [
+                                1,
+                                30,
+                                56,
+                                false
+                            ]
+                        }
+                    ],
+                    "actual": [
+                        188,
+                        30,
+                        58,
+                        65544,
+                        "",
+                        1,
+                        {},
+                        {
+                            "Members": [
+                                1,
+                                30,
+                                58,
+                                false
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "index": 4,
+                    "expected": [
+                        172,
+                        30,
+                        56,
+                        65544,
+                        "",
+                        3,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ],
+                    "actual": [
+                        172,
+                        30,
+                        58,
+                        65544,
+                        "",
+                        3,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ]
+                },
+                {
+                    "index": 6,
+                    "expected": [
+                        57,
+                        30,
+                        56,
+                        65544,
+                        "",
+                        0,
+                        {},
+                        {}
+                    ],
+                    "actual": [
+                        57,
+                        30,
+                        58,
+                        65544,
+                        "",
+                        0,
+                        {},
+                        {}
+                    ]
+                }
+            ],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-006",
+            "name": "tsc/testdata/tests/cases/compiler/strictOptionalProperties4.ts::0",
+            "sourceSha256": "04d670e16c4e09393c17d1fccfc6f987c9684ffe2719ac94d615a494990c017f",
+            "expectedSha256": "9cf295a23f22131291a2ff4beacf53ef13aff3075b8f0c960ed212c51bbd35bd",
+            "actualSha256": "cf5a71bb1c7b188ff6a505d0bc89a0becbc11be55b7860b1db54db5b359ca4c8",
+            "policy": "equivalent-jsdoc-source-metadata",
+            "rationale": "Identical node kinds, literal values, scalar fields and child topology, with equal NodeList counts and trailing-comma results. Differences are documentation-tag/trivia range choices and reparse-context flags; synthetic this identifiers receive a real tag span instead of the Go -1 sentinel. Source text and all type information remain available.",
+            "independentEvidence": {
+                "identicalTopologyAndScalars": true,
+                "identicalListCountsAndTrailingCommas": true
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter strictOptionalProperties4.ts",
+            "expectedJSDocDiagnostics": [],
+            "actualJSDocDiagnostics": [],
+            "changedNodes": [
+                {
+                    "index": 1,
+                    "expected": [
+                        345,
+                        7,
+                        47,
+                        2162696,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Modifiers": null,
+                            "TypeParameters": null
+                        }
+                    ],
+                    "actual": [
+                        345,
+                        7,
+                        49,
+                        2162696,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Modifiers": null,
+                            "TypeParameters": null
+                        }
+                    ]
+                },
+                {
+                    "index": 3,
+                    "expected": [
+                        188,
+                        23,
+                        47,
+                        65544,
+                        "",
+                        1,
+                        {},
+                        {
+                            "Members": [
+                                1,
+                                23,
+                                47,
+                                false
+                            ]
+                        }
+                    ],
+                    "actual": [
+                        188,
+                        23,
+                        49,
+                        65544,
+                        "",
+                        1,
+                        {},
+                        {
+                            "Members": [
+                                1,
+                                23,
+                                49,
+                                false
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "index": 4,
+                    "expected": [
+                        172,
+                        23,
+                        47,
+                        65544,
+                        "",
+                        3,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ],
+                    "actual": [
+                        172,
+                        23,
+                        49,
+                        65544,
+                        "",
+                        3,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ]
+                },
+                {
+                    "index": 6,
+                    "expected": [
+                        57,
+                        23,
+                        47,
+                        65544,
+                        "",
+                        0,
+                        {},
+                        {}
+                    ],
+                    "actual": [
+                        57,
+                        23,
+                        49,
+                        65544,
+                        "",
+                        0,
+                        {},
+                        {}
+                    ]
+                }
+            ],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-007",
+            "name": "tsc/testdata/tests/cases/compiler/thisInFunctionCallJs.ts::0",
+            "sourceSha256": "52d5ddffff36bdc2a8f0808a5ba9c6d42f71989f1167996f915897f581bd8b2e",
+            "expectedSha256": "3fd3fdae65b5aa49dbdb4d900b1dbe07a7b447d11cf2624424d84abc7e6c5880",
+            "actualSha256": "f735b91fe8ca9889160d2c2c6b582857f3ea2681f550fe29a8929ab5a7099307",
+            "policy": "equivalent-jsdoc-source-metadata",
+            "rationale": "Identical node kinds, literal values, scalar fields and child topology, with equal NodeList counts and trailing-comma results. Differences are documentation-tag/trivia range choices and reparse-context flags; synthetic this identifiers receive a real tag span instead of the Go -1 sentinel. Source text and all type information remain available.",
+            "independentEvidence": {
+                "identicalTopologyAndScalars": true,
+                "identicalListCountsAndTrailingCommas": true
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter thisInFunctionCallJs.ts",
+            "expectedJSDocDiagnostics": [],
+            "actualJSDocDiagnostics": [],
+            "changedNodes": [
+                {
+                    "index": 79,
+                    "expected": [
+                        79,
+                        -1,
+                        -1,
+                        0,
+                        "dGhpcw==",
+                        0,
+                        {
+                            "Text": "dGhpcw=="
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        405,
+                        409,
+                        65544,
+                        "dGhpcw==",
+                        0,
+                        {
+                            "Text": "dGhpcw=="
+                        },
+                        {}
+                    ]
+                },
+                {
+                    "index": 111,
+                    "expected": [
+                        79,
+                        -1,
+                        -1,
+                        0,
+                        "dGhpcw==",
+                        0,
+                        {
+                            "Text": "dGhpcw=="
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        567,
+                        571,
+                        65544,
+                        "dGhpcw==",
+                        0,
+                        {
+                            "Text": "dGhpcw=="
+                        },
+                        {}
+                    ]
+                }
+            ],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-008",
+            "name": "tsc/testdata/tests/cases/conformance/es6/destructuring/destructuringParameterDeclaration9.ts::0",
+            "sourceSha256": "177f01b3e2fd9d7ece2f09fcb8b660e7132721f052700e56558e6c4fb4335f31",
+            "expectedSha256": "86708a02910d191884bd9cc206d4f82c8fa457f1b601efb4fe9b007c23a8c049",
+            "actualSha256": "b356a8d89f33cb21cc2c41effe02d64582f77eef58a2b9d59f799929595d2289",
+            "policy": "equivalent-jsdoc-source-metadata",
+            "rationale": "Identical node kinds, literal values, scalar fields and child topology, with equal NodeList counts and trailing-comma results. Differences are documentation-tag/trivia range choices and reparse-context flags; synthetic this identifiers receive a real tag span instead of the Go -1 sentinel. Source text and all type information remain available.",
+            "independentEvidence": {
+                "identicalTopologyAndScalars": true,
+                "identicalListCountsAndTrailingCommas": true
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter destructuringParameterDeclaration9.ts",
+            "expectedJSDocDiagnostics": [],
+            "actualJSDocDiagnostics": [],
+            "changedNodes": [
+                {
+                    "index": 13,
+                    "expected": [
+                        57,
+                        7,
+                        122,
+                        65544,
+                        "",
+                        0,
+                        {},
+                        {}
+                    ],
+                    "actual": [
+                        57,
+                        7,
+                        124,
+                        65544,
+                        "",
+                        0,
+                        {},
+                        {}
+                    ]
+                },
+                {
+                    "index": 14,
+                    "expected": [
+                        188,
+                        35,
+                        122,
+                        65544,
+                        "",
+                        1,
+                        {},
+                        {
+                            "Members": [
+                                1,
+                                35,
+                                122,
+                                false
+                            ]
+                        }
+                    ],
+                    "actual": [
+                        188,
+                        35,
+                        124,
+                        65544,
+                        "",
+                        1,
+                        {},
+                        {
+                            "Members": [
+                                1,
+                                35,
+                                124,
+                                false
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "index": 15,
+                    "expected": [
+                        172,
+                        35,
+                        122,
+                        65544,
+                        "",
+                        3,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ],
+                    "actual": [
+                        172,
+                        35,
+                        124,
+                        65544,
+                        "",
+                        3,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ]
+                },
+                {
+                    "index": 17,
+                    "expected": [
+                        57,
+                        35,
+                        122,
+                        65544,
+                        "",
+                        0,
+                        {},
+                        {}
+                    ],
+                    "actual": [
+                        57,
+                        35,
+                        124,
+                        65544,
+                        "",
+                        0,
+                        {},
+                        {}
+                    ]
+                },
+                {
+                    "index": 103,
+                    "expected": [
+                        57,
+                        710,
+                        754,
+                        65544,
+                        "",
+                        0,
+                        {},
+                        {}
+                    ],
+                    "actual": [
+                        57,
+                        710,
+                        756,
+                        65544,
+                        "",
+                        0,
+                        {},
+                        {}
+                    ]
+                },
+                {
+                    "index": 128,
+                    "expected": [
+                        57,
+                        827,
+                        854,
+                        65544,
+                        "",
+                        0,
+                        {},
+                        {}
+                    ],
+                    "actual": [
+                        57,
+                        827,
+                        856,
+                        65544,
+                        "",
+                        0,
+                        {},
+                        {}
+                    ]
+                }
+            ],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-009",
+            "name": "tsc/testdata/tests/cases/conformance/jsdoc/callbackTag4.ts::0",
+            "sourceSha256": "c1e56bfec95422f80af681fabd404ea9e8551c6e6a24549ad8e5a3923f029fca",
+            "expectedSha256": "2aadaf2b5373bd842611996301142c8ab4af1a05364972669976020389e941d0",
+            "actualSha256": "f2a4376ae38212266f34a7c132863ca8b72482991f4159fbf3fb8cd691c4213e",
+            "policy": "equivalent-jsdoc-source-metadata",
+            "rationale": "Identical node kinds, literal values, scalar fields and child topology, with equal NodeList counts and trailing-comma results. Differences are documentation-tag/trivia range choices and reparse-context flags; synthetic this identifiers receive a real tag span instead of the Go -1 sentinel. Source text and all type information remain available. The only HasJSDoc difference is the synthesized this parameter: Go copies the next comment-line decoration star as an empty description, while C# retains the original this tag on the signature.",
+            "independentEvidence": {
+                "identicalTopologyAndScalars": true,
+                "identicalListCountsAndTrailingCommas": true
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter callbackTag4.ts",
+            "expectedJSDocDiagnostics": [],
+            "actualJSDocDiagnostics": [],
+            "changedNodes": [
+                {
+                    "index": 4,
+                    "expected": [
+                        170,
+                        22,
+                        58,
+                        2162696,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ],
+                    "actual": [
+                        170,
+                        22,
+                        58,
+                        65544,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ]
+                }
+            ],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-010",
+            "name": "tsc/testdata/tests/cases/conformance/jsdoc/callbackTagNamespace.ts::0",
+            "sourceSha256": "bc3387e1959ce1259b8ba9fb25745cad4aee86a28887cf771aed3761ce59e804",
+            "expectedSha256": "1670da39aaf02c493d7ac9d76612687773f66608f8cdd87ce6c355e1fbcc58e8",
+            "actualSha256": "95a55cf1baa4ff026b4d65bc9141773723ae655353704575c90020744898eedb",
+            "policy": "equivalent-jsdoc-source-metadata",
+            "rationale": "Identical node kinds, literal values, scalar fields and child topology, with equal NodeList counts and trailing-comma results. Differences are documentation-tag/trivia range choices and reparse-context flags; synthetic this identifiers receive a real tag span instead of the Go -1 sentinel. Source text and all type information remain available.",
+            "independentEvidence": {
+                "identicalTopologyAndScalars": true,
+                "identicalListCountsAndTrailingCommas": true
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter callbackTagNamespace.ts",
+            "expectedJSDocDiagnostics": [],
+            "actualJSDocDiagnostics": [],
+            "changedNodes": [
+                {
+                    "index": 4,
+                    "expected": [
+                        268,
+                        20,
+                        32,
+                        65544,
+                        "",
+                        3,
+                        {
+                            "Keyword": 145
+                        },
+                        {
+                            "Modifiers": [
+                                1,
+                                20,
+                                32,
+                                false
+                            ]
+                        }
+                    ],
+                    "actual": [
+                        268,
+                        20,
+                        32,
+                        65544,
+                        "",
+                        3,
+                        {
+                            "Keyword": 145
+                        },
+                        {
+                            "Modifiers": [
+                                1,
+                                17,
+                                32,
+                                false
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "index": 5,
+                    "expected": [
+                        94,
+                        20,
+                        32,
+                        65544,
+                        "",
+                        0,
+                        {},
+                        {}
+                    ],
+                    "actual": [
+                        94,
+                        17,
+                        32,
+                        65544,
+                        "",
+                        0,
+                        {},
+                        {}
+                    ]
+                }
+            ],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-011",
+            "name": "tsc/testdata/tests/cases/conformance/jsdoc/constructorTagWithThisTag.ts::0",
+            "sourceSha256": "421b53ba2fed50f29275ec30dd6e95d6535aad305635a92b0c34f2d16747780b",
+            "expectedSha256": "33e06766436633f506d9d79d57093f6343e6380a6570b8cf2218b5226148ee99",
+            "actualSha256": "4539162e315cebb13b70027322154269e4ba6c14e372dc61ab3085ba789f5b63",
+            "policy": "equivalent-jsdoc-source-metadata",
+            "rationale": "Identical node kinds, literal values, scalar fields and child topology, with equal NodeList counts and trailing-comma results. Differences are documentation-tag/trivia range choices and reparse-context flags; synthetic this identifiers receive a real tag span instead of the Go -1 sentinel. Source text and all type information remain available.",
+            "independentEvidence": {
+                "identicalTopologyAndScalars": true,
+                "identicalListCountsAndTrailingCommas": true
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter constructorTagWithThisTag.ts",
+            "expectedJSDocDiagnostics": [],
+            "actualJSDocDiagnostics": [],
+            "changedNodes": [
+                {
+                    "index": 4,
+                    "expected": [
+                        79,
+                        -1,
+                        -1,
+                        0,
+                        "dGhpcw==",
+                        0,
+                        {
+                            "Text": "dGhpcw=="
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        18,
+                        22,
+                        65544,
+                        "dGhpcw==",
+                        0,
+                        {
+                            "Text": "dGhpcw=="
+                        },
+                        {}
+                    ]
+                }
+            ],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-012",
+            "name": "tsc/testdata/tests/cases/conformance/jsdoc/extendsTag5.ts::0",
+            "sourceSha256": "39b7e765b879354523b7948e3d7c3c6ae70e896e7fc299bea9cadfa76b78b53a",
+            "expectedSha256": "79a4f07a446ba618d9455cdda5e2e177f336bb0a2bbc567a0cb79429df407988",
+            "actualSha256": "b4f002bd925158b959a33a40331eb5b3721dd8bd57e60ff5b9deb72a991abd06",
+            "policy": "equivalent-jsdoc-source-metadata",
+            "rationale": "Identical node kinds, literal values, scalar fields and child topology, with equal NodeList counts and trailing-comma results. Differences are documentation-tag/trivia range choices and reparse-context flags; synthetic this identifiers receive a real tag span instead of the Go -1 sentinel. Source text and all type information remain available.",
+            "independentEvidence": {
+                "identicalTopologyAndScalars": true,
+                "identicalListCountsAndTrailingCommas": true
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter extendsTag5.ts",
+            "expectedJSDocDiagnostics": [],
+            "actualJSDocDiagnostics": [],
+            "changedNodes": [
+                {
+                    "index": 5,
+                    "expected": [
+                        79,
+                        25,
+                        26,
+                        4259840,
+                        "YQ==",
+                        0,
+                        {
+                            "Text": "YQ=="
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        18,
+                        26,
+                        4259840,
+                        "YQ==",
+                        0,
+                        {
+                            "Text": "YQ=="
+                        },
+                        {}
+                    ]
+                },
+                {
+                    "index": 10,
+                    "expected": [
+                        79,
+                        51,
+                        52,
+                        4259840,
+                        "Yg==",
+                        0,
+                        {
+                            "Text": "Yg=="
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        44,
+                        52,
+                        4259840,
+                        "Yg==",
+                        0,
+                        {
+                            "Text": "Yg=="
+                        },
+                        {}
+                    ]
+                },
+                {
+                    "index": 36,
+                    "expected": [
+                        79,
+                        227,
+                        228,
+                        4259840,
+                        "YQ==",
+                        0,
+                        {
+                            "Text": "YQ=="
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        220,
+                        228,
+                        4259840,
+                        "YQ==",
+                        0,
+                        {
+                            "Text": "YQ=="
+                        },
+                        {}
+                    ]
+                },
+                {
+                    "index": 39,
+                    "expected": [
+                        79,
+                        244,
+                        245,
+                        4259840,
+                        "Yg==",
+                        0,
+                        {
+                            "Text": "Yg=="
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        237,
+                        245,
+                        4259840,
+                        "Yg==",
+                        0,
+                        {
+                            "Text": "Yg=="
+                        },
+                        {}
+                    ]
+                },
+                {
+                    "index": 49,
+                    "expected": [
+                        79,
+                        315,
+                        316,
+                        4259840,
+                        "YQ==",
+                        0,
+                        {
+                            "Text": "YQ=="
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        307,
+                        316,
+                        4259840,
+                        "YQ==",
+                        0,
+                        {
+                            "Text": "YQ=="
+                        },
+                        {}
+                    ]
+                },
+                {
+                    "index": 52,
+                    "expected": [
+                        79,
+                        333,
+                        334,
+                        4259840,
+                        "Yg==",
+                        0,
+                        {
+                            "Text": "Yg=="
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        325,
+                        334,
+                        4259840,
+                        "Yg==",
+                        0,
+                        {
+                            "Text": "Yg=="
+                        },
+                        {}
+                    ]
+                }
+            ],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-013",
+            "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag18.ts::1",
+            "sourceSha256": "ef9c568e00d8105e0e5dbe32765788f38c17b4f6c525a7636ef841b6f4dce237",
+            "expectedSha256": "d0b461bd2d70ce678cda8a43dab5bceefeec1b7a8908052067f5a12d477df4cb",
+            "actualSha256": "d933b42dc58cbf656c417f079bcb109dbd71b5194e05ae297b5804291068e653",
+            "policy": "equivalent-jsdoc-source-metadata",
+            "rationale": "Identical node kinds, literal values, scalar fields and child topology, with equal NodeList counts and trailing-comma results. Differences are documentation-tag/trivia range choices and reparse-context flags; synthetic this identifiers receive a real tag span instead of the Go -1 sentinel. Source text and all type information remain available.",
+            "independentEvidence": {
+                "identicalTopologyAndScalars": true,
+                "identicalListCountsAndTrailingCommas": true
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter importTag18.ts",
+            "expectedJSDocDiagnostics": [],
+            "actualJSDocDiagnostics": [],
+            "changedNodes": [
+                {
+                    "index": 1,
+                    "expected": [
+                        346,
+                        7,
+                        42,
+                        65544,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ],
+                    "actual": [
+                        346,
+                        7,
+                        44,
+                        65544,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ]
+                },
+                {
+                    "index": 2,
+                    "expected": [
+                        274,
+                        15,
+                        31,
+                        4259848,
+                        "",
+                        1,
+                        {
+                            "PhaseModifier": 156
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        274,
+                        14,
+                        31,
+                        4259848,
+                        "",
+                        1,
+                        {
+                            "PhaseModifier": 156
+                        },
+                        {}
+                    ]
+                },
+                {
+                    "index": 3,
+                    "expected": [
+                        276,
+                        15,
+                        31,
+                        4259840,
+                        "",
+                        1,
+                        {},
+                        {
+                            "Elements": [
+                                1,
+                                16,
+                                26,
+                                false
+                            ]
+                        }
+                    ],
+                    "actual": [
+                        276,
+                        14,
+                        31,
+                        4259840,
+                        "",
+                        1,
+                        {},
+                        {
+                            "Elements": [
+                                1,
+                                16,
+                                26,
+                                false
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "index": 5,
+                    "expected": [
+                        79,
+                        23,
+                        26,
+                        4259840,
+                        "Rm9v",
+                        0,
+                        {
+                            "Text": "Rm9v"
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        16,
+                        26,
+                        4259840,
+                        "Rm9v",
+                        0,
+                        {
+                            "Text": "Rm9v"
+                        },
+                        {}
+                    ]
+                }
+            ],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-014",
+            "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag20.ts::1",
+            "sourceSha256": "0aadab64cf7cb5db8640b196c0e63f2cb9c41eb7c9b0ea30170f2c85651c407e",
+            "expectedSha256": "cf336671a662866633c09597156b84e540e3c48083f43af73472f2c3c2c7c2e8",
+            "actualSha256": "a876083ef471c94c272ad725adc181c8a062d95616de4f1c445978f30c913982",
+            "policy": "equivalent-jsdoc-source-metadata",
+            "rationale": "Identical node kinds, literal values, scalar fields and child topology, with equal NodeList counts and trailing-comma results. Differences are documentation-tag/trivia range choices and reparse-context flags; synthetic this identifiers receive a real tag span instead of the Go -1 sentinel. Source text and all type information remain available.",
+            "independentEvidence": {
+                "identicalTopologyAndScalars": true,
+                "identicalListCountsAndTrailingCommas": true
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter importTag20.ts",
+            "expectedJSDocDiagnostics": [],
+            "actualJSDocDiagnostics": [],
+            "changedNodes": [
+                {
+                    "index": 1,
+                    "expected": [
+                        346,
+                        7,
+                        39,
+                        65544,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ],
+                    "actual": [
+                        346,
+                        7,
+                        41,
+                        65544,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ]
+                },
+                {
+                    "index": 2,
+                    "expected": [
+                        274,
+                        18,
+                        28,
+                        4259848,
+                        "",
+                        1,
+                        {
+                            "PhaseModifier": 156
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        274,
+                        14,
+                        28,
+                        4259848,
+                        "",
+                        1,
+                        {
+                            "PhaseModifier": 156
+                        },
+                        {}
+                    ]
+                },
+                {
+                    "index": 3,
+                    "expected": [
+                        276,
+                        18,
+                        28,
+                        4259840,
+                        "",
+                        1,
+                        {},
+                        {
+                            "Elements": [
+                                1,
+                                19,
+                                23,
+                                false
+                            ]
+                        }
+                    ],
+                    "actual": [
+                        276,
+                        14,
+                        28,
+                        4259840,
+                        "",
+                        1,
+                        {},
+                        {
+                            "Elements": [
+                                1,
+                                19,
+                                23,
+                                false
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-015",
+            "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag6.ts::1",
+            "sourceSha256": "05966400630e046aec75e3c6e9805c4597bfee0298d91a08ec26c0f6df90bef0",
+            "expectedSha256": "89df306e15ce8f5381ddcd51735a43154b4c2af2ee8ba7f8cec7e0cd705f1fe9",
+            "actualSha256": "11ce6ddc47174201c42c05f69cd22d5faf1b516a99bed76f9ee629efb900bbfb",
+            "policy": "equivalent-jsdoc-source-metadata",
+            "rationale": "Identical node kinds, literal values, scalar fields and child topology, with equal NodeList counts and trailing-comma results. Differences are documentation-tag/trivia range choices and reparse-context flags; synthetic this identifiers receive a real tag span instead of the Go -1 sentinel. Source text and all type information remain available.",
+            "independentEvidence": {
+                "identicalTopologyAndScalars": true,
+                "identicalListCountsAndTrailingCommas": true
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter importTag6.ts",
+            "expectedJSDocDiagnostics": [],
+            "actualJSDocDiagnostics": [],
+            "changedNodes": [
+                {
+                    "index": 1,
+                    "expected": [
+                        346,
+                        7,
+                        56,
+                        65544,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ],
+                    "actual": [
+                        346,
+                        7,
+                        58,
+                        65544,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ]
+                },
+                {
+                    "index": 2,
+                    "expected": [
+                        274,
+                        15,
+                        41,
+                        4259848,
+                        "",
+                        1,
+                        {
+                            "PhaseModifier": 156
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        274,
+                        14,
+                        41,
+                        4259848,
+                        "",
+                        1,
+                        {
+                            "PhaseModifier": 156
+                        },
+                        {}
+                    ]
+                },
+                {
+                    "index": 3,
+                    "expected": [
+                        276,
+                        15,
+                        41,
+                        4259840,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Elements": [
+                                2,
+                                16,
+                                36,
+                                true
+                            ]
+                        }
+                    ],
+                    "actual": [
+                        276,
+                        14,
+                        41,
+                        4259840,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Elements": [
+                                2,
+                                16,
+                                36,
+                                true
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "index": 5,
+                    "expected": [
+                        79,
+                        24,
+                        25,
+                        4259840,
+                        "QQ==",
+                        0,
+                        {
+                            "Text": "QQ=="
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        16,
+                        25,
+                        4259840,
+                        "QQ==",
+                        0,
+                        {
+                            "Text": "QQ=="
+                        },
+                        {}
+                    ]
+                },
+                {
+                    "index": 7,
+                    "expected": [
+                        79,
+                        34,
+                        35,
+                        4259840,
+                        "Qg==",
+                        0,
+                        {
+                            "Text": "Qg=="
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        26,
+                        35,
+                        4259840,
+                        "Qg==",
+                        0,
+                        {
+                            "Text": "Qg=="
+                        },
+                        {}
+                    ]
+                }
+            ],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-016",
+            "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag7.ts::1",
+            "sourceSha256": "7f6f6565c03e4222a8523497f96e510b5e12145fb1351f2394cafb5d537b0464",
+            "expectedSha256": "637fb4641ea2ef9675d9db8ab854e75df7c145000d28162180acadb42742bdc2",
+            "actualSha256": "b9bb70006abac10cebd7cf8ef3d230f877362d35b7271fc4b31a85ae63250013",
+            "policy": "equivalent-jsdoc-source-metadata",
+            "rationale": "Identical node kinds, literal values, scalar fields and child topology, with equal NodeList counts and trailing-comma results. Differences are documentation-tag/trivia range choices and reparse-context flags; synthetic this identifiers receive a real tag span instead of the Go -1 sentinel. Source text and all type information remain available.",
+            "independentEvidence": {
+                "identicalTopologyAndScalars": true,
+                "identicalListCountsAndTrailingCommas": true
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter importTag7.ts",
+            "expectedJSDocDiagnostics": [],
+            "actualJSDocDiagnostics": [],
+            "changedNodes": [
+                {
+                    "index": 1,
+                    "expected": [
+                        346,
+                        7,
+                        44,
+                        65544,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ],
+                    "actual": [
+                        346,
+                        7,
+                        46,
+                        65544,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ]
+                },
+                {
+                    "index": 2,
+                    "expected": [
+                        274,
+                        15,
+                        29,
+                        4259848,
+                        "",
+                        1,
+                        {
+                            "PhaseModifier": 156
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        274,
+                        14,
+                        29,
+                        4259848,
+                        "",
+                        1,
+                        {
+                            "PhaseModifier": 156
+                        },
+                        {}
+                    ]
+                },
+                {
+                    "index": 3,
+                    "expected": [
+                        276,
+                        15,
+                        29,
+                        4259840,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Elements": [
+                                2,
+                                16,
+                                27,
+                                false
+                            ]
+                        }
+                    ],
+                    "actual": [
+                        276,
+                        14,
+                        29,
+                        4259840,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Elements": [
+                                2,
+                                16,
+                                27,
+                                false
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "index": 5,
+                    "expected": [
+                        79,
+                        20,
+                        21,
+                        4259840,
+                        "QQ==",
+                        0,
+                        {
+                            "Text": "QQ=="
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        16,
+                        21,
+                        4259840,
+                        "QQ==",
+                        0,
+                        {
+                            "Text": "QQ=="
+                        },
+                        {}
+                    ]
+                },
+                {
+                    "index": 7,
+                    "expected": [
+                        79,
+                        26,
+                        27,
+                        4259840,
+                        "Qg==",
+                        0,
+                        {
+                            "Text": "Qg=="
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        22,
+                        27,
+                        4259840,
+                        "Qg==",
+                        0,
+                        {
+                            "Text": "Qg=="
+                        },
+                        {}
+                    ]
+                }
+            ],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-017",
+            "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag8.ts::1",
+            "sourceSha256": "4dbf321762d19e1a1a7fce80b6000098ba165e3e061c38eab8d42c5f3cc4c6e7",
+            "expectedSha256": "79eea94d7b59f847e12afe1b2be0b5b7f16013c87ff3399556e91981cd160f5d",
+            "actualSha256": "238b6f1ba26ed824f45b3af917aef225bdfef8538b33eb5edc8097a4d54e887e",
+            "policy": "equivalent-jsdoc-source-metadata",
+            "rationale": "Identical node kinds, literal values, scalar fields and child topology, with equal NodeList counts and trailing-comma results. Differences are documentation-tag/trivia range choices and reparse-context flags; synthetic this identifiers receive a real tag span instead of the Go -1 sentinel. Source text and all type information remain available.",
+            "independentEvidence": {
+                "identicalTopologyAndScalars": true,
+                "identicalListCountsAndTrailingCommas": true
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter importTag8.ts",
+            "expectedJSDocDiagnostics": [],
+            "actualJSDocDiagnostics": [],
+            "changedNodes": [
+                {
+                    "index": 1,
+                    "expected": [
+                        346,
+                        7,
+                        44,
+                        65544,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ],
+                    "actual": [
+                        346,
+                        7,
+                        46,
+                        65544,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ]
+                },
+                {
+                    "index": 2,
+                    "expected": [
+                        274,
+                        18,
+                        26,
+                        4259848,
+                        "",
+                        1,
+                        {
+                            "PhaseModifier": 156
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        274,
+                        14,
+                        26,
+                        4259848,
+                        "",
+                        1,
+                        {
+                            "PhaseModifier": 156
+                        },
+                        {}
+                    ]
+                },
+                {
+                    "index": 3,
+                    "expected": [
+                        276,
+                        18,
+                        26,
+                        4259840,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Elements": [
+                                2,
+                                19,
+                                24,
+                                false
+                            ]
+                        }
+                    ],
+                    "actual": [
+                        276,
+                        14,
+                        26,
+                        4259840,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Elements": [
+                                2,
+                                19,
+                                24,
+                                false
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-018",
+            "name": "tsc/testdata/tests/cases/conformance/jsdoc/importTag9.ts::1",
+            "sourceSha256": "959f42e2e32fad931a39aec917e285a9a74f80e9d843417539fd2f62366a9a03",
+            "expectedSha256": "e4cb4180fbc1f9fa4c6559bb5fdd78b06e39aceede59fbc0a4a5abdf72a1edaa",
+            "actualSha256": "0fc3e0bae738a3abf92875fe10c3d88eaacc552d09f7809bdbb1e00186eb753e",
+            "policy": "equivalent-jsdoc-source-metadata",
+            "rationale": "Identical node kinds, literal values, scalar fields and child topology, with equal NodeList counts and trailing-comma results. Differences are documentation-tag/trivia range choices and reparse-context flags; synthetic this identifiers receive a real tag span instead of the Go -1 sentinel. Source text and all type information remain available.",
+            "independentEvidence": {
+                "identicalTopologyAndScalars": true,
+                "identicalListCountsAndTrailingCommas": true
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter importTag9.ts",
+            "expectedJSDocDiagnostics": [],
+            "actualJSDocDiagnostics": [],
+            "changedNodes": [
+                {
+                    "index": 1,
+                    "expected": [
+                        346,
+                        7,
+                        46,
+                        65544,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ],
+                    "actual": [
+                        346,
+                        7,
+                        48,
+                        65544,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ]
+                },
+                {
+                    "index": 2,
+                    "expected": [
+                        274,
+                        18,
+                        28,
+                        4259848,
+                        "",
+                        1,
+                        {
+                            "PhaseModifier": 156
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        274,
+                        14,
+                        28,
+                        4259848,
+                        "",
+                        1,
+                        {
+                            "PhaseModifier": 156
+                        },
+                        {}
+                    ]
+                },
+                {
+                    "index": 3,
+                    "expected": [
+                        275,
+                        18,
+                        28,
+                        4259840,
+                        "",
+                        1,
+                        {},
+                        {}
+                    ],
+                    "actual": [
+                        275,
+                        14,
+                        28,
+                        4259840,
+                        "",
+                        1,
+                        {},
+                        {}
+                    ]
+                }
+            ],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-019",
+            "name": "tsc/testdata/tests/cases/conformance/jsdoc/inferThis.ts::0",
+            "sourceSha256": "50bcec8832ef15f7d68e7413891d22c5f7394ce3571f054a1dabfc7b7bd43511",
+            "expectedSha256": "7789a8d388d5f83f49d65d9d5b86237d7b5146b8a003ac09fd5c9681ff3f53f7",
+            "actualSha256": "4cd5d70b958ecc53cedf284b9e9923d7d8e7c3490952203eba4add511a9c019e",
+            "policy": "equivalent-jsdoc-source-metadata",
+            "rationale": "Identical node kinds, literal values, scalar fields and child topology, with equal NodeList counts and trailing-comma results. Differences are documentation-tag/trivia range choices and reparse-context flags; synthetic this identifiers receive a real tag span instead of the Go -1 sentinel. Source text and all type information remain available.",
+            "independentEvidence": {
+                "identicalTopologyAndScalars": true,
+                "identicalListCountsAndTrailingCommas": true
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter inferThis.ts",
+            "expectedJSDocDiagnostics": [],
+            "actualJSDocDiagnostics": [],
+            "changedNodes": [
+                {
+                    "index": 7,
+                    "expected": [
+                        169,
+                        42,
+                        43,
+                        4268040,
+                        "",
+                        1,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ],
+                    "actual": [
+                        169,
+                        42,
+                        43,
+                        4259848,
+                        "",
+                        1,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ]
+                },
+                {
+                    "index": 8,
+                    "expected": [
+                        79,
+                        42,
+                        43,
+                        4268032,
+                        "VA==",
+                        0,
+                        {
+                            "Text": "VA=="
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        42,
+                        43,
+                        4259840,
+                        "VA==",
+                        0,
+                        {
+                            "Text": "VA=="
+                        },
+                        {}
+                    ]
+                },
+                {
+                    "index": 10,
+                    "expected": [
+                        79,
+                        -1,
+                        -1,
+                        0,
+                        "dGhpcw==",
+                        0,
+                        {
+                            "Text": "dGhpcw=="
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        52,
+                        56,
+                        73736,
+                        "dGhpcw==",
+                        0,
+                        {
+                            "Text": "dGhpcw=="
+                        },
+                        {}
+                    ]
+                },
+                {
+                    "index": 20,
+                    "expected": [
+                        169,
+                        158,
+                        159,
+                        4268040,
+                        "",
+                        1,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ],
+                    "actual": [
+                        169,
+                        158,
+                        159,
+                        4259848,
+                        "",
+                        1,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ]
+                },
+                {
+                    "index": 21,
+                    "expected": [
+                        79,
+                        158,
+                        159,
+                        4268032,
+                        "VA==",
+                        0,
+                        {
+                            "Text": "VA=="
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        158,
+                        159,
+                        4259840,
+                        "VA==",
+                        0,
+                        {
+                            "Text": "VA=="
+                        },
+                        {}
+                    ]
+                },
+                {
+                    "index": 23,
+                    "expected": [
+                        79,
+                        -1,
+                        -1,
+                        0,
+                        "dGhpcw==",
+                        0,
+                        {
+                            "Text": "dGhpcw=="
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        168,
+                        172,
+                        73736,
+                        "dGhpcw==",
+                        0,
+                        {
+                            "Text": "dGhpcw=="
+                        },
+                        {}
+                    ]
+                }
+            ],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-020",
+            "name": "tsc/testdata/tests/cases/conformance/jsdoc/jsdocParamTagTypeLiteral.ts::0",
+            "sourceSha256": "c74a0c640de987985f32a472c8f007b7989fc59c0d798edebb5ef73cb59d3faa",
+            "expectedSha256": "a341a564c659655017e443abc9eaadb51af65f87d494cb2d5e85f6fa001e399a",
+            "actualSha256": "d1737daf214622d89d11e7cc8333c84a59fdb2a999aec1c9cceeae3d60d6472a",
+            "policy": "equivalent-jsdoc-source-metadata",
+            "rationale": "Identical node kinds, literal values, scalar fields and child topology, with equal NodeList counts and trailing-comma results. Differences are documentation-tag/trivia range choices and reparse-context flags; synthetic this identifiers receive a real tag span instead of the Go -1 sentinel. Source text and all type information remain available.",
+            "independentEvidence": {
+                "identicalTopologyAndScalars": true,
+                "identicalListCountsAndTrailingCommas": true
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter jsdocParamTagTypeLiteral.ts",
+            "expectedJSDocDiagnostics": [],
+            "actualJSDocDiagnostics": [],
+            "changedNodes": [
+                {
+                    "index": 100,
+                    "expected": [
+                        189,
+                        825,
+                        947,
+                        65544,
+                        "",
+                        1,
+                        {},
+                        {}
+                    ],
+                    "actual": [
+                        189,
+                        825,
+                        949,
+                        65544,
+                        "",
+                        1,
+                        {},
+                        {}
+                    ]
+                },
+                {
+                    "index": 101,
+                    "expected": [
+                        188,
+                        825,
+                        947,
+                        65544,
+                        "",
+                        4,
+                        {},
+                        {
+                            "Members": [
+                                4,
+                                825,
+                                947,
+                                false
+                            ]
+                        }
+                    ],
+                    "actual": [
+                        188,
+                        825,
+                        949,
+                        65544,
+                        "",
+                        4,
+                        {},
+                        {
+                            "Members": [
+                                4,
+                                825,
+                                949,
+                                false
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "index": 114,
+                    "expected": [
+                        172,
+                        915,
+                        947,
+                        65544,
+                        "",
+                        3,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ],
+                    "actual": [
+                        172,
+                        915,
+                        949,
+                        65544,
+                        "",
+                        3,
+                        {},
+                        {
+                            "Modifiers": null
+                        }
+                    ]
+                },
+                {
+                    "index": 116,
+                    "expected": [
+                        57,
+                        915,
+                        947,
+                        65544,
+                        "",
+                        0,
+                        {},
+                        {}
+                    ],
+                    "actual": [
+                        57,
+                        915,
+                        949,
+                        65544,
+                        "",
+                        0,
+                        {},
+                        {}
+                    ]
+                }
+            ],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-021",
+            "name": "tsc/testdata/tests/cases/conformance/jsdoc/jsdocTemplateTag6.ts::0",
+            "sourceSha256": "b44e714b25457d495740c5b61443c4e8175856ee625fff1da8c4fda9a2e12a82",
+            "expectedSha256": "cafa9d0226d5981520b993f98c5e8c7df8e607eb1e5f7fd014b45e58a5bbc4cf",
+            "actualSha256": "b8de6a44cf0481eeb141037832515646b0a770107b97a5ed909002add5b5fd4e",
+            "policy": "equivalent-jsdoc-source-metadata",
+            "rationale": "Identical node kinds, literal values, scalar fields and child topology, with equal NodeList counts and trailing-comma results. Differences are documentation-tag/trivia range choices and reparse-context flags; synthetic this identifiers receive a real tag span instead of the Go -1 sentinel. Source text and all type information remain available.",
+            "independentEvidence": {
+                "identicalTopologyAndScalars": true,
+                "identicalListCountsAndTrailingCommas": true
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter jsdocTemplateTag6.ts",
+            "expectedJSDocDiagnostics": [],
+            "actualJSDocDiagnostics": [],
+            "changedNodes": [
+                {
+                    "index": 5,
+                    "expected": [
+                        79,
+                        23,
+                        24,
+                        4259840,
+                        "VA==",
+                        0,
+                        {
+                            "Text": "VA=="
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        22,
+                        24,
+                        4259840,
+                        "VA==",
+                        0,
+                        {
+                            "Text": "VA=="
+                        },
+                        {}
+                    ]
+                },
+                {
+                    "index": 60,
+                    "expected": [
+                        79,
+                        236,
+                        237,
+                        4259840,
+                        "VA==",
+                        0,
+                        {
+                            "Text": "VA=="
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        235,
+                        237,
+                        4259840,
+                        "VA==",
+                        0,
+                        {
+                            "Text": "VA=="
+                        },
+                        {}
+                    ]
+                },
+                {
+                    "index": 118,
+                    "expected": [
+                        79,
+                        453,
+                        454,
+                        4259840,
+                        "VA==",
+                        0,
+                        {
+                            "Text": "VA=="
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        452,
+                        454,
+                        4259840,
+                        "VA==",
+                        0,
+                        {
+                            "Text": "VA=="
+                        },
+                        {}
+                    ]
+                },
+                {
+                    "index": 148,
+                    "expected": [
+                        79,
+                        600,
+                        601,
+                        4259840,
+                        "VA==",
+                        0,
+                        {
+                            "Text": "VA=="
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        599,
+                        601,
+                        4259840,
+                        "VA==",
+                        0,
+                        {
+                            "Text": "VA=="
+                        },
+                        {}
+                    ]
+                },
+                {
+                    "index": 201,
+                    "expected": [
+                        79,
+                        794,
+                        795,
+                        4259840,
+                        "VA==",
+                        0,
+                        {
+                            "Text": "VA=="
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        793,
+                        795,
+                        4259840,
+                        "VA==",
+                        0,
+                        {
+                            "Text": "VA=="
+                        },
+                        {}
+                    ]
+                },
+                {
+                    "index": 266,
+                    "expected": [
+                        79,
+                        1017,
+                        1018,
+                        4259840,
+                        "VA==",
+                        0,
+                        {
+                            "Text": "VA=="
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        1016,
+                        1018,
+                        4259840,
+                        "VA==",
+                        0,
+                        {
+                            "Text": "VA=="
+                        },
+                        {}
+                    ]
+                },
+                {
+                    "index": 277,
+                    "expected": [
+                        79,
+                        1123,
+                        1124,
+                        4259840,
+                        "VQ==",
+                        0,
+                        {
+                            "Text": "VQ=="
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        1122,
+                        1124,
+                        4259840,
+                        "VQ==",
+                        0,
+                        {
+                            "Text": "VQ=="
+                        },
+                        {}
+                    ]
+                },
+                {
+                    "index": 324,
+                    "expected": [
+                        86,
+                        1340,
+                        1345,
+                        4259840,
+                        "",
+                        0,
+                        {},
+                        {}
+                    ],
+                    "actual": [
+                        86,
+                        1340,
+                        1345,
+                        4259848,
+                        "",
+                        0,
+                        {},
+                        {}
+                    ]
+                },
+                {
+                    "index": 325,
+                    "expected": [
+                        79,
+                        1346,
+                        1347,
+                        4259848,
+                        "VA==",
+                        0,
+                        {
+                            "Text": "VA=="
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        1345,
+                        1347,
+                        4259848,
+                        "VA==",
+                        0,
+                        {
+                            "Text": "VA=="
+                        },
+                        {}
+                    ]
+                }
+            ],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-022",
+            "name": "tsc/testdata/tests/cases/conformance/jsdoc/templateInsideCallback.ts::0",
+            "sourceSha256": "a85b795534b42513a5620620d2fa15188f9626468d4b332dc5a9ba78f6bf84d6",
+            "expectedSha256": "273669b5badbb58d2b7ee141102c1ad46664b6c073034c340a3fd9c89327de84",
+            "actualSha256": "2f8f6910556cf23b5c6888c85891af2ff7de286f3950cc389a7b68b682d12c64",
+            "policy": "equivalent-jsdoc-source-metadata",
+            "rationale": "Identical node kinds, literal values, scalar fields and child topology, with equal NodeList counts and trailing-comma results. Differences are documentation-tag/trivia range choices and reparse-context flags; synthetic this identifiers receive a real tag span instead of the Go -1 sentinel. Source text and all type information remain available.",
+            "independentEvidence": {
+                "identicalTopologyAndScalars": true,
+                "identicalListCountsAndTrailingCommas": true
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter templateInsideCallback.ts",
+            "expectedJSDocDiagnostics": [
+                [
+                    8039,
+                    25,
+                    8
+                ],
+                [
+                    8039,
+                    104,
+                    8
+                ],
+                [
+                    8039,
+                    299,
+                    8
+                ],
+                [
+                    8039,
+                    370,
+                    8
+                ],
+                [
+                    8039,
+                    385,
+                    8
+                ],
+                [
+                    8039,
+                    496,
+                    8
+                ]
+            ],
+            "actualJSDocDiagnostics": [
+                [
+                    8039,
+                    25,
+                    8
+                ],
+                [
+                    8039,
+                    104,
+                    8
+                ],
+                [
+                    8039,
+                    299,
+                    8
+                ],
+                [
+                    8039,
+                    370,
+                    8
+                ],
+                [
+                    8039,
+                    385,
+                    8
+                ],
+                [
+                    8039,
+                    496,
+                    8
+                ]
+            ],
+            "changedNodes": [
+                {
+                    "index": 14,
+                    "expected": [
+                        185,
+                        103,
+                        148,
+                        65544,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Parameters": [
+                                1,
+                                103,
+                                134,
+                                false
+                            ],
+                            "TypeParameters": null
+                        }
+                    ],
+                    "actual": [
+                        185,
+                        118,
+                        148,
+                        65544,
+                        "",
+                        2,
+                        {},
+                        {
+                            "Parameters": [
+                                1,
+                                118,
+                                134,
+                                false
+                            ],
+                            "TypeParameters": null
+                        }
+                    ]
+                },
+                {
+                    "index": 48,
+                    "expected": [
+                        263,
+                        357,
+                        365,
+                        65544,
+                        "",
+                        4,
+                        {},
+                        {
+                            "Modifiers": null,
+                            "Parameters": [
+                                2,
+                                369,
+                                456,
+                                false
+                            ],
+                            "TypeParameters": null
+                        }
+                    ],
+                    "actual": [
+                        263,
+                        357,
+                        365,
+                        65544,
+                        "",
+                        4,
+                        {},
+                        {
+                            "Modifiers": null,
+                            "Parameters": [
+                                2,
+                                399,
+                                456,
+                                false
+                            ],
+                            "TypeParameters": null
+                        }
+                    ]
+                },
+                {
+                    "index": 68,
+                    "expected": [
+                        263,
+                        483,
+                        491,
+                        65544,
+                        "",
+                        3,
+                        {},
+                        {
+                            "Modifiers": null,
+                            "Parameters": [
+                                1,
+                                495,
+                                534,
+                                false
+                            ],
+                            "TypeParameters": null
+                        }
+                    ],
+                    "actual": [
+                        263,
+                        483,
+                        491,
+                        65544,
+                        "",
+                        3,
+                        {},
+                        {
+                            "Modifiers": null,
+                            "Parameters": [
+                                1,
+                                510,
+                                534,
+                                false
+                            ],
+                            "TypeParameters": null
+                        }
+                    ]
+                }
+            ],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-023",
+            "name": "tsc/testdata/tests/cases/conformance/jsdoc/thisPrototypeMethodCompoundAssignmentJs.ts::0",
+            "sourceSha256": "37954e8e9887d7cfcee82629c35240ffc6e06b5acad8083ba0f152754eeb212d",
+            "expectedSha256": "2b42c458174e57d317027658745b8e5472182602a50e69478db5379dbdef6b25",
+            "actualSha256": "0e8fa3f666f823f64a8af1ed890739bb0989f1aa7d65cb1407fc757783dd2638",
+            "policy": "equivalent-jsdoc-source-metadata",
+            "rationale": "Identical node kinds, literal values, scalar fields and child topology, with equal NodeList counts and trailing-comma results. Differences are documentation-tag/trivia range choices and reparse-context flags; synthetic this identifiers receive a real tag span instead of the Go -1 sentinel. Source text and all type information remain available.",
+            "independentEvidence": {
+                "identicalTopologyAndScalars": true,
+                "identicalListCountsAndTrailingCommas": true
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter thisPrototypeMethodCompoundAssignmentJs.ts",
+            "expectedJSDocDiagnostics": [],
+            "actualJSDocDiagnostics": [],
+            "changedNodes": [
+                {
+                    "index": 30,
+                    "expected": [
+                        79,
+                        -1,
+                        -1,
+                        0,
+                        "dGhpcw==",
+                        0,
+                        {
+                            "Text": "dGhpcw=="
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        93,
+                        97,
+                        65544,
+                        "dGhpcw==",
+                        0,
+                        {
+                            "Text": "dGhpcw=="
+                        },
+                        {}
+                    ]
+                }
+            ],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-024",
+            "name": "tsc/testdata/tests/cases/conformance/jsdoc/thisTag1.ts::0",
+            "sourceSha256": "504d5ffd516ab4d77cfb95837d43b889295acdba21e325ef376545217bd03dae",
+            "expectedSha256": "6fc6fe926e45fff745f24a0be2212d6efffa6cf746283b19e894fbbf918a75eb",
+            "actualSha256": "8e041977017cd3a473fe899f8240a8f5f5708234d5a6f513aa5407c88de6871a",
+            "policy": "equivalent-jsdoc-source-metadata",
+            "rationale": "Identical node kinds, literal values, scalar fields and child topology, with equal NodeList counts and trailing-comma results. Differences are documentation-tag/trivia range choices and reparse-context flags; synthetic this identifiers receive a real tag span instead of the Go -1 sentinel. Source text and all type information remain available.",
+            "independentEvidence": {
+                "identicalTopologyAndScalars": true,
+                "identicalListCountsAndTrailingCommas": true
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter thisTag1.ts",
+            "expectedJSDocDiagnostics": [],
+            "actualJSDocDiagnostics": [],
+            "changedNodes": [
+                {
+                    "index": 4,
+                    "expected": [
+                        79,
+                        -1,
+                        -1,
+                        0,
+                        "dGhpcw==",
+                        0,
+                        {
+                            "Text": "dGhpcw=="
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        5,
+                        9,
+                        65544,
+                        "dGhpcw==",
+                        0,
+                        {
+                            "Text": "dGhpcw=="
+                        },
+                        {}
+                    ]
+                }
+            ],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-025",
+            "name": "tsc/testdata/tests/cases/conformance/jsdoc/thisTag2.ts::0",
+            "sourceSha256": "655aa0432ae074bc20512eafa4ac061224ce1b04c05ab85c48124826f0dc4f24",
+            "expectedSha256": "55899e36781c1387cddf9321b500d879f35211f3e8ef2d6f23cf28c4eda85cba",
+            "actualSha256": "91af85a6a0bad630a0928fe5bd4a3ba739ad6cf2838516082a86b8f1804a56fb",
+            "policy": "equivalent-jsdoc-source-metadata",
+            "rationale": "Identical node kinds, literal values, scalar fields and child topology, with equal NodeList counts and trailing-comma results. Differences are documentation-tag/trivia range choices and reparse-context flags; synthetic this identifiers receive a real tag span instead of the Go -1 sentinel. Source text and all type information remain available.",
+            "independentEvidence": {
+                "identicalTopologyAndScalars": true,
+                "identicalListCountsAndTrailingCommas": true
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter thisTag2.ts",
+            "expectedJSDocDiagnostics": [
+                [
+                    1110,
+                    56,
+                    1
+                ]
+            ],
+            "actualJSDocDiagnostics": [
+                [
+                    1110,
+                    57,
+                    0
+                ]
+            ],
+            "changedNodes": [
+                {
+                    "index": 5,
+                    "expected": [
+                        79,
+                        -1,
+                        -1,
+                        0,
+                        "dGhpcw==",
+                        0,
+                        {
+                            "Text": "dGhpcw=="
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        5,
+                        9,
+                        65544,
+                        "dGhpcw==",
+                        0,
+                        {
+                            "Text": "dGhpcw=="
+                        },
+                        {}
+                    ]
+                },
+                {
+                    "index": 12,
+                    "expected": [
+                        79,
+                        -1,
+                        -1,
+                        0,
+                        "dGhpcw==",
+                        0,
+                        {
+                            "Text": "dGhpcw=="
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        52,
+                        56,
+                        65544,
+                        "dGhpcw==",
+                        0,
+                        {
+                            "Text": "dGhpcw=="
+                        },
+                        {}
+                    ]
+                }
+            ],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-026",
+            "name": "tsc/testdata/tests/cases/conformance/jsdoc/thisTag3.ts::0",
+            "sourceSha256": "4eddd4717d7ba180d33316bb29d5059677a790b24454836de1daf1b7d1bae63b",
+            "expectedSha256": "8f1fd7947820a28c78268d1f7df972b60282807e26f0adb77c9a180e26e48f01",
+            "actualSha256": "5d615752d63417dfbd11d5ba55ff1cbe1adfe59081b1c2646164ffb30f83b4fa",
+            "policy": "equivalent-jsdoc-source-metadata",
+            "rationale": "Identical node kinds, literal values, scalar fields and child topology, with equal NodeList counts and trailing-comma results. Differences are documentation-tag/trivia range choices and reparse-context flags; synthetic this identifiers receive a real tag span instead of the Go -1 sentinel. Source text and all type information remain available.",
+            "independentEvidence": {
+                "identicalTopologyAndScalars": true,
+                "identicalListCountsAndTrailingCommas": true
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter thisTag3.ts",
+            "expectedJSDocDiagnostics": [],
+            "actualJSDocDiagnostics": [],
+            "changedNodes": [
+                {
+                    "index": 16,
+                    "expected": [
+                        79,
+                        -1,
+                        -1,
+                        0,
+                        "dGhpcw==",
+                        0,
+                        {
+                            "Text": "dGhpcw=="
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        73,
+                        77,
+                        65544,
+                        "dGhpcw==",
+                        0,
+                        {
+                            "Text": "dGhpcw=="
+                        },
+                        {}
+                    ]
+                }
+            ],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-027",
+            "name": "tsc/testdata/tests/cases/conformance/jsdoc/typedefTagWrapping.ts::1",
+            "sourceSha256": "5d7ba462a938bf988e4b77dbef317b6b99c8f37fe6733bb0b438440ceaf87ce0",
+            "expectedSha256": "48165e9513c1aa44e2ecc0baaae9da644221b39e2d3925cb38f9c2e44ba72075",
+            "actualSha256": "835a4a315aa529f6d18a50ff42fad495a5f8df6aad7a39fcb61d4881b4649c56",
+            "policy": "equivalent-jsdoc-source-metadata",
+            "rationale": "Identical node kinds, literal values, scalar fields and child topology, with equal NodeList counts and trailing-comma results. Differences are documentation-tag/trivia range choices and reparse-context flags; synthetic this identifiers receive a real tag span instead of the Go -1 sentinel. Source text and all type information remain available.",
+            "independentEvidence": {
+                "identicalTopologyAndScalars": true,
+                "identicalListCountsAndTrailingCommas": true
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter typedefTagWrapping.ts",
+            "expectedJSDocDiagnostics": [],
+            "actualJSDocDiagnostics": [],
+            "changedNodes": [
+                {
+                    "index": 5,
+                    "expected": [
+                        79,
+                        25,
+                        28,
+                        4259840,
+                        "bnVt",
+                        0,
+                        {
+                            "Text": "bnVt"
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        19,
+                        28,
+                        4259840,
+                        "bnVt",
+                        0,
+                        {
+                            "Text": "bnVt"
+                        },
+                        {}
+                    ]
+                },
+                {
+                    "index": 8,
+                    "expected": [
+                        79,
+                        43,
+                        46,
+                        4259840,
+                        "c3Ry",
+                        0,
+                        {
+                            "Text": "c3Ry"
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        37,
+                        46,
+                        4259840,
+                        "c3Ry",
+                        0,
+                        {
+                            "Text": "c3Ry"
+                        },
+                        {}
+                    ]
+                },
+                {
+                    "index": 11,
+                    "expected": [
+                        79,
+                        61,
+                        64,
+                        4259840,
+                        "Ym9v",
+                        0,
+                        {
+                            "Text": "Ym9v"
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        55,
+                        64,
+                        4259840,
+                        "Ym9v",
+                        0,
+                        {
+                            "Text": "Ym9v"
+                        },
+                        {}
+                    ]
+                }
+            ],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-028",
+            "name": "tsc/testdata/tests/cases/conformance/jsdoc/typedefTagWrapping.ts::4",
+            "sourceSha256": "4f5fe9333780a00bdf049373c9f9d931b7620dffdb019f5269b02e100d836dc1",
+            "expectedSha256": "6e4864fc471dab9e9058665d2555258ec8874da9ddd2672c25fa625c3b8abbe3",
+            "actualSha256": "003b1fd4870d61a6a7e5aa356829681e2a5d5b497277a77e0af8d6c07e14a55d",
+            "policy": "equivalent-jsdoc-source-metadata",
+            "rationale": "Identical node kinds, literal values, scalar fields and child topology, with equal NodeList counts and trailing-comma results. Differences are documentation-tag/trivia range choices and reparse-context flags; synthetic this identifiers receive a real tag span instead of the Go -1 sentinel. Source text and all type information remain available.",
+            "independentEvidence": {
+                "identicalTopologyAndScalars": true,
+                "identicalListCountsAndTrailingCommas": true
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter typedefTagWrapping.ts",
+            "expectedJSDocDiagnostics": [],
+            "actualJSDocDiagnostics": [],
+            "changedNodes": [
+                {
+                    "index": 5,
+                    "expected": [
+                        79,
+                        25,
+                        28,
+                        4259840,
+                        "bnVt",
+                        0,
+                        {
+                            "Text": "bnVt"
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        19,
+                        28,
+                        4259840,
+                        "bnVt",
+                        0,
+                        {
+                            "Text": "bnVt"
+                        },
+                        {}
+                    ]
+                },
+                {
+                    "index": 8,
+                    "expected": [
+                        79,
+                        48,
+                        51,
+                        4259840,
+                        "c3Ry",
+                        0,
+                        {
+                            "Text": "c3Ry"
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        42,
+                        51,
+                        4259840,
+                        "c3Ry",
+                        0,
+                        {
+                            "Text": "c3Ry"
+                        },
+                        {}
+                    ]
+                },
+                {
+                    "index": 11,
+                    "expected": [
+                        79,
+                        71,
+                        74,
+                        4259840,
+                        "Ym9v",
+                        0,
+                        {
+                            "Text": "Ym9v"
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        65,
+                        74,
+                        4259840,
+                        "Ym9v",
+                        0,
+                        {
+                            "Text": "Ym9v"
+                        },
+                        {}
+                    ]
+                }
+            ],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-029",
+            "name": "tsc/testdata/tests/cases/conformance/jsdoc/typedefTagWrapping.ts::5",
+            "sourceSha256": "1576c32b3fb3891787b96fe8784f5c02fba5233dc5e8115a21080562909cc45e",
+            "expectedSha256": "51199ceb77caffe833888013a835adf5e3d4787284e1e87a57ce8d8b95dd1f67",
+            "actualSha256": "b4c016f2d26eea0bb10315d60165472374c4672ab98c1099d1a0e020e2f8831a",
+            "policy": "equivalent-jsdoc-source-metadata",
+            "rationale": "Identical node kinds, literal values, scalar fields and child topology, with equal NodeList counts and trailing-comma results. Differences are documentation-tag/trivia range choices and reparse-context flags; synthetic this identifiers receive a real tag span instead of the Go -1 sentinel. Source text and all type information remain available.",
+            "independentEvidence": {
+                "identicalTopologyAndScalars": true,
+                "identicalListCountsAndTrailingCommas": true
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter typedefTagWrapping.ts",
+            "expectedJSDocDiagnostics": [],
+            "actualJSDocDiagnostics": [],
+            "changedNodes": [
+                {
+                    "index": 5,
+                    "expected": [
+                        79,
+                        25,
+                        28,
+                        4259840,
+                        "Zm9v",
+                        0,
+                        {
+                            "Text": "Zm9v"
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        19,
+                        28,
+                        4259840,
+                        "Zm9v",
+                        0,
+                        {
+                            "Text": "Zm9v"
+                        },
+                        {}
+                    ]
+                },
+                {
+                    "index": 8,
+                    "expected": [
+                        79,
+                        43,
+                        46,
+                        4259840,
+                        "YmFy",
+                        0,
+                        {
+                            "Text": "YmFy"
+                        },
+                        {}
+                    ],
+                    "actual": [
+                        79,
+                        37,
+                        46,
+                        4259840,
+                        "YmFy",
+                        0,
+                        {
+                            "Text": "YmFy"
+                        },
+                        {}
+                    ]
+                }
+            ],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-030",
+            "name": "tsc/testdata/tests/cases/conformance/salsa/typeFromPropertyAssignment9.ts::0",
+            "sourceSha256": "921010efc7b632caf36f90be7c67e5db3b370d66cb9ee151f91c6dc2de4c42db",
+            "expectedSha256": "7c7e04d2fe75b7529b63d066f294f90dd3f11b85dbaa1ee427a71723dc45ec1c",
+            "actualSha256": "a9ff5c0bdcfc8fee8056f94b741fae7cc7db9943af2b88ce3fb3d3800bc62331",
+            "policy": "preserved-jsdoc-fallback-parameter-types",
+            "rationale": "C# retains number annotations for first and second in an assigned fallback function (|| or ??). Go stops host discovery at the logical operator and loses those annotations. TypeScript6.0.3 checker independently resolves both parameter types to number.",
+            "independentEvidence": {
+                "typescriptVersion": "6.0.3",
+                "parameterTypes": {
+                    "first": "number",
+                    "second": "number"
+                }
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter typeFromPropertyAssignment9.ts",
+            "expectedJSDocDiagnostics": [],
+            "actualJSDocDiagnostics": [],
+            "changedNodes": [],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-031",
+            "name": "tsc/testdata/tests/cases/conformance/salsa/typeFromPropertyAssignment9_1.ts::0",
+            "sourceSha256": "b53557cc2ff24d474bf1397383aa7c9cea221fa33bd7297b9533638a1e67db35",
+            "expectedSha256": "c91af12f6193b62e460f7a28c6a905aa92e8008809bc54b2d044d1dadb1085a6",
+            "actualSha256": "5fedac5a42f087b4322737b3f208f301d4c0e9bc319ef07d3703be7e522e19a2",
+            "policy": "preserved-jsdoc-fallback-parameter-types",
+            "rationale": "C# retains number annotations for first and second in an assigned fallback function (|| or ??). Go stops host discovery at the logical operator and loses those annotations. TypeScript6.0.3 checker independently resolves both parameter types to number.",
+            "independentEvidence": {
+                "typescriptVersion": "6.0.3",
+                "parameterTypes": {
+                    "first": "number",
+                    "second": "number"
+                }
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter typeFromPropertyAssignment9_1.ts",
+            "expectedJSDocDiagnostics": [],
+            "actualJSDocDiagnostics": [],
+            "changedNodes": [],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        },
+        {
+            "id": "parser-jsdoc-032",
+            "name": "tsc/testdata/tests/cases/compiler/jsEnumCrossFileExport.ts::0",
+            "sourceSha256": "41fb542752f3196d6a8762521283cb64c18f148aa3d307e1c81f30575f194fc3",
+            "expectedSha256": "b834bc417bc0b7951023b2a29b0f988b92ef75d7baf3a5228f9d1f7810029304",
+            "actualSha256": "35544a531239502c420f8de4b12796ded6c87aee83c82562a6c722470a3a91ee",
+            "policy": "malformed-jsdoc-declaration-recovery",
+            "rationale": "Both compilers reject the same unnamed typedef with identical diagnostic code and span. JavaScript lexical syntax is valid, so the independent JavaScript parse-diagnostic gate is inapplicable to this documentation-declaration error. Source declarations and annotated types survive; recovery metadata and documentation namespace spans differ.",
+            "independentEvidence": {
+                "identicalParseDiagnostics": [
+                    [
+                        1003,
+                        263,
+                        1
+                    ]
+                ],
+                "annotationError": "Missing typedef name"
+            },
+            "reproduction": "node csharp/tools/syntax.mjs --parse --corpus --expanded --managed --filter jsEnumCrossFileExport.ts",
+            "actualJSDocDiagnostics": [
+                [
+                    1003,
+                    264,
+                    0
+                ]
+            ],
+            "expectedJavaScriptDiagnostics": [],
+            "actualJavaScriptDiagnostics": [],
+            "outputsFile": "jsdoc-differences.outputs.json.gz"
+        }
+    ],
+    "recordFormat": "AST records with scalar/list fields; parse and JavaScript diagnostic buckets",
+    "outputsFile": "jsdoc-differences.outputs.json.gz",
+    "outputsSha256": "645c3a104e875a44bf091e7374b628cd5072644d92f885c727324c934c923e3a"
+}

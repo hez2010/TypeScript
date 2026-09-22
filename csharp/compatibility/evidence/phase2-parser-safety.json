@@ -1,0 +1,252 @@
+{
+    "status": "passed",
+    "recordedUtc": "2026-09-22T03:50:20.827859+00:00",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "runtime": ".NET 11.0.0-rc.2.26470.103",
+    "host": "win32-x64",
+    "languageVersion": "15.0",
+    "features": "runtime-async=on",
+    "optimizationPreference": "Speed",
+    "ilcInstructionSet": "native",
+    "nativeAot": true,
+    "nativeExecutable": {
+        "path": "built/csharp/parser-safety-native/TypeScript.Compatibility.exe",
+        "sha256": "fcb85dd471c5abdbb0ea13e07c290e561403d9e641b900abee4f49608fafcbbb"
+    },
+    "compilerAssemblySha256": "7c54fd68ba8768a7d5e34911797d19edd030760986c5335ab4e4293873850272",
+    "sourceSha256": {
+        "csharp/Directory.Build.props": "bb8f21ef15188df2ba7cb2755b946722a25c1caced66c4418f32e1d33242365e",
+        "csharp/src/TypeScript.Compiler/Syntax/Parser.Stack.cs": "11ede882f53b4bd9ed7a958eda7117b44eae8e1f6ea0a2b06c93e71d7ff5f24d",
+        "csharp/src/TypeScript.Compiler/Syntax/Parser.Types.cs": "bc7f1a19e87e44fe5a9dc677b80e6f2f1ec11050c9b5d46b67c9dc9ca0155838",
+        "csharp/src/TypeScript.Compiler/Syntax/DocumentationParser.cs": "648734d7790e8ab44cacf55b3fd815ea6cade4a275e4a0e1daf14f64483e6a0b",
+        "csharp/src/TypeScript.Compiler/Syntax/Parser.Documentation.cs": "0df6f38aaf7c0aa10caa11cd76e39e1aac5de7b320fb1597257ddcf7cde2c7d9",
+        "csharp/src/TypeScript.Compiler/Syntax/Parser.Reparse.cs": "890687dcc446148d349bf93546868ca3032c6a0ca3e86b1ba7d108e369271a5f",
+        "csharp/src/TypeScript.Compiler/Syntax/SyntaxNameText.cs": "4669e565bfac57b8d8ac70e222164de091259979e693256fe1c8c6318c033a40",
+        "csharp/tests/TypeScript.Compatibility/ParserSafetyTests.cs": "20ad3eb92e2e9bccc59efd28092adf2fe1ab510e7fc49626bbc68c1f24266dc2",
+        "csharp/src/TypeScript.Compiler/Ast/SourceFile.cs": "923b7a015b6f695ec5f74c286e3cb3aac4e9817602d1b2a2561ebc0a17be4f88",
+        "csharp/src/TypeScript.Compiler/Ast/ScalarProperties.generated.cs": "43de112b0d91a326aa30e1e735dfc97a13dae9ad41f508226dca212fdf395ab0",
+        "csharp/src/TypeScript.Compiler/Ast/Nodes.generated.cs": "f34fdb2dde88723c1a726917e35dcc4ea8587244bcdcc44f3f813772d7d442a3",
+        "csharp/src/TypeScript.Compiler/Syntax/Parser.Jsx.cs": "cef5d83491bd63a27056ce96e5053a0671cdcb5cd09f7ef20e890053f72c1925",
+        "csharp/src/TypeScript.Compiler/Syntax/Parser.Continuations.cs": "0cd25c2cc0edc1dfc05103272027a81fbe5b5d5056464fdbb41870b71698313a"
+    },
+    "command": "built/csharp/parser-safety-native/TypeScript.Compatibility.exe --parser-safety",
+    "production": {
+        "cases": 36,
+        "nodes": 1421783,
+        "nestingDepth": 21000,
+        "nestedDocumentationProperties": 384,
+        "cancelledInputNestingDepth": 1000000,
+        "checks": [
+            "zero parse diagnostics for valid cases",
+            "UTF-8 byte positions including supplementary Unicode",
+            "complete parent links",
+            "child containment except source-preserving Reparsed annotations",
+            "type nesting and mixed operator precedence",
+            "nested property ownership",
+            "pre-cancelled and in-flight type cancellation",
+            "in-flight JSDoc cancellation",
+            "non-pumping SynchronizationContext rejects Post and Send",
+            "malformed class method recovery retains subsequent methods",
+            "invalid type and JSX syntax rejected",
+            "schema scalar/list serialization distinguishes operators, imports, raw text, flags and container state",
+            "IsMissing list state survives cloning",
+            "JSDoc traversal follows IsNameFirst"
+        ],
+        "caseTimings": [
+            {
+                "name": "parentheses.ts",
+                "elapsedMilliseconds": 24
+            },
+            {
+                "name": "parenthesis-precedence.ts",
+                "elapsedMilliseconds": 0
+            },
+            {
+                "name": "index-signatures.ts",
+                "elapsedMilliseconds": 0
+            },
+            {
+                "name": "generic-function-types.ts",
+                "elapsedMilliseconds": 0
+            },
+            {
+                "name": "heritage-expressions.ts",
+                "elapsedMilliseconds": 0
+            },
+            {
+                "name": "private-type-query.ts",
+                "elapsedMilliseconds": 0
+            },
+            {
+                "name": "this-parameters.ts",
+                "elapsedMilliseconds": 0
+            },
+            {
+                "name": "tuples.ts",
+                "elapsedMilliseconds": 28
+            },
+            {
+                "name": "generics.ts",
+                "elapsedMilliseconds": 36
+            },
+            {
+                "name": "indexed-access.ts",
+                "elapsedMilliseconds": 38
+            },
+            {
+                "name": "operators.ts",
+                "elapsedMilliseconds": 6
+            },
+            {
+                "name": "functions.ts",
+                "elapsedMilliseconds": 20
+            },
+            {
+                "name": "conditionals.ts",
+                "elapsedMilliseconds": 45
+            },
+            {
+                "name": "mapped.ts",
+                "elapsedMilliseconds": 83
+            },
+            {
+                "name": "type-literals.ts",
+                "elapsedMilliseconds": 81
+            },
+            {
+                "name": "template-types.ts",
+                "elapsedMilliseconds": 62
+            },
+            {
+                "name": "compound-types.ts",
+                "elapsedMilliseconds": 61
+            },
+            {
+                "name": "blocks.ts",
+                "elapsedMilliseconds": 23
+            },
+            {
+                "name": "if-statements.ts",
+                "elapsedMilliseconds": 16
+            },
+            {
+                "name": "expression-parentheses.ts",
+                "elapsedMilliseconds": 13
+            },
+            {
+                "name": "array-expressions.ts",
+                "elapsedMilliseconds": 18
+            },
+            {
+                "name": "object-expressions.ts",
+                "elapsedMilliseconds": 58
+            },
+            {
+                "name": "binary-expressions.ts",
+                "elapsedMilliseconds": 15
+            },
+            {
+                "name": "function-expressions.ts",
+                "elapsedMilliseconds": 138
+            },
+            {
+                "name": "jsx.tsx",
+                "elapsedMilliseconds": 46
+            },
+            {
+                "name": "jsx-qualified.tsx",
+                "elapsedMilliseconds": 44
+            },
+            {
+                "name": "jsx-names.tsx",
+                "elapsedMilliseconds": 0
+            },
+            {
+                "name": "nested.json",
+                "elapsedMilliseconds": 23
+            },
+            {
+                "name": "documentation.js",
+                "elapsedMilliseconds": 65
+            },
+            {
+                "name": "documentation-array.js",
+                "elapsedMilliseconds": 13
+            },
+            {
+                "name": "documentation-host.js",
+                "elapsedMilliseconds": 26
+            },
+            {
+                "name": "documentation-names.js",
+                "elapsedMilliseconds": 8
+            },
+            {
+                "name": "documentation-heritage.js",
+                "elapsedMilliseconds": 30
+            },
+            {
+                "name": "documentation-properties.js",
+                "elapsedMilliseconds": 29
+            },
+            {
+                "name": "documentation-typedef.js",
+                "elapsedMilliseconds": 0
+            },
+            {
+                "name": "synchronization-context.ts",
+                "elapsedMilliseconds": 114
+            }
+        ],
+        "timingScope": "Development check only; not a comparative performance baseline.",
+        "defaultNativeThreadPool": "Windows; worker-count controls unsupported, async documentation and cloning workload still executed and passed."
+    },
+    "runtimeAsyncSmoke": {
+        "nativeExecutable": "built/csharp/parser-stack-smoke-native/StackSmoke.exe",
+        "sha256": "daad75db8b4cc59665a650f714c53c3c6654a5b75522da7105dd820b66ba5b8d",
+        "recursiveFrames": 100001,
+        "exceptionFinallyFrames": 2001,
+        "synchronousCalls": 60000,
+        "synchronousAllocatedBytes": 0,
+        "scope": "Isolated copy of production BCL stack-guard/facade; no custom task-like type or async builder."
+    },
+    "curatedOracleComparison": {
+        "cases": 20,
+        "matched": 20,
+        "deepParentheses": 21000,
+        "deepGenerics": 21000,
+        "scope": "Development comparisons of complete AST records, flags, UTF-16 positions, child counts, and parse diagnostics against pinned Go; not the full parser corpus."
+    },
+    "singleWorkerAsync": {
+        "status": "passed",
+        "nativeAot": true,
+        "nativeExecutable": {
+            "path": "built/csharp/parser-safety-portable-native/TypeScript.Compatibility.exe",
+            "sha256": "1639468cf7f20e212288f4cf24a3a2ae2c2fcdbe3ff2f4a2d2df3d872b6bf686"
+        },
+        "configuration": "UseWindowsThreadPool=false (test-only portable pool; product default unchanged)",
+        "command": "built/csharp/parser-safety-portable-native/TypeScript.Compatibility.exe --parser-single-worker",
+        "workerLimit": 1,
+        "timeoutSeconds": 10,
+        "documentationDepth": 21000,
+        "checks": [
+            "JS eager JSDoc parsing completes without nested synchronous task waits",
+            "TypeScript lazy GetDocumentationAsync completes",
+            "deep cloning copies cached documentation without reparsing",
+            "cloned import references preserve exact cache identity and UTF-8 spans",
+            "synthetic typedef aliases preserve cached documentation and share the cloned original host comment",
+            "all worker-pool settings restored in finally"
+        ]
+    },
+    "reviewFindings": [
+        {
+            "issue": "nested synchronous JSDoc parser waits deadlocked the sole worker",
+            "resolution": "all internal JSDoc grammar entry points and reader callers await BCL ValueTask; synchronous facade only at caller API boundary"
+        },
+        {
+            "issue": "DeepClone lost documentation for synthetic aliases whose ranges start inside comments",
+            "resolution": "clone all existing source-local documentation cache associations, sharing comments by original identity and remapping parents/import references without reparsing"
+        }
+    ]
+}

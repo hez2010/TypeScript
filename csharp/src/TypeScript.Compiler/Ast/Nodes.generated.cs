@@ -5636,8 +5636,9 @@ public sealed partial class JSDocParameterOrPropertyTagNode : SyntaxNode, ITypeE
     public override SyntaxNode GetChild(int index)
     {
         if (TagName is { } childTagName && index-- == 0) return childTagName;
-        if (Name is { } childName && index-- == 0) return childName;
+        if (IsNameFirst && Name is { } childNameFirst && index-- == 0) return childNameFirst;
         if (TypeExpression is { } childTypeExpression && index-- == 0) return childTypeExpression;
+        if (!IsNameFirst && Name is { } childNameLast && index-- == 0) return childNameLast;
         if (Comment is { } listComment)
         {
             if ((uint)index < (uint)listComment.Count) return listComment[index];
