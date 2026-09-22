@@ -13,10 +13,18 @@ internal static class ProfileExperiments
     {
         Directory.CreateDirectory(directory);
         using JsonDocument input = JsonDocument.Parse(File.ReadAllBytes(inputPath));
-        var fixture = input.RootElement.GetProperty("cases").EnumerateArray().Single(item => item.GetProperty("name").GetString() == "large-graph");
-        var files = fixture.GetProperty("files").EnumerateArray().Select(file => new PipelineExperiments.InputFile(file.GetProperty("name").GetString()!, file.GetProperty("text").GetBytesFromBase64())).ToArray();
+        var fixture = input.RootElement.GetProperty("cases").EnumerateArray().Single(
+            item => item.GetProperty("name").GetString() == "large-graph");
+        var files = fixture.GetProperty("files").EnumerateArray().Select(
+            file => new PipelineExperiments.InputFile(
+                file.GetProperty("name").GetString()!,
+                file.GetProperty("text").GetBytesFromBase64())).ToArray();
         using var profile = NativeProfile.Start();
-        try { using var duplicate = NativeProfile.Start(); throw new InvalidDataException("Concurrent profile accepted"); }
+        try
+        {
+            using var duplicate = NativeProfile.Start();
+            throw new InvalidDataException("Concurrent profile accepted");
+        }
         catch (InvalidOperationException) { }
         var timer = Stopwatch.StartNew();
         int iterations = 0;
@@ -32,22 +40,44 @@ internal static class ProfileExperiments
             iterations++;
         }
         // Multiple compiler workers contribute real thread counters to one session.
-        Parallel.For(0, 8, _ => PipelineExperiments.Compile(files, static () => new ArenaNodeStore(), static bytes => new Utf8Source(bytes)));
+        Parallel.For(
+            0,
+            8,
+            _ => PipelineExperiments.Compile(files, static () => new ArenaNodeStore(), static bytes => new Utf8Source(bytes)));
         using (NativeProfile.Enter("scope-lifecycle-check"))
         {
-            try { profile.Stop(directory); throw new InvalidDataException("Stopped an active scope"); }
+            try
+            {
+                profile.Stop(directory);
+                throw new InvalidDataException("Stopped an active scope");
+            }
             catch (InvalidOperationException) { }
         }
         WeakReference owner = RetainThenRelease(profile, directory);
         profile.Stop(directory);
-        GC.Collect(); GC.WaitForPendingFinalizers(); GC.Collect();
-        if (owner.IsAlive) throw new InvalidDataException("Profile metadata retained a compiler owner");
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+        if (owner.IsAlive)
+            throw new InvalidDataException("Profile metadata retained a compiler owner");
         profile.SaveHeap(Path.Combine(directory, "heap-released.pb.gz"));
-        try { profile.Stop(directory); throw new InvalidDataException("Double stop accepted"); }
+        try
+        {
+            profile.Stop(directory);
+            throw new InvalidDataException("Double stop accepted");
+        }
         catch (InvalidOperationException) { }
         using var stream = File.Create(Path.Combine(directory, "run.json"));
         using var writer = new Utf8JsonWriter(stream, new() { Indented = true });
-        writer.WriteStartObject(); writer.WriteNumber("iterations", iterations); writer.WriteBoolean("releasedOwnerCollected", !owner.IsAlive); writer.WriteString("cpu", "instrumented phase thread CPU nanoseconds"); writer.WriteString("allocation", "managed bytes allocated on instrumented threads"); writer.WriteString("heap", "whole-process live managed bytes, plus separately labeled retained-source bytes and syntax-node counts"); writer.WriteEndObject();
+        writer.WriteStartObject();
+        writer.WriteNumber("iterations", iterations);
+        writer.WriteBoolean("releasedOwnerCollected", !owner.IsAlive);
+        writer.WriteString("cpu", "instrumented phase thread CPU nanoseconds");
+        writer.WriteString("allocation", "managed bytes allocated on instrumented threads");
+        writer.WriteString(
+            "heap",
+            "whole-process live managed bytes, plus separately labeled retained-source bytes and syntax-node counts");
+        writer.WriteEndObject();
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]

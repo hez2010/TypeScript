@@ -7,14 +7,15 @@ namespace TypeScript.Compiler.Protocol;
 public readonly record struct NodeRecord(SyntaxKind Kind, int Pos, int End, uint Next, uint Parent, uint Data, uint Flags)
 {
     public const int Size = 28;
+
     public static NodeRecord Read(ReadOnlySpan<byte> bytes) => new(
-        (SyntaxKind)BinaryPrimitives.ReadUInt32LittleEndian(bytes),
-        BinaryPrimitives.ReadInt32LittleEndian(bytes[4..]),
-        BinaryPrimitives.ReadInt32LittleEndian(bytes[8..]),
-        BinaryPrimitives.ReadUInt32LittleEndian(bytes[12..]),
-        BinaryPrimitives.ReadUInt32LittleEndian(bytes[16..]),
-        BinaryPrimitives.ReadUInt32LittleEndian(bytes[20..]),
-        BinaryPrimitives.ReadUInt32LittleEndian(bytes[24..]));
+            (SyntaxKind)BinaryPrimitives.ReadUInt32LittleEndian(bytes),
+            BinaryPrimitives.ReadInt32LittleEndian(bytes[4..]),
+            BinaryPrimitives.ReadInt32LittleEndian(bytes[8..]),
+            BinaryPrimitives.ReadUInt32LittleEndian(bytes[12..]),
+            BinaryPrimitives.ReadUInt32LittleEndian(bytes[16..]),
+            BinaryPrimitives.ReadUInt32LittleEndian(bytes[20..]),
+            BinaryPrimitives.ReadUInt32LittleEndian(bytes[24..]));
 
     public void Write(Span<byte> bytes)
     {
@@ -63,7 +64,8 @@ public sealed class AstPacket
             NodeRecord node = GetNode(i);
             // Source order guarantees earlier parents and forward siblings.
             if (node.Parent >= i || (node.Next != 0 && (node.Next <= i || node.Next >= NodeCount)))
-                throw new InvalidDataException($"Invalid AST topology at {i}/{NodeCount}: parent={node.Parent}, next={node.Next}, kind={node.Kind}, offset={NodesOffset}");
+                throw new InvalidDataException(
+                    $"Invalid AST topology at {i}/{NodeCount}: parent={node.Parent}, next={node.Next}, kind={node.Kind}, offset={NodesOffset}");
         }
     }
 

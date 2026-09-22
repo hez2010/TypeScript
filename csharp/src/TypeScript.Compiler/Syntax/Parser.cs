@@ -18,7 +18,13 @@ public enum ScriptKind
     Deferred
 }
 
-public sealed record ParseOptions(string FileName, ScriptKind ScriptKind = ScriptKind.Unknown, int TargetYear = int.MaxValue, bool ForceExternalModule = false, bool JsxExternalModule = false, bool CheckRegularExpressions = false);
+public sealed record ParseOptions(
+    string FileName,
+    ScriptKind ScriptKind = ScriptKind.Unknown,
+    int TargetYear = int.MaxValue,
+    bool ForceExternalModule = false,
+    bool JsxExternalModule = false,
+    bool CheckRegularExpressions = false);
 public sealed partial class Parser
 {
     private readonly Scanner scanner;
@@ -44,7 +50,13 @@ public sealed partial class Parser
     private int Pos => scanner.FullStart;
     private bool LineBreak => scanner.HasPrecedingLineBreak;
 
-    private Parser(ParseOptions options, SourceText source, CancellationToken cancellation, int initialPosition = 0, int? endPosition = null, bool documentation = false)
+    private Parser(
+        ParseOptions options,
+        SourceText source,
+        CancellationToken cancellation,
+        int initialPosition = 0,
+        int? endPosition = null,
+        bool documentation = false)
     {
         ScriptKind kind = options.ScriptKind;
         if (kind == ScriptKind.Unknown)
@@ -85,11 +97,17 @@ public sealed partial class Parser
     public static SourceFileNode ParseSourceFile(ParseOptions options, SourceText source, CancellationToken cancellation = default) =>
         RunParse(ParseSourceFileAsync(options, source, cancellation));
 
-    public static async ValueTask<SourceFileNode> ParseSourceFileAsync(ParseOptions options, SourceText source, CancellationToken cancellation = default)
+    public static async ValueTask<SourceFileNode> ParseSourceFileAsync(
+        ParseOptions options,
+        SourceText source,
+        CancellationToken cancellation = default)
     {
         var parser = new Parser(options, source, cancellation);
         var file = await parser.ParseFileCore().ConfigureAwait(false);
-        if (parser.possibleTopLevelAwait && file.ExternalModuleIndicator is not null && !file.IsDeclarationFile && file.ScriptKind != ScriptKind.JSON)
+        if (parser.possibleTopLevelAwait
+            && file.ExternalModuleIndicator is not null
+            && !file.IsDeclarationFile
+            && file.ScriptKind != ScriptKind.JSON)
         {
             parser = new Parser(options, source, cancellation) { topLevelAwait = true };
             file = await parser.ParseFileCore().ConfigureAwait(false);
@@ -117,7 +135,9 @@ public sealed partial class Parser
 
             if (expressions.Count != 0)
             {
-                SyntaxNode expression = expressions.Count == 1 ? expressions[0] : Finish(factory.NewArrayLiteralExpression(new(expressions.ToArray(), start, Pos), false), start);
+                SyntaxNode expression = expressions.Count == 1
+                    ? expressions[0]
+                    : Finish(factory.NewArrayLiteralExpression(new(expressions.ToArray(), start, Pos), false), start);
                 statements.Add(Finish(factory.NewExpressionStatement(expression), expression.Pos, expression.End));
                 bool saved = hasError;
                 ValidateJson(expression);
@@ -129,7 +149,8 @@ public sealed partial class Parser
             {
                 int before = Pos;
                 NodeFlags statementContext = context;
-                if (topLevelAwait) context |= NodeFlags.AwaitContext;
+                if (topLevelAwait)
+                    context |= NodeFlags.AwaitContext;
                 SyntaxNode statement = (await ParseStatementCore().ConfigureAwait(false));
                 context = statementContext;
                 statements.AddRange(reparsedStatements);
@@ -161,10 +182,23 @@ public sealed partial class Parser
             foreach (SyntaxNode node in comment.DescendantsAndSelf())
                 node.ConvertPositions(source.ToBytePosition);
         file.SetDocumentation(documentation);
-        file.JSDocDiagnostics = documentationDiagnostics.Select(d => d with { Start = source.ToBytePosition(d.Start), Length = source.ToBytePosition(d.Start + d.Length) - source.ToBytePosition(d.Start), FileName = options.FileName }).ToArray();
+        file.JSDocDiagnostics = documentationDiagnostics.Select(
+            d => d with
+            {
+                Start = source.ToBytePosition(d.Start),
+                Length = source.ToBytePosition(d.Start + d.Length) - source.ToBytePosition(d.Start),
+                FileName = options.FileName
+            }).ToArray();
         file.ReparsedClones = reparsedClones.OrderBy(n => n.Pos).ThenBy(n => n.End).ToArray();
-        file.ParseDiagnostics = diagnostics.Select(d => d with { Start = source.ToBytePosition(d.Start), Length = source.ToBytePosition(d.Start + d.Length) - source.ToBytePosition(d.Start), FileName = options.FileName }).ToArray();
-        file.CommentDirectives = scanner.CommentDirectives.Select(d => d with { Start = source.ToBytePosition(d.Start), End = source.ToBytePosition(d.End) }).ToArray();
+        file.ParseDiagnostics = diagnostics.Select(
+            d => d with
+            {
+                Start = source.ToBytePosition(d.Start),
+                Length = source.ToBytePosition(d.Start + d.Length) - source.ToBytePosition(d.Start),
+                FileName = options.FileName
+            }).ToArray();
+        file.CommentDirectives = scanner.CommentDirectives.Select(
+            d => d with { Start = source.ToBytePosition(d.Start), End = source.ToBytePosition(d.End) }).ToArray();
         CheckJavaScriptSyntax(file);
         return file;
     }
@@ -172,7 +206,9 @@ public sealed partial class Parser
     private K Next(bool checkEscapes = true)
     {
         cancellation.ThrowIfCancellationRequested();
-        if (checkEscapes && Token is >= K.FirstKeyword and <= K.LastKeyword && (scanner.Flags & (TokenFlags.UnicodeEscape | TokenFlags.ExtendedUnicodeEscape)) != 0)
+        if (checkEscapes
+            && Token is >= K.FirstKeyword and <= K.LastKeyword
+            && (scanner.Flags & (TokenFlags.UnicodeEscape | TokenFlags.ExtendedUnicodeEscape)) != 0)
             Error(Messages.Keywords_cannot_contain_escape_characters);
         scanner.Scan();
         for (; scannedDiagnostics < scanner.Diagnostics.Count; scannedDiagnostics++)
@@ -184,7 +220,9 @@ public sealed partial class Parser
         return Token;
     }
 
-    private void Error(DiagnosticMessage message, params string[] args) => ErrorAt(message, scanner.TokenStart, scanner.Position - scanner.TokenStart, args);
+    private void Error(DiagnosticMessage message, params string[] args) =>
+        ErrorAt(message, scanner.TokenStart, scanner.Position - scanner.TokenStart, args);
+
     private void ErrorAt(DiagnosticMessage message, int start, int length, params string[] args)
     {
         if (diagnostics.Count == 0 || diagnostics[^1].Start != start)
@@ -234,6 +272,7 @@ public sealed partial class Parser
     }
 
     private TokenNode? OptionalToken(K kind) => Token == kind ? ParseToken() : null;
+
     private TokenNode ExpectedToken(K kind)
     {
         if (Token == kind)
@@ -243,23 +282,32 @@ public sealed partial class Parser
     }
 
     private bool IsBindingIdentifier => Token == K.Identifier || Token > K.LastReservedWord;
-    private bool IsIdentifier => IsBindingIdentifier && !(Token == K.YieldKeyword && (context & NodeFlags.YieldContext) != 0) && !(Token == K.AwaitKeyword && (context & NodeFlags.AwaitContext) != 0);
+    private bool IsIdentifier =>
+        IsBindingIdentifier
+            && !(Token == K.YieldKeyword && (context & NodeFlags.YieldContext) != 0)
+            && !(Token == K.AwaitKeyword && (context & NodeFlags.AwaitContext) != 0);
 
-    private static bool IsModifierKind(K kind) => kind is K.AbstractKeyword or K.AccessorKeyword or K.AsyncKeyword or K.ConstKeyword or K.DeclareKeyword or K.DefaultKeyword or K.ExportKeyword or K.InKeyword or K.OutKeyword or K.PrivateKeyword or K.ProtectedKeyword or K.PublicKeyword or K.ReadonlyKeyword or K.OverrideKeyword or K.StaticKeyword;
+    private static bool IsModifierKind(K kind) =>
+        kind is K.AbstractKeyword or K.AccessorKeyword or K.AsyncKeyword or K.ConstKeyword or K.DeclareKeyword or K.DefaultKeyword
+            or K.ExportKeyword or K.InKeyword or K.OutKeyword or K.PrivateKeyword or K.ProtectedKeyword or K.PublicKeyword
+            or K.ReadonlyKeyword or K.OverrideKeyword or K.StaticKeyword;
+
     private IdentifierNode Identifier(bool allowKeywords = false, bool binding = false)
     {
         int start = Pos;
         if (IsIdentifier || binding && IsBindingIdentifier || allowKeywords && Token is >= K.FirstKeyword and <= K.LastKeyword)
         {
             var node = factory.NewIdentifier(scanner.Value);
-            if (!binding && Token == K.AwaitKeyword && statementDepth == 0 && (context & NodeFlags.AwaitContext) == 0) possibleTopLevelAwait = true;
+            if (!binding && Token == K.AwaitKeyword && statementDepth == 0 && (context & NodeFlags.AwaitContext) == 0)
+                possibleTopLevelAwait = true;
             Next(false);
             return Finish(node, start);
         }
 
         if (binding && Token is >= K.FirstReservedWord and <= K.LastReservedWord)
             Error(Messages.Identifier_expected_0_is_a_reserved_word_that_cannot_be_used_here, TokenFacts.Text(Token));
-        else Error(Messages.Identifier_expected);
+        else
+            Error(Messages.Identifier_expected);
         return Finish(factory.NewIdentifier(""), start, start);
     }
 
@@ -289,6 +337,7 @@ public sealed partial class Parser
     }
 
     private bool NextIs(K kind) => Peek(() => Next() == kind);
+
     private void Semicolon()
     {
         if (!Take(K.SemicolonToken) && Token is not (K.EndOfFile or K.CloseBraceToken) && !LineBreak)
@@ -353,7 +402,11 @@ public sealed partial class Parser
 
     private SyntaxNode RightOfDot(bool allowPrivate)
     {
-        if (LineBreak && Token >= K.Identifier && Peek(() => { Next(); return !LineBreak && Token >= K.Identifier; }))
+        if (LineBreak && Token >= K.Identifier && Peek(() =>
+        {
+            Next();
+            return !LineBreak && Token >= K.Identifier;
+        }))
         {
             ErrorAt(Messages.Identifier_expected, Pos, 0);
             return Finish(factory.NewIdentifier(""), Pos, Pos);
@@ -363,7 +416,8 @@ public sealed partial class Parser
             int at = Pos;
             var name = factory.NewPrivateIdentifier(scanner.Value);
             Next();
-            if (allowPrivate) return Finish(name, at);
+            if (allowPrivate)
+                return Finish(name, at);
             ErrorAt(Messages.Identifier_expected, Pos, 0);
             return Finish(factory.NewIdentifier(""), Pos, Pos);
         }
@@ -403,21 +457,34 @@ public sealed partial class Parser
                 continue;
             }
 
-            bool modifier = Token is K.ExportKeyword or K.DefaultKeyword or K.DeclareKeyword or K.AbstractKeyword or K.AsyncKeyword or K.PublicKeyword or K.PrivateKeyword or K.ProtectedKeyword or K.ReadonlyKeyword or K.OverrideKeyword or K.StaticKeyword or K.AccessorKeyword || allowConst && Token is K.ConstKeyword or K.InKeyword or K.OutKeyword || Token == K.ConstKeyword && NextIs(K.EnumKeyword);
+            bool modifier = Token is K.ExportKeyword or K.DefaultKeyword or K.DeclareKeyword or K.AbstractKeyword or K.AsyncKeyword
+                or K.PublicKeyword or K.PrivateKeyword or K.ProtectedKeyword or K.ReadonlyKeyword or K.OverrideKeyword or K.StaticKeyword
+                or K.AccessorKeyword
+                || allowConst && Token is K.ConstKeyword or K.InKeyword or K.OutKeyword
+                || Token == K.ConstKeyword && NextIs(K.EnumKeyword);
             if (Token == K.ExportKeyword && Peek(() =>
             {
                 Next();
-                if (Token is K.OpenBraceToken or K.AsteriskToken or K.EqualsToken or K.AsKeyword) return true;
-                if (Token == K.TypeKeyword) return Next() is K.OpenBraceToken or K.AsteriskToken;
-                if (Token == K.DefaultKeyword) return Next() is not (K.ClassKeyword or K.FunctionKeyword or K.InterfaceKeyword or K.AbstractKeyword or K.AsyncKeyword or K.AtToken);
+                if (Token is K.OpenBraceToken or K.AsteriskToken or K.EqualsToken or K.AsKeyword)
+                    return true;
+                if (Token == K.TypeKeyword)
+                    return Next() is K.OpenBraceToken or K.AsteriskToken;
+                if (Token == K.DefaultKeyword)
+                    return Next() is not (K.ClassKeyword or K.FunctionKeyword or K.InterfaceKeyword or K.AbstractKeyword
+                        or K.AsyncKeyword or K.AtToken);
                 return false;
-            })) break;
-            if (stopOnStaticBlock && Token == K.StaticKeyword && NextIs(K.OpenBraceToken)) break;
+            }))
+                break;
+            if (stopOnStaticBlock && Token == K.StaticKeyword && NextIs(K.OpenBraceToken))
+                break;
             K modifierKind = Token;
             if (!modifier || !Peek(() =>
             {
                 Next();
-                return (!LineBreak || modifierKind is K.ExportKeyword or K.DefaultKeyword or K.StaticKeyword) && (Token >= K.Identifier || Token is K.PrivateIdentifier or K.StringLiteral or K.NumericLiteral or K.BigIntLiteral or K.OpenBracketToken or K.OpenBraceToken or K.DotDotDotToken or K.AsteriskToken or K.AtToken);
+                return (!LineBreak || modifierKind is K.ExportKeyword or K.DefaultKeyword or K.StaticKeyword)
+                    && (Token >= K.Identifier
+                        || Token is K.PrivateIdentifier or K.StringLiteral or K.NumericLiteral or K.BigIntLiteral or K.OpenBracketToken
+                            or K.OpenBraceToken or K.DotDotDotToken or K.AsteriskToken or K.AtToken);
             }))
                 break;
             if (Token == K.StaticKeyword && nodes?.Any(n => n.Kind == K.StaticKeyword) == true)

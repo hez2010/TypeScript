@@ -8,8 +8,18 @@ namespace TypeScript.Compiler.Ast;
 public readonly record struct SourceCommentRange(SyntaxKind Kind, int Pos, int End, bool HasTrailingNewLine);
 public sealed record PragmaArgument(string Name, string Value, int Pos, int End);
 public sealed record SourcePragma(string Name, SourceCommentRange Range, IReadOnlyDictionary<string, PragmaArgument> Arguments);
-public enum ReferenceResolutionMode { Unspecified = 0, Require = 1, Import = 99 }
-public sealed record FileReference(string FileName, int Pos, int End, ReferenceResolutionMode ResolutionMode = ReferenceResolutionMode.Unspecified, bool Preserve = false);
+public enum ReferenceResolutionMode
+{
+    Unspecified = 0,
+    Require = 1,
+    Import = 99
+}
+public sealed record FileReference(
+    string FileName,
+    int Pos,
+    int End,
+    ReferenceResolutionMode ResolutionMode = ReferenceResolutionMode.Unspecified,
+    bool Preserve = false);
 public sealed record CheckJsDirective(bool Enabled, SourceCommentRange Range);
 public sealed record AmdDependency(string Path, string? Name);
 
@@ -37,30 +47,43 @@ public sealed partial class SourceFileNode
     public IReadOnlyList<SyntaxNode> ModuleAugmentations { get; internal set; } = [];
     public IReadOnlyList<string> AmbientModuleNames { get; internal set; } = [];
     private ConcurrentDictionary<SyntaxNode, JSDocNode[]>? documentation;
+
     internal void SetDocumentation(IDictionary<SyntaxNode, JSDocNode[]> values)
     {
-        if (values.Count != 0) documentation = new(values, ReferenceEqualityComparer.Instance);
+        if (values.Count != 0)
+            documentation = new(values, ReferenceEqualityComparer.Instance);
     }
+
     public IReadOnlyList<JSDocNode> GetDocumentation(SyntaxNode node) => Parser.RunParse(GetDocumentationAsync(node));
 
     public async ValueTask<IReadOnlyList<JSDocNode>> GetDocumentationAsync(SyntaxNode node, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
         SyntaxNode owner = node;
-        while (owner.Parent is { } parent) owner = parent;
-        if (!ReferenceEquals(owner, this)) throw new ArgumentException("Node does not belong to this source file", nameof(node));
-        if ((node.Flags & NodeFlags.HasJSDoc) == 0) return [];
-        if (documentation is null) Interlocked.CompareExchange(ref documentation, new(ReferenceEqualityComparer.Instance), null);
-        if (documentation.TryGetValue(node, out JSDocNode[]? cached)) return cached;
+        while (owner.Parent is { } parent)
+            owner = parent;
+        if (!ReferenceEquals(owner, this))
+            throw new ArgumentException("Node does not belong to this source file", nameof(node));
+        if ((node.Flags & NodeFlags.HasJSDoc) == 0)
+            return [];
+        if (documentation is null)
+            Interlocked.CompareExchange(ref documentation, new(ReferenceEqualityComparer.Instance), null);
+        if (documentation.TryGetValue(node, out JSDocNode[]? cached))
+            return cached;
         var parser = new DocumentationParser(Source, ScriptKind, cancellation: cancellation);
-        var nodes = await parser.LeadingAsync(Source.ToUtf16Position(node.Pos), Source.ToUtf16Position(node.End), node.Kind).ConfigureAwait(false);
+        var nodes = await parser.LeadingAsync(
+            Source.ToUtf16Position(node.Pos),
+            Source.ToUtf16Position(node.End),
+            node.Kind).ConfigureAwait(false);
         foreach (JSDocNode comment in nodes)
         {
-            foreach (SyntaxNode child in comment.DescendantsAndSelf()) child.ConvertPositions(Source.ToBytePosition);
+            foreach (SyntaxNode child in comment.DescendantsAndSelf())
+                child.ConvertPositions(Source.ToBytePosition);
             comment.Parent = node;
         }
         return documentation.GetOrAdd(node, nodes);
     }
+
     internal override SyntaxNode ShallowClone()
     {
         var clone = (SourceFileNode)base.ShallowClone();
@@ -68,13 +91,15 @@ public sealed partial class SourceFileNode
         clone.ReparsedClones = [];
         return clone;
     }
+
     internal void RemapSourceMetadata(SourceFileNode original, IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         Dictionary<SyntaxNode, SyntaxNode>? documentationCopies = null;
         if (original.documentation is { } originalDocumentation)
             foreach (var entry in originalDocumentation)
             {
-                if (!copies.TryGetValue(entry.Key, out SyntaxNode? clonedOwner)) continue;
+                if (!copies.TryGetValue(entry.Key, out SyntaxNode? clonedOwner))
+                    continue;
                 documentationCopies ??= new(ReferenceEqualityComparer.Instance);
                 var comments = new JSDocNode[entry.Value.Length];
                 for (int i = 0; i < comments.Length; i++)
@@ -85,7 +110,9 @@ public sealed partial class SourceFileNode
                         JSDocNode clonedComment = comment.DeepClone<JSDocNode>();
                         foreach (var pair in comment.DescendantsAndSelf().Zip(clonedComment.DescendantsAndSelf()))
                             documentationCopies.Add(pair.First, pair.Second);
-                        clonedComment.Parent = comment.Parent is { } parent && copies.TryGetValue(parent, out SyntaxNode? parentCopy) ? parentCopy : clonedOwner;
+                        clonedComment.Parent = comment.Parent is { } parent && copies.TryGetValue(parent, out SyntaxNode? parentCopy)
+                            ? parentCopy
+                            : clonedOwner;
                         copiedComment = clonedComment;
                     }
                     comments[i] = (JSDocNode)copiedComment;
@@ -100,8 +127,10 @@ public sealed partial class SourceFileNode
 
         SyntaxNode MapReference(SyntaxNode node)
         {
-            if (copies.TryGetValue(node, out SyntaxNode? clone)) return clone;
-            if (documentationCopies?.TryGetValue(node, out clone) == true) return clone;
+            if (copies.TryGetValue(node, out SyntaxNode? clone))
+                return clone;
+            if (documentationCopies?.TryGetValue(node, out clone) == true)
+                return clone;
             throw new InvalidOperationException("Module reference does not belong to the cloned source file");
         }
     }

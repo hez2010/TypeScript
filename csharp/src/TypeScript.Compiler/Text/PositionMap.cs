@@ -17,7 +17,8 @@ public sealed class PositionMap
         {
             // The BCL supplies portable SIMD and a scalar fallback for ASCII runs.
             int nonAscii = text[i..].IndexOfAnyExceptInRange((byte)0, (byte)127);
-            if (nonAscii < 0) break;
+            if (nonAscii < 0)
+                break;
             i += nonAscii;
             int value = Wtf8.Decode(text[i..], out int size);
             i += size;
@@ -32,7 +33,9 @@ public sealed class PositionMap
     }
 
     public bool IsAsciiOnly => deltas.Length == 0;
+
     public int Utf8ToUtf16(int offset) => offset - DeltaAt(utf8Ends, offset);
+
     public int Utf16ToUtf8(int offset) => offset + DeltaAt(utf16Ends, offset);
 
     private int DeltaAt(int[] ends, int offset)

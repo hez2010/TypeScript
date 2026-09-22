@@ -34,10 +34,16 @@ public static class Wtf8
         Span<byte> destination = result;
         while (!text.IsEmpty)
         {
-            OperationStatus status = Utf8.FromUtf16(text, destination, out int charsRead, out int bytesWritten, replaceInvalidSequences: false);
+            OperationStatus status = Utf8.FromUtf16(
+                text,
+                destination,
+                out int charsRead,
+                out int bytesWritten,
+                replaceInvalidSequences: false);
             text = text[charsRead..];
             destination = destination[bytesWritten..];
-            if (status == OperationStatus.Done) break;
+            if (status == OperationStatus.Done)
+                break;
             if (status != OperationStatus.InvalidData)
                 throw new InvalidOperationException("Unexpected UTF-8 conversion size");
             char surrogate = text[0];

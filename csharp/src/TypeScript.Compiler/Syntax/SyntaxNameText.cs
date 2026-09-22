@@ -7,8 +7,10 @@ internal static class SyntaxNameText
 {
     public static string Get(SyntaxNode? node, bool propertyAccess = true)
     {
-        if (node is IdentifierNode identifier) return identifier.Text;
-        if (node is null) return "";
+        if (node is IdentifierNode identifier)
+            return identifier.Text;
+        if (node is null)
+            return "";
         var text = new StringBuilder();
         var parts = new Stack<SyntaxNode?>();
         parts.Push(node);
@@ -16,17 +18,25 @@ internal static class SyntaxNameText
         {
             switch (part)
             {
-                case null: text.Append('.'); break;
-                case IdentifierNode name: text.Append(name.Text); break;
+                case null:
+                    text.Append('.');
+                    break;
+                case IdentifierNode name:
+                    text.Append(name.Text);
+                    break;
                 case QualifiedNameNode name:
-                    if (name.Right is not null) parts.Push(name.Right);
+                    if (name.Right is not null)
+                        parts.Push(name.Right);
                     parts.Push(null);
-                    if (name.Left is not null) parts.Push(name.Left);
+                    if (name.Left is not null)
+                        parts.Push(name.Left);
                     break;
                 case PropertyAccessExpressionNode name when propertyAccess:
-                    if (name.Name is not null) parts.Push(name.Name);
+                    if (name.Name is not null)
+                        parts.Push(name.Name);
                     parts.Push(null);
-                    if (name.Expression is not null) parts.Push(name.Expression);
+                    if (name.Expression is not null)
+                        parts.Push(name.Expression);
                     break;
             }
         }

@@ -7,7 +7,15 @@ namespace TypeScript.Compiler.Experiments;
 
 public readonly record struct ProjectDiagnostic(string File, int Code, int Pos, int Length, string Message);
 
-public sealed class SliceSymbol<TStore>(SliceFile<TStore> file, NodeId declaration, string name, bool exported, bool typeAlias, bool constant, bool blockScoped, bool unresolved = false) where TStore : INodeStore
+public sealed class SliceSymbol<TStore>(
+    SliceFile<TStore> file,
+    NodeId declaration,
+    string name,
+    bool exported,
+    bool typeAlias,
+    bool constant,
+    bool blockScoped,
+    bool unresolved = false) where TStore : INodeStore
 {
     public SliceFile<TStore> File { get; } = file;
     public NodeId Declaration { get; } = declaration;
@@ -44,7 +52,8 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
             cancellation.ThrowIfCancellationRequested();
             var locals = new Dictionary<string, SliceSymbol<TStore>>(StringComparer.Ordinal);
             Locals.Add(file.Name, locals);
-            foreach (var diagnostic in file.Diagnostics) Diagnostics.Add(new(file.Name, diagnostic.Code, diagnostic.Pos, diagnostic.Length, diagnostic.Message));
+            foreach (var diagnostic in file.Diagnostics)
+                Diagnostics.Add(new(file.Name, diagnostic.Code, diagnostic.Pos, diagnostic.Length, diagnostic.Message));
             foreach (NodeId statement in file.Statements)
             {
                 Compiler.Diagnostics.NativeProfile.Poll();
@@ -58,40 +67,53 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
                     var variable = file.Store.Get<VariableStatementData>(statement);
                     var list = file.Store.Get<VariableDeclarationListData>(variable.DeclarationList);
                     foreach (NodeId declaration in file.Store.Get<NodeListData>(list.Declarations).Nodes)
-                        Declare(declaration, file.Store.Get<VariableDeclarationData>(declaration).Name, !variable.Modifiers.IsNull, false, (file.Store.Header(variable.DeclarationList).Flags & 2) != 0, (file.Store.Header(variable.DeclarationList).Flags & 3) != 0);
+                        Declare(
+                            declaration,
+                            file.Store.Get<VariableDeclarationData>(declaration).Name,
+                            !variable.Modifiers.IsNull,
+                            false,
+                            (file.Store.Header(variable.DeclarationList).Flags & 2) != 0,
+                            (file.Store.Header(variable.DeclarationList).Flags & 3) != 0);
                 }
             }
             void Declare(NodeId declaration, NodeId nameId, bool exported, bool alias, bool constant, bool blockScoped)
             {
                 string name = file.Store.Get<IdentifierData>(nameId).Text;
                 var symbol = new SliceSymbol<TStore>(file, declaration, name, exported, alias, constant, blockScoped);
-                if (!locals.TryAdd(name, symbol)) Report(file, nameId, alias ? 2300 : 2451, $"Duplicate declaration '{name}'.");
+                if (!locals.TryAdd(name, symbol))
+                    Report(file, nameId, alias ? 2300 : 2451, $"Duplicate declaration '{name}'.");
             }
         }
         foreach (var file in Files.Values.OrderBy(file => file.Name, StringComparer.Ordinal))
         {
             foreach (NodeId statement in file.Statements)
             {
-                if (file.Store.Header(statement).Kind != SyntaxKind.ImportDeclaration) continue;
+                if (file.Store.Header(statement).Kind != SyntaxKind.ImportDeclaration)
+                    continue;
                 var import = file.Store.Get<ImportDeclarationData>(statement);
                 string specifier = file.Store.Get<StringLiteralData>(import.ModuleSpecifier).Text;
                 string? resolved = ResolveModule(file.Name, specifier);
-                if (resolved is null) Report(file, import.ModuleSpecifier, 2307, $"Cannot find module '{specifier}'.");
+                if (resolved is null)
+                    Report(file, import.ModuleSpecifier, 2307, $"Cannot find module '{specifier}'.");
                 var clause = file.Store.Get<ImportClauseData>(import.ImportClause);
                 var named = file.Store.Get<NamedImportsData>(clause.NamedBindings);
                 foreach (NodeId element in file.Store.Get<NodeListData>(named.Elements).Nodes)
                 {
                     var binding = file.Store.Get<ImportSpecifierData>(element);
-                    string original = file.Store.Get<IdentifierData>(binding.PropertyName.IsNull ? binding.Name : binding.PropertyName).Text;
+                    string original = file.Store.Get<IdentifierData>(
+                        binding.PropertyName.IsNull ? binding.Name : binding.PropertyName).Text;
                     string local = file.Store.Get<IdentifierData>(binding.Name).Text;
-                    if (binding.IsTypeOnly || clause.PhaseModifier == SyntaxKind.TypeKeyword) typeOnlyImports.Add((file.Name, local));
+                    if (binding.IsTypeOnly || clause.PhaseModifier == SyntaxKind.TypeKeyword)
+                        typeOnlyImports.Add((file.Name, local));
                     SliceSymbol<TStore>? symbol = null;
                     if (resolved is not null && (!Locals[resolved].TryGetValue(original, out symbol) || !symbol.Exported))
                     {
-                        Report(file, binding.Name, 2305, $"Module has no exported member '{original}'."); symbol = null;
+                        Report(file, binding.Name, 2305, $"Module has no exported member '{original}'.");
+                        symbol = null;
                     }
                     symbol ??= new(file, element, local, false, false, false, false, unresolved: true);
-                    if (!Locals[file.Name].TryAdd(local, symbol)) Report(file, binding.Name, 2300, $"Duplicate import '{local}'.");
+                    if (!Locals[file.Name].TryAdd(local, symbol))
+                        Report(file, binding.Name, 2300, $"Duplicate import '{local}'.");
                 }
             }
         }
@@ -101,16 +123,25 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
     {
         // Phase-1 resolution is relative virtual .ts files only. Package lookup,
         // extension substitution and host case rules belong to the full resolver.
-        if (!specifier.StartsWith("./", StringComparison.Ordinal) && !specifier.StartsWith("../", StringComparison.Ordinal)) return null;
+        if (!specifier.StartsWith("./", StringComparison.Ordinal) && !specifier.StartsWith("../", StringComparison.Ordinal))
+            return null;
         var segments = new List<string>(fileName[..(fileName.LastIndexOf('/') + 1)].Split('/', StringSplitOptions.RemoveEmptyEntries));
         foreach (string segment in specifier.Split('/'))
         {
-            if (segment == ".") continue;
-            if (segment == "..") { if (segments.Count == 0) return null; segments.RemoveAt(segments.Count - 1); }
-            else segments.Add(segment);
+            if (segment == ".")
+                continue;
+            if (segment == "..")
+            {
+                if (segments.Count == 0)
+                    return null;
+                segments.RemoveAt(segments.Count - 1);
+            }
+            else
+                segments.Add(segment);
         }
         string path = "/" + string.Join('/', segments);
-        if (Files.ContainsKey(path)) return path;
+        if (Files.ContainsKey(path))
+            return path;
         return Files.ContainsKey(path + ".ts") ? path + ".ts" : null;
     }
 
@@ -119,11 +150,13 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
         using var profile = Compiler.Diagnostics.NativeProfile.Enter("TypeScript.Check");
         foreach (var file in Files.Values.OrderBy(file => file.Name, StringComparer.Ordinal))
         {
-            if (file.Diagnostics.Count != 0) continue;
+            if (file.Diagnostics.Count != 0)
+                continue;
             foreach (var symbol in Locals[file.Name].Values.Where(symbol => ReferenceEquals(symbol.File, file)).Distinct())
             {
                 TypeAtom[] target = TypeOf(symbol);
-                if (symbol.TypeAlias || symbol.Unresolved) continue;
+                if (symbol.TypeAlias || symbol.Unresolved)
+                    continue;
                 var declaration = file.Store.Get<VariableDeclarationData>(symbol.Declaration);
                 if (!declaration.Initializer.IsNull)
                 {
@@ -137,7 +170,8 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
 
     public TypeAtom[] TypeOf(SliceSymbol<TStore> symbol)
     {
-        if (types.TryGetValue(symbol, out var cached)) return cached;
+        if (types.TryGetValue(symbol, out var cached))
+            return cached;
         var stack = new Stack<(SliceSymbol<TStore> Symbol, bool Complete)>();
         var active = new HashSet<SliceSymbol<TStore>>();
         stack.Push((symbol, false));
@@ -145,7 +179,8 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
         {
             Compiler.Diagnostics.NativeProfile.Poll();
             cancellation.ThrowIfCancellationRequested();
-            if (types.ContainsKey(frame.Symbol)) continue;
+            if (types.ContainsKey(frame.Symbol))
+                continue;
             if (frame.Complete)
             {
                 active.Remove(frame.Symbol);
@@ -156,48 +191,63 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
             {
                 foreach (var pending in stack)
                 {
-                    if (!pending.Complete || !active.Contains(pending.Symbol)) continue;
+                    if (!pending.Complete || !active.Contains(pending.Symbol))
+                        continue;
                     var cyclic = pending.Symbol;
-                    NodeId name = cyclic.TypeAlias ? cyclic.File.Store.Get<TypeAliasDeclarationData>(cyclic.Declaration).Name : cyclic.File.Store.Get<VariableDeclarationData>(cyclic.Declaration).Name;
+                    NodeId name = cyclic.TypeAlias
+                        ? cyclic.File.Store.Get<TypeAliasDeclarationData>(cyclic.Declaration).Name
+                        : cyclic.File.Store.Get<VariableDeclarationData>(cyclic.Declaration).Name;
                     Report(cyclic.File, name, cyclic.TypeAlias ? 2456 : 7022, $"Declaration '{cyclic.Name}' circularly references itself.");
                     types[cyclic] = Any;
-                    if (ReferenceEquals(cyclic, frame.Symbol)) break;
+                    if (ReferenceEquals(cyclic, frame.Symbol))
+                        break;
                 }
                 continue;
             }
             stack.Push((frame.Symbol, true));
-            foreach (var dependency in Dependencies(frame.Symbol)) if (!types.ContainsKey(dependency)) stack.Push((dependency, false));
+            foreach (var dependency in Dependencies(frame.Symbol))
+                if (!types.ContainsKey(dependency))
+                    stack.Push((dependency, false));
         }
         return types[symbol];
     }
 
     private IEnumerable<SliceSymbol<TStore>> Dependencies(SliceSymbol<TStore> symbol)
     {
-        if (symbol.Unresolved) yield break;
+        if (symbol.Unresolved)
+            yield break;
         var file = symbol.File;
-        NodeId root = symbol.TypeAlias ? file.Store.Get<TypeAliasDeclarationData>(symbol.Declaration).Type : file.Store.Get<VariableDeclarationData>(symbol.Declaration).Type;
-        if (root.IsNull) root = file.Store.Get<VariableDeclarationData>(symbol.Declaration).Initializer;
+        NodeId root = symbol.TypeAlias
+            ? file.Store.Get<TypeAliasDeclarationData>(symbol.Declaration).Type
+            : file.Store.Get<VariableDeclarationData>(symbol.Declaration).Type;
+        if (root.IsNull)
+            root = file.Store.Get<VariableDeclarationData>(symbol.Declaration).Initializer;
         var stack = new Stack<NodeId>();
-        if (!root.IsNull) stack.Push(root);
+        if (!root.IsNull)
+            stack.Push(root);
         while (stack.TryPop(out NodeId id))
         {
             cancellation.ThrowIfCancellationRequested();
             if (file.Store.Header(id).Kind == SyntaxKind.TypeReference)
             {
                 NodeId name = file.Store.Get<TypeReferenceNodeData>(id).TypeName;
-                if (Lookup(file, name) is { } dependency) yield return dependency;
+                if (Lookup(file, name) is { } dependency)
+                    yield return dependency;
                 continue;
             }
             if (file.Store.Header(id).Kind == SyntaxKind.Identifier)
             {
-                if (file.Store.Get<IdentifierData>(id).Text == "undefined" && !Locals[file.Name].ContainsKey("undefined")) continue;
-                if (Lookup(file, id) is { } dependency) yield return dependency;
+                if (file.Store.Get<IdentifierData>(id).Text == "undefined" && !Locals[file.Name].ContainsKey("undefined"))
+                    continue;
+                if (Lookup(file, id) is { } dependency)
+                    yield return dependency;
                 continue;
             }
             for (int i = SliceSchema.ChildSlots(file.Store, id) - 1; i >= 0; i--)
             {
                 NodeId child = SliceSchema.ChildAt(file.Store, id, i);
-                if (!child.IsNull) stack.Push(child);
+                if (!child.IsNull)
+                    stack.Push(child);
             }
         }
     }
@@ -205,20 +255,25 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
     private SliceSymbol<TStore>? Lookup(SliceFile<TStore> file, NodeId identifier)
     {
         string name = file.Store.Get<IdentifierData>(identifier).Text;
-        if (Locals[file.Name].TryGetValue(name, out var symbol)) return symbol;
+        if (Locals[file.Name].TryGetValue(name, out var symbol))
+            return symbol;
         Report(file, identifier, 2304, $"Cannot find name '{name}'.");
         return null;
     }
 
     private TypeAtom[] EvaluateSymbol(SliceSymbol<TStore> symbol)
     {
-        if (symbol.Unresolved) return Any;
+        if (symbol.Unresolved)
+            return Any;
         var file = symbol.File;
-        if (symbol.TypeAlias) return EvaluateType(file, file.Store.Get<TypeAliasDeclarationData>(symbol.Declaration).Type);
+        if (symbol.TypeAlias)
+            return EvaluateType(file, file.Store.Get<TypeAliasDeclarationData>(symbol.Declaration).Type);
         var variable = file.Store.Get<VariableDeclarationData>(symbol.Declaration);
-        if (!variable.Type.IsNull) return EvaluateType(file, variable.Type);
+        if (!variable.Type.IsNull)
+            return EvaluateType(file, variable.Type);
         TypeAtom[] result = variable.Initializer.IsNull ? Any : Expression(file, variable.Initializer);
-        if (symbol.Constant) return result;
+        if (symbol.Constant)
+            return result;
         return Reduce(result.SelectMany(atom => atom.Kind switch
         {
             AtomKind.StringLiteral => new TypeAtom[] { new(AtomKind.String) },
@@ -240,14 +295,19 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
             if (!frame.Complete && header.Kind is SyntaxKind.UnionType or SyntaxKind.ParenthesizedType)
             {
                 stack.Push((frame.Node, true));
-                if (header.Kind == SyntaxKind.ParenthesizedType) stack.Push((file.Store.Get<ParenthesizedTypeNodeData>(frame.Node).Type, false));
-                else foreach (NodeId child in file.Store.Get<NodeListData>(file.Store.Get<UnionTypeNodeData>(frame.Node).Types).Nodes) stack.Push((child, false));
+                if (header.Kind == SyntaxKind.ParenthesizedType)
+                    stack.Push((file.Store.Get<ParenthesizedTypeNodeData>(frame.Node).Type, false));
+                else
+                    foreach (NodeId child in file.Store.Get<NodeListData>(file.Store.Get<UnionTypeNodeData>(frame.Node).Types).Nodes)
+                        stack.Push((child, false));
                 continue;
             }
             values[frame.Node] = header.Kind switch
             {
                 SyntaxKind.ParenthesizedType => values[file.Store.Get<ParenthesizedTypeNodeData>(frame.Node).Type],
-                SyntaxKind.UnionType => Reduce(file.Store.Get<NodeListData>(file.Store.Get<UnionTypeNodeData>(frame.Node).Types).Nodes.SelectMany(node => values[node])),
+                SyntaxKind.UnionType => Reduce(
+                    file.Store.Get<NodeListData>(
+                        file.Store.Get<UnionTypeNodeData>(frame.Node).Types).Nodes.SelectMany(node => values[node])),
                 SyntaxKind.TypeReference => ReferenceType(file, file.Store.Get<TypeReferenceNodeData>(frame.Node).TypeName),
                 SyntaxKind.LiteralType => Expression(file, file.Store.Get<LiteralTypeNodeData>(frame.Node).Literal),
                 SyntaxKind.AnyKeyword => Any,
@@ -270,8 +330,13 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
     private TypeAtom[] ReferenceType(SliceFile<TStore> file, NodeId name)
     {
         var symbol = Lookup(file, name);
-        if (symbol is null || symbol.Unresolved) return Any;
-        if (!symbol.TypeAlias) { Report(file, name, 2749, "A value cannot be used as a type."); return Any; }
+        if (symbol is null || symbol.Unresolved)
+            return Any;
+        if (!symbol.TypeAlias)
+        {
+            Report(file, name, 2749, "A value cannot be used as a type.");
+            return Any;
+        }
         return types.TryGetValue(symbol, out var type) ? type : Any;
     }
 
@@ -279,36 +344,55 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
     {
         switch (file.Store.Header(id).Kind)
         {
-            case SyntaxKind.StringLiteral: return [new(AtomKind.StringLiteral, file.Store.Get<StringLiteralData>(id).Text)];
-            case SyntaxKind.NumericLiteral: return [new(AtomKind.NumberLiteral, file.Store.Get<NumericLiteralData>(id).Text)];
-            case SyntaxKind.TrueKeyword: return [new(AtomKind.True)];
-            case SyntaxKind.FalseKeyword: return [new(AtomKind.False)];
-            case SyntaxKind.NullKeyword: return [new(AtomKind.Null)];
+            case SyntaxKind.StringLiteral:
+                return [new(AtomKind.StringLiteral, file.Store.Get<StringLiteralData>(id).Text)];
+            case SyntaxKind.NumericLiteral:
+                return [new(AtomKind.NumberLiteral, file.Store.Get<NumericLiteralData>(id).Text)];
+            case SyntaxKind.TrueKeyword:
+                return [new(AtomKind.True)];
+            case SyntaxKind.FalseKeyword:
+                return [new(AtomKind.False)];
+            case SyntaxKind.NullKeyword:
+                return [new(AtomKind.Null)];
             case SyntaxKind.PrefixUnaryExpression:
                 var unary = file.Store.Get<PrefixUnaryExpressionData>(id);
                 string literal = file.Store.Get<NumericLiteralData>(unary.Operand).Text;
                 return [new(AtomKind.NumberLiteral, unary.Operator == SyntaxKind.MinusToken && literal != "0" ? "-" + literal : literal)];
             case SyntaxKind.Identifier:
                 string name = file.Store.Get<IdentifierData>(id).Text;
-                if (name == "undefined" && !Locals[file.Name].ContainsKey(name)) return [new(AtomKind.Undefined)];
-                if (typeOnlyImports.Contains((file.Name, name))) Report(file, id, 1361, "A type-only import cannot be used as a value.");
+                if (name == "undefined" && !Locals[file.Name].ContainsKey(name))
+                    return [new(AtomKind.Undefined)];
+                if (typeOnlyImports.Contains((file.Name, name)))
+                    Report(file, id, 1361, "A type-only import cannot be used as a value.");
                 var symbol = Lookup(file, id);
-                if (symbol is null) return Any;
-                if (symbol.TypeAlias) { Report(file, id, 2693, "A type cannot be used as a value."); return Any; }
-                if (symbol.BlockScoped && ReferenceEquals(symbol.File, file) && file.Store.Header(id).Pos < file.Store.Header(symbol.Declaration).End)
+                if (symbol is null)
+                    return Any;
+                if (symbol.TypeAlias)
+                {
+                    Report(file, id, 2693, "A type cannot be used as a value.");
+                    return Any;
+                }
+                if (symbol.BlockScoped
+                    && ReferenceEquals(symbol.File, file)
+                    && file.Store.Header(id).Pos < file.Store.Header(symbol.Declaration).End)
                     Report(file, id, 2448, "Block-scoped variable used before its declaration.");
                 return types.TryGetValue(symbol, out var type) ? type : TypeOf(symbol);
-            default: throw new InvalidDataException("Unsupported expression");
+            default:
+                throw new InvalidDataException("Unsupported expression");
         }
     }
 
     private static TypeAtom[] Reduce(IEnumerable<TypeAtom> atoms)
     {
         var set = atoms.ToHashSet();
-        if (set.Contains(new(AtomKind.Any))) return Any;
-        if (set.Contains(new(AtomKind.Unknown))) return [new(AtomKind.Unknown)];
-        if (set.Contains(new(AtomKind.String))) set.RemoveWhere(atom => atom.Kind == AtomKind.StringLiteral);
-        if (set.Contains(new(AtomKind.Number))) set.RemoveWhere(atom => atom.Kind == AtomKind.NumberLiteral);
+        if (set.Contains(new(AtomKind.Any)))
+            return Any;
+        if (set.Contains(new(AtomKind.Unknown)))
+            return [new(AtomKind.Unknown)];
+        if (set.Contains(new(AtomKind.String)))
+            set.RemoveWhere(atom => atom.Kind == AtomKind.StringLiteral);
+        if (set.Contains(new(AtomKind.Number)))
+            set.RemoveWhere(atom => atom.Kind == AtomKind.NumberLiteral);
         return [.. set];
     }
 
@@ -316,10 +400,12 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
     {
         NodeHeader header = file.Store.Header(id);
         int pos = header.Pos;
-        if (header.Kind == SyntaxKind.Identifier) pos = header.End - Wtf8.Encode(file.Store.Get<IdentifierData>(id).Text).Length;
+        if (header.Kind == SyntaxKind.Identifier)
+            pos = header.End - Wtf8.Encode(file.Store.Get<IdentifierData>(id).Text).Length;
         else if (header.End > header.Pos)
             pos += new SliceLexer<Utf8Source>(new(file.Text.AsMemory(header.Pos, header.End - header.Pos)), []).Scan().Start;
         var diagnostic = new ProjectDiagnostic(file.Name, code, pos, header.End - pos, message);
-        if (!Diagnostics.Any(existing => existing.File == diagnostic.File && existing.Code == code && existing.Pos == pos)) Diagnostics.Add(diagnostic);
+        if (!Diagnostics.Any(existing => existing.File == diagnostic.File && existing.Code == code && existing.Pos == pos))
+            Diagnostics.Add(diagnostic);
     }
 }

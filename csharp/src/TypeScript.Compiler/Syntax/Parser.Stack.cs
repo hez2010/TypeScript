@@ -17,7 +17,11 @@ public sealed partial class Parser
     internal static T RunParse<T>(ValueTask<T> operation) => operation.IsCompletedSuccessfully
         ? operation.Result : operation.AsTask().GetAwaiter().GetResult();
 
-    private async ValueTask<NodeList> DelimitedCore(K end, Func<ValueTask<SyntaxNode>> element, bool semicolons = false, Func<bool>? stop = null)
+    private async ValueTask<NodeList> DelimitedCore(
+        K end,
+        Func<ValueTask<SyntaxNode>> element,
+        bool semicolons = false,
+        Func<bool>? stop = null)
     {
         await ParseStack;
         int start = Pos;
@@ -26,18 +30,25 @@ public sealed partial class Parser
         {
             int before = Pos;
             nodes.Add(await element().ConfigureAwait(false));
-            if (Token == end || stop?.Invoke() == true) break;
+            if (Token == end || stop?.Invoke() == true)
+                break;
             if (!Take(K.CommaToken) && !(semicolons && (Take(K.SemicolonToken) || LineBreak)))
             {
                 Error(Messages.X_0_expected, semicolons ? ";" : ",");
-                if (Token is K.CloseBraceToken or K.CloseParenToken or K.CloseBracketToken) break;
+                if (Token is K.CloseBraceToken or K.CloseParenToken or K.CloseBracketToken)
+                    break;
             }
-            if (Pos == before) Next();
+            if (Pos == before)
+                Next();
         }
         return new(nodes.ToArray(), start, Pos);
     }
 
-    private async ValueTask<NodeList> ListCore(K end, Func<ValueTask<SyntaxNode>> element, bool statementList = false, Func<bool>? stop = null)
+    private async ValueTask<NodeList> ListCore(
+        K end,
+        Func<ValueTask<SyntaxNode>> element,
+        bool statementList = false,
+        Func<bool>? stop = null)
     {
         await ParseStack;
         int start = Pos;
@@ -51,14 +62,23 @@ public sealed partial class Parser
                 int before = Pos;
                 SyntaxNode node = await element().ConfigureAwait(false);
                 foreach (SyntaxNode reparse in reparsedStatements)
-                    if (!statementList && reparse.Kind is K.JSTypeAliasDeclaration or K.JSImportDeclaration) outerReparses.Add(reparse);
-                    else nodes.Add(reparse);
+                    if (!statementList && reparse.Kind is K.JSTypeAliasDeclaration or K.JSImportDeclaration)
+                        outerReparses.Add(reparse);
+                    else
+                        nodes.Add(reparse);
                 reparsedStatements.Clear();
                 nodes.Add(node);
-                if (Pos == before) { Error(Messages.Declaration_or_statement_expected); Next(); }
+                if (Pos == before)
+                {
+                    Error(Messages.Declaration_or_statement_expected);
+                    Next();
+                }
             }
         }
-        finally { reparsedStatements = outerReparses; }
+        finally
+        {
+            reparsedStatements = outerReparses;
+        }
         return new(nodes.ToArray(), start, Pos);
     }
 

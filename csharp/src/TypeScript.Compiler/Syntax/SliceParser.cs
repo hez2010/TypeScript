@@ -27,20 +27,52 @@ public sealed class SliceParser<TStore, TSource> where TStore : INodeStore where
 
     public SliceParser(SliceFile<TStore> file, TSource source, CancellationToken cancellation = default)
     {
-        this.file = file; this.cancellation = cancellation;
+        this.file = file;
+        this.cancellation = cancellation;
         lexer = new(source, file.Diagnostics);
         token = lexer.Scan();
     }
-    private void Next() { cancellation.ThrowIfCancellationRequested(); token = lexer.Scan(); }
-    private bool Eat(SyntaxKind kind) { if (token.Kind != kind) return false; Next(); return true; }
+
+    private void Next()
+    {
+        cancellation.ThrowIfCancellationRequested();
+        token = lexer.Scan();
+    }
+
+    private bool Eat(SyntaxKind kind)
+    {
+        if (token.Kind != kind)
+            return false;
+        Next();
+        return true;
+    }
+
     private void Error(int code, string message) => file.Diagnostics.Add(new(code, token.Start, token.End - token.Start, message));
-    private void Expect(SyntaxKind kind) { if (!Eat(kind)) Error(1005, $"'{kind}' expected."); }
-    private NodeId Add<T>(SyntaxKind kind, int pos, int end, T payload, uint flags = 0) where T : struct, INodePayload<T> => Store.Add(new(kind, pos, end, flags), payload);
-    private NodeId List(int pos, int end, List<NodeId> nodes, bool trailing = false) => Add(SyntaxKind.NodeList, pos, end, new NodeListData([.. nodes], trailing));
-    private NodeId TokenNode() { var current = token; Next(); return Add(current.Kind, current.Pos, current.End, new TokenData()); }
+
+    private void Expect(SyntaxKind kind)
+    {
+        if (!Eat(kind))
+            Error(1005, $"'{kind}' expected.");
+    }
+
+    private NodeId Add<T>(SyntaxKind kind, int pos, int end, T payload, uint flags = 0) where T : struct, INodePayload<T> =>
+        Store.Add(new(kind, pos, end, flags), payload);
+
+    private NodeId List(int pos, int end, List<NodeId> nodes, bool trailing = false) =>
+        Add(SyntaxKind.NodeList, pos, end, new NodeListData([.. nodes], trailing));
+
+    private NodeId TokenNode()
+    {
+        var current = token;
+        Next();
+        return Add(current.Kind, current.Pos, current.End, new TokenData());
+    }
+
     private void Semicolon()
     {
-        if (!Eat(SyntaxKind.SemicolonToken) && token.Kind is not SyntaxKind.EndOfFile and not SyntaxKind.CloseBraceToken && !token.LineBreak)
+        if (!Eat(SyntaxKind.SemicolonToken)
+            && token.Kind is not SyntaxKind.EndOfFile and not SyntaxKind.CloseBraceToken
+            && !token.LineBreak)
             Error(1005, "';' expected.");
     }
 
@@ -64,22 +96,32 @@ public sealed class SliceParser<TStore, TSource> where TStore : INodeStore where
                 Expect(SyntaxKind.EqualsToken);
                 NodeId type = Type();
                 Semicolon();
-                statement = Add(SyntaxKind.TypeAliasDeclaration, pos, token.Pos, new TypeAliasDeclarationData(modifiers, name, default, type));
+                statement = Add(
+                    SyntaxKind.TypeAliasDeclaration,
+                    pos,
+                    token.Pos,
+                    new TypeAliasDeclarationData(modifiers, name, default, type));
             }
-            else if (Eat(SyntaxKind.ImportKeyword)) statement = Import(pos, modifiers);
-            else if (token.Kind is SyntaxKind.ConstKeyword or SyntaxKind.LetKeyword or SyntaxKind.VarKeyword) statement = Variables(pos, modifiers);
+            else if (Eat(SyntaxKind.ImportKeyword))
+                statement = Import(pos, modifiers);
+            else if (token.Kind is SyntaxKind.ConstKeyword or SyntaxKind.LetKeyword or SyntaxKind.VarKeyword)
+                statement = Variables(pos, modifiers);
             else
             {
                 Error(1003, "Unsupported declaration in phase-1 syntax slice.");
-                while (token.Kind is not SyntaxKind.SemicolonToken and not SyntaxKind.EndOfFile) Next();
+                while (token.Kind is not SyntaxKind.SemicolonToken and not SyntaxKind.EndOfFile)
+                    Next();
                 Eat(SyntaxKind.SemicolonToken);
             }
             if (!statement.IsNull)
             {
                 statements.Add(statement);
-                if (file.ExternalModuleIndicator.IsNull && (!modifiers.IsNull || Store.Header(statement).Kind == SyntaxKind.ImportDeclaration)) file.ExternalModuleIndicator = statement;
+                if (file.ExternalModuleIndicator.IsNull
+                    && (!modifiers.IsNull || Store.Header(statement).Kind == SyntaxKind.ImportDeclaration))
+                    file.ExternalModuleIndicator = statement;
             }
-            if (token.Start == before && token.Kind != SyntaxKind.EndOfFile) Next();
+            if (token.Start == before && token.Kind != SyntaxKind.EndOfFile)
+                Next();
         }
         NodeId statementList = List(0, token.Pos, statements);
         NodeId eof = TokenNode();
@@ -92,7 +134,8 @@ public sealed class SliceParser<TStore, TSource> where TStore : INodeStore where
     {
         if (token.Kind == SyntaxKind.Identifier || token.Kind >= SyntaxKind.AsKeyword && token.Kind <= SyntaxKind.LastKeyword)
         {
-            var current = token; Next();
+            var current = token;
+            Next();
             return Add(SyntaxKind.Identifier, current.Pos, current.End, new IdentifierData(current.Text));
         }
         Error(1003, "Identifier expected.");
@@ -113,10 +156,15 @@ public sealed class SliceParser<TStore, TSource> where TStore : INodeStore where
             int start = token.Pos, before = token.Start;
             bool typeOnly = Eat(SyntaxKind.TypeKeyword);
             NodeId first = Identifier(), original = default, name = first;
-            if (Eat(SyntaxKind.AsKeyword)) { original = first; name = Identifier(); }
+            if (Eat(SyntaxKind.AsKeyword))
+            {
+                original = first;
+                name = Identifier();
+            }
             names.Add(Add(SyntaxKind.ImportSpecifier, start, token.Pos, new ImportSpecifierData(typeOnly, original, name)));
             trailing = Eat(SyntaxKind.CommaToken);
-            if (!trailing || before == token.Start) break;
+            if (!trailing || before == token.Start)
+                break;
         }
         NodeId elements = List(listPos, token.Pos, names, trailing);
         Expect(SyntaxKind.CloseBraceToken);
@@ -124,8 +172,13 @@ public sealed class SliceParser<TStore, TSource> where TStore : INodeStore where
         NodeId clause = Add(SyntaxKind.ImportClause, clausePos, token.Pos, new ImportClauseData(phase, default, named));
         Expect(SyntaxKind.FromKeyword);
         NodeId module;
-        if (token.Kind == SyntaxKind.StringLiteral) module = Literal();
-        else { Error(1141, "String literal expected."); module = Add(SyntaxKind.StringLiteral, token.Start, token.Start, new StringLiteralData("", 0)); }
+        if (token.Kind == SyntaxKind.StringLiteral)
+            module = Literal();
+        else
+        {
+            Error(1141, "String literal expected.");
+            module = Add(SyntaxKind.StringLiteral, token.Start, token.Start, new StringLiteralData("", 0));
+        }
         file.Imports.Add(module);
         Semicolon();
         return Add(SyntaxKind.ImportDeclaration, pos, token.Pos, new ImportDeclarationData(modifiers, clause, module, default));
@@ -144,10 +197,16 @@ public sealed class SliceParser<TStore, TSource> where TStore : INodeStore where
             NodeId name = Identifier();
             NodeId type = Eat(SyntaxKind.ColonToken) ? Type() : default;
             NodeId initializer = Eat(SyntaxKind.EqualsToken) ? Expression() : default;
-            declarations.Add(Add(SyntaxKind.VariableDeclaration, start, token.Pos, new VariableDeclarationData(name, default, type, initializer)));
+            declarations.Add(
+                Add(SyntaxKind.VariableDeclaration, start, token.Pos, new VariableDeclarationData(name, default, type, initializer)));
         } while (Eat(SyntaxKind.CommaToken));
         NodeId list = List(listPos, token.Pos, declarations);
-        NodeId declarationList = Add(SyntaxKind.VariableDeclarationList, declarationPos, token.Pos, new VariableDeclarationListData(list), flags);
+        NodeId declarationList = Add(
+            SyntaxKind.VariableDeclarationList,
+            declarationPos,
+            token.Pos,
+            new VariableDeclarationListData(list),
+            flags);
         Semicolon();
         return Add(SyntaxKind.VariableStatement, pos, token.Pos, new VariableStatementData(modifiers, declarationList));
     }
@@ -168,19 +227,27 @@ public sealed class SliceParser<TStore, TSource> where TStore : INodeStore where
         {
             if (expectType)
             {
-                if (Eat(SyntaxKind.BarToken)) frame.Leading = true;
+                if (Eat(SyntaxKind.BarToken))
+                    frame.Leading = true;
                 if (token.Kind == SyntaxKind.OpenParenToken)
                 {
-                    int pos = token.Pos; Next();
-                    parents.Push((frame, pos)); frame = new(token.Pos); continue;
+                    int pos = token.Pos;
+                    Next();
+                    parents.Push((frame, pos));
+                    frame = new(token.Pos);
+                    continue;
                 }
                 NodeId node;
-                if (token.Kind is SyntaxKind.AnyKeyword or SyntaxKind.UnknownKeyword or SyntaxKind.NeverKeyword or SyntaxKind.StringKeyword or SyntaxKind.NumberKeyword or SyntaxKind.BigIntKeyword or SyntaxKind.BooleanKeyword or SyntaxKind.SymbolKeyword or SyntaxKind.ObjectKeyword or SyntaxKind.VoidKeyword or SyntaxKind.UndefinedKeyword)
+                if (token.Kind is SyntaxKind.AnyKeyword or SyntaxKind.UnknownKeyword or SyntaxKind.NeverKeyword
+                    or SyntaxKind.StringKeyword or SyntaxKind.NumberKeyword or SyntaxKind.BigIntKeyword or SyntaxKind.BooleanKeyword
+                    or SyntaxKind.SymbolKeyword or SyntaxKind.ObjectKeyword or SyntaxKind.VoidKeyword or SyntaxKind.UndefinedKeyword)
                 {
-                    var current = token; Next();
+                    var current = token;
+                    Next();
                     node = Add(current.Kind, current.Pos, current.End, new KeywordTypeNodeData());
                 }
-                else if (token.Kind is SyntaxKind.StringLiteral or SyntaxKind.NumericLiteral or SyntaxKind.TrueKeyword or SyntaxKind.FalseKeyword or SyntaxKind.NullKeyword or SyntaxKind.MinusToken)
+                else if (token.Kind is SyntaxKind.StringLiteral or SyntaxKind.NumericLiteral or SyntaxKind.TrueKeyword
+                    or SyntaxKind.FalseKeyword or SyntaxKind.NullKeyword or SyntaxKind.MinusToken)
                 {
                     int start = token.Pos;
                     NodeId value = Expression();
@@ -198,11 +265,17 @@ public sealed class SliceParser<TStore, TSource> where TStore : INodeStore where
                     NodeId missing = Add(SyntaxKind.Identifier, token.Start, token.Start, new IdentifierData(""));
                     node = Add(SyntaxKind.TypeReference, token.Start, token.Start, new TypeReferenceNodeData(missing, default));
                 }
-                frame.Types.Add(node); expectType = false;
+                frame.Types.Add(node);
+                expectType = false;
             }
-            if (Eat(SyntaxKind.BarToken)) { expectType = true; continue; }
+            if (Eat(SyntaxKind.BarToken))
+            {
+                expectType = true;
+                continue;
+            }
             NodeId result = Finish(frame);
-            if (parents.Count == 0) return result;
+            if (parents.Count == 0)
+                return result;
             (TypeFrame parent, int parenPos) = parents.Pop();
             Expect(SyntaxKind.CloseParenToken);
             parent.Types.Add(Add(SyntaxKind.ParenthesizedType, parenPos, token.Pos, new ParenthesizedTypeNodeData(result)));
@@ -217,18 +290,23 @@ public sealed class SliceParser<TStore, TSource> where TStore : INodeStore where
     {
         if (token.Kind is SyntaxKind.MinusToken or SyntaxKind.PlusToken)
         {
-            var current = token; Next();
-            if (token.Kind != SyntaxKind.NumericLiteral) Error(1109, "Numeric literal expected in phase-1 unary expression.");
+            var current = token;
+            Next();
+            if (token.Kind != SyntaxKind.NumericLiteral)
+                Error(1109, "Numeric literal expected in phase-1 unary expression.");
             NodeId literal = Literal();
             return Add(SyntaxKind.PrefixUnaryExpression, current.Pos, token.Pos, new PrefixUnaryExpressionData(current.Kind, literal));
         }
-        if (token.Kind is SyntaxKind.StringLiteral or SyntaxKind.NumericLiteral or SyntaxKind.TrueKeyword or SyntaxKind.FalseKeyword or SyntaxKind.NullKeyword) return Literal();
+        if (token.Kind is SyntaxKind.StringLiteral or SyntaxKind.NumericLiteral or SyntaxKind.TrueKeyword or SyntaxKind.FalseKeyword
+            or SyntaxKind.NullKeyword)
+            return Literal();
         return Identifier();
     }
 
     private NodeId Literal()
     {
-        var current = token; Next();
+        var current = token;
+        Next();
         return current.Kind switch
         {
             SyntaxKind.StringLiteral => Add(current.Kind, current.Pos, current.End, new StringLiteralData(current.Text, current.Flags)),

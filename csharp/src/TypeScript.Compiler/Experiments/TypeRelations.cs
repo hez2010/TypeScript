@@ -5,7 +5,25 @@ namespace TypeScript.Compiler.Experiments;
 // Bounded phase-1 slice: primitive/literal/union/alias types, strictNullChecks.
 // Corresponds to checker/relater.go isTypeRelatedTo, isSimpleTypeRelatedTo,
 // and source-union/target-union branches. This is not a replacement checker.
-public enum AtomKind { Any, Unknown, Never, String, Number, BigInt, Boolean, Undefined, Null, Void, Symbol, Object, StringLiteral, NumberLiteral, True, False }
+public enum AtomKind
+{
+    Any,
+    Unknown,
+    Never,
+    String,
+    Number,
+    BigInt,
+    Boolean,
+    Undefined,
+    Null,
+    Void,
+    Symbol,
+    Object,
+    StringLiteral,
+    NumberLiteral,
+    True,
+    False
+}
 public readonly record struct TypeAtom(AtomKind Kind, string? Value = null);
 
 public interface IRelationPolicy
@@ -82,12 +100,29 @@ public static class TypeRelations
         while (!text.IsEmpty)
         {
             text = text.TrimStart();
-            if (text.IsEmpty) break;
+            if (text.IsEmpty)
+                break;
             char ch = text[0];
-            if (ch == '(' && expectType) { depth++; text = text[1..]; continue; }
-            if (ch == ')' && !expectType && depth > 0) { depth--; text = text[1..]; continue; }
-            if (ch == '|' && !expectType) { expectType = true; text = text[1..]; continue; }
-            if (!expectType) throw new NotSupportedException("Type slice expects a union separator");
+            if (ch == '(' && expectType)
+            {
+                depth++;
+                text = text[1..];
+                continue;
+            }
+            if (ch == ')' && !expectType && depth > 0)
+            {
+                depth--;
+                text = text[1..];
+                continue;
+            }
+            if (ch == '|' && !expectType)
+            {
+                expectType = true;
+                text = text[1..];
+                continue;
+            }
+            if (!expectType)
+                throw new NotSupportedException("Type slice expects a union separator");
             if (ch is '\'' or '"')
             {
                 int end = text[1..].IndexOf(ch);
@@ -99,12 +134,21 @@ public static class TypeRelations
             else
             {
                 int end = text.IndexOfAny(" |()\t\r\n");
-                if (end < 0) end = text.Length;
+                if (end < 0)
+                    end = text.Length;
                 ReadOnlySpan<char> token = text[..end];
                 text = text[end..];
-                if (token.Length > 1 && token[0] == 'T' && int.TryParse(token[1..], NumberStyles.None, CultureInfo.InvariantCulture, out int index) && index < previousAliases.Count)
+                if (token.Length > 1
+                    && token[0] == 'T'
+                    && int.TryParse(token[1..], NumberStyles.None, CultureInfo.InvariantCulture, out int index)
+                    && index < previousAliases.Count)
                     atoms.AddRange(previousAliases[index]);
-                else if (double.TryParse(token, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out double number) && double.IsFinite(number))
+                else if (double.TryParse(
+                    token,
+                    NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent,
+                    CultureInfo.InvariantCulture,
+                    out double number)
+                    && double.IsFinite(number))
                     atoms.Add(new(AtomKind.NumberLiteral, number == 0 ? "0" : number.ToString("R", CultureInfo.InvariantCulture)));
                 else
                 {
@@ -128,14 +172,18 @@ public static class TypeRelations
                     };
                     if (kind == AtomKind.Boolean)
                         atoms.AddRange([new(AtomKind.True), new(AtomKind.False)]);
-                    else atoms.Add(new(kind));
+                    else
+                        atoms.Add(new(kind));
                 }
             }
             expectType = false;
         }
-        if (expectType || depth != 0) throw new InvalidDataException("Incomplete type expression");
-        if (atoms.Any(atom => atom.Kind == AtomKind.Any)) return [new(AtomKind.Any)];
-        if (atoms.Any(atom => atom.Kind == AtomKind.Unknown)) return [new(AtomKind.Unknown)];
+        if (expectType || depth != 0)
+            throw new InvalidDataException("Incomplete type expression");
+        if (atoms.Any(atom => atom.Kind == AtomKind.Any))
+            return [new(AtomKind.Any)];
+        if (atoms.Any(atom => atom.Kind == AtomKind.Unknown))
+            return [new(AtomKind.Unknown)];
         return atoms.Distinct().Where(atom => atom.Kind != AtomKind.Never).ToArray();
     }
 }

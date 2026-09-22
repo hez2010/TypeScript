@@ -21,7 +21,8 @@ public sealed class SliceWorkspace<TStore>(Func<TStore> createStore) : IDisposab
         foreach (var input in inputs.OrderBy(pair => pair.Key, StringComparer.Ordinal))
         {
             cancellation.ThrowIfCancellationRequested();
-            if (previous?.Files.TryGetValue(input.Key, out var shared) == true && shared.Text.AsSpan().SequenceEqual(input.Value)) files.Add(shared);
+            if (previous?.Files.TryGetValue(input.Key, out var shared) == true && shared.Text.AsSpan().SequenceEqual(input.Value))
+                files.Add(shared);
             else
             {
                 byte[] owned = (byte[])input.Value.Clone();
@@ -40,19 +41,31 @@ public sealed class SliceWorkspace<TStore>(Func<TStore> createStore) : IDisposab
     }
 
     public SnapshotLease Acquire() => new(Volatile.Read(ref current) ?? throw new InvalidOperationException("No active snapshot"));
-    public void Dispose() { lock (gate) { disposed = true; Volatile.Write(ref current, null); } }
+
+    public void Dispose()
+    {
+        lock (gate)
+        {
+            disposed = true;
+            Volatile.Write(ref current, null);
+        }
+    }
 
     public sealed class SnapshotLease(SliceProject<TStore> project) : IDisposable
     {
         private SliceProject<TStore>? owner = project;
         public SliceProject<TStore> Project => Volatile.Read(ref owner) ?? throw new ObjectDisposedException(nameof(SnapshotLease));
+
         public SliceNodeHandle<TStore> Root(string name) => new(Project.Files[name], Project.Files[name].Root);
+
         public NodeHeader Read(SliceNodeHandle<TStore> handle)
         {
             var snapshot = Project;
-            if (!snapshot.Files.TryGetValue(handle.Owner.Name, out var file) || !ReferenceEquals(file, handle.Owner)) throw new ArgumentException("Node owner is not in this snapshot", nameof(handle));
+            if (!snapshot.Files.TryGetValue(handle.Owner.Name, out var file) || !ReferenceEquals(file, handle.Owner))
+                throw new ArgumentException("Node owner is not in this snapshot", nameof(handle));
             return file.Store.Header(handle.Node);
         }
+
         public void Dispose() => Interlocked.Exchange(ref owner, null);
     }
 }
