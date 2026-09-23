@@ -60,6 +60,38 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 		}
 		return result
 	}
+	// Inferred parameter sets come from a Go map. Canonicalize only their
+	// serialized order; leave the checker's parameter lists and mappers intact.
+	orderedInferences := func(values []*Type) []*Type {
+		result := slices.Clone(values)
+		groups := map[*ast.Node][]int{}
+		for i, t := range values {
+			if t.symbol == nil || len(t.symbol.Declarations) == 0 {
+				continue
+			}
+			d := t.symbol.Declarations[0]
+			if d.Parent == nil || !ast.IsInferTypeNode(d.Parent) {
+				continue
+			}
+			for owner := d.Parent.Parent; owner != nil; owner = owner.Parent {
+				if ast.IsConditionalTypeNode(owner) {
+					groups[owner] = append(groups[owner], i)
+					break
+				}
+			}
+		}
+		for _, positions := range groups {
+			parameters := make([]*Type, len(positions))
+			for i, position := range positions {
+				parameters[i] = values[position]
+			}
+			slices.SortFunc(parameters, func(a, b *Type) int { return nodeIDs[a.symbol.Declarations[0]] - nodeIDs[b.symbol.Declarations[0]] })
+			for i, position := range positions {
+				result[position] = parameters[i]
+			}
+		}
+		return result
+	}
 	name := func(s string) string { return base64.StdEncoding.EncodeToString([]byte(ast.EscapeSymbolName(s))) }
 	table := func(source ast.SymbolTable) []any {
 		keys := []string{}
@@ -115,7 +147,7 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	scopes := []any{}
 	for _, node := range nodes {
 		if ast.IsTypeReferenceNode(node) || ast.IsThisTypeNode(node) || ast.IsTypeParameterDeclaration(node) {
-			values := tids(c.getOuterTypeParameters(node, true))
+			values := tids(orderedInferences(c.getOuterTypeParameters(node, true)))
 			if values == nil {
 				values = []int{}
 			}
@@ -542,7 +574,7 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 				shape["constraint"] = tid(t.AsSubstitutionType().constraint)
 			case t.flags&TypeFlagsConditional != 0:
 				d := t.AsConditionalType()
-				shape["root"] = []any{nodeIDs[d.root.node.AsNode()], tid(d.root.checkType), tid(d.root.extendsType), d.root.isDistributive, tids(d.root.outerTypeParameters), tids(d.root.inferTypeParameters)}
+				shape["root"] = []any{nodeIDs[d.root.node.AsNode()], tid(d.root.checkType), tid(d.root.extendsType), d.root.isDistributive, tids(orderedInferences(d.root.outerTypeParameters)), tids(orderedInferences(d.root.inferTypeParameters))}
 				shape["check"] = tid(d.checkType)
 				shape["extends"] = tid(d.extendsType)
 				shape["true"] = tid(d.resolvedTrueType)
@@ -568,6 +600,10 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 				shape["constraint"] = tid(d.constraintType)
 				shape["template"] = tid(d.templateType)
 				shape["name"] = tid(d.nameType)
+			}
+			if t.objectFlags&ObjectFlagsReverseMapped != 0 {
+				d := t.AsReverseMappedType()
+				shape["reverse"] = []any{tid(d.source), tid(d.mappedType), tid(d.constraintType)}
 			}
 			row = append(row, shape)
 		}

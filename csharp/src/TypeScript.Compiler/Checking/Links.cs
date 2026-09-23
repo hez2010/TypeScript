@@ -56,6 +56,13 @@ internal sealed class MappedSymbolLinks
     internal Symbol? SyntheticOrigin { get; set; }
 }
 
+internal sealed class ReverseMappedSymbolLinks
+{
+    internal Type? PropertyType { get; set; }
+    internal MappedType? MappedType { get; set; }
+    internal IndexType? ConstraintType { get; set; }
+}
+
 internal sealed class ExportTypeLinks
 {
     internal Symbol? Target { get; set; }
@@ -110,6 +117,7 @@ internal sealed class CheckerLinks
     internal LinkStore<Symbol, DeferredSymbolLinks> DeferredSymbols { get; } = new();
     internal LinkStore<Symbol, AliasSymbolLinks> Aliases { get; } = new();
     internal LinkStore<Symbol, MappedSymbolLinks> MappedSymbols { get; } = new();
+    internal LinkStore<Symbol, ReverseMappedSymbolLinks> ReverseMappedSymbols { get; } = new();
     internal LinkStore<Symbol, ExportTypeLinks> ExportTypes { get; } = new();
     internal LinkStore<Symbol, ModuleSymbolLinks> Modules { get; } = new();
     internal LinkStore<Symbol, TypeAliasLinks> TypeAliases { get; } = new();

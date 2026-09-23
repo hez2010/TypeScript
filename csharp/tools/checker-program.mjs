@@ -455,6 +455,40 @@ for (const strict of [false, true]) {
     for (const exactOptionalPropertyTypes of [false, true]) {
         for (
             const [name, source] of Object.entries({
+                direct: "type A<T>=T extends infer U?U:never;type B=A<string>;type C=A<'a'|1>;type D=A<any>;type E=A<never>;",
+                arrays: "type A<T>=T extends (infer U)[]?U:never;type B=A<string[]>;type C=A<[1,2]>;type D=A<never[]>;type E<T>=T extends readonly (infer U)[]?U:never;type F=E<readonly [1,2]>;",
+                properties: "type A<T>=T extends {a:infer U;b:infer U}?U:never;type B=A<{a:1;b:2}>;type C=A<{a:string;b:number}>;type D=A<{a:1}>;",
+                functions: "type A<T>=T extends (x:infer U)=>void?U:never;type B=A<(x:string)=>void>;type C<T>=T extends (...args:any[])=>infer U?U:never;type D=C<()=>number>;",
+                contravariance: "type A<T>=T extends {a:(x:infer U)=>void;b:(x:infer U)=>void}?U:never;type B=A<{a:(x:string)=>void;b:(x:number)=>void}>;type C=A<{a:(x:'a')=>void;b:(x:string)=>void}>;",
+                tuples: "type A<T>=T extends [infer U,...infer R]?[U,R]:never;type B=A<[1,2,3]>;type C=A<[]>;type D<T>=T extends [...infer R,infer U]?[R,U]:never;type E=D<[1,2,3]>;",
+                constraints: "type A<T>=T extends infer U extends string?U:never;type B=A<'a'|1>;type C<T>=T extends {x:infer U extends number}?U:never;type D=C<{x:42}>;",
+                templates: "type A<T>=T extends `${infer L}-${infer R}`?[L,R]:never;type B=A<'a-b-c'>;type C<T>=T extends `${infer N extends number}`?N:never;type D=C<'42'>;type E=C<'01'>;",
+                unions: "type A<T>=T extends (infer U)[]|undefined?U:never;type B=A<string[]|undefined>;type C<T>=T extends {a:infer U}|{b:infer U}?U:never;type D=C<{a:1}|{b:2}>;",
+                references: "interface Box<T>{value:T}type A<T>=T extends Box<infer U>?U:never;type B=A<Box<string>>;type C=A<{value:1}>;",
+                inferredConstraints: "interface Box<T extends string>{value:T}type A<T>=T extends Box<infer U>?U:never;type B=A<Box<'a'>>;type C=A<{value:number}>;",
+                nested: "type A<T>=T extends {x:infer U}?U extends {y:infer V}?V:U:never;type B=A<{x:{y:string}}>;type C=A<{x:number}>;",
+                mapped: "type Box<T>={[P in keyof T]:{value:T[P]}};type A<T>=T extends Box<infer U>?U:never;type B=A<{a:{value:1};b:{value:string}}>;type C=B['a'];type D=keyof B;",
+                mappedTuples: "type Box<T>={[P in keyof T]:{value:T[P]}};type A<T>=T extends Box<infer U>?U:never;type B=A<[{value:1},{value:2}]>;type C=A<readonly [{value:'a'}]>;type D=A<{value:string}[]>;",
+                partialMapping: "type Box<T>={readonly[P in keyof T]?:{value:T[P]}};type A<T>=T extends Box<infer U>?U:never;type B=A<{readonly a?:{value:1};b:{value:2}}>;type C=B['a'];type D=B['b'];",
+                templateScalars: "type A<T>=T extends `${infer U extends bigint}`?U:never;type B=A<'123'>;type C=A<'-0'>;type D<T>=T extends `${infer U extends boolean}`?U:never;type E=D<'true'>;type F=D<'no'>;type G<T>=T extends `${infer U extends number|bigint}`?U:never;type H=G<'12'>;",
+                dependentConstraints: "type Pair<T,U extends T>=[T,U];type A<X>=X extends Pair<infer T,infer U>?[T,U]:never;type B=A<[string,'a']>;type C=A<[string,number]>;type D<X>=X extends Pair<infer U,infer U>?U:never;type E=D<[string,'a']>;",
+            })
+        ) add(`inference:${name}:${strict}:${exactOptionalPropertyTypes}`, { "globals.d.ts": library, "main.ts": source }, { strict, exactOptionalPropertyTypes }, false, true);
+        for (
+            const [name, source] of Object.entries({
+                contextual: "type R0=<T>(x:T)=>T;type R1=(x:string)=>string;type R2=(x:number)=>number;type R3=(x:string)=>number;type R4=<T extends string>(x:T)=>T;",
+                contextualRest: "type R0=<T>(...args:T[])=>T;type R1=(x:string,y:string)=>string;type R2=(x:string,y:number)=>string|number;type R3=<T extends unknown[]>(...args:T)=>T;type R4=(x:string,y:number)=>[string,number];",
+                conditionalRelations: "function f<T>(){type R0=T extends {a:infer U}?U:never;type R1=T extends {a:infer V}?V:never;type R2=T extends {b:infer U}?U:never;type R3=unknown;}",
+                genericCallbacks: "type R0=<T>(cb:(value:T)=>void)=>T;type R1=(cb:(value:string)=>void)=>string;type R2=(cb:(value:number)=>void)=>number;type R3=(cb:(value:'a')=>void)=>string;",
+                contextualDefaults: "type R0=<T=string>()=>T;type R1=()=>number;type R2=()=>string;type R3=<T extends string>()=>T;type R4=()=>void;",
+            })
+        ) add(`inference:relations-${name}:${strict}:${exactOptionalPropertyTypes}`, { "globals.d.ts": library, "main.ts": source }, { strict, exactOptionalPropertyTypes }, false, true, false, false, false, false, true, true);
+    }
+}
+for (const strict of [false, true]) {
+    for (const exactOptionalPropertyTypes of [false, true]) {
+        for (
+            const [name, source] of Object.entries({
                 primitive: "type A=string extends string?1:2;type B=number extends string?1:2;type C=any extends string?1:2;type D=never extends string?1:2;type E=unknown extends string?1:2;type F=string extends any?1:2;",
                 generic: "type A<T>=T extends string?1:2;type B=A<'a'|1>;type C=A<never>;type D=A<any>;type E=A<unknown>;type F=A<string>;",
                 constrained: "type A<T extends string>=T extends 'a'?1:2;type B=A<'a'>;type C=A<'b'>;type D<T extends {a:any}>=T extends {a:string}?1:2;type E=D<{a:number}>;",
@@ -482,8 +516,8 @@ for (const strict of [false, true]) {
         ) add(`conditional:relations-${name}:${strict}:${exactOptionalPropertyTypes}`, { "globals.d.ts": library, "main.ts": source }, { strict, exactOptionalPropertyTypes }, false, true, false, false, false, false, true, true);
     }
 }
-let selected = process.argv.includes("--conditional") ? cases.filter(c => c.typeNodes && c.name.startsWith("conditional:")) :
-    process.argv.includes("--generic-relations") ? cases.filter(c => c.genericRelations) : process.argv.includes("--indexing") ? cases.filter(c => c.name.startsWith("indexing:")) : process.argv.includes("--assignability") ? cases.filter(c => c.assignability && !c.genericRelations && !c.name.startsWith("conditional:")) : process.argv.includes("--identity") ? cases.filter(c => c.identity && !c.assignability) : process.argv.includes("--signatures") ? cases.filter(c => c.signatures) : process.argv.includes("--properties") ? cases.filter(c => c.properties) : process.argv.includes("--values") ? cases.filter(c => c.values) : process.argv.includes("--members") ? cases.filter(c => c.members && !c.values && !c.signatures) : process.argv.includes("--type-nodes") ? cases.filter(c => c.typeNodes && !c.members && !c.properties && !c.identity && !c.name.startsWith("indexing:") && !c.name.startsWith("conditional:"))
+let selected = process.argv.includes("--inference") ? cases.filter(c => c.typeNodes && c.name.startsWith("inference:")) : process.argv.includes("--conditional") ? cases.filter(c => c.typeNodes && c.name.startsWith("conditional:")) :
+    process.argv.includes("--generic-relations") ? cases.filter(c => c.genericRelations) : process.argv.includes("--indexing") ? cases.filter(c => c.name.startsWith("indexing:")) : process.argv.includes("--assignability") ? cases.filter(c => c.assignability && !c.genericRelations && !c.name.startsWith("conditional:") && !c.name.startsWith("inference:")) : process.argv.includes("--identity") ? cases.filter(c => c.identity && !c.assignability) : process.argv.includes("--signatures") ? cases.filter(c => c.signatures) : process.argv.includes("--properties") ? cases.filter(c => c.properties) : process.argv.includes("--values") ? cases.filter(c => c.values) : process.argv.includes("--members") ? cases.filter(c => c.members && !c.values && !c.signatures) : process.argv.includes("--type-nodes") ? cases.filter(c => c.typeNodes && !c.members && !c.properties && !c.identity && !c.name.startsWith("indexing:") && !c.name.startsWith("conditional:") && !c.name.startsWith("inference:"))
     : cases.filter(c => !c.typeNodes && Boolean(c.aliases) === process.argv.includes("--aliases"));
 if (option("--filter")) selected = selected.filter(c => c.name.includes(option("--filter")));
 async function probe(command, args) {
@@ -517,7 +551,7 @@ for (let i = 0; i < selected.length; i++) {
 await json(path.join(output, "checker-program-failures.json"), failures);
 const summary = {
     timestamp: new Date().toISOString(),
-    scope: process.argv.includes("--conditional") ? "Conditional evaluation, distribution, tail recursion, constraints and relations with required inference services; full checker integration remains incomplete" : process.argv.includes("--generic-relations") ? "Generic key/indexed/mapped relations, optionality, variance and cache graphs; conditional and full diagnostic services remain incomplete" :
+    scope: process.argv.includes("--inference") ? "Type inference, constraints, reverse mapped types, widening and contextual signatures; expression inference and full checker integration remain incomplete" : process.argv.includes("--conditional") ? "Conditional evaluation, distribution, tail recursion, constraints and relations with required inference services; full checker integration remains incomplete" : process.argv.includes("--generic-relations") ? "Generic key/indexed/mapped relations, optionality, variance and cache graphs; conditional and full diagnostic services remain incomplete" :
         process.argv.includes("--indexing") ? "Key enumeration, indexed access, read/write simplification and generic cache identity; expression checking and full checker integration remain incomplete" : process.argv.includes("--assignability") ? "Structural relation decisions, signature variance, discriminants and generic variance caches with required advanced semantic services; full checker integration remains incomplete" : process.argv.includes("--identity") ? "Structural identity, primitive relation predicates, normalization and recursive caches with required advanced relation services; full checker integration remains incomplete" : process.argv.includes("--signatures") ? "Signature matching, composition, tuple rest parameters and array member fallback with explicit type relation dependencies; full checker integration remains incomplete" :
         process.argv.includes("--properties") ? "Composite properties, apparent types and intersection reduction with explicit relation and signature dependencies; full checker integration remains incomplete" : process.argv.includes("--values") ? "Source symbol read/write types, accessors, value aliases and declaration value objects with explicit inference dependencies; full checker integration remains incomplete" : process.argv.includes("--members") ? "Source structured members, interface bases, signatures and index signatures with annotated value dependencies; full checker integration remains incomplete" : process.argv.includes("--type-nodes") ? "Source type-node evaluation, declared aliases and references with explicit semantic dependencies; full checker integration remains incomplete" : process.argv.includes("--aliases")
         ? "Program-backed alias targets, type-only chains and module exports with explicit semantic dependencies; full checker integration remains incomplete"

@@ -113,7 +113,7 @@ internal sealed partial class ProgramTypeHost : ISignatureHost, IStructuredMembe
         Composites.IntersectionAsync(type, cancellation);
 
     public ValueTask ResolveReverseMappedAsync(ReverseMappedType type, CancellationToken cancellation) =>
-        throw new InvalidOperationException("Probe requires reverse mapped members");
+        ReverseInference.ResolveAsync(type, cancellation);
 
     public ValueTask<Type> ReducedAsync(Type type, CancellationToken cancellation) => Views.ReducedAsync(type, cancellation);
 
@@ -179,7 +179,7 @@ internal sealed partial class ProgramTypeHost : ISignatureHost, IStructuredMembe
     }
 
     public ValueTask<Type> ReverseMappedAsync(Symbol symbol, CancellationToken cancellation) =>
-            throw new InvalidOperationException("Probe requires reverse mapped symbol types");
+        ReverseInference.SymbolAsync(symbol, cancellation);
 
     public Type CircularSymbol(Symbol symbol)
     {

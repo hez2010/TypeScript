@@ -41,7 +41,9 @@ internal abstract class TypeMapper
         cancellation.ThrowIfCancellationRequested();
         if (this is not (Merged or Composite))
         {
-            var mapped = MapLeaf(type);
+            var mapped = this is AsyncFunctionMapper function
+                ? await function.Callback(type, cancellation).ConfigureAwait(false)
+                : MapLeaf(type);
             type.Context.RequireOwned(mapped);
             return mapped;
         }
@@ -66,6 +68,9 @@ internal abstract class TypeMapper
                         result = await composite.Instantiate(result, composite.Second, cancellation).ConfigureAwait(false);
                     else
                         pending.Push((composite.Second, null));
+                    break;
+                case AsyncFunctionMapper function:
+                    result = await function.Callback(result, cancellation).ConfigureAwait(false);
                     break;
                 default:
                     result = frame.Mapper.MapLeaf(result);
@@ -103,6 +108,8 @@ internal abstract class TypeMapper
     }
 
     internal static TypeMapper Function(Func<Type, Type> map) => new FunctionMapper(map);
+
+    internal static TypeMapper FunctionAsync(Func<Type, CancellationToken, ValueTask<Type>> map) => new AsyncFunctionMapper(map);
 
     internal static TypeMapper Merge(TypeMapper? first, TypeMapper second) => first is null ? second : new Merged(first, second);
 
@@ -167,6 +174,14 @@ internal abstract class TypeMapper
     private sealed class FunctionMapper(Func<Type, Type> map) : TypeMapper
     {
         private protected override Type MapLeaf(Type type) => map(type);
+    }
+
+    private sealed class AsyncFunctionMapper(Func<Type, CancellationToken, ValueTask<Type>> map) : TypeMapper
+    {
+        internal Func<Type, CancellationToken, ValueTask<Type>> Callback => map;
+
+        private protected override Type MapLeaf(Type type) =>
+            throw new InvalidOperationException("Asynchronous mapper requires a continuation");
     }
 
     private sealed class Merged(TypeMapper first, TypeMapper second) : TypeMapper

@@ -1,0 +1,20 @@
+{
+    "timestamp": "2026-09-23T22:50:33.387Z",
+    "scope": "Conditional evaluation, distribution, tail recursion, constraints and relations with required inference services; full checker integration remains incomplete",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "managed": false,
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "cases": 152,
+    "keyQueries": 0,
+    "indexQueries": 0,
+    "numericStringConversions": 0,
+    "relationPairs": 1200,
+    "relationKeyQueries": 0,
+    "exact": 152,
+    "failed": 0,
+    "inputSha256": "e32f9caaa1f3a2438709237097b700125a24beef1c5f71cb7d58eddb7369820c",
+    "referenceOutputSha256": "d1d7339f8957418e8d529954d3afafcc0b42b5308c4b788d20251952eec92fab",
+    "outputSha256": "bd00068565419db482598020a4ae389285b2df9ae2cce565da17c93d63cdfa97",
+    "candidateSha256": "de5ef8dac4efaf240067a2d79517e234870808d41a5f1bd83c35a8b128203d22",
+    "oracleSha256": "595020734a6972db8d1077c66e8be1da06702e3e574cb255ed74a42183080416"
+}

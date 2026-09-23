@@ -7,28 +7,36 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed class TemplateMatching(TypeContext context, TypeAlgebra algebra, TypeConstraints constraints, TypeRelations relations)
 {
-    internal async ValueTask<bool> MatchesAsync(
+    internal ValueTask<bool> MatchesAsync(
         Type source,
         TemplateLiteralType target,
         RelationOperation operation,
         CancellationToken cancellation = default)
+        => MatchesAsync(source, target, (s, t, token) => operation.CompareAsync(s, t, cancellation: token), cancellation);
+
+    internal async ValueTask<bool> MatchesAsync(Type source, TemplateLiteralType target,
+        Func<Type, Type, CancellationToken, ValueTask<Ternary>> compare, CancellationToken cancellation = default)
     {
         await Task.CompletedTask.ConfigureAwait(
             RuntimeHelpers.TryEnsureSufficientExecutionStack() ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
-        var inferences = await InferAsync(source, target, operation, cancellation).ConfigureAwait(false);
+        var inferences = await InferAsync(source, target, compare, cancellation).ConfigureAwait(false);
         if (inferences is null)
             return false;
         for (int i = 0; i < inferences.Count; i++)
-            if (!await PlaceholderAsync(inferences[i], target.Types[i], operation, cancellation).ConfigureAwait(false))
+            if (!await PlaceholderAsync(inferences[i], target.Types[i], compare, cancellation).ConfigureAwait(false))
                 return false;
         return true;
     }
 
-    internal async ValueTask<IReadOnlyList<Type>?> InferAsync(
+    internal ValueTask<IReadOnlyList<Type>?> InferAsync(
         Type source,
         TemplateLiteralType target,
         RelationOperation operation,
         CancellationToken cancellation = default)
+        => InferAsync(source, target, (s, t, token) => operation.CompareAsync(s, t, cancellation: token), cancellation);
+
+    internal async ValueTask<IReadOnlyList<Type>?> InferAsync(Type source, TemplateLiteralType target,
+        Func<Type, Type, CancellationToken, ValueTask<Ternary>> compare, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
         context.RequireOwned(source);
@@ -43,9 +51,9 @@ internal sealed class TemplateMatching(TypeContext context, TypeAlgebra algebra,
         for (int i = 0; i < result.Length; i++)
         {
             var s = template.Types[i];
-            result[i] = await operation.CompareAsync(await constraints.BaseConstraintOrTypeAsync(s, cancellation).ConfigureAwait(false),
+            result[i] = await compare(await constraints.BaseConstraintOrTypeAsync(s, cancellation).ConfigureAwait(false),
                 await constraints.BaseConstraintOrTypeAsync(target.Types[i], cancellation).ConfigureAwait(false),
-                cancellation: cancellation).ConfigureAwait(false) != Ternary.False ? s
+                cancellation).ConfigureAwait(false) != Ternary.False ? s
                 : (s.Flags & (TypeFlags.Any | TypeFlags.StringLike)) != 0
                     ? s
                     : await algebra.TemplateAsync(["", ""], [s], cancellation).ConfigureAwait(false);
@@ -128,7 +136,11 @@ internal sealed class TemplateMatching(TypeContext context, TypeAlgebra algebra,
         return result.AsReadOnly();
     }
 
-    private async ValueTask<bool> PlaceholderAsync(Type source, Type target, RelationOperation operation, CancellationToken cancellation)
+    private async ValueTask<bool> PlaceholderAsync(
+        Type source,
+        Type target,
+        Func<Type, Type, CancellationToken, ValueTask<Ternary>> compare,
+        CancellationToken cancellation)
     {
         await Task.CompletedTask.ConfigureAwait(
             RuntimeHelpers.TryEnsureSufficientExecutionStack() ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
@@ -136,12 +148,12 @@ internal sealed class TemplateMatching(TypeContext context, TypeAlgebra algebra,
         {
             foreach (var part in intersection.Types)
                 if (part != context.EmptyTypeLiteralType
-                    && !await PlaceholderAsync(source, part, operation, cancellation).ConfigureAwait(false))
+                    && !await PlaceholderAsync(source, part, compare, cancellation).ConfigureAwait(false))
                     return false;
             return true;
         }
         if ((target.Flags & TypeFlags.String) != 0
-            || await operation.CompareAsync(source, target, cancellation: cancellation).ConfigureAwait(false) != Ternary.False)
+            || await compare(source, target, cancellation).ConfigureAwait(false) != Ternary.False)
             return true;
         if (source is LiteralType { Value: string value })
         {
@@ -160,13 +172,13 @@ internal sealed class TemplateMatching(TypeContext context, TypeAlgebra algebra,
             if (target is StringMappingType)
                 return await MemberAsync(source, target, cancellation).ConfigureAwait(false);
             if (target is TemplateLiteralType template)
-                return await MatchesAsync(source, template, operation, cancellation).ConfigureAwait(false);
+                return await MatchesAsync(source, template, compare, cancellation).ConfigureAwait(false);
         }
         return source is TemplateLiteralType { Texts.Count: 2 } sourceTemplate && sourceTemplate.Texts.All(t => t.Length == 0)
-            && await operation.CompareAsync(
+            && await compare(
                 sourceTemplate.Types[0],
                 target,
-                cancellation: cancellation).ConfigureAwait(false) != Ternary.False;
+                cancellation).ConfigureAwait(false) != Ternary.False;
     }
 
     internal async ValueTask<bool> MemberAsync(Type source, Type target, CancellationToken cancellation = default)
@@ -201,7 +213,7 @@ internal sealed class TemplateMatching(TypeContext context, TypeAlgebra algebra,
             || !sourceEnd.AsSpan(sourceEnd.Length - end).SequenceEqual(targetEnd.AsSpan(targetEnd.Length - end));
     }
 
-    private static bool BigInt(string value)
+    internal static bool BigInt(string value)
     {
         if (value.Length == 0)
             return false;

@@ -1,0 +1,103 @@
+{
+    "timestamp": "2026-09-23T22:57:44.8621170Z",
+    "scope": "Type-to-type inference, inferred constraints, reverse mapping, widening, async fixing mappers and contextual generic signatures; expression inference and full phase 4 remain incomplete",
+    "candidateSha256": "de5ef8dac4efaf240067a2d79517e234870808d41a5f1bd83c35a8b128203d22",
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "languageVersion": "15.0",
+    "runtimeAsync": true,
+    "optimizationPreference": "Speed",
+    "instructionSet": "native",
+    "publish": {
+        "exitCode": 0,
+        "log": "logs/csharp-phase4-inference-publish.log",
+        "sha256": "03933be2dc34223ee88005d844f6919fd7786869077fd93acbb392005d81ccfb"
+    },
+    "state": {
+        "exitCode": 0,
+        "output": "35 inference/priority/fixing/cancellation/widening/reverse-map assertions; 20000-level traversal",
+        "assertions": 35
+    },
+    "regression": {
+        "assignability": 332,
+        "identity": 160,
+        "safetyOutputs": [
+            "24 conditional/cache/cancellation assertions; exact 1000 tail and 10 relation nesting limits",
+            "22 generic relation/optionality/key variance/cancellation assertions",
+            "Checker indexed type safety: 24 assertions; 20,000-level simplification and key traversal",
+            "33 structural relation/variance/facts/cancellation assertions",
+            "36 relation key/cache/normalization/cancellation assertions; exact 100-level comparison cutoff; key and base chains depth 20000",
+            "39 signature matching/arity/composition/cancellation assertions; binding label depth 20000",
+            "49 property/view/index/cache/cancellation assertions; reduction chain depth 20000",
+            "32 symbol read/write/cache/cancellation assertions; instantiated symbol chain depth 20000",
+            "31 structured member/signature assertions; base and signature chains depth 20000",
+            "25 source-type/cache/cancellation assertions; array and alias ancestry depth 20000",
+            "30 mapped member assertions; key validity, lower-bound and modifier chains at depth 20000",
+            "37 mapped type assertions; actual-variable, generic-flag, kind and unary-tuple analysis depth 20000",
+            "40 object instantiation assertions; reference, parent and entity-name depth 20000",
+            "26 instantiation/signature/tuple assertions; exact 100-depth, 5,000,000-work and 10,000-tuple limits",
+            "21 constraint/default/recursion state assertions; default and indexed identity depth 20000",
+            "15 algebra ownership/limit/cancellation assertions; template, intersection and origin depth 20000",
+            "25 program/checker ownership assertions; interface and scope depth 20000",
+            "31 alias/cycle/cancellation/module-export assertions; alias chain depth 20000",
+            "41 checker ownership/state assertions; mapper and type-order depth 50000; 16 independent contexts"
+        ],
+        "constraintOperations": 20154,
+        "values": 136,
+        "safetyAssertions": 581,
+        "sourceProgramCases": 2004,
+        "conditionals": 152,
+        "constraints": 613,
+        "signatures": 216,
+        "typeState": 2904,
+        "sourceTypes": 192,
+        "indexing": 320,
+        "properties": 192,
+        "typeStateOperations": 1333980,
+        "failed": 0,
+        "genericRelations": 128,
+        "members": 176
+    },
+    "repository": {
+        "extensionTests": 12,
+        "apiTests": 813,
+        "node": "24.20.0",
+        "exitCode": 0,
+        "benchmarkScope": "Required smoke runs only; no performance claim",
+        "goTestResults": 163380,
+        "goSkips": 2152,
+        "command": "npx --no-install hereby validate --all",
+        "log": "logs/csharp-phase4-inference-validation-retry.log",
+        "sha256": "e50a7214a383b78456fe72e1e5feca4283b526cefc0db3e13f0dfc310731efb3",
+        "lintIssues": 0,
+        "toolTests": 17,
+        "go": "1.27.1",
+        "initialAttempt": {
+            "exitCode": 1,
+            "recovery": "Narrow dprint formatting completed and git diff confirmed the generated Go file matched HEAD; full validate --all retry passed",
+            "log": "logs/csharp-phase4-inference-validation.log",
+            "reason": "Windows error 1224 while dprint formatted tsc/internal/vfs/vfsmock/mock_generated.go",
+            "sha256": "9cc4f6ed2bb6b6f3388ff900c83924c8df570bd1373221376950a74064fbeaa6"
+        }
+    },
+    "formatting": "Thirty C# files verified with identical tokens, comments and syntax under both library configurations; single-line auto-properties retained. Final dotnet format whitespace verification, constant-generator freshness and applicable dprint checks passed.",
+    "dependenciesAdded": false,
+    "relations": {
+        "scope": "Conditional inference and contextual generic signatures with type/constraint/variance/cache graphs; inferred parameter metadata groups use audited declaration ordering",
+        "sourceConfigurations": 88,
+        "cases": 176,
+        "relationDecisions": 4280,
+        "failed": 0,
+        "typePairs": 856,
+        "referenceConcurrency": [
+            "singleThreaded",
+            "default"
+        ],
+        "exact": 176,
+        "candidateConcurrency": [
+            1,
+            4
+        ]
+    },
+    "referenceOrderingAudit": "csharp/compatibility/evidence/phase4-inference-reference-order-audit.json"
+}

@@ -238,6 +238,34 @@ internal static class CheckerProgramTests
                 writer.WriteNumberValue(TypeId(type));
             writer.WriteEndArray();
         }
+        IReadOnlyList<Type>? OrderedInferences(IReadOnlyList<Type>? values)
+        {
+            if (values is null)
+                return null;
+            var result = values.ToArray();
+            var groups = new Dictionary<SyntaxNode, List<int>>();
+            for (int i = 0; i < values.Count; i++)
+            {
+                var declaration = values[i].Symbol?.Declarations.FirstOrDefault();
+                if (declaration?.Parent is not InferTypeNode infer)
+                    continue;
+                for (var owner = infer.Parent; owner is not null; owner = owner.Parent)
+                    if (owner is ConditionalTypeNode)
+                    {
+                        if (!groups.TryGetValue(owner, out var positions))
+                            groups[owner] = positions = [];
+                        positions.Add(i);
+                        break;
+                    }
+            }
+            foreach (var positions in groups.Values)
+            {
+                var parameters = positions.Select(i => values[i]).OrderBy(t => Node(t.Symbol!.Declarations[0])).ToArray();
+                for (int i = 0; i < positions.Count; i++)
+                    result[positions[i]] = parameters[i];
+            }
+            return result;
+        }
         writer.WriteStartObject();
         writer.WriteStartArray("files");
         foreach (var file in program.SourceFiles)
@@ -310,7 +338,7 @@ internal static class CheckerProgramTests
         {
             writer.WriteStartArray();
             writer.WriteNumberValue(Node(node));
-            TypeIds(await host.Scopes.OuterAsync(node));
+            TypeIds(OrderedInferences(await host.Scopes.OuterAsync(node)));
             writer.WriteEndArray();
         }
         writer.WriteEndArray();
@@ -470,8 +498,8 @@ internal static class CheckerProgramTests
                         writer.WriteNumberValue(TypeId(conditional.Root.CheckType));
                         writer.WriteNumberValue(TypeId(conditional.Root.ExtendsType));
                         writer.WriteBooleanValue(conditional.Root.IsDistributive);
-                        TypeIds(conditional.Root.OuterTypeParameters);
-                        TypeIds(conditional.Root.InferTypeParameters);
+                        TypeIds(OrderedInferences(conditional.Root.OuterTypeParameters));
+                        TypeIds(OrderedInferences(conditional.Root.InferTypeParameters));
                         writer.WriteEndArray();
                         writer.WriteNumber("check", TypeId(conditional.CheckType));
                         writer.WriteNumber("extends", TypeId(conditional.ExtendsType));
@@ -508,6 +536,14 @@ internal static class CheckerProgramTests
                     writer.WriteNumber("constraint", TypeId(mapped.ConstraintType));
                     writer.WriteNumber("template", TypeId(mapped.TemplateType));
                     writer.WriteNumber("name", TypeId(mapped.NameType));
+                }
+                if (type is ReverseMappedType reverse)
+                {
+                    writer.WriteStartArray("reverse");
+                    writer.WriteNumberValue(TypeId(reverse.Source));
+                    writer.WriteNumberValue(TypeId(reverse.MappedType));
+                    writer.WriteNumberValue(TypeId(reverse.ConstraintType));
+                    writer.WriteEndArray();
                 }
                 writer.WriteEndObject();
             }

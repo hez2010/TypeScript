@@ -188,5 +188,10 @@ internal sealed partial class ProgramTypeHost : IStructuralRelationHost, IObject
         Signature target,
         RelationOperation operation,
         CancellationToken cancellation)
-            => throw new InvalidOperationException("Probe requires contextual generic inference");
+        =>
+            Inference.ContextualSignatureAsync(
+                source,
+                target,
+                compare: (s, t, token) => operation.CompareAsync(s, t, cancellation: token),
+                cancellation: cancellation);
 }

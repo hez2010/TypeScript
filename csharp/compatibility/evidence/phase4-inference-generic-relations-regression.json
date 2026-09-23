@@ -1,0 +1,20 @@
+{
+    "timestamp": "2026-09-23T22:50:34.755Z",
+    "scope": "Generic key/indexed/mapped relations, optionality, variance and cache graphs; conditional and full diagnostic services remain incomplete",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "managed": false,
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "cases": 128,
+    "keyQueries": 0,
+    "indexQueries": 0,
+    "numericStringConversions": 0,
+    "relationPairs": 3048,
+    "relationKeyQueries": 0,
+    "exact": 128,
+    "failed": 0,
+    "inputSha256": "9aa96afd605d59068da403287113ae46d936fe179c731616a1206e7b7e15d08d",
+    "referenceOutputSha256": "a71a7b18ad85810b81b03a6c7e4ce2ad3d52f5a59a53955ed2515fa47164d201",
+    "outputSha256": "2178155b6bddabe908cabb0866658c180f5c28eed1624cb29efbad633492d8af",
+    "candidateSha256": "de5ef8dac4efaf240067a2d79517e234870808d41a5f1bd83c35a8b128203d22",
+    "oracleSha256": "595020734a6972db8d1077c66e8be1da06702e3e574cb255ed74a42183080416"
+}

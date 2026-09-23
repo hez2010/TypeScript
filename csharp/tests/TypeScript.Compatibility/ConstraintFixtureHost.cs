@@ -20,6 +20,7 @@ internal sealed class ConstraintFixtureHost(TypeContext context, AlgebraFixtureH
     internal TypeKeys? Keys { get; set; }
     internal ConditionalTypes? Conditionals { get; set; }
     internal Func<Type, bool>? RestrictivePredicate { get; set; }
+    internal InferredConstraints? Inferred { get; set; }
     private readonly Dictionary<(Type, Type, AccessFlags), Type> indexedAccesses = [];
     private readonly TypeVariables variables = new((type, _) => ValueTask.FromResult(type.ResolvedTypeArguments
         ?? throw new InvalidOperationException("Fixture requires deferred type arguments")));
@@ -32,6 +33,8 @@ internal sealed class ConstraintFixtureHost(TypeContext context, AlgebraFixtureH
 
     public ValueTask<Type?> InferredParameterConstraintAsync(TypeParameter parameter, CancellationToken cancellation)
     {
+        if (Inferred is not null)
+            return Inferred.GetAsync(parameter, cancellation: cancellation);
         if (parameter.Symbol?.Declarations.Any(d => d.Parent is InferTypeNode) == true)
             throw new InvalidOperationException("Fixture requires inference from an infer declaration");
         return ValueTask.FromResult<Type?>(null);

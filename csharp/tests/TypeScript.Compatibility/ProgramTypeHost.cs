@@ -126,6 +126,34 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
         Instantiation.ConstraintDependencies.RestrictivePredicate = Instantiation.Engine.IsRestrictive;
         ConditionalRelations = new(context, Instantiation.Engine, Instantiation.Constraints, Instantiation.Objects, Relations,
             new TypeRecursion(async (type, token) => await Instantiation.Members.ModifiersTypeAsync(type, token)), this);
+        InferredConstraints = new(context, Algebra, Instantiation.Constraints, Instantiation.Engine, Instantiation.Tuples, this);
+        Instantiation.ConstraintDependencies.Inferred = InferredConstraints;
+        Widening = new(context, Algebra, Views, links, this);
+        SignatureInstantiation = new(
+            context,
+            Instantiation.Engine,
+            Instantiation.Constraints,
+            Signatures,
+            Members,
+            program.Symbols,
+            Relations);
+        Inference = new(context, Algebra, Instantiation.Constraints, Instantiation.Engine, Relations,
+            new TypeVariables(References.TypeArgumentsAsync),
+            new TypeRecursion(async (type, token) => await Instantiation.Members.ModifiersTypeAsync(type, token)),
+            Views, Instantiation.Mapped, Indexed, Keys, Instantiation.Tuples, IndexSignatures, Values, Parameters,
+            Signatures,
+            SignatureAssignability,
+            SignatureInstantiation,
+            Templates,
+            Widening,
+            new(program.Symbols.Program.SourceFiles.Select(f => f.Syntax).ToArray()),
+            this);
+        ReverseInference = new(context, Algebra, Instantiation.Engine, Instantiation.Mapped, Keys, Indexed, Instantiation.Tuples,
+            new TypeRecursion(async (type, token) => await Instantiation.Members.ModifiersTypeAsync(type, token)),
+            Inference,
+            Widening,
+            links,
+            this);
         relations.EmptyAnonymousSource = Views.EmptyAnonymousAsync;
         relations.EmptyObjectSource = Views.EmptyObjectAsync;
         relations.PropertiesSource = Properties.GetAsync;

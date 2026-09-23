@@ -350,7 +350,7 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
         return result;
     }
 
-    private async ValueTask<bool> InferableIndexAsync(Type type, CancellationToken cancellation)
+    internal async ValueTask<bool> InferableIndexAsync(Type type, CancellationToken cancellation = default)
     {
         await Task.CompletedTask.ConfigureAwait(
             RuntimeHelpers.TryEnsureSufficientExecutionStack() ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);

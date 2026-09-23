@@ -361,7 +361,7 @@ internal sealed class TypeReferences(TypeContext context, CheckerLinks links, Ch
         return false;
     }
 
-    private async ValueTask<IReadOnlyList<Type>> EffectiveArgumentsAsync(
+    internal async ValueTask<IReadOnlyList<Type>> EffectiveArgumentsAsync(
         SyntaxNode node,
         IReadOnlyList<TypeParameter> parameters,
         CancellationToken cancellation)

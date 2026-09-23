@@ -290,22 +290,9 @@ internal sealed class IndexedTypes(TypeContext context, TypeAlgebra algebra, Typ
             return writing ? await algebra.IntersectionAsync(values, cancellation: cancellation).ConfigureAwait(false)
                 : await algebra.UnionAsync(values, cancellation: cancellation).ConfigureAwait(false);
         }
-        if ((indexType.Flags & TypeFlags.Instantiable) == 0 && objectType is UnionOrIntersectionType composite
-            && (objectType is UnionType || !await keys.ShouldDeferAsync(objectType, cancellation: cancellation).ConfigureAwait(false)))
-        {
-            var values = new List<Type>();
-            foreach (var part in composite.Types)
-                values.Add(
-                    await host.SimplifyAsync(
-                        await GetAsync(part, indexType, cancellation: cancellation).ConfigureAwait(false),
-                        writing,
-                        cancellation).ConfigureAwait(false));
-            return writing
-                || objectType is IntersectionType ? await algebra.IntersectionAsync(
-                    values,
-                    cancellation: cancellation).ConfigureAwait(false)
-                : await algebra.UnionAsync(values, cancellation: cancellation).ConfigureAwait(false);
-        }
+        if ((indexType.Flags & TypeFlags.Instantiable) == 0
+            && await DistributeIndexAsync(objectType, indexType, writing, cancellation).ConfigureAwait(false) is { } distributed)
+            return distributed;
         if (TypeConstraints.IsGenericTuple(objectType) && (indexType.Flags & TypeFlags.NumberLike) != 0)
         {
             int start = (indexType.Flags & TypeFlags.Number) != 0 ? 0 : ((TupleType)((TypeReference)objectType).Target!).FixedLength;
@@ -324,6 +311,27 @@ internal sealed class IndexedTypes(TypeContext context, TypeAlgebra algebra, Typ
                 cancellation: cancellation).ConfigureAwait(false)
                 ?? context.NeverType;
         return type;
+    }
+
+    internal async ValueTask<Type?> DistributeIndexAsync(
+        Type objectType,
+        Type indexType,
+        bool writing,
+        CancellationToken cancellation = default)
+    {
+        cancellation.ThrowIfCancellationRequested();
+        context.RequireOwned(objectType);
+        context.RequireOwned(indexType);
+        if (objectType is not UnionOrIntersectionType composite
+            || objectType is IntersectionType && await keys.ShouldDeferAsync(objectType, cancellation: cancellation).ConfigureAwait(false))
+            return null;
+        var values = new List<Type>();
+        foreach (var part in composite.Types)
+            values.Add(await host.SimplifyAsync(await GetAsync(part, indexType, cancellation: cancellation).ConfigureAwait(false),
+                writing, cancellation).ConfigureAwait(false));
+        return writing
+            || objectType is IntersectionType ? await algebra.IntersectionAsync(values, cancellation: cancellation).ConfigureAwait(false)
+            : await algebra.UnionAsync(values, cancellation: cancellation).ConfigureAwait(false);
     }
 
     internal async ValueTask<Type> SubstituteMappedAsync(MappedType type, Type index, CancellationToken cancellation = default)

@@ -368,6 +368,36 @@ public enum TypeFacts : uint
     AndFactsMask = All & ~OrFactsMask,
 }
 
+[Flags]
+public enum InferenceFlags : uint
+{
+    None = 0,
+    NoDefault = 1u << 0,
+    AnyDefault = 1u << 1,
+    SkippedGenericFunction = 1u << 2,
+    NoConstraintChecks = 1u << 3,
+}
+
+[Flags]
+public enum InferencePriority : int
+{
+    None = 0,
+    NakedTypeVariable = 1 << 0,
+    SpeculativeTuple = 1 << 1,
+    SubstituteSource = 1 << 2,
+    HomomorphicMappedType = 1 << 3,
+    PartialHomomorphicMappedType = 1 << 4,
+    MappedTypeConstraint = 1 << 5,
+    ContravariantConditional = 1 << 6,
+    ReturnType = 1 << 7,
+    LiteralKeyof = 1 << 8,
+    NoConstraints = 1 << 9,
+    AlwaysStrict = 1 << 10,
+    MaxValue = 1 << 11,
+    Circularity = -1,
+    PriorityImpliesCombination = ReturnType | MappedTypeConstraint | LiteralKeyof,
+}
+
 // relater.go SHA256 e191ef007847b5827a87d0310838594ec53bce1fca12bfb736637ea5299e99e3
 [Flags]
 public enum SignatureCheckMode : uint

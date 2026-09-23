@@ -1,0 +1,45 @@
+{
+    "timestamp": "2026-09-23T22:49:58.5258735Z",
+    "scope": "Development-only serialization of unordered inferred parameter groups",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "cause": "getInferTypeParameters iterates the conditional node local symbol map; the map order is not deterministic",
+    "referenceSource": "tsc/internal/checker/checker.go:getInferTypeParameters",
+    "before": {
+        "outputHashes": [
+            "16b52164dfa7e6f15ea427b89658c797fcac550c285b9a371dfbbcb728f5cc4f",
+            "d7abbce2d920a3606c8abb3d3a6d387d921d7bf190cc81519ed9845586ff9a8f"
+        ],
+        "names": [
+            "inference:tuples:false:false:1",
+            "inference:tuples:false:false:4",
+            "inference:templates:false:false:1",
+            "inference:templates:false:false:4",
+            "inference:tuples:false:true:1",
+            "inference:tuples:false:true:4",
+            "inference:templates:false:true:1",
+            "inference:templates:false:true:4",
+            "inference:tuples:true:false:4",
+            "inference:templates:true:false:1",
+            "inference:templates:true:false:4",
+            "inference:tuples:true:true:1",
+            "inference:tuples:true:true:4",
+            "inference:templates:true:true:1",
+            "inference:templates:true:true:4"
+        ],
+        "differentCases": 15,
+        "cases": 96,
+        "repeats": 2
+    },
+    "normalization": "Order inferred parameter groups by declaration node order only in serialized outer scopes and conditional-root metadata. Preserve ordinary type-parameter order and all checker-internal lists, mappers, candidate processing, type results, constraints and cache comparisons.",
+    "after": {
+        "cases": 96,
+        "repeats": 3,
+        "identical": true,
+        "hashes": [
+            "f943e4e8e91521772070ac47109ffdda6c2ccf162aab70b9b07cacf9834faf06",
+            "f943e4e8e91521772070ac47109ffdda6c2ccf162aab70b9b07cacf9834faf06",
+            "f943e4e8e91521772070ac47109ffdda6c2ccf162aab70b9b07cacf9834faf06"
+        ]
+    },
+    "productionGoChanges": false
+}

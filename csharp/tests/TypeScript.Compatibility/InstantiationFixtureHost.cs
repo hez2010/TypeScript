@@ -13,6 +13,8 @@ internal interface IInstantiationFixtureSource
 
     ValueTask<Type> ConditionalInstantiationAsync(ConditionalType type, TypeMapper mapper, TypeAlias? alias, CancellationToken cancellation);
 
+    ValueTask<Type?> ReverseMappedInferenceAsync(Type source, MappedType target, IndexType constraint, CancellationToken cancellation);
+
     ValueTask<Type> ReducedTypeAsync(Type type, CancellationToken cancellation);
 
     ValueTask<bool> AssignableAsync(Type source, Type target, CancellationToken cancellation);
@@ -304,7 +306,8 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
             ? throw new InvalidOperationException("Fixture requires structural type facts") : (part.Flags & (F.Undefined | F.Void)) == 0));
 
     public ValueTask<Type?> InferReverseMappedAsync(Type source, MappedType mapped, IndexType constraint, CancellationToken cancellation)
-            => throw new InvalidOperationException("Fixture requires reverse mapped inference");
+        => this.source?.ReverseMappedInferenceAsync(source, mapped, constraint, cancellation)
+            ?? throw new InvalidOperationException("Fixture requires reverse mapped inference");
 
     public ValueTask<bool> IsGenericMappedAsync(Type type, CancellationToken cancellation)
         => type is MappedType mapped ? Mapped.IsGenericAsync(mapped, cancellation) : ValueTask.FromResult(false);
