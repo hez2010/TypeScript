@@ -120,6 +120,12 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
         Instantiation.ConstraintDependencies.Indexed = Indexed;
         Instantiation.ConstraintDependencies.Mapped = Instantiation.Mapped;
         Instantiation.ConstraintDependencies.Keys = Keys;
+        Conditionals = new(context, Algebra, Instantiation.Engine, Instantiation.Constraints,
+            Instantiation.Mapped, Views, Relations, References.TypeArgumentsAsync, this);
+        Instantiation.ConstraintDependencies.Conditionals = Conditionals;
+        Instantiation.ConstraintDependencies.RestrictivePredicate = Instantiation.Engine.IsRestrictive;
+        ConditionalRelations = new(context, Instantiation.Engine, Instantiation.Constraints, Instantiation.Objects, Relations,
+            new TypeRecursion(async (type, token) => await Instantiation.Members.ModifiersTypeAsync(type, token)), this);
         relations.EmptyAnonymousSource = Views.EmptyAnonymousAsync;
         relations.EmptyObjectSource = Views.EmptyObjectAsync;
         relations.PropertiesSource = Properties.GetAsync;
@@ -190,7 +196,7 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
         throw new InvalidOperationException("Probe requires value/type-query checking");
 
     public ValueTask<Type> ConditionalAsync(ConditionalRoot root, CancellationToken cancellation) =>
-        throw new InvalidOperationException("Probe requires conditional type evaluation");
+        Conditionals.EvaluateAsync(root, cancellation: cancellation);
 
     public ValueTask<Type> ImportTypeAsync(ImportTypeNode node, CancellationToken cancellation) =>
         throw new InvalidOperationException("Probe requires import-type evaluation");

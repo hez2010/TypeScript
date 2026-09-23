@@ -540,6 +540,16 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 			case t.flags&TypeFlagsSubstitution != 0:
 				shape["base"] = tid(t.AsSubstitutionType().baseType)
 				shape["constraint"] = tid(t.AsSubstitutionType().constraint)
+			case t.flags&TypeFlagsConditional != 0:
+				d := t.AsConditionalType()
+				shape["root"] = []any{nodeIDs[d.root.node.AsNode()], tid(d.root.checkType), tid(d.root.extendsType), d.root.isDistributive, tids(d.root.outerTypeParameters), tids(d.root.inferTypeParameters)}
+				shape["check"] = tid(d.checkType)
+				shape["extends"] = tid(d.extendsType)
+				shape["true"] = tid(d.resolvedTrueType)
+				shape["false"] = tid(d.resolvedFalseType)
+				shape["inferredTrue"] = tid(d.resolvedInferredTrueType)
+				shape["defaultConstraint"] = tid(d.resolvedDefaultConstraint)
+				shape["distributiveConstraint"] = tid(d.resolvedConstraintOfDistributive)
 			}
 			if t.objectFlags&(ObjectFlagsReference|ObjectFlagsClassOrInterface) != 0 {
 				shape["node"] = nodeIDs[t.AsTypeReference().node]

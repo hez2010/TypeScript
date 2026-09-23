@@ -18,6 +18,8 @@ internal sealed class ConstraintFixtureHost(TypeContext context, AlgebraFixtureH
     internal IndexedTypes? Indexed { get; set; }
     internal MappedTypes? Mapped { get; set; }
     internal TypeKeys? Keys { get; set; }
+    internal ConditionalTypes? Conditionals { get; set; }
+    internal Func<Type, bool>? RestrictivePredicate { get; set; }
     private readonly Dictionary<(Type, Type, AccessFlags), Type> indexedAccesses = [];
     private readonly TypeVariables variables = new((type, _) => ValueTask.FromResult(type.ResolvedTypeArguments
         ?? throw new InvalidOperationException("Fixture requires deferred type arguments")));
@@ -90,14 +92,15 @@ internal sealed class ConstraintFixtureHost(TypeContext context, AlgebraFixtureH
             : throw new InvalidOperationException("Fixture requires general indexed access");
     }
 
-    public bool IsRestrictiveInstantiation(ConditionalType type) => Restrictive.Contains(type);
+    public bool IsRestrictiveInstantiation(ConditionalType type) => RestrictivePredicate?.Invoke(type) ?? Restrictive.Contains(type);
 
     public ValueTask<Type> InstantiateConditionalAsync(
         ConditionalType type,
         TypeMapper mapper,
         bool forConstraint,
         CancellationToken cancellation)
-            => ValueTask.FromResult(ConditionalInstantiations.TryGetValue(type, out var result) ? result
+            => Conditionals?.InstantiateAsync(type, mapper, forConstraint, cancellation: cancellation)
+                ?? ValueTask.FromResult(ConditionalInstantiations.TryGetValue(type, out var result) ? result
                 : throw new InvalidOperationException("Fixture requires conditional instantiation"));
 
     public ValueTask<IReadOnlyList<Type>> TypeArgumentsAsync(TypeReference type, CancellationToken cancellation)

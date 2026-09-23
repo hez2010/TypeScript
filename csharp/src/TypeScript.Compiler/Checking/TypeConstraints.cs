@@ -130,11 +130,14 @@ internal sealed class TypeConstraints(TypeContext context, TypeAlgebra algebra, 
     }
 
     internal async ValueTask<Type> ConditionalFalseAsync(ConditionalType type, CancellationToken cancellation = default)
-        =>
-            type.ResolvedFalseType ??= await ConditionalBranchAsync(
+    {
+        cancellation.ThrowIfCancellationRequested();
+        context.RequireOwned(type);
+        return type.ResolvedFalseType ??= await ConditionalBranchAsync(
                 type.Root.Node.FalseType!,
                 type.Mapper,
                 cancellation).ConfigureAwait(false);
+    }
 
     private async ValueTask<Type> ConditionalBranchAsync(SyntaxNode node, TypeMapper? mapper, CancellationToken cancellation)
         => await host.InstantiateAsync(
@@ -148,6 +151,13 @@ internal sealed class TypeConstraints(TypeContext context, TypeAlgebra algebra, 
         var distributed = await DistributiveConstraintAsync(type, cancellation).ConfigureAwait(false);
         if (distributed is not null)
             return distributed;
+        return await DefaultConditionalConstraintAsync(type, cancellation).ConfigureAwait(false);
+    }
+
+    internal async ValueTask<Type> DefaultConditionalConstraintAsync(ConditionalType type, CancellationToken cancellation = default)
+    {
+        cancellation.ThrowIfCancellationRequested();
+        context.RequireOwned(type);
         if (type.ResolvedDefaultConstraint is null)
         {
             var trueType = await ConditionalTrueAsync(type, true, cancellation).ConfigureAwait(false);
@@ -158,8 +168,10 @@ internal sealed class TypeConstraints(TypeContext context, TypeAlgebra algebra, 
         return type.ResolvedDefaultConstraint;
     }
 
-    private async ValueTask<Type?> DistributiveConstraintAsync(ConditionalType type, CancellationToken cancellation)
+    internal async ValueTask<Type?> DistributiveConstraintAsync(ConditionalType type, CancellationToken cancellation = default)
     {
+        cancellation.ThrowIfCancellationRequested();
+        context.RequireOwned(type);
         if (type.ResolvedConstraintOfDistributive is null)
         {
             if (type.Root.IsDistributive && !host.IsRestrictiveInstantiation(type))

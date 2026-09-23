@@ -50,6 +50,8 @@ internal sealed partial class TypeInstantiation(TypeContext context, TypeAlgebra
     internal int Count => count;
     internal int ActiveMappers => active.Count;
 
+    internal bool IsRestrictive(Type type) => restrictiveTypes.TryGetValue(type, out var result) && result == type;
+
     internal void ResetStatementCount()
     {
         if (depth != 0)

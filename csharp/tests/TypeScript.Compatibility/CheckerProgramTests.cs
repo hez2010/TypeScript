@@ -464,6 +464,23 @@ internal static class CheckerProgramTests
                         writer.WriteNumber("base", TypeId(substitution.BaseType));
                         writer.WriteNumber("constraint", TypeId(substitution.Constraint));
                         break;
+                    case ConditionalType conditional:
+                        writer.WriteStartArray("root");
+                        writer.WriteNumberValue(Node(conditional.Root.Node));
+                        writer.WriteNumberValue(TypeId(conditional.Root.CheckType));
+                        writer.WriteNumberValue(TypeId(conditional.Root.ExtendsType));
+                        writer.WriteBooleanValue(conditional.Root.IsDistributive);
+                        TypeIds(conditional.Root.OuterTypeParameters);
+                        TypeIds(conditional.Root.InferTypeParameters);
+                        writer.WriteEndArray();
+                        writer.WriteNumber("check", TypeId(conditional.CheckType));
+                        writer.WriteNumber("extends", TypeId(conditional.ExtendsType));
+                        writer.WriteNumber("true", TypeId(conditional.ResolvedTrueType));
+                        writer.WriteNumber("false", TypeId(conditional.ResolvedFalseType));
+                        writer.WriteNumber("inferredTrue", TypeId(conditional.ResolvedInferredTrueType));
+                        writer.WriteNumber("defaultConstraint", TypeId(conditional.ResolvedDefaultConstraint));
+                        writer.WriteNumber("distributiveConstraint", TypeId(conditional.ResolvedConstraintOfDistributive));
+                        break;
                 }
                 if (type is TypeReference referenceType)
                     writer.WriteNumber("node", Node(referenceType.Node));

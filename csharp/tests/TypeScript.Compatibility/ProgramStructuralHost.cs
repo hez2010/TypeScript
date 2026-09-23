@@ -91,6 +91,14 @@ internal sealed partial class ProgramTypeHost : IStructuralRelationHost, IObject
     {
         if (await Generics.TargetAsync(operation, source, target, intersection, cancellation) is { } genericTarget)
             return genericTarget;
+        if (target is ConditionalType conditionalTarget
+            && await ConditionalRelations.TargetAsync(
+                operation,
+                source,
+                conditionalTarget,
+                intersection,
+                cancellation) is { } conditionalResult)
+            return conditionalResult;
         if (target is TemplateLiteralType template)
         {
             if (source is TemplateLiteralType sourceTemplate)
@@ -110,6 +118,8 @@ internal sealed partial class ProgramTypeHost : IStructuralRelationHost, IObject
             return parameter;
         if (await Generics.SourceAsync(operation, source, target, intersection, cancellation) is { } genericSource)
             return genericSource;
+        if (source is ConditionalType conditionalSource)
+            return await ConditionalRelations.SourceAsync(operation, conditionalSource, target, cancellation);
         if (source is TemplateLiteralType && target is not ObjectType && target is not TemplateLiteralType)
         {
             var constraint = await Instantiation.Constraints.BaseConstraintAsync(source, cancellation);
@@ -125,8 +135,6 @@ internal sealed partial class ProgramTypeHost : IStructuralRelationHost, IObject
             if (await Instantiation.Constraints.BaseConstraintAsync(source, cancellation) is { } constraint)
                 return await operation.CompareAsync(constraint, target, RecursionFlags.Source, cancellation: cancellation);
         }
-        if (source is ConditionalType || target is ConditionalType)
-            throw new InvalidOperationException("Probe requires conditional relations");
         return source is MappedType ? null : Ternary.False;
     }
 

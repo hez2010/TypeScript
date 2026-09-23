@@ -232,11 +232,13 @@ internal sealed class TypeNodes(TypeContext context, CheckerLinks links, Checker
                     await FromNodeAsync(conditional.ExtendsType!, cancellation).ConfigureAwait(false),
                     check is TypeParameter)
                 {
-                    OuterTypeParameters = captured.AsReadOnly(),
+                    OuterTypeParameters = captured.Count == 0 ? null : captured.AsReadOnly(),
                     InferTypeParameters = symbols.Binding(node)?.Get(node)?.Locals.Values.Where(s => (s.Flags & SymbolFlags.TypeParameter) != 0)
                         .Select(s => scopes.Parameter(symbols.Merger.GetMergedSymbol(s)!)).ToArray(),
                     Alias = conditionalAlias
                 };
+                if (root.InferTypeParameters?.Count == 0)
+                    root.InferTypeParameters = null;
                 result = await host.ConditionalAsync(root, cancellation).ConfigureAwait(false);
                 if (captured.Count != 0)
                     root.Instantiations = new() { [TypeCacheKey.Instantiation(captured.ToArray(), null, false)] = result };

@@ -11,6 +11,8 @@ internal interface IInstantiationFixtureSource
 {
     ValueTask<Type> IndexAsync(Type type, CancellationToken cancellation);
 
+    ValueTask<Type> ConditionalInstantiationAsync(ConditionalType type, TypeMapper mapper, TypeAlias? alias, CancellationToken cancellation);
+
     ValueTask<Type> ReducedTypeAsync(Type type, CancellationToken cancellation);
 
     ValueTask<bool> AssignableAsync(Type source, Type target, CancellationToken cancellation);
@@ -262,7 +264,7 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
     }
 
     public ValueTask<Type> ConditionalInstantiationAsync(ConditionalType type, TypeMapper mapper, CancellationToken cancellation)
-        => throw new InvalidOperationException("Fixture requires conditional instantiation");
+        => ConditionalInstantiationAsync(type, mapper, null, cancellation);
 
     public void CircularProperty(Symbol symbol, MappedType type) => Diagnostics.Add(2615);
 
@@ -470,7 +472,8 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
         TypeMapper mapper,
         TypeAlias? alias,
         CancellationToken cancellation)
-            => throw new InvalidOperationException("Fixture requires conditional evaluation");
+        => source?.ConditionalInstantiationAsync(type, mapper, alias, cancellation)
+            ?? throw new InvalidOperationException("Fixture requires conditional evaluation");
 
     public async ValueTask<bool> IsGenericTypeAsync(Type type, CancellationToken cancellation)
         => await Mapped.GenericFlagsAsync(type, cancellation).ConfigureAwait(false) != 0;

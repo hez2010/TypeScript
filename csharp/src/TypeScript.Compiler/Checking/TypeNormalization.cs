@@ -57,7 +57,7 @@ internal sealed class TypeNormalization(TypeContext context, TypeAlgebra algebra
                 next = writing
                     ? substitution.BaseType
                     : await algebra.IntersectionAsync(
-                        [substitution.BaseType, substitution.Constraint],
+                        [substitution.Constraint, substitution.BaseType],
                         cancellation: cancellation).ConfigureAwait(false);
             else if ((type.Flags & TypeFlags.Simplifiable) != 0)
                 next = await host.SimplifyAsync(type, writing, cancellation).ConfigureAwait(false);

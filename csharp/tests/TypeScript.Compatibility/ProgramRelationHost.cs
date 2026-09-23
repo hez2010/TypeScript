@@ -20,7 +20,7 @@ internal sealed partial class ProgramTypeHost : ITypeNormalizationHost, ITypeRel
 
     public ValueTask<Type> SimplifyAsync(Type type, bool writing, CancellationToken cancellation)
             => type is IndexedAccessType indexed ? Indexed.SimplifyAsync(indexed, writing, cancellation)
-                : type is ConditionalType ? throw new InvalidOperationException("Probe requires conditional simplification")
+                : type is ConditionalType conditional ? Conditionals.SimplifyAsync(conditional, writing, cancellation)
                 : ValueTask.FromResult(type);
 
     public ValueTask<Ternary> IdentityAsync(RelationOperation operation, Type source, Type target, CancellationToken cancellation)
@@ -41,7 +41,8 @@ internal sealed partial class ProgramTypeHost : ITypeNormalizationHost, ITypeRel
     public void ComplexityOverflow(Type source, Type target) => Diagnostics.Add(2859);
 
     public ValueTask<Type> ConditionalBranchAsync(ConditionalType type, bool whenTrue, CancellationToken cancellation)
-            => throw new InvalidOperationException("Probe requires conditional branches");
+        => whenTrue ? Instantiation.Constraints.ConditionalTrueAsync(type, cancellation: cancellation)
+            : Instantiation.Constraints.ConditionalFalseAsync(type, cancellation);
 
     public ValueTask<Ternary?> VarianceAsync(RelationOperation operation, Type source, Type target, CancellationToken cancellation)
         => Variances.RelateAsync(operation, source, target, cancellation: cancellation);
