@@ -11,13 +11,16 @@ internal sealed class SignatureComparison(TypeContext context, SignatureParamete
     TypeConstraints constraints, TypeInstantiation instantiation, ISignatureComparisonHost host)
 {
     internal async ValueTask<Ternary> CompareAsync(Signature source, Signature target, bool partial = false,
-        bool ignoreThis = false, bool ignoreReturn = false, CancellationToken cancellation = default)
+        bool ignoreThis = false, bool ignoreReturn = false, CancellationToken cancellation = default,
+        Func<Type, Type, CancellationToken, ValueTask<Ternary>>? compareTypes = null)
     {
         await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
             ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
         RequireOwned(source);
         RequireOwned(target);
         cancellation.ThrowIfCancellationRequested();
+        ValueTask<Ternary> Compare(Type s, Type t) =>
+            compareTypes?.Invoke(s, t, cancellation) ?? host.CompareTypesAsync(s, t, partial, cancellation);
         if (source == target)
             return Ternary.True;
         if (!await MatchingAsync(source, target, partial, cancellation).ConfigureAwait(false)
@@ -36,21 +39,19 @@ internal sealed class SignatureComparison(TypeContext context, SignatureParamete
                     await ConstraintAsync(s, cancellation).ConfigureAwait(false),
                     mapper,
                     cancellation).ConfigureAwait(false);
-                if (await host.CompareTypesAsync(
+                if (await Compare(
                     sourceConstraint,
-                    await ConstraintAsync(t, cancellation).ConfigureAwait(false),
-                    partial,
-                    cancellation).ConfigureAwait(false) == Ternary.False)
+                    await ConstraintAsync(t, cancellation).ConfigureAwait(false)).ConfigureAwait(false) == Ternary.False)
                     return Ternary.False;
                 var sourceDefault = await InstantiateAsync(
                     await constraints.DefaultAsync(s, cancellation).ConfigureAwait(false) ?? context.UnknownType,
                     mapper,
                     cancellation).ConfigureAwait(false);
-                if (await host.CompareTypesAsync(
+                if (await Compare(
                     sourceDefault,
-                    await constraints.DefaultAsync(t, cancellation).ConfigureAwait(false) ?? context.UnknownType,
-                    partial,
-                    cancellation).ConfigureAwait(false) == Ternary.False)
+                    await constraints.DefaultAsync(
+                        t,
+                        cancellation).ConfigureAwait(false) ?? context.UnknownType).ConfigureAwait(false) == Ternary.False)
                     return Ternary.False;
             }
             source = await instantiation.SignatureAsync(source, mapper, true, cancellation).ConfigureAwait(false);
@@ -60,7 +61,7 @@ internal sealed class SignatureComparison(TypeContext context, SignatureParamete
         {
             if (await parameters.ThisAsync(target, cancellation).ConfigureAwait(false) is { } targetThis)
             {
-                var related = await host.CompareTypesAsync(sourceThis, targetThis, partial, cancellation).ConfigureAwait(false);
+                var related = await Compare(sourceThis, targetThis).ConfigureAwait(false);
                 if (related == Ternary.False)
                     return Ternary.False;
                 result &= related;
@@ -71,7 +72,7 @@ internal sealed class SignatureComparison(TypeContext context, SignatureParamete
         {
             var s = await parameters.AtAsync(source, i, cancellation).ConfigureAwait(false);
             var t = await parameters.AtAsync(target, i, cancellation).ConfigureAwait(false);
-            var related = await host.CompareTypesAsync(t, s, partial, cancellation).ConfigureAwait(false);
+            var related = await Compare(t, s).ConfigureAwait(false);
             if (related == Ternary.False)
                 return Ternary.False;
             result &= related;
@@ -81,10 +82,10 @@ internal sealed class SignatureComparison(TypeContext context, SignatureParamete
             var sourcePredicate = await signatures.PredicateAsync(source, cancellation).ConfigureAwait(false);
             var targetPredicate = await signatures.PredicateAsync(target, cancellation).ConfigureAwait(false);
             if (sourcePredicate is not null || targetPredicate is not null)
-                result &= await PredicateAsync(sourcePredicate, targetPredicate, partial, cancellation).ConfigureAwait(false);
+                result &= await PredicateAsync(sourcePredicate, targetPredicate, partial, cancellation, compareTypes).ConfigureAwait(false);
             else
-                result &= await host.CompareTypesAsync(await signatures.ReturnAsync(source, cancellation).ConfigureAwait(false),
-                await signatures.ReturnAsync(target, cancellation).ConfigureAwait(false), partial, cancellation).ConfigureAwait(false);
+                result &= await Compare(await signatures.ReturnAsync(source, cancellation).ConfigureAwait(false),
+                await signatures.ReturnAsync(target, cancellation).ConfigureAwait(false)).ConfigureAwait(false);
         }
         return result;
     }
@@ -181,7 +182,7 @@ internal sealed class SignatureComparison(TypeContext context, SignatureParamete
     }
 
     internal async ValueTask<Ternary> PredicateAsync(TypePredicate? source, TypePredicate? target, bool subtype = false,
-        CancellationToken cancellation = default)
+        CancellationToken cancellation = default, Func<Type, Type, CancellationToken, ValueTask<Ternary>>? compareTypes = null)
     {
         cancellation.ThrowIfCancellationRequested();
         if (source?.Type is { } sourceType)
@@ -193,7 +194,14 @@ internal sealed class SignatureComparison(TypeContext context, SignatureParamete
         if (source.Type == target.Type)
             return Ternary.True;
         return source.Type is not null && target.Type is not null
-            ? await host.CompareTypesAsync(source.Type, target.Type, subtype, cancellation).ConfigureAwait(false) : Ternary.False;
+            ? await (compareTypes?.Invoke(
+                source.Type,
+                target.Type,
+                cancellation) ?? host.CompareTypesAsync(
+                    source.Type,
+                    target.Type,
+                    subtype,
+                    cancellation)).ConfigureAwait(false) : Ternary.False;
     }
 
     private async ValueTask<Type> ConstraintAsync(TypeParameter parameter, CancellationToken cancellation)

@@ -11,7 +11,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/jsnum"
 )
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -330,6 +330,70 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 			propertyRows = append(propertyRows, row)
 		}
 	}
+	relationRows := []any{}
+	relationKeyRows := []any{}
+	if identityQueries {
+		type root struct {
+			node *ast.Node
+			t    *Type
+		}
+		roots := []root{}
+		for _, node := range nodes {
+			if ast.IsTypeAliasDeclaration(node) || ast.IsInterfaceDeclaration(node) || ast.IsClassLike(node) {
+				name := node.Name().Text()
+				if len(name) > 1 && name[0] == 'R' && name[1] >= '0' && name[1] <= '9' {
+					roots = append(roots, root{node, c.getDeclaredTypeOfSymbol(c.getSymbolOfDeclaration(node))})
+				}
+			}
+		}
+		keys := map[CacheHashKey]int{}
+		for _, s := range roots {
+			for _, t := range roots {
+				sid, tid2 := tid(s.t), tid(t.t)
+				related := c.isTypeIdenticalTo(s.t, t.t)
+				count := c.identityRelation.size()
+				key, constrained := getRelationKey(s.t, t.t, IntersectionStateNone, true, false)
+				id, ok := keys[key]
+				if !ok {
+					id = len(keys) + 1
+					keys[key] = id
+				}
+				entry := c.identityRelation.get(key)
+				simple := []bool{}
+				for _, r := range []*Relation{c.identityRelation, c.subtypeRelation, c.strictSubtypeRelation, c.assignableRelation, c.comparableRelation} {
+					simple = append(simple, c.isSimpleTypeRelatedTo(s.t, t.t, r, nil))
+				}
+				relationRows = append(relationRows, []any{nodeIDs[s.node], nodeIDs[t.node], sid, tid2, related, count, id, entry, constrained, simple})
+			}
+		}
+		keyRoots := []root{}
+		for _, node := range nodes {
+			if ast.IsTypeAliasDeclaration(node) {
+				name := node.Name().Text()
+				if len(name) > 1 && name[0] == 'K' && name[1] >= '0' && name[1] <= '9' {
+					keyRoots = append(keyRoots, root{node, c.getNormalizedType(c.getDeclaredTypeOfSymbol(c.getSymbolOfDeclaration(node)), false)})
+				}
+			}
+		}
+		for _, s := range keyRoots {
+			for _, t := range keyRoots {
+				for _, identity := range []bool{false, true} {
+					for _, state := range []IntersectionState{IntersectionStateNone, IntersectionStateSource, IntersectionStateTarget} {
+						for _, broad := range []bool{false, true} {
+							sid, tid2 := tid(s.t), tid(t.t)
+							key, constrained := getRelationKey(s.t, t.t, state, identity, broad)
+							id, ok := keys[key]
+							if !ok {
+								id = len(keys) + 1
+								keys[key] = id
+							}
+							relationKeyRows = append(relationKeyRows, []any{nodeIDs[s.node], nodeIDs[t.node], sid, tid2, identity, state, broad, id, constrained})
+						}
+					}
+				}
+			}
+		}
+	}
 	typeRows := []any{}
 	for i := 0; i < len(types); i++ {
 		t := types[i]
@@ -481,6 +545,10 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	}
 	if signatureQueries {
 		result["signatureGraph"] = signatureRows
+	}
+	if identityQueries {
+		result["relations"] = relationRows
+		result["relationKeys"] = relationKeyRows
 	}
 	return result
 }

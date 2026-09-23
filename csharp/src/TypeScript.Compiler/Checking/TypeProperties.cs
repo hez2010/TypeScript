@@ -111,7 +111,7 @@ internal sealed class TypeProperties(TypeContext context, CheckerLinks links, Ch
         return type is UnionType union ? await CompositePropertyAsync(union, name, skipAugment, cancellation).ConfigureAwait(false) : null;
     }
 
-    private async ValueTask<Symbol?> ObjectPropertyAsync(Type type, string name, CancellationToken cancellation)
+    internal async ValueTask<Symbol?> ObjectPropertyAsync(Type type, string name, CancellationToken cancellation)
     {
         if (type is not ObjectType obj)
             return null;

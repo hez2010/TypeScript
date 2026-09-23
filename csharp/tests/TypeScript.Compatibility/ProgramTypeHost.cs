@@ -73,6 +73,16 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
             Parameters,
             SignatureComparison,
             this);
+        Normalization = new(context, Algebra, References, Instantiation.Tuples, Instantiation.Engine, Bases, Views, this);
+        RelationKeys = new(context, References, Instantiation.Constraints);
+        Relations = new(
+            context,
+            Normalization,
+            Views,
+            RelationKeys,
+            new TypeRecursion(async (type, token) => await Instantiation.Members.ModifiersTypeAsync(type, token)),
+            this);
+        Identity = new(context, links, Members, Properties, Values, SignatureComparison, Instantiation.Mapped, this);
         relations.EmptyAnonymousSource = Views.EmptyAnonymousAsync;
         relations.EmptyObjectSource = Views.EmptyObjectAsync;
         relations.PropertiesSource = Properties.GetAsync;

@@ -286,3 +286,63 @@ public enum MappedTypeNameTypeKind : int
     Filtering = 1,
     Remapping = 2,
 }
+
+// relater.go SHA256 e191ef007847b5827a87d0310838594ec53bce1fca12bfb736637ea5299e99e3
+[Flags]
+public enum SignatureCheckMode : uint
+{
+    None = 0,
+    BivariantCallback = 1u << 0,
+    StrictCallback = 1u << 1,
+    IgnoreReturnTypes = 1u << 2,
+    StrictArity = 1u << 3,
+    StrictTopSignature = 1u << 4,
+    Callback = BivariantCallback | StrictCallback,
+}
+
+[Flags]
+public enum MinArgumentCountFlags : uint
+{
+    None = 0,
+    StrongArityForUntypedJS = 1u << 0,
+    VoidIsNonOptional = 1u << 1,
+}
+
+[Flags]
+public enum IntersectionState : uint
+{
+    None = 0,
+    Source = 1u << 0,
+    Target = 1u << 1,
+}
+
+[Flags]
+public enum RecursionFlags : uint
+{
+    None = 0,
+    Source = 1u << 0,
+    Target = 1u << 1,
+    Both = Source | Target,
+}
+
+[Flags]
+public enum ExpandingFlags : uint
+{
+    None = 0,
+    Source = 1u << 0,
+    Target = 1u << 1,
+    Both = Source | Target,
+}
+
+[Flags]
+public enum RelationComparisonResult : uint
+{
+    None = 0,
+    Succeeded = 1u << 0,
+    Failed = 1u << 1,
+    ReportsUnmeasurable = 1u << 3,
+    ReportsUnreliable = 1u << 4,
+    ComplexityOverflow = 1u << 5,
+    ReportsMask = ReportsUnmeasurable | ReportsUnreliable,
+    Overflow = ComplexityOverflow,
+}

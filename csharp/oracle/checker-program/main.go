@@ -32,6 +32,7 @@ func main() {
 			Values        bool
 			Properties    bool
 			Signatures    bool
+			Identity      bool
 			NumberStrings []string
 		}
 		if err := json.Unmarshal(lines.Bytes(), &input); err != nil {
@@ -59,7 +60,7 @@ func main() {
 		}
 		program := compiler.NewProgram(options)
 		c, _ := checker.NewChecker(program, nil)
-		result := c.CSharpProgramScopeProbe(input.Aliases, input.TypeNodes, input.Members, input.Values, input.Properties, input.Signatures).(map[string]any)
+		result := c.CSharpProgramScopeProbe(input.Aliases, input.TypeNodes, input.Members, input.Values, input.Properties, input.Signatures, input.Identity).(map[string]any)
 		if input.NumberStrings != nil {
 			rows := []string{}
 			for _, text := range input.NumberStrings {

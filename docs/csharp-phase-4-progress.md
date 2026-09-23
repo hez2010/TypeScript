@@ -281,6 +281,23 @@ node csharp/tools/checker-program.mjs --signatures --record phase4-signatures
 & ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-signatures-safety
 ```
 
+## Relation keys, normalization and structural identity
+
+`RelationKeys.cs` preserves symmetric identity keys, generic parameter renaming, constrained/broad key distinctions and the reference's four-level generic-key expansion. Keys retain complete typed contents as well as a hash. `Relations.cs` owns recursive assumptions, reliability flags and completed comparison results. It preserves the 100-level `Maybe` cutoff, expanding-generic detection and the work-budget formula. Cancellation rolls back the session's cache writes only while it still owns those entries.
+
+`TypeNormalization.cs` normalizes literals, deferred references, substitution types and eligible empty derived interfaces, and supplies the tuple/intersection normalization paths. Indexed/conditional simplification remains a required service. `TypeRelations.cs` supplies primitive relation predicates and the comparison entry point; `TypeIdentity.cs` handles recursive structural identity. Signature identity now shares the active relation operation, so recursive function types use its assumptions and cache. General structural assignability/subtyping, variance measurement, enum relations and complete diagnostics remain required services; these are not fallback successes.
+
+NativeAOT passes **160 exact program comparisons**, containing **3,000 identity/cache queries**, primitive predicates for all five relation kinds, and **6,240 relation-key queries**. Coverage includes recursive objects/functions, nested method types, accessors, optional/readonly members, tuples, unions/intersections, template literals, empty derived interfaces, generic key equivalence and the reference's 99/100/101-level behavior.
+
+Thirty-six native safety assertions verify cancellation/retry, rollback ownership, cache reliability, provisional results, the expanding-generic heuristic and the exact 100-level cutoff. Key and normalization chains reach **20,000 levels**. The work-budget test forces the remaining counter to zero to verify overflow caching/reporting; it does not claim to execute millions of comparisons.
+
+The same artifact passes 216 signature, 192 property/view, 192 source-type and 613 constraint cases, plus 175 earlier safety assertions. Evidence: [identity and keys](../csharp/compatibility/evidence/phase4-relations.json), [signatures](../csharp/compatibility/evidence/phase4-relations-signatures-regression.json), [properties](../csharp/compatibility/evidence/phase4-relations-properties-regression.json), [source types](../csharp/compatibility/evidence/phase4-relations-types-regression.json), [constraints](../csharp/compatibility/evidence/phase4-relations-constraints-regression.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-relations-validation.json).
+
+```powershell
+node csharp/tools/checker-program.mjs --identity --record phase4-relations
+& ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-relations-safety
+```
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
@@ -293,4 +310,4 @@ The following phase-4 requirements remain open:
 6. Type display, node builders, symbol accessibility and emit-resolver APIs.
 7. All active checker/compiler type/symbol/diagnostic comparisons at single and reference-default concurrency; audits of intentional differences; complete semantic workload memory/performance measurements.
 
-The next integration step is structural relations and their caches, followed by complete value inference, conditional services and module type adaptation over the program-backed symbol environment. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.
+The next integration step is structural assignability/subtyping and variance measurement, followed by complete value inference, conditional services and module type adaptation over the program-backed symbol environment. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.

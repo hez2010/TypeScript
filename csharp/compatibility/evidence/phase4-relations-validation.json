@@ -1,0 +1,72 @@
+{
+    "timestamp": "2026-09-23T19:43:58.5892248Z",
+    "scope": "Structural identity, normalization, primitive relation predicates and recursive relation caches with required advanced relation services; full phase 4 remains incomplete",
+    "candidateSha256": "97deb274f9a45096cce6939166a8f353731994c0f8a8f87d9e2a63be9b9c6f89",
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "languageVersion": "15.0",
+    "runtimeAsync": true,
+    "optimizationPreference": "Speed",
+    "instructionSet": "native",
+    "publish": {
+        "log": "logs/csharp-phase4-relations-publish.log",
+        "exitCode": 0,
+        "sha256": "03933be2dc34223ee88005d844f6919fd7786869077fd93acbb392005d81ccfb"
+    },
+    "identity": {
+        "candidateConcurrency": [
+            1,
+            4
+        ],
+        "exact": 160,
+        "relationPairs": 3000,
+        "simplePredicateQueries": 15000,
+        "scope": "Identity decisions, generic-key equivalence, cache entries/counts and type-state graphs; general structural assignability, variance and full diagnostics remain open",
+        "relationKeyQueries": 6240,
+        "failed": 0,
+        "referenceConcurrency": [
+            "singleThreaded",
+            "default"
+        ],
+        "sourceConfigurations": 80,
+        "cases": 160
+    },
+    "state": {
+        "exitCode": 0,
+        "workBudgetScope": "Default formula checked; zero remaining budget injected to test overflow caching/reporting, not a millions-of-comparisons workload",
+        "output": "36 relation key/cache/normalization/cancellation assertions; exact 100-level comparison cutoff; key and base chains depth 20000"
+    },
+    "regression": {
+        "numericStringConversions": 3818,
+        "safetyOutputs": [
+            "39 signature matching/arity/composition/cancellation assertions; binding label depth 20000",
+            "49 property/view/index/cache/cancellation assertions; reduction chain depth 20000",
+            "25 source-type/cache/cancellation assertions; array and alias ancestry depth 20000",
+            "21 constraint/default/recursion state assertions; default and indexed identity depth 20000",
+            "41 checker ownership/state assertions; mapper and type-order depth 50000; 16 independent contexts"
+        ],
+        "constraintOperations": 20154,
+        "signatures": 216,
+        "properties": 192,
+        "constraints": 613,
+        "sourceTypes": 192,
+        "failed": 0
+    },
+    "repository": {
+        "apiTests": 813,
+        "command": "npx --no-install hereby validate --all",
+        "goSkips": 2152,
+        "exitCode": 0,
+        "log": "logs/csharp-phase4-relations-validation.log",
+        "sha256": "7527b54410dc3d37fb4d7a7e794d4578d0c94531bae90c5be08a8998e654940c",
+        "toolTests": 17,
+        "go": "1.27.1",
+        "node": "24.20.0",
+        "extensionTests": 12,
+        "goTestResults": 163380,
+        "benchmarkScope": "Required smoke runs only; no performance claim",
+        "lintIssues": 0
+    },
+    "formatting": "Fourteen C# files verified with identical tokens, comments and syntax under both library configurations; single-line auto-properties retained. Final dotnet format whitespace verification, constant-generator freshness and applicable dprint checks passed.",
+    "dependenciesAdded": false
+}
