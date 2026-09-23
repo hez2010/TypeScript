@@ -18,6 +18,8 @@ type CSharpTypeStep struct {
 	Flags                    uint32
 	Origin                   int
 	This                     bool
+	Texts                    []string
+	Properties               []string
 }
 
 type CSharpMapperStep struct {
@@ -135,6 +137,16 @@ func (c *Checker) CSharpResolutionProbe(operations []CSharpResolutionOperation) 
 }
 
 func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMapperStep, queries []CSharpMapperQuery, comparisons [][]int) any {
+	algebra := false
+	for _, step := range steps {
+		if step.Op == "unionReduced" || step.Op == "intersection" || step.Op == "templateNormalized" || step.Op == "caseMap" || step.Op == "regularAll" {
+			algebra = true
+		}
+	}
+	if algebra {
+		c.diagnostics = ast.DiagnosticsCollection{}
+		c.currentNode = c.files[0].AsNode()
+	}
 	builtins := map[string]*Type{
 		"any": c.anyType, "auto": c.autoType, "wildcard": c.wildcardType, "blockedString": c.blockedStringType,
 		"error": c.errorType, "unresolved": c.unresolvedType, "nonInferrableAny": c.nonInferrableAnyType, "intrinsic": c.intrinsicMarkerType,
@@ -145,6 +157,8 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 		"regularTrue": c.regularTrueType, "boolean": c.booleanType, "symbol": c.esSymbolType, "void": c.voidType,
 		"never": c.neverType, "silentNever": c.silentNeverType, "implicitNever": c.implicitNeverType,
 		"unreachableNever": c.unreachableNeverType, "object": c.nonPrimitiveType, "uniqueLiteral": c.uniqueLiteralType,
+		"empty": c.emptyObjectType, "unknownEmpty": c.unknownEmptyObjectType, "anyFunction": c.anyFunctionType,
+		"unknownUnion": c.unknownUnionType, "numericString": c.numericStringType, "templateConstraint": c.templateConstraintType,
 	}
 	syms := map[string]*ast.Symbol{}
 	names := map[*ast.Symbol]string{}
@@ -205,6 +219,9 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 		case "computedEnum":
 			t = c.newLiteralType(TypeFlagsEnum, nil, nil)
 			t.symbol = symbol(step.Symbol)
+		case "errorAlias":
+			t = c.newIntrinsicType(TypeFlagsAny, "error")
+			t.alias = &TypeAlias{symbol: symbol(step.Symbol), typeArguments: selectTypes(step.AliasArgs)}
 		case "fresh":
 			t = c.getFreshTypeOfLiteralType(args[0])
 		case "regular":
@@ -212,12 +229,21 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 		case "parameter":
 			t = c.newTypeParameter(symbol(step.Symbol))
 			t.AsTypeParameter().isThisType = step.This
+			if len(args) != 0 {
+				t.AsTypeParameter().constraint = args[0]
+			}
 		case "distributed":
 			t = c.newTypeParameter(nil)
 			t.AsTypeParameter().isDistributed = true
 			t.AsTypeParameter().constraint = args[0]
 		case "object":
 			t = c.newObjectType(ObjectFlags(step.Flags), symbol(step.Symbol))
+		case "shape":
+			members := ast.SymbolTable{}
+			for i, name := range step.Properties {
+				members[name] = c.newProperty(name, args[i])
+			}
+			t = c.newAnonymousType(symbol(step.Symbol), members, nil, nil, nil)
 		case "reference":
 			target := args[0]
 			if target.AsInterfaceType().instantiations == nil {
@@ -226,12 +252,18 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 			t = c.createTypeReferenceEx(target, args[1:], ObjectFlags(step.Flags))
 		case "clone":
 			t = c.cloneTypeReference(args[0])
-		case "union":
+		case "union", "unionReduced", "intersection":
 			var alias *TypeAlias
 			if step.Symbol != "" {
 				alias = &TypeAlias{symbol: symbol(step.Symbol), typeArguments: selectTypes(step.AliasArgs)}
 			}
-			t = c.getUnionTypeFromSortedList(args, ObjectFlags(step.Flags), alias, values[step.Origin])
+			if step.Op == "union" {
+				t = c.getUnionTypeFromSortedList(args, ObjectFlags(step.Flags), alias, values[step.Origin])
+			} else if step.Op == "unionReduced" {
+				t = c.getUnionTypeEx(args, UnionReduction(step.Flags), alias, values[step.Origin])
+			} else {
+				t = c.getIntersectionTypeEx(args, IntersectionFlags(step.Flags), alias)
+			}
 		case "rawUnion":
 			t = c.newUnionType(ObjectFlags(step.Flags), args)
 		case "rawIntersection":
@@ -250,6 +282,22 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 			t = c.newTemplateLiteralType(texts, args)
 		case "stringMapping":
 			t = c.newStringMappingType(symbol(step.Symbol), args[0])
+		case "templateNormalized":
+			texts := make([]string, len(step.Texts))
+			for i, s := range step.Texts {
+				b, err := base64.StdEncoding.DecodeString(s)
+				if err != nil {
+					panic(err)
+				}
+				texts[i] = string(b)
+			}
+			t = c.getTemplateLiteralType(texts, args)
+		case "caseMap":
+			t = c.getStringMappingType(symbol(step.Symbol), args[0])
+		case "regularAll":
+			t = c.getRegularTypeOfLiteralType(args[0])
+		case "filter":
+			t = c.filterType(args[0], func(t *Type) bool { return t.flags&TypeFlags(step.Flags) == 0 })
 		default:
 			panic(step.Op)
 		}
@@ -335,7 +383,12 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 		t := queue[i]
 		row := map[string]any{"flags": t.flags, "objectFlags": t.objectFlags, "symbol": names[t.symbol], "literal": isLiteralType(t), "unit": isUnitType(t)}
 		if t.alias != nil {
-			row["alias"] = []any{names[t.alias.symbol], refs(t.alias.typeArguments)}
+			arguments := refs(t.alias.typeArguments)
+			// Alias arguments are not a lazy-resolution slot; nil and an empty slice both mean arity zero.
+			if arguments == nil {
+				arguments = []int{}
+			}
+			row["alias"] = []any{names[t.alias.symbol], arguments}
 		}
 		switch {
 		case t.flags&TypeFlagsIntrinsic != 0:
@@ -398,5 +451,13 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 		}
 		orders = append(orders, v)
 	}
-	return map[string]any{"results": results, "types": rows, "mappers": mapperRows, "queries": queryRefs, "calls": calls, "comparisons": orders}
+	result := map[string]any{"results": results, "types": rows, "mappers": mapperRows, "queries": queryRefs, "calls": calls, "comparisons": orders}
+	if algebra {
+		codes := []int32{}
+		for _, d := range c.diagnostics.GetDiagnosticsForFile(c.files[0]) {
+			codes = append(codes, d.Code())
+		}
+		result["diagnostics"] = codes
+	}
+	return result
 }

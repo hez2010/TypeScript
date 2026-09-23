@@ -40,7 +40,7 @@ for (const text of ["eda080", "edb080", "eda08061edb080"]) atomSteps.push({ op: 
 for (const value of [0, -0, 1, -1, Number.MIN_VALUE, Number.MAX_VALUE, Infinity, -Infinity, NaN, 0.1, 9007199254740991]) atomSteps.push({ op: "number", text: bits(value) });
 for (const text of ["7ff0000000000001", "fff8000000000001"]) atomSteps.push({ op: "number", text });
 for (const text of ["0", "-0", "000", "1", "-1", "99999999999999999999999999999999", "-99999999999999999999999999999999", "9".repeat(4096)]) atomSteps.push({ op: "bigint", text });
-const cases = [];
+let cases = [];
 for (const strict of [false, true]) {
     for (const exact of [false, true]) {
         const steps = [...atomSteps, ...atomSteps];
@@ -182,6 +182,9 @@ for (let iteration = 0; iteration < 100; iteration++) {
     cases.push({ name: `order:${iteration}`, strict: true, steps, comparisons });
 }
 
+if (option("--inputs")) cases = JSON.parse(await readFile(option("--inputs"), "utf8"));
+if (option("--filter")) cases = cases.filter(c => c.name.includes(option("--filter")));
+
 async function probe(command, args) {
     return new Promise((resolve, reject) => {
         const child = spawn(command, args, { windowsHide: true }), stdout = [], stderr = [];
@@ -221,7 +224,7 @@ for (let i = 0; i < cases.length; i++) {
     }
 }
 await json(path.join(output, "checker-types-failures.json"), differences);
-const summary = { timestamp: new Date().toISOString(), scope: "checker type constructors, identity, order, mapper composition and resolution state; not complete semantic checking", referenceRevision, managed, runtime, cases: cases.length, operations: cases.reduce((n, c) => n + c.steps.length + (c.mappers?.length ?? 0) + (c.queries?.length ?? 0) + (c.resolutions?.length ?? 0) + (c.comparisons?.length ?? 0), 0), passed: cases.length - differences.length, failed: differences.length, inputSha256: sha256(JSON.stringify(cases)), referenceOutputSha256: sha256(JSON.stringify(expected)), outputSha256: sha256(JSON.stringify(actual)), oracleSha256: sha256(await readFile(oracle)), candidateSha256: sha256(await readFile(managed ? dll : candidate)), sdk: await run(dotnet, ["--version"], { cwd: path.join(root, "csharp") }), go: await run(go, ["version"]) };
+const summary = { timestamp: new Date().toISOString(), scope: option("--scope", "checker type constructors, identity, order, mapper composition and resolution state; not complete semantic checking"), referenceRevision, managed, runtime, cases: cases.length, operations: cases.reduce((n, c) => n + c.steps.length + (c.mappers?.length ?? 0) + (c.queries?.length ?? 0) + (c.resolutions?.length ?? 0) + (c.comparisons?.length ?? 0), 0), passed: cases.length - differences.length, failed: differences.length, inputSha256: sha256(JSON.stringify(cases)), referenceOutputSha256: sha256(JSON.stringify(expected)), outputSha256: sha256(JSON.stringify(actual)), oracleSha256: sha256(await readFile(oracle)), candidateSha256: sha256(await readFile(managed ? dll : candidate)), sdk: await run(dotnet, ["--version"], { cwd: path.join(root, "csharp") }), go: await run(go, ["version"]) };
 await json(path.join(output, "checker-types-summary.json"), summary);
 if (option("--record")) await json(path.join(root, `csharp/compatibility/evidence/${option("--record")}.json`), summary);
 console.log(summary);

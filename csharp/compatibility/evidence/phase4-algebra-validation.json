@@ -1,0 +1,54 @@
+{
+    "timestamp": "2026-09-23T11:25:35.449Z",
+    "scope": "Type normalization algorithms using explicit fixture services; not complete semantic checking",
+    "candidateSha256": "a0bfc958f455af92c5c59a5841c44d2e0cce5546175d449dc9e4356a39b5d5c4",
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "languageVersion": "15.0",
+    "runtimeAsync": true,
+    "optimizationPreference": "Speed",
+    "instructionSet": "native",
+    "publish": {
+        "log": "logs/csharp-phase4-algebra-publish.log",
+        "sha256": "03933be2dc34223ee88005d844f6919fd7786869077fd93acbb392005d81ccfb",
+        "exitCode": 0
+    },
+    "algebra": {
+        "cases": 3885,
+        "operations": 259745,
+        "exact": 3885,
+        "failed": 0,
+        "unicodeScalars": 1112064,
+        "contextAndSurrogateCasingCases": 16
+    },
+    "state": {
+        "output": "15 algebra ownership/limit/cancellation assertions; template, intersection and origin depth 20000",
+        "exitCode": 0
+    },
+    "regression": {
+        "cases": 2904,
+        "operations": 1333980,
+        "output": "41 checker ownership/state assertions; mapper and type-order depth 50000; 16 independent contexts"
+    },
+    "repository": {
+        "command": "npx --no-install hereby validate --all",
+        "exitCode": 0,
+        "log": "logs/csharp-phase4-algebra-validation.log",
+        "sha256": "95f3e710fc458532384ea5b00032f4b763b4c21c9b0ccb9193c8a1efa6807b32",
+        "goTestResults": 163380,
+        "goSkips": 2152,
+        "apiTests": 813,
+        "extensionTests": 12,
+        "toolTests": 17,
+        "node": "24.20.0",
+        "go": "1.27.1",
+        "lintIssues": 0,
+        "benchmarkScope": "Repository-required smoke runs; no performance claim"
+    },
+    "formatting": "Eleven C# files formatted with preservation of tokens, comments and syntax in both library configurations. Final dotnet format whitespace and dprint checks passed; auto-properties remain on one line.",
+    "generators": [
+        "generate-checker.mjs --check",
+        "generate-casing.mjs --check"
+    ],
+    "dependenciesAdded": false
+}

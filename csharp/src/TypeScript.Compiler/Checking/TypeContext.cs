@@ -53,6 +53,15 @@ public sealed class TypeContext
     public IntrinsicType UnreachableNeverType { get; }
     public IntrinsicType NonPrimitiveType { get; }
     public IntrinsicType UniqueLiteralType { get; }
+    public Type StringOrNumberType { get; }
+    public Type StringNumberSymbolType { get; }
+    public Type NumberOrBigIntType { get; }
+    public TemplateLiteralType NumericStringType { get; }
+    public Type TemplateConstraintType { get; }
+    public ObjectType EmptyObjectType { get; }
+    public ObjectType UnknownEmptyObjectType { get; }
+    public ObjectType AnyFunctionType { get; }
+    public Type UnknownUnionType { get; }
 
     public TypeContext(bool strictNullChecks = false, bool exactOptionalPropertyTypes = false)
     {
@@ -88,7 +97,18 @@ public sealed class TypeContext
         ImplicitNeverType = new(this, TypeFlags.Never, "never");
         UnreachableNeverType = new(this, TypeFlags.Never, "never");
         NonPrimitiveType = new(this, TypeFlags.NonPrimitive, "object");
+        StringOrNumberType = GetUnionFromSortedTypes([StringType, NumberType], ObjectFlags.PrimitiveUnion);
+        StringNumberSymbolType = GetUnionFromSortedTypes([StringType, NumberType, ESSymbolType], ObjectFlags.PrimitiveUnion);
+        NumberOrBigIntType = GetUnionFromSortedTypes([NumberType, BigIntType], ObjectFlags.PrimitiveUnion);
+        NumericStringType = NewTemplateLiteralType(["", ""], [NumberType]);
+        TemplateConstraintType = GetUnionFromSortedTypes(strictNullChecks
+            ? [UndefinedType, NullType, StringType, NumberType, BigIntType, RegularFalseType, RegularTrueType]
+            : [StringType, NumberType, BigIntType, RegularFalseType, RegularTrueType], ObjectFlags.PrimitiveUnion);
         UniqueLiteralType = new(this, TypeFlags.Never, "never");
+        EmptyObjectType = NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved);
+        UnknownEmptyObjectType = NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved);
+        UnknownUnionType = strictNullChecks ? GetUnionFromSortedTypes([UndefinedType, NullType, UnknownEmptyObjectType], 0) : UnknownType;
+        AnyFunctionType = NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved | ObjectFlags.NonInferrableType);
     }
 
     internal uint NextTypeId() => typeCount = checked(typeCount + 1);

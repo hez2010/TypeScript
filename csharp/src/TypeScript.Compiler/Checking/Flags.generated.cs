@@ -255,3 +255,18 @@ public enum TypeSystemPropertyName : int
     InitializerIsUndefined = 8,
     AliasTarget = 9,
 }
+
+public enum UnionReduction : int
+{
+    None = 0,
+    Literal = 1,
+    Subtype = 2,
+}
+
+[Flags]
+public enum IntersectionFlags : uint
+{
+    None = 0,
+    NoSupertypeReduction = 1u << 0,
+    NoConstraintReduction = 1u << 1,
+}

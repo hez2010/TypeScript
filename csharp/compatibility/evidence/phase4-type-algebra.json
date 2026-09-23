@@ -1,0 +1,18 @@
+{
+    "timestamp": "2026-09-23T11:22:12.595Z",
+    "scope": "Union/intersection/template/string-mapping normalization with explicit fixture relation services; full semantic checker remains incomplete",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "managed": false,
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "cases": 3885,
+    "operations": 259745,
+    "passed": 3885,
+    "failed": 0,
+    "inputSha256": "c1751d5b1dd803361abec44ebb64ab227a87c1c0c3c1a152f169ba880a0bfb5e",
+    "referenceOutputSha256": "83aea4b6543704520e86520cb64bc4b77d41a0578f12faac807ce068c2883464",
+    "outputSha256": "63097656a9cf2e490af99613930c518cb2957a2aecd7af221c8193c3f513eb06",
+    "oracleSha256": "e6fa5d618359c9cfc20392da71ca66039adec72e4b98564c619ebf6b9ccbe6cc",
+    "candidateSha256": "a0bfc958f455af92c5c59a5841c44d2e0cce5546175d449dc9e4356a39b5d5c4",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "go": "go version go1.27.1 windows/amd64"
+}

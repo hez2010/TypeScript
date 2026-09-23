@@ -56,7 +56,13 @@ internal static class CheckerTypeTests
         ["implicitNever"] = c.ImplicitNeverType,
         ["unreachableNever"] = c.UnreachableNeverType,
         ["object"] = c.NonPrimitiveType,
-        ["uniqueLiteral"] = c.UniqueLiteralType
+        ["uniqueLiteral"] = c.UniqueLiteralType,
+        ["empty"] = c.EmptyObjectType,
+        ["unknownEmpty"] = c.UnknownEmptyObjectType,
+        ["anyFunction"] = c.AnyFunctionType,
+        ["unknownUnion"] = c.UnknownUnionType,
+        ["numericString"] = c.NumericStringType,
+        ["templateConstraint"] = c.TemplateConstraintType
     };
 
     private static void Process(JsonElement input, Utf8JsonWriter writer)
@@ -68,6 +74,9 @@ internal static class CheckerTypeTests
         }
         var c = new TypeContext(Bool(input, "strict"), Bool(input, "exact"));
         var builtins = Builtins(c);
+        var host = new AlgebraFixtureHost(c);
+        var algebra = new TypeAlgebra(c, new([]), host);
+        bool algebraUsed = false;
         var symbols = new Dictionary<string, Symbol>(StringComparer.Ordinal);
         var symbolNames = new Dictionary<Symbol, string>();
         Symbol? SymbolFor(string name)
@@ -91,6 +100,8 @@ internal static class CheckerTypeTests
             var args = Arguments(step);
             string op = Text(step, "op"), text = Text(step, "text"), symbol = Text(step, "symbol"), member = Text(step, "member");
             uint flags = step.TryGetProperty("flags", out var f) ? f.GetUInt32() : 0;
+            algebraUsed |= op is "unionReduced" or "intersection" or "templateNormalized" or "caseMap" or "regularAll";
+            TypeAlias? Alias() => symbol.Length == 0 ? null : c.CreateAlias(SymbolFor(symbol)!, Arguments(step, "aliasArgs"));
             Type type = op switch
             {
                 "builtin" => builtins[text],
@@ -100,11 +111,16 @@ internal static class CheckerTypeTests
                 "enumNumber" => c.GetEnumLiteralType(Number(text), SymbolFor(symbol)!, SymbolFor(member)!),
                 "enumString" => c.GetEnumLiteralType(text, SymbolFor(symbol)!, SymbolFor(member)!),
                 "computedEnum" => c.NewComputedEnumType(SymbolFor(symbol)!),
+                "errorAlias" => new IntrinsicType(c, TypeFlags.Any, "error") { Alias = Alias() },
                 "fresh" => c.GetFreshLiteralType((LiteralType)args[0]),
                 "regular" => ((LiteralType)args[0]).RegularType,
                 "parameter" => NewParameter(),
                 "distributed" => NewDistributed(),
                 "object" => c.NewObjectType((ObjectFlags)flags, SymbolFor(symbol)),
+                "shape" => host.Shape(
+                    step.GetProperty("properties").EnumerateArray().Select(p => p.GetString()!).ToArray(),
+                    args,
+                    SymbolFor(symbol)),
                 "reference" => c.CreateTypeReference((InterfaceType)args[0], args.AsSpan(1), (ObjectFlags)flags),
                 "clone" => c.CloneTypeReference((TypeReference)args[0]),
                 "union" => c.GetUnionFromSortedTypes(args, (ObjectFlags)flags,
@@ -117,6 +133,14 @@ internal static class CheckerTypeTests
                 "substitution" => c.GetSubstitutionType(args[0], args[1]),
                 "template" => c.NewTemplateLiteralType(Enumerable.Repeat(text, args.Length + 1).ToArray(), args),
                 "stringMapping" => c.NewStringMappingType(SymbolFor(symbol)!, args[0]),
+                "unionReduced" => algebra.UnionAsync(args, (UnionReduction)flags, Alias(),
+                    step.TryGetProperty("origin", out var o) ? values[o.GetInt32()] : null).GetAwaiter().GetResult(),
+                "intersection" => algebra.IntersectionAsync(args, (IntersectionFlags)flags, Alias()).GetAwaiter().GetResult(),
+                "regularAll" => algebra.RegularTypeAsync(args[0]).GetAwaiter().GetResult(),
+                "filter" => algebra.Filter(args[0], t => ((uint)t.Flags & flags) == 0),
+                "templateNormalized" => algebra.TemplateAsync(step.GetProperty("texts").EnumerateArray()
+                    .Select(t => Wtf8.DecodeString(t.GetBytesFromBase64())).ToArray(), args).GetAwaiter().GetResult(),
+                "caseMap" => algebra.StringMappingAsync(SymbolFor(symbol)!, args[0]).GetAwaiter().GetResult(),
                 _ => throw new InvalidOperationException(op)
             };
             values.Add(type);
@@ -124,6 +148,8 @@ internal static class CheckerTypeTests
             {
                 var parameter = c.NewTypeParameter(SymbolFor(symbol));
                 parameter.IsThisType = Bool(step, "this");
+                if (args.Length != 0)
+                    parameter.Constraint = args[0];
                 return parameter;
             }
             TypeParameter NewDistributed()
@@ -313,6 +339,13 @@ internal static class CheckerTypeTests
                 writer.WriteNumberValue(Math.Sign(order.Compare(values[pair[0].GetInt32()], values[pair[1].GetInt32()])));
         }
         writer.WriteEndArray();
+        if (algebraUsed)
+        {
+            writer.WriteStartArray("diagnostics");
+            foreach (int code in host.Diagnostics.Distinct().Order())
+                writer.WriteNumberValue(code);
+            writer.WriteEndArray();
+        }
         writer.WriteEndObject();
     }
 

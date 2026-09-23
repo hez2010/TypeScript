@@ -1,6 +1,6 @@
 # Phase 4: checker port in progress
 
-**Phase 4 is incomplete.** The implementation now covers checker type/state foundations, lexical name and reference resolution, and symbol-merge primitives. It does not satisfy the complete semantic-checker gate in the [rewrite plan](csharp-rewrite-plan.md). Semantic diagnostics, full type/symbol queries and the complete emit resolver remain unavailable in the C# backend.
+**Phase 4 is incomplete.** The implementation now covers checker type/state foundations, lexical name and reference resolution, symbol-merge primitives, and union/intersection/template normalization algorithms. It does not satisfy the complete semantic-checker gate in the [rewrite plan](csharp-rewrite-plan.md). Semantic diagnostics, full type/symbol queries and the complete emit resolver remain unavailable in the C# backend.
 
 ## Implemented checkpoint
 
@@ -17,7 +17,9 @@
 
 Type and signature IDs are local to their owning context. Factories reject combinations from different contexts. Cache keys compare complete identity sequences, including alias arguments and union origins; a hash collision cannot merge unrelated types. Caller-owned arrays are copied before they enter retained type state. Links remain separate from the AST and binder symbols shared by programs.
 
-The union factory implemented here is `getUnionTypeFromSortedList`, the canonicalization primitive called after normalization in Go. It does not implement `getUnionTypeWorker`, subtype reduction, intersection distribution, template reduction or constrained-variable reduction. These operations must be ported before the factory can support general semantic checking.
+`TypeAlgebra.cs`, `TypeAlgebra.Intersections.cs` and `TypeAlgebra.Templates.cs` now implement union normalization, literal/subtype reduction, constrained-variable reduction, intersection distribution and disjointness, nullable factoring, aliases/origins, filtering, template construction and intrinsic string mappings. Their required `ITypeAlgebraHost` supplies the checker's structural relations, member/constraint resolution and diagnostics. There is no production fallback for these dependencies. Full checker integration and the implementations of those services remain open.
+
+Intersection keys preserve the reference's distinction between constraint reduction modes, including suppression of alias keys when constraint reduction is disabled. Completed results are cached after normalization. Cross-product and subtype complexity limits are retained; overflow calculations use 64-bit saturation. Input-shaped traversals use explicit stacks or BCL `ValueTask` continuations. The casing implementation uses generated Unicode 15.1.0 data, including full case expansions, Final_Sigma context and lone-surrogate preservation.
 
 `Binding/NameResolver.cs` ports lexical scope traversal, function parameter restrictions, deferred contexts, conditional `infer` scopes, class type-parameter restrictions, decorators, default exports, enum members, `arguments`, CommonJS lookup and reference callbacks. `Binding/ReferenceResolver.cs` ports the shared import/export/value declaration queries. Both retain the reference's checker hooks; alias target resolution and semantic diagnostic callbacks still require checker integration. The corpus probe exercises these components with the reference's default lexical lookup behavior, not complete checker queries.
 
@@ -68,12 +70,29 @@ node csharp/tools/compare-checker-names.test.mjs
 & ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-names-safety
 ```
 
+## Type normalization validation
+
+The normalization checkpoint passes **3,885 exact NativeAOT comparisons** containing **259,745 operations**. Coverage includes strict/loose null handling, missing/undefined identity, literal freshness, constrained intersections, union origins and aliases, intersection cache modes, discriminant-based subtype reduction, template distribution, intrinsic string mappings and complexity diagnostics. Casing fixtures cover all **1,112,064 Unicode scalar values**, plus sigma contexts and lone surrogates, against the pinned Go implementation.
+
+The comparison host supplies explicitly constructed primitive constraints and plain-property object relations. Unsupported dependency queries throw. This validates the algebra algorithms and their calls into those services; it does not implement or establish the full structural relater, general constraint resolution, mapped-type analysis or template inference. The production `ITypeAlgebraHost` still requires those checker services. Alias argument lists are encoded as empty sequences when arity is zero; unresolved type-reference argument lists remain distinct from resolved empty lists.
+
+Fifteen native assertions exercise 20,000-level template, intersection and union-origin chains, cross-context rejection, cancellation/retry, cache identity, duplicate compaction and 64-bit cross-product overflow behavior. The 100,000 cross-product threshold and the reference's subtype-work estimate produce diagnostic 2590. The same native artifact also passes the earlier 2,904 type/state cases and 41 ownership/state assertions.
+
+Evidence: [algebra comparisons](../csharp/compatibility/evidence/phase4-type-algebra.json), [type/state regression](../csharp/compatibility/evidence/phase4-algebra-type-regression.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-algebra-validation.json). These are correctness and component safety checks; complete semantic workload performance remains unmeasured.
+
+```powershell
+node csharp/tools/generate-casing.mjs --check
+node csharp/tools/generate-checker.mjs --check
+node csharp/tools/checker-algebra.mjs --record phase4-type-algebra
+& ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-algebra-safety
+```
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
 
 1. Program/checker integration, global symbol initialization, alias/module export/augmentation resolution and type/value symbol resolution. The lexical resolver and merge primitives are now implemented; their checker-specific callbacks remain to be connected.
-2. Complete union/intersection normalization, structural relations and their caches, constraints, generics and structural instantiation, including reference instantiation limits.
+2. Structural relations and their caches, constraints, generics and structural instantiation, including reference instantiation limits; connect the implemented algebra algorithms to these complete checker services.
 3. Inference, contextual typing, signatures and overload selection, expression/declaration checking, JavaScript and JSDoc semantics.
 4. Flow analysis and narrowing, evolving arrays, definite assignment, exhaustiveness and semantic diagnostics.
 5. Mapped, conditional, indexed-access and template type evaluation; JSX, decorators and grammar checks.
