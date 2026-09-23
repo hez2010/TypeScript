@@ -2,6 +2,7 @@ using System.Text.Json;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Hosts;
+using TypeScript.Compiler.Resolution;
 
 namespace TypeScript.Compiler.Configuration;
 
@@ -523,36 +524,12 @@ public sealed partial class ConfigParser(IFileSystem fileSystem, string currentD
             || specifier.StartsWith("./", StringComparison.Ordinal)
             || specifier.StartsWith("../", StringComparison.Ordinal))
             return File(CompilerPath.Resolve(directory, specifier));
-        while (true)
-        {
-            string candidate = CompilerPath.Combine(directory, "node_modules", specifier);
-            string? exact = File(candidate);
-            if (exact is not null)
-                return fileSystem.RealPath(exact);
-            if (fileSystem.ReadFile(CompilerPath.Combine(candidate, "package.json")) is { } bytes)
-            {
-                try
-                {
-                    using var package = JsonDocument.Parse(SourceEncoding.Decode(bytes), JsonOptions);
-                    if (package.RootElement.ValueKind == JsonValueKind.Object
-                        && package.RootElement.TryGetProperty("tsconfig", out var config)
-                        && config.ValueKind == JsonValueKind.String)
-                    {
-                        string? target = File(CompilerPath.Resolve(candidate, JsonStrings.GetString(config)));
-                        if (target is not null)
-                            return fileSystem.RealPath(target);
-                    }
-                }
-                catch (JsonException) { }
-            }
-            exact = File(CompilerPath.Combine(candidate, "tsconfig.json"));
-            if (exact is not null)
-                return fileSystem.RealPath(exact);
-            string parent = CompilerPath.DirectoryName(directory);
-            if (parent == directory)
-                return null;
-            directory = parent;
-        }
+        var resolved = ModuleResolver.ResolveConfig(
+            fileSystem,
+            currentDirectory,
+            specifier,
+            CompilerPath.Combine(directory, "tsconfig.json"));
+        return resolved.IsResolved ? resolved.FileName : null;
     }
 
     public static bool GlobMatches(string pattern, string path, bool caseSensitive, bool exclude = false) =>

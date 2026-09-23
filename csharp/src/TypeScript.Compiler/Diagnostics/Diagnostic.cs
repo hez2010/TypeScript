@@ -26,6 +26,7 @@ public sealed record Diagnostic(DiagnosticMessage Message, int Start, int Length
 {
     public int Code => Message.Code;
     public string? FileName { get; init; }
+    public string? Source { get; init; }
     public IReadOnlyList<Diagnostic> RelatedInformation { get; init; } = [];
 
     public string Format(string? locale = null) => Message.Format(locale, Arguments);

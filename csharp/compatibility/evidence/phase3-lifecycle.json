@@ -1,0 +1,20 @@
+{
+    "timestamp": "2026-09-23T07:50:27.742Z",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "targetFramework": "net11.0",
+    "languageVersion": "15.0",
+    "runtimeAsync": true,
+    "optimizationPreference": "Speed",
+    "instructionSet": "native",
+    "candidateSha256": "f5f8ac3e6176bfcc284bc11ae65d09d117a1799c04a9c9254de66a38a54d2464",
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "checks": {
+        "programSafety": "Program reuse, invalidation and stack safety: 15 assertions; 12000 syntax levels; 3000 files",
+        "mappers": "Content mapper lifecycle and graph: 43 assertions",
+        "foundations": "Foundations: 4704 assertions, 2213 diagnostics, 13 locales, 108 libraries; embedded=True",
+        "hosts": "Hosts: 67 assertions; embedded=True",
+        "modules": "Module syntax: 42 assertions",
+        "parserSafety": "Async documentation: default worker pool passed; worker limits unsupported, separate portable-pool single-worker gate required.\r\nparentheses.ts: 23 ms\r\nparenthesis-precedence.ts: 0 ms\r\nindex-signatures.ts: 0 ms\r\ngeneric-function-types.ts: 0 ms\r\nheritage-expressions.ts: 0 ms\r\nprivate-type-query.ts: 0 ms\r\nthis-parameters.ts: 0 ms\r\ntuples.ts: 26 ms\r\ngenerics.ts: 35 ms\r\nindexed-access.ts: 35 ms\r\noperators.ts: 7 ms\r\nfunctions.ts: 13 ms\r\nconditionals.ts: 43 ms\r\nmapped.ts: 78 ms\r\ntype-literals.ts: 64 ms\r\ntemplate-types.ts: 67 ms\r\ncompound-types.ts: 63 ms\r\nblocks.ts: 19 ms\r\nif-statements.ts: 15 ms\r\nexpression-parentheses.ts: 10 ms\r\narray-expressions.ts: 17 ms\r\nobject-expressions.ts: 56 ms\r\nbinary-expressions.ts: 16 ms\r\nfunction-expressions.ts: 141 ms\r\njsx.tsx: 46 ms\r\njsx-qualified.tsx: 38 ms\r\njsx-names.tsx: 0 ms\r\nnested.json: 22 ms\r\ndocumentation.js: 69 ms\r\ndocumentation-array.js: 15 ms\r\ndocumentation-host.js: 16 ms\r\ndocumentation-names.js: 24 ms\r\ndocumentation-heritage.js: 41 ms\r\ndocumentation-properties.js: 29 ms\r\ndocumentation-typedef.js: 0 ms\r\nsynchronization-context.ts: 102 ms\r\nParser safety: 36 cases, 1421783 nodes; depth 21000, source positions, parents and cancellation passed."
+    },
+    "buildLogSha256": "cd457cd46a6ab837dc958c181017afe98d9356c44331898e08efbd9037db6a6c"
+}

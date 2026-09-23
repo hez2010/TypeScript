@@ -36,7 +36,7 @@ if (!process.argv.includes("--no-build")) {
     const args = managed ? ["build", "TypeScript.slnx", "-c", "Release", "--no-restore"] : ["publish", "tests/TypeScript.Compatibility", "-r", "win-x64", "-c", "Release", "-p:IlcInstructionSet=native", "-p:RestoreLockedMode=true", "-o", path.join(output, "phase2-native")];
     await writeFile(path.join(output, "phase2-build.log"), await run(dotnet, args, { cwd: path.join(root, "csharp") }));
 }
-const candidate = managed ? dotnet : path.join(output, "phase2-native/TypeScript.Compatibility.exe");
+const candidate = managed ? dotnet : option("--candidate", path.join(output, "phase2-native/TypeScript.Compatibility.exe"));
 const args = managed ? [path.join(root, "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll"), "--scan-lines"] : ["--scan-lines"];
 async function probe(command, args, cases) {
     return await new Promise((resolve, reject) => {
@@ -183,8 +183,17 @@ await json(path.join(output, "syntax-summary.json"), summary);
 await json(path.join(output, "syntax-difference-ledger.json"), { reference: reference.referenceRevision, independentParserVersion, cases: ledger });
 if (process.argv.includes("--record")) {
     const name = option("--record");
+    const reusedLedger = option("--reuse-parser-ledger");
+    if (reusedLedger) {
+        assert(parserSuite, "Only parser audits have a reusable syntax ledger");
+        const bytes = await readFile(path.join(root, "csharp/compatibility/evidence", reusedLedger));
+        const baseline = JSON.parse(bytes);
+        assert.deepEqual(JSON.parse(JSON.stringify(ledger)), baseline.cases, "Parser differences changed; a new audit is required");
+        summary.inheritedParserLedger = reusedLedger;
+        summary.inheritedParserLedgerSha256 = sha256(bytes);
+    }
     await json(path.join(root, "csharp/compatibility/evidence", name + ".json"), summary);
-    if (parserSuite) {
+    if (parserSuite && !reusedLedger) {
         const outputsFile = name + "-differences.outputs.json.gz";
         const archive = gzipSync(JSON.stringify({ reference: reference.referenceRevision, differences }));
         await writeFile(path.join(root, "csharp/compatibility/evidence", outputsFile), archive);

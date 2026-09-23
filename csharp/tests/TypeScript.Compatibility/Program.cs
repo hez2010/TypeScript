@@ -13,6 +13,41 @@ internal static class Program
     {
         try
         {
+            if (args is ["--mapper-codec-lines"])
+            {
+                MapperCodecTests.Lines();
+                return 0;
+            }
+            if (args is ["--program-safety"])
+            {
+                ProgramGraphTests.Safety().GetAwaiter().GetResult();
+                return 0;
+            }
+            if (args is ["--content-mappers", var mapperRepository])
+            {
+                ContentMapperTests.Run(mapperRepository).GetAwaiter().GetResult();
+                return 0;
+            }
+            if (args is ["--mapping-lines"])
+            {
+                MappingTests.Lines();
+                return 0;
+            }
+            if (args is ["--program-lines"])
+            {
+                ProgramGraphTests.Lines().GetAwaiter().GetResult();
+                return 0;
+            }
+            if (args is ["--binding-lines"])
+            {
+                BindingTests.Lines();
+                return 0;
+            }
+            if (args is ["--resolution-lines"])
+            {
+                ResolutionTests.Lines();
+                return 0;
+            }
             if (args is ["--javascript-syntax", var syntaxRepository])
             {
                 JavaScriptSyntaxTests.Run(syntaxRepository);

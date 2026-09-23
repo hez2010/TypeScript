@@ -1,0 +1,38 @@
+{
+    "timestamp": "2026-09-23T08:02:23.410Z",
+    "command": "npx --no-install hereby validate --all",
+    "exitCode": 0,
+    "log": "logs/csharp-phase3-final-validation.log",
+    "logSha256": "95fbe09725bdbd53e4af9432112545511b18cb20f25c2b6e5039e6f2816b1061",
+    "go": {
+        "totalTests": 163380,
+        "existingSkips": 2152
+    },
+    "api": {
+        "tests": 813,
+        "failed": 0
+    },
+    "vscode": {
+        "tests": 12,
+        "failed": 0
+    },
+    "node": "24.20.0",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "candidateSha256": "f5f8ac3e6176bfcc284bc11ae65d09d117a1799c04a9c9254de66a38a54d2464",
+    "nativeBuildLogSha256": "cd457cd46a6ab837dc958c181017afe98d9356c44331898e08efbd9037db6a6c",
+    "formatting": "Roslyn verified identical tokens/comments/syntax under embedded and non-embedded defines, preserved single-line auto-properties, and dotnet format whitespace --verify-no-changes passed.",
+    "generators": [
+        "generate-foundations",
+        "generate-ast",
+        "generate-options",
+        "generate-regex",
+        "generate-binding"
+    ],
+    "policyGuards": {
+        "binding": 15,
+        "parser": 21,
+        "documentation": 20
+    },
+    "benchmarkScope": "Repository-required one-iteration smoke checks only; timings are not performance evidence.",
+    "scope": "Phase-3 C# implementation and isolated development oracles; original Go/JS product source unchanged."
+}

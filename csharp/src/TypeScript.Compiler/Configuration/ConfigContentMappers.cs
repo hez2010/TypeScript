@@ -2,6 +2,7 @@ using System.Text.Json;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Hosts;
+using TypeScript.Compiler.Resolution;
 
 namespace TypeScript.Compiler.Configuration;
 
@@ -103,21 +104,9 @@ public sealed partial class ConfigParser
         var result = new List<ContentMapper>();
         foreach (var definition in definitions)
         {
-            string? packageDirectory = null, search = directory;
-            while (true)
-            {
-                string candidate = CompilerPath.Combine(search, "node_modules", definition.Package);
-                if (fileSystem.FileExists(CompilerPath.Combine(candidate, "package.json")))
-                {
-                    packageDirectory = fileSystem.RealPath(candidate);
-                    break;
-                }
-                string parent = CompilerPath.DirectoryName(search);
-                if (search == parent)
-                    break;
-                search = parent;
-            }
-            if (packageDirectory is null)
+            string? packageDirectory = new ModuleResolver(fileSystem, new CompilerOptions(), currentDirectory)
+                .ResolvePackageDirectory(definition.Package, CompilerPath.Combine(directory, "tsconfig.json"));
+            if (packageDirectory is null || !fileSystem.FileExists(CompilerPath.Combine(packageDirectory, "package.json")))
             {
                 Error(Messages.The_content_mapper_package_0_could_not_be_resolved, definition.Package);
                 continue;
@@ -127,7 +116,7 @@ public sealed partial class ConfigParser
             {
                 using var document = JsonDocument.Parse(
                     SourceEncoding.Decode(fileSystem.ReadFile(CompilerPath.Combine(packageDirectory, "package.json"))!),
-                    JsonOptions);
+                    new JsonDocumentOptions { MaxDepth = int.MaxValue });
                 package = document.RootElement.Clone();
             }
             catch (JsonException)
