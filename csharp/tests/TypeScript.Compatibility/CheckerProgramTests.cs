@@ -179,7 +179,7 @@ internal static class CheckerProgramTests
         int concurrency = input.GetProperty("concurrency").GetInt32();
         var config = new ParsedConfig("/project/tsconfig.json", options, roots, [], [], []);
         var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project", config, concurrency: concurrency);
-        var context = new TypeContext(options.Boolean("strictNullChecks") ?? options.Boolean("strict") ?? false,
+        var context = new TypeContext(options.StrictOption("strictNullChecks"),
             options.Boolean("exactOptionalPropertyTypes") ?? false);
         var links = new CheckerLinks();
         var host = new ProgramScopeHost(context, links);
@@ -363,6 +363,8 @@ internal static class CheckerProgramTests
         if (input.TryGetProperty("members", out var memberOption) && memberOption.GetBoolean())
             await CheckerMemberTests.WriteAsync(writer, nodes, environment, typeHost!, TypeId, SymbolId, Node,
                 input.TryGetProperty("values", out var valueOption) && valueOption.GetBoolean());
+        if (input.TryGetProperty("properties", out var propertyOption) && propertyOption.GetBoolean())
+            await CheckerPropertyTests.WriteAsync(writer, nodes, environment, typeHost!, TypeId, SymbolId, Node);
         writer.WriteStartArray("types");
         for (int i = 0; i < types.Count; i++)
         {
@@ -516,6 +518,17 @@ internal static class CheckerProgramTests
         foreach (int code in diagnostics.Order())
             writer.WriteNumberValue(code);
         writer.WriteEndArray();
+        if (input.TryGetProperty("numberStrings", out var numberStrings))
+        {
+            writer.WriteStartArray("numberStrings");
+            foreach (var item in numberStrings.EnumerateArray())
+            {
+                double number = TypeScript.Compiler.Semantics.JsNumber.FromString(Wtf8.DecodeString(item.GetBytesFromBase64()));
+                writer.WriteStringValue(
+                    double.IsNaN(number) ? "nan" : BitConverter.DoubleToUInt64Bits(number).ToString("x16", CultureInfo.InvariantCulture));
+            }
+            writer.WriteEndArray();
+        }
         writer.WriteEndObject();
     }
 }

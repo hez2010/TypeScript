@@ -63,19 +63,23 @@ internal sealed partial class ProgramTypeHost : ISignatureHost, IStructuredMembe
     public ValueTask<Type> WithThisAsync(Type type, Type argument, CancellationToken cancellation) =>
         Bases.WithThisAsync(type, argument, cancellation: cancellation);
 
-    public async ValueTask<IReadOnlyList<Symbol>> PropertiesAsync(Type type, CancellationToken cancellation) =>
-            type is StructuredType structured ? (await Members.ResolveAsync(structured, cancellation)).Properties ?? [] : [];
+    public ValueTask<IReadOnlyList<Symbol>> PropertiesAsync(Type type, CancellationToken cancellation) =>
+        Properties.GetAsync(type, cancellation);
 
     public async ValueTask<IReadOnlyList<Signature>> SignaturesAsync(Type type, bool construct, CancellationToken cancellation)
     {
+        type = await Views.ReducedApparentAsync(type, cancellation);
         if (type is not StructuredType structured)
             return [];
         await Members.ResolveAsync(structured, cancellation);
         return (construct ? structured.ConstructSignatures : structured.CallSignatures) ?? [];
     }
 
-    public async ValueTask<IReadOnlyList<IndexInfo>> IndexesAsync(Type type, CancellationToken cancellation) =>
-            type is StructuredType structured ? (await Members.ResolveAsync(structured, cancellation)).IndexInfos ?? [] : [];
+    public async ValueTask<IReadOnlyList<IndexInfo>> IndexesAsync(Type type, CancellationToken cancellation)
+    {
+        type = await Views.ReducedApparentAsync(type, cancellation);
+        return type is StructuredType structured ? (await Members.ResolveAsync(structured, cancellation)).IndexInfos : [];
+    }
 
     public ValueTask<Type> BaseConstructorAsync(InterfaceType type, CancellationToken cancellation)
     {
@@ -104,19 +108,17 @@ internal sealed partial class ProgramTypeHost : ISignatureHost, IStructuredMembe
 
     public ValueTask<Type> DeclaredTypeAsync(Symbol symbol, CancellationToken cancellation) => Declared.GetAsync(symbol, cancellation);
 
-    public ValueTask ResolveUnionAsync(UnionType type, CancellationToken cancellation) =>
-        throw new InvalidOperationException("Probe requires union members");
+    public ValueTask ResolveUnionAsync(UnionType type, CancellationToken cancellation) => Composites.UnionAsync(type, cancellation);
 
     public ValueTask ResolveIntersectionAsync(IntersectionType type, CancellationToken cancellation) =>
-        throw new InvalidOperationException("Probe requires intersection members");
+        Composites.IntersectionAsync(type, cancellation);
 
     public ValueTask ResolveReverseMappedAsync(ReverseMappedType type, CancellationToken cancellation) =>
         throw new InvalidOperationException("Probe requires reverse mapped members");
 
-    public ValueTask<Type> ReducedAsync(Type type, CancellationToken cancellation) =>
-        type is UnionOrIntersectionType ? throw new InvalidOperationException("Probe requires type reduction") : ValueTask.FromResult(type);
+    public ValueTask<Type> ReducedAsync(Type type, CancellationToken cancellation) => Views.ReducedAsync(type, cancellation);
 
-    public ValueTask<Type> ApparentAsync(Type type, CancellationToken cancellation) => Instantiation.ApparentTypeAsync(type, cancellation);
+    public ValueTask<Type> ApparentAsync(Type type, CancellationToken cancellation) => Views.ApparentAsync(type, cancellation);
 
     public ValueTask<IReadOnlyList<Type>> ClassBasesAsync(InterfaceType type, CancellationToken cancellation) =>
             type.Symbol!.Declarations.OfType<ClassDeclarationNode>().Any(c => c.HeritageClauses is { Count: > 0 })
@@ -191,8 +193,7 @@ internal sealed partial class ProgramTypeHost : ISignatureHost, IStructuredMembe
         if ((declaration.Flags & NodeFlags.Ambient) != 0 && (SemanticSyntax.HasModifier(declaration, SyntaxKind.PrivateKeyword)
             || (declaration as INamedNode)?.Name is PrivateIdentifierNode))
             return;
-        if (program.Symbols.Program.Configuration.Options.Boolean("noImplicitAny")
-            ?? program.Symbols.Program.Configuration.Options.Boolean("strict") ?? false)
+        if (program.Symbols.Program.Configuration.Options.StrictOption("noImplicitAny"))
             Error(declaration, declaration is SetAccessorDeclarationNode ? 7032 : declaration is GetAccessorDeclarationNode ? 7033 : 7008);
     }
 
@@ -200,8 +201,7 @@ internal sealed partial class ProgramTypeHost : ISignatureHost, IStructuredMembe
     {
         if (annotation is not null)
             Error(annotation, 2502);
-        else if (getter is not null && (program.Symbols.Program.Configuration.Options.Boolean("noImplicitAny")
-            ?? program.Symbols.Program.Configuration.Options.Boolean("strict") ?? false))
+        else if (getter is not null && program.Symbols.Program.Configuration.Options.StrictOption("noImplicitAny"))
             Error(getter, 7023);
     }
 }

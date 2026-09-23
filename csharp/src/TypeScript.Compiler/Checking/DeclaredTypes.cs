@@ -84,8 +84,7 @@ internal sealed class DeclaredTypes(TypeContext context, CheckerLinks links, Che
                 }
                 if (type == context.IntrinsicMarkerType && symbol.Name == "BuiltinIteratorReturn")
                 {
-                    bool strict = symbols.Program.Configuration.Options.Boolean("strictBuiltinIteratorReturn")
-                        ?? symbols.Program.Configuration.Options.Boolean("strict") ?? false;
+                    bool strict = symbols.Program.Configuration.Options.StrictOption("strictBuiltinIteratorReturn");
                     type = strict ? context.UndefinedType : context.AnyType;
                 }
             }

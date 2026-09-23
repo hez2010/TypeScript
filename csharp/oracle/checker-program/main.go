@@ -4,11 +4,14 @@ import (
 	"bufio"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
+	"math"
 	"os"
 
 	"github.com/microsoft/TypeScript/tsc/internal/checker"
 	"github.com/microsoft/TypeScript/tsc/internal/compiler"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
+	"github.com/microsoft/TypeScript/tsc/internal/jsnum"
 	"github.com/microsoft/TypeScript/tsc/internal/tsoptions"
 	"github.com/microsoft/TypeScript/tsc/internal/tsoptions/tsoptionstest"
 )
@@ -19,14 +22,16 @@ func main() {
 	output := json.NewEncoder(os.Stdout)
 	for lines.Scan() {
 		var input struct {
-			Files       map[string]string
-			Roots       []string
-			Options     map[string]any
-			Concurrency int
-			Aliases     bool
-			TypeNodes   bool
-			Members     bool
-			Values      bool
+			Files         map[string]string
+			Roots         []string
+			Options       map[string]any
+			Concurrency   int
+			Aliases       bool
+			TypeNodes     bool
+			Members       bool
+			Values        bool
+			Properties    bool
+			NumberStrings []string
 		}
 		if err := json.Unmarshal(lines.Bytes(), &input); err != nil {
 			panic(err)
@@ -53,7 +58,24 @@ func main() {
 		}
 		program := compiler.NewProgram(options)
 		c, _ := checker.NewChecker(program, nil)
-		if err := output.Encode(c.CSharpProgramScopeProbe(input.Aliases, input.TypeNodes, input.Members, input.Values)); err != nil {
+		result := c.CSharpProgramScopeProbe(input.Aliases, input.TypeNodes, input.Members, input.Values, input.Properties).(map[string]any)
+		if input.NumberStrings != nil {
+			rows := []string{}
+			for _, text := range input.NumberStrings {
+				data, err := base64.StdEncoding.DecodeString(text)
+				if err != nil {
+					panic(err)
+				}
+				value := jsnum.FromString(string(data))
+				if value.IsNaN() {
+					rows = append(rows, "nan")
+				} else {
+					rows = append(rows, fmt.Sprintf("%016x", math.Float64bits(float64(value))))
+				}
+			}
+			result["numberStrings"] = rows
+		}
+		if err := output.Encode(result); err != nil {
 			panic(err)
 		}
 	}

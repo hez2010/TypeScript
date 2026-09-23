@@ -13,6 +13,11 @@ internal static class Program
     {
         try
         {
+            if (args is ["--checker-properties-safety"])
+            {
+                CheckerPropertyTests.Safety().GetAwaiter().GetResult();
+                return 0;
+            }
             if (args is ["--checker-values-safety"])
             {
                 CheckerSymbolTypeTests.Safety().GetAwaiter().GetResult();

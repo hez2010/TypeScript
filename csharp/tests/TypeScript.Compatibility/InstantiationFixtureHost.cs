@@ -26,6 +26,22 @@ internal interface IInstantiationFixtureSource
     ValueTask<TypeParameter> ParameterAsync(TypeParameterDeclarationNode node, CancellationToken cancellation);
 
     ValueTask<MappedType> MappedNodeAsync(MappedTypeNode node, CancellationToken cancellation);
+
+    ValueTask<Type> ApparentAsync(Type type, CancellationToken cancellation);
+
+    ValueTask<IReadOnlyList<Symbol>> PropertiesAsync(Type type, CancellationToken cancellation);
+
+    ValueTask<IReadOnlyList<IndexInfo>> IndexesAsync(Type type, CancellationToken cancellation);
+
+    ValueTask<Symbol?> PropertyAsync(Type type, string name, CancellationToken cancellation);
+
+    ValueTask<Type> PropertyNameTypeAsync(Symbol symbol, CancellationToken cancellation);
+
+    ValueTask<IndexInfo?> ApplicableIndexAsync(Type type, Type key, CancellationToken cancellation);
+
+    bool IsReadonly(Symbol symbol);
+
+    ValueTask<bool> UnknownLikeUnionAsync(Type type, CancellationToken cancellation);
 }
 
 // Fixed, resolved fixture dependencies. No AST/member/inference fallback is
@@ -155,6 +171,8 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
 
     public async ValueTask<Type> ApparentTypeAsync(Type type, CancellationToken cancellation)
     {
+        if (source is not null)
+            return await source.ApparentAsync(type, cancellation).ConfigureAwait(false);
         if ((type.Flags & F.Instantiable) != 0)
             type = await Constraints.BaseConstraintAsync(type, cancellation).ConfigureAwait(false) ?? context.UnknownType;
         if (type is MappedType or IntersectionType)
@@ -167,6 +185,8 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
 
     public async ValueTask<IReadOnlyList<Symbol>> PropertiesAsync(Type type, CancellationToken cancellation)
     {
+        if (source is not null)
+            return await source.PropertiesAsync(type, cancellation).ConfigureAwait(false);
         if (type is MappedType mapped)
             await Members.ResolveAsync(mapped, cancellation).ConfigureAwait(false);
         if (IsArrayType(type))
@@ -180,6 +200,8 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
 
     public async ValueTask<IReadOnlyList<IndexInfo>> IndexInfosAsync(Type type, CancellationToken cancellation)
     {
+        if (source is not null)
+            return await source.IndexesAsync(type, cancellation).ConfigureAwait(false);
         await PropertiesAsync(type, cancellation).ConfigureAwait(false);
         return type is StructuredType structured ? structured.IndexInfos : [];
     }
@@ -187,12 +209,16 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
     public async ValueTask<Symbol?> PropertyAsync(Type type, string name, CancellationToken cancellation)
     {
         BeforeProperty?.Invoke(name);
+        if (source is not null)
+            return await source.PropertyAsync(type, name, cancellation).ConfigureAwait(false);
         await PropertiesAsync(type, cancellation).ConfigureAwait(false);
         return type is StructuredType structured ? structured.Members?.GetValueOrDefault(name) : null;
     }
 
     public ValueTask<Type> PropertyNameTypeAsync(Symbol symbol, CancellationToken cancellation)
     {
+        if (source is not null)
+            return source.PropertyNameTypeAsync(symbol, cancellation);
         var name = links.Values.Get(symbol).NameType;
         if (name is not null)
             return ValueTask.FromResult((name.Flags & F.StringOrNumberLiteralOrUnique) != 0 ? name : context.NeverType);
@@ -201,10 +227,12 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
         return ValueTask.FromResult<Type>(context.GetStringLiteralType(symbol.Name));
     }
 
-    public bool IsReadonly(Symbol symbol) => (symbol.CheckFlags & CheckFlags.Readonly) != 0;
+    public bool IsReadonly(Symbol symbol) => source?.IsReadonly(symbol) ?? (symbol.CheckFlags & CheckFlags.Readonly) != 0;
 
     public async ValueTask<IndexInfo?> ApplicableIndexAsync(Type type, Type key, CancellationToken cancellation)
     {
+        if (source is not null)
+            return await source.ApplicableIndexAsync(type, key, cancellation).ConfigureAwait(false);
         IndexInfo? exact = null, fallback = null;
         foreach (var info in await IndexInfosAsync(type, cancellation).ConfigureAwait(false))
         {
@@ -280,6 +308,10 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
 
     private async ValueTask<Type> ArrayElement(TypeReference reference, CancellationToken cancellation)
     {
+        if (source is not null)
+            return (await source.IndexesAsync(
+                reference,
+                cancellation).ConfigureAwait(false)).First(i => i.KeyType == context.NumberType).ValueType;
         if ((reference.ObjectFlags & O.MembersResolved) == 0)
         {
             var target = (InterfaceType)reference.ReferencedType;
@@ -377,6 +409,10 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
             return await ArrayElement(reference, cancellation).ConfigureAwait(false);
         if ((indexType.Flags & F.Number) != 0 && objectType is TypeReference { Target: TupleType } tuple)
         {
+            if (source is not null)
+                return (await source.IndexesAsync(
+                    tuple,
+                    cancellation).ConfigureAwait(false)).First(i => i.KeyType == context.NumberType).ValueType;
             if ((tuple.ObjectFlags & O.MembersResolved) == 0)
             {
                 var target = (TupleType)tuple.ReferencedType;
@@ -427,11 +463,11 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
     public async ValueTask<bool> IsGenericTypeAsync(Type type, CancellationToken cancellation)
         => await Mapped.GenericFlagsAsync(type, cancellation).ConfigureAwait(false) != 0;
 
-    public ValueTask<bool> IsAssignableAsync(Type source, Type target, CancellationToken cancellation)
-        => ValueTask.FromResult(source == target || (source.Flags & (F.Any | F.Never)) != 0
+    public async ValueTask<bool> IsAssignableAsync(Type source, Type target, CancellationToken cancellation)
+        => source == target || (source.Flags & (F.Any | F.Never)) != 0
+            || this.source is not null && await this.source.UnknownLikeUnionAsync(target, cancellation).ConfigureAwait(false)
             || (target is TypeParameter && (source.Flags & (F.Primitive | F.Unknown)) != 0
-                ? false
-                : relations.Related(source, target, false)));
+                ? false : relations.Related(source, target, false));
 
     public ValueTask<bool> IsEmptyAnonymousAsync(Type type, CancellationToken cancellation)
             => relations.IsEmptyAnonymousObjectAsync(type, cancellation);

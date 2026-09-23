@@ -247,6 +247,23 @@ node csharp/tools/checker-program.mjs --values --record phase4-symbol-types
 & ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-values-safety
 ```
 
+## Composite properties and type views
+
+`TypeProperties.cs` resolves ordinary and composite properties, Object/Function augmentation, type-only export filtering, partial union properties, accessibility/readonly propagation, shared declarations, instantiated-member clones and deferred read/write types. Separate caches retain augmented and unaugmented lookups. `TypeViews.cs` implements primitive/constraint views, apparent mapped-array types, polymorphic `this` views, empty-type classification and reduction of conflicting discriminant/private-member intersections to `never`. Provisional reduction/classification flags are rolled back on cancellation.
+
+`CompositeMembers.cs` assembles union/intersection members, index information and mixin constructor results. Full signature matching and array-member signature adaptation remain required callbacks. Applicable index lookup now combines overlapping indexes and retains the reference's string-index fallback and readonly rules. The source probe connects mapped-member queries to the production property/view services; general relations, computed-name evaluation, inference and callable-composite matching remain open.
+
+These queries also exposed two integration dependencies: numeric template-key checks need ECMAScript string-to-number conversion, and omitted strict options default to enabled in the pinned reference. `JsNumber.FromString` now handles ECMAScript whitespace, decimal and prefixed integers, signed zero and binary64 rounding/overflow. `CompilerOptions.StrictOption` applies the reference default and explicit per-option overrides to the checker consumers.
+
+NativeAOT passes **192 exact program comparisons**, covering 96 configurations at single and reference-default concurrency. They exercise partial/read-write properties, optional/readonly combinations, private/protected declarations, discriminant reduction, generic instances, index combinations, tuple rests, primitive augmentation, mapped array constraints and strict defaults/overrides. The same run includes **3,818 exact numeric-string conversions** with binary64 bit comparisons, including finite/overflow boundaries, long inputs and invalid UTF-16. NaN results use the existing numeric probe's canonical `nan` representation.
+
+Forty-nine native safety assertions cover cache sharing/separation, cancellation and retry, provisional reduction/classification flags, ownership, index applicability and a **20,000-level** reduction chain. The same artifact passes 136 symbol-type, 176 structured-member, 192 source-type, 180 program/header and 784 mapped-type comparisons, plus 150 earlier safety assertions. Evidence: [properties/views](../csharp/compatibility/evidence/phase4-properties.json), [values](../csharp/compatibility/evidence/phase4-properties-values-regression.json), [members](../csharp/compatibility/evidence/phase4-properties-members-regression.json), [source types](../csharp/compatibility/evidence/phase4-properties-types-regression.json), [programs](../csharp/compatibility/evidence/phase4-properties-program-regression.json), [mapped types](../csharp/compatibility/evidence/phase4-properties-mapped-regression.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-properties-validation.json).
+
+```powershell
+node csharp/tools/checker-program.mjs --properties --record phase4-properties
+& ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-properties-safety
+```
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
@@ -259,4 +276,4 @@ The following phase-4 requirements remain open:
 6. Type display, node builders, symbol accessibility and emit-resolver APIs.
 7. All active checker/compiler type/symbol/diagnostic comparisons at single and reference-default concurrency; audits of intentional differences; complete semantic workload memory/performance measurements.
 
-The next integration step is complete value resolution, composite members and relations, conditional/inference services and module type adaptation over the program-backed symbol environment. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.
+The next integration step is composite signature matching and structural relations, followed by complete value inference, conditional services and module type adaptation over the program-backed symbol environment. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.

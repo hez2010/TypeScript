@@ -146,8 +146,7 @@ internal sealed class TypeReferences(TypeContext context, CheckerLinks links, Ch
             return NoArguments(node, symbol) ? type : context.ErrorType;
         int count = Arguments(node)?.Count ?? 0, minimum = Minimum(parameters);
         bool js = IsJs(node);
-        bool implicitAny = js && !(symbols.Program.Configuration.Options.Boolean("noImplicitAny")
-            ?? symbols.Program.Configuration.Options.Boolean("strict") ?? false);
+        bool implicitAny = js && !symbols.Program.Configuration.Options.StrictOption("noImplicitAny");
         if (!implicitAny && (count < minimum || count > parameters.Length))
         {
             host.TypeArgumentCount(node, symbol, type, minimum, parameters.Length,

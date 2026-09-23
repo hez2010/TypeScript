@@ -1,6 +1,7 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Syntax;
+using TypeScript.Compiler.Semantics;
 
 namespace TypeScript.Compiler.Checking;
 
@@ -28,6 +29,41 @@ internal sealed class IndexSignatures(
     MappedMembers mapped,
     IIndexSignatureHost host)
 {
+    internal async ValueTask<IndexInfo?> ApplicableAsync(
+        IReadOnlyList<IndexInfo> indexes,
+        Type key,
+        CancellationToken cancellation = default)
+    {
+        cancellation.ThrowIfCancellationRequested();
+        context.RequireOwned(key);
+        IndexInfo? strings = null;
+        var applicable = new List<IndexInfo>();
+        foreach (var index in indexes)
+            if (index.KeyType == context.StringType)
+                strings = index;
+            else if (await ApplicableTypeAsync(key, index.KeyType, cancellation).ConfigureAwait(false))
+                applicable.Add(index);
+        if (applicable.Count == 0)
+            return strings is not null && await ApplicableTypeAsync(key, context.StringType, cancellation).ConfigureAwait(false)
+                ? strings
+                : null;
+        if (applicable.Count == 1)
+            return applicable[0];
+        return context.NewIndexInfo(context.UnknownType,
+            await algebra.IntersectionAsync(
+                applicable.Select(i => i.ValueType).ToArray(),
+                cancellation: cancellation).ConfigureAwait(false),
+            applicable.All(i => i.IsReadonly));
+    }
+
+    internal async ValueTask<bool> ApplicableTypeAsync(Type source, Type target, CancellationToken cancellation = default)
+        => await host.AssignableAsync(source, target, cancellation).ConfigureAwait(false)
+            || target == context.StringType && await host.AssignableAsync(source, context.NumberType, cancellation).ConfigureAwait(false)
+            || target == context.NumberType
+                && (source == context.NumericStringType || source is LiteralType { Value: string text } && NumericName(text));
+
+    internal static bool NumericName(string text) => TokenFacts.NumberText(JsNumber.FromString(text)) == text;
+
     internal async ValueTask<IReadOnlyList<IndexInfo>> ResolveAsync(
         Symbol index,
         IReadOnlyList<Symbol> siblings,

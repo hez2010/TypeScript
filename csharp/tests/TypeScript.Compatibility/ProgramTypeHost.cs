@@ -26,6 +26,7 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
     internal IReadOnlyList<int> AlgebraDiagnostics => relations.Diagnostics;
     private readonly HashSet<(SyntaxNode, int)> reported = [];
     internal Action<SyntaxNode>? BeforeNode { get; set; }
+    internal Action<Symbol>? BeforeMemberTable { get; set; }
 
     internal ProgramTypeHost(TypeContext context, CheckerLinks links, ProgramScopeHost program)
     {
@@ -56,6 +57,17 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
             Instantiation.Members, new(program.Symbols.Program.SourceFiles.Select(f => f.Syntax).ToArray()), this);
         Values = new(context, links, program.Symbols, Declared, program.Aliases, program.AliasTargets, Algebra,
             Instantiation.Engine, Instantiation.Members, Instantiation.Resolutions, this);
+        Properties = new(context, links, program.Symbols, program.Scopes, program.Aliases, Values, Algebra, this);
+        Views = new(context, Algebra, Instantiation.Constraints, Instantiation.Engine, Instantiation.Mapped, Instantiation.Members, this);
+        Composites = new(context, Algebra, Instantiation.Members, Signatures, this);
+        relations.EmptyAnonymousSource = Views.EmptyAnonymousAsync;
+        relations.EmptyObjectSource = Views.EmptyObjectAsync;
+        relations.PropertiesSource = Properties.GetAsync;
+        relations.SymbolTypeSource = Values.GetAsync;
+        relations.PropertyTypeSource = async (type, name, cancellation) =>
+            await Properties.PropertyAsync(type, name, cancellation: cancellation) is { } property
+                ? await Values.GetAsync(property, cancellation)
+                : null;
     }
 
     public ValueTask<Type> TypeFromNodeAsync(SyntaxNode node, CancellationToken cancellation)
@@ -108,6 +120,7 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
 
     public ValueTask<IReadOnlyDictionary<string, Symbol>> MembersAsync(Symbol symbol, CancellationToken cancellation)
     {
+        BeforeMemberTable?.Invoke(symbol);
         if (symbol.Members.ContainsKey(Symbol.InternalPrefix + "computed"))
             throw new InvalidOperationException("Probe requires computed member evaluation");
         return ValueTask.FromResult(symbol.Members);

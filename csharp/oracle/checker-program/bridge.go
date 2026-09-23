@@ -11,7 +11,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/jsnum"
 )
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -235,6 +235,40 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 			memberRows = append(memberRows, []any{tid(t), properties, calls, constructors, indexes})
 		}
 	}
+	propertyRows := []any{}
+	if propertyQueries {
+		for _, node := range nodes {
+			if !ast.IsTypeAliasDeclaration(node) && !ast.IsInterfaceDeclaration(node) && !ast.IsClassLike(node) && !ast.IsTypeParameterDeclaration(node) {
+				continue
+			}
+			t := c.getDeclaredTypeOfSymbol(c.getSymbolOfDeclaration(node))
+			row := []any{nodeIDs[node], tid(t), tid(c.getApparentType(t)), tid(c.getReducedType(t))}
+			properties := []any{}
+			for _, p := range c.getPropertiesOfType(t) {
+				properties = append(properties, []any{sid(p), tid(c.getTypeOfSymbol(p)), tid(c.getWriteTypeOfSymbol(p))})
+			}
+			names := []any{}
+			for _, name := range []string{"value", "kind", "optional", "missing", "toString", "apply", "0", "1", "length"} {
+				p := c.getPropertyOfType(t, name)
+				raw := p
+				if t.flags&TypeFlagsUnionOrIntersection != 0 {
+					raw = c.getUnionOrIntersectionProperty(t, name, false)
+				}
+				pid, rid := sid(p), sid(raw)
+				var read, write *Type
+				if raw != nil {
+					read, write = c.getTypeOfSymbol(raw), c.getWriteTypeOfSymbol(raw)
+				}
+				names = append(names, []any{name, pid, rid, tid(read), tid(write)})
+			}
+			indexes := []any{}
+			for _, ix := range c.getIndexInfosOfType(t) {
+				indexes = append(indexes, []any{tid(ix.keyType), tid(ix.valueType), ix.isReadonly, nodeIDs[ix.declaration]})
+			}
+			row = append(row, properties, names, indexes)
+			propertyRows = append(propertyRows, row)
+		}
+	}
 	typeRows := []any{}
 	for i := 0; i < len(types); i++ {
 		t := types[i]
@@ -380,6 +414,9 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	}
 	if valueQueries {
 		result["valueQueries"] = valueRows
+	}
+	if propertyQueries {
+		result["propertyQueries"] = propertyRows
 	}
 	return result
 }

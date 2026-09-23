@@ -38,7 +38,7 @@ if (!process.argv.includes("--no-build")) {
 
 const cases = [];
 const library = `interface IArguments {} interface Object {} interface Function {} interface CallableFunction extends Function {} interface NewableFunction extends Function {} interface String {} interface Number {} interface Boolean {} interface RegExp {} interface Array<T> { length: number; [n: number]: T; } interface ReadonlyArray<T> { readonly length: number; readonly [n: number]: T; } interface ThisType<T> {}`;
-function add(name, sources, options = {}, aliases = false, typeNodes = false, members = false, values = false) {
+function add(name, sources, options = {}, aliases = false, typeNodes = false, members = false, values = false, properties = false) {
     for (const concurrency of [1, 4]) {
         const files = Object.fromEntries(Object.entries(sources).map(([name, text]) => [`/project/${name}`, Buffer.from(text).toString("base64")]));
         const input = { name: `${name}:${concurrency}`, files, roots: Object.keys(files), options, concurrency };
@@ -46,6 +46,7 @@ function add(name, sources, options = {}, aliases = false, typeNodes = false, me
         if (typeNodes) input.typeNodes = true;
         if (members) input.members = true;
         if (values) input.values = true;
+        if (properties) input.properties = true;
         cases.push(input);
     }
 }
@@ -211,7 +212,61 @@ for (const strict of [false, true]) {
         add(`values:imports:${strict}:${exactOptionalPropertyTypes}`, { "globals.d.ts": library, "a.ts": "export const value:string; export function f(x:number):boolean; export interface I {}", "b.ts": "import {value,f,I} from './a'; import * as NS from './a'; export {value,f,I,NS};" }, { strict, exactOptionalPropertyTypes, module: "esnext" }, false, true, true, true);
     }
 }
-let selected = process.argv.includes("--values") ? cases.filter(c => c.values) : process.argv.includes("--members") ? cases.filter(c => c.members && !c.values) : process.argv.includes("--type-nodes") ? cases.filter(c => c.typeNodes && !c.members)
+for (const strict of [false, true]) {
+    for (const exactOptionalPropertyTypes of [false, true]) {
+        for (
+            const [name, source] of Object.entries({
+                shared: "type U={value:string,a:number}|{value:number,b:string}; type I={value:string,a:number}&{value:number,b:string};",
+                optional: "type U={optional?:string}|{optional:number}; type I={optional?:string}&{optional?:number};",
+                readonly: "type U={readonly value:string}|{value:string}; type I={readonly value:string}&{value:string};",
+                partial: "type U={value:string}|{other:number}; type I={value:string}&{other:number};",
+                discriminants: "type I={kind:'a',value:string}&{kind:'b',value:number}; type U=I|{kind:'c',value:boolean};",
+                neverProperty: "type A={value:never}&{value:string}; type B={kind?:'a'}&{kind?:'b'};",
+                accessors: "interface A { get value():string; set value(v:string|number); } interface B { get value():number; set value(v:boolean); } type U=A|B; type I=A&B;",
+                deferred: "type U={value:string}|{value:number}|{value:boolean}; type I={value:string}&{value:number}&{value:boolean};",
+                private: "class A { private value:string; } class B { private value:number; } type U=A|B; type I=A&B;",
+                protected: "class A { protected value:string; } class B { public value:number; } type U=A|B; type I=A&B;",
+                generic: "interface Box<T> { value:T; length:number } type U=Box<string>|Box<number>; type I=Box<string>&Box<number>;",
+                genericPrivate: "class Box<T> { private value:T; length:number } type U=Box<string>|Box<number>; type I=Box<string>&Box<number>;",
+                indexes: "type U={value:string}|{[s:string]:number}; type I={readonly [s:string]:string}&{[s:string]:number};",
+                unionIndexes: "type U={readonly [n:number]:string;[s:string]:unknown}|{[n:number]:number;[s:string]:unknown};",
+                arrays: "type U=string[]|number[]; type I=string[]&number[]; type T=[string]|[number,boolean];",
+                primitives: "type S=string; type N=number; type U=string|number; type A=unknown; type O=object; type B=boolean;",
+                constrained: "interface Box<T> { value:T } type C<T extends Box<string>>=T; type I<T extends {value:string}&{other:number}>=T;",
+                recursive: "interface A { value:A; kind:'a' } interface B { value:B; kind:'b' } type U=A|B;",
+                numericIndexes: "type U={'0':string;'1':boolean}|{[n:number]:number}; type I={ [n:number]:string }&{ [n:number]:number };",
+                tupleRest: "type U=[string, ...number[]]|[boolean, ...string[]]; type R=readonly [string]|readonly [number,boolean];",
+                literalKinds: "type B=bigint; type S=symbol; type N=null|undefined; type U=unknown; type A=any; type E={};",
+                mapped: "type M<T extends string[]> = { [K in keyof T]: T[K] }; type A=M<['a','b']>; type N<T extends readonly number[]> = { readonly [K in keyof T]:T[K] };",
+            })
+        ) add(`properties:${name}:${strict}:${exactOptionalPropertyTypes}`, { "globals.d.ts": library, "main.ts": source }, { strict, exactOptionalPropertyTypes }, false, true, false, false, true);
+        const wrappers = library.replace("interface Object {}", "interface Object { toString():string }")
+            .replace("interface Function {}", "interface Function { apply(this:Function,x:unknown):unknown }")
+            .replace("interface String {}", "interface String { readonly length:number; value:string }")
+            .replace("interface Number {}", "interface Number { value:number }");
+        add(`properties:augmentation:${strict}:${exactOptionalPropertyTypes}`, { "globals.d.ts": wrappers, "main.ts": "type U=string|number; type F=(x:number)=>string; type M=F|{value:string}; type I={value:string}&{}; type O={toString:string}|{};" }, { strict, exactOptionalPropertyTypes }, false, true, false, false, true);
+    }
+}
+const numberStrings = new Set(["", " ", "-0", "+0", "NaN", "Infinity", "+Infinity", "-Infinity", "inf", "nan", ".", "+", "-", ".5", "1.", "1e", "1e+", "01", "0x", "0b", "0o", "0x1p0", "+0x1", "-0x1", "0_1", "1n", "1,000", "0b2", "0o8", "0xg", "1 1", "1e9999", "-1e-9999"]);
+for (const ch of ["\t", "\n", "\r", "\v", "\f", "\u00a0", "\u1680", "\u2000", "\u2007", "\u2028", "\u2029", "\u202f", "\u205f", "\u3000", "\ufeff", "\u0085", "\u180e", "\u200b"]) {
+    for (const s of [ch, `${ch}1${ch}`, `1${ch}1`]) numberStrings.add(s);
+}
+let numberSeed = 0x4199a421;
+const numberRandom = () => numberSeed = (Math.imul(numberSeed, 1664525) + 1013904223) >>> 0;
+for (let i = 0; i < 256; i++) {
+    const value = (BigInt(numberRandom()) << BigInt((i * 5) % 1100)) + BigInt(numberRandom());
+    for (const [prefix, radix] of [["0x", 16], ["0o", 8], ["0b", 2]]) numberStrings.add(prefix + value.toString(radix));
+    for (const s of [value.toString(), `-${value}`, `${numberRandom()}.${numberRandom()}e${i - 128}`, `-${numberRandom()}e-${i + 250}`]) numberStrings.add(s);
+}
+const maxFiniteInteger = (1n << 1024n) - (1n << 971n), halfUlp = 1n << 970n;
+for (const value of [maxFiniteInteger - halfUlp, maxFiniteInteger - halfUlp + 1n, maxFiniteInteger, maxFiniteInteger + halfUlp - 1n, maxFiniteInteger + halfUlp, maxFiniteInteger + halfUlp + 1n]) {
+    for (const [prefix, radix] of [["", 10], ["0x", 16], ["0o", 8], ["0b", 2]]) numberStrings.add(prefix + value.toString(radix));
+}
+for (const s of ["0b" + "0".repeat(20000) + "1", "0".repeat(20000) + "1", "0x" + "f".repeat(20000) + "G"]) numberStrings.add(s);
+add("properties:numeric-strings", { "globals.d.ts": library }, {}, false, true, false, false, true);
+for (const input of cases.filter(c => c.name.startsWith("properties:numeric-strings:"))) input.numberStrings = [...numberStrings].map(s => Buffer.from(s).toString("base64")).concat(["eda080", "edb080", "31eda080"].map(s => Buffer.from(s, "hex").toString("base64")));
+for (const [name, options] of [["default", {}], ["disabled", { strict: false }], ["overrides", { strict: false, strictNullChecks: true, strictBindCallApply: true, noImplicitAny: true, strictBuiltinIteratorReturn: true }]]) add(`properties:strict-${name}`, { "globals.d.ts": library, "main.ts": "interface I { optional?:string; get implicit(); } type T=undefined|string; type BuiltinIteratorReturn=intrinsic; type R=BuiltinIteratorReturn;" }, options, false, true, false, false, true);
+let selected = process.argv.includes("--properties") ? cases.filter(c => c.properties) : process.argv.includes("--values") ? cases.filter(c => c.values) : process.argv.includes("--members") ? cases.filter(c => c.members && !c.values) : process.argv.includes("--type-nodes") ? cases.filter(c => c.typeNodes && !c.members && !c.properties)
     : cases.filter(c => !c.typeNodes && Boolean(c.aliases) === process.argv.includes("--aliases"));
 if (option("--filter")) selected = selected.filter(c => c.name.includes(option("--filter")));
 async function probe(command, args) {
@@ -245,13 +300,14 @@ for (let i = 0; i < selected.length; i++) {
 await json(path.join(output, "checker-program-failures.json"), failures);
 const summary = {
     timestamp: new Date().toISOString(),
-    scope: process.argv.includes("--values") ? "Source symbol read/write types, accessors, value aliases and declaration value objects with explicit inference dependencies; full checker integration remains incomplete" : process.argv.includes("--members") ? "Source structured members, interface bases, signatures and index signatures with annotated value dependencies; full checker integration remains incomplete" : process.argv.includes("--type-nodes") ? "Source type-node evaluation, declared aliases and references with explicit semantic dependencies; full checker integration remains incomplete" : process.argv.includes("--aliases")
+    scope: process.argv.includes("--properties") ? "Composite properties, apparent types and intersection reduction with explicit relation and signature dependencies; full checker integration remains incomplete" : process.argv.includes("--values") ? "Source symbol read/write types, accessors, value aliases and declaration value objects with explicit inference dependencies; full checker integration remains incomplete" : process.argv.includes("--members") ? "Source structured members, interface bases, signatures and index signatures with annotated value dependencies; full checker integration remains incomplete" : process.argv.includes("--type-nodes") ? "Source type-node evaluation, declared aliases and references with explicit semantic dependencies; full checker integration remains incomplete" : process.argv.includes("--aliases")
         ? "Program-backed alias targets, type-only chains and module exports with explicit semantic dependencies; full checker integration remains incomplete"
         : "Program-owned global symbols, class/interface headers and generic scopes with explicit semantic dependencies; full checker integration remains incomplete",
     referenceRevision,
     managed,
     runtime: managed ? "managed development run" : await run(candidate, ["--native-check"]),
     cases: selected.length,
+    numericStringConversions: selected.reduce((count, c) => count + (c.numberStrings?.length ?? 0), 0),
     exact: selected.length - failures.length,
     failed: failures.length,
     inputSha256: sha256(JSON.stringify(selected)),

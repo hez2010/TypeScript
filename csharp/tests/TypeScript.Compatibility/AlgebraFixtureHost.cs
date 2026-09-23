@@ -15,6 +15,11 @@ internal sealed class AlgebraFixtureHost(TypeContext context) : ITypeAlgebraHost
     internal List<int> Diagnostics { get; } = [];
     internal Action? BeforeGenericIndex { get; set; }
     internal Func<Type, CancellationToken, ValueTask<Type?>>? ResolveBaseConstraint { get; set; }
+    internal Func<Type, CancellationToken, ValueTask<bool>>? EmptyAnonymousSource { get; set; }
+    internal Func<Type, CancellationToken, ValueTask<bool>>? EmptyObjectSource { get; set; }
+    internal Func<Type, CancellationToken, ValueTask<IReadOnlyList<Symbol>>>? PropertiesSource { get; set; }
+    internal Func<Symbol, CancellationToken, ValueTask<Type>>? SymbolTypeSource { get; set; }
+    internal Func<Type, string, CancellationToken, ValueTask<Type?>>? PropertyTypeSource { get; set; }
 
     internal Type Shape(string[] names, Type[] types, Symbol? symbol)
     {
@@ -48,6 +53,8 @@ internal sealed class AlgebraFixtureHost(TypeContext context) : ITypeAlgebraHost
 
     public ValueTask<IReadOnlyList<Symbol>> GetPropertiesAsync(Type type, CancellationToken cancellation)
     {
+        if (PropertiesSource is not null)
+            return PropertiesSource(type, cancellation);
         if (type is TypeParameter { Constraint: { } constraint })
             type = constraint;
         if ((type.Flags & F.Primitive) != 0)
@@ -58,17 +65,21 @@ internal sealed class AlgebraFixtureHost(TypeContext context) : ITypeAlgebraHost
     }
 
     public ValueTask<Type> GetTypeOfSymbolAsync(Symbol symbol, CancellationToken cancellation)
-            => ValueTask.FromResult(propertyTypes[symbol]);
+            => SymbolTypeSource is not null ? SymbolTypeSource(symbol, cancellation) : ValueTask.FromResult(propertyTypes[symbol]);
 
     public ValueTask<Type?> GetPropertyTypeAsync(Type type, string name, CancellationToken cancellation)
-            => type is ObjectType structure && (type.ObjectFlags & O.MembersResolved) != 0
+            => PropertyTypeSource is not null ? PropertyTypeSource(
+                type,
+                name,
+                cancellation) : type is ObjectType structure && (type.ObjectFlags & O.MembersResolved) != 0
                 ? ValueTask.FromResult(structure.Members?.GetValueOrDefault(name) is { } symbol ? propertyTypes[symbol] : null)
                 : throw new InvalidOperationException("Fixture requires property type resolution");
 
     public ValueTask<bool> IsEmptyAnonymousObjectAsync(Type type, CancellationToken cancellation)
-            => ValueTask.FromResult(Empty(type));
+            => EmptyAnonymousSource is not null ? EmptyAnonymousSource(type, cancellation) : ValueTask.FromResult(Empty(type));
 
-    public ValueTask<bool> IsEmptyObjectAsync(Type type, CancellationToken cancellation) => ValueTask.FromResult(Empty(type));
+    public ValueTask<bool> IsEmptyObjectAsync(Type type, CancellationToken cancellation) =>
+        EmptyObjectSource is not null ? EmptyObjectSource(type, cancellation) : ValueTask.FromResult(Empty(type));
 
     public ValueTask<bool> IsGenericIndexAsync(Type type, CancellationToken cancellation)
     {
@@ -153,10 +164,12 @@ internal sealed class AlgebraFixtureHost(TypeContext context) : ITypeAlgebraHost
         return false;
     }
 
-    private static bool Matches(Type literal, Type pattern)
+    private bool Matches(Type literal, Type pattern)
     {
         if (literal is not LiteralType { Value: string value })
             throw new InvalidOperationException("Pattern source is not a string fixture");
+        if (pattern == context.NumericStringType)
+            return value.Length != 0 && double.IsFinite(TypeScript.Compiler.Semantics.JsNumber.FromString(value));
         if (pattern is StringMappingType mapping && (mapping.Target.Flags & (F.Any | F.String)) != 0)
             return TypeAlgebra.ApplyStringMapping(mapping.Symbol!.Name, value) == value;
         if (pattern is TemplateLiteralType template && template.Types.All(t => (t.Flags & (F.Any | F.String)) != 0))

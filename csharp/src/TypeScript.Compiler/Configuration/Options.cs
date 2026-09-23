@@ -118,6 +118,8 @@ public static partial class OptionDefinitions
 
 public sealed class CompilerOptions
 {
+    public bool StrictOption(string name) => Boolean(name) ?? Boolean("strict") ?? true;
+
     private readonly Dictionary<string, JsonElement> values = new(StringComparer.Ordinal);
     public IReadOnlyDictionary<string, JsonElement> Values => values;
 

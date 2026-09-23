@@ -1,0 +1,69 @@
+{
+    "timestamp": "2026-09-23T18:10:33.7668308Z",
+    "scope": "Composite property lookup, apparent views and intersection reduction with required relation and signature dependencies; full phase 4 remains incomplete",
+    "candidateSha256": "860decc270928d25a46da16a0f5f4d9a97dba9afcc44f604c55149603ba429f2",
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "languageVersion": "15.0",
+    "runtimeAsync": true,
+    "optimizationPreference": "Speed",
+    "instructionSet": "native",
+    "publish": {
+        "exitCode": 0,
+        "sha256": "03933be2dc34223ee88005d844f6919fd7786869077fd93acbb392005d81ccfb",
+        "log": "logs/csharp-phase4-properties-publish.log"
+    },
+    "properties": {
+        "referenceConcurrency": [
+            "singleThreaded",
+            "default"
+        ],
+        "candidateConcurrency": [
+            1,
+            4
+        ],
+        "cases": 192,
+        "diagnosticScope": "Supported property/accessor and strict-option diagnostic codes; full checking and formatting remain open",
+        "numericStringConversions": 3818,
+        "exact": 192,
+        "failed": 0,
+        "sourceConfigurations": 96
+    },
+    "state": {
+        "exitCode": 0,
+        "output": "49 property/view/index/cache/cancellation assertions; reduction chain depth 20000"
+    },
+    "regression": {
+        "members": 176,
+        "values": 136,
+        "mappedOperations": 34692,
+        "safetyOutputs": [
+            "32 symbol read/write/cache/cancellation assertions; instantiated symbol chain depth 20000",
+            "31 structured member/signature assertions; base and signature chains depth 20000",
+            "25 source-type/cache/cancellation assertions; array and alias ancestry depth 20000",
+            "25 program/checker ownership assertions; interface and scope depth 20000",
+            "37 mapped type assertions; actual-variable, generic-flag, kind and unary-tuple analysis depth 20000"
+        ],
+        "sourceTypes": 192,
+        "mappedTypes": 784,
+        "failed": 0,
+        "programs": 180
+    },
+    "repository": {
+        "toolTests": 17,
+        "extensionTests": 12,
+        "command": "npx --no-install hereby validate --all",
+        "go": "1.27.1",
+        "goSkips": 2152,
+        "goTestResults": 163380,
+        "apiTests": 813,
+        "exitCode": 0,
+        "sha256": "3bb09e319fb90e717469a7e0a8e2f2c328044aa5a4c7649a275c0ee612c99f17",
+        "log": "logs/csharp-phase4-properties-validation.log",
+        "node": "24.20.0",
+        "lintIssues": 0,
+        "benchmarkScope": "Required smoke runs only; no performance claim"
+    },
+    "formatting": "Seventeen C# files verified with identical tokens, comments and syntax under both library configurations; single-line auto-properties retained. Final dotnet format whitespace verification and applicable dprint checks passed.",
+    "dependenciesAdded": false
+}
