@@ -13,6 +13,16 @@ internal static class Program
     {
         try
         {
+            if (args is ["--checker-state"])
+            {
+                CheckerStateTests.Safety();
+                return 0;
+            }
+            if (args is ["--checker-types-lines"])
+            {
+                CheckerTypeTests.Lines();
+                return 0;
+            }
             if (args is ["--mapper-codec-lines"])
             {
                 MapperCodecTests.Lines();

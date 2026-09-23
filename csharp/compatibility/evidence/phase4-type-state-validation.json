@@ -1,0 +1,52 @@
+{
+    "timestamp": "2026-09-23T09:21:09.670Z",
+    "scope": "Phase 4 type/state checkpoint only; complete semantic checker remains unimplemented",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "runtimeAsync": true,
+    "instructionSet": "native",
+    "optimizationPreference": "Speed",
+    "candidateSha256": "3638ee43491162a77ea6c713b9ce1482ba45be9988c1f4edde75dfcfcdf645a5",
+    "nativeBuild": {
+        "log": "logs/csharp-phase4-type-state-publish.log",
+        "logSha256": "03933be2dc34223ee88005d844f6919fd7786869077fd93acbb392005d81ccfb",
+        "exitCode": 0
+    },
+    "state": {
+        "command": "built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-state",
+        "output": "41 checker ownership/state assertions; mapper and type-order depth 50000; 16 independent contexts",
+        "exitCode": 0
+    },
+    "repository": {
+        "command": "npx --no-install hereby validate --all",
+        "exitCode": 0,
+        "log": "logs/csharp-phase4-type-state-validation2.log",
+        "logSha256": "caf6abe4e01362b86d5d38bc4903aae6e5b819def1f0bc6323d5ddb33273e73d",
+        "node": "v24.20.0",
+        "goTestResults": 163380,
+        "existingGoSkips": 2152,
+        "apiTests": 813,
+        "extensionTests": 12,
+        "toolTests": 17,
+        "lintIssues": 0,
+        "benchmarkScope": "Required smoke runs only; not performance measurements",
+        "initialAttempt": "A transient Windows error 1224 prevented formatting scriptkind_stringer_generated.go. Formatting succeeded on retry; the full validation rerun passed."
+    },
+    "formatting": "Roslyn formatting preserved tokens, comments and syntax in both library configurations and kept auto-properties on one line. Final dotnet format whitespace --verify-no-changes and dprint checks passed.",
+    "generator": "node csharp/tools/generate-checker.mjs --check",
+    "sourceHashes": {
+        "csharp/oracle/checker-types/bridge.go": "25b7ac9797a977e33b7754c9bca307809b027b08b3091b208fd0cafa1554bdb7",
+        "csharp/oracle/checker-types/main.go": "5c20978822acc9c7574baed568585a2c71da15ea2b191144cb60f077acaa2059",
+        "csharp/src/TypeScript.Compiler/Checking/Flags.generated.cs": "1f7ff701b3f6540b84d2f6015983a443b48ad0ac32e5fdea7fa16432ee494b8b",
+        "csharp/src/TypeScript.Compiler/Checking/Links.cs": "8440e819d80453f900afbc8d6475ff9a852d9ca688b89e4404544906d03ee4e4",
+        "csharp/src/TypeScript.Compiler/Checking/TypeContext.cs": "003e0f16350b6cf3be99d9bbb1b8a82220e4ea7cb5061d8458fc278ac813dc99",
+        "csharp/src/TypeScript.Compiler/Checking/TypeMapper.cs": "9100cf2aeb8de6dcc5f320d67f7ad5ec1fe30536632799dff8b824a11f2506e2",
+        "csharp/src/TypeScript.Compiler/Checking/TypeOrder.cs": "2ffd73aaf24d4c068296a3ed0b42839f71cbbe9e1ce9b9389f94e2e4770b97d5",
+        "csharp/src/TypeScript.Compiler/Checking/Types.cs": "8fb112a72787f4d10cd0d2f2bc4431a72e0d776762163409839ffd60b7d39c7e",
+        "csharp/tests/TypeScript.Compatibility/CheckerStateTests.cs": "d96d9451d282df8f01203d55e098430dcb64df1e26772ad0cefa3269073c42c2",
+        "csharp/tests/TypeScript.Compatibility/CheckerTypeTests.cs": "65db557eaeaf9b271e63e3a610509f9247902e7b74af8d714eac026cde85a1b9",
+        "csharp/tests/TypeScript.Compatibility/Program.cs": "12681ce37daa1bc1cb2e633a8cbe03dfd13bbcd260d4f4ce5424f6fa6368f25c",
+        "csharp/tools/checker-types.mjs": "c36e2de643301549aa16de5bbf2c3e724ced97032e52264712a1c20d3dd004a3",
+        "csharp/tools/generate-checker.mjs": "2361be3dfe24707cd36fcd0da936d5abdd5a62ec145a967ebcb65a7247704ee3"
+    }
+}
