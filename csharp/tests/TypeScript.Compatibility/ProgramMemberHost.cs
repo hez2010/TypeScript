@@ -41,8 +41,7 @@ internal sealed partial class ProgramTypeHost : ISignatureHost, IStructuredMembe
                 : throw new InvalidOperationException("Probe requires predicate inference"));
 
     public ValueTask<int> ParameterCountAsync(Signature signature, CancellationToken cancellation) =>
-            (signature.Flags & SignatureFlags.HasRestParameter) == 0 ? ValueTask.FromResult(signature.Parameters.Count)
-                : throw new InvalidOperationException("Probe requires expanded rest parameter count");
+        Parameters.CountAsync(signature, cancellation);
 
     public void CircularReturn(Signature signature) => Error(signature.Declaration!, 2577);
 

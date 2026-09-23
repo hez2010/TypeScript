@@ -11,7 +11,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/jsnum"
 )
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -159,12 +159,13 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	}
 	memberRoots, memberRows := []any{}, []any{}
 	valueRows := []any{}
+	signatureRows := []any{}
 	if memberQueries {
 		pending := []*Type{}
 		seen := map[*Type]bool{}
 		mtid := func(t *Type) int {
 			id := tid(t)
-			if t != nil && t.flags&TypeFlagsObject != 0 && !seen[t] {
+			if t != nil && (t.flags&TypeFlagsObject != 0 || signatureQueries && t.flags&TypeFlagsStructuredType != 0) && !seen[t] {
 				seen[t] = true
 				pending = append(pending, t)
 			}
@@ -192,25 +193,55 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 				valueRows = append(valueRows, []any{nodeIDs[node], sid(symbol), mtid(c.getTypeOfSymbol(symbol)), mtid(c.getWriteTypeOfSymbol(symbol))})
 			}
 		}
+		signatureIDs := map[*Signature]int{nil: 0}
+		signatureQueue := []*Signature{}
+		qid := func(s *Signature) int {
+			if id, ok := signatureIDs[s]; ok {
+				return id
+			}
+			signatureQueue = append(signatureQueue, s)
+			signatureIDs[s] = len(signatureQueue)
+			return len(signatureQueue)
+		}
 		signatureRow := func(s *Signature) any {
+			stid := mtid
+			if signatureQueries {
+				stid = tid
+			}
 			generic := []int{}
 			for _, p := range s.typeParameters {
-				generic = append(generic, mtid(p))
+				generic = append(generic, stid(p))
 			}
 			var receiver any
 			if s.thisParameter != nil {
-				receiver = []any{sid(s.thisParameter), mtid(c.getTypeOfSymbol(s.thisParameter))}
+				receiver = []any{sid(s.thisParameter), stid(c.getTypeOfSymbol(s.thisParameter))}
 			}
 			parameters := []any{}
 			for _, p := range s.parameters {
-				parameters = append(parameters, []any{sid(p), mtid(c.getTypeOfSymbol(p))})
+				parameters = append(parameters, []any{sid(p), stid(c.getTypeOfSymbol(p))})
 			}
-			result := mtid(c.getReturnTypeOfSignature(s))
+			result := stid(c.getReturnTypeOfSignature(s))
 			var predicate any
 			if p := c.getTypePredicateOfSignature(s); p != nil {
-				predicate = []any{p.kind, p.parameterIndex, p.parameterName, mtid(p.t)}
+				predicate = []any{p.kind, p.parameterIndex, p.parameterName, stid(p.t)}
 			}
-			return []any{s.flags, nodeIDs[s.declaration], s.minArgumentCount, generic, receiver, parameters, result, predicate}
+			row := []any{s.flags, nodeIDs[s.declaration], s.minArgumentCount, generic, receiver, parameters, result, predicate}
+			if !signatureQueries {
+				return row
+			}
+			id := qid(s)
+			count, minimum, syntacticMinimum := c.getParameterCount(s), c.getMinArgumentCount(s), c.getMinArgumentCountEx(s, MinArgumentCountFlagsVoidIsNonOptional)
+			rest, effectiveRest := c.hasEffectiveRestParameter(s), tid(c.getEffectiveRestType(s))
+			positions := []any{}
+			for i := 0; i <= count; i++ {
+				name := ""
+				if i < count {
+					name = c.getParameterNameAtPosition(s, i)
+				}
+				positions = append(positions, []any{name, tid(c.tryGetTypeAtPosition(s, i)), nodeIDs[c.getNameableDeclarationAtPosition(s, i)]})
+			}
+			restAt := tid(c.getRestTypeAtPosition(s, 0, false))
+			return append(row, []any{id, count, minimum, syntacticMinimum, rest, effectiveRest, positions, restAt})
 		}
 		for i := 0; i < len(pending); i++ {
 			t := pending[i]
@@ -233,6 +264,36 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 				indexes = append(indexes, []any{mtid(ix.keyType), mtid(ix.valueType), ix.isReadonly, nodeIDs[ix.declaration]})
 			}
 			memberRows = append(memberRows, []any{tid(t), properties, calls, constructors, indexes})
+		}
+		if signatureQueries {
+			for i := 0; i < len(signatureQueue); i++ {
+				s := signatureQueue[i]
+				generic := tids(s.typeParameters)
+				if generic == nil {
+					generic = []int{}
+				}
+				receiver := sid(s.thisParameter)
+				parameters := []int{}
+				for _, p := range s.parameters {
+					parameters = append(parameters, sid(p))
+				}
+				result := tid(s.resolvedReturnType)
+				var predicate any
+				if p := s.resolvedTypePredicate; p != nil {
+					predicate = []any{p.kind, p.parameterIndex, p.parameterName, tid(p.t)}
+				}
+				target := qid(s.target)
+				var isUnion any
+				var parts []int
+				if s.composite != nil {
+					isUnion = s.composite.isUnion
+					parts = []int{}
+					for _, s := range s.composite.signatures {
+						parts = append(parts, qid(s))
+					}
+				}
+				signatureRows = append(signatureRows, []any{s.flags, nodeIDs[s.declaration], s.minArgumentCount, s.resolvedMinArgumentCount, generic, receiver, parameters, result, predicate, target, isUnion, parts})
+			}
 		}
 	}
 	propertyRows := []any{}
@@ -417,6 +478,9 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	}
 	if propertyQueries {
 		result["propertyQueries"] = propertyRows
+	}
+	if signatureQueries {
+		result["signatureGraph"] = signatureRows
 	}
 	return result
 }

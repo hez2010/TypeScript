@@ -48,7 +48,8 @@ internal sealed class TupleTypes(TypeContext context, TypeAlgebra algebra, Check
         cancellation.ThrowIfCancellationRequested();
         context.RequireOwned(element);
         var target = host.ArrayTarget(isReadonly);
-        return ValueTask.FromResult<Type>(target == context.EmptyGenericType ? context.EmptyObjectType : context.CreateTypeReference((InterfaceType)target, [element]));
+        return ValueTask.FromResult<Type>(
+            target == context.EmptyGenericType ? context.EmptyObjectType : context.CreateTypeReference((InterfaceType)target, [element]));
     }
 
     internal async ValueTask<Type> TargetAsync(
@@ -255,6 +256,28 @@ internal sealed class TupleTypes(TypeContext context, TypeAlgebra algebra, Check
                 elements,
                 noReductions ? UnionReduction.None : UnionReduction.Literal,
                 cancellation: cancellation).ConfigureAwait(false);
+    }
+
+    internal async ValueTask<Type> SliceAsync(TypeReference reference, int start, int endSkip = 0, CancellationToken cancellation = default)
+    {
+        cancellation.ThrowIfCancellationRequested();
+        context.RequireOwned(reference);
+        ArgumentOutOfRangeException.ThrowIfNegative(start);
+        var tuple = (TupleType)reference.ReferencedType;
+        int end = tuple.ElementInfos.Count - Math.Max(endSkip, 0);
+        if (start > tuple.FixedLength)
+        {
+            var rest = await SliceElementAsync(reference, tuple.FixedLength, cancellation: cancellation).ConfigureAwait(false);
+            return rest is null ? await CreateAsync([], [], cancellation: cancellation).ConfigureAwait(false)
+                : await ArrayAsync(rest, cancellation: cancellation).ConfigureAwait(false);
+        }
+        if (start >= end)
+            return await CreateAsync([], [], cancellation: cancellation).ConfigureAwait(false);
+        var arguments = await host.TypeArgumentsAsync(reference, cancellation).ConfigureAwait(false);
+        return await CreateAsync(
+            arguments.Skip(start).Take(end - start).ToArray(),
+            tuple.ElementInfos.Skip(start).Take(end - start).ToArray(),
+            cancellation: cancellation).ConfigureAwait(false);
     }
 
     private sealed class TupleKey : IEquatable<TupleKey>

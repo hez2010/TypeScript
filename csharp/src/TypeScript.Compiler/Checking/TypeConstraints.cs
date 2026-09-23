@@ -351,11 +351,12 @@ internal sealed class TypeConstraints(TypeContext context, TypeAlgebra algebra, 
         => await HasNonCircularConstraintAsync(parameter, cancellation).ConfigureAwait(false)
             ? await ParameterConstraintWorkerAsync(parameter, cancellation).ConfigureAwait(false) : null;
 
-    private async ValueTask<Type?> ParameterConstraintWorkerAsync(TypeParameter parameter, CancellationToken cancellation)
+    internal async ValueTask<Type?> ParameterConstraintWorkerAsync(TypeParameter parameter, CancellationToken cancellation)
     {
         await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
             ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
         cancellation.ThrowIfCancellationRequested();
+        context.RequireOwned(parameter);
         if (parameter.Constraint is null)
         {
             Type? constraint;

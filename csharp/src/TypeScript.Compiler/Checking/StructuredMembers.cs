@@ -184,10 +184,10 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
                     instantiatedBase = await host.WithThisAsync(instantiatedBase, arguments[^1], cancellation).ConfigureAwait(false);
                 }
                 Inherit(ownedMembers, await host.PropertiesAsync(instantiatedBase, cancellation).ConfigureAwait(false));
-                calls = Array.AsReadOnly<Signature>(
-                    [.. calls, .. await host.SignaturesAsync(instantiatedBase, false, cancellation).ConfigureAwait(false)]);
-                constructors = Array.AsReadOnly<Signature>(
-                    [.. constructors, .. await host.SignaturesAsync(instantiatedBase, true, cancellation).ConfigureAwait(false)]);
+                calls = Concatenate(calls, await host.SignaturesAsync(instantiatedBase, false, cancellation).ConfigureAwait(false));
+                constructors = Concatenate(
+                    constructors,
+                    await host.SignaturesAsync(instantiatedBase, true, cancellation).ConfigureAwait(false));
                 var inheritedIndexes = instantiatedBase == context.AnyType ? [anyBaseIndex]
                     : await host.IndexesAsync(instantiatedBase, cancellation).ConfigureAwait(false);
                 indexes = Array.AsReadOnly<IndexInfo>(
@@ -387,4 +387,7 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
                 && (!members.TryGetValue(symbol.Name, out var current) || (current.Flags & S.Value) == 0))
                 members[symbol.Name] = symbol;
     }
+
+    private static IReadOnlyList<T> Concatenate<T>(IReadOnlyList<T> left, IReadOnlyList<T> right)
+        => right.Count == 0 ? left : left.Count == 0 ? right : Array.AsReadOnly<T>([.. left, .. right]);
 }

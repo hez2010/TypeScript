@@ -38,7 +38,7 @@ if (!process.argv.includes("--no-build")) {
 
 const cases = [];
 const library = `interface IArguments {} interface Object {} interface Function {} interface CallableFunction extends Function {} interface NewableFunction extends Function {} interface String {} interface Number {} interface Boolean {} interface RegExp {} interface Array<T> { length: number; [n: number]: T; } interface ReadonlyArray<T> { readonly length: number; readonly [n: number]: T; } interface ThisType<T> {}`;
-function add(name, sources, options = {}, aliases = false, typeNodes = false, members = false, values = false, properties = false) {
+function add(name, sources, options = {}, aliases = false, typeNodes = false, members = false, values = false, properties = false, signatures = false) {
     for (const concurrency of [1, 4]) {
         const files = Object.fromEntries(Object.entries(sources).map(([name, text]) => [`/project/${name}`, Buffer.from(text).toString("base64")]));
         const input = { name: `${name}:${concurrency}`, files, roots: Object.keys(files), options, concurrency };
@@ -47,6 +47,7 @@ function add(name, sources, options = {}, aliases = false, typeNodes = false, me
         if (members) input.members = true;
         if (values) input.values = true;
         if (properties) input.properties = true;
+        if (signatures) input.signatures = true;
         cases.push(input);
     }
 }
@@ -266,7 +267,44 @@ for (const s of ["0b" + "0".repeat(20000) + "1", "0".repeat(20000) + "1", "0x" +
 add("properties:numeric-strings", { "globals.d.ts": library }, {}, false, true, false, false, true);
 for (const input of cases.filter(c => c.name.startsWith("properties:numeric-strings:"))) input.numberStrings = [...numberStrings].map(s => Buffer.from(s).toString("base64")).concat(["eda080", "edb080", "31eda080"].map(s => Buffer.from(s, "hex").toString("base64")));
 for (const [name, options] of [["default", {}], ["disabled", { strict: false }], ["overrides", { strict: false, strictNullChecks: true, strictBindCallApply: true, noImplicitAny: true, strictBuiltinIteratorReturn: true }]]) add(`properties:strict-${name}`, { "globals.d.ts": library, "main.ts": "interface I { optional?:string; get implicit(); } type T=undefined|string; type BuiltinIteratorReturn=intrinsic; type R=BuiltinIteratorReturn;" }, options, false, true, false, false, true);
-let selected = process.argv.includes("--properties") ? cases.filter(c => c.properties) : process.argv.includes("--values") ? cases.filter(c => c.values) : process.argv.includes("--members") ? cases.filter(c => c.members && !c.values) : process.argv.includes("--type-nodes") ? cases.filter(c => c.typeNodes && !c.members && !c.properties)
+for (const strict of [false, true]) {
+    for (const exactOptionalPropertyTypes of [false, true]) {
+        for (
+            const [name, source] of Object.entries({
+                matching: "type A=(x:string)=>number; type B=(x:string)=>boolean; type U=A|B; type I=A&B;",
+                incompatible: "type A=(left:string)=>number; type B=(right:number)=>boolean; type U=A|B; type I=A&B;",
+                excess: "type A=(x:string)=>number; type B=(x:string,y?:number)=>boolean; type U=A|B;",
+                arity: "type A=(x:string,y:number)=>string; type B=(x:number)=>number; type C=()=>void; type U=A|B|C;",
+                rest: "type A=(x:string,...args:number[])=>string; type B=(a:number,b:boolean)=>number; type U=A|B;",
+                tupleRest: "type A=(...args:[head:string,tail?:number])=>string; type B=(x:string,y?:number)=>number; type U=A|B;",
+                variadic: "type A=(...args:[string,...number[]])=>string; type B=(x:number,y?:boolean)=>number; type U=A|B;",
+                trailingRest: "type A=(...args:[string,...number[],boolean])=>string; type B=(...args:[number,...string[]])=>number; type U=A|B;",
+                labels: "type A=(...[first,second,...tail]:[string,number,...boolean[]])=>void; type B=(...other:[string,number,boolean?])=>void; type U=A|B;",
+                voidArity: "type A=(x:string,y:void)=>string; type B=(x:number,y:number|void,z?:boolean)=>number; type U=A|B; function f(x:string='',y:void):void {}",
+                thisTypes: "type A=(this:string,x:number)=>string; type B=(this:number,x:number)=>number; type U=A|B;",
+                absentThis: "type A=(this:string,x:number)=>string; type B=(x:number)=>number; type U=A|B; type I=A&B;",
+                generics: "type A=<T>(x:T)=>T; type B=<U>(value:U)=>U; type U=A|B; type I=A&B;",
+                constraints: "type A=<T extends string>(x:T)=>T; type B=<U extends number>(x:U)=>U; type U=A|B;",
+                defaults: "type A=<T=string>(x:T)=>T; type B=<U=number>(x:U)=>U; type U=A|B;",
+                dependent: "type A=<T,U extends T>(x:U)=>T; type B=<X,Y extends X>(x:Y)=>X; type U=A|B;",
+                genericMixed: "type A=<T>(x:T)=>T; type B=(x:string)=>number; type U=A|B;",
+                overloads: "interface A { (x:string):number; (x:number):string } type B=(x:boolean)=>boolean; type U=A|B;",
+                multiOverloads: "interface A { (x:string):number; (x:number):string } interface B { (x:string):boolean; (x:boolean):number } type U=A|B;",
+                inherited: "interface A { (x:string):string } interface B extends A {} interface C extends A {} type D=(x:number)=>number; type U=B|C|D;",
+                predicates: "type A=(x:unknown)=>x is string; type B=(x:unknown)=>x is number; type U=A|B; type I=A&B; type F=(x:unknown)=>false; type V=A|F;",
+                assertions: "type A=(x:unknown)=>asserts x is string; type B=(x:unknown)=>asserts x is number; type U=A|B;",
+                constructors: "type A=new(x:string)=>string; type B=new(x:number)=>number; type U=A|B; type I=A&B;",
+                mixins: "type A=new(...args:any[])=>string; type B=new(x:number)=>number; type I=A&B;",
+                functionTop: "type F=(x:number)=>string; type U=Function|F;",
+            })
+        ) add(`signatures:${name}:${strict}:${exactOptionalPropertyTypes}`, { "globals.d.ts": library, "main.ts": source }, { strict, exactOptionalPropertyTypes }, false, true, true, false, false, true);
+        const arrays = library.replace("length: number; [n: number]: T;", "length: number; [n: number]: T; choose<U extends T>(x: U): U;")
+            .replace("readonly length: number; readonly [n: number]: T;", "readonly length: number; readonly [n: number]: T; choose<U extends T>(x: U): U;");
+        add(`signatures:array-member:${strict}:${exactOptionalPropertyTypes}`, { "globals.d.ts": arrays, "main.ts": "type A=Array<string>['choose']; type B=Array<number>['choose']; type U=A|B; type R=ReadonlyArray<number>['choose']; type M=A|R;" }, { strict, exactOptionalPropertyTypes }, false, true, true, false, false, true);
+        add(`signatures:array-return:${strict}:${exactOptionalPropertyTypes}`, { "globals.d.ts": arrays.replaceAll("choose<U extends T>(x: U): U;", "choose<U extends T>(x: U): U[];"), "main.ts": "type A=Array<string>['choose']; type B=Array<number>['choose']; type U=A|B;" }, { strict, exactOptionalPropertyTypes }, false, true, true, false, false, true);
+    }
+}
+let selected = process.argv.includes("--signatures") ? cases.filter(c => c.signatures) : process.argv.includes("--properties") ? cases.filter(c => c.properties) : process.argv.includes("--values") ? cases.filter(c => c.values) : process.argv.includes("--members") ? cases.filter(c => c.members && !c.values && !c.signatures) : process.argv.includes("--type-nodes") ? cases.filter(c => c.typeNodes && !c.members && !c.properties)
     : cases.filter(c => !c.typeNodes && Boolean(c.aliases) === process.argv.includes("--aliases"));
 if (option("--filter")) selected = selected.filter(c => c.name.includes(option("--filter")));
 async function probe(command, args) {
@@ -300,7 +338,8 @@ for (let i = 0; i < selected.length; i++) {
 await json(path.join(output, "checker-program-failures.json"), failures);
 const summary = {
     timestamp: new Date().toISOString(),
-    scope: process.argv.includes("--properties") ? "Composite properties, apparent types and intersection reduction with explicit relation and signature dependencies; full checker integration remains incomplete" : process.argv.includes("--values") ? "Source symbol read/write types, accessors, value aliases and declaration value objects with explicit inference dependencies; full checker integration remains incomplete" : process.argv.includes("--members") ? "Source structured members, interface bases, signatures and index signatures with annotated value dependencies; full checker integration remains incomplete" : process.argv.includes("--type-nodes") ? "Source type-node evaluation, declared aliases and references with explicit semantic dependencies; full checker integration remains incomplete" : process.argv.includes("--aliases")
+    scope: process.argv.includes("--signatures") ? "Signature matching, composition, tuple rest parameters and array member fallback with explicit type relation dependencies; full checker integration remains incomplete" :
+        process.argv.includes("--properties") ? "Composite properties, apparent types and intersection reduction with explicit relation and signature dependencies; full checker integration remains incomplete" : process.argv.includes("--values") ? "Source symbol read/write types, accessors, value aliases and declaration value objects with explicit inference dependencies; full checker integration remains incomplete" : process.argv.includes("--members") ? "Source structured members, interface bases, signatures and index signatures with annotated value dependencies; full checker integration remains incomplete" : process.argv.includes("--type-nodes") ? "Source type-node evaluation, declared aliases and references with explicit semantic dependencies; full checker integration remains incomplete" : process.argv.includes("--aliases")
         ? "Program-backed alias targets, type-only chains and module exports with explicit semantic dependencies; full checker integration remains incomplete"
         : "Program-owned global symbols, class/interface headers and generic scopes with explicit semantic dependencies; full checker integration remains incomplete",
     referenceRevision,

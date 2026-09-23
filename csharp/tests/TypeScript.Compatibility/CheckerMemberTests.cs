@@ -166,16 +166,24 @@ internal static class CheckerMemberTests
         Console.WriteLine($"{checks} structured member/signature assertions; base and signature chains depth 20000");
     }
 
-    internal static async Task WriteAsync(Utf8JsonWriter writer, SyntaxNode[] nodes, CheckerSymbols symbols,
-        ProgramTypeHost host, Func<Type?, int> typeId, Func<Symbol?, int> symbolId, Func<SyntaxNode?, int> nodeId, bool values)
+    internal static async Task WriteAsync(
+        Utf8JsonWriter writer,
+        SyntaxNode[] nodes,
+        CheckerSymbols symbols,
+        ProgramTypeHost host,
+        Func<Type?, int> typeId,
+        Func<Symbol?, int> symbolId,
+        Func<SyntaxNode?, int> nodeId,
+        bool values,
+        bool signatureQueries)
     {
-        var pending = new List<ObjectType>();
+        var pending = new List<StructuredType>();
         var seen = new HashSet<Type>();
         int Type(Type? type)
         {
             int id = typeId(type);
-            if (type is ObjectType obj && seen.Add(type))
-                pending.Add(obj);
+            if (type is StructuredType structured && (type is ObjectType || signatureQueries) && seen.Add(type))
+                pending.Add(structured);
             return id;
         }
         var queries = new List<object[]>();
@@ -203,20 +211,37 @@ internal static class CheckerMemberTests
                     [nodeId(node), symbolId(symbol), Type(await host.Values.GetAsync(symbol)), Type(await host.Values.WriteAsync(symbol))]);
             }
         }
+        var signatureIds = new Dictionary<Signature, int>();
+        var signatureQueue = new List<Signature>();
+        int SignatureId(Signature? signature)
+        {
+            if (signature is null)
+                return 0;
+            if (!signatureIds.TryGetValue(signature, out int id))
+            {
+                id = signatureQueue.Count + 1;
+                signatureIds.Add(signature, id);
+                signatureQueue.Add(signature);
+            }
+            return id;
+        }
         async Task<object[]> Signature(Signature signature)
         {
+            // Record parameter/return graphs without querying recursively generated
+            // members such as Array<U>.map<V> returning another Array<V>.
+            int SignatureType(Type? type) => signatureQueries ? typeId(type) : Type(type);
             var parameters = new List<object[]>();
-            var generic = signature.TypeParameters.Select(p => Type(p)).ToArray();
+            var generic = signature.TypeParameters.Select(p => SignatureType(p)).ToArray();
             object[]? receiver = signature.ThisParameter is { } thisParameter
-                ? [symbolId(thisParameter), Type(await host.SymbolTypeAsync(thisParameter, default))] : null;
+                ? [symbolId(thisParameter), SignatureType(await host.SymbolTypeAsync(thisParameter, default))] : null;
             foreach (var parameter in signature.Parameters)
-                parameters.Add([symbolId(parameter), Type(await host.SymbolTypeAsync(parameter, default))]);
-            int result = Type(await host.Signatures.ReturnAsync(signature));
+                parameters.Add([symbolId(parameter), SignatureType(await host.SymbolTypeAsync(parameter, default))]);
+            int result = SignatureType(await host.Signatures.ReturnAsync(signature));
             var predicate = await host.Signatures.PredicateAsync(signature);
             object[]? predicateRow = predicate is null
                 ? null
-                : [(uint)predicate.Kind, predicate.ParameterIndex, predicate.ParameterName, Type(predicate.Type)];
-            return
+                : [(uint)predicate.Kind, predicate.ParameterIndex, predicate.ParameterName, SignatureType(predicate.Type)];
+            object[] row =
                 [
                     (uint)signature.Flags,
                     nodeId(signature.Declaration),
@@ -227,6 +252,24 @@ internal static class CheckerMemberTests
                     result,
                     predicateRow!
                 ];
+            if (!signatureQueries)
+                return row;
+            int id = SignatureId(signature);
+            int count = await host.Parameters.CountAsync(signature);
+            int minimum = await host.Parameters.MinimumAsync(signature);
+            int syntacticMinimum = await host.Parameters.MinimumAsync(signature, voidIsRequired: true);
+            bool rest = await host.Parameters.HasRestAsync(signature);
+            int effectiveRest = typeId(await host.Parameters.EffectiveRestAsync(signature));
+            var positions = new List<object[]>();
+            for (int i = 0; i <= count; i++)
+                positions.Add(
+                    [
+                            i < count ? await host.Parameters.NameAsync(signature, i) : "",
+                            typeId(await host.Parameters.TryAtAsync(signature, i)),
+                            nodeId(await host.Parameters.NameableAsync(signature, i))
+                        ]);
+            int restAt = typeId(await host.Parameters.RestAtAsync(signature, 0));
+            return [.. row, new object[] { id, count, minimum, syntacticMinimum, rest, effectiveRest, positions, restAt }];
         }
         var members = new List<object[]>();
         for (int i = 0; i < pending.Count; i++)
@@ -258,6 +301,41 @@ internal static class CheckerMemberTests
         Write(queries);
         writer.WritePropertyName("members");
         Write(members);
+        if (signatureQueries)
+        {
+            var rows = new List<object[]>();
+            for (int i = 0; i < signatureQueue.Count; i++)
+            {
+                var signature = signatureQueue[i];
+                var generic = signature.TypeParameters.Select(p => typeId(p)).ToArray();
+                int receiver = symbolId(signature.ThisParameter);
+                var parameters = signature.Parameters.Select(symbolId).ToArray();
+                int result = typeId(signature.ResolvedReturnType);
+                var predicate = signature.ResolvedTypePredicate;
+                object[]? predicateRow = predicate is null
+                    ? null
+                    : [(uint)predicate.Kind, predicate.ParameterIndex, predicate.ParameterName, typeId(predicate.Type)];
+                int target = SignatureId(signature.Target);
+                var parts = signature.Composite?.Signatures.Select(s => SignatureId(s)).ToArray();
+                rows.Add(
+                    [
+                            (uint)signature.Flags,
+                            nodeId(signature.Declaration),
+                            signature.MinArgumentCount,
+                            signature.ResolvedMinArgumentCount,
+                            generic,
+                            receiver,
+                            parameters,
+                            result,
+                            predicateRow!,
+                            target,
+                            signature.Composite?.IsUnion!,
+                            parts!
+                        ]);
+            }
+            writer.WritePropertyName("signatureGraph");
+            Write(rows);
+        }
         if (values)
         {
             writer.WritePropertyName("valueQueries");

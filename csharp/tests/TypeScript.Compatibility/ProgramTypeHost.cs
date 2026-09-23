@@ -60,6 +60,19 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
         Properties = new(context, links, program.Symbols, program.Scopes, program.Aliases, Values, Algebra, this);
         Views = new(context, Algebra, Instantiation.Constraints, Instantiation.Engine, Instantiation.Mapped, Instantiation.Members, this);
         Composites = new(context, Algebra, Instantiation.Members, Signatures, this);
+        Parameters = new(context, Algebra, Values, Instantiation.Tuples, this);
+        SignatureComparison = new(context, Parameters, Signatures, Instantiation.Constraints, Instantiation.Engine, this);
+        SignatureComposition = new(
+            context,
+            links,
+            Algebra,
+            Values,
+            Properties,
+            Instantiation.Tuples,
+            Instantiation.Engine,
+            Parameters,
+            SignatureComparison,
+            this);
         relations.EmptyAnonymousSource = Views.EmptyAnonymousAsync;
         relations.EmptyObjectSource = Views.EmptyObjectAsync;
         relations.PropertiesSource = Properties.GetAsync;

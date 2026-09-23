@@ -41,6 +41,8 @@ internal interface IInstantiationFixtureSource
 
     bool IsReadonly(Symbol symbol);
 
+    ValueTask<Type> SymbolTypeAsync(Symbol symbol, CancellationToken cancellation);
+
     ValueTask<bool> UnknownLikeUnionAsync(Type type, CancellationToken cancellation);
 }
 
@@ -390,6 +392,24 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
         if (genericIndex || objectType is TypeParameter)
         {
             return context.GetGenericIndexedAccess(objectType, indexType, flags, alias);
+        }
+        if (source is not null && indexType is LiteralType { Value: double number })
+        {
+            if (await source.PropertyAsync(
+                objectType,
+                TypeScript.Compiler.Syntax.TokenFacts.NumberText(number),
+                cancellation).ConfigureAwait(false) is { } property)
+                return await source.SymbolTypeAsync(property, cancellation).ConfigureAwait(false);
+            if (objectType is TypeReference { Target: TupleType tupleTarget } tupleReference
+                && number >= 0
+                && number == Math.Truncate(number))
+                return await Tuples.SliceElementAsync(
+                    tupleReference,
+                    tupleTarget.FixedLength,
+                    cancellation: cancellation).ConfigureAwait(false) ?? context.UndefinedType;
+            if (await source.ApplicableIndexAsync(objectType, indexType, cancellation).ConfigureAwait(false) is { } index)
+                return index.ValueType;
+            throw new InvalidOperationException("Probe requires missing numeric indexed access handling");
         }
         if (indexType is UnionType union && objectType is ObjectType { ObjectFlags: var objectFlags }
             && (objectFlags & O.MembersResolved) != 0)

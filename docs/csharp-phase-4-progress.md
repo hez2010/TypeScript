@@ -264,6 +264,23 @@ node csharp/tools/checker-program.mjs --properties --record phase4-properties
 & ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-properties-safety
 ```
 
+## Signature matching and composition
+
+`SignatureParameters.cs` implements expanded tuple-rest counts, minimum arity (including trailing `void` and untyped JavaScript modes), positional parameter types, effective rest types, tuple slices and labels derived from binding patterns. `SignatureComparison.cs` matches arity, maps generic constraints/defaults, compares predicates and preserves the relater's ternary results through a required type-comparison service.
+
+`SignatureComposition.cs` selects common overloads, constructs compatible union/intersection signatures, combines `this` and parameter types, and adapts unions of array methods through a common element type. Failed composition removes its unfinished synthetic symbol links. Inherited signature lists retain their identity when concatenating an empty list, which matters when selecting a union's primary overload list.
+
+The source probe supplies bounded primitive identity/subtype comparisons and indexed access to declared arrays/tuples. General structural relations, contextual typing, inference and JavaScript/JSDoc value checking remain required services. It queries signatures of declared and reachable member types while recording parameter/return/rest type graphs without recursively enumerating generated generic members. This keeps queries such as array methods returning `Array<U>` finite without imposing a depth cutoff; both runtimes execute the same queries, and the generated type graphs remain in the output.
+
+NativeAOT passes **216 exact signature program comparisons**, covering 108 configurations at single and reference-default concurrency. They compare expanded positions and labels, cached arity, signature identity/targets/composites, overload inheritance, generics and defaults, predicates/assertions, constructors/mixins, `Function` unions, and mutable/readonly array-method fallback. Thirty-nine native safety assertions cover cancellation/retry, synthetic-symbol cleanup, ternary propagation, ownership and **20,000-level** binding labels.
+
+The same artifact passes 192 property/view cases (including 3,818 numeric-string conversions), 176 member cases, 192 source-type cases, 2,176 instantiation/tuple cases and 613 constraint cases, plus 152 earlier safety assertions. Evidence: [signatures](../csharp/compatibility/evidence/phase4-signatures.json), [properties](../csharp/compatibility/evidence/phase4-signatures-properties-regression.json), [members](../csharp/compatibility/evidence/phase4-signatures-members-regression.json), [source types](../csharp/compatibility/evidence/phase4-signatures-types-regression.json), [instantiation](../csharp/compatibility/evidence/phase4-signatures-instantiation-regression.json), [constraints](../csharp/compatibility/evidence/phase4-signatures-constraints-regression.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-signatures-validation.json).
+
+```powershell
+node csharp/tools/checker-program.mjs --signatures --record phase4-signatures
+& ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-signatures-safety
+```
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
@@ -276,4 +293,4 @@ The following phase-4 requirements remain open:
 6. Type display, node builders, symbol accessibility and emit-resolver APIs.
 7. All active checker/compiler type/symbol/diagnostic comparisons at single and reference-default concurrency; audits of intentional differences; complete semantic workload memory/performance measurements.
 
-The next integration step is composite signature matching and structural relations, followed by complete value inference, conditional services and module type adaptation over the program-backed symbol environment. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.
+The next integration step is structural relations and their caches, followed by complete value inference, conditional services and module type adaptation over the program-backed symbol environment. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.

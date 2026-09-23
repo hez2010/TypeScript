@@ -68,7 +68,8 @@ internal sealed partial class ProgramTypeHost : ITypePropertyHost, ITypeViewHost
         });
     }
 
-    public ValueTask<Type> ParameterTypeAsync(Symbol parameter, CancellationToken cancellation) => Values.GetAsync(parameter, cancellation);
+    public ValueTask<Type> ParameterTypeAsync(Symbol parameter, CancellationToken cancellation) =>
+        Parameters.ParameterAsync(parameter, cancellation);
 
     public async ValueTask<Type?> ArrayElementAsync(Type type, CancellationToken cancellation)
             => Instantiation.IsArrayType(type) ? (await References.TypeArgumentsAsync((TypeReference)type, cancellation))[0] : null;
@@ -76,19 +77,13 @@ internal sealed partial class ProgramTypeHost : ITypePropertyHost, ITypeViewHost
     public ValueTask<IReadOnlyList<Signature>> UnionSignaturesAsync(
         IReadOnlyList<IReadOnlyList<Signature>> signatures,
         CancellationToken cancellation)
-            => signatures.Any(s => s.Count == 0) ? ValueTask.FromResult<IReadOnlyList<Signature>>([])
-                : throw new InvalidOperationException("Probe requires union signature matching");
+            => SignatureComposition.UnionAsync(signatures, cancellation);
 
     public ValueTask<IReadOnlyList<Signature>> ArrayMemberSignaturesAsync(UnionType type, CancellationToken cancellation)
-            => type.Types.Any(t => (t.ObjectFlags & ObjectFlags.Instantiated) == 0 || t.Symbol?.Parent is not { } parent
-                || parent != program.Globals.Types["Array"].Symbol && parent != program.Globals.Types["ReadonlyArray"].Symbol)
-                ? ValueTask.FromResult<IReadOnlyList<Signature>>([]) : throw new InvalidOperationException("Probe requires array member signatures");
+            => SignatureComposition.ArrayMembersAsync(type, cancellation);
 
-    public ValueTask<bool> IdenticalSignaturesAsync(Signature left, Signature right, CancellationToken cancellation)
-            =>
-                left == right
-                    ? ValueTask.FromResult(true)
-                    : throw new InvalidOperationException("Probe requires signature identity comparison");
+    public async ValueTask<bool> IdenticalSignaturesAsync(Signature left, Signature right, CancellationToken cancellation)
+            => await SignatureComparison.CompareAsync(left, right, cancellation: cancellation) != Ternary.False;
 
     public bool IsReadonly(Symbol symbol)
     {
