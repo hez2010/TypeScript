@@ -198,16 +198,33 @@ node csharp/tools/checker-program.mjs --aliases --record phase4-aliases
 & ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-alias-safety
 ```
 
+## Source type-node evaluation
+
+`TypeNodes.cs` evaluates primitive, literal, union/intersection, array/tuple, function/object, mapped, template, operator and inferred type syntax, and dispatches type queries, conditional types and import types to their required semantic services. It attaches aliases, preserves completion-oriented primitive/empty-literal intersections and eagerly resolves mapped constraints.
+
+`DeclaredTypes.cs` constructs declared alias and enum types and connects class/interface, parameter and import-alias declarations to the existing symbol/type components. `TypeReferences.cs` resolves named types, generic arity/defaults, unresolved-name error aliases, intrinsic aliases and deferred references, including recursive alias caching and distributed parameter identity. Generic indexed-access interning now retains alias identity and persistent access flags in `TypeContext`.
+
+The program probe evaluates real source annotations and alias bodies, then materializes deferred arguments and compares type graphs and cache state. It supplies literal/enum-value and bounded relation/index dependencies; full value checking, conditional/import-type evaluation, JSDoc interpretation and general structural relations remain required services. Dispatch coverage is not proof that those services are implemented.
+
+NativeAOT passes **192 exact source-type comparisons**, covering 96 configurations under single-worker and parallel program construction. Coverage includes primitive/literal types, generic defaults and nested captures, aliased objects/functions, arrays/tuples, recursive aliases, template/intrinsic aliases, mapped/indexed syntax, unique symbols, enum type construction and arity/circularity errors. Twenty-five safety assertions verify deferred argument/alias cancellation and retry, cache identity, ownership and **20,000-level** array/alias ancestry traversal.
+
+The same artifact passes 124 alias/export programs, 1,592 mapped-member cases and 2,904 type/state cases, plus their 102 safety assertions. Evidence: [source types](../csharp/compatibility/evidence/phase4-type-nodes.json), [alias regression](../csharp/compatibility/evidence/phase4-type-nodes-alias-regression.json), [member regression](../csharp/compatibility/evidence/phase4-type-nodes-members-regression.json), [type/state regression](../csharp/compatibility/evidence/phase4-type-nodes-state-regression.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-type-nodes-validation.json).
+
+```powershell
+node csharp/tools/checker-program.mjs --type-nodes --record phase4-type-nodes
+& ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-type-nodes-safety
+```
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
 
 1. Complete the program/checker entry point, module interop/type adaptation, computed exports and type/value symbol resolution. Program-backed globals, augmentation merging, declaration headers and alias/export algorithms now exist; their remaining semantic callbacks must be connected.
-2. Structural relations and their caches, general AST type/constraint evaluation, contextual generic signatures and conditional instantiation; connect the implemented algebra, constraints, scope, instantiation and tuple algorithms to these complete checker services.
+2. Structural relations and their caches, remaining type-node dependencies, general constraint evaluation/inference, contextual generic signatures and conditional instantiation; connect the implemented declaration/type-node, algebra, scope, instantiation and tuple algorithms to complete checker services.
 3. Inference, contextual typing, signatures and overload selection, expression/declaration checking, JavaScript and JSDoc semantics.
 4. Flow analysis and narrowing, evolving arrays, definite assignment, exhaustiveness and semantic diagnostics.
 5. Apparent mapped types and remapping integration with structural relations; conditional, indexed-access and template type evaluation; JSX, decorators and grammar checks.
 6. Type display, node builders, symbol accessibility and emit-resolver APIs.
 7. All active checker/compiler type/symbol/diagnostic comparisons at single and reference-default concurrency; audits of intentional differences; complete semantic workload memory/performance measurements.
 
-The next integration step is general declared-type/type-node evaluation and module type adaptation over the program-backed symbol environment. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.
+The next integration step is structural member/value resolution, conditional/inference services and module type adaptation over the program-backed symbol environment. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.

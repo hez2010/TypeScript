@@ -14,6 +14,7 @@ internal sealed class ConstraintFixtureHost(TypeContext context, AlgebraFixtureH
     internal Dictionary<ConditionalType, Type> ConditionalInstantiations { get; } = [];
     internal Func<Type, bool, CancellationToken, ValueTask<Type>>? Simplifier { get; set; }
     internal Func<Type?, TypeMapper?, CancellationToken, ValueTask<Type?>>? Instantiator { get; set; }
+    internal Func<SyntaxNode, CancellationToken, ValueTask<Type>>? NodeEvaluator { get; set; }
     private readonly Dictionary<(Type, Type, AccessFlags), Type> indexedAccesses = [];
     private readonly TypeVariables variables = new((type, _) => ValueTask.FromResult(type.ResolvedTypeArguments
         ?? throw new InvalidOperationException("Fixture requires deferred type arguments")));
@@ -21,7 +22,8 @@ internal sealed class ConstraintFixtureHost(TypeContext context, AlgebraFixtureH
     public ValueTask<Type> SimplifyAsync(Type type, bool writing, CancellationToken cancellation)
             => Simplifier?.Invoke(type, writing, cancellation) ?? ValueTask.FromResult(type);
 
-    public ValueTask<Type> TypeFromNodeAsync(SyntaxNode node, CancellationToken cancellation) => Nodes[node](cancellation);
+    public ValueTask<Type> TypeFromNodeAsync(SyntaxNode node, CancellationToken cancellation)
+        => NodeEvaluator is { } evaluate ? evaluate(node, cancellation) : Nodes[node](cancellation);
 
     public ValueTask<Type?> InferredParameterConstraintAsync(TypeParameter parameter, CancellationToken cancellation)
     {

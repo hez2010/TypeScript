@@ -81,7 +81,7 @@ internal sealed class TypeNodeFlow(TypeContext context, TypeAlgebra algebra, Map
 
     private bool ArrayOrTuple(Type type) => host.IsArrayType(type) || type is TypeReference { Target: TupleType };
 
-    private static bool Statement(SyntaxNode node) => node.Kind switch
+    internal static bool Statement(SyntaxNode node) => node.Kind switch
     {
         K.BreakStatement or K.ContinueStatement or K.DebuggerStatement or K.DoStatement or K.ExpressionStatement
             or K.EmptyStatement or K.ForInStatement or K.ForOfStatement or K.ForStatement or K.IfStatement

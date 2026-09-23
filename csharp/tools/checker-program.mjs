@@ -38,11 +38,12 @@ if (!process.argv.includes("--no-build")) {
 
 const cases = [];
 const library = `interface IArguments {} interface Object {} interface Function {} interface CallableFunction extends Function {} interface NewableFunction extends Function {} interface String {} interface Number {} interface Boolean {} interface RegExp {} interface Array<T> { length: number; [n: number]: T; } interface ReadonlyArray<T> { readonly length: number; readonly [n: number]: T; } interface ThisType<T> {}`;
-function add(name, sources, options = {}, aliases = false) {
+function add(name, sources, options = {}, aliases = false, typeNodes = false) {
     for (const concurrency of [1, 4]) {
         const files = Object.fromEntries(Object.entries(sources).map(([name, text]) => [`/project/${name}`, Buffer.from(text).toString("base64")]));
         const input = { name: `${name}:${concurrency}`, files, roots: Object.keys(files), options, concurrency };
         if (aliases) input.aliases = true;
+        if (typeNodes) input.typeNodes = true;
         cases.push(input);
     }
 }
@@ -121,7 +122,40 @@ for (const strict of [false, true]) {
         add(`alias:chain-${length}:${strict}`, chain, { strict, module: "esnext" }, true);
     }
 }
-let selected = cases.filter(c => Boolean(c.aliases) === process.argv.includes("--aliases"));
+for (const strict of [false, true]) {
+    for (const exactOptionalPropertyTypes of [false, true]) {
+        for (
+            const [name, source] of Object.entries({
+                primitives: "type A = any; type U = unknown; type S = string; type N = number; type B = bigint; type Bool = boolean; type Sym = symbol; type V = void; type Undefined = undefined; type Null = null; type Never = never; type O = object;",
+                literals: "type A = 'hello'; type B = 42; type C = -1; type D = -0; type E = 0x10; type F = 123n; type G = -0xffn; type H = true | false;",
+                unions: "type A = string | number; type B = 1 | 2 | 1; type C = A | boolean; type D = 'a' | 'b' | string; type E = undefined | null | number;",
+                intersections: "type A = string & number; type B = string & {}; type C = 'a' | 'b' | B; type D = (number & {}) | 1 | 2;",
+                arrays: "type A = string[]; type B<T> = T[]; type C = B<number>; type D = readonly number[]; type E<T> = Array<T>; type F = E<string>;",
+                tuples: "type A = []; type B = [string, number?]; type C = readonly [name: string, age?: number]; type D = [string, ...number[]]; type E<T extends unknown[]> = [string, ...T]; type F = E<[number, boolean]>;",
+                defaults: "type A<T = string, U = T> = [T,U]; type B = A; type C = A<number>; interface Box<T=string> { value: T } type D = Box; type E = Box<number>;",
+                objects: "type A = {}; type B<T> = { value: T; }; type C = B<string>; type F<T> = (value:T) => T; type G = F<number>; type H = new<T>(value:T) => B<T>;",
+                templates: "type A = `x${'a'|'b'}`; type B<T extends string> = `get${T}`; type C = B<'One' | 'Two'>; type D = `${number}`;",
+                intrinsic: "type Uppercase<S extends string> = intrinsic; type Lowercase<S extends string> = intrinsic; type NoInfer<T> = intrinsic; type A = Uppercase<'one'>; type B<T> = Lowercase<T>; type C = B<'TWO'>; type D<T> = NoInfer<T>;",
+                recursive: "type A = A[]; type B<T> = [T, B<T>?]; type C = B<string>;",
+                circular: "type A = B; type B = A; type C<T> = C<T>;",
+                arity: "type A<T> = T; type B = A; type C = A<string,number>; interface I<T> {} type D = I; type E = I<string,number>; type F = string<number>;",
+                unresolved: "type A = Missing; type B = Missing<string>; type C = Missing<string>; type D = Namespace.Missing<number>;",
+                mapped: "type M<T> = { [P in keyof T]: T[P] }; type K<T> = keyof T; type V<T,P extends keyof T> = T[P];",
+                thisType: "class A<T> { value: T; self: this; static invalid: this; method<U>(x: U): this { return this; } } interface I { self: this } type Invalid = this;",
+                enums: "enum E { A, B, C = 7 } enum F { A='a', B='b' } enum Empty {} type A = E; type B = E.B; type C = F.A | F.B;",
+                nestedCaptures: "function outer<T>() { type A<U=T> = readonly [U,T]; type B = A; class C<V=T> { value: A<V>; } type D = C; }",
+                aliasChains: "type A<T=string> = T; type B<U=number> = A<U>; type C = B; type D<V> = B<V>; type E = D<boolean>;",
+                uniqueSymbols: "declare const token: unique symbol; interface I { readonly id: unique symbol } class C { static readonly id: unique symbol; readonly value: unique symbol; }",
+                predicates: "type A = (value: unknown) => value is string; type B = (value: unknown) => asserts value is number;",
+                restAliases: "type ArrayAlias<T> = T[]; type T = [...(string[])]; type U = [head: number, ...tail: string[]]; type V<T> = [T, ...(number[])];",
+                enumDuplicates: "enum E { A = 1, B = 1, C = 2 } enum F { A='same', B='same' } type T = E.A | E.B; type U = F.A;",
+            })
+        ) add(`type-nodes:${name}:${strict}:${exactOptionalPropertyTypes}`, { "globals.d.ts": library, "main.ts": source }, { strict, exactOptionalPropertyTypes, target: "esnext" }, false, true);
+        add(`type-nodes:imported:${strict}:${exactOptionalPropertyTypes}`, { "globals.d.ts": library, "a.ts": "export type A<T> = T[]; export interface Box<T> { value: T }", "b.ts": "import {A, Box} from './a'; type B = A<string>; type C = Box<number>;" }, { strict, exactOptionalPropertyTypes, module: "esnext" }, false, true);
+    }
+}
+let selected = process.argv.includes("--type-nodes") ? cases.filter(c => c.typeNodes)
+    : cases.filter(c => !c.typeNodes && Boolean(c.aliases) === process.argv.includes("--aliases"));
 if (option("--filter")) selected = selected.filter(c => c.name.includes(option("--filter")));
 async function probe(command, args) {
     return new Promise((resolve, reject) => {
@@ -154,7 +188,7 @@ for (let i = 0; i < selected.length; i++) {
 await json(path.join(output, "checker-program-failures.json"), failures);
 const summary = {
     timestamp: new Date().toISOString(),
-    scope: process.argv.includes("--aliases")
+    scope: process.argv.includes("--type-nodes") ? "Source type-node evaluation, declared aliases and references with explicit semantic dependencies; full checker integration remains incomplete" : process.argv.includes("--aliases")
         ? "Program-backed alias targets, type-only chains and module exports with explicit semantic dependencies; full checker integration remains incomplete"
         : "Program-owned global symbols, class/interface headers and generic scopes with explicit semantic dependencies; full checker integration remains incomplete",
     referenceRevision,

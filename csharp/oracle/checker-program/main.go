@@ -24,6 +24,7 @@ func main() {
 			Options     map[string]any
 			Concurrency int
 			Aliases     bool
+			TypeNodes   bool
 		}
 		if err := json.Unmarshal(lines.Bytes(), &input); err != nil {
 			panic(err)
@@ -50,7 +51,7 @@ func main() {
 		}
 		program := compiler.NewProgram(options)
 		c, _ := checker.NewChecker(program, nil)
-		if err := output.Encode(c.CSharpProgramScopeProbe(input.Aliases)); err != nil {
+		if err := output.Encode(c.CSharpProgramScopeProbe(input.Aliases, input.TypeNodes)); err != nil {
 			panic(err)
 		}
 	}

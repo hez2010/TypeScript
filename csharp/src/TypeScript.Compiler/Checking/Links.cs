@@ -87,6 +87,11 @@ internal sealed class TypeNodeLinks
     internal IReadOnlyList<Type>? OuterTypeParameters { get; set; }
 }
 
+internal sealed class SymbolNodeLinks
+{
+    internal Symbol? ResolvedSymbol { get; set; }
+}
+
 internal sealed class CheckerLinks
 {
     internal LinkStore<Symbol, ValueSymbolLinks> Values { get; } = new();
@@ -98,6 +103,7 @@ internal sealed class CheckerLinks
     internal LinkStore<Symbol, DeclaredTypeLinks> DeclaredTypes { get; } = new();
     internal LinkStore<SyntaxNode, NodeLinks> Nodes { get; } = new();
     internal LinkStore<SyntaxNode, TypeNodeLinks> TypeNodes { get; } = new();
+    internal LinkStore<SyntaxNode, SymbolNodeLinks> SymbolNodes { get; } = new();
 
     internal bool HasResolvedProperty(object target, TypeSystemPropertyName property) => property switch
     {

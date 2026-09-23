@@ -25,7 +25,7 @@ internal sealed partial class ProgramScopeHost
     {
         if ((symbol.Flags & S.LateBindingContainer) != 0)
             throw new InvalidOperationException("Probe requires late-bound exported members");
-        if ((symbol.Flags & S.Module) == 0 && symbol != Symbols.UnknownSymbol)
+        if ((symbol.Flags & (S.Module | S.Enum)) == 0 && symbol != Symbols.UnknownSymbol)
             throw new InvalidOperationException("Probe requires non-module exported members");
         return (symbol.Flags & S.Module) != 0 ? ModuleExports.ResolveAsync(symbol, cancellation) : ValueTask.FromResult(symbol.Exports);
     }

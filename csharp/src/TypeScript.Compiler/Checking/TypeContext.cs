@@ -13,6 +13,7 @@ public sealed class TypeContext
     private readonly Dictionary<BigInteger, LiteralType> bigints = [];
     private readonly Dictionary<(Symbol Enum, object Value), LiteralType> enumLiterals = [];
     private readonly Dictionary<TypeCacheKey, UnionType> unions = [];
+    private readonly Dictionary<(TypeCacheKey Types, AccessFlags Flags), IndexedAccessType> indexedAccesses = [];
     private readonly Dictionary<(Type, bool), IndexType> indexes = [];
     private readonly Dictionary<(Type, Type), SubstitutionType> substitutions = [];
     private readonly Dictionary<Symbol, UniqueSymbolType> uniqueSymbols = [];
@@ -298,6 +299,20 @@ public sealed class TypeContext
         RequireOwned(objectType);
         RequireOwned(indexType);
         return new(this, objectType, indexType, flags);
+    }
+
+    internal IndexedAccessType GetGenericIndexedAccess(Type objectType, Type indexType, AccessFlags flags, TypeAlias? alias = null)
+    {
+        RequireOwned(objectType);
+        RequireOwned(indexType);
+        if (alias is not null)
+            foreach (var argument in alias.TypeArguments)
+                RequireOwned(argument);
+        flags &= AccessFlags.Persistent;
+        var key = (TypeCacheKey.Instantiation([objectType, indexType], alias, false), flags);
+        if (!indexedAccesses.TryGetValue(key, out var result))
+            indexedAccesses.Add(key, result = new(this, objectType, indexType, flags) { Alias = alias });
+        return result;
     }
 
     internal TemplateLiteralType NewTemplateLiteralType(ReadOnlySpan<string> texts, ReadOnlySpan<Type> types)

@@ -3,12 +3,15 @@ package checker
 
 import (
 	"encoding/base64"
+	"fmt"
+	"math"
 	"slices"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
+	"github.com/microsoft/TypeScript/tsc/internal/jsnum"
 )
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -140,9 +143,26 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool) any {
 			})
 		}
 	}
+	typeQueries := []any{}
+	if typeNodes {
+		for _, node := range nodes {
+			var result *Type
+			if ast.IsTypeOrJSTypeAliasDeclaration(node) || ast.IsEnumDeclaration(node) {
+				result = c.getDeclaredTypeOfSymbol(c.getSymbolOfDeclaration(node))
+			} else if node.Type() != nil && (ast.IsFunctionLike(node) || ast.IsVariableDeclaration(node) || ast.IsPropertyDeclaration(node) || ast.IsPropertySignatureDeclaration(node) || ast.IsParameterDeclaration(node)) {
+				result = c.getTypeFromTypeNode(node.Type())
+			}
+			if result != nil {
+				typeQueries = append(typeQueries, []any{nodeIDs[node], tid(result)})
+			}
+		}
+	}
 	typeRows := []any{}
 	for i := 0; i < len(types); i++ {
 		t := types[i]
+		if typeNodes && t.objectFlags&ObjectFlagsReference != 0 {
+			c.getTypeArguments(t)
+		}
 		symbol := sid(t.symbol)
 		var target, this, constraint *Type
 		var args, params []*Type
@@ -154,7 +174,7 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool) any {
 			if t.objectFlags&ObjectFlagsReference != 0 {
 				args = t.AsTypeReference().resolvedTypeArguments
 			}
-			if t.objectFlags&ObjectFlagsClassOrInterface != 0 {
+			if t.objectFlags&(ObjectFlagsClassOrInterface|ObjectFlagsTuple) != 0 {
 				d := t.AsInterfaceType()
 				params = append([]*Type{}, d.allTypeParameters...)
 				outer, this = d.outerTypeParameterCount, d.thisType
@@ -167,7 +187,86 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool) any {
 			intrinsic = t.AsIntrinsicType().intrinsicName
 		}
 		targetID, argIDs, paramIDs := tid(target), tids(args), tids(params)
-		typeRows = append(typeRows, []any{t.flags, t.objectFlags, symbol, targetID, argIDs, paramIDs, outer, tid(this), isThis, tid(constraint), intrinsic})
+		row := []any{t.flags, t.objectFlags, symbol, targetID, argIDs, paramIDs, outer, tid(this), isThis, tid(constraint), intrinsic}
+		if typeNodes {
+			shape := map[string]any{}
+			if t.alias != nil {
+				args := tids(t.alias.typeArguments)
+				if args == nil {
+					args = []int{}
+				}
+				shape["alias"] = []any{sid(t.alias.symbol), args}
+			}
+			if d := t.AsConstrainedType(); d != nil {
+				shape["baseConstraint"] = tid(d.resolvedBaseConstraint)
+			}
+			switch {
+			case t.flags&TypeFlagsFreshable != 0:
+				d := t.AsLiteralType()
+				shape["fresh"], shape["regular"] = tid(d.freshType), tid(d.regularType)
+				switch value := d.value.(type) {
+				case string:
+					shape["value"] = base64.StdEncoding.EncodeToString([]byte(value))
+				case jsnum.Number:
+					shape["value"] = fmt.Sprintf("%016x", math.Float64bits(float64(value)))
+				case jsnum.PseudoBigInt:
+					shape["value"] = value.String()
+				default:
+					shape["value"] = value
+				}
+			case t.flags&TypeFlagsUnionOrIntersection != 0:
+				shape["parts"] = tids(t.Types())
+				if t.flags&TypeFlagsUnion != 0 {
+					shape["origin"] = tid(t.AsUnionType().origin)
+				}
+			case t.flags&TypeFlagsTypeParameter != 0:
+				d := t.AsTypeParameter()
+				shape["distributed"] = d.isDistributed
+				shape["default"] = tid(d.resolvedDefaultType)
+				shape["distributedType"] = tid(d.distributedType)
+			case t.flags&TypeFlagsIndex != 0:
+				shape["target"] = tid(t.AsIndexType().target)
+				shape["indexFlags"] = t.AsIndexType().indexFlags
+			case t.flags&TypeFlagsIndexedAccess != 0:
+				d := t.AsIndexedAccessType()
+				shape["object"] = tid(d.objectType)
+				shape["index"] = tid(d.indexType)
+				shape["accessFlags"] = d.accessFlags
+			case t.flags&TypeFlagsTemplateLiteral != 0:
+				d := t.AsTemplateLiteralType()
+				texts := []string{}
+				for _, text := range d.texts {
+					texts = append(texts, base64.StdEncoding.EncodeToString([]byte(text)))
+				}
+				shape["texts"] = texts
+				shape["parts"] = tids(d.types)
+			case t.flags&TypeFlagsStringMapping != 0:
+				shape["target"] = tid(t.AsStringMappingType().target)
+			case t.flags&TypeFlagsSubstitution != 0:
+				shape["base"] = tid(t.AsSubstitutionType().baseType)
+				shape["constraint"] = tid(t.AsSubstitutionType().constraint)
+			}
+			if t.objectFlags&(ObjectFlagsReference|ObjectFlagsClassOrInterface) != 0 {
+				shape["node"] = nodeIDs[t.AsTypeReference().node]
+			}
+			if t.objectFlags&ObjectFlagsTuple != 0 {
+				d := t.AsTupleType()
+				infos := []any{}
+				for _, info := range d.elementInfos {
+					infos = append(infos, []any{info.flags, nodeIDs[info.labeledDeclaration]})
+				}
+				shape["tuple"] = []any{infos, d.minLength, d.fixedLength, d.combinedFlags, d.readonly}
+			}
+			if t.objectFlags&ObjectFlagsMapped != 0 {
+				d := t.AsMappedType()
+				shape["parameter"] = tid(d.typeParameter)
+				shape["constraint"] = tid(d.constraintType)
+				shape["template"] = tid(d.templateType)
+				shape["name"] = tid(d.nameType)
+			}
+			row = append(row, shape)
+		}
+		typeRows = append(typeRows, row)
 	}
 	symbolRows := []any{}
 	for i := 0; i < len(symbols); i++ {
@@ -194,6 +293,9 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool) any {
 	}
 	if aliasQueries {
 		result["aliases"] = aliasRows
+	}
+	if typeNodes {
+		result["typeQueries"] = typeQueries
 	}
 	return result
 }

@@ -13,6 +13,11 @@ internal static class Program
     {
         try
         {
+            if (args is ["--checker-type-nodes-safety"])
+            {
+                CheckerTypeNodeTests.Safety().GetAwaiter().GetResult();
+                return 0;
+            }
             if (args is ["--checker-alias-safety"])
             {
                 CheckerAliasTests.Safety().GetAwaiter().GetResult();

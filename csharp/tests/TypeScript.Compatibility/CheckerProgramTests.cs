@@ -1,5 +1,7 @@
 using System.Text;
 using System.Text.Json;
+using System.Globalization;
+using System.Numerics;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Checking;
@@ -334,12 +336,38 @@ internal static class CheckerProgramTests
             }
             writer.WriteEndArray();
         }
+        ProgramTypeHost? typeHost = null;
+        if (input.TryGetProperty("typeNodes", out var typeOption) && typeOption.GetBoolean())
+        {
+            typeHost = new(context, links, host);
+            writer.WriteStartArray("typeQueries");
+            foreach (var node in nodes)
+            {
+                Type? result = null;
+                if (node is TypeAliasDeclarationNode or EnumDeclarationNode)
+                    result = await typeHost.Declared.GetAsync(environment.Declaration(node)!);
+                else if (node is ITypedNode { Type: { } annotation }
+                    && (node is IFunctionSignature
+                        || node.Kind is SyntaxKind.VariableDeclaration or SyntaxKind.PropertyDeclaration or SyntaxKind.PropertySignature
+                            or SyntaxKind.Parameter or SyntaxKind.IndexSignature))
+                    result = await typeHost.Nodes.FromNodeAsync(annotation);
+                if (result is null)
+                    continue;
+                writer.WriteStartArray();
+                writer.WriteNumberValue(Node(node));
+                writer.WriteNumberValue(TypeId(result));
+                writer.WriteEndArray();
+            }
+            writer.WriteEndArray();
+        }
         writer.WriteStartArray("types");
         for (int i = 0; i < types.Count; i++)
         {
             var type = types[i];
             var parameter = type as TypeParameter;
             var intf = type as InterfaceType;
+            if (typeHost is not null && type is TypeReference lazy && (type.ObjectFlags & ObjectFlags.Reference) != 0)
+                await typeHost.References.TypeArgumentsAsync(lazy);
             writer.WriteStartArray();
             writer.WriteNumberValue((uint)type.Flags);
             writer.WriteNumberValue((uint)type.ObjectFlags);
@@ -352,6 +380,109 @@ internal static class CheckerProgramTests
             writer.WriteBooleanValue(parameter?.IsThisType ?? false);
             writer.WriteNumberValue(TypeId(parameter?.Constraint));
             writer.WriteStringValue(type is IntrinsicType intrinsic ? intrinsic.IntrinsicName : "");
+            if (typeHost is not null)
+            {
+                writer.WriteStartObject();
+                if (type.Alias is { } typeAlias)
+                {
+                    writer.WriteStartArray("alias");
+                    writer.WriteNumberValue(SymbolId(typeAlias.Symbol));
+                    TypeIds(typeAlias.TypeArguments);
+                    writer.WriteEndArray();
+                }
+                if (type is ConstrainedType constrained)
+                    writer.WriteNumber("baseConstraint", TypeId(constrained.ResolvedBaseConstraint));
+                switch (type)
+                {
+                    case LiteralType literal:
+                        writer.WriteNumber("fresh", TypeId(literal.FreshType));
+                        writer.WriteNumber("regular", TypeId(literal.RegularType));
+                        writer.WritePropertyName("value");
+                        switch (literal.Value)
+                        {
+                            case string value:
+                                writer.WriteBase64StringValue(Wtf8.Encode(value));
+                                break;
+                            case double value:
+                                writer.WriteStringValue(
+                                    BitConverter.DoubleToUInt64Bits(value).ToString("x16", CultureInfo.InvariantCulture));
+                                break;
+                            case BigInteger value:
+                                writer.WriteStringValue(value.ToString(CultureInfo.InvariantCulture));
+                                break;
+                            case bool value:
+                                writer.WriteBooleanValue(value);
+                                break;
+                            default:
+                                writer.WriteNullValue();
+                                break;
+                        }
+                        break;
+                    case UnionOrIntersectionType composite:
+                        writer.WritePropertyName("parts");
+                        TypeIds(composite.Types);
+                        if (type is UnionType union)
+                            writer.WriteNumber("origin", TypeId(union.Origin));
+                        break;
+                    case TypeParameter:
+                        writer.WriteBoolean("distributed", parameter!.IsDistributed);
+                        writer.WriteNumber("default", TypeId(parameter.ResolvedDefaultType));
+                        writer.WriteNumber("distributedType", TypeId(parameter.DistributedType));
+                        break;
+                    case IndexType index:
+                        writer.WriteNumber("target", TypeId(index.Target));
+                        writer.WriteNumber("indexFlags", (uint)index.IndexFlags);
+                        break;
+                    case IndexedAccessType indexed:
+                        writer.WriteNumber("object", TypeId(indexed.ObjectType));
+                        writer.WriteNumber("index", TypeId(indexed.IndexType));
+                        writer.WriteNumber("accessFlags", (uint)indexed.AccessFlags);
+                        break;
+                    case TemplateLiteralType template:
+                        writer.WriteStartArray("texts");
+                        foreach (string text in template.Texts)
+                            writer.WriteBase64StringValue(Wtf8.Encode(text));
+                        writer.WriteEndArray();
+                        writer.WritePropertyName("parts");
+                        TypeIds(template.Types);
+                        break;
+                    case StringMappingType mapping:
+                        writer.WriteNumber("target", TypeId(mapping.Target));
+                        break;
+                    case SubstitutionType substitution:
+                        writer.WriteNumber("base", TypeId(substitution.BaseType));
+                        writer.WriteNumber("constraint", TypeId(substitution.Constraint));
+                        break;
+                }
+                if (type is TypeReference referenceType)
+                    writer.WriteNumber("node", Node(referenceType.Node));
+                if (type is TupleType tuple)
+                {
+                    writer.WriteStartArray("tuple");
+                    writer.WriteStartArray();
+                    foreach (var info in tuple.ElementInfos)
+                    {
+                        writer.WriteStartArray();
+                        writer.WriteNumberValue((uint)info.Flags);
+                        writer.WriteNumberValue(Node(info.LabeledDeclaration));
+                        writer.WriteEndArray();
+                    }
+                    writer.WriteEndArray();
+                    writer.WriteNumberValue(tuple.MinLength);
+                    writer.WriteNumberValue(tuple.FixedLength);
+                    writer.WriteNumberValue((uint)tuple.CombinedFlags);
+                    writer.WriteBooleanValue(tuple.IsReadonly);
+                    writer.WriteEndArray();
+                }
+                if (type is MappedType mapped)
+                {
+                    writer.WriteNumber("parameter", TypeId(mapped.TypeParameter));
+                    writer.WriteNumber("constraint", TypeId(mapped.ConstraintType));
+                    writer.WriteNumber("template", TypeId(mapped.TemplateType));
+                    writer.WriteNumber("name", TypeId(mapped.NameType));
+                }
+                writer.WriteEndObject();
+            }
             writer.WriteEndArray();
         }
         writer.WriteEndArray();
@@ -375,7 +506,11 @@ internal static class CheckerProgramTests
         }
         writer.WriteEndArray();
         writer.WriteStartArray("diagnostics");
-        foreach (int code in host.Diagnostics.Order())
+        IEnumerable<int> diagnostics = host.Diagnostics;
+        if (typeHost is not null)
+            diagnostics = diagnostics.Concat(typeHost.Diagnostics).Concat(typeHost.Instantiation.Diagnostics)
+                .Concat(typeHost.Instantiation.ConstraintDependencies.Diagnostics).Concat(typeHost.AlgebraDiagnostics);
+        foreach (int code in diagnostics.Order())
             writer.WriteNumberValue(code);
         writer.WriteEndArray();
         writer.WriteEndObject();
