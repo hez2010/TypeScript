@@ -312,6 +312,28 @@ internal static class CheckerProgramTests
             writer.WriteEndArray();
         }
         writer.WriteEndArray();
+        if (input.TryGetProperty("aliases", out var aliasOption) && aliasOption.GetBoolean())
+        {
+            writer.WriteStartArray("aliases");
+            var seenAliases = new HashSet<Symbol>(ReferenceEqualityComparer.Instance);
+            foreach (var node in nodes)
+            {
+                var symbol = environment.Declaration(node);
+                if (symbol is null || (symbol.Flags & SymbolFlags.Alias) == 0 || !seenAliases.Add(symbol))
+                    continue;
+                writer.WriteStartArray();
+                writer.WriteNumberValue(SymbolId(symbol));
+                writer.WriteNumberValue(SymbolId(await host.Aliases.ResolveAsync(symbol)));
+                writer.WriteNumberValue(SymbolId(await host.Aliases.ImmediateAsync(symbol)));
+                writer.WriteNumberValue((uint)await host.Aliases.FlagsAsync(symbol));
+                writer.WriteNumberValue((uint)await host.Aliases.FlagsAsync(symbol, excludeTypeOnly: true));
+                writer.WriteNumberValue((uint)await host.Aliases.FlagsAsync(symbol, excludeLocal: true));
+                writer.WriteNumberValue(Node(await host.Aliases.TypeOnlyAsync(symbol)));
+                writer.WriteNumberValue(Node(await host.Aliases.TypeOnlyAsync(symbol, SymbolFlags.Value)));
+                writer.WriteEndArray();
+            }
+            writer.WriteEndArray();
+        }
         writer.WriteStartArray("types");
         for (int i = 0; i < types.Count; i++)
         {

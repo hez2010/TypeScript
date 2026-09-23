@@ -8,7 +8,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 )
 
-func (c *Checker) CSharpProgramScopeProbe() any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -119,6 +119,27 @@ func (c *Checker) CSharpProgramScopeProbe() any {
 			scopes = append(scopes, []any{nodeIDs[node], values})
 		}
 	}
+	aliasRows := []any{}
+	if aliasQueries {
+		seen := map[*ast.Symbol]bool{}
+		for _, node := range nodes {
+			symbol := c.getSymbolOfDeclaration(node)
+			if symbol == nil || symbol.Flags&ast.SymbolFlagsAlias == 0 || seen[symbol] {
+				continue
+			}
+			seen[symbol] = true
+			id := sid(symbol)
+			target := sid(c.resolveAlias(symbol))
+			immediate := sid(c.getImmediateAliasedSymbol(symbol))
+			flags := c.getSymbolFlags(symbol)
+			withoutTypeOnly := c.getSymbolFlagsEx(symbol, true, false)
+			withoutLocal := c.getSymbolFlagsEx(symbol, false, true)
+			aliasRows = append(aliasRows, []any{
+				id, target, immediate, flags, withoutTypeOnly, withoutLocal,
+				nodeIDs[c.getTypeOnlyAliasDeclaration(symbol)], nodeIDs[c.getTypeOnlyAliasDeclarationEx(symbol, ast.SymbolFlagsValue)],
+			})
+		}
+	}
 	typeRows := []any{}
 	for i := 0; i < len(types); i++ {
 		t := types[i]
@@ -166,9 +187,13 @@ func (c *Checker) CSharpProgramScopeProbe() any {
 		diagnostics = append(diagnostics, int(diagnostic.Code()))
 	}
 	slices.Sort(diagnostics)
-	return map[string]any{
+	result := map[string]any{
 		"files": files, "globals": globals, "patterns": patterns, "augmentations": augmentations,
 		"augmentationTargets": augmentationTargets, "globalTypes": globalTypes, "specialTypes": specialTypes,
 		"declarations": declarations, "classes": classes, "scopes": scopes, "types": typeRows, "symbols": symbolRows, "diagnostics": diagnostics,
 	}
+	if aliasQueries {
+		result["aliases"] = aliasRows
+	}
+	return result
 }

@@ -49,6 +49,18 @@ internal sealed class MappedSymbolLinks
     internal Symbol? SyntheticOrigin { get; set; }
 }
 
+internal sealed class ExportTypeLinks
+{
+    internal Symbol? Target { get; set; }
+    internal SyntaxNode? OriginatingImport { get; set; }
+}
+
+internal sealed class ModuleSymbolLinks
+{
+    internal IReadOnlyDictionary<string, Symbol>? ResolvedExports { get; set; }
+    internal IReadOnlyDictionary<string, SyntaxNode>? TypeOnlyExportStars { get; set; }
+}
+
 internal sealed class TypeAliasLinks
 {
     internal Type? DeclaredType { get; set; }
@@ -80,6 +92,8 @@ internal sealed class CheckerLinks
     internal LinkStore<Symbol, ValueSymbolLinks> Values { get; } = new();
     internal LinkStore<Symbol, AliasSymbolLinks> Aliases { get; } = new();
     internal LinkStore<Symbol, MappedSymbolLinks> MappedSymbols { get; } = new();
+    internal LinkStore<Symbol, ExportTypeLinks> ExportTypes { get; } = new();
+    internal LinkStore<Symbol, ModuleSymbolLinks> Modules { get; } = new();
     internal LinkStore<Symbol, TypeAliasLinks> TypeAliases { get; } = new();
     internal LinkStore<Symbol, DeclaredTypeLinks> DeclaredTypes { get; } = new();
     internal LinkStore<SyntaxNode, NodeLinks> Nodes { get; } = new();

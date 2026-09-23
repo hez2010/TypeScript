@@ -38,10 +38,12 @@ if (!process.argv.includes("--no-build")) {
 
 const cases = [];
 const library = `interface IArguments {} interface Object {} interface Function {} interface CallableFunction extends Function {} interface NewableFunction extends Function {} interface String {} interface Number {} interface Boolean {} interface RegExp {} interface Array<T> { length: number; [n: number]: T; } interface ReadonlyArray<T> { readonly length: number; readonly [n: number]: T; } interface ThisType<T> {}`;
-function add(name, sources, options = {}) {
+function add(name, sources, options = {}, aliases = false) {
     for (const concurrency of [1, 4]) {
         const files = Object.fromEntries(Object.entries(sources).map(([name, text]) => [`/project/${name}`, Buffer.from(text).toString("base64")]));
-        cases.push({ name: `${name}:${concurrency}`, files, roots: Object.keys(files), options, concurrency });
+        const input = { name: `${name}:${concurrency}`, files, roots: Object.keys(files), options, concurrency };
+        if (aliases) input.aliases = true;
+        cases.push(input);
     }
 }
 for (const strict of [false, true]) {
@@ -76,7 +78,51 @@ for (const strict of [false, true]) {
 for (const strict of [false, true]) {
     for (const definition of ["interface Array {}", "interface Array<T, U> {}", "type Array = number", "class Array<T> {}", "interface Array<T> {} interface ReadonlyArray<T,U> {}"]) add(`global-array:${strict}:${definition}`, { "main.d.ts": definition }, { strict });
 }
-let selected = option("--filter") ? cases.filter(c => c.name.includes(option("--filter"))) : cases;
+for (const strict of [false, true]) {
+    const source = "export class Base { self: this; } export interface Shape<T> { value: T } export const value = 1; export default Base;";
+    for (
+        const [name, declaration] of Object.entries({
+            named: "import { Base, Shape, value } from './a'; interface I extends Base {} type T = Shape<string>; export { Base, Shape, value };",
+            default: "import Default from './a'; import { default as Other } from './a'; interface I extends Default {} export { Other };",
+            namespace: "import * as NS from './a'; interface I extends NS.Shape<string> {} export { NS };",
+            typeClause: "import type { Base, Shape } from './a'; interface I extends Base {} export { Base, Shape };",
+            typeSpecifier: "import { type Base, type Shape, value } from './a'; interface I extends Base {} export { Base, Shape, value };",
+            typeDefault: "import type Default from './a'; interface I extends Default {} export { Default };",
+            typeNamespace: "import type * as NS from './a'; interface I extends NS.Shape<string> {} export { NS };",
+            reexport: "export { Base as C, Shape, value, default as D } from './a';",
+            typeReexport: "export type { Base as C, Shape, default as D } from './a';",
+            namespaceReexport: "export * as NS from './a'; export type * as Types from './a';",
+        })
+    ) {
+        add(`alias:${name}:${strict}`, { "a.ts": source, "b.ts": declaration }, { strict, module: "esnext" }, true);
+    }
+    add(`alias:chain:${strict}`, { "a.ts": source, "b.ts": "export type {Base as C} from './a'; export {Shape as S} from './a';", "c.ts": "import { C, S } from './b'; interface I extends C {} type T = S<string>; export { C as D, S };" }, { strict, module: "esnext" }, true);
+    add(`alias:internal:${strict}`, { "main.ts": "namespace N { export namespace Inner { export interface I { self: this } export const value = 1; } } import A = N; import B = A.Inner; import C = B.I; interface I2 extends C {}" }, { strict }, true);
+    add(`alias:cycle:${strict}`, { "main.ts": "import A = B; import B = A;" }, { strict }, true);
+    add(`alias:missing-module:${strict}`, { "main.ts": "import { Missing } from 'unavailable-package'; export { Missing };" }, { strict, module: "esnext" }, true);
+    add(`alias:missing-name:${strict}`, { "main.ts": "export { nonexistent };" }, { strict, module: "esnext" }, true);
+    add(`alias:export-equals:${strict}`, { "a.ts": "namespace N { export interface I { self: this } } export = N;", "b.ts": "import A = require('./a'); interface I extends A.I {}" }, { strict, module: "commonjs" }, true);
+    add(`alias:umd:${strict}`, { "main.d.ts": "export as namespace U; export interface I {}" }, { strict }, true);
+    add(`alias:star:${strict}`, { "a.ts": source, "b.ts": "export * from './a';", "c.ts": "import { Base, Shape, value } from './b'; interface I extends Base {} export { Base, Shape, value };" }, { strict, module: "esnext" }, true);
+    add(`alias:type-star:${strict}`, { "a.ts": source, "b.ts": "export type * from './a';", "c.ts": "import { Base, Shape, value } from './b'; export { Base, Shape, value };" }, { strict, module: "esnext" }, true);
+    add(`alias:star-override:${strict}`, { "a.ts": source, "b.ts": "export type * from './a'; export * from './a';", "c.ts": "import { Base, value } from './b'; export {Base, value};" }, { strict, module: "esnext" }, true);
+    add(`alias:star-cycle:${strict}`, { "a.ts": "export * from './b'; export class A {}", "b.ts": "export * from './a'; export class B {}", "c.ts": "import { A, B } from './a'; export {A, B};" }, { strict, module: "esnext" }, true);
+    add(`alias:star-conflict:${strict}`, { "a.ts": "export const value = 1;", "b.ts": "export const value = 2;", "c.ts": "export * from './a'; export * from './b';", "d.ts": "import { value } from './c'; export {value};" }, { strict, module: "esnext" }, true);
+    add(`alias:mixed:${strict}`, { "a.ts": "export const value = 1;", "b.ts": "export {value} from './a'; export type value = number;", "c.ts": "import {value} from './b'; export {value};" }, { strict, module: "esnext" }, true);
+    add(`alias:namespace-assignment:${strict}`, { "main.ts": "namespace N { export = nonexistent; }" }, { strict }, true);
+    add(`alias:require:${strict}`, { "a.ts": "namespace N { export interface I {} } export = N;", "b.js": "const A = require('./a');" }, { strict, allowJs: true, module: "commonjs" }, true);
+    add(`alias:internal-type-export:${strict}`, { "a.ts": source, "b.ts": "export type {Base} from './a';", "c.ts": "import * as NS from './b'; import X = NS.Base;" }, { strict, module: "esnext" }, true);
+    add(`alias:internal-type-import:${strict}`, { "a.ts": "export namespace N { export class C {} }", "b.ts": "import type {N} from './a'; import X = N.C;" }, { strict, module: "esnext" }, true);
+    add(`alias:star-explicit:${strict}`, { "a.ts": "export const value = 1;", "b.ts": "export const value = 2;", "c.ts": "export * from './a'; export * from './b'; export {value} from './a';", "d.ts": "import {value} from './c'; export {value};" }, { strict, module: "esnext" }, true);
+    for (const length of [2, 8, 32]) {
+        const chain = { "m0.ts": "export class C {}" };
+        for (let i = 1; i <= length; i++) chain[`m${i}.ts`] = `export ${i % 3 === 0 ? "type " : ""}{C} from './m${i - 1}';`;
+        chain["use.ts"] = `import {C} from './m${length}'; export {C};`;
+        add(`alias:chain-${length}:${strict}`, chain, { strict, module: "esnext" }, true);
+    }
+}
+let selected = cases.filter(c => Boolean(c.aliases) === process.argv.includes("--aliases"));
+if (option("--filter")) selected = selected.filter(c => c.name.includes(option("--filter")));
 async function probe(command, args) {
     return new Promise((resolve, reject) => {
         const child = spawn(command, args, { windowsHide: true }), stdout = [], stderr = [];
@@ -106,7 +152,23 @@ for (let i = 0; i < selected.length; i++) {
     }
 }
 await json(path.join(output, "checker-program-failures.json"), failures);
-const summary = { timestamp: new Date().toISOString(), scope: "Program-owned global symbols, class/interface headers and generic scopes with explicit semantic dependencies; full checker integration remains incomplete", referenceRevision, managed, runtime: managed ? "managed development run" : await run(candidate, ["--native-check"]), cases: selected.length, exact: selected.length - failures.length, failed: failures.length, inputSha256: sha256(JSON.stringify(selected)), referenceOutputSha256: sha256(JSON.stringify(expected)), outputSha256: sha256(JSON.stringify(actual)), candidateSha256: sha256(await readFile(managed ? dll : candidate)), oracleSha256: sha256(await readFile(oracle)) };
+const summary = {
+    timestamp: new Date().toISOString(),
+    scope: process.argv.includes("--aliases")
+        ? "Program-backed alias targets, type-only chains and module exports with explicit semantic dependencies; full checker integration remains incomplete"
+        : "Program-owned global symbols, class/interface headers and generic scopes with explicit semantic dependencies; full checker integration remains incomplete",
+    referenceRevision,
+    managed,
+    runtime: managed ? "managed development run" : await run(candidate, ["--native-check"]),
+    cases: selected.length,
+    exact: selected.length - failures.length,
+    failed: failures.length,
+    inputSha256: sha256(JSON.stringify(selected)),
+    referenceOutputSha256: sha256(JSON.stringify(expected)),
+    outputSha256: sha256(JSON.stringify(actual)),
+    candidateSha256: sha256(await readFile(managed ? dll : candidate)),
+    oracleSha256: sha256(await readFile(oracle)),
+};
 await json(path.join(output, "checker-program-summary.json"), summary);
 if (option("--record")) await json(path.join(root, `csharp/compatibility/evidence/${option("--record")}.json`), summary);
 console.log(summary);

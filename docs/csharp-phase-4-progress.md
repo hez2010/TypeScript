@@ -183,11 +183,26 @@ node csharp/tools/checker-program.mjs --record phase4-program-symbols
 & ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-program-safety
 ```
 
+## Alias and module export resolution
+
+`AliasResolver.cs` resolves pure alias chains while retaining the local meanings of merged aliases. It implements immediate/final target caches, type-only propagation, meaning-specific lookup, aggregate flags, circularity and deprecation traversal. `AliasTargets.cs` dispatches import/export/CommonJS alias declarations; `EntityNames.cs` connects qualified names to the program-backed lexical resolver. `ModuleExports.cs` traverses export-star graphs, handles cycles and collisions, and records type-only exports with ordinary-export overrides. `ModuleTypes.cs` creates namespace wrapper symbols with independent tables and drops call/construct signatures from the wrapper type.
+
+The remaining target hosts provide expression checking, synthetic-default and CommonJS/ES module type adaptation, computed exports, import-attribute evaluation and complete diagnostics. The source probe supplies declared ES module dependencies and rejects unsupported services. Cancellation removes unfinished alias targets and type-only markers, unwinds resolution stacks, and leaves unfinished export tables unpublished.
+
+NativeAOT passes **124 exact alias/export program comparisons**, covering 62 source configurations under single-worker and parallel program construction. The probes retain immediate/final alias identities, merged value/type meanings, type-only declaration origins, namespace wrapper identity, export-star cycles/overrides/collisions, internal import aliases, direct `require` aliases and initialization/resolution diagnostic codes. Full diagnostic formatting and module interop behavior remain outside this host domain.
+
+Thirty-one native safety assertions cover **20,000-alias chains**, cycles, cancellation/retry, deprecation callbacks, wrapper ownership/signature removal and failed export-table construction. The same artifact passes the earlier 180 program comparisons and 2,904 type/state comparisons, with 66 program/type safety assertions. Evidence: [aliases](../csharp/compatibility/evidence/phase4-aliases.json), [program regression](../csharp/compatibility/evidence/phase4-alias-program-regression.json), [type/state regression](../csharp/compatibility/evidence/phase4-alias-type-regression.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-alias-validation.json).
+
+```powershell
+node csharp/tools/checker-program.mjs --aliases --record phase4-aliases
+& ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-alias-safety
+```
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
 
-1. Complete the program/checker entry point, alias/module export resolution and type/value symbol resolution. Program-backed global registration, augmentation merging and declaration headers now exist; their remaining semantic callbacks must be connected.
+1. Complete the program/checker entry point, module interop/type adaptation, computed exports and type/value symbol resolution. Program-backed globals, augmentation merging, declaration headers and alias/export algorithms now exist; their remaining semantic callbacks must be connected.
 2. Structural relations and their caches, general AST type/constraint evaluation, contextual generic signatures and conditional instantiation; connect the implemented algebra, constraints, scope, instantiation and tuple algorithms to these complete checker services.
 3. Inference, contextual typing, signatures and overload selection, expression/declaration checking, JavaScript and JSDoc semantics.
 4. Flow analysis and narrowing, evolving arrays, definite assignment, exhaustiveness and semantic diagnostics.
@@ -195,4 +210,4 @@ The following phase-4 requirements remain open:
 6. Type display, node builders, symbol accessibility and emit-resolver APIs.
 7. All active checker/compiler type/symbol/diagnostic comparisons at single and reference-default concurrency; audits of intentional differences; complete semantic workload memory/performance measurements.
 
-The next integration step is alias resolution and general declared-type/type-node evaluation over the program-backed symbol environment. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.
+The next integration step is general declared-type/type-node evaluation and module type adaptation over the program-backed symbol environment. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.

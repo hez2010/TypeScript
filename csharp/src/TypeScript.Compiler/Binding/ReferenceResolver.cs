@@ -140,7 +140,7 @@ public sealed class ReferenceResolver(CompilerOptions options, Func<SyntaxNode, 
     public SyntaxNode? GetReferencedMemberValueDeclaration(SyntaxNode node)
         => Exported(ResolvedSymbol(node) ?? Merged(BoundSymbol(node)))?.ValueDeclaration;
 
-    private static bool IsAliasDeclaration(SyntaxNode node)
+    internal static bool IsAliasDeclaration(SyntaxNode node)
     {
         switch (node.Kind)
         {

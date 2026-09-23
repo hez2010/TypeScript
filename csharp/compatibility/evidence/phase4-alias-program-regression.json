@@ -1,0 +1,15 @@
+{
+    "timestamp": "2026-09-23T16:00:22.224Z",
+    "scope": "Program-owned global symbols, class/interface headers and generic scopes with explicit semantic dependencies; full checker integration remains incomplete",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "managed": false,
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "cases": 180,
+    "exact": 180,
+    "failed": 0,
+    "inputSha256": "8c26ddb301a529c375f396ab5a63adaef4c0ea8fc5afa1c7e1034d3cba0ec1a4",
+    "referenceOutputSha256": "1248b4b81a4a87f63ac1a073acc4bd32986c41b7d657f51d42d96a207d1cb156",
+    "outputSha256": "0c23ae1e212b3999366b287b3cd304fb160795a490911778dcd87e8c8a53fca2",
+    "candidateSha256": "6b372941702e2044fb1545b9db8a727030070d3b76a4e5b86a79bd5e6dd39f18",
+    "oracleSha256": "d523687cefffc8347a636c62723bac7ead0f9c23f68a9f128ded918ea3efc913"
+}

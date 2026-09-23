@@ -7,13 +7,21 @@ using Type = TypeScript.Compiler.Checking.Type;
 
 namespace TypeScript.Compatibility;
 
-// Real program/binding inputs; semantic services outside this symbol/header probe
-// are rejected explicitly. No expression checker or alias fallback is supplied.
-internal sealed class ProgramScopeHost(TypeContext context, CheckerLinks links) : ICheckerSymbolHost, ITypeParameterScopeHost
+// Real program/binding inputs with declared ES module dependencies. Unsupported
+// expression, interop, computed-name and relation queries fail explicitly.
+internal sealed partial class ProgramScopeHost(TypeContext context, CheckerLinks links) : ICheckerSymbolHost, ITypeParameterScopeHost,
+    IAliasResolverHost, IEntityNameHost, IAliasTargetHost, IModuleExportHost
 {
     internal CheckerSymbols Symbols { get; private set; } = null!;
     internal TypeParameterScopes Scopes { get; private set; } = null!;
     internal GlobalTypes Globals { get; private set; } = null!;
+    internal AliasResolver Aliases { get; private set; } = null!;
+    internal AliasTargets AliasTargets { get; private set; } = null!;
+    internal EntityNames EntityNames { get; private set; } = null!;
+    internal TypeResolutionStack AliasResolutions { get; private set; } = null!;
+    internal ModuleTypes ModuleTypes { get; private set; } = null!;
+    internal ModuleExports ModuleExports { get; private set; } = null!;
+    private readonly HashSet<(SyntaxNode? Node, int Code, string Arguments)> reported = [];
     internal List<int> Diagnostics { get; } = [];
     internal Action? BeforeGlobalTypes { get; set; }
     internal Action? BeforeResolveType { get; set; }
@@ -22,12 +30,18 @@ internal sealed class ProgramScopeHost(TypeContext context, CheckerLinks links) 
     public void Bind(CheckerSymbols symbols)
     {
         Symbols = symbols;
+        AliasResolutions = new(links);
+        Aliases = new(symbols, links, AliasResolutions, this);
+        EntityNames = new(symbols, Aliases, this);
+        AliasTargets = new(symbols, Aliases, EntityNames, this);
+        ModuleTypes = new(context, links, Aliases, new(symbols.Program.SourceFiles.Select(f => f.Syntax).ToArray()));
+        ModuleExports = new(links, Aliases, AliasTargets, this);
         Scopes = new(context, links, symbols, this);
         Globals = new(context, links, symbols, Scopes, (node, message, arguments) => Error(node, message, arguments));
     }
 
     public Symbol ResolveSymbol(Symbol symbol)
-        => (symbol.Flags & SymbolFlags.Alias) == 0 ? symbol : throw new InvalidOperationException("Probe requires alias target resolution");
+        => Aliases.SymbolAsync(symbol).GetAwaiter().GetResult()!;
 
     public Symbol LateBoundSymbol(Symbol symbol)
         =>
@@ -35,12 +49,17 @@ internal sealed class ProgramScopeHost(TypeContext context, CheckerLinks links) 
                 ? symbol
                 : throw new InvalidOperationException("Probe requires computed member binding");
 
-    public SymbolFlags GetSymbolFlags(Symbol symbol) => ResolveSymbol(symbol).Flags;
+    public SymbolFlags GetSymbolFlags(Symbol symbol) => Aliases.FlagsAsync(symbol).GetAwaiter().GetResult();
 
     public void MergeConflict(Symbol target, Symbol source, bool namespaceConflict)
         => throw new InvalidOperationException("Probe requires checker merge diagnostic attribution");
 
-    public void Error(SyntaxNode? node, DiagnosticMessage message, params string[] arguments) => Diagnostics.Add(message.Code);
+    public void Error(SyntaxNode? node, DiagnosticMessage message, params string[] arguments)
+    {
+        string key = string.Concat(arguments.Select(s => s.Length + ":" + s));
+        if (reported.Add((node, message.Code, key)))
+            Diagnostics.Add(message.Code);
+    }
 
     public async ValueTask InitializeGlobalTypesAsync(CheckerSymbols symbols, CancellationToken cancellation)
     {
@@ -88,14 +107,14 @@ internal sealed class ProgramScopeHost(TypeContext context, CheckerLinks links) 
     }
 
     public ValueTask<Symbol> ExternalModuleSymbolAsync(Symbol symbol, CancellationToken cancellation)
-    {
-        if (symbol.Exports.ContainsKey("export="))
-            throw new InvalidOperationException("Probe requires export-assignment resolution");
-        return ValueTask.FromResult(Symbols.Merger.GetMergedSymbol(symbol)!);
-    }
+        => RequiredExternalModuleAsync(symbol, cancellation);
+
+    private async ValueTask<Symbol> RequiredExternalModuleAsync(Symbol symbol, CancellationToken cancellation)
+        => await AliasTargets.ExternalModuleAsync(symbol, false, cancellation).ConfigureAwait(false)
+            ?? throw new InvalidOperationException("Present module resolved to no symbol");
 
     public ValueTask<IReadOnlyDictionary<string, Symbol>> ResolvedExportsAsync(Symbol symbol, CancellationToken cancellation)
-        => throw new InvalidOperationException("Probe requires export-star resolution");
+        => ExportsAsync(symbol, cancellation);
 
     public bool InvalidInitializer(SyntaxNode? location, string name, SyntaxNode declaration, Symbol? result)
         => throw new InvalidOperationException("Probe requires initializer checking");
@@ -131,28 +150,6 @@ internal sealed class ProgramScopeHost(TypeContext context, CheckerLinks links) 
     {
         cancellation.ThrowIfCancellationRequested();
         BeforeResolveType?.Invoke();
-        if (name is IdentifierNode identifier)
-            return ResolveIfPresent(
-                Symbols.NameResolver(cancellation).Resolve(
-                    identifier,
-                    identifier.Text,
-                    TypeScript.Compiler.Binding.SymbolFlags.Type | TypeScript.Compiler.Binding.SymbolFlags.Namespace));
-        SyntaxNode left, right;
-        if (name is QualifiedNameNode qualified)
-            (left, right) = (qualified.Left!, qualified.Right!);
-        else if (name is PropertyAccessExpressionNode access)
-            (left, right) = (access.Expression!, access.Name!);
-        else
-            throw new InvalidOperationException("Probe requires a non-entity heritage expression");
-        var parent = await ResolveTypeNameAsync(left, cancellation).ConfigureAwait(false);
-        return parent is null
-            ? null
-            : ResolveIfPresent(
-                Symbols.Lookup(
-                    parent.Exports,
-                    ((IdentifierNode)right).Text,
-                    TypeScript.Compiler.Binding.SymbolFlags.Type | TypeScript.Compiler.Binding.SymbolFlags.Namespace));
+        return await EntityNames.ResolveAsync(name, SymbolFlags.Type, true, cancellation: cancellation).ConfigureAwait(false);
     }
-
-    private Symbol? ResolveIfPresent(Symbol? symbol) => symbol is null ? null : ResolveSymbol(symbol);
 }

@@ -1,0 +1,63 @@
+{
+    "timestamp": "2026-09-23T16:02:02.8195073Z",
+    "scope": "Alias/entity-name targets, type-only markers, module wrappers and export-star resolution with required semantic hosts; full phase 4 remains incomplete",
+    "candidateSha256": "6b372941702e2044fb1545b9db8a727030070d3b76a4e5b86a79bd5e6dd39f18",
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "languageVersion": "15.0",
+    "runtimeAsync": true,
+    "optimizationPreference": "Speed",
+    "instructionSet": "native",
+    "publish": {
+        "sha256": "03933be2dc34223ee88005d844f6919fd7786869077fd93acbb392005d81ccfb",
+        "log": "logs/csharp-phase4-alias-publish.log",
+        "exitCode": 0
+    },
+    "aliases": {
+        "sourceConfigurations": 62,
+        "failed": 0,
+        "referenceConcurrency": [
+            "singleThreaded",
+            "default"
+        ],
+        "cases": 124,
+        "diagnosticScope": "Initialization and alias/module diagnostic codes; full diagnostic formatting and interop remain open",
+        "exact": 124,
+        "candidateConcurrency": [
+            1,
+            4
+        ]
+    },
+    "state": {
+        "output": "31 alias/cycle/cancellation/module-export assertions; alias chain depth 20000",
+        "exitCode": 0
+    },
+    "regression": {
+        "programCases": 180,
+        "programExact": 180,
+        "typeExact": 2904,
+        "safetyOutputs": [
+            "25 program/checker ownership assertions; interface and scope depth 20000",
+            "41 checker ownership/state assertions; mapper and type-order depth 50000; 16 independent contexts"
+        ],
+        "typeCases": 2904,
+        "typeOperations": 1333980
+    },
+    "repository": {
+        "goSkips": 2152,
+        "extensionTests": 12,
+        "toolTests": 17,
+        "command": "npx --no-install hereby validate --all",
+        "exitCode": 0,
+        "sha256": "8446437802cf1269cf3a15c8ef98acae3ffaf80de58acc0d3a50aec160a88a89",
+        "lintIssues": 0,
+        "apiTests": 813,
+        "go": "1.27.1",
+        "goTestResults": 163380,
+        "log": "logs/csharp-phase4-alias-validation.log",
+        "node": "24.20.0",
+        "benchmarkScope": "Required smoke runs only; no performance claim"
+    },
+    "formatting": "Twelve C# files verified with identical tokens, comments and syntax under both library configurations; single-line auto-properties retained. Final dotnet format whitespace verification and applicable dprint checks passed.",
+    "dependenciesAdded": false
+}
