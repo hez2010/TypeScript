@@ -361,7 +361,8 @@ internal static class CheckerProgramTests
             writer.WriteEndArray();
         }
         if (input.TryGetProperty("members", out var memberOption) && memberOption.GetBoolean())
-            await CheckerMemberTests.WriteAsync(writer, nodes, environment, typeHost!, TypeId, SymbolId, Node);
+            await CheckerMemberTests.WriteAsync(writer, nodes, environment, typeHost!, TypeId, SymbolId, Node,
+                input.TryGetProperty("values", out var valueOption) && valueOption.GetBoolean());
         writer.WriteStartArray("types");
         for (int i = 0; i < types.Count; i++)
         {

@@ -38,13 +38,14 @@ if (!process.argv.includes("--no-build")) {
 
 const cases = [];
 const library = `interface IArguments {} interface Object {} interface Function {} interface CallableFunction extends Function {} interface NewableFunction extends Function {} interface String {} interface Number {} interface Boolean {} interface RegExp {} interface Array<T> { length: number; [n: number]: T; } interface ReadonlyArray<T> { readonly length: number; readonly [n: number]: T; } interface ThisType<T> {}`;
-function add(name, sources, options = {}, aliases = false, typeNodes = false, members = false) {
+function add(name, sources, options = {}, aliases = false, typeNodes = false, members = false, values = false) {
     for (const concurrency of [1, 4]) {
         const files = Object.fromEntries(Object.entries(sources).map(([name, text]) => [`/project/${name}`, Buffer.from(text).toString("base64")]));
         const input = { name: `${name}:${concurrency}`, files, roots: Object.keys(files), options, concurrency };
         if (aliases) input.aliases = true;
         if (typeNodes) input.typeNodes = true;
         if (members) input.members = true;
+        if (values) input.values = true;
         cases.push(input);
     }
 }
@@ -185,7 +186,32 @@ for (const strict of [false, true]) {
         ) add(`members:${name}:${strict}:${exactOptionalPropertyTypes}`, { "globals.d.ts": library, "main.ts": source }, { strict, exactOptionalPropertyTypes, target: "esnext" }, false, true, true);
     }
 }
-let selected = process.argv.includes("--members") ? cases.filter(c => c.members) : process.argv.includes("--type-nodes") ? cases.filter(c => c.typeNodes && !c.members)
+for (const strict of [false, true]) {
+    for (const exactOptionalPropertyTypes of [false, true]) {
+        for (
+            const [name, source] of Object.entries({
+                annotated: "declare const literal: 'x'; declare let count: number; declare var flag: boolean; interface I { value?: string; method?():number }",
+                accessors: "interface I { get value():string; set value(v:string|number); get only():number; set write(v:boolean); }",
+                genericAccessors: "interface I<T> { get value():T; set value(v:T|undefined); } type S=I<string>; type Obj<T>={get value():T; set value(v:T)}; type N=Obj<number>;",
+                classProperties: "class C<T> { value:T; optional?:T; static s:string; constructor(value:T) {} method(x:T):T { return x; } }",
+                classDefault: "abstract class C<T=string> { value:T; static count:number; } class D { name:string }",
+                classAccessors: "class C<T> { get value():T { throw 1; } set value(v:T|undefined) {} static get count():number { return 1; } static set count(v:number|string) {} }",
+                autoAccessors: "class C<T> { accessor value:T; static accessor count:number; }",
+                modules: "namespace N { export const value:string; export interface I { p:number } export function f(x:number):string; } namespace N { export const other:boolean; }",
+                enums: "enum N { A, B=4, C=4 } enum S { A='a', B='b' } enum Empty {}",
+                optionalMethods: "interface I<T> { method?(x:T):T } type S=I<string>; type A={f?: (x:number)=>string}",
+                internalAliases: "namespace N { export const value:string; export function f(x:number):number; export interface I {} } import A=N; import B=N.value; import C=N.I;",
+                unannotatedAccessors: "interface I { get value(); get other(); set other(v:string); }",
+                accessorThis: "interface I<T> { get value(this: I<T>): T; set value(v:T); get other():T; set other(this:I<T>,v:T); } type S=I<string>;",
+                privateAccessors: "declare class C { private get value(); private set other(v:number); }",
+                ambientModule: "declare module 'pkg'; import X = require('pkg');",
+                valueAliasCycles: "import A=B; import B=A;",
+            })
+        ) add(`values:${name}:${strict}:${exactOptionalPropertyTypes}`, { "globals.d.ts": library, "main.ts": source }, { strict, exactOptionalPropertyTypes, target: "esnext" }, false, true, true, true);
+        add(`values:imports:${strict}:${exactOptionalPropertyTypes}`, { "globals.d.ts": library, "a.ts": "export const value:string; export function f(x:number):boolean; export interface I {}", "b.ts": "import {value,f,I} from './a'; import * as NS from './a'; export {value,f,I,NS};" }, { strict, exactOptionalPropertyTypes, module: "esnext" }, false, true, true, true);
+    }
+}
+let selected = process.argv.includes("--values") ? cases.filter(c => c.values) : process.argv.includes("--members") ? cases.filter(c => c.members && !c.values) : process.argv.includes("--type-nodes") ? cases.filter(c => c.typeNodes && !c.members)
     : cases.filter(c => !c.typeNodes && Boolean(c.aliases) === process.argv.includes("--aliases"));
 if (option("--filter")) selected = selected.filter(c => c.name.includes(option("--filter")));
 async function probe(command, args) {
@@ -219,7 +245,7 @@ for (let i = 0; i < selected.length; i++) {
 await json(path.join(output, "checker-program-failures.json"), failures);
 const summary = {
     timestamp: new Date().toISOString(),
-    scope: process.argv.includes("--members") ? "Source structured members, interface bases, signatures and index signatures with annotated value dependencies; full checker integration remains incomplete" : process.argv.includes("--type-nodes") ? "Source type-node evaluation, declared aliases and references with explicit semantic dependencies; full checker integration remains incomplete" : process.argv.includes("--aliases")
+    scope: process.argv.includes("--values") ? "Source symbol read/write types, accessors, value aliases and declaration value objects with explicit inference dependencies; full checker integration remains incomplete" : process.argv.includes("--members") ? "Source structured members, interface bases, signatures and index signatures with annotated value dependencies; full checker integration remains incomplete" : process.argv.includes("--type-nodes") ? "Source type-node evaluation, declared aliases and references with explicit semantic dependencies; full checker integration remains incomplete" : process.argv.includes("--aliases")
         ? "Program-backed alias targets, type-only chains and module exports with explicit semantic dependencies; full checker integration remains incomplete"
         : "Program-owned global symbols, class/interface headers and generic scopes with explicit semantic dependencies; full checker integration remains incomplete",
     referenceRevision,

@@ -167,7 +167,7 @@ internal static class CheckerMemberTests
     }
 
     internal static async Task WriteAsync(Utf8JsonWriter writer, SyntaxNode[] nodes, CheckerSymbols symbols,
-        ProgramTypeHost host, Func<Type?, int> typeId, Func<Symbol?, int> symbolId, Func<SyntaxNode?, int> nodeId)
+        ProgramTypeHost host, Func<Type?, int> typeId, Func<Symbol?, int> symbolId, Func<SyntaxNode?, int> nodeId, bool values)
     {
         var pending = new List<ObjectType>();
         var seen = new HashSet<Type>();
@@ -189,6 +189,19 @@ internal static class CheckerMemberTests
             };
             if (type is not null)
                 queries.Add([nodeId(node), Type(type)]);
+        }
+        var valueQueries = new List<object[]>();
+        if (values)
+        {
+            var seenSymbols = new HashSet<Symbol>();
+            foreach (var node in nodes)
+            {
+                var symbol = symbols.Declaration(node);
+                if (symbol is null || (symbol.Flags & (SymbolFlags.Value | SymbolFlags.Alias)) == 0 || !seenSymbols.Add(symbol))
+                    continue;
+                valueQueries.Add(
+                    [nodeId(node), symbolId(symbol), Type(await host.Values.GetAsync(symbol)), Type(await host.Values.WriteAsync(symbol))]);
+            }
         }
         async Task<object[]> Signature(Signature signature)
         {
@@ -222,7 +235,14 @@ internal static class CheckerMemberTests
             await host.Members.ResolveAsync(type);
             var properties = new List<object[]>();
             foreach (var property in type.Properties ?? [])
-                properties.Add([symbolId(property), Type(await host.SymbolTypeAsync(property, default))]);
+                properties.Add(
+                    values ?
+                        [
+                            symbolId(property),
+                            Type(await host.SymbolTypeAsync(property, default)),
+                            Type(await host.Values.WriteAsync(property))
+                        ]
+                    : [symbolId(property), Type(await host.SymbolTypeAsync(property, default))]);
             var calls = new List<object[]>();
             foreach (var signature in type.CallSignatures ?? [])
                 calls.Add(await Signature(signature));
@@ -238,6 +258,11 @@ internal static class CheckerMemberTests
         Write(queries);
         writer.WritePropertyName("members");
         Write(members);
+        if (values)
+        {
+            writer.WritePropertyName("valueQueries");
+            Write(valueQueries);
+        }
         void Write(object? value)
         {
             switch (value)

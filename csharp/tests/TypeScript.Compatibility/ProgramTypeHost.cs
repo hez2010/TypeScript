@@ -54,6 +54,8 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
         IndexSignatures = new(context, program.Symbols, Algebra, Instantiation.Members, this);
         Members = new(context, program.Symbols, program.Scopes, References, Instantiation.Engine, Signatures, program.Aliases,
             Instantiation.Members, new(program.Symbols.Program.SourceFiles.Select(f => f.Syntax).ToArray()), this);
+        Values = new(context, links, program.Symbols, Declared, program.Aliases, program.AliasTargets, Algebra,
+            Instantiation.Engine, Instantiation.Members, Instantiation.Resolutions, this);
     }
 
     public ValueTask<Type> TypeFromNodeAsync(SyntaxNode node, CancellationToken cancellation)

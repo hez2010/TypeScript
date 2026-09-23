@@ -1,0 +1,64 @@
+{
+    "timestamp": "2026-09-23T17:29:47.4519681Z",
+    "scope": "Source symbol read/write resolution with explicit inference, contextual typing and class-base dependencies; full phase 4 remains incomplete",
+    "candidateSha256": "98a33d75562dfeb9488d483e9dcf2de6972c3f1cfd47199ceaaeaa55eb8e9a37",
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "languageVersion": "15.0",
+    "runtimeAsync": true,
+    "optimizationPreference": "Speed",
+    "instructionSet": "native",
+    "publish": {
+        "sha256": "03933be2dc34223ee88005d844f6919fd7786869077fd93acbb392005d81ccfb",
+        "exitCode": 0,
+        "log": "logs/csharp-phase4-values-publish.log"
+    },
+    "sourceValues": {
+        "sourceConfigurations": 68,
+        "referenceConcurrency": [
+            "singleThreaded",
+            "default"
+        ],
+        "candidateConcurrency": [
+            1,
+            4
+        ],
+        "exact": 136,
+        "cases": 136,
+        "failed": 0,
+        "diagnosticScope": "Supported accessor and alias diagnostic codes; full checking and formatting remain open"
+    },
+    "state": {
+        "exitCode": 0,
+        "output": "32 symbol read/write/cache/cancellation assertions; instantiated symbol chain depth 20000"
+    },
+    "regression": {
+        "memberCases": 176,
+        "sourceTypeCases": 192,
+        "sourceTypeExact": 192,
+        "memberExact": 176,
+        "safetyOutputs": [
+            "31 structured member/signature assertions; base and signature chains depth 20000",
+            "25 source-type/cache/cancellation assertions; array and alias ancestry depth 20000",
+            "31 alias/cycle/cancellation/module-export assertions; alias chain depth 20000",
+            "41 checker ownership/state assertions; mapper and type-order depth 50000; 16 independent contexts"
+        ]
+    },
+    "repository": {
+        "extensionTests": 12,
+        "go": "1.27.1",
+        "goSkips": 2152,
+        "log": "logs/csharp-phase4-values-validation.log",
+        "goTestResults": 163380,
+        "command": "npx --no-install hereby validate --all",
+        "apiTests": 813,
+        "toolTests": 17,
+        "benchmarkScope": "Required smoke runs only; no performance claim",
+        "node": "24.20.0",
+        "sha256": "1fd4ab09a7b9a13e313f81b347174092b784e67efe212d524e5ef79f4e5d8974",
+        "exitCode": 0,
+        "lintIssues": 0
+    },
+    "formatting": "Nine C# files verified with identical tokens, comments and syntax under both library configurations; single-line auto-properties retained. Final dotnet format whitespace verification and applicable dprint checks passed.",
+    "dependenciesAdded": false
+}

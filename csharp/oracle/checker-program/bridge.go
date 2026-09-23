@@ -11,7 +11,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/jsnum"
 )
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -158,6 +158,7 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 		}
 	}
 	memberRoots, memberRows := []any{}, []any{}
+	valueRows := []any{}
 	if memberQueries {
 		pending := []*Type{}
 		seen := map[*Type]bool{}
@@ -178,6 +179,17 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 			}
 			if t != nil {
 				memberRoots = append(memberRoots, []any{nodeIDs[node], mtid(t)})
+			}
+		}
+		if valueQueries {
+			seenSymbols := map[*ast.Symbol]bool{}
+			for _, node := range nodes {
+				symbol := c.getSymbolOfDeclaration(node)
+				if symbol == nil || symbol.Flags&(ast.SymbolFlagsValue|ast.SymbolFlagsAlias) == 0 || seenSymbols[symbol] {
+					continue
+				}
+				seenSymbols[symbol] = true
+				valueRows = append(valueRows, []any{nodeIDs[node], sid(symbol), mtid(c.getTypeOfSymbol(symbol)), mtid(c.getWriteTypeOfSymbol(symbol))})
 			}
 		}
 		signatureRow := func(s *Signature) any {
@@ -205,7 +217,11 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 			m := c.resolveStructuredTypeMembers(t)
 			properties, calls, constructors, indexes := []any{}, []any{}, []any{}, []any{}
 			for _, p := range m.properties {
-				properties = append(properties, []any{sid(p), mtid(c.getTypeOfSymbol(p))})
+				property := []any{sid(p), mtid(c.getTypeOfSymbol(p))}
+				if valueQueries {
+					property = append(property, mtid(c.getWriteTypeOfSymbol(p)))
+				}
+				properties = append(properties, property)
 			}
 			for _, s := range m.CallSignatures() {
 				calls = append(calls, signatureRow(s))
@@ -361,6 +377,9 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	}
 	if memberQueries {
 		result["memberQueries"], result["members"] = memberRoots, memberRows
+	}
+	if valueQueries {
+		result["valueQueries"] = valueRows
 	}
 	return result
 }

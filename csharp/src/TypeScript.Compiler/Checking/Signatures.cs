@@ -179,8 +179,11 @@ internal sealed class Signatures(TypeContext context, CheckerLinks links, Checke
                 type = annotated ?? (body is not null && !(body.Pos >= 0 && body.Pos == body.End)
                     ? await host.ReturnFromBodyAsync(declaration, cancellation).ConfigureAwait(false) : context.AnyType);
             }
-            if (context.StrictNullChecks && (signature.Flags & SignatureFlags.IsInnerCallChain) != 0)
-                type = await algebra.UnionAsync([type, context.OptionalType], cancellation: cancellation).ConfigureAwait(false);
+            if ((signature.Flags & SignatureFlags.IsInnerCallChain) != 0)
+            {
+                if (context.StrictNullChecks)
+                    type = await algebra.UnionAsync([type, context.OptionalType], cancellation: cancellation).ConfigureAwait(false);
+            }
             else if ((signature.Flags & SignatureFlags.IsOuterCallChain) != 0)
                 type = await algebra.UnionAsync([type, context.UndefinedType], cancellation: cancellation).ConfigureAwait(false);
             context.RequireOwned(type);
@@ -210,8 +213,9 @@ internal sealed class Signatures(TypeContext context, CheckerLinks links, Checke
         if (declaration is GetAccessorDeclarationNode && await host.BindableNameAsync(declaration, cancellation).ConfigureAwait(false))
         {
             var setter = symbols.Declaration(declaration)?.Declarations.OfType<SetAccessorDeclarationNode>().FirstOrDefault();
-            var value = setter?.Parameters?.OfType<ParameterDeclarationNode>().FirstOrDefault(p => p.Name is not IdentifierNode { Text: "this" });
-            return value?.Type is { } annotation ? await host.TypeFromNodeAsync(annotation, cancellation).ConfigureAwait(false) : null;
+            return SymbolTypes.Annotation(setter) is { } annotation
+                ? await host.TypeFromNodeAsync(annotation, cancellation).ConfigureAwait(false)
+                : null;
         }
         var full = await host.FullSignatureAsync(declaration, cancellation).ConfigureAwait(false);
         return full is null ? null : await ReturnAsync(full, cancellation).ConfigureAwait(false);

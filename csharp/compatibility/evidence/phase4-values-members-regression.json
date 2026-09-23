@@ -1,0 +1,15 @@
+{
+    "timestamp": "2026-09-23T17:27:32.576Z",
+    "scope": "Source structured members, interface bases, signatures and index signatures with annotated value dependencies; full checker integration remains incomplete",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "managed": false,
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "cases": 176,
+    "exact": 176,
+    "failed": 0,
+    "inputSha256": "e8036ed127a796ac03b72170af3c87445ff4a92e63c83dcf9cdcd1fffc29b32f",
+    "referenceOutputSha256": "5959483e338fbaff22c53d09af64c713c83c4d6ec65616bbbdb8daaaaea68dc8",
+    "outputSha256": "c35a5b1bbbd3b14be4777bccd81853afc9dafef8621e105be50ea5067ddd14f7",
+    "candidateSha256": "98a33d75562dfeb9488d483e9dcf2de6972c3f1cfd47199ceaaeaa55eb8e9a37",
+    "oracleSha256": "1ae1d3babe2dfa3ad28a6f5428d4eec9cb30228cea4a2159ec5b313954f2b8c7"
+}

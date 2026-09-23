@@ -8,14 +8,17 @@ namespace TypeScript.Compatibility;
 
 // Source-backed member algorithms with explicitly annotated value dependencies.
 // Body inference, computed names, class bases and composite members are not fixtures.
-internal sealed partial class ProgramTypeHost : ISignatureHost, IStructuredMemberHost, IBaseTypeHost, IIndexSignatureHost
+internal sealed partial class ProgramTypeHost : ISignatureHost, IStructuredMemberHost, IBaseTypeHost, IIndexSignatureHost, ISymbolTypeHost
 {
     internal Signatures Signatures { get; }
     internal BaseTypes Bases { get; }
     internal StructuredMembers Members { get; }
     internal IndexSignatures IndexSignatures { get; }
+    internal SymbolTypes Values { get; }
     internal Func<SyntaxNode, CancellationToken, ValueTask<Type>>? ReturnBody { get; set; }
     internal Func<SyntaxNode, CancellationToken, ValueTask<TypePredicate?>>? PredicateBody { get; set; }
+    internal Func<Symbol, bool, CancellationToken, ValueTask<Type>>? VariableBody { get; set; }
+    internal Func<Symbol, bool>? SensitiveParameter { get; set; }
 
     public ValueTask<Signature?> FullSignatureAsync(SyntaxNode declaration, CancellationToken cancellation) =>
         (declaration.Flags & NodeFlags.JavaScriptFile) != 0
@@ -74,11 +77,30 @@ internal sealed partial class ProgramTypeHost : ISignatureHost, IStructuredMembe
     public async ValueTask<IReadOnlyList<IndexInfo>> IndexesAsync(Type type, CancellationToken cancellation) =>
             type is StructuredType structured ? (await Members.ResolveAsync(structured, cancellation)).IndexInfos ?? [] : [];
 
-    public ValueTask<Type> BaseConstructorAsync(InterfaceType type, CancellationToken cancellation) =>
+    public ValueTask<Type> BaseConstructorAsync(InterfaceType type, CancellationToken cancellation)
+    {
+        if (type.Symbol!.Declarations.OfType<ClassDeclarationNode>().Any(c => c.HeritageClauses is { Count: > 0 }))
             throw new InvalidOperationException("Probe requires class base constructor checking");
+        return ValueTask.FromResult(type.ResolvedBaseConstructorType ??= context.UndefinedType);
+    }
 
-    public ValueTask<IReadOnlyList<Signature>> DefaultConstructorsAsync(InterfaceType type, CancellationToken cancellation) =>
-            throw new InvalidOperationException("Probe requires default constructors");
+    public async ValueTask<IReadOnlyList<Signature>> DefaultConstructorsAsync(InterfaceType type, CancellationToken cancellation)
+    {
+        if (await BaseConstructorAsync(type, cancellation) != context.UndefinedType)
+            throw new InvalidOperationException("Probe requires inherited constructors");
+        var declaration = type.Symbol!.Declarations.OfType<ClassDeclarationNode>().FirstOrDefault();
+        var flags = SignatureFlags.Construct | (declaration is not null
+            && SemanticSyntax.HasModifier(declaration, SyntaxKind.AbstractKeyword)
+            ? SignatureFlags.Abstract
+            : 0);
+        return [context.NewSignature(flags, null, type.AllTypeParameters.Skip(type.OuterTypeParameterCount)
+            .Take(type.AllTypeParameters.Count - type.OuterTypeParameterCount - 1).Cast<TypeParameter>().ToArray(),
+            null,
+            [],
+            type,
+            null,
+            0)];
+    }
 
     public ValueTask<Type> DeclaredTypeAsync(Symbol symbol, CancellationToken cancellation) => Declared.GetAsync(symbol, cancellation);
 
@@ -122,23 +144,15 @@ internal sealed partial class ProgramTypeHost : ISignatureHost, IStructuredMembe
     public ValueTask<bool> NumericNameAsync(Symbol symbol, CancellationToken cancellation) =>
             throw new InvalidOperationException("Probe requires numeric name evaluation");
 
-    public async ValueTask<Type> SymbolTypeAsync(Symbol symbol, CancellationToken cancellation)
+    public ValueTask<Type> SymbolTypeAsync(Symbol symbol, CancellationToken cancellation) => Values.GetAsync(symbol, cancellation);
+
+    public async ValueTask<Type> VariableAsync(Symbol symbol, bool reportErrors, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
-        var data = links.Values.Get(symbol);
-        if (data.ResolvedType is { } cached)
-            return cached;
+        if (VariableBody is not null)
+            return await VariableBody(symbol, reportErrors, cancellation);
         Type result;
-        if ((symbol.CheckFlags & CheckFlags.Instantiated) != 0)
-            result = (await Instantiation.Engine.InstantiateAsync(
-                await SymbolTypeAsync(data.Target!, cancellation),
-                data.Mapper,
-                cancellation: cancellation))!;
-        else if ((symbol.CheckFlags & CheckFlags.Mapped) != 0)
-            result = await Instantiation.Members.SymbolTypeAsync(symbol, cancellation);
-        else if ((symbol.Flags & (SymbolFlags.Function | SymbolFlags.Method)) != 0)
-            result = context.NewObjectType(ObjectFlags.Anonymous, symbol);
-        else if (symbol.ValueDeclaration is ITypedNode { Type: { } annotation } declaration)
+        if (symbol.ValueDeclaration is ITypedNode { Type: { } annotation } declaration)
         {
             result = await TypeFromNodeAsync(annotation, cancellation);
             if (context.StrictNullChecks && ((symbol.Flags & SymbolFlags.Optional) != 0
@@ -150,6 +164,44 @@ internal sealed partial class ProgramTypeHost : ISignatureHost, IStructuredMembe
         else
             throw new InvalidOperationException($"Probe requires value inference for {symbol.Name}");
         cancellation.ThrowIfCancellationRequested();
-        return data.ResolvedType ??= result;
+        return result;
+    }
+
+    public bool ContextSensitiveParameter(Symbol symbol)
+    {
+        if (SensitiveParameter is not null)
+            return SensitiveParameter(symbol);
+        if (symbol.ValueDeclaration is ParameterDeclarationNode parameter && parameter.Type is null
+            && parameter.Parent is ArrowFunctionNode or FunctionExpressionNode)
+            throw new InvalidOperationException("Probe requires contextual parameter analysis");
+        return false;
+    }
+
+    public ValueTask<Type> ReverseMappedAsync(Symbol symbol, CancellationToken cancellation) =>
+            throw new InvalidOperationException("Probe requires reverse mapped symbol types");
+
+    public Type CircularSymbol(Symbol symbol)
+    {
+        Error(symbol.ValueDeclaration!, symbol.ValueDeclaration is ITypedNode { Type: not null } ? 2502 : 7022);
+        return context.AnyType;
+    }
+
+    public void ImplicitAccessor(Symbol symbol, SyntaxNode declaration)
+    {
+        if ((declaration.Flags & NodeFlags.Ambient) != 0 && (SemanticSyntax.HasModifier(declaration, SyntaxKind.PrivateKeyword)
+            || (declaration as INamedNode)?.Name is PrivateIdentifierNode))
+            return;
+        if (program.Symbols.Program.Configuration.Options.Boolean("noImplicitAny")
+            ?? program.Symbols.Program.Configuration.Options.Boolean("strict") ?? false)
+            Error(declaration, declaration is SetAccessorDeclarationNode ? 7032 : declaration is GetAccessorDeclarationNode ? 7033 : 7008);
+    }
+
+    public void CircularAccessor(Symbol symbol, SyntaxNode? annotation, SyntaxNode? getter)
+    {
+        if (annotation is not null)
+            Error(annotation, 2502);
+        else if (getter is not null && (program.Symbols.Program.Configuration.Options.Boolean("noImplicitAny")
+            ?? program.Symbols.Program.Configuration.Options.Boolean("strict") ?? false))
+            Error(getter, 7023);
     }
 }

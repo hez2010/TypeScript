@@ -43,6 +43,13 @@ internal sealed class AliasSymbolLinks
     internal SyntaxNode? TypeOnlyDeclaration { get; set; }
 }
 
+internal sealed class DeferredSymbolLinks
+{
+    internal Type? Parent { get; set; }
+    internal IReadOnlyList<Type> Constituents { get; set; } = [];
+    internal IReadOnlyList<Type> WriteConstituents { get; set; } = [];
+}
+
 internal sealed class MappedSymbolLinks
 {
     internal Type? KeyType { get; set; }
@@ -100,6 +107,7 @@ internal sealed class SignatureLinks
 internal sealed class CheckerLinks
 {
     internal LinkStore<Symbol, ValueSymbolLinks> Values { get; } = new();
+    internal LinkStore<Symbol, DeferredSymbolLinks> DeferredSymbols { get; } = new();
     internal LinkStore<Symbol, AliasSymbolLinks> Aliases { get; } = new();
     internal LinkStore<Symbol, MappedSymbolLinks> MappedSymbols { get; } = new();
     internal LinkStore<Symbol, ExportTypeLinks> ExportTypes { get; } = new();

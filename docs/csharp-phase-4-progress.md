@@ -232,6 +232,21 @@ node csharp/tools/checker-program.mjs --members --record phase4-structured-membe
 & ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-members-safety
 ```
 
+## Symbol read and write types
+
+`SymbolTypes.cs` adds the production symbol-type dispatcher and read/write caches. It resolves instantiated and deferred types, accessor annotations and their distinct setter types, value aliases, class prototypes, and function/class/enum/module value objects. Optional-property writes remove the missing-type sentinel. Variable resolution preserves types assigned by contextual typing and defers caching while a parameter remains context-sensitive. Return annotations and accessor reads now share the setter-parameter selection rule.
+
+Variable inference, contextual-sensitivity analysis, reverse-mapped values, class base constructors and diagnostic policy remain required host services. The source probe supplies explicit variable annotations and classes without inheritance; unsupported inference paths fail. This checkpoint does not implement expression checking or control-flow-sensitive symbol queries.
+
+NativeAOT passes **136 exact source-value comparisons**, covering 68 configurations under single-worker and reference-default concurrency. They compare read/write identities, generic and automatic accessors, optional methods/properties, class prototypes/constructors, enum values, namespaces, imported/internal aliases, alias cycles, ambient modules and private ambient accessors. Thirty-two safety assertions verify accessor/alias cancellation and retry, separate read/write caches, deferred composite types, circular variables, contextual-parameter cache ownership and **20,000-level** instantiated-symbol chains.
+
+The same artifact passes 176 structured-member and 192 source-type comparisons and 128 earlier safety assertions. Evidence: [symbol types](../csharp/compatibility/evidence/phase4-symbol-types.json), [member regression](../csharp/compatibility/evidence/phase4-values-members-regression.json), [source-type regression](../csharp/compatibility/evidence/phase4-values-types-regression.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-values-validation.json).
+
+```powershell
+node csharp/tools/checker-program.mjs --values --record phase4-symbol-types
+& ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-values-safety
+```
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
