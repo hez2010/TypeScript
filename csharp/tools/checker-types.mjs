@@ -192,7 +192,11 @@ async function probe(command, args) {
         child.stderr.on("data", b => stderr.push(b));
         child.on("error", reject);
         child.stdin.on("error", () => {});
-        child.on("close", code => code ? reject(Error(`${command}: ${Buffer.concat(stderr)}\n${Buffer.concat(stdout).subarray(0, 2000)}`)) : resolve(Buffer.concat(stdout).toString().trim().split(/\r?\n/).map(JSON.parse)));
+        child.on("close", code => {
+            const lines = Buffer.concat(stdout).toString().trim().split(/\r?\n/).filter(Boolean);
+            if (code) reject(Error(`${command}: ${cases[lines.length]?.name}: ${Buffer.concat(stderr)}`));
+            else resolve(lines.map(JSON.parse));
+        });
         child.stdin.end(cases.map(c => JSON.stringify(c)).join("\n") + "\n");
     });
 }

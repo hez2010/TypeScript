@@ -1,0 +1,49 @@
+{
+    "timestamp": "2026-09-23T12:11:12.463Z",
+    "scope": "Constraint/default resolution and recursion components with explicit fixture dependencies; full phase 4 remains incomplete",
+    "candidateSha256": "a170090de5d21b6842dd0bbb9597b204f49ac13716634b9c9ccbe142dc8a8585",
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "languageVersion": "15.0",
+    "runtimeAsync": true,
+    "optimizationPreference": "Speed",
+    "instructionSet": "native",
+    "publish": {
+        "log": "logs/csharp-phase4-constraints-publish.log",
+        "sha256": "03933be2dc34223ee88005d844f6919fd7786869077fd93acbb392005d81ccfb",
+        "exitCode": 0
+    },
+    "constraints": {
+        "cases": 613,
+        "operations": 20154,
+        "exact": 613,
+        "failed": 0
+    },
+    "state": {
+        "output": "21 constraint/default/recursion state assertions; default and indexed identity depth 20000",
+        "exitCode": 0
+    },
+    "regression": {
+        "cases": 3885,
+        "operations": 259745,
+        "output": "15 algebra ownership/limit/cancellation assertions; template, intersection and origin depth 20000"
+    },
+    "repository": {
+        "command": "npx --no-install hereby validate --all",
+        "exitCode": 0,
+        "log": "logs/csharp-phase4-constraints-validation2.log",
+        "sha256": "1d1cbc433d36cf8926a49e9b5ec55a1796f1714bf4ea4d40b7ae41dc12522c52",
+        "goTestResults": 163380,
+        "goSkips": 2152,
+        "apiTests": 813,
+        "extensionTests": 12,
+        "toolTests": 17,
+        "node": "24.20.0",
+        "go": "1.27.1",
+        "lintIssues": 0,
+        "initialAttempt": "Windows error 1224 prevented formatting identifier_parts_generated.go. Formatting retry succeeded, and the full validation rerun passed.",
+        "benchmarkScope": "Required smoke runs only; no performance claim"
+    },
+    "formatting": "Nine C# files verified with token/comment/syntax preservation under both library configurations; single-line auto-properties retained. Final dotnet format whitespace verification and dprint checks passed.",
+    "dependenciesAdded": false
+}

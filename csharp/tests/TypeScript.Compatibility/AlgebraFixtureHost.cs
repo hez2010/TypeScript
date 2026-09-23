@@ -14,6 +14,7 @@ internal sealed class AlgebraFixtureHost(TypeContext context) : ITypeAlgebraHost
     private readonly Dictionary<Symbol, Type> propertyTypes = [];
     internal List<int> Diagnostics { get; } = [];
     internal Action? BeforeGenericIndex { get; set; }
+    internal Func<Type, CancellationToken, ValueTask<Type?>>? ResolveBaseConstraint { get; set; }
 
     internal Type Shape(string[] names, Type[] types, Symbol? symbol)
     {
@@ -33,7 +34,10 @@ internal sealed class AlgebraFixtureHost(TypeContext context) : ITypeAlgebraHost
     public void ReportComplexity(string operation, long size) => Diagnostics.Add(2590);
 
     public ValueTask<Type?> GetBaseConstraintAsync(Type type, CancellationToken cancellation)
-            => ValueTask.FromResult(type is TypeParameter parameter ? parameter.Constraint
+        => ResolveBaseConstraint is { } resolve ? resolve(
+            type,
+            cancellation) : ValueTask.FromResult(
+            type is TypeParameter parameter ? parameter.Constraint
                 : throw new InvalidOperationException("Fixture requires general constraint resolution"));
 
     public ValueTask<bool> IsSubtypeAsync(Type source, Type target, bool strict, CancellationToken cancellation)

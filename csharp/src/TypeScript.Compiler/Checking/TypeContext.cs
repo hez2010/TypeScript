@@ -62,6 +62,9 @@ public sealed class TypeContext
     public ObjectType UnknownEmptyObjectType { get; }
     public ObjectType AnyFunctionType { get; }
     public Type UnknownUnionType { get; }
+    public ObjectType NoConstraintType { get; }
+    public ObjectType CircularConstraintType { get; }
+    public ObjectType ResolvingDefaultType { get; }
 
     public TypeContext(bool strictNullChecks = false, bool exactOptionalPropertyTypes = false)
     {
@@ -109,6 +112,9 @@ public sealed class TypeContext
         UnknownEmptyObjectType = NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved);
         UnknownUnionType = strictNullChecks ? GetUnionFromSortedTypes([UndefinedType, NullType, UnknownEmptyObjectType], 0) : UnknownType;
         AnyFunctionType = NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved | ObjectFlags.NonInferrableType);
+        NoConstraintType = NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved);
+        CircularConstraintType = NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved);
+        ResolvingDefaultType = NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved);
     }
 
     internal uint NextTypeId() => typeCount = checked(typeCount + 1);

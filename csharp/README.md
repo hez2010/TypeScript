@@ -4,7 +4,7 @@ This directory executes the early work in [the rewrite plan](../docs/csharp-rewr
 
 Phases 2 and 3 are implemented and validated on Windows x64. The [phase-2 report](../docs/csharp-phase-2-results.md) covers syntax and foundation hosts; the [phase-3 report](../docs/csharp-phase-3-results.md) covers resolution, program graphs and reuse, project references, content mappers, binding, NativeAOT gates, and the strict-difference audit. The complete checker and later backend phases remain in the rewrite plan.
 
-Phase 4 is in progress. The [checker progress report](../docs/csharp-phase-4-progress.md) records type/state foundations, lexical name/reference resolution, symbol-merge primitives, type normalization, NativeAOT differential tests, and the remaining semantic-checker requirements. These checkpoints do not complete phase 4.
+Phase 4 is in progress. The [checker progress report](../docs/csharp-phase-4-progress.md) records type/state foundations, lexical name/reference resolution, symbol-merge primitives, normalization and constraint algorithms, NativeAOT differential tests, and the remaining semantic-checker requirements. These checkpoints do not complete phase 4.
 
 The development SDK is pinned to .NET nightly `11.0.100-rc.2.26470.103`, with C# 15, `OptimizationPreference=Speed`, NativeAOT/trimming analysis, warning errors, and NuGet lockfiles. `NuGet.Config` adds the public `dotnet11` feed for matching nightly packs. The final target is .NET 11 GA; upgrades require refreshing and revalidating the evidence. Node 24 and Go 1.27.1 are required for the reference tooling. The existing Go backend and JS clients remain untouched.
 

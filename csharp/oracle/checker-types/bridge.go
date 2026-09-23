@@ -9,7 +9,10 @@ import (
 	"strings"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
+	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/jsnum"
+	"github.com/microsoft/TypeScript/tsc/internal/parser"
+	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 )
 
 type CSharpTypeStep struct {
@@ -138,8 +141,13 @@ func (c *Checker) CSharpResolutionProbe(operations []CSharpResolutionOperation) 
 
 func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMapperStep, queries []CSharpMapperQuery, comparisons [][]int) any {
 	algebra := false
+	constraints := false
 	for _, step := range steps {
 		if step.Op == "unionReduced" || step.Op == "intersection" || step.Op == "templateNormalized" || step.Op == "caseMap" || step.Op == "regularAll" {
+			algebra = true
+		}
+		if step.Op == "baseConstraint" || step.Op == "resolvedConstraint" || step.Op == "constraint" || step.Op == "default" || step.Op == "resolvedDefault" || step.Op == "fillArgument" {
+			constraints = true
 			algebra = true
 		}
 	}
@@ -159,6 +167,7 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 		"unreachableNever": c.unreachableNeverType, "object": c.nonPrimitiveType, "uniqueLiteral": c.uniqueLiteralType,
 		"empty": c.emptyObjectType, "unknownEmpty": c.unknownEmptyObjectType, "anyFunction": c.anyFunctionType,
 		"unknownUnion": c.unknownUnionType, "numericString": c.numericStringType, "templateConstraint": c.templateConstraintType,
+		"noConstraint": c.noConstraintType, "circularConstraint": c.circularConstraintType, "resolvingDefault": c.resolvingDefaultType,
 	}
 	syms := map[string]*ast.Symbol{}
 	names := map[*ast.Symbol]string{}
@@ -232,12 +241,95 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 			if len(args) != 0 {
 				t.AsTypeParameter().constraint = args[0]
 			}
+		case "declaredParameter":
+			path := fmt.Sprintf("/constraints/%d.ts", len(values))
+			text := "type Host<" + step.Symbol + " extends SeedConstraint = SeedDefault> = unknown;"
+			if step.Flags&1 != 0 {
+				text = "type Host = { [" + step.Symbol + " in SeedConstraint]: unknown };"
+			}
+			file := parser.ParseSourceFile(ast.SourceFileParseOptions{FileName: path, Path: tspath.Path(path)}, text, core.ScriptKindTS)
+			var declaration *ast.Node
+			var visit func(*ast.Node) bool
+			visit = func(n *ast.Node) bool {
+				if n.Kind == ast.KindTypeParameter {
+					declaration = n
+					return true
+				}
+				return n.ForEachChild(visit)
+			}
+			visit(file.AsNode())
+			n := declaration.AsTypeParameterDeclaration()
+			if len(args) > 0 && args[0] != nil {
+				c.typeNodeLinks.Get(n.Constraint).resolvedType = args[0]
+			} else {
+				n.Constraint = nil
+			}
+			if len(args) > 1 && args[1] != nil {
+				c.typeNodeLinks.Get(n.DefaultType).resolvedType = args[1]
+			} else {
+				n.DefaultType = nil
+			}
+			s := symbol(step.Symbol)
+			s.Declarations = append(s.Declarations, declaration)
+			t = c.newTypeParameter(s)
+			t.AsTypeParameter().isThisType = step.This
+		case "cloneParameter":
+			t = c.newTypeParameter(args[0].symbol)
+			t.AsTypeParameter().target = args[0]
+			t.AsTypeParameter().mapper = newSimpleTypeMapper(args[1], args[2])
+		case "setConstraint":
+			t = args[0]
+			t.AsTypeParameter().constraint = args[1]
+		case "setDefault":
+			t = args[0]
+			t.AsTypeParameter().resolvedDefaultType = args[1]
+		case "baseConstraint":
+			t = c.getBaseConstraintOfType(args[0])
+		case "resolvedConstraint":
+			t = c.getResolvedBaseConstraint(args[0], nil)
+		case "constraint":
+			t = c.getConstraintOfType(args[0])
+		case "default":
+			t = c.getDefaultFromTypeParameter(args[0])
+		case "resolvedDefault":
+			t = c.getResolvedTypeParameterDefault(args[0])
+		case "fillArgument":
+			t = c.fillMissingTypeArguments(args, selectTypes(step.AliasArgs), 0, step.This)[step.Flags]
+		case "noInfer":
+			t = c.getOrCreateSubstitutionType(args[0], c.unknownType)
+		case "conditional":
+			path := fmt.Sprintf("/conditional/%d.ts", len(values))
+			file := parser.ParseSourceFile(ast.SourceFileParseOptions{FileName: path, Path: tspath.Path(path)}, "type Host = SeedCheck extends SeedExtends ? SeedTrue : SeedFalse;", core.ScriptKindTS)
+			node := file.Statements.Nodes[0].AsTypeAliasDeclaration().Type.AsConditionalTypeNode()
+			c.typeNodeLinks.Get(node.CheckType).resolvedType = args[0]
+			c.typeNodeLinks.Get(node.ExtendsType).resolvedType = args[1]
+			c.typeNodeLinks.Get(node.TrueType).resolvedType = args[2]
+			c.typeNodeLinks.Get(node.FalseType).resolvedType = args[3]
+			t = c.newConditionalType(&ConditionalRoot{node: node, checkType: args[0], extendsType: args[1]}, nil, nil)
 		case "distributed":
 			t = c.newTypeParameter(nil)
 			t.AsTypeParameter().isDistributed = true
 			t.AsTypeParameter().constraint = args[0]
 		case "object":
 			t = c.newObjectType(ObjectFlags(step.Flags), symbol(step.Symbol))
+		case "mappedIdentity":
+			t = c.newObjectType(ObjectFlagsMapped|ObjectFlagsInstantiated, symbol(step.Symbol))
+			t.AsMappedType().modifiersType = args[0]
+		case "identityEquals":
+			t = c.regularFalseType
+			if getRecursionIdentity(args[0]) == getRecursionIdentity(args[1]) {
+				t = c.regularTrueType
+			}
+		case "identityMatches":
+			t = c.regularFalseType
+			if hasMatchingRecursionIdentity(args[0], getRecursionIdentity(args[1])) {
+				t = c.regularTrueType
+			}
+		case "deeplyNested":
+			t = c.regularFalseType
+			if c.isDeeplyNestedType(args[0], args[1:], int(step.Flags)) {
+				t = c.regularTrueType
+			}
 		case "shape":
 			members := ast.SymbolTable{}
 			for i, name := range step.Properties {
@@ -301,7 +393,7 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 		default:
 			panic(step.Op)
 		}
-		if t == nil {
+		if t == nil && step.Op != "baseConstraint" && step.Op != "constraint" && step.Op != "default" {
 			panic("nil type")
 		}
 		values = append(values, t)
@@ -382,6 +474,27 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 	for i := 0; i < len(queue); i++ {
 		t := queue[i]
 		row := map[string]any{"flags": t.flags, "objectFlags": t.objectFlags, "symbol": names[t.symbol], "literal": isLiteralType(t), "unit": isUnitType(t)}
+		if constraints {
+			if d := t.AsConstrainedType(); d != nil {
+				row["baseConstraint"] = ref(d.resolvedBaseConstraint)
+			}
+			if t.flags&TypeFlagsTypeParameter != 0 {
+				d := t.AsTypeParameter()
+				row["constraint"] = ref(d.constraint)
+				row["default"] = ref(d.resolvedDefaultType)
+				row["parameterTarget"] = ref(d.target)
+			}
+			if t.flags&TypeFlagsConditional != 0 {
+				d := t.AsConditionalType()
+				row["check"] = ref(d.checkType)
+				row["extends"] = ref(d.extendsType)
+				row["true"] = ref(d.resolvedTrueType)
+				row["false"] = ref(d.resolvedFalseType)
+				row["inferredTrue"] = ref(d.resolvedInferredTrueType)
+				row["defaultConstraint"] = ref(d.resolvedDefaultConstraint)
+				row["distributiveConstraint"] = ref(d.resolvedConstraintOfDistributive)
+			}
+		}
 		if t.alias != nil {
 			arguments := refs(t.alias.typeArguments)
 			// Alias arguments are not a lazy-resolution slot; nil and an empty slice both mean arity zero.
@@ -454,7 +567,7 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 	result := map[string]any{"results": results, "types": rows, "mappers": mapperRows, "queries": queryRefs, "calls": calls, "comparisons": orders}
 	if algebra {
 		codes := []int32{}
-		for _, d := range c.diagnostics.GetDiagnosticsForFile(c.files[0]) {
+		for _, d := range c.diagnostics.GetDiagnostics() {
 			codes = append(codes, d.Code())
 		}
 		result["diagnostics"] = codes

@@ -2,8 +2,10 @@ using System.Globalization;
 using System.Numerics;
 using System.Text;
 using System.Text.Json;
+using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Checking;
+using TypeScript.Compiler.Syntax;
 using TypeScript.Compiler.Text;
 using Type = TypeScript.Compiler.Checking.Type;
 
@@ -62,7 +64,10 @@ internal static class CheckerTypeTests
         ["anyFunction"] = c.AnyFunctionType,
         ["unknownUnion"] = c.UnknownUnionType,
         ["numericString"] = c.NumericStringType,
-        ["templateConstraint"] = c.TemplateConstraintType
+        ["templateConstraint"] = c.TemplateConstraintType,
+        ["noConstraint"] = c.NoConstraintType,
+        ["circularConstraint"] = c.CircularConstraintType,
+        ["resolvingDefault"] = c.ResolvingDefaultType
     };
 
     private static void Process(JsonElement input, Utf8JsonWriter writer)
@@ -76,7 +81,16 @@ internal static class CheckerTypeTests
         var builtins = Builtins(c);
         var host = new AlgebraFixtureHost(c);
         var algebra = new TypeAlgebra(c, new([]), host);
-        bool algebraUsed = false;
+        bool constraintMode = input.GetProperty("steps").EnumerateArray().Any(
+            step => Text(
+                step,
+                "op") is "baseConstraint" or "resolvedConstraint" or "constraint" or "default" or "resolvedDefault" or "fillArgument");
+        var constraintHost = new ConstraintFixtureHost(c, host);
+        var recursion = new TypeRecursion((type, _) => ValueTask.FromResult(type.ModifiersType));
+        var constraints = new TypeConstraints(c, algebra, new(new()), recursion, constraintHost);
+        if (constraintMode)
+            host.ResolveBaseConstraint = constraints.BaseConstraintAsync;
+        bool algebraUsed = constraintMode;
         var symbols = new Dictionary<string, Symbol>(StringComparer.Ordinal);
         var symbolNames = new Dictionary<Symbol, string>();
         Symbol? SymbolFor(string name)
@@ -102,7 +116,7 @@ internal static class CheckerTypeTests
             uint flags = step.TryGetProperty("flags", out var f) ? f.GetUInt32() : 0;
             algebraUsed |= op is "unionReduced" or "intersection" or "templateNormalized" or "caseMap" or "regularAll";
             TypeAlias? Alias() => symbol.Length == 0 ? null : c.CreateAlias(SymbolFor(symbol)!, Arguments(step, "aliasArgs"));
-            Type type = op switch
+            Type? type = op switch
             {
                 "builtin" => builtins[text],
                 "string" => c.GetStringLiteralType(Wtf8.DecodeString(Convert.FromBase64String(text))),
@@ -115,8 +129,36 @@ internal static class CheckerTypeTests
                 "fresh" => c.GetFreshLiteralType((LiteralType)args[0]),
                 "regular" => ((LiteralType)args[0]).RegularType,
                 "parameter" => NewParameter(),
+                "declaredParameter" => DeclaredParameter(),
+                "cloneParameter" => CloneParameter(),
+                "setConstraint" => SetParameter(false),
+                "setDefault" => SetParameter(true),
+                "baseConstraint" => constraints.BaseConstraintAsync(args[0]).GetAwaiter().GetResult(),
+                "resolvedConstraint" => constraints.ResolvedBaseConstraintAsync(args[0]).GetAwaiter().GetResult(),
+                "constraint" => constraints.ConstraintAsync(args[0]).GetAwaiter().GetResult(),
+                "default" => constraints.DefaultAsync((TypeParameter)args[0]).GetAwaiter().GetResult(),
+                "resolvedDefault" => constraints.ResolvedDefaultAsync((TypeParameter)args[0]).GetAwaiter().GetResult(),
+                "fillArgument" => constraints.FillMissingArgumentsAsync(
+                    args,
+                    Arguments(step, "aliasArgs").Cast<TypeParameter>().ToArray(),
+                    Bool(step, "this"),
+                    static (a, b, _) => ValueTask.FromResult(a == b)).GetAwaiter().GetResult()[(int)flags],
+                "conditional" => Conditional(),
+                "noInfer" => new SubstitutionType(c, args[0], c.UnknownType),
                 "distributed" => NewDistributed(),
                 "object" => c.NewObjectType((ObjectFlags)flags, SymbolFor(symbol)),
+                "mappedIdentity" => MappedIdentity(),
+                "identityEquals" => recursion.IdentityAsync(args[0]).GetAwaiter().GetResult() == recursion.IdentityAsync(args[1]).GetAwaiter().GetResult()
+                    ? c.RegularTrueType
+                    : c.RegularFalseType,
+                "identityMatches" => recursion.MatchesAsync(
+                    args[0],
+                    recursion.IdentityAsync(args[1]).GetAwaiter().GetResult()).GetAwaiter().GetResult()
+                    ? c.RegularTrueType
+                    : c.RegularFalseType,
+                "deeplyNested" => recursion.IsDeeplyNestedAsync(args[0], args.Skip(1).ToArray(), (int)flags).GetAwaiter().GetResult()
+                    ? c.RegularTrueType
+                    : c.RegularFalseType,
                 "shape" => host.Shape(
                     step.GetProperty("properties").EnumerateArray().Select(p => p.GetString()!).ToArray(),
                     args,
@@ -144,6 +186,60 @@ internal static class CheckerTypeTests
                 _ => throw new InvalidOperationException(op)
             };
             values.Add(type);
+            MappedType MappedIdentity()
+            {
+                var mapped = (MappedType)c.NewObjectType(ObjectFlags.Mapped | ObjectFlags.Instantiated, SymbolFor(symbol));
+                mapped.ModifiersType = args[0];
+                return mapped;
+            }
+            TypeParameter SetParameter(bool isDefault)
+            {
+                var parameter = (TypeParameter)args[0];
+                if (isDefault)
+                    parameter.ResolvedDefaultType = args[1];
+                else
+                    parameter.Constraint = args[1];
+                return parameter;
+            }
+            TypeParameter CloneParameter()
+            {
+                var parameter = c.NewTypeParameter(args[0].Symbol);
+                parameter.Target = (TypeParameter)args[0];
+                parameter.Mapper = TypeMapper.Create([args[1]], [args[2]]);
+                return parameter;
+            }
+            TypeParameter DeclaredParameter()
+            {
+                string source = (flags & 1) == 0 ? "type Host<" + symbol + " extends SeedConstraint = SeedDefault> = unknown;"
+                    : "type Host = { [" + symbol + " in SeedConstraint]: unknown };";
+                var file = Parser.ParseSourceFile(new("/constraints/" + values.Count + ".ts"), new SourceText(source));
+                var declaration = file.DescendantsAndSelf().OfType<TypeParameterDeclarationNode>().Single();
+                if (args.Length > 0 && args[0] is { } constraint)
+                    constraintHost.Nodes[declaration.Constraint!] = _ => ValueTask.FromResult(constraint);
+                else
+                    declaration.Constraint = null;
+                if (args.Length > 1 && args[1] is { } defaultType)
+                    constraintHost.Nodes[declaration.DefaultType!] = _ => ValueTask.FromResult(defaultType);
+                else
+                    declaration.DefaultType = null;
+                var name = SymbolFor(symbol)!;
+                name.DeclarationList.Add(declaration);
+                var parameter = c.NewTypeParameter(name);
+                parameter.IsThisType = Bool(step, "this");
+                return parameter;
+            }
+            ConditionalType Conditional()
+            {
+                var file = Parser.ParseSourceFile(
+                    new("/conditional/" + values.Count + ".ts"),
+                    new SourceText("type Host = SeedCheck extends SeedExtends ? SeedTrue : SeedFalse;"));
+                var node = file.DescendantsAndSelf().OfType<ConditionalTypeNode>().Single();
+                constraintHost.Nodes[node.CheckType!] = _ => ValueTask.FromResult(args[0]);
+                constraintHost.Nodes[node.ExtendsType!] = _ => ValueTask.FromResult(args[1]);
+                constraintHost.Nodes[node.TrueType!] = _ => ValueTask.FromResult(args[2]);
+                constraintHost.Nodes[node.FalseType!] = _ => ValueTask.FromResult(args[3]);
+                return new(c, new(node, args[0], args[1], false), args[0], args[1]);
+            }
             TypeParameter NewParameter()
             {
                 var parameter = c.NewTypeParameter(SymbolFor(symbol));
@@ -239,6 +335,27 @@ internal static class CheckerTypeTests
             writer.WriteString("symbol", type.Symbol is null ? "" : symbolNames[type.Symbol]);
             writer.WriteBoolean("literal", type.IsLiteral);
             writer.WriteBoolean("unit", type.IsUnit);
+            if (constraintMode)
+            {
+                if (type is ConstrainedType constrained)
+                    writer.WriteNumber("baseConstraint", Ref(constrained.ResolvedBaseConstraint));
+                if (type is TypeParameter parameter)
+                {
+                    writer.WriteNumber("constraint", Ref(parameter.Constraint));
+                    writer.WriteNumber("default", Ref(parameter.ResolvedDefaultType));
+                    writer.WriteNumber("parameterTarget", Ref(parameter.Target));
+                }
+                if (type is ConditionalType conditional)
+                {
+                    writer.WriteNumber("check", Ref(conditional.CheckType));
+                    writer.WriteNumber("extends", Ref(conditional.ExtendsType));
+                    writer.WriteNumber("true", Ref(conditional.ResolvedTrueType));
+                    writer.WriteNumber("false", Ref(conditional.ResolvedFalseType));
+                    writer.WriteNumber("inferredTrue", Ref(conditional.ResolvedInferredTrueType));
+                    writer.WriteNumber("defaultConstraint", Ref(conditional.ResolvedDefaultConstraint));
+                    writer.WriteNumber("distributiveConstraint", Ref(conditional.ResolvedConstraintOfDistributive));
+                }
+            }
             if (type.Alias is { } alias)
             {
                 writer.WriteStartArray("alias");
@@ -343,6 +460,8 @@ internal static class CheckerTypeTests
         {
             writer.WriteStartArray("diagnostics");
             foreach (int code in host.Diagnostics.Distinct().Order())
+                writer.WriteNumberValue(code);
+            foreach (int code in constraintHost.Diagnostics.Order())
                 writer.WriteNumberValue(code);
             writer.WriteEndArray();
         }

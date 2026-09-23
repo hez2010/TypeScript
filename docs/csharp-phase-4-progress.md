@@ -1,6 +1,6 @@
 # Phase 4: checker port in progress
 
-**Phase 4 is incomplete.** The implementation now covers checker type/state foundations, lexical name and reference resolution, symbol-merge primitives, and union/intersection/template normalization algorithms. It does not satisfy the complete semantic-checker gate in the [rewrite plan](csharp-rewrite-plan.md). Semantic diagnostics, full type/symbol queries and the complete emit resolver remain unavailable in the C# backend.
+**Phase 4 is incomplete.** The implementation now covers checker type/state foundations, lexical name and reference resolution, symbol-merge primitives, type normalization, and constraint/default resolution algorithms. It does not satisfy the complete semantic-checker gate in the [rewrite plan](csharp-rewrite-plan.md). Semantic diagnostics, full type/symbol queries and the complete emit resolver remain unavailable in the C# backend.
 
 ## Implemented checkpoint
 
@@ -87,12 +87,27 @@ node csharp/tools/checker-algebra.mjs --record phase4-type-algebra
 & ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-algebra-safety
 ```
 
+## Constraint and recursion validation
+
+`TypeConstraints.cs` implements direct/base constraint traversal and caching, type-parameter constraints and defaults, indexed and conditional constraint selection, missing type arguments, circularity markers, and the reference's constraint depth budgets. `TypeRecursion.cs` implements origin identities and deep-instantiation detection, including indexed accesses, mapped origins and shared symbols. `TypeVariables.cs` implements the cached type-variable-presence analysis used before instantiation.
+
+The required `ITypeConstraintHost` still supplies AST type evaluation, inferred constraints, general instantiation, mapped/indexed type operations and tuple construction. Tests seed those dependencies explicitly and reject unsupported queries. The implementation therefore advances checker construction without providing a complete semantic checker or a fallback implementation of those services.
+
+NativeAOT passes **613 exact comparisons** containing **20,154 operations**. The probes compare resolved values and cache state: absent/circular/resolving markers, direct versus base constraints, mapped-key `any`, conditional branch constraints, inherited defaults, JavaScript defaults, missing arguments, recursion identities and depth limits. Twenty-one native assertions cover 20,000-level default/identity chains, cancellation cleanup, retry, circular defaults, and ownership. The same native artifact passes all 3,885 algebra comparisons and 15 algebra safety assertions.
+
+Evidence: [constraints](../csharp/compatibility/evidence/phase4-type-constraints.json), [algebra regression](../csharp/compatibility/evidence/phase4-constraints-algebra-regression.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-constraints-validation.json).
+
+```powershell
+node csharp/tools/checker-constraints.mjs --record phase4-type-constraints
+& ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-constraints-safety
+```
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
 
 1. Program/checker integration, global symbol initialization, alias/module export/augmentation resolution and type/value symbol resolution. The lexical resolver and merge primitives are now implemented; their checker-specific callbacks remain to be connected.
-2. Structural relations and their caches, constraints, generics and structural instantiation, including reference instantiation limits; connect the implemented algebra algorithms to these complete checker services.
+2. Structural relations and their caches, general AST constraint evaluation/inference, generics and structural instantiation, including reference instantiation limits; connect the implemented algebra and constraint algorithms to these complete checker services.
 3. Inference, contextual typing, signatures and overload selection, expression/declaration checking, JavaScript and JSDoc semantics.
 4. Flow analysis and narrowing, evolving arrays, definite assignment, exhaustiveness and semantic diagnostics.
 5. Mapped, conditional, indexed-access and template type evaluation; JSX, decorators and grammar checks.

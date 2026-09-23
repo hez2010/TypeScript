@@ -1,0 +1,18 @@
+{
+    "timestamp": "2026-09-23T12:03:34.589Z",
+    "scope": "Base/direct constraints, defaults and recursion caches with explicit fixture dependencies; full checker integration remains incomplete",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "managed": false,
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "cases": 613,
+    "operations": 20154,
+    "passed": 613,
+    "failed": 0,
+    "inputSha256": "0569f1b2661964d57889fe661be5f16e8bcf54251b5e53be23e4a54ccbe8b739",
+    "referenceOutputSha256": "6f1eb26a88b3c7da78685d06472e5596e1538aad0ca65aba3b49dde5609ed95d",
+    "outputSha256": "936b20e8ce957cf8de1edb51c4090c4e4ba88666df8ce7deed92b7b14ac5c058",
+    "oracleSha256": "6dd3fdc86fcea1b744e6dd2c5d8b59fdeac4406fa06430bbbd9913528d7a4d15",
+    "candidateSha256": "a170090de5d21b6842dd0bbb9597b204f49ac13716634b9c9ccbe142dc8a8585",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "go": "go version go1.27.1 windows/amd64"
+}

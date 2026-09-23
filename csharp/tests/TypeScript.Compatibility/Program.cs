@@ -13,6 +13,11 @@ internal static class Program
     {
         try
         {
+            if (args is ["--checker-constraints-safety"])
+            {
+                CheckerConstraintTests.Safety();
+                return 0;
+            }
             if (args is ["--checker-algebra-safety"])
             {
                 CheckerAlgebraTests.Safety();
