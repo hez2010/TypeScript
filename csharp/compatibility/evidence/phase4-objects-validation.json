@@ -1,0 +1,52 @@
+{
+    "timestamp": "2026-09-23T13:09:20.7763238Z",
+    "scope": "Object/deferred reference instantiation and possible-reference analysis with explicit semantic dependencies; full phase 4 remains incomplete",
+    "candidateSha256": "f6e87d515fa22f0d698b1697055364ccb96806e9a45a28c18347060905b0e6e2",
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "languageVersion": "15.0",
+    "runtimeAsync": true,
+    "optimizationPreference": "Speed",
+    "instructionSet": "native",
+    "publish": {
+        "log": "logs/csharp-phase4-objects-publish.log",
+        "sha256": "985c88204f26f2a21b2c1689344f96ad76c5177677563980fe8ac0025b83c8b7",
+        "exitCode": 0
+    },
+    "objects": {
+        "parsedReferenceCases": 51,
+        "cases": 579,
+        "operations": 10923,
+        "failed": 0,
+        "exact": 579
+    },
+    "state": {
+        "output": "40 object instantiation assertions; reference, parent and entity-name depth 20000",
+        "exitCode": 0
+    },
+    "regression": {
+        "cases": 2176,
+        "operations": 43584,
+        "failed": 0,
+        "output": "26 instantiation/signature/tuple assertions; exact 100-depth, 5,000,000-work and 10,000-tuple limits",
+        "exact": 2176
+    },
+    "repository": {
+        "extensionTests": 12,
+        "apiTests": 813,
+        "command": "npx --no-install hereby validate --all",
+        "toolTests": 17,
+        "exitCode": 0,
+        "node": "24.20.0",
+        "initialAttempt": "Windows error 1224 prevented formatting scriptkind_stringer_generated.go. Formatting retry succeeded, and the full validation rerun passed.",
+        "sha256": "6202004dc5a9ca36a5ee1d9635bce9c385f3048b9c91e471f7151d4b5ca628f8",
+        "log": "logs/csharp-phase4-objects-validation2.log",
+        "go": "1.27.1",
+        "goTestResults": 163380,
+        "goSkips": 2152,
+        "benchmarkScope": "Required smoke runs only; no performance claim",
+        "lintIssues": 0
+    },
+    "formatting": "Seven C# files verified with identical tokens, comments and syntax under both library configurations; single-line auto-properties retained. Final dotnet format whitespace verification and dprint checks passed.",
+    "dependenciesAdded": false
+}

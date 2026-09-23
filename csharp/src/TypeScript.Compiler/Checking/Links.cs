@@ -56,12 +56,19 @@ internal sealed class NodeLinks
     internal bool HasReportedStatementInAmbientContext { get; set; }
 }
 
+internal sealed class TypeNodeLinks
+{
+    internal Type? ResolvedType { get; set; }
+    internal IReadOnlyList<Type>? OuterTypeParameters { get; set; }
+}
+
 internal sealed class CheckerLinks
 {
     internal LinkStore<Symbol, ValueSymbolLinks> Values { get; } = new();
     internal LinkStore<Symbol, AliasSymbolLinks> Aliases { get; } = new();
     internal LinkStore<Symbol, TypeAliasLinks> TypeAliases { get; } = new();
     internal LinkStore<SyntaxNode, NodeLinks> Nodes { get; } = new();
+    internal LinkStore<SyntaxNode, TypeNodeLinks> TypeNodes { get; } = new();
 
     internal bool HasResolvedProperty(object target, TypeSystemPropertyName property) => property switch
     {

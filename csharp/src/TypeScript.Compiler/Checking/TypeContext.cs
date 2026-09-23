@@ -436,6 +436,16 @@ internal sealed class TypeCacheKey : IEquatable<TypeCacheKey>
         return new(values.ToArray());
     }
 
+    internal static TypeCacheKey Instantiation(ReadOnlySpan<Type> types, TypeAlias? alias, bool singleSignature)
+    {
+        var prefix = Union(types, null, alias).values;
+        var values = new long[prefix.Length + 2];
+        prefix.CopyTo(values, 0);
+        values[^2] = -2;
+        values[^1] = singleSignature ? 1 : 0;
+        return new(values);
+    }
+
     private static int Hash(long[] values)
     {
         var hash = new HashCode();

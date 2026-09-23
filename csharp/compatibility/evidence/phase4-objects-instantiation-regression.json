@@ -1,0 +1,18 @@
+{
+    "timestamp": "2026-09-23T13:05:48.116Z",
+    "scope": "Generic type instantiation and tuple normalization with explicit resolved fixture dependencies; full checker integration remains incomplete",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "managed": false,
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "cases": 2176,
+    "operations": 43584,
+    "passed": 2176,
+    "failed": 0,
+    "inputSha256": "1ff0f64d71840e4378442ac2ea6aff30790c0e58d0115f33698361f79425cb99",
+    "referenceOutputSha256": "51e1b540520dafda61d1e1163b9bdf92314e1b98e4dc4e9ff9db8deea47aba80",
+    "outputSha256": "bed12325c8a74f4220629c864024a29844c6de376d1676e4b9ff8972b769c5c0",
+    "oracleSha256": "5a1b9e27d095910dd98102175f07ae19464279e76623edcc2f57ff13f5e99346",
+    "candidateSha256": "f6e87d515fa22f0d698b1697055364ccb96806e9a45a28c18347060905b0e6e2",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "go": "go version go1.27.1 windows/amd64"
+}

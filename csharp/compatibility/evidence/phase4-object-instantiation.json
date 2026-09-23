@@ -1,0 +1,18 @@
+{
+    "timestamp": "2026-09-23T13:05:45.560Z",
+    "scope": "Captured object and deferred reference instantiation with explicit outer parameters; full checker integration remains incomplete",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "managed": false,
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "cases": 579,
+    "operations": 10923,
+    "passed": 579,
+    "failed": 0,
+    "inputSha256": "5c98523410c67f9f4a85610cc6283a014be5388a0e624bfe7f1675fd0d21b823",
+    "referenceOutputSha256": "2f130de726f14b2185f2ec0aa72090f9e319ea6432e5bc49ddbd34fb95aa3379",
+    "outputSha256": "30b8cab5dd3487d8f28a9c99c9996de53386f34d7d7fb928de525032c3a456a1",
+    "oracleSha256": "5a1b9e27d095910dd98102175f07ae19464279e76623edcc2f57ff13f5e99346",
+    "candidateSha256": "f6e87d515fa22f0d698b1697055364ccb96806e9a45a28c18347060905b0e6e2",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "go": "go version go1.27.1 windows/amd64"
+}

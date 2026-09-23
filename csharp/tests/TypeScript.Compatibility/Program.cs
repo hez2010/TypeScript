@@ -13,6 +13,11 @@ internal static class Program
     {
         try
         {
+            if (args is ["--checker-objects-safety"])
+            {
+                CheckerObjectTests.Safety().GetAwaiter().GetResult();
+                return 0;
+            }
             if (args is ["--checker-instantiation-safety"])
             {
                 CheckerInstantiationTests.Safety();

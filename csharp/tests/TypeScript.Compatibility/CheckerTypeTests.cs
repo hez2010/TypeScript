@@ -81,9 +81,12 @@ internal static class CheckerTypeTests
         var builtins = Builtins(c);
         var host = new AlgebraFixtureHost(c);
         var algebra = new TypeAlgebra(c, new([]), host);
-        bool instantiationMode = input.GetProperty("steps").EnumerateArray().Any(
+        bool objectMode = input.GetProperty("steps").EnumerateArray().Any(
+            step => Text(step, "op") is "capturedObject" or "deferredObject" or "anonymousInstance" or "possiblyReferenced");
+        bool instantiationMode = objectMode || input.GetProperty("steps").EnumerateArray().Any(
             step => Text(step, "op") is "instantiate" or "tuple" or "array" or "permissive" or "restrictive");
-        var instantiationHost = instantiationMode ? new InstantiationFixtureHost(c, algebra, new(), host) : null;
+        var links = new CheckerLinks();
+        var instantiationHost = instantiationMode ? new InstantiationFixtureHost(c, algebra, links, host) : null;
         bool constraintMode = input.GetProperty("steps").EnumerateArray().Any(
             step => Text(
                 step,
@@ -150,6 +153,13 @@ internal static class CheckerTypeTests
                 "noInfer" => c.GetOrCreateSubstitutionType(args[0], c.UnknownType),
                 "distributed" => NewDistributed(),
                 "object" => c.NewObjectType((ObjectFlags)flags, SymbolFor(symbol)),
+                "capturedObject" => CapturedObject(),
+                "deferredObject" => DeferredObject(),
+                "anonymousInstance" => instantiationHost!.Objects.AnonymousAsync((ObjectType)args[0],
+                    TypeMapper.Create(args.Skip(1).ToArray(), Arguments(step, "aliasArgs")),
+                    symbol.Length == 0 ? null : c.CreateAlias(SymbolFor(symbol)!, [])).GetAwaiter().GetResult(),
+                "objectMap" => ((ObjectType)args[0]).Mapper!.MapType(args[1]),
+                "possiblyReferenced" => PossiblyReferenced() ? c.RegularTrueType : c.RegularFalseType,
                 "mappedIdentity" => MappedIdentity(),
                 "identityEquals" => recursion.IdentityAsync(args[0]).GetAwaiter().GetResult() == recursion.IdentityAsync(args[1]).GetAwaiter().GetResult()
                     ? c.RegularTrueType
@@ -195,6 +205,59 @@ internal static class CheckerTypeTests
                 _ => throw new InvalidOperationException(op)
             };
             values.Add(type);
+            bool PossiblyReferenced()
+            {
+                var file = Parser.ParseSourceFile(new("/references/fixture.ts"), new SourceText(text));
+                var nodes = file.DescendantsAndSelf().ToArray();
+                var declaration = nodes.Single(n => n is INamedNode { Name: IdentifierNode id } && id.Text == symbol
+                    && (Bool(step, "this") ? n is ClassDeclarationNode : n is TypeParameterDeclarationNode));
+                var parameterSymbol = new Symbol(SymbolFlags.TypeParameter, symbol);
+                parameterSymbol.DeclarationList.Add(declaration);
+                var parameter = c.NewTypeParameter(parameterSymbol);
+                parameter.IsThisType = Bool(step, "this");
+                var unknownSymbol = new Symbol(SymbolFlags.None, "unknown");
+                foreach (var node in nodes)
+                {
+                    if (node is TypeReferenceNode reference)
+                        instantiationHost!.ReferenceSymbols[reference] = reference.TypeName is IdentifierNode id && id.Text == symbol
+                            ? parameterSymbol : unknownSymbol;
+                    if (node is IdentifierNode identifier)
+                    {
+                        var value = new Symbol(SymbolFlags.BlockScopedVariable, identifier.Text);
+                        value.DeclarationList.AddRange(nodes.OfType<VariableDeclarationNode>()
+                            .Where(d => d.Name is IdentifierNode name && name.Text == identifier.Text));
+                        instantiationHost!.ValueSymbols[identifier] = value;
+                    }
+                }
+                var selected = ((ITypedNode)nodes.Single(n => n is INamedNode { Name: IdentifierNode id } && id.Text == "Result")).Type!;
+                if (member == "true")
+                    selected = ((ConditionalTypeNode)selected).TrueType!;
+                return instantiationHost!.Objects.PossiblyReferencedAsync(parameter, selected).GetAwaiter().GetResult();
+            }
+            ObjectType CapturedObject()
+            {
+                var name = SymbolFor(text)!;
+                name.Flags = SymbolFlags.TypeLiteral;
+                SyntaxNode node = (flags & (uint)ObjectFlags.InstantiationExpressionType) != 0
+                    ? new ExpressionWithTypeArgumentsNode() : new TypeLiteralNode();
+                name.DeclarationList.Add(node);
+                var result = c.NewObjectType((ObjectFlags)flags, name);
+                if (result is InstantiationExpressionType expression)
+                    expression.Node = node;
+                result.Alias = Alias();
+                links.TypeNodes.Get(node).OuterTypeParameters = Array.AsReadOnly(args);
+                return result;
+            }
+            TypeReference DeferredObject()
+            {
+                var node = new TypeReferenceNode { TypeName = new IdentifierNode { Text = "Fixture" }, Parent = new TypeLiteralNode() };
+                instantiationHost!.NodeAliases[node] = Alias();
+                var result = instantiationHost.Objects.DeferredReferenceAsync(args[0], node, null).GetAwaiter().GetResult();
+                var data = links.TypeNodes.Get(node);
+                data.OuterTypeParameters = Array.AsReadOnly(args.Skip(1).ToArray());
+                data.ResolvedType = result;
+                return result;
+            }
             Type? Instantiate()
             {
                 var sources = new List<Type>();
@@ -362,6 +425,12 @@ internal static class CheckerTypeTests
                     : symbolNames.GetValueOrDefault(type.Symbol, TypeScript.Compiler.Binding.Symbol.EscapeName(type.Symbol.Name)));
             writer.WriteBoolean("literal", type.IsLiteral);
             writer.WriteBoolean("unit", type.IsUnit);
+            if (objectMode && type is ObjectType objectType)
+            {
+                writer.WriteNumber("objectTarget", Ref(objectType.Target));
+                writer.WriteBoolean("hasMapper", objectType.Mapper is not null);
+                writer.WriteBoolean("deferred", objectType is TypeReference { Node: not null });
+            }
             if (instantiationMode && type is TupleType tuple)
             {
                 writer.WriteStartArray("tuple");

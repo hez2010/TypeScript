@@ -144,7 +144,13 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 	algebra := false
 	constraints := false
 	instantiations := false
+	objects := false
 	for _, step := range steps {
+		if step.Op == "capturedObject" || step.Op == "deferredObject" || step.Op == "anonymousInstance" || step.Op == "possiblyReferenced" {
+			objects = true
+			instantiations = true
+			algebra = true
+		}
 		if step.Op == "unionReduced" || step.Op == "intersection" || step.Op == "templateNormalized" || step.Op == "caseMap" || step.Op == "regularAll" {
 			algebra = true
 		}
@@ -340,6 +346,94 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 			t.AsTypeParameter().constraint = args[0]
 		case "object":
 			t = c.newObjectType(ObjectFlags(step.Flags), symbol(step.Symbol))
+		case "capturedObject":
+			factory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+			name := symbol(step.Text)
+			name.Flags = ast.SymbolFlagsTypeLiteral
+			node := factory.NewTypeLiteralNode(nil)
+			if ObjectFlags(step.Flags)&ObjectFlagsInstantiationExpressionType != 0 {
+				node = factory.NewExpressionWithTypeArguments(nil, nil)
+			}
+			name.Declarations = append(name.Declarations, node)
+			t = c.newObjectType(ObjectFlags(step.Flags), name)
+			if ObjectFlags(step.Flags)&ObjectFlagsInstantiationExpressionType != 0 {
+				t.AsInstantiationExpressionType().node = node
+			}
+			if step.Symbol != "" {
+				t.alias = &TypeAlias{symbol: symbol(step.Symbol), typeArguments: selectTypes(step.AliasArgs)}
+			}
+			c.typeNodeLinks.Get(node).outerTypeParameters = append([]*Type{}, args...)
+		case "deferredObject":
+			factory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+			node := factory.NewTypeReferenceNode(factory.NewIdentifier("Fixture"), nil)
+			node.Parent = factory.NewTypeLiteralNode(nil)
+			var alias *TypeAlias
+			if step.Symbol != "" {
+				alias = &TypeAlias{symbol: symbol(step.Symbol), typeArguments: selectTypes(step.AliasArgs)}
+			}
+			t = c.createDeferredTypeReference(args[0], node, nil, alias)
+			links := c.typeNodeLinks.Get(node)
+			links.outerTypeParameters = append([]*Type{}, args[1:]...)
+			links.resolvedType = t
+		case "anonymousInstance":
+			var alias *TypeAlias
+			if step.Symbol != "" {
+				alias = &TypeAlias{symbol: symbol(step.Symbol)}
+			}
+			t = c.instantiateAnonymousType(args[0], newTypeMapper(args[1:], selectTypes(step.AliasArgs)), alias)
+		case "objectMap":
+			t = getMappedType(args[1], args[0].Mapper())
+		case "possiblyReferenced":
+			file := parser.ParseSourceFile(ast.SourceFileParseOptions{FileName: "/references/fixture.ts", Path: "/references/fixture.ts"}, step.Text, core.ScriptKindTS)
+			nodes := []*ast.Node{}
+			pending := []*ast.Node{file.AsNode()}
+			for len(pending) != 0 {
+				node := pending[len(pending)-1]
+				pending = pending[:len(pending)-1]
+				nodes = append(nodes, node)
+				node.ForEachChild(func(child *ast.Node) bool { pending = append(pending, child); return false })
+			}
+			parameterSymbol := c.newSymbol(ast.SymbolFlagsTypeParameter, step.Symbol)
+			var selected *ast.Node
+			for _, node := range nodes {
+				if node.Name() != nil && ast.IsIdentifier(node.Name()) {
+					name := node.Name().Text()
+					if name == step.Symbol && (step.This && ast.IsClassDeclaration(node) || !step.This && ast.IsTypeParameterDeclaration(node)) {
+						parameterSymbol.Declarations = append(parameterSymbol.Declarations, node)
+					}
+					if name == "Result" {
+						selected = node.Type()
+					}
+				}
+			}
+			parameter := c.newTypeParameter(parameterSymbol)
+			parameter.AsTypeParameter().isThisType = step.This
+			for _, node := range nodes {
+				if ast.IsTypeReferenceNode(node) {
+					resolved := c.unknownSymbol
+					name := node.AsTypeReferenceNode().TypeName
+					if ast.IsIdentifier(name) && name.Text() == step.Symbol {
+						resolved = parameterSymbol
+					}
+					c.symbolNodeLinks.Get(node).resolvedSymbol = resolved
+				}
+				if ast.IsIdentifier(node) {
+					value := c.newSymbol(ast.SymbolFlagsBlockScopedVariable, node.Text())
+					for _, declaration := range nodes {
+						if ast.IsVariableDeclaration(declaration) && ast.IsIdentifier(declaration.Name()) && declaration.Name().Text() == node.Text() {
+							value.Declarations = append(value.Declarations, declaration)
+						}
+					}
+					c.symbolNodeLinks.Get(node).resolvedSymbol = value
+				}
+			}
+			if step.Member == "true" {
+				selected = selected.AsConditionalTypeNode().TrueType
+			}
+			t = c.regularFalseType
+			if c.isTypeParameterPossiblyReferenced(parameter, selected) {
+				t = c.regularTrueType
+			}
 		case "mappedIdentity":
 			t = c.newObjectType(ObjectFlagsMapped|ObjectFlagsInstantiated, symbol(step.Symbol))
 			t.AsMappedType().modifiersType = args[0]
@@ -567,6 +661,11 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 				arguments = []int{}
 			}
 			row["alias"] = []any{names[t.alias.symbol], arguments}
+		}
+		if objects && t.flags&TypeFlagsObject != 0 {
+			row["objectTarget"] = ref(t.AsObjectType().target)
+			row["hasMapper"] = t.Mapper() != nil
+			row["deferred"] = t.objectFlags&ObjectFlagsReference != 0 && t.AsTypeReference().node != nil
 		}
 		switch {
 		case t.flags&TypeFlagsIntrinsic != 0:

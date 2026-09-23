@@ -1,4 +1,5 @@
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Checking;
 using Type = TypeScript.Compiler.Checking.Type;
 using F = TypeScript.Compiler.Checking.TypeFlags;
@@ -8,7 +9,7 @@ namespace TypeScript.Compatibility;
 
 // Fixed, resolved fixture dependencies. No AST/member/inference fallback is
 // supplied: an unsupported query fails the differential test.
-internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleTypeHost
+internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleTypeHost, IObjectInstantiationHost
 {
     private readonly TypeContext context;
     private readonly TypeAlgebra algebra;
@@ -17,8 +18,14 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
     private readonly InterfaceType array, readonlyArray;
     internal TupleTypes Tuples { get; }
     internal TypeInstantiation Engine { get; }
+    internal ObjectInstantiation Objects { get; }
+    internal Dictionary<SyntaxNode, IReadOnlyList<Type>> OuterParameters { get; } = [];
+    internal Dictionary<TypeReferenceNode, Symbol?> ReferenceSymbols { get; } = [];
+    internal Dictionary<IdentifierNode, Symbol> ValueSymbols { get; } = [];
+    internal Dictionary<SyntaxNode, TypeAlias?> NodeAliases { get; } = [];
     internal List<int> Diagnostics { get; } = [];
     internal Action<Type>? OnIndex { get; set; }
+    internal Action<TypeReference>? OnTypeArguments { get; set; }
 
     internal InstantiationFixtureHost(TypeContext context, TypeAlgebra algebra, CheckerLinks links, AlgebraFixtureHost relations)
     {
@@ -29,6 +36,7 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
         readonlyArray = ArrayTargetType("ReadonlyArray");
         Tuples = new(context, algebra, links, this);
         Engine = new(context, algebra, links, this);
+        Objects = new(context, links, Engine, new(TypeArgumentsAsync), this);
     }
 
     private InterfaceType ArrayTargetType(string name)
@@ -52,15 +60,35 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
     public Type ArrayTarget(bool isReadonly) => isReadonly ? readonlyArray : array;
 
     public ValueTask<IReadOnlyList<Type>> TypeArgumentsAsync(TypeReference type, CancellationToken cancellation)
-            =>
-                ValueTask.FromResult(
-                    type.ResolvedTypeArguments ?? throw new InvalidOperationException("Fixture requires deferred type arguments"));
+    {
+        OnTypeArguments?.Invoke(type);
+        return ValueTask.FromResult(
+            type.ResolvedTypeArguments ?? throw new InvalidOperationException("Fixture requires deferred type arguments"));
+    }
 
     public ValueTask<Type> NormalizedReferenceAsync(InterfaceType target, IReadOnlyList<Type> arguments, CancellationToken cancellation)
             => Tuples.NormalizeReferenceAsync(target, arguments, cancellation: cancellation);
 
     public ValueTask<Type> ObjectInstantiationAsync(ObjectType type, TypeMapper mapper, TypeAlias? alias, CancellationToken cancellation)
-            => throw new InvalidOperationException("Fixture requires anonymous/mapped object instantiation");
+            => Objects.InstantiateAsync(type, mapper, alias, cancellation);
+
+    public ValueTask<IReadOnlyList<Type>> OuterTypeParametersAsync(SyntaxNode declaration, CancellationToken cancellation)
+        => ValueTask.FromResult(OuterParameters[declaration]);
+
+    public ValueTask<Symbol?> TypeReferenceSymbolAsync(TypeReferenceNode reference, CancellationToken cancellation)
+        => ValueTask.FromResult(ReferenceSymbols[reference]);
+
+    public ValueTask<Symbol> ResolvedSymbolAsync(IdentifierNode identifier, CancellationToken cancellation)
+        => ValueTask.FromResult(ValueSymbols[identifier]);
+
+    public ValueTask<TypeAlias?> AliasForTypeNodeAsync(SyntaxNode node, CancellationToken cancellation)
+        => ValueTask.FromResult(NodeAliases[node]);
+
+    public ValueTask<TypeParameter> MappedParameterAsync(MappedType type, CancellationToken cancellation)
+        => ValueTask.FromResult(type.TypeParameter ?? throw new InvalidOperationException("Fixture requires mapped parameter resolution"));
+
+    public ValueTask<Type> InstantiateMappedAsync(MappedType type, TypeMapper mapper, TypeAlias? alias, CancellationToken cancellation)
+        => throw new InvalidOperationException("Fixture requires homomorphic mapped instantiation");
 
     public ValueTask<Type?> InferReverseMappedAsync(Type source, MappedType mapped, IndexType constraint, CancellationToken cancellation)
             => throw new InvalidOperationException("Fixture requires reverse mapped inference");
