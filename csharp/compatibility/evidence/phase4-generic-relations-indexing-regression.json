@@ -1,0 +1,20 @@
+{
+    "timestamp": "2026-09-23T21:23:27.204Z",
+    "scope": "Key enumeration, indexed access, read/write simplification and generic cache identity; expression checking and full checker integration remain incomplete",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "managed": false,
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "cases": 320,
+    "keyQueries": 4736,
+    "indexQueries": 8000,
+    "numericStringConversions": 0,
+    "relationPairs": 0,
+    "relationKeyQueries": 0,
+    "exact": 320,
+    "failed": 0,
+    "inputSha256": "a6ea018e83ad7b1ebeb2702150d95dfbb01df25068b0fd0bbef89b911887f71e",
+    "referenceOutputSha256": "d312688d98219937ef442fbb3a72f73758467efbe04310ca49533f63f221407d",
+    "outputSha256": "f8f331f2a8ed4931908a07e9a58d257a5e2a8b40c5954a5c4b883bb881e88262",
+    "candidateSha256": "53179d630a6287c748e9a006a2ccd3738f35d91f1060beef159a471fb84b6ad4",
+    "oracleSha256": "9a2938477bd05d785bd8edea042ddc13e40d0571bc87b73dcb4c61ac217b01cd"
+}

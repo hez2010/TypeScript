@@ -11,6 +11,13 @@ internal sealed partial class ProgramTypeHost : ITypeNormalizationHost, ITypeRel
     internal TypeRelations Relations { get; }
     internal TypeIdentity Identity { get; }
 
+    public ValueTask<Ternary> MappedRelationAsync(
+        RelationOperation operation,
+        MappedType source,
+        MappedType target,
+        CancellationToken cancellation)
+            => Generics.MappedAsync(operation, source, target, cancellation);
+
     public ValueTask<Type> SimplifyAsync(Type type, bool writing, CancellationToken cancellation)
             => type is IndexedAccessType indexed ? Indexed.SimplifyAsync(indexed, writing, cancellation)
                 : type is ConditionalType ? throw new InvalidOperationException("Probe requires conditional simplification")

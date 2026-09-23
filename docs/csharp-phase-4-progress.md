@@ -306,7 +306,7 @@ node csharp/tools/checker-program.mjs --identity --record phase4-relations
 
 `TypeFactQueries.cs` supplies type facts and nullable filtering/adjustment. `TemplateMatching.cs` infers template segments and checks number/bigint/string-mapping placeholders. It uses WTF-8 byte matching and consumes complete code points for adjacent placeholders, preserving the pinned reference's behavior for supplementary characters and lone surrogates.
 
-The source probe now uses production structural relation and variance algorithms. Mapped/indexed/conditional relation branches, fresh-object checking, contextual generic inference, enum comparison and full diagnostic elaboration remain required services. These gaps still prevent complete checker integration.
+The source probe now uses production structural relation and variance algorithms. Conditional relation branches, fresh-object checking, contextual generic inference, enum comparison and full diagnostic elaboration remain required services. These gaps still prevent complete checker integration.
 
 NativeAOT passes **332 exact program comparisons**, covering 166 configurations at single and reference-default concurrency. The programs contain **6,696 type pairs**, each checked under identity, subtype, strict subtype, assignability and comparability (**33,480 relation decisions**), with cache counts, inferred variances, type facts and resulting type graphs retained. Cases include recursive variance, aliases, callbacks, readonly/optional members, protected/private properties, tuples, discriminants and template matching.
 
@@ -332,16 +332,29 @@ node csharp/tools/checker-program.mjs --indexing --record phase4-indexing
 & ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-indexing-safety
 ```
 
+## Generic key, indexed and mapped relations
+
+`GenericRelations.cs` adds contravariant key comparisons, indexed-access component comparisons and writable constraints, known tuple keys, mapped-template comparisons, key remapping/filtering and optionality rules. Generic targets are examined before source constraints. Mapped types can continue to ordinary structural comparison when appropriate; generic mapped identity compares renamed parameters, modifiers and templates. Variance reporting retains the instantiated constraint used by the reference.
+
+The expanded relation probe also checks remapped-key constraints, including template literals whose prefix must survive constraint resolution. NativeAOT passes **128 exact program comparisons**, covering **3,048 type pairs** across five relation kinds (**15,240 decisions**) with cache counts, variance arrays, facts and type graphs. Fixtures include recursive mapped types, partial/required copies, nested alias variance, constrained index parameters and homomorphic key remapping.
+
+Twenty-two native safety assertions verify cancellation rollback/retry, mapped optionality and identity, key contravariance, writable constraints and cached-request cancellation. The same artifact passes all 1,724 earlier source-program comparisons, 2,904 type/state cases and 535 earlier safety assertions. Evidence: [generic relations](../csharp/compatibility/evidence/phase4-generic-relations.json), [indexing](../csharp/compatibility/evidence/phase4-generic-relations-indexing-regression.json), [structural relations](../csharp/compatibility/evidence/phase4-generic-relations-assignability-regression.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-generic-relations-validation.json).
+
+```powershell
+node csharp/tools/checker-program.mjs --generic-relations --record phase4-generic-relations
+& ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-generic-relations-safety
+```
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
 
 1. Complete the program/checker entry point, module interop/type adaptation, computed exports and type/value symbol resolution. Program-backed globals, augmentation merging, declaration headers and alias/export algorithms now exist; their remaining semantic callbacks must be connected.
-2. Structural relations and their caches, remaining type-node dependencies, general constraint evaluation/inference, contextual generic signatures and conditional instantiation; connect the implemented declaration/type-node, algebra, scope, instantiation and tuple algorithms to complete checker services.
+2. Complete relation diagnostics and conditional branches, remaining type-node dependencies, general constraint evaluation/inference, contextual generic signatures and conditional instantiation; connect the implemented declaration/type-node, algebra, scope, instantiation and tuple algorithms to complete checker services.
 3. Inference, contextual typing, signatures and overload selection, expression/declaration checking, JavaScript and JSDoc semantics.
 4. Flow analysis and narrowing, evolving arrays, definite assignment, exhaustiveness and semantic diagnostics.
-5. Apparent mapped types and remapping integration with structural relations; conditional evaluation and indexed expression checking; JSX, decorators and grammar checks.
+5. Complete mapped/reverse-mapped inference and expression integration, conditional evaluation and indexed expression checking; JSX, decorators and grammar checks.
 6. Type display, node builders, symbol accessibility and emit-resolver APIs.
 7. All active checker/compiler type/symbol/diagnostic comparisons at single and reference-default concurrency; audits of intentional differences; complete semantic workload memory/performance measurements.
 
-The next integration step is the remaining mapped/indexed/conditional relation services and inference, followed by complete value checking, diagnostics and module type adaptation over the program-backed symbol environment. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.
+The next integration step is conditional evaluation and relations with inference, followed by complete value checking, diagnostics and module type adaptation over the program-backed symbol environment. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.

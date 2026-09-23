@@ -6,6 +6,12 @@ internal interface ITypeIdentityHost
 {
     ValueTask<Ternary?> VarianceAsync(RelationOperation operation, Type source, Type target, CancellationToken cancellation);
 
+    ValueTask<Ternary> MappedRelationAsync(
+        RelationOperation operation,
+        MappedType source,
+        MappedType target,
+        CancellationToken cancellation);
+
     ValueTask<Type> ConditionalBranchAsync(ConditionalType type, bool whenTrue, CancellationToken cancellation);
 
     ValueTask<IReadOnlyList<Signature>> SignaturesAsync(Type type, bool construct, CancellationToken cancellation);
@@ -95,7 +101,10 @@ internal sealed class TypeIdentity(TypeContext context, CheckerLinks links, Stru
             return variance;
         if (source is MappedType mappedSource && await mapped.IsGenericAsync(mappedSource, cancellation).ConfigureAwait(false)
             || target is MappedType mappedTarget && await mapped.IsGenericAsync(mappedTarget, cancellation).ConfigureAwait(false))
-            return Ternary.False;
+            return source is MappedType first && target is MappedType second
+                && await mapped.IsGenericAsync(first, cancellation).ConfigureAwait(false)
+                && await mapped.IsGenericAsync(second, cancellation).ConfigureAwait(false)
+                    ? await host.MappedRelationAsync(operation, first, second, cancellation).ConfigureAwait(false) : Ternary.False;
         var sourceProperties = (await members.ResolveAsync(sourceObject, cancellation).ConfigureAwait(false)).Properties ?? [];
         var targetProperties = (await members.ResolveAsync(targetObject, cancellation).ConfigureAwait(false)).Properties ?? [];
         if (sourceProperties.Count != targetProperties.Count)

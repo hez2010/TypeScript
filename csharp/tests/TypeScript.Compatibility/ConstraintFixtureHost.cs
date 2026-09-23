@@ -17,6 +17,7 @@ internal sealed class ConstraintFixtureHost(TypeContext context, AlgebraFixtureH
     internal Func<SyntaxNode, CancellationToken, ValueTask<Type>>? NodeEvaluator { get; set; }
     internal IndexedTypes? Indexed { get; set; }
     internal MappedTypes? Mapped { get; set; }
+    internal TypeKeys? Keys { get; set; }
     private readonly Dictionary<(Type, Type, AccessFlags), Type> indexedAccesses = [];
     private readonly TypeVariables variables = new((type, _) => ValueTask.FromResult(type.ResolvedTypeArguments
         ?? throw new InvalidOperationException("Fixture requires deferred type arguments")));
@@ -61,15 +62,14 @@ internal sealed class ConstraintFixtureHost(TypeContext context, AlgebraFixtureH
     public bool HasKeyofConstraint(MappedType type) => MappedMembers.HasKeyofConstraint(type);
 
     public ValueTask<Type> MappedIndexTypeAsync(MappedType type, CancellationToken cancellation)
-            =>
-                Mapped?.ConstraintAsync(
-                    type,
-                    cancellation) ?? throw new InvalidOperationException("Fixture requires mapped index resolution");
+        =>
+            Keys?.MappedAsync(
+                type,
+                cancellation: cancellation) ?? throw new InvalidOperationException("Fixture requires mapped index resolution");
 
-    public async ValueTask<bool> IsMappedGenericAccessAsync(IndexedAccessType type, CancellationToken cancellation)
-            => type.ObjectType is MappedType mapping && !await IsGenericMappedAsync(mapping, cancellation)
-                && (await Mapped!.GenericFlagsAsync(type.IndexType, cancellation) & ObjectFlags.IsGenericIndexType) != 0
-                && (MappedTypes.Modifiers(mapping) & MappedTypeModifiers.ExcludeOptional) == 0 && mapping.Declaration!.NameType is null;
+    public ValueTask<bool> IsMappedGenericAccessAsync(IndexedAccessType type, CancellationToken cancellation)
+        => Indexed is not null ? Indexed.IsMappedGenericAccessAsync(type, cancellation) : type.ObjectType is MappedType
+            ? throw new InvalidOperationException("Fixture requires generic mapped access analysis") : ValueTask.FromResult(false);
 
     public ValueTask<Type> SubstituteMappedAccessAsync(Type objectType, Type indexType, CancellationToken cancellation)
             => Indexed?.SubstituteMappedAsync((MappedType)objectType, indexType, cancellation)

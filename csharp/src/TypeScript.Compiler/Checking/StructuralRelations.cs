@@ -9,7 +9,7 @@ internal interface IStructuralRelationHost
 
     ValueTask<Ternary?> VarianceAsync(RelationOperation operation, Type source, Type target, CancellationToken cancellation);
 
-    ValueTask<Ternary> AdvancedRelationAsync(
+    ValueTask<Ternary?> AdvancedRelationAsync(
         RelationOperation operation,
         Type source,
         Type target,
@@ -179,7 +179,15 @@ internal sealed class StructuralRelations(TypeContext context, TypeAlgebra algeb
             || (target.Flags & TypeFlags.Instantiable) != 0
             || source is MappedType sm && await mapped.IsGenericAsync(sm, cancellation).ConfigureAwait(false)
             || target is MappedType tm && await mapped.IsGenericAsync(tm, cancellation).ConfigureAwait(false))
-            return await host.AdvancedRelationAsync(operation, source, target, intersection, cancellation).ConfigureAwait(false);
+        {
+            if (await host.AdvancedRelationAsync(
+                operation,
+                source,
+                target,
+                intersection,
+                cancellation).ConfigureAwait(false) is { } advanced)
+                return advanced;
+        }
         bool primitive = (source.Flags & TypeFlags.Primitive) != 0;
         source = await views.ApparentAsync(source, cancellation).ConfigureAwait(false);
         if (await host.ArrayRelationAsync(operation, source, target, intersection, cancellation).ConfigureAwait(false) is { } array)

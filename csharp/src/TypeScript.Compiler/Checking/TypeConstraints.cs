@@ -93,7 +93,7 @@ internal sealed class TypeConstraints(TypeContext context, TypeAlgebra algebra, 
         return await BaseConstraintAsync(type, cancellation).ConfigureAwait(false);
     }
 
-    private async ValueTask<Type?> SimplifiedOrConstraintAsync(Type type, CancellationToken cancellation)
+    internal async ValueTask<Type?> SimplifiedOrConstraintAsync(Type type, CancellationToken cancellation = default)
     {
         var simplified = await host.SimplifyAsync(type, false, cancellation).ConfigureAwait(false);
         return simplified != type ? simplified : await ConstraintAsync(type, cancellation).ConfigureAwait(false);

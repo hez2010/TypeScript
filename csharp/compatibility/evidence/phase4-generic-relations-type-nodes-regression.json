@@ -1,0 +1,20 @@
+{
+    "timestamp": "2026-09-23T21:23:34.410Z",
+    "scope": "Source type-node evaluation, declared aliases and references with explicit semantic dependencies; full checker integration remains incomplete",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "managed": false,
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "cases": 192,
+    "keyQueries": 0,
+    "indexQueries": 0,
+    "numericStringConversions": 0,
+    "relationPairs": 0,
+    "relationKeyQueries": 0,
+    "exact": 192,
+    "failed": 0,
+    "inputSha256": "73641f2c0e493d82429f80bfe18caaccb5c9f4a87f54cff05f1c237355d0bab4",
+    "referenceOutputSha256": "4e4ced2ea759b610914657fa81d27e28830b4e82011e420a52f1ecd75764b405",
+    "outputSha256": "28356f15c633ba0a98f331e133b60ad84df61ac07a5cd115635caba5658b2165",
+    "candidateSha256": "53179d630a6287c748e9a006a2ccd3738f35d91f1060beef159a471fb84b6ad4",
+    "oracleSha256": "9a2938477bd05d785bd8edea042ddc13e40d0571bc87b73dcb4c61ac217b01cd"
+}

@@ -366,6 +366,11 @@ internal sealed class IndexedTypes(TypeContext context, TypeAlgebra algebra, Typ
             ? await algebra.UnionAsync([result, context.UndefinedOrMissingType], cancellation: cancellation).ConfigureAwait(false) : result;
     }
 
+    internal async ValueTask<bool> IsMappedGenericAccessAsync(IndexedAccessType type, CancellationToken cancellation = default)
+        => type.ObjectType is MappedType mapping && !await mapped.IsGenericAsync(mapping, cancellation).ConfigureAwait(false)
+            && (await mapped.GenericFlagsAsync(type.IndexType, cancellation).ConfigureAwait(false) & ObjectFlags.IsGenericIndexType) != 0
+            && (MappedTypes.Modifiers(mapping) & MappedTypeModifiers.ExcludeOptional) == 0 && mapping.Declaration!.NameType is null;
+
     private bool ContainsMissing(Type type) =>
         type == context.MissingType || type is UnionType union && union.Types.Contains(context.MissingType);
 

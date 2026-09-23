@@ -41,10 +41,14 @@ internal sealed class TypeVariance(
     private TypeMapper? unreliable, unmeasurable;
 
     internal async ValueTask ReportAsync(Type type, bool measurable, CancellationToken cancellation = default)
+        => await ReportTypeAsync(type, measurable, cancellation).ConfigureAwait(false);
+
+    internal async ValueTask<Type> ReportTypeAsync(Type type, bool measurable, CancellationToken cancellation = default)
     {
         var mapper = measurable ? unmeasurable ??= TypeMapper.Function(t => Report(t, RelationComparisonResult.ReportsUnmeasurable))
             : unreliable ??= TypeMapper.Function(t => Report(t, RelationComparisonResult.ReportsUnreliable));
-        await instantiation.InstantiateAsync(type, mapper, cancellation: cancellation).ConfigureAwait(false);
+        return await instantiation.InstantiateAsync(type, mapper, cancellation: cancellation).ConfigureAwait(false)
+            ?? throw new InvalidOperationException("Variance marker instantiation returned no type");
     }
 
     private Type Report(Type type, RelationComparisonResult flag)

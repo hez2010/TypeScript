@@ -148,8 +148,10 @@ internal sealed class TypeKeys(TypeContext context, TypeAlgebra algebra, TypeVie
         return (type.Flags & include) != 0 ? type : context.NeverType;
     }
 
-    private async ValueTask<Type> MappedAsync(MappedType type, IndexFlags flags, CancellationToken cancellation)
+    internal async ValueTask<Type> MappedAsync(MappedType type, IndexFlags flags = 0, CancellationToken cancellation = default)
     {
+        cancellation.ThrowIfCancellationRequested();
+        context.RequireOwned(type);
         var parameter = await mapped.ParameterAsync(type, cancellation).ConfigureAwait(false);
         var constraint = await mapped.ConstraintAsync(type, cancellation).ConfigureAwait(false);
         var name = await mapped.NameAsync((MappedType?)type.Target ?? type, cancellation).ConfigureAwait(false);

@@ -114,9 +114,12 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
         Keys = new(context, Algebra, Views, Instantiation.Engine, Instantiation.Mapped, Instantiation.Members, this);
         Indexed = new(context, Algebra, Views, Keys, Properties, Values, IndexSignatures, Relations,
             Instantiation.Engine, Instantiation.Constraints, Instantiation.Tuples, Instantiation.Mapped, Instantiation.Members, this);
+        Generics = new(context, Algebra, Instantiation.Constraints, Keys, Indexed, Instantiation.Mapped,
+            Instantiation.Members, Instantiation.Engine, Variances, Views, Bases, ArrayTarget);
         Instantiation.ConstraintDependencies.Simplifier = SimplifyAsync;
         Instantiation.ConstraintDependencies.Indexed = Indexed;
         Instantiation.ConstraintDependencies.Mapped = Instantiation.Mapped;
+        Instantiation.ConstraintDependencies.Keys = Keys;
         relations.EmptyAnonymousSource = Views.EmptyAnonymousAsync;
         relations.EmptyObjectSource = Views.EmptyObjectAsync;
         relations.PropertiesSource = Properties.GetAsync;

@@ -14,6 +14,7 @@ internal sealed partial class ProgramTypeHost : IStructuralRelationHost, IObject
     internal TypeFactQueries Facts { get; }
     internal DiscriminantRelations Discriminants { get; }
     internal TemplateMatching Templates { get; }
+    internal GenericRelations Generics { get; }
     public bool StrictFunctionTypes => program.Symbols.Program.Configuration.Options.StrictOption("strictFunctionTypes");
 
     public bool IsReadonlyArray(Type type) => Instantiation.IsReadonlyArrayType(type);
@@ -81,13 +82,15 @@ internal sealed partial class ProgramTypeHost : IStructuralRelationHost, IObject
         return null;
     }
 
-    public async ValueTask<Ternary> AdvancedRelationAsync(
+    public async ValueTask<Ternary?> AdvancedRelationAsync(
         RelationOperation operation,
         Type source,
         Type target,
         IntersectionState intersection,
         CancellationToken cancellation)
     {
+        if (await Generics.TargetAsync(operation, source, target, intersection, cancellation) is { } genericTarget)
+            return genericTarget;
         if (target is TemplateLiteralType template)
         {
             if (source is TemplateLiteralType sourceTemplate)
@@ -105,6 +108,8 @@ internal sealed partial class ProgramTypeHost : IStructuralRelationHost, IObject
             return Ternary.True;
         if (await RelationSupport.TypeParameterAsync(operation, source, target, intersection, cancellation) is { } parameter)
             return parameter;
+        if (await Generics.SourceAsync(operation, source, target, intersection, cancellation) is { } genericSource)
+            return genericSource;
         if (source is TemplateLiteralType && target is not ObjectType && target is not TemplateLiteralType)
         {
             var constraint = await Instantiation.Constraints.BaseConstraintAsync(source, cancellation);
@@ -120,12 +125,9 @@ internal sealed partial class ProgramTypeHost : IStructuralRelationHost, IObject
             if (await Instantiation.Constraints.BaseConstraintAsync(source, cancellation) is { } constraint)
                 return await operation.CompareAsync(constraint, target, RecursionFlags.Source, cancellation: cancellation);
         }
-        if ((source.Flags & (TypeFlags.Index | TypeFlags.IndexedAccess | TypeFlags.Conditional)) != 0
-            || (target.Flags & (TypeFlags.Index | TypeFlags.IndexedAccess | TypeFlags.Conditional)) != 0
-            || source is MappedType
-            || target is MappedType)
-            throw new InvalidOperationException("Probe requires mapped/indexed/conditional relations");
-        return Ternary.False;
+        if (source is ConditionalType || target is ConditionalType)
+            throw new InvalidOperationException("Probe requires conditional relations");
+        return source is MappedType ? null : Ternary.False;
     }
 
     public ValueTask<Type?> MatchingConstituentAsync(UnionType target, Type source, CancellationToken cancellation)
