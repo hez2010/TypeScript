@@ -25,6 +25,7 @@ func main() {
 			Concurrency int
 			Aliases     bool
 			TypeNodes   bool
+			Members     bool
 		}
 		if err := json.Unmarshal(lines.Bytes(), &input); err != nil {
 			panic(err)
@@ -51,7 +52,7 @@ func main() {
 		}
 		program := compiler.NewProgram(options)
 		c, _ := checker.NewChecker(program, nil)
-		if err := output.Encode(c.CSharpProgramScopeProbe(input.Aliases, input.TypeNodes)); err != nil {
+		if err := output.Encode(c.CSharpProgramScopeProbe(input.Aliases, input.TypeNodes, input.Members)); err != nil {
 			panic(err)
 		}
 	}

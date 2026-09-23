@@ -11,7 +11,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/jsnum"
 )
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -157,6 +157,68 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool) any
 			}
 		}
 	}
+	memberRoots, memberRows := []any{}, []any{}
+	if memberQueries {
+		pending := []*Type{}
+		seen := map[*Type]bool{}
+		mtid := func(t *Type) int {
+			id := tid(t)
+			if t != nil && t.flags&TypeFlagsObject != 0 && !seen[t] {
+				seen[t] = true
+				pending = append(pending, t)
+			}
+			return id
+		}
+		for _, node := range nodes {
+			var t *Type
+			if ast.IsInterfaceDeclaration(node) || ast.IsTypeAliasDeclaration(node) {
+				t = c.getDeclaredTypeOfSymbol(c.getSymbolOfDeclaration(node))
+			} else if ast.IsFunctionDeclaration(node) {
+				t = c.getTypeOfSymbol(c.getSymbolOfDeclaration(node))
+			}
+			if t != nil {
+				memberRoots = append(memberRoots, []any{nodeIDs[node], mtid(t)})
+			}
+		}
+		signatureRow := func(s *Signature) any {
+			generic := []int{}
+			for _, p := range s.typeParameters {
+				generic = append(generic, mtid(p))
+			}
+			var receiver any
+			if s.thisParameter != nil {
+				receiver = []any{sid(s.thisParameter), mtid(c.getTypeOfSymbol(s.thisParameter))}
+			}
+			parameters := []any{}
+			for _, p := range s.parameters {
+				parameters = append(parameters, []any{sid(p), mtid(c.getTypeOfSymbol(p))})
+			}
+			result := mtid(c.getReturnTypeOfSignature(s))
+			var predicate any
+			if p := c.getTypePredicateOfSignature(s); p != nil {
+				predicate = []any{p.kind, p.parameterIndex, p.parameterName, mtid(p.t)}
+			}
+			return []any{s.flags, nodeIDs[s.declaration], s.minArgumentCount, generic, receiver, parameters, result, predicate}
+		}
+		for i := 0; i < len(pending); i++ {
+			t := pending[i]
+			m := c.resolveStructuredTypeMembers(t)
+			properties, calls, constructors, indexes := []any{}, []any{}, []any{}, []any{}
+			for _, p := range m.properties {
+				properties = append(properties, []any{sid(p), mtid(c.getTypeOfSymbol(p))})
+			}
+			for _, s := range m.CallSignatures() {
+				calls = append(calls, signatureRow(s))
+			}
+			for _, s := range m.ConstructSignatures() {
+				constructors = append(constructors, signatureRow(s))
+			}
+			for _, ix := range m.indexInfos {
+				indexes = append(indexes, []any{mtid(ix.keyType), mtid(ix.valueType), ix.isReadonly, nodeIDs[ix.declaration]})
+			}
+			memberRows = append(memberRows, []any{tid(t), properties, calls, constructors, indexes})
+		}
+	}
 	typeRows := []any{}
 	for i := 0; i < len(types); i++ {
 		t := types[i]
@@ -296,6 +358,9 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool) any
 	}
 	if typeNodes {
 		result["typeQueries"] = typeQueries
+	}
+	if memberQueries {
+		result["memberQueries"], result["members"] = memberRoots, memberRows
 	}
 	return result
 }

@@ -10,7 +10,7 @@ namespace TypeScript.Compatibility;
 
 // AST evaluation is production code. Relations, value checking and conditional
 // evaluation remain explicit fixture dependencies; unsupported queries fail.
-internal sealed class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost, ITypeReferenceHost, IInstantiationFixtureSource
+internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost, ITypeReferenceHost, IInstantiationFixtureSource
 {
     private readonly TypeContext context;
     private readonly CheckerLinks links;
@@ -41,6 +41,19 @@ internal sealed class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost, ITypeR
             Algebra, Instantiation.Constraints, Instantiation.Engine, Instantiation.Objects, Instantiation.Resolutions, this);
         Nodes = new(context, links, program.Symbols, program.Scopes, Algebra, Instantiation.Tuples, Instantiation.Objects,
             Instantiation.Mapped, Instantiation.TypeNodeFlow, this);
+        Signatures = new(context, links, program.Symbols, program.Scopes, Instantiation.Engine, Algebra, Instantiation.Resolutions, this);
+        Bases = new(
+            context,
+            Algebra,
+            Instantiation.Constraints,
+            References,
+            Instantiation.Tuples,
+            Instantiation.Mapped,
+            Instantiation.Resolutions,
+            this);
+        IndexSignatures = new(context, program.Symbols, Algebra, Instantiation.Members, this);
+        Members = new(context, program.Symbols, program.Scopes, References, Instantiation.Engine, Signatures, program.Aliases,
+            Instantiation.Members, new(program.Symbols.Program.SourceFiles.Select(f => f.Syntax).ToArray()), this);
     }
 
     public ValueTask<Type> TypeFromNodeAsync(SyntaxNode node, CancellationToken cancellation)

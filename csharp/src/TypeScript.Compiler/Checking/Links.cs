@@ -92,6 +92,11 @@ internal sealed class SymbolNodeLinks
     internal Symbol? ResolvedSymbol { get; set; }
 }
 
+internal sealed class SignatureLinks
+{
+    internal Signature? ResolvedSignature { get; set; }
+}
+
 internal sealed class CheckerLinks
 {
     internal LinkStore<Symbol, ValueSymbolLinks> Values { get; } = new();
@@ -104,6 +109,7 @@ internal sealed class CheckerLinks
     internal LinkStore<SyntaxNode, NodeLinks> Nodes { get; } = new();
     internal LinkStore<SyntaxNode, TypeNodeLinks> TypeNodes { get; } = new();
     internal LinkStore<SyntaxNode, SymbolNodeLinks> SymbolNodes { get; } = new();
+    internal LinkStore<SyntaxNode, SignatureLinks> Signatures { get; } = new();
 
     internal bool HasResolvedProperty(object target, TypeSystemPropertyName property) => property switch
     {

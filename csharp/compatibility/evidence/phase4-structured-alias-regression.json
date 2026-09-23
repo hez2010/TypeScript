@@ -1,0 +1,15 @@
+{
+    "timestamp": "2026-09-23T17:10:55.485Z",
+    "scope": "Program-backed alias targets, type-only chains and module exports with explicit semantic dependencies; full checker integration remains incomplete",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "managed": false,
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "cases": 124,
+    "exact": 124,
+    "failed": 0,
+    "inputSha256": "af31d0ed0ad1424aa1be8f0b6af314f6d1841e11a9e823112252a06f75e455da",
+    "referenceOutputSha256": "38a51b0a684cf71750a356dca46d7ae168d71dcff154ac87fdb472ed4ada5bf3",
+    "outputSha256": "7f2525e237685036c198828e7ffbad457964559ecbab6e7afefb257669c1205d",
+    "candidateSha256": "4f24038a89f72c01410d62f1e15dbb526f05af0351a8d180a12b12c59a6e2d16",
+    "oracleSha256": "4cc11e0d909c20f9cdd01fa3197933727f2ab10d5e5136049e0e92745f473d07"
+}

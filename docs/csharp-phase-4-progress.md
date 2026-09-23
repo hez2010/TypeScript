@@ -215,6 +215,23 @@ node csharp/tools/checker-program.mjs --type-nodes --record phase4-type-nodes
 & ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-type-nodes-safety
 ```
 
+## Structured members and signatures
+
+`StructuredMembers.cs` resolves declared and instantiated object members, generic inheritance, call/construct signatures and index information. It preserves the reference's member ordering and exposes partial members during recursive resolution. `BaseTypes.cs` implements interface and tuple bases, base-cycle checks and polymorphic `this` substitution. `IndexSignatures.cs` constructs explicit indexes and aggregates computed index declarations through required semantic callbacks.
+
+`Signatures.cs` constructs declaration signatures, skips overload implementations, tracks explicit `this`, minimum argument counts, rest/literal/constructor flags, and lazily resolves return types and predicates. Instantiated and composite signatures preserve mapper and predicate behavior. Cancellation restores unfinished member state, clears provisional predicate results and unwinds return/base resolution stacks.
+
+The source probe connects these components to actual bound declarations. Its value dependency accepts explicit annotations and instantiated/mapped symbols; body inference, contextual typing, computed names, class base constructors and union/intersection/reverse-mapped member composition remain required services. Those boundaries are explicit failures, not success fallbacks. The probe compares reachable property, signature, predicate, index, type and symbol graphs; diagnostics are compared by code only.
+
+NativeAOT passes **176 exact source-member comparisons**, covering 88 configurations under single-worker and reference-default concurrency. Cases include generic inheritance and defaults, overrides, recursive objects, overloads, call/construct signatures, typed rest/optional/`this` parameters, assertions, polymorphic `this`, arrays/tuples, readonly/pattern/union indexes, interface cycles, merged declarations and Unicode names. Thirty-one safety assertions cover cancellation/retry, cache identity, cross-checker ownership, composite predicates, optional-chain return markers and **20,000-level** base/signature chains.
+
+The same artifact passes 192 source-type, 124 alias/export and 2,904 type/state comparisons, plus 122 earlier safety assertions. Evidence: [source members](../csharp/compatibility/evidence/phase4-structured-members.json), [source-type regression](../csharp/compatibility/evidence/phase4-structured-types-regression.json), [alias regression](../csharp/compatibility/evidence/phase4-structured-alias-regression.json), [type/state regression](../csharp/compatibility/evidence/phase4-structured-state-regression.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-structured-validation.json). Full semantic workload memory and performance remain unmeasured.
+
+```powershell
+node csharp/tools/checker-program.mjs --members --record phase4-structured-members
+& ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-members-safety
+```
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
@@ -227,4 +244,4 @@ The following phase-4 requirements remain open:
 6. Type display, node builders, symbol accessibility and emit-resolver APIs.
 7. All active checker/compiler type/symbol/diagnostic comparisons at single and reference-default concurrency; audits of intentional differences; complete semantic workload memory/performance measurements.
 
-The next integration step is structural member/value resolution, conditional/inference services and module type adaptation over the program-backed symbol environment. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.
+The next integration step is complete value resolution, composite members and relations, conditional/inference services and module type adaptation over the program-backed symbol environment. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.

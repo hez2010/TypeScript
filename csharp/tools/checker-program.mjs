@@ -38,12 +38,13 @@ if (!process.argv.includes("--no-build")) {
 
 const cases = [];
 const library = `interface IArguments {} interface Object {} interface Function {} interface CallableFunction extends Function {} interface NewableFunction extends Function {} interface String {} interface Number {} interface Boolean {} interface RegExp {} interface Array<T> { length: number; [n: number]: T; } interface ReadonlyArray<T> { readonly length: number; readonly [n: number]: T; } interface ThisType<T> {}`;
-function add(name, sources, options = {}, aliases = false, typeNodes = false) {
+function add(name, sources, options = {}, aliases = false, typeNodes = false, members = false) {
     for (const concurrency of [1, 4]) {
         const files = Object.fromEntries(Object.entries(sources).map(([name, text]) => [`/project/${name}`, Buffer.from(text).toString("base64")]));
         const input = { name: `${name}:${concurrency}`, files, roots: Object.keys(files), options, concurrency };
         if (aliases) input.aliases = true;
         if (typeNodes) input.typeNodes = true;
+        if (members) input.members = true;
         cases.push(input);
     }
 }
@@ -154,7 +155,37 @@ for (const strict of [false, true]) {
         add(`type-nodes:imported:${strict}:${exactOptionalPropertyTypes}`, { "globals.d.ts": library, "a.ts": "export type A<T> = T[]; export interface Box<T> { value: T }", "b.ts": "import {A, Box} from './a'; type B = A<string>; type C = Box<number>;" }, { strict, exactOptionalPropertyTypes, module: "esnext" }, false, true);
     }
 }
-let selected = process.argv.includes("--type-nodes") ? cases.filter(c => c.typeNodes)
+for (const strict of [false, true]) {
+    for (const exactOptionalPropertyTypes of [false, true]) {
+        for (
+            const [name, source] of Object.entries({
+                properties: "interface I { a: string; b?: number; readonly c: boolean } type A = I;",
+                inherited: "interface Base<T> { value: T; optional?: T } interface Child<U> extends Base<U> { own: number } type C = Child<string>;",
+                override: "interface A { a: string; z: number } interface B { b: boolean; a: number } interface C extends A,B { a: boolean; c: string }",
+                thisType: "interface A<T> { self: this; value: T; clone(): this } interface B extends A<string> { other: this }",
+                object: "type Box<T> = { value: T; nested: { inner: T }; method(value:T): T }; type B = Box<number>;",
+                functions: "type F<T> = (value: T) => T; type G = F<string>; declare function f<T>(x: T, y?: number): T;",
+                overloads: "function f(x: string): number; function f(x: number): string; function f(x: string | number): string | number { return x; }",
+                parameters: "type F = (this: { id: number }, x: 'x', y?: string, ...rest: number[]) => void; function g(x: string = '', y: number): void {}",
+                constructs: "type C<T> = new (value: T) => { value:T }; type D = C<string>; type A = abstract new <T>(value: T) => T;",
+                predicates: "type F = (x: unknown) => x is string; type A = (x: unknown) => asserts x is number; interface I { test(): this is I; assert(): asserts this }",
+                calls: "interface F<T> { (value: T): T; new (value: T): { value:T }; p: T } interface G extends F<string> { (value: number): number }",
+                indexes: "interface I<T> { [s: string]: T; [n: number]: T; } type S = I<string>; interface R { readonly [s: symbol]: number; [k: `data-${string}`]: boolean }",
+                indexUnions: "interface I { [s: string | symbol]: number; [s: string]: boolean } interface J extends I { [s: string]: string }",
+                recursive: "interface I<T> { child: I<T>; value: T } type S = I<string>; type O = { next: O; value: number };",
+                merge: "interface I<T> { a:T; (x:T):T } interface I<T> { b:T; (x:number):number } type S = I<string>;",
+                arrays: "type A = string[]; type R = readonly number[]; type T = [string, number?];",
+                invalidBase: "type N = number; interface A extends N {} interface B extends Missing {}",
+                cycles: "interface A extends B {} interface B extends A {}",
+                unicode: "interface 日本<T> { 値:T; '__name':string; '\\uFDD0hidden':number; '\\ud800':boolean; 1: T } type S=日本<string>;",
+                inheritedDefaults: "interface A<T = number> { a:T } interface B<U = string> extends A<U> { b:U } interface C extends B {}",
+                overloadInheritance: "interface A { (x:string):number; (x:number):string } interface B extends A { (x:boolean):boolean } type F<T> = { (x:T):T; <U>(x:U):U }; type S=F<string>;",
+                assertions: "type A=(x:unknown)=>asserts x; interface I { a(): asserts this; b(): this is I }",
+            })
+        ) add(`members:${name}:${strict}:${exactOptionalPropertyTypes}`, { "globals.d.ts": library, "main.ts": source }, { strict, exactOptionalPropertyTypes, target: "esnext" }, false, true, true);
+    }
+}
+let selected = process.argv.includes("--members") ? cases.filter(c => c.members) : process.argv.includes("--type-nodes") ? cases.filter(c => c.typeNodes && !c.members)
     : cases.filter(c => !c.typeNodes && Boolean(c.aliases) === process.argv.includes("--aliases"));
 if (option("--filter")) selected = selected.filter(c => c.name.includes(option("--filter")));
 async function probe(command, args) {
@@ -188,7 +219,7 @@ for (let i = 0; i < selected.length; i++) {
 await json(path.join(output, "checker-program-failures.json"), failures);
 const summary = {
     timestamp: new Date().toISOString(),
-    scope: process.argv.includes("--type-nodes") ? "Source type-node evaluation, declared aliases and references with explicit semantic dependencies; full checker integration remains incomplete" : process.argv.includes("--aliases")
+    scope: process.argv.includes("--members") ? "Source structured members, interface bases, signatures and index signatures with annotated value dependencies; full checker integration remains incomplete" : process.argv.includes("--type-nodes") ? "Source type-node evaluation, declared aliases and references with explicit semantic dependencies; full checker integration remains incomplete" : process.argv.includes("--aliases")
         ? "Program-backed alias targets, type-only chains and module exports with explicit semantic dependencies; full checker integration remains incomplete"
         : "Program-owned global symbols, class/interface headers and generic scopes with explicit semantic dependencies; full checker integration remains incomplete",
     referenceRevision,
