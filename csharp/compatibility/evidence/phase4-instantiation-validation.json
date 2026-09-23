@@ -1,0 +1,50 @@
+{
+    "timestamp": "2026-09-23T12:50:40.5439691Z",
+    "scope": "Generic instantiation workers, signatures and tuples with explicit fixture dependencies; full phase 4 remains incomplete",
+    "candidateSha256": "4fe242cf7cf1778116572caad83229848ff935de496dc39b76e15982022fd7b4",
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "languageVersion": "15.0",
+    "runtimeAsync": true,
+    "optimizationPreference": "Speed",
+    "instructionSet": "native",
+    "publish": {
+        "exitCode": 0,
+        "sha256": "03933be2dc34223ee88005d844f6919fd7786869077fd93acbb392005d81ccfb",
+        "log": "logs/csharp-phase4-instantiation-publish.log"
+    },
+    "instantiation": {
+        "cases": 2176,
+        "exact": 2176,
+        "failed": 0,
+        "operations": 43584
+    },
+    "state": {
+        "output": "26 instantiation/signature/tuple assertions; exact 100-depth, 5,000,000-work and 10,000-tuple limits",
+        "exitCode": 0
+    },
+    "regression": {
+        "cases": 613,
+        "output": "21 constraint/default/recursion state assertions; default and indexed identity depth 20000",
+        "exact": 613,
+        "failed": 0,
+        "operations": 20154
+    },
+    "repository": {
+        "goSkips": 2152,
+        "node": "24.20.0",
+        "sha256": "5772c39f3f42d5cd0a32cc94e132e8951716a1681420b1bea6159eedde6ee7ab",
+        "benchmarkScope": "Required smoke runs only; no performance claim",
+        "lintIssues": 0,
+        "go": "1.27.1",
+        "goTestResults": 163380,
+        "apiTests": 813,
+        "exitCode": 0,
+        "log": "logs/csharp-phase4-instantiation-validation.log",
+        "extensionTests": 12,
+        "toolTests": 17,
+        "command": "npx --no-install hereby validate --all"
+    },
+    "formatting": "Eleven C# files formatted/verified with token, comment and syntax preservation under both library configurations; single-line auto-properties retained. Final dotnet format whitespace verification passed.",
+    "dependenciesAdded": false
+}

@@ -65,6 +65,7 @@ public sealed class TypeContext
     public ObjectType NoConstraintType { get; }
     public ObjectType CircularConstraintType { get; }
     public ObjectType ResolvingDefaultType { get; }
+    public ObjectType EmptyGenericType { get; }
 
     public TypeContext(bool strictNullChecks = false, bool exactOptionalPropertyTypes = false)
     {
@@ -111,6 +112,8 @@ public sealed class TypeContext
         EmptyObjectType = NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved);
         UnknownEmptyObjectType = NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved);
         UnknownUnionType = strictNullChecks ? GetUnionFromSortedTypes([UndefinedType, NullType, UnknownEmptyObjectType], 0) : UnknownType;
+        EmptyGenericType = NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved);
+        EmptyGenericType.Instantiations = [];
         AnyFunctionType = NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved | ObjectFlags.NonInferrableType);
         NoConstraintType = NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved);
         CircularConstraintType = NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved);
@@ -314,6 +317,13 @@ public sealed class TypeContext
         RequireOwned(constraint);
         if ((constraint.Flags & TypeFlags.AnyOrUnknown) != 0 || constraint == baseType || (baseType.Flags & TypeFlags.Any) != 0)
             return baseType;
+        return GetOrCreateSubstitutionType(baseType, constraint);
+    }
+
+    internal SubstitutionType GetOrCreateSubstitutionType(Type baseType, Type constraint)
+    {
+        RequireOwned(baseType);
+        RequireOwned(constraint);
         if (!substitutions.TryGetValue((baseType, constraint), out var result))
             substitutions.Add((baseType, constraint), result = new(this, baseType, constraint));
         return result;

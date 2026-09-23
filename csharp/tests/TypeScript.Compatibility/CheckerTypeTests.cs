@@ -81,6 +81,9 @@ internal static class CheckerTypeTests
         var builtins = Builtins(c);
         var host = new AlgebraFixtureHost(c);
         var algebra = new TypeAlgebra(c, new([]), host);
+        bool instantiationMode = input.GetProperty("steps").EnumerateArray().Any(
+            step => Text(step, "op") is "instantiate" or "tuple" or "array" or "permissive" or "restrictive");
+        var instantiationHost = instantiationMode ? new InstantiationFixtureHost(c, algebra, new(), host) : null;
         bool constraintMode = input.GetProperty("steps").EnumerateArray().Any(
             step => Text(
                 step,
@@ -90,7 +93,7 @@ internal static class CheckerTypeTests
         var constraints = new TypeConstraints(c, algebra, new(new()), recursion, constraintHost);
         if (constraintMode)
             host.ResolveBaseConstraint = constraints.BaseConstraintAsync;
-        bool algebraUsed = constraintMode;
+        bool algebraUsed = constraintMode || instantiationMode;
         var symbols = new Dictionary<string, Symbol>(StringComparer.Ordinal);
         var symbolNames = new Dictionary<Symbol, string>();
         Symbol? SymbolFor(string name)
@@ -144,7 +147,7 @@ internal static class CheckerTypeTests
                     Bool(step, "this"),
                     static (a, b, _) => ValueTask.FromResult(a == b)).GetAwaiter().GetResult()[(int)flags],
                 "conditional" => Conditional(),
-                "noInfer" => new SubstitutionType(c, args[0], c.UnknownType),
+                "noInfer" => c.GetOrCreateSubstitutionType(args[0], c.UnknownType),
                 "distributed" => NewDistributed(),
                 "object" => c.NewObjectType((ObjectFlags)flags, SymbolFor(symbol)),
                 "mappedIdentity" => MappedIdentity(),
@@ -164,6 +167,12 @@ internal static class CheckerTypeTests
                     args,
                     SymbolFor(symbol)),
                 "reference" => c.CreateTypeReference((InterfaceType)args[0], args.AsSpan(1), (ObjectFlags)flags),
+                "instantiate" => Instantiate(),
+                "restrictive" => instantiationHost!.Engine.RestrictiveAsync(args[0]).GetAwaiter().GetResult(),
+                "permissive" => instantiationHost!.Engine.PermissiveAsync(args[0]).GetAwaiter().GetResult(),
+                "array" => instantiationHost!.Tuples.ArrayAsync(args[0], Bool(step, "this")).GetAwaiter().GetResult(),
+                "tuple" => instantiationHost!.Tuples.CreateAsync(args, step.GetProperty("elements").EnumerateArray()
+                    .Select(e => new TupleElementInfo((ElementFlags)e.GetUInt32())).ToArray(), Bool(step, "this")).GetAwaiter().GetResult(),
                 "clone" => c.CloneTypeReference((TypeReference)args[0]),
                 "union" => c.GetUnionFromSortedTypes(args, (ObjectFlags)flags,
                     symbol.Length == 0 ? null : c.CreateAlias(SymbolFor(symbol)!, Arguments(step, "aliasArgs")),
@@ -186,6 +195,20 @@ internal static class CheckerTypeTests
                 _ => throw new InvalidOperationException(op)
             };
             values.Add(type);
+            Type? Instantiate()
+            {
+                var sources = new List<Type>();
+                var targets = new List<Type>();
+                for (int i = 1; i < args.Length; i += 2)
+                {
+                    sources.Add(args[i]);
+                    targets.Add(args[i + 1]);
+                }
+                return instantiationHost!.Engine.InstantiateAsync(
+                    args[0],
+                    TypeMapper.Create(sources.ToArray(), targets.ToArray()),
+                    Alias()).GetAwaiter().GetResult();
+            }
             MappedType MappedIdentity()
             {
                 var mapped = (MappedType)c.NewObjectType(ObjectFlags.Mapped | ObjectFlags.Instantiated, SymbolFor(symbol));
@@ -332,9 +355,27 @@ internal static class CheckerTypeTests
             writer.WriteStartObject();
             writer.WriteNumber("flags", (uint)type.Flags);
             writer.WriteNumber("objectFlags", (uint)type.ObjectFlags);
-            writer.WriteString("symbol", type.Symbol is null ? "" : symbolNames[type.Symbol]);
+            writer.WriteString(
+                "symbol",
+                type.Symbol is null
+                    ? ""
+                    : symbolNames.GetValueOrDefault(type.Symbol, TypeScript.Compiler.Binding.Symbol.EscapeName(type.Symbol.Name)));
             writer.WriteBoolean("literal", type.IsLiteral);
             writer.WriteBoolean("unit", type.IsUnit);
+            if (instantiationMode && type is TupleType tuple)
+            {
+                writer.WriteStartArray("tuple");
+                writer.WriteStartArray();
+                foreach (var info in tuple.ElementInfos)
+                    writer.WriteNumberValue((uint)info.Flags);
+                writer.WriteEndArray();
+                writer.WriteNumberValue(tuple.MinLength);
+                writer.WriteNumberValue(tuple.FixedLength);
+                writer.WriteNumberValue((uint)tuple.CombinedFlags);
+                writer.WriteBooleanValue(tuple.IsReadonly);
+                writer.WriteEndArray();
+                writer.WriteNumber("thisType", Ref(tuple.ThisType));
+            }
             if (constraintMode)
             {
                 if (type is ConstrainedType constrained)
@@ -463,6 +504,9 @@ internal static class CheckerTypeTests
                 writer.WriteNumberValue(code);
             foreach (int code in constraintHost.Diagnostics.Order())
                 writer.WriteNumberValue(code);
+            if (instantiationHost is not null)
+                foreach (int code in instantiationHost.Diagnostics.Distinct().Order())
+                    writer.WriteNumberValue(code);
             writer.WriteEndArray();
         }
         writer.WriteEndObject();

@@ -23,6 +23,7 @@ type CSharpTypeStep struct {
 	This                     bool
 	Texts                    []string
 	Properties               []string
+	Elements                 []ElementFlags
 }
 
 type CSharpMapperStep struct {
@@ -142,12 +143,17 @@ func (c *Checker) CSharpResolutionProbe(operations []CSharpResolutionOperation) 
 func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMapperStep, queries []CSharpMapperQuery, comparisons [][]int) any {
 	algebra := false
 	constraints := false
+	instantiations := false
 	for _, step := range steps {
 		if step.Op == "unionReduced" || step.Op == "intersection" || step.Op == "templateNormalized" || step.Op == "caseMap" || step.Op == "regularAll" {
 			algebra = true
 		}
 		if step.Op == "baseConstraint" || step.Op == "resolvedConstraint" || step.Op == "constraint" || step.Op == "default" || step.Op == "resolvedDefault" || step.Op == "fillArgument" {
 			constraints = true
+			algebra = true
+		}
+		if step.Op == "instantiate" || step.Op == "tuple" || step.Op == "array" || step.Op == "permissive" || step.Op == "restrictive" {
+			instantiations = true
 			algebra = true
 		}
 	}
@@ -186,6 +192,28 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 		syms[name] = s
 		names[s] = name
 		return s
+	}
+	if instantiations {
+		makeArray := func(name string) *Type {
+			t := c.newObjectType(ObjectFlagsInterface|ObjectFlagsReference, c.newSymbol(ast.SymbolFlagsInterface, name))
+			d := t.AsInterfaceType()
+			p := c.newTypeParameter(c.newSymbol(ast.SymbolFlagsTypeParameter, "T"))
+			this := c.newTypeParameter(nil)
+			this.AsTypeParameter().isThisType = true
+			this.AsTypeParameter().constraint = t
+			d.thisType = this
+			d.allTypeParameters = []*Type{p, this}
+			d.target = t
+			d.resolvedTypeArguments = []*Type{p}
+			d.instantiations = map[CacheHashKey]*Type{getTypeListKey([]*Type{p}): t}
+			d.declaredMembersResolved = true
+			d.baseTypesResolved = true
+			d.declaredMembers = ast.SymbolTable{"length": c.newProperty("length", c.numberType)}
+			d.declaredIndexInfos = []*IndexInfo{c.newIndexInfo(c.numberType, p, false, nil, nil)}
+			return t
+		}
+		c.globalArrayType = makeArray("Array")
+		c.globalReadonlyArrayType = makeArray("ReadonlyArray")
 	}
 	values := []*Type{nil}
 	selectTypes := func(indices []int) []*Type {
@@ -342,6 +370,30 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 				target.AsInterfaceType().instantiations = make(map[CacheHashKey]*Type)
 			}
 			t = c.createTypeReferenceEx(target, args[1:], ObjectFlags(step.Flags))
+		case "instantiate":
+			sources := []*Type{}
+			targets := []*Type{}
+			for i := 1; i < len(args); i += 2 {
+				sources = append(sources, args[i])
+				targets = append(targets, args[i+1])
+			}
+			var alias *TypeAlias
+			if step.Symbol != "" {
+				alias = &TypeAlias{symbol: symbol(step.Symbol), typeArguments: selectTypes(step.AliasArgs)}
+			}
+			t = c.instantiateTypeWithAlias(args[0], newTypeMapper(sources, targets), alias)
+		case "restrictive":
+			t = c.getRestrictiveInstantiation(args[0])
+		case "permissive":
+			t = c.getPermissiveInstantiation(args[0])
+		case "array":
+			t = c.createArrayTypeEx(args[0], step.This)
+		case "tuple":
+			infos := make([]TupleElementInfo, len(step.Elements))
+			for i, flags := range step.Elements {
+				infos[i].flags = flags
+			}
+			t = c.createTupleTypeEx(args, infos, step.This)
 		case "clone":
 			t = c.cloneTypeReference(args[0])
 		case "union", "unionReduced", "intersection":
@@ -473,7 +525,20 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 	rows := []any{}
 	for i := 0; i < len(queue); i++ {
 		t := queue[i]
-		row := map[string]any{"flags": t.flags, "objectFlags": t.objectFlags, "symbol": names[t.symbol], "literal": isLiteralType(t), "unit": isUnitType(t)}
+		name := names[t.symbol]
+		if name == "" && t.symbol != nil {
+			name = ast.EscapeSymbolName(t.symbol.Name)
+		}
+		row := map[string]any{"flags": t.flags, "objectFlags": t.objectFlags, "symbol": name, "literal": isLiteralType(t), "unit": isUnitType(t)}
+		if instantiations && t.objectFlags&ObjectFlagsTuple != 0 {
+			d := t.AsTupleType()
+			flags := []uint32{}
+			for _, e := range d.elementInfos {
+				flags = append(flags, uint32(e.flags))
+			}
+			row["tuple"] = []any{flags, d.minLength, d.fixedLength, uint32(d.combinedFlags), d.readonly}
+			row["thisType"] = ref(d.thisType)
+		}
 		if constraints {
 			if d := t.AsConstrainedType(); d != nil {
 				row["baseConstraint"] = ref(d.resolvedBaseConstraint)

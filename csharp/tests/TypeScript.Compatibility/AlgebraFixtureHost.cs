@@ -79,7 +79,7 @@ internal sealed class AlgebraFixtureHost(TypeContext context) : ITypeAlgebraHost
     public ValueTask<bool> MatchesPatternAsync(Type literal, Type pattern, CancellationToken cancellation)
             => ValueTask.FromResult(Matches(literal, pattern));
 
-    private static O GenericFlags(Type type)
+    internal static O GenericFlags(Type type)
     {
         if (type is UnionOrIntersectionType or SubstitutionType)
         {
@@ -110,7 +110,7 @@ internal sealed class AlgebraFixtureHost(TypeContext context) : ITypeAlgebraHost
             && type is StructuredType { Properties: null or { Count: 0 }, CallSignatures.Count: 0, ConstructSignatures.Count: 0, IndexInfos.Count: 0 };
     }
 
-    private bool Related(Type source, Type target, bool strict)
+    internal bool Related(Type source, Type target, bool strict)
     {
         if (source is LiteralType sourceLiteral)
             source = sourceLiteral.RegularType;

@@ -1,0 +1,199 @@
+using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Checking;
+using Type = TypeScript.Compiler.Checking.Type;
+using F = TypeScript.Compiler.Checking.TypeFlags;
+using O = TypeScript.Compiler.Checking.ObjectFlags;
+
+namespace TypeScript.Compatibility;
+
+// Fixed, resolved fixture dependencies. No AST/member/inference fallback is
+// supplied: an unsupported query fails the differential test.
+internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleTypeHost
+{
+    private readonly TypeContext context;
+    private readonly TypeAlgebra algebra;
+    private readonly AlgebraFixtureHost relations;
+    private readonly Dictionary<(Type, Type, AccessFlags), Type> accesses = [];
+    private readonly InterfaceType array, readonlyArray;
+    internal TupleTypes Tuples { get; }
+    internal TypeInstantiation Engine { get; }
+    internal List<int> Diagnostics { get; } = [];
+    internal Action<Type>? OnIndex { get; set; }
+
+    internal InstantiationFixtureHost(TypeContext context, TypeAlgebra algebra, CheckerLinks links, AlgebraFixtureHost relations)
+    {
+        this.context = context;
+        this.algebra = algebra;
+        this.relations = relations;
+        array = ArrayTargetType("Array");
+        readonlyArray = ArrayTargetType("ReadonlyArray");
+        Tuples = new(context, algebra, links, this);
+        Engine = new(context, algebra, links, this);
+    }
+
+    private InterfaceType ArrayTargetType(string name)
+    {
+        var symbol = new Symbol(SymbolFlags.Interface | SymbolFlags.Transient, name);
+        var target = (InterfaceType)context.NewObjectType(O.Interface | O.Reference, symbol);
+        var parameter = context.NewTypeParameter(new(SymbolFlags.TypeParameter | SymbolFlags.Transient, "T"));
+        var thisType = context.NewTypeParameter();
+        thisType.IsThisType = true;
+        thisType.Constraint = target;
+        target.ThisType = thisType;
+        target.Target = target;
+        target.AllTypeParameters = Array.AsReadOnly<Type>([parameter, thisType]);
+        target.ResolvedTypeArguments = Array.AsReadOnly<Type>([parameter]);
+        target.Instantiations = new() { [new TypeCacheKey([parameter])] = target };
+        target.DeclaredMembersResolved = true;
+        target.BaseTypesResolved = true;
+        return target;
+    }
+
+    public Type ArrayTarget(bool isReadonly) => isReadonly ? readonlyArray : array;
+
+    public ValueTask<IReadOnlyList<Type>> TypeArgumentsAsync(TypeReference type, CancellationToken cancellation)
+            =>
+                ValueTask.FromResult(
+                    type.ResolvedTypeArguments ?? throw new InvalidOperationException("Fixture requires deferred type arguments"));
+
+    public ValueTask<Type> NormalizedReferenceAsync(InterfaceType target, IReadOnlyList<Type> arguments, CancellationToken cancellation)
+            => Tuples.NormalizeReferenceAsync(target, arguments, cancellation: cancellation);
+
+    public ValueTask<Type> ObjectInstantiationAsync(ObjectType type, TypeMapper mapper, TypeAlias? alias, CancellationToken cancellation)
+            => throw new InvalidOperationException("Fixture requires anonymous/mapped object instantiation");
+
+    public ValueTask<Type?> InferReverseMappedAsync(Type source, MappedType mapped, IndexType constraint, CancellationToken cancellation)
+            => throw new InvalidOperationException("Fixture requires reverse mapped inference");
+
+    public ValueTask<bool> IsGenericMappedAsync(Type type, CancellationToken cancellation)
+            =>
+                type is MappedType
+                    ? throw new InvalidOperationException("Fixture requires mapped generic analysis")
+                    : ValueTask.FromResult(false);
+
+    public async ValueTask<Type?> ArrayLikeElementAsync(Type type, CancellationToken cancellation)
+    {
+        if ((type.Flags & F.Any) != 0)
+            return type;
+        if (type is TypeReference reference && (reference.Target == array || reference.Target == readonlyArray))
+            return await ArrayElement(reference, cancellation).ConfigureAwait(false);
+        if ((type.Flags & F.Primitive) != 0)
+            return null;
+        throw new InvalidOperationException("Fixture requires array-like structural analysis");
+    }
+
+    private async ValueTask<Type> ArrayElement(TypeReference reference, CancellationToken cancellation)
+    {
+        if ((reference.ObjectFlags & O.MembersResolved) == 0)
+        {
+            var target = (InterfaceType)reference.ReferencedType;
+            var parameter = target.ResolvedTypeArguments![0];
+            var mapped = await Engine.InstantiateAsync(
+                parameter,
+                TypeMapper.Create([parameter], [reference.ResolvedTypeArguments![0]]),
+                cancellation: cancellation).ConfigureAwait(false)
+                ?? throw new InvalidOperationException("Array element instantiation failed");
+            reference.IndexInfos = [context.NewIndexInfo(context.NumberType, mapped)];
+            reference.ObjectFlags |= O.MembersResolved;
+        }
+        return reference.IndexInfos[0].ValueType;
+    }
+
+    public async ValueTask<Type> IndexTypeAsync(Type target, CancellationToken cancellation)
+    {
+        OnIndex?.Invoke(target);
+        if ((target.Flags & F.InstantiableNonPrimitive) != 0)
+            return context.GetIndexTypeForGenericType(target);
+        if (target == context.WildcardType)
+            return target;
+        if ((target.Flags & F.Unknown) != 0)
+            return context.NeverType;
+        if ((target.Flags & (F.Any | F.Never)) != 0)
+            return context.StringNumberSymbolType;
+        if (target is ObjectType { Members: { } members })
+            return await algebra.UnionAsync(
+                members.Keys.Select(context.GetStringLiteralType).ToArray(),
+                cancellation: cancellation).ConfigureAwait(false);
+        if ((target.Flags & F.Primitive) != 0)
+            return context.NeverType; // No standard primitive libraries in this fixture program.
+        throw new InvalidOperationException("Fixture requires general keyof resolution");
+    }
+
+    public ValueTask<Type> IndexedAccessAsync(Type objectType, Type indexType, CancellationToken cancellation)
+            => IndexedAccessAsync(objectType, indexType, 0, null, cancellation);
+
+    public async ValueTask<Type> IndexedAccessAsync(
+        Type objectType,
+        Type indexType,
+        AccessFlags flags,
+        TypeAlias? alias,
+        CancellationToken cancellation)
+    {
+        if ((objectType.Flags & F.Any) != 0)
+            return objectType;
+        if ((objectType.Flags & F.Never) != 0)
+            return context.NeverType;
+        if (objectType is TypeParameter || (indexType.Flags & F.InstantiableNonPrimitive) != 0)
+        {
+            if (alias is not null)
+                throw new InvalidOperationException("Fixture requires indexed alias caching");
+            var key = (objectType, indexType, flags & AccessFlags.Persistent);
+            if (!accesses.TryGetValue(key, out var cached))
+                accesses.Add(key, cached = context.NewIndexedAccessType(key.objectType, key.indexType, key.Item3));
+            return cached;
+        }
+        if ((indexType.Flags & F.Number) != 0
+            && objectType is TypeReference reference
+            && (reference.Target == array || reference.Target == readonlyArray))
+            return await ArrayElement(reference, cancellation).ConfigureAwait(false);
+        if ((indexType.Flags & F.Number) != 0 && objectType is TypeReference { Target: TupleType } tuple)
+        {
+            if ((tuple.ObjectFlags & O.MembersResolved) == 0)
+            {
+                var target = (TupleType)tuple.ReferencedType;
+                var parameters = target.ResolvedTypeArguments!;
+                var mapper = TypeMapper.Create(parameters.ToArray(), tuple.ResolvedTypeArguments!.Take(parameters.Count).ToArray());
+                var formal = await algebra.UnionAsync(parameters, cancellation: cancellation).ConfigureAwait(false);
+                var element = await Engine.InstantiateAsync(formal, mapper, cancellation: cancellation).ConfigureAwait(false)
+                    ?? throw new InvalidOperationException("Tuple index instantiation failed");
+                var arrayTarget = target.IsReadonly ? readonlyArray : array;
+                var arrayParameter = arrayTarget.ResolvedTypeArguments![0];
+                var indexValue = await Engine.InstantiateAsync(
+                    arrayParameter,
+                    TypeMapper.Create([arrayParameter], [element]),
+                    cancellation: cancellation).ConfigureAwait(false)
+                    ?? throw new InvalidOperationException("Tuple base index instantiation failed");
+                tuple.IndexInfos = [context.NewIndexInfo(context.NumberType, indexValue)];
+                tuple.ObjectFlags |= O.MembersResolved;
+            }
+            return tuple.IndexInfos[0].ValueType;
+        }
+        if ((indexType.Flags & F.Number) != 0 && (objectType.Flags & F.Primitive) != 0)
+            return context.UnknownType;
+        if (indexType is LiteralType { Value: string name })
+            return await relations.GetPropertyTypeAsync(objectType, name, cancellation).ConfigureAwait(false) ?? context.UnknownType;
+        throw new InvalidOperationException("Fixture requires general indexed access");
+    }
+
+    public ValueTask<Type> ConditionalInstantiationAsync(
+        ConditionalType type,
+        TypeMapper mapper,
+        TypeAlias? alias,
+        CancellationToken cancellation)
+            => throw new InvalidOperationException("Fixture requires conditional evaluation");
+
+    public ValueTask<bool> IsGenericTypeAsync(Type type, CancellationToken cancellation)
+            => ValueTask.FromResult(AlgebraFixtureHost.GenericFlags(type) != 0);
+
+    public ValueTask<bool> IsAssignableAsync(Type source, Type target, CancellationToken cancellation)
+            => ValueTask.FromResult((source.Flags & F.Any) != 0 || relations.Related(source, target, false));
+
+    public ValueTask<bool> IsEmptyAnonymousAsync(Type type, CancellationToken cancellation)
+            => relations.IsEmptyAnonymousObjectAsync(type, cancellation);
+
+    public void InstantiationLimit(int depth, int count) => Diagnostics.Add(2589);
+
+    public void TupleTooLarge() => Diagnostics.Add(2800);
+
+    public void CrossProductTooLarge(long size) => Diagnostics.Add(2590);
+}

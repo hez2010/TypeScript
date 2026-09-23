@@ -21,6 +21,7 @@ public sealed class Symbol
     }
 
     public SymbolFlags Flags { get; internal set; }
+    public CheckFlags CheckFlags { get; internal set; }
     public string Name { get; }
     public Symbol? Parent { get; internal set; }
     public Symbol? ExportSymbol { get; internal set; }
