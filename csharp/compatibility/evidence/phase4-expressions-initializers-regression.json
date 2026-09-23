@@ -1,0 +1,22 @@
+{
+    "timestamp": "2026-09-23T23:48:21.116Z",
+    "scope": "Variable, parameter and property initializer types with required flow, binding-pattern and contextual services",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "managed": false,
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "cases": 48,
+    "expressionQueries": 0,
+    "constantQueries": 0,
+    "keyQueries": 0,
+    "indexQueries": 0,
+    "numericStringConversions": 0,
+    "relationPairs": 0,
+    "relationKeyQueries": 0,
+    "exact": 48,
+    "failed": 0,
+    "inputSha256": "1d93778ab8987497d8a3279e08195d175886fd6edf5e105d762ddd452b9de936",
+    "referenceOutputSha256": "6a0aae6912e6b422b21ad2aeb2697e31d3dcb5c1c50672820417345dcb080d1e",
+    "outputSha256": "1f7e20d4c85c6be42e7690b0e254413014f6ce904528c158bacf4b0171ed9d92",
+    "candidateSha256": "61a386f162df905c726bc8ababc9c5ff95b076339d2952a78f39cebf14f4c6a7",
+    "oracleSha256": "c5d54ec88f50a762838fa6caf91efbe05d05909b7bf1818754b756bdb3db9e20"
+}

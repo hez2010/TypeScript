@@ -120,6 +120,24 @@ public sealed class CompilerOptions
 {
     public bool StrictOption(string name) => Boolean(name) ?? Boolean("strict") ?? true;
 
+    internal int EmitTargetYear => String("target") switch
+    {
+        "es5" => 2009,
+        "es6" or "es2015" => 2015,
+        "es2016" => 2016,
+        "es2017" => 2017,
+        "es2018" => 2018,
+        "es2019" => 2019,
+        "es2020" => 2020,
+        "es2021" => 2021,
+        "es2022" => 2022,
+        "es2023" => 2023,
+        "es2024" => 2024,
+        "es2025" => 2025,
+        "esnext" => int.MaxValue,
+        _ => Number("target") switch { 1 => 2009, >= 2 and <= 12 and var value => (int)value + 2013, 99 => int.MaxValue, _ => 2025 }
+    };
+
     private readonly Dictionary<string, JsonElement> values = new(StringComparer.Ordinal);
     public IReadOnlyDictionary<string, JsonElement> Values => values;
 

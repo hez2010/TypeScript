@@ -152,6 +152,9 @@ internal sealed partial class ProgramTypeHost : ISignatureHost, IStructuredMembe
         cancellation.ThrowIfCancellationRequested();
         if (VariableBody is not null)
             return await VariableBody(symbol, reportErrors, cancellation);
+        if (symbol.ValueDeclaration is VariableDeclarationNode or ParameterDeclarationNode or PropertyDeclarationNode
+            or PropertySignatureDeclarationNode or BindingElementNode)
+            return await Variables.GetAsync(symbol.ValueDeclaration, reportErrors, cancellation);
         Type result;
         if (symbol.ValueDeclaration is ITypedNode { Type: { } annotation } declaration)
         {

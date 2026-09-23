@@ -359,7 +359,7 @@ internal sealed class TypeNodes(TypeContext context, CheckerLinks links, Checker
             : algebra.UnionAsync([type, missing], cancellation: cancellation);
     }
 
-    private Type UniqueSymbol(SyntaxNode? node)
+    internal Type UniqueSymbol(SyntaxNode? node)
     {
         while (node is ParenthesizedTypeNode)
             node = node.Parent;

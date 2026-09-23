@@ -388,6 +388,51 @@ internal static class CheckerProgramTests
             }
             writer.WriteEndArray();
         }
+        if (input.TryGetProperty("expressions", out var expressionOption) && expressionOption.GetBoolean())
+        {
+            writer.WriteStartArray("expressionQueries");
+            foreach (var declaration in nodes.OfType<VariableDeclarationNode>())
+                if (declaration.Initializer is { } expression)
+                {
+                    writer.WriteStartArray();
+                    writer.WriteNumberValue(Node(expression));
+                    writer.WriteNumberValue(TypeId(await typeHost!.Expressions.CheckAsync(expression)));
+                    writer.WriteEndArray();
+                }
+            writer.WriteEndArray();
+            writer.WriteStartArray("suggestions");
+            foreach (int code in typeHost!.Suggestions.Order())
+                writer.WriteNumberValue(code);
+            writer.WriteEndArray();
+        }
+        if (input.TryGetProperty("constants", out var constantOption) && constantOption.GetBoolean())
+        {
+            writer.WriteStartArray("constantQueries");
+            foreach (var member in nodes.OfType<EnumMemberNode>())
+            {
+                var result = await typeHost!.EnumValues.GetAsync(member);
+                writer.WriteStartArray();
+                writer.WriteNumberValue(Node(member));
+                if (result.Value is null)
+                    writer.WriteNullValue();
+                else
+                {
+                    writer.WriteStartArray();
+                    writer.WriteStringValue(result.Value is string ? "string" : "number");
+                    if (result.Value is string text)
+                        writer.WriteBase64StringValue(Wtf8.Encode(text));
+                    else
+                        writer.WriteStringValue(
+                            BitConverter.DoubleToUInt64Bits((double)result.Value).ToString("x16", CultureInfo.InvariantCulture));
+                    writer.WriteEndArray();
+                }
+                writer.WriteBooleanValue(result.IsSyntacticallyString);
+                writer.WriteBooleanValue(result.ResolvedOtherFiles);
+                writer.WriteBooleanValue(result.HasExternalReferences);
+                writer.WriteEndArray();
+            }
+            writer.WriteEndArray();
+        }
         if (input.TryGetProperty("indexing", out var indexingOption) && indexingOption.GetBoolean())
             await CheckerIndexTests.WriteAsync(writer, nodes, typeHost!, TypeId, Node);
         if (input.TryGetProperty("members", out var memberOption) && memberOption.GetBoolean())

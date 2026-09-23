@@ -377,13 +377,32 @@ node csharp/tools/checker-program.mjs --inference --record phase4-inference
 & ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-inference-safety
 ```
 
+## Constants, primitive expressions and declaration initializers
+
+`Semantics/ConstantEvaluator.cs` evaluates numeric/string operations and templates with entity callbacks, outer-expression skip modes, and cross-file/external-reference provenance. `EnumValues.cs` adds constant/computed enum values, automatic numbering, forward-reference checks, ambient/const enum rules and cancellation recovery. Declaration ordering and computed initializer checking retain required host services.
+
+`ExpressionTypes.cs`, `ExpressionChecks.cs` and `TypePredicates.cs` implement primitive literals, unary results, `typeof`/`void`, non-null assertions, conditional/template result types, null/truthiness checks and expression-state restoration. `VariableTypes.cs` implements annotation/initializer selection, optionality, automatic variable types, setter parameters, catch variables and widening. Binding patterns, property-initialization flow and context-sensitive parameters remain required services. General binary/access/call/object/array/function expression checking is still incomplete.
+
+The numeric helpers now retain the reference's explicit NaN payload and remainder special cases. Integer exponentiation follows its exact-integer path and 256-bit intermediate rounding, including the pinned implementation's int64 conversion boundary. Existing implementation-approximated floating-power policy is unchanged.
+
+NativeAOT passes **40 exact primitive-expression programs** (256 expression queries), **48 exact constant/enum programs** (292 value/provenance queries), and **48 exact initializer programs**, at single and reference-default concurrency. Twenty-five native safety assertions cover cache/cancellation recovery, source-state restoration, literal widening, skip modes, signed zero and **20,000-level** expression/constant traversal.
+
+The same artifact passes 2,180 earlier source-program comparisons, 2,904 type/state cases and 616 earlier safety assertions. The existing foundation verifier passes 458,098 assertions, including 676 numeric pairs; its 18 permitted floating-power differences remain within the previously recorded policy. Evidence: [expressions](../csharp/compatibility/evidence/phase4-expressions.json), [constants](../csharp/compatibility/evidence/phase4-expressions-constants-regression.json), [initializers](../csharp/compatibility/evidence/phase4-expressions-initializers-regression.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-expressions-validation.json).
+
+```powershell
+node csharp/tools/checker-program.mjs --expressions --record phase4-expressions
+node csharp/tools/checker-program.mjs --constants --record phase4-expressions-constants-regression
+node csharp/tools/checker-program.mjs --initializers --record phase4-expressions-initializers-regression
+& ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-expressions-safety
+```
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
 
 1. Complete the program/checker entry point, module interop/type adaptation, computed exports and type/value symbol resolution. Program-backed globals, augmentation merging, declaration headers and alias/export algorithms now exist; their remaining semantic callbacks must be connected.
 2. Complete relation diagnostics and remaining type-node dependencies; connect the implemented declaration/type-node, algebra, scope, inference, instantiation and tuple algorithms to complete checker services.
-3. Call-site inference, context-sensitive expression typing, overload selection, expression/declaration checking, JavaScript and JSDoc semantics.
+3. Remaining expression forms, call-site inference, context-sensitive expression typing, overload selection, full declaration checking, JavaScript and JSDoc semantics.
 4. Flow analysis and narrowing, evolving arrays, definite assignment, exhaustiveness and semantic diagnostics.
 5. Indexed expression checking, JSX, decorators and grammar checks.
 6. Type display, node builders, symbol accessibility and emit-resolver APIs.

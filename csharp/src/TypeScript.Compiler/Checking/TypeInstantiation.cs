@@ -59,6 +59,8 @@ internal sealed partial class TypeInstantiation(TypeContext context, TypeAlgebra
         count = 0;
     }
 
+    internal void ResetExpressionCount() => count = 0;
+
     internal void ClearActiveCaches()
     {
         foreach (var entry in active)

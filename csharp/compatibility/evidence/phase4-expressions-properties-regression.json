@@ -1,0 +1,22 @@
+{
+    "timestamp": "2026-09-23T23:48:32.344Z",
+    "scope": "Composite properties, apparent types and intersection reduction with explicit relation and signature dependencies; full checker integration remains incomplete",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "managed": false,
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "cases": 192,
+    "expressionQueries": 0,
+    "constantQueries": 0,
+    "keyQueries": 0,
+    "indexQueries": 0,
+    "numericStringConversions": 3818,
+    "relationPairs": 0,
+    "relationKeyQueries": 0,
+    "exact": 192,
+    "failed": 0,
+    "inputSha256": "42a09ac0097c94fe2374506f7b5b0d2e14319d352935816e388f7982e7b20e07",
+    "referenceOutputSha256": "c24d1d4737eea46c598f094a2599552b52454eaf79a90fa5a88dc248eebee66d",
+    "outputSha256": "09c8f197585e84127e1a866d0bfad9f082f6bea54c916dac3d7e76009d4d8d52",
+    "candidateSha256": "61a386f162df905c726bc8ababc9c5ff95b076339d2952a78f39cebf14f4c6a7",
+    "oracleSha256": "c5d54ec88f50a762838fa6caf91efbe05d05909b7bf1818754b756bdb3db9e20"
+}

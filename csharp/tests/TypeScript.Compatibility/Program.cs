@@ -13,6 +13,11 @@ internal static class Program
     {
         try
         {
+            if (args is ["--checker-expressions-safety"])
+            {
+                CheckerExpressionTests.Safety().GetAwaiter().GetResult();
+                return 0;
+            }
             if (args is ["--checker-inference-safety"])
             {
                 CheckerInferenceTests.Safety().GetAwaiter().GetResult();

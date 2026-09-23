@@ -11,7 +11,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/jsnum"
 )
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -186,6 +186,25 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 			}
 			if result != nil {
 				typeQueries = append(typeQueries, []any{nodeIDs[node], tid(result)})
+			}
+		}
+	}
+	constantRows, expressionRows := []any{}, []any{}
+	if constantQueries || expressionQueries {
+		for _, node := range nodes {
+			if expressionQueries && ast.IsVariableDeclaration(node) && node.Initializer() != nil {
+				expressionRows = append(expressionRows, []any{nodeIDs[node.Initializer()], tid(c.checkExpression(node.Initializer()))})
+			}
+			if constantQueries && ast.IsEnumMember(node) {
+				value := c.getEnumMemberValue(node)
+				var scalar any
+				switch v := value.Value.(type) {
+				case string:
+					scalar = []any{"string", base64.StdEncoding.EncodeToString([]byte(v))}
+				case jsnum.Number:
+					scalar = []any{"number", fmt.Sprintf("%016x", math.Float64bits(float64(v)))}
+				}
+				constantRows = append(constantRows, []any{nodeIDs[node], scalar, value.IsSyntacticallyString, value.ResolvedOtherFiles, value.HasExternalReferences})
 			}
 		}
 	}
@@ -660,6 +679,18 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	}
 	if indexingQueries {
 		result["keyQueries"], result["indexQueries"] = keyRows, indexRows
+	}
+	if constantQueries {
+		result["constantQueries"] = constantRows
+	}
+	if expressionQueries {
+		result["expressionQueries"] = expressionRows
+		suggestions := []int{}
+		for _, d := range c.suggestionDiagnostics.GetDiagnostics() {
+			suggestions = append(suggestions, int(d.Code()))
+		}
+		slices.Sort(suggestions)
+		result["suggestions"] = suggestions
 	}
 	return result
 }

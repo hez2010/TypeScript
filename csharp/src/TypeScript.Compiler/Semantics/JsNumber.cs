@@ -7,6 +7,7 @@ namespace TypeScript.Compiler.Semantics;
 public static class JsNumber
 {
     public const double MaxSafeInteger = 9007199254740991;
+    private static readonly double InvalidNumber = BitConverter.UInt64BitsToDouble(0x7ff8000000000001);
 
     public static double FromString(string text)
     {
@@ -32,7 +33,7 @@ public static class JsNumber
                 {
                     int digit = Digit(value[i]);
                     if (digit < 0 || digit >= 1 << bits)
-                        return double.NaN;
+                        return InvalidNumber;
                     if (digit != 0 && first == value.Length)
                         first = i;
                 }
@@ -50,9 +51,9 @@ public static class JsNumber
         }
         foreach (char ch in value)
             if (ch is not (>= '0' and <= '9' or '+' or '-' or '.' or 'e' or 'E'))
-                return double.NaN;
+                return InvalidNumber;
         return double.TryParse(value, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent,
-            CultureInfo.InvariantCulture, out double result) ? result : double.NaN;
+            CultureInfo.InvariantCulture, out double result) ? result : InvalidNumber;
     }
 
     private static int Digit(char value) => value is >= '0' and <= '9' ? value - '0'
@@ -84,14 +85,54 @@ public static class JsNumber
 
     public static double BitwiseXor(double x, double y) => ToInt32(x) ^ ToInt32(y);
 
-    public static double Remainder(double x, double y) => x % y;
+    public static double Remainder(double x, double y)
+    {
+        if (double.IsNaN(x) || double.IsNaN(y) || double.IsInfinity(x))
+            return InvalidNumber;
+        if (double.IsInfinity(y))
+            return x;
+        if (y == 0)
+            return InvalidNumber;
+        return x == 0 ? x : x % y;
+    }
 
     public static double Exponentiate(double value, double exponent)
     {
         if (((value == 1 || value == -1) && double.IsInfinity(exponent)) || (value == 1 && double.IsNaN(exponent)))
-            return double.NaN;
-        // ECMAScript permits implementation-approximated exponentiation.
-        // Preserve the required special cases above; use the optimized BCL.
+            return InvalidNumber;
+        if (value >= long.MinValue && value <= (double)long.MaxValue && value == Math.Truncate(value)
+            && exponent >= 0 && exponent <= (double)long.MaxValue && exponent == Math.Truncate(exponent) && !double.IsInfinity(exponent))
+        {
+            double magnitude = exponent * Math.Log2(Math.Abs(value));
+            if (magnitude > 53 && magnitude <= Math.Log2(double.MaxValue))
+            {
+                // Match the reference's int64 conversion at the rounded upper boundary.
+                long integer = value == (double)long.MaxValue ? long.MinValue : (long)value;
+                var exact = BigInteger.Pow(new BigInteger(integer), (int)exponent);
+                var absolute = BigInteger.Abs(exact);
+                int discarded = (int)absolute.GetBitLength() - 256;
+                if (discarded > 0)
+                {
+                    var leading = absolute >> discarded;
+                    var remainder = absolute - (leading << discarded);
+                    var half = BigInteger.One << (discarded - 1);
+                    if (remainder > half || remainder == half && !leading.IsEven)
+                        leading++;
+                    exact = (leading << discarded) * exact.Sign;
+                }
+                return double.Parse(exact.ToString(CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
+            }
+        }
+        if (exponent == 0 || value == 1)
+            return 1;
+        if (exponent == 1)
+            return value;
+        if (double.IsNaN(value) || double.IsNaN(exponent))
+            return InvalidNumber;
+        if (value != 0 && double.IsFinite(value) && exponent is 0.5 or -0.5)
+            return exponent == 0.5 ? Math.Sqrt(value) : 1 / Math.Sqrt(value);
+        if (value < 0 && double.IsFinite(value) && double.IsFinite(exponent) && exponent != Math.Truncate(exponent))
+            return InvalidNumber;
         return Math.Pow(value, exponent);
     }
 }

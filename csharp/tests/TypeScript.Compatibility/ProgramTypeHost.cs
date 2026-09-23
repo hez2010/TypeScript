@@ -1,5 +1,3 @@
-using System.Globalization;
-using System.Numerics;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Checking;
@@ -16,7 +14,6 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
     private readonly CheckerLinks links;
     private readonly ProgramScopeHost program;
     private readonly AlgebraFixtureHost relations;
-    private readonly Dictionary<EnumMemberNode, object?> enumValues = [];
     internal TypeNodes Nodes { get; }
     internal DeclaredTypes Declared { get; }
     internal TypeReferences References { get; }
@@ -154,6 +151,11 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
             Widening,
             links,
             this);
+        EnumValues = new(program.Symbols, program.EntityNames, links, this);
+        Predicates = new(context, Instantiation.Constraints, Relations);
+        ExpressionChecks = new(context, Facts, this);
+        Expressions = new(context, Algebra, Facts, Relations, Instantiation.Engine, EnumValues.Evaluator, this);
+        Variables = new(context, Algebra, Widening, program.Symbols, Signatures, this);
         relations.EmptyAnonymousSource = Views.EmptyAnonymousAsync;
         relations.EmptyObjectSource = Views.EmptyObjectAsync;
         relations.PropertiesSource = Properties.GetAsync;
@@ -255,63 +257,11 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
             Diagnostics.Add(code);
     }
 
-    public async ValueTask<Type> LiteralExpressionAsync(SyntaxNode expression, CancellationToken cancellation)
-    {
-        cancellation.ThrowIfCancellationRequested();
-        if (expression is PrefixUnaryExpressionNode { Operand: NumericLiteralNode or BigIntLiteralNode } unary)
-            await LiteralExpressionAsync(unary.Operand!, cancellation).ConfigureAwait(false);
-        Type result = expression switch
-        {
-            StringLiteralNode literal => context.GetStringLiteralType(literal.Text),
-            NoSubstitutionTemplateLiteralNode literal => context.GetStringLiteralType(literal.Text),
-            NumericLiteralNode literal => context.GetNumberLiteralType(double.Parse(literal.Text, CultureInfo.InvariantCulture)),
-            BigIntLiteralNode literal => context.GetBigIntLiteralType(BigInt(literal.Text)),
-            { Kind: SyntaxKind.TrueKeyword } => context.RegularTrueType,
-            { Kind: SyntaxKind.FalseKeyword } => context.RegularFalseType,
-            PrefixUnaryExpressionNode { Operator: SyntaxKind.MinusToken, Operand: NumericLiteralNode literal }
-                => context.GetNumberLiteralType(-double.Parse(literal.Text, CultureInfo.InvariantCulture)),
-            PrefixUnaryExpressionNode { Operator: SyntaxKind.MinusToken, Operand: BigIntLiteralNode literal }
-                => context.GetBigIntLiteralType(-BigInt(literal.Text)),
-            _ => throw new InvalidOperationException("Probe requires non-literal expression checking")
-        };
-        return context.GetFreshLiteralType((LiteralType)result);
-    }
+    public ValueTask<Type> LiteralExpressionAsync(SyntaxNode expression, CancellationToken cancellation)
+        => Expressions.CheckAsync(expression, cancellation: cancellation);
 
-    private static BigInteger BigInt(string text)
-    {
-        text = text.TrimEnd('n');
-        return text.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
-            ? BigInteger.Parse("0" + text[2..], NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture)
-            : BigInteger.Parse(text, CultureInfo.InvariantCulture);
-    }
+    public bool IsDynamicEnumName(EnumMemberNode member) => TypeScript.Compiler.Checking.EnumValues.DynamicName(member.Name!);
 
-    public bool IsDynamicEnumName(EnumMemberNode member) => member.Name is ComputedPropertyNameNode;
-
-    public ValueTask<object?> EnumValueAsync(EnumMemberNode member, CancellationToken cancellation)
-    {
-        if (!enumValues.ContainsKey(member))
-        {
-            double next = 0;
-            foreach (var item in ((EnumDeclarationNode)member.Parent!).Members!.Cast<EnumMemberNode>())
-            {
-                cancellation.ThrowIfCancellationRequested();
-                object? value = item.Initializer switch
-                {
-                    null => next,
-                    StringLiteralNode literal => literal.Text,
-                    NumericLiteralNode literal => double.Parse(literal.Text, CultureInfo.InvariantCulture),
-                    PrefixUnaryExpressionNode { Operator: SyntaxKind.MinusToken, Operand: NumericLiteralNode literal }
-                        => -double.Parse(literal.Text, CultureInfo.InvariantCulture),
-                    _ => throw new InvalidOperationException("Probe requires computed enum values")
-                };
-                if (value is not double and not string)
-                    throw new InvalidOperationException("Probe requires computed enum values");
-                enumValues[item] = value;
-                next = value is double number ? number + 1 : double.NaN;
-                if (item.Initializer is null && double.IsNaN(next))
-                    throw new InvalidOperationException("Probe requires invalid enum diagnostics");
-            }
-        }
-        return ValueTask.FromResult(enumValues[member]);
-    }
+    public async ValueTask<object?> EnumValueAsync(EnumMemberNode member, CancellationToken cancellation)
+        => (await EnumValues.GetAsync(member, cancellation)).Value;
 }

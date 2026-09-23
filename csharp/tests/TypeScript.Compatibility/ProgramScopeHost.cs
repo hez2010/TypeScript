@@ -45,7 +45,7 @@ internal sealed partial class ProgramScopeHost(TypeContext context, CheckerLinks
 
     public Symbol LateBoundSymbol(Symbol symbol)
         =>
-            symbol.Name != Symbol.InternalPrefix + "computed"
+            (symbol.Flags & SymbolFlags.ClassMember) == 0 || symbol.Name != Symbol.InternalPrefix + "computed"
                 ? symbol
                 : throw new InvalidOperationException("Probe requires computed member binding");
 
@@ -130,7 +130,9 @@ internal sealed partial class ProgramScopeHost(TypeContext context, CheckerLinks
         SyntaxNode? declaration,
         bool deferred)
     {
-        if (location is not null && meaning == SymbolFlags.Value)
+        if (location is not null && meaning == SymbolFlags.Value
+            && !(declaration is null && (symbol.Flags & SymbolFlags.EnumMember) != 0
+                && (symbol.Flags & ~(SymbolFlags.EnumMember | SymbolFlags.Transient)) == 0))
             throw new InvalidOperationException("Probe requires value-use checking");
     }
 

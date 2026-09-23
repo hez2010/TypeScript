@@ -1,0 +1,22 @@
+{
+    "timestamp": "2026-09-23T23:48:19.875Z",
+    "scope": "Constant and enum evaluation with provenance, forward references and numeric boundaries",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "managed": false,
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "cases": 48,
+    "expressionQueries": 0,
+    "constantQueries": 292,
+    "keyQueries": 0,
+    "indexQueries": 0,
+    "numericStringConversions": 0,
+    "relationPairs": 0,
+    "relationKeyQueries": 0,
+    "exact": 48,
+    "failed": 0,
+    "inputSha256": "a1bca9bde72079e801fa127a3b7c3c0262a8247de342ca85469561ba7c149785",
+    "referenceOutputSha256": "4d75bc5e8a58c9b919e541ef7a0bde3567a90ec9ee15b2d8c0fc06f57a65dcbf",
+    "outputSha256": "6e5ca028eda49c5bce353b86ce5b8fa02d0a4c599e822b954b7c7d0229cb60ad",
+    "candidateSha256": "61a386f162df905c726bc8ababc9c5ff95b076339d2952a78f39cebf14f4c6a7",
+    "oracleSha256": "c5d54ec88f50a762838fa6caf91efbe05d05909b7bf1818754b756bdb3db9e20"
+}

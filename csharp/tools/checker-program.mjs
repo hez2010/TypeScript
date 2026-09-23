@@ -451,6 +451,76 @@ for (const strict of [false, true]) {
     }
 }
 for (const input of cases.filter(c => c.name.startsWith("generic-relations:"))) input.genericRelations = true;
+for (const isolatedModules of [false, true]) {
+    for (
+        const [name, source] of Object.entries({
+            numeric: "enum E{A=1<<3,B=A|2,C=(B+1)*2,D=~A,E=2**3,F=9%4,G=-0,H=0/0,I=1/0}type T=E;",
+            strings: "enum E{A='a',B=A+'b',C=`x${1+2}`,D='x'+4,E=5+'x'}type T=E;",
+            references: "enum E{A=1,B=E.A+1,C=E['B']+1}enum F{A=E.A,B=E.B}type T=E|F;",
+            forward: "enum E{A=A,B=C,C=3,D=F.A}enum F{A=1}type T=E|F;",
+            invalidNames: "enum E{'0'=1,'NaN'=2,'Infinity'=3,[1+1]=4}type T=E;",
+            ambient: "declare enum E{A,B=2,C}declare const enum F{A,B=2,C}type T=E|F;",
+            constants: "const N=2;const S='a';const X=N+1;enum E{A=N,B=X,C=S,D=C+'b'}type T=E;",
+            constantErrors: "const enum E{A=0/0,B=1/0,C=-1/0,D=true}type T=E;",
+            missing: "enum E{A='a',B,C=3,D}type T=E;",
+            numericBoundaries: "enum E{A=0%0,B=(1/0)%2,C=2%(1/0),D=(-0)%2,E=(-1)**0.5,F=1**(0/0),G=3**34,H=9**19,I=9223372036854775808**3,J=(-2)**63,K=0**0,L=3**600,M=(-1)**0.25,N=(0/0)**1,O=(0/0)**2}type T=E;",
+        })
+    ) add(`constants:${name}:${isolatedModules}`, { "globals.d.ts": library, "main.ts": source }, { isolatedModules, target: "esnext" }, false, true);
+}
+for (const strict of [false, true]) {
+    for (const target of ["es2019", "esnext"]) {
+        for (
+            const [name, source] of Object.entries({
+                literals: "const a=1;const b='a';const c=true;const d=false;const e=null;const f=0x10;const g=123n;const h=0b10n;",
+                unary: "const a=-1;const b=+2;const c=~1;const d=-3n;const e=+3n;const f=!'';const g=!1;const h=!2;const i=!'x';",
+                wrappers: "const a=((1));const b=typeof 'a';const c=void missing;const d=null!;const e=(true ? 1 : 2);",
+                templates: "const a=`x${1}y${'z'}`;const b=`${-1}`;const c=`${true}`;const d=`${1n}`;",
+                invalidUnary: "const a=++1;const b=1++;const c=~null;const d=-null;const e=!null;const f=!'a';",
+            })
+        ) add(`expressions:${name}:${strict}:${target}`, { "globals.d.ts": library, "main.ts": source }, { strict, target }, false, true);
+    }
+}
+for (const isolatedModules of [false, true]) {
+    add(
+        `constants:cross-file:${isolatedModules}`,
+        {
+            "globals.d.ts": library,
+            "a.ts": "export const N=3;export const S='x';export enum E{A=4}",
+            "b.ts": "import {N,S,E} from './a';export enum F{A=N,B,C=S,D=E.A,E}",
+        },
+        { isolatedModules, target: "esnext", module: "esnext" },
+        false,
+        true,
+    );
+    add(
+        `constants:special-numbers:${isolatedModules}`,
+        {
+            "globals.d.ts": `${library}declare var Infinity:number;declare var NaN:number;`,
+            "main.ts": "const enum E{A=Infinity,B=NaN,C=-Infinity}enum F{A=1/0,B}function f(){const Infinity=3;enum G{A=Infinity}}",
+        },
+        { isolatedModules, target: "esnext" },
+        false,
+        true,
+    );
+}
+for (const input of cases) {
+    if (input.name.startsWith("constants:")) input.constants = true;
+    if (input.name.startsWith("expressions:")) input.expressions = true;
+}
+for (const strict of [false, true]) {
+    for (const exactOptionalPropertyTypes of [false, true]) {
+        for (
+            const [name, source] of Object.entries({
+                literals: "const a=1;let b=1;var c='x';const d='x';let e=true;const f=true;const g=-1;let h=~1;const i=1n;let j=1n;",
+                automatic: "let a;var b;let c=null;const d=null;let e=undefined;const f=undefined;declare let g;export let h;",
+                properties: "class C{readonly a='x';b='x';c;d?:number;readonly e=1;static f=true}interface I{a?;b:number;readonly c:unique symbol}",
+                parameters: "declare function f(x,y=1,z?:number,...rest):void;type F=(x,y?:number,...rest)=>void;",
+                catchVariables: "try{}catch(e){}try{}catch(e:unknown){}try{}catch(e:any){}try{}catch(e:string){}",
+                initializers: "const a=typeof 1;let b=typeof 1;const c=void missing;let d=void missing;const e=true?1:2;let f=true?1:2;const g=`x${1}`;let h=`x${1}`;",
+            })
+        ) add(`initializers:${name}:${strict}:${exactOptionalPropertyTypes}`, { "globals.d.ts": library, "main.ts": source }, { strict, exactOptionalPropertyTypes, target: "esnext" }, false, true, true, true);
+    }
+}
 for (const strict of [false, true]) {
     for (const exactOptionalPropertyTypes of [false, true]) {
         for (
@@ -516,8 +586,10 @@ for (const strict of [false, true]) {
         ) add(`conditional:relations-${name}:${strict}:${exactOptionalPropertyTypes}`, { "globals.d.ts": library, "main.ts": source }, { strict, exactOptionalPropertyTypes }, false, true, false, false, false, false, true, true);
     }
 }
-let selected = process.argv.includes("--inference") ? cases.filter(c => c.typeNodes && c.name.startsWith("inference:")) : process.argv.includes("--conditional") ? cases.filter(c => c.typeNodes && c.name.startsWith("conditional:")) :
-    process.argv.includes("--generic-relations") ? cases.filter(c => c.genericRelations) : process.argv.includes("--indexing") ? cases.filter(c => c.name.startsWith("indexing:")) : process.argv.includes("--assignability") ? cases.filter(c => c.assignability && !c.genericRelations && !c.name.startsWith("conditional:") && !c.name.startsWith("inference:")) : process.argv.includes("--identity") ? cases.filter(c => c.identity && !c.assignability) : process.argv.includes("--signatures") ? cases.filter(c => c.signatures) : process.argv.includes("--properties") ? cases.filter(c => c.properties) : process.argv.includes("--values") ? cases.filter(c => c.values) : process.argv.includes("--members") ? cases.filter(c => c.members && !c.values && !c.signatures) : process.argv.includes("--type-nodes") ? cases.filter(c => c.typeNodes && !c.members && !c.properties && !c.identity && !c.name.startsWith("indexing:") && !c.name.startsWith("conditional:") && !c.name.startsWith("inference:"))
+let selected = process.argv.includes("--initializers") ? cases.filter(c => c.name.startsWith("initializers:")) : process.argv.includes("--expressions") ? cases.filter(c => c.expressions) : process.argv.includes("--constants") ? cases.filter(c => c.name.startsWith("constants:")) : process.argv.includes("--inference") ? cases.filter(c => c.typeNodes && c.name.startsWith("inference:")) : process.argv.includes("--conditional") ? cases.filter(c => c.typeNodes && c.name.startsWith("conditional:")) :
+    process.argv.includes("--generic-relations") ? cases.filter(c => c.genericRelations) :
+    process.argv.includes("--indexing") ? cases.filter(c => c.name.startsWith("indexing:")) :
+    process.argv.includes("--assignability") ? cases.filter(c => c.assignability && !c.genericRelations && !c.name.startsWith("conditional:") && !c.name.startsWith("inference:") && !c.name.startsWith("constants:") && !c.name.startsWith("expressions:")) : process.argv.includes("--identity") ? cases.filter(c => c.identity && !c.assignability) : process.argv.includes("--signatures") ? cases.filter(c => c.signatures) : process.argv.includes("--properties") ? cases.filter(c => c.properties) : process.argv.includes("--values") ? cases.filter(c => c.values && !c.name.startsWith("initializers:")) : process.argv.includes("--members") ? cases.filter(c => c.members && !c.values && !c.signatures) : process.argv.includes("--type-nodes") ? cases.filter(c => c.typeNodes && !c.members && !c.properties && !c.identity && !c.name.startsWith("indexing:") && !c.name.startsWith("conditional:") && !c.name.startsWith("inference:") && !c.name.startsWith("constants:") && !c.name.startsWith("expressions:"))
     : cases.filter(c => !c.typeNodes && Boolean(c.aliases) === process.argv.includes("--aliases"));
 if (option("--filter")) selected = selected.filter(c => c.name.includes(option("--filter")));
 async function probe(command, args) {
@@ -551,7 +623,8 @@ for (let i = 0; i < selected.length; i++) {
 await json(path.join(output, "checker-program-failures.json"), failures);
 const summary = {
     timestamp: new Date().toISOString(),
-    scope: process.argv.includes("--inference") ? "Type inference, constraints, reverse mapped types, widening and contextual signatures; expression inference and full checker integration remain incomplete" : process.argv.includes("--conditional") ? "Conditional evaluation, distribution, tail recursion, constraints and relations with required inference services; full checker integration remains incomplete" : process.argv.includes("--generic-relations") ? "Generic key/indexed/mapped relations, optionality, variance and cache graphs; conditional and full diagnostic services remain incomplete" :
+    scope: process.argv.includes("--expressions") ? "Primitive expression types, template evaluation, diagnostics and grammar checks with required advanced expression services" :
+        process.argv.includes("--constants") ? "Constant and enum evaluation with provenance, forward references and numeric boundaries" : process.argv.includes("--initializers") ? "Variable, parameter and property initializer types with required flow, binding-pattern and contextual services" : process.argv.includes("--inference") ? "Type inference, constraints, reverse mapped types, widening and contextual signatures; expression inference and full checker integration remain incomplete" : process.argv.includes("--conditional") ? "Conditional evaluation, distribution, tail recursion, constraints and relations with required inference services; full checker integration remains incomplete" : process.argv.includes("--generic-relations") ? "Generic key/indexed/mapped relations, optionality, variance and cache graphs; conditional and full diagnostic services remain incomplete" :
         process.argv.includes("--indexing") ? "Key enumeration, indexed access, read/write simplification and generic cache identity; expression checking and full checker integration remain incomplete" : process.argv.includes("--assignability") ? "Structural relation decisions, signature variance, discriminants and generic variance caches with required advanced semantic services; full checker integration remains incomplete" : process.argv.includes("--identity") ? "Structural identity, primitive relation predicates, normalization and recursive caches with required advanced relation services; full checker integration remains incomplete" : process.argv.includes("--signatures") ? "Signature matching, composition, tuple rest parameters and array member fallback with explicit type relation dependencies; full checker integration remains incomplete" :
         process.argv.includes("--properties") ? "Composite properties, apparent types and intersection reduction with explicit relation and signature dependencies; full checker integration remains incomplete" : process.argv.includes("--values") ? "Source symbol read/write types, accessors, value aliases and declaration value objects with explicit inference dependencies; full checker integration remains incomplete" : process.argv.includes("--members") ? "Source structured members, interface bases, signatures and index signatures with annotated value dependencies; full checker integration remains incomplete" : process.argv.includes("--type-nodes") ? "Source type-node evaluation, declared aliases and references with explicit semantic dependencies; full checker integration remains incomplete" : process.argv.includes("--aliases")
         ? "Program-backed alias targets, type-only chains and module exports with explicit semantic dependencies; full checker integration remains incomplete"
@@ -560,6 +633,8 @@ const summary = {
     managed,
     runtime: managed ? "managed development run" : await run(candidate, ["--native-check"]),
     cases: selected.length,
+    expressionQueries: actual.reduce((count, c) => count + (c.expressionQueries?.length ?? 0), 0),
+    constantQueries: actual.reduce((count, c) => count + (c.constantQueries?.length ?? 0), 0),
     keyQueries: actual.reduce((count, c) => count + (c.keyQueries?.length ?? 0), 0),
     indexQueries: actual.reduce((count, c) => count + (c.indexQueries?.length ?? 0), 0),
     numericStringConversions: selected.reduce((count, c) => count + (c.numberStrings?.length ?? 0), 0),
