@@ -11,7 +11,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/jsnum"
 )
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -331,6 +331,8 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 		}
 	}
 	relationRows := []any{}
+	varianceRows := []any{}
+	factRows := []any{}
 	relationKeyRows := []any{}
 	if identityQueries {
 		type root struct {
@@ -350,6 +352,15 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 		for _, s := range roots {
 			for _, t := range roots {
 				sid, tid2 := tid(s.t), tid(t.t)
+				if assignabilityQueries {
+					results := []any{}
+					for _, r := range []*Relation{c.identityRelation, c.subtypeRelation, c.strictSubtypeRelation, c.assignableRelation, c.comparableRelation} {
+						result := c.isTypeRelatedTo(s.t, t.t, r)
+						results = append(results, []any{result, r.size()})
+					}
+					relationRows = append(relationRows, []any{nodeIDs[s.node], nodeIDs[t.node], sid, tid2, results})
+					continue
+				}
 				related := c.isTypeIdenticalTo(s.t, t.t)
 				count := c.identityRelation.size()
 				key, constrained := getRelationKey(s.t, t.t, IntersectionStateNone, true, false)
@@ -364,6 +375,31 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 					simple = append(simple, c.isSimpleTypeRelatedTo(s.t, t.t, r, nil))
 				}
 				relationRows = append(relationRows, []any{nodeIDs[s.node], nodeIDs[t.node], sid, tid2, related, count, id, entry, constrained, simple})
+			}
+		}
+		if assignabilityQueries {
+			seen := map[*ast.Symbol]bool{}
+			for _, node := range nodes {
+				symbol := c.getSymbolOfDeclaration(node)
+				if symbol == nil || seen[symbol] {
+					continue
+				}
+				seen[symbol] = true
+				if !c.varianceLinks.Has(symbol) {
+					continue
+				}
+				flags := c.varianceLinks.Get(symbol).variances
+				if flags == nil {
+					continue
+				}
+				varianceRows = append(varianceRows, []any{nodeIDs[node], flags})
+			}
+			for _, r := range roots {
+				facts := c.getTypeFacts(r.t, TypeFactsAll)
+				nonNullable := tid(c.GetNonNullableType(r.t))
+				nonUndefined := tid(c.getTypeWithFacts(r.t, TypeFactsNEUndefined))
+				nonNull := tid(c.getAdjustedTypeWithFacts(r.t, TypeFactsNENull))
+				factRows = append(factRows, []any{nodeIDs[r.node], facts, nonNullable, nonUndefined, nonNull})
 			}
 		}
 		keyRoots := []root{}
@@ -549,6 +585,10 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	if identityQueries {
 		result["relations"] = relationRows
 		result["relationKeys"] = relationKeyRows
+	}
+	if assignabilityQueries {
+		result["variances"] = varianceRows
+		result["facts"] = factRows
 	}
 	return result
 }

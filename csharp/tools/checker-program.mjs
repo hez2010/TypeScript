@@ -38,7 +38,7 @@ if (!process.argv.includes("--no-build")) {
 
 const cases = [];
 const library = `interface IArguments {} interface Object {} interface Function {} interface CallableFunction extends Function {} interface NewableFunction extends Function {} interface String {} interface Number {} interface Boolean {} interface RegExp {} interface Array<T> { length: number; [n: number]: T; } interface ReadonlyArray<T> { readonly length: number; readonly [n: number]: T; } interface ThisType<T> {}`;
-function add(name, sources, options = {}, aliases = false, typeNodes = false, members = false, values = false, properties = false, signatures = false, identity = false) {
+function add(name, sources, options = {}, aliases = false, typeNodes = false, members = false, values = false, properties = false, signatures = false, identity = false, assignability = false) {
     for (const concurrency of [1, 4]) {
         const files = Object.fromEntries(Object.entries(sources).map(([name, text]) => [`/project/${name}`, Buffer.from(text).toString("base64")]));
         const input = { name: `${name}:${concurrency}`, files, roots: Object.keys(files), options, concurrency };
@@ -49,6 +49,7 @@ function add(name, sources, options = {}, aliases = false, typeNodes = false, me
         if (properties) input.properties = true;
         if (signatures) input.signatures = true;
         if (identity) input.identity = true;
+        if (assignability) input.assignability = true;
         cases.push(input);
     }
 }
@@ -338,7 +339,62 @@ for (const depth of [3, 99, 100, 101]) {
     parts.push("type R0=A0;type R1=B0;");
     add(`identity:depth-${depth}`, { "globals.d.ts": library, "main.ts": parts.join("\n") }, { strict: true, exactOptionalPropertyTypes: true }, false, true, false, false, false, false, true);
 }
-let selected = process.argv.includes("--identity") ? cases.filter(c => c.identity) : process.argv.includes("--signatures") ? cases.filter(c => c.signatures) : process.argv.includes("--properties") ? cases.filter(c => c.properties) : process.argv.includes("--values") ? cases.filter(c => c.values) : process.argv.includes("--members") ? cases.filter(c => c.members && !c.values && !c.signatures) : process.argv.includes("--type-nodes") ? cases.filter(c => c.typeNodes && !c.members && !c.properties && !c.identity)
+for (const strict of [false, true]) {
+    for (const exactOptionalPropertyTypes of [false, true]) {
+        for (
+            const [name, source] of Object.entries({
+                primitives: "type R0=string;type R1=number;type R2='x';type R3=1;type R4=any;type R5=unknown;type R6=never;type R7=object;type R8=undefined;type R9=null;type R10=boolean;type R11=void;",
+                fields: "type R0={a:string};type R1={a:string;b:number};type R2={a:number};type R3={};",
+                optional: "type R0={a?:string};type R1={a:string};type R2={a:string|undefined};type R3={a?:number};type R4={};",
+                readonly: "type R0={a:string};type R1={readonly a:string};type R2={readonly a:'x'};type R3={a:'x'};",
+                weak: "type R0={a?:string};type R1={b?:string};type R2={a:string;b:number};type R3={};type R4=()=>string;",
+                union: "type R0={a:string}|{b:number};type R1={a:'x'};type R2={a:string;b:number};type R3={a?:string};",
+                intersection: "type R0={a:string}&{b:number};type R1={a:string;b:number};type R2={a:string};type R3={a?:string}&{b?:number};",
+                discriminants: "type R0={kind:'a'|'b';value:number};type R1={kind:'a';value:number}|{kind:'b';value:number};type R2={kind:'a';value:string}|{kind:'b';value:number};",
+                indexes: "type R0={[s:string]:number};type R1={a:number;b:number};interface R2{a:number;b:number}type R3={a?:number};type R4={[s:string]:any};",
+                numberIndex: "type R0={[n:number]:string};type R1={'0':string;label:number};type R2={'0':number};type R3={[s:string]:string};",
+                functions: "type R0=(x:string)=>number;type R1=(x:'x')=>number;type R2=(x:string)=>void;type R3=(x:string,y:number)=>number;type R4=()=>number;",
+                methods: "type R0={f(x:string):void};type R1={f(x:'x'):void};type R2={f:(x:string)=>void};type R3={f:(x:'x')=>void};",
+                callbacks: "type R0=(cb:(x:string)=>void)=>void;type R1=(cb:(x:'x')=>void)=>void;type R2=(cb:()=>string)=>void;type R3=(cb:()=>'x')=>void;",
+                rest: "type R0=(...a:string[])=>void;type R1=(x:string,y?:string)=>void;type R2=(...a:[string,string])=>void;type R3=(...a:any[])=>any;",
+                predicates: "type R0=(x:unknown)=>x is string;type R1=(x:unknown)=>x is 'x';type R2=(x:unknown)=>boolean;type R3=(x:unknown)=>asserts x is string;",
+                constructors: "type R0=new(x:string)=>{a:string};type R1=abstract new(x:string)=>{a:string};type R2=new()=>{a:'x'};",
+                tuples: "type R0=[string,number?];type R1=[string,number];type R2=readonly[string,number];type R3=[string,...number[]];type R4=string[];",
+                arrays: "type R0=string[];type R1='x'[];type R2=readonly string[];type R3=readonly 'x'[];type R4=number[];",
+                covariant: "interface Box<T>{value:T}type R0=Box<string>;type R1=Box<'x'>;type R2=Box<number>;",
+                contravariant: "interface Sink<T>{accept:(value:T)=>void}type R0=Sink<string>;type R1=Sink<'x'>;type R2=Sink<number>;",
+                invariant: "interface Both<T>{apply:(value:T)=>T}type R0=Both<string>;type R1=Both<'x'>;type R2=Both<number>;",
+                independent: "interface Phantom<T>{}type R0=Phantom<string>;type R1=Phantom<number>;",
+                recursive: "interface Tree<T>{value:T;next:Tree<T>}type R0=Tree<string>;type R1=Tree<'x'>;type R2=Tree<number>;",
+                annotated: "interface Out<out T>{value:T}interface In<in T>{accept:(x:T)=>void}type R0=Out<string>;type R1=Out<'x'>;type R2=In<string>;type R3=In<'x'>;",
+                aliasVariance: "type Box<T>={value:T};type Sink<T>={accept:(x:T)=>void};type R0=Box<string>;type R1=Box<'x'>;type R2=Sink<string>;type R3=Sink<'x'>;",
+                mutualVariance: "interface A<T>{next:B<T>}interface B<T>{next:A<T>;value:T}type R0=A<string>;type R1=A<'x'>;type R2=B<string>;type R3=B<'x'>;",
+                nestedVariance: "interface A<T>{next:B<A<T>>;value:T}interface B<T>{value:T}type R0=A<string>;type R1=A<'x'>;type R2=B<string>;type R3=B<'x'>;",
+                methodVariance: "interface Methods<T>{accept(x:T):void}type R0=Methods<string>;type R1=Methods<'x'>;type R2=Methods<number>;",
+                genericMethods: "interface Box<T>{convert<U>(value:T,other:U):U}type R0=Box<string>;type R1=Box<'x'>;type R2=Box<number>;",
+                callbacksWithMembers: "type A={():string;tag:number};type B={():'x';tag:number};type R0=(cb:A)=>void;type R1=(cb:B)=>void;type R2=(cb:()=>string)=>void;",
+                visibility: "class R0{private value:string}class R1{private value:string}class R2{protected value:string}class R3{value:string}",
+                nullableCallback: "type R0=(cb:(()=>string)|null)=>void;type R1=(cb:(()=>'x')|undefined)=>void;type R2=(cb:()=>string)=>void;",
+                optionalDiscriminants: "type R0={kind?:'a'|'b';value:number};type R1={kind?:'a';value:number}|{kind?:'b';value:number};type R2={kind:'a';value:number}|{kind:'b';value:number};",
+                multiDiscriminants: "type R0={a:'a'|'b';b:1|2;value:number};type R1={a:'a';b:1;value:number}|{a:'a';b:2;value:number}|{a:'b';b:1;value:number}|{a:'b';b:2;value:number};type R2={a:'a';b:1;value:number}|{a:'b';b:2;value:number};",
+                templates: "type R0=`id-${string}`;type R1=`id-${number}`;type R2='id-12';type R3='id-x';type R4=`other-${string}`;type R5={};",
+                templatePlaceholders: "type R0=`${number}`;type R1=`${bigint}`;type R2='01';type R3='0xff';type R4='1_0';type R5='-1';type R6='Infinity';",
+                templateSegments: "type R0=`a${string}b${number}`;type R1=`a${number}b${number}`;type R2='a12b34';type R3='ab0';type R4='a1b2b3';",
+                templateUnicode: "type R0=`😀${string}`;type R1=`\\ud83d${string}`;type R2='😀x';type R3='\\ud83dx';type R4=`${number}${string}`;",
+                stringMappings: "type Uppercase<S extends string>=intrinsic;type Lowercase<S extends string>=intrinsic;type R0=Uppercase<string>;type R1=Lowercase<string>;type R2='ONE';type R3='one';type R4=Uppercase<`a${string}`>;",
+                templateAdjacent: "type R0=`${string}${number}`;type R1=`${number}${string}`;type R2='😀1';type R3='\\ud83d1';type R4='12';type R5='x';",
+            })
+        ) add(`assignability:${name}:${strict}:${exactOptionalPropertyTypes}`, { "globals.d.ts": library, "main.ts": source }, { strict, exactOptionalPropertyTypes }, false, true, false, false, false, false, true, true);
+        const variants = Array.from({ length: 12 }, (_, i) => `{kind:${i};value:string}`).join("|");
+        add(`assignability:key-map:${strict}:${exactOptionalPropertyTypes}`, { "globals.d.ts": library, "main.ts": `type R0=${variants};type R1={kind:3;value:'x'};type R2={kind:20;value:string};` }, { strict, exactOptionalPropertyTypes }, false, true, false, false, false, false, true, true);
+    }
+}
+for (const count of [5, 6]) {
+    const first = Array.from({ length: count }, (_, i) => `'k${i}'`), second = Array.from({ length: 5 }, (_, i) => i);
+    const variants = first.flatMap(a => second.map(b => `{a:${a};b:${b};value:number}`)).join("|");
+    add(`assignability:discriminant-limit-${count * 5}`, { "globals.d.ts": library, "main.ts": `type R0={a:${first.join("|")};b:${second.join("|")};value:number};type R1=${variants};` }, { strict: true }, false, true, false, false, false, false, true, true);
+}
+let selected = process.argv.includes("--assignability") ? cases.filter(c => c.assignability) : process.argv.includes("--identity") ? cases.filter(c => c.identity && !c.assignability) : process.argv.includes("--signatures") ? cases.filter(c => c.signatures) : process.argv.includes("--properties") ? cases.filter(c => c.properties) : process.argv.includes("--values") ? cases.filter(c => c.values) : process.argv.includes("--members") ? cases.filter(c => c.members && !c.values && !c.signatures) : process.argv.includes("--type-nodes") ? cases.filter(c => c.typeNodes && !c.members && !c.properties && !c.identity)
     : cases.filter(c => !c.typeNodes && Boolean(c.aliases) === process.argv.includes("--aliases"));
 if (option("--filter")) selected = selected.filter(c => c.name.includes(option("--filter")));
 async function probe(command, args) {
@@ -372,7 +428,7 @@ for (let i = 0; i < selected.length; i++) {
 await json(path.join(output, "checker-program-failures.json"), failures);
 const summary = {
     timestamp: new Date().toISOString(),
-    scope: process.argv.includes("--identity") ? "Structural identity, primitive relation predicates, normalization and recursive caches with required advanced relation services; full checker integration remains incomplete" : process.argv.includes("--signatures") ? "Signature matching, composition, tuple rest parameters and array member fallback with explicit type relation dependencies; full checker integration remains incomplete" :
+    scope: process.argv.includes("--assignability") ? "Structural relation decisions, signature variance, discriminants and generic variance caches with required advanced semantic services; full checker integration remains incomplete" : process.argv.includes("--identity") ? "Structural identity, primitive relation predicates, normalization and recursive caches with required advanced relation services; full checker integration remains incomplete" : process.argv.includes("--signatures") ? "Signature matching, composition, tuple rest parameters and array member fallback with explicit type relation dependencies; full checker integration remains incomplete" :
         process.argv.includes("--properties") ? "Composite properties, apparent types and intersection reduction with explicit relation and signature dependencies; full checker integration remains incomplete" : process.argv.includes("--values") ? "Source symbol read/write types, accessors, value aliases and declaration value objects with explicit inference dependencies; full checker integration remains incomplete" : process.argv.includes("--members") ? "Source structured members, interface bases, signatures and index signatures with annotated value dependencies; full checker integration remains incomplete" : process.argv.includes("--type-nodes") ? "Source type-node evaluation, declared aliases and references with explicit semantic dependencies; full checker integration remains incomplete" : process.argv.includes("--aliases")
         ? "Program-backed alias targets, type-only chains and module exports with explicit semantic dependencies; full checker integration remains incomplete"
         : "Program-owned global symbols, class/interface headers and generic scopes with explicit semantic dependencies; full checker integration remains incomplete",

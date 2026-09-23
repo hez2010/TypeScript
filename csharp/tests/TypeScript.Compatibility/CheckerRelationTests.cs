@@ -302,7 +302,7 @@ internal static class CheckerRelationTests
     }
 
     internal static async Task WriteAsync(Utf8JsonWriter writer, SyntaxNode[] nodes, CheckerSymbols symbols, ProgramTypeHost host,
-        Func<Type?, int> typeId, Func<SyntaxNode?, int> nodeId)
+        Func<Type?, int> typeId, Func<SyntaxNode?, int> nodeId, bool allKinds = false)
     {
         var roots = new List<(SyntaxNode Node, Type Type)>();
         foreach (var node in nodes)
@@ -319,6 +319,20 @@ internal static class CheckerRelationTests
                 writer.WriteNumberValue(nodeId(target.Node));
                 writer.WriteNumberValue(typeId(source.Type));
                 writer.WriteNumberValue(typeId(target.Type));
+                if (allKinds)
+                {
+                    writer.WriteStartArray();
+                    foreach (var kind in Enum.GetValues<RelationKind>())
+                    {
+                        writer.WriteStartArray();
+                        writer.WriteBooleanValue(await host.Relations.RelatedAsync(source.Type, target.Type, kind));
+                        writer.WriteNumberValue(host.Relations.Cache(kind).Count);
+                        writer.WriteEndArray();
+                    }
+                    writer.WriteEndArray();
+                    writer.WriteEndArray();
+                    continue;
+                }
                 writer.WriteBooleanValue(await host.Relations.RelatedAsync(source.Type, target.Type, RelationKind.Identity));
                 var relation = host.Relations.Cache(RelationKind.Identity);
                 writer.WriteNumberValue(relation.Count);
@@ -335,6 +349,37 @@ internal static class CheckerRelationTests
                 writer.WriteEndArray();
             }
         writer.WriteEndArray();
+        if (allKinds)
+        {
+            writer.WriteStartArray("variances");
+            var seen = new HashSet<Symbol>();
+            foreach (var node in nodes)
+            {
+                var symbol = symbols.Declaration(node);
+                if (symbol is null || !seen.Add(symbol) || !host.Variances.Cache.TryGetValue(symbol, out var flags))
+                    continue;
+                writer.WriteStartArray();
+                writer.WriteNumberValue(nodeId(node));
+                writer.WriteStartArray();
+                foreach (var flag in flags)
+                    writer.WriteNumberValue((uint)flag);
+                writer.WriteEndArray();
+                writer.WriteEndArray();
+            }
+            writer.WriteEndArray();
+            writer.WriteStartArray("facts");
+            foreach (var root in roots)
+            {
+                writer.WriteStartArray();
+                writer.WriteNumberValue(nodeId(root.Node));
+                writer.WriteNumberValue((uint)await host.Facts.GetAsync(root.Type, TypeFacts.All));
+                writer.WriteNumberValue(typeId(await host.Facts.NonNullableAsync(root.Type)));
+                writer.WriteNumberValue(typeId(await host.Facts.FilterAsync(root.Type, TypeFacts.NEUndefined)));
+                writer.WriteNumberValue(typeId(await host.Facts.AdjustAsync(root.Type, TypeFacts.NENull)));
+                writer.WriteEndArray();
+            }
+            writer.WriteEndArray();
+        }
         var keyRoots = new List<(SyntaxNode Node, Type Type)>();
         foreach (var node in nodes)
             if (node is TypeAliasDeclarationNode { Name: IdentifierNode identifier }

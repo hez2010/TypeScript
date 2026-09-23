@@ -28,6 +28,23 @@ internal interface ISignatureHost
 internal sealed class Signatures(TypeContext context, CheckerLinks links, CheckerSymbols symbols, TypeParameterScopes scopes,
     TypeInstantiation instantiation, TypeAlgebra algebra, TypeResolutionStack resolutions, ISignatureHost host)
 {
+    internal async ValueTask<Type> NonCircularReturnAsync(Signature signature, CancellationToken cancellation = default)
+    {
+        var pending = new Stack<Signature>();
+        pending.Push(signature);
+        while (pending.TryPop(out var current))
+        {
+            cancellation.ThrowIfCancellationRequested();
+            RequireOwned(current);
+            if (current.Composite is { } composite)
+                foreach (var part in composite.Signatures)
+                    pending.Push(part);
+            if (current.ResolvedReturnType is null && resolutions.FindCycleStart(current, TypeSystemPropertyName.ResolvedReturnType) >= 0)
+                return context.AnyType;
+        }
+        return await ReturnAsync(signature, cancellation).ConfigureAwait(false);
+    }
+
     private readonly TypePredicate noPredicate = new(TypePredicateKind.Identifier, 0, "<<unresolved>>", context.AnyType);
 
     internal async ValueTask<IReadOnlyList<Signature>> OfSymbolAsync(Symbol? symbol, CancellationToken cancellation = default)

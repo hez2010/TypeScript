@@ -122,7 +122,15 @@ public sealed class TypeContext
         NoConstraintType = NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved);
         CircularConstraintType = NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved);
         ResolvingDefaultType = NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved);
+        MarkerSuper = NewTypeParameter();
+        MarkerSub = NewTypeParameter();
+        MarkerSub.Constraint = MarkerSuper;
+        MarkerOther = NewTypeParameter();
     }
+
+    internal TypeParameter MarkerSuper { get; }
+    internal TypeParameter MarkerSub { get; }
+    internal TypeParameter MarkerOther { get; }
 
     internal uint NextTypeId() => typeCount = checked(typeCount + 1);
 

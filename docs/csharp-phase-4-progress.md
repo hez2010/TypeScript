@@ -298,6 +298,25 @@ node csharp/tools/checker-program.mjs --identity --record phase4-relations
 & ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-relations-safety
 ```
 
+## Structural relations, variance and type facts
+
+`StructuralRelations.cs` implements ordered union/intersection comparisons, nullable-target normalization, weak-type checks and the structural comparison path. `ObjectRelations.cs` compares properties, optionality, accessibility, tuples and index signatures. `SignatureAssignability.cs` handles parameter/return variance, callbacks, rest parameters, predicates, constructor visibility and generic erasure. Contextual generic inference remains a required service.
+
+`TypeVariance.cs` measures generic variance with checker-owned marker types, honors explicit `in`/`out` annotations, propagates reliability flags and restarts circular measurements in declaration order. Failed measurements restore cache and resolution state. `DiscriminantRelations.cs` implements discriminant indexing and combination checks, including the reference's 25-combination limit.
+
+`TypeFactQueries.cs` supplies type facts and nullable filtering/adjustment. `TemplateMatching.cs` infers template segments and checks number/bigint/string-mapping placeholders. It uses WTF-8 byte matching and consumes complete code points for adjacent placeholders, preserving the pinned reference's behavior for supplementary characters and lone surrogates.
+
+The source probe now uses production structural relation and variance algorithms. Mapped/indexed/conditional relation branches, fresh-object checking, contextual generic inference, enum comparison and full diagnostic elaboration remain required services. These gaps still prevent complete checker integration.
+
+NativeAOT passes **332 exact program comparisons**, covering 166 configurations at single and reference-default concurrency. The programs contain **6,696 type pairs**, each checked under identity, subtype, strict subtype, assignability and comparability (**33,480 relation decisions**), with cache counts, inferred variances, type facts and resulting type graphs retained. Cases include recursive variance, aliases, callbacks, readonly/optional members, protected/private properties, tuples, discriminants and template matching.
+
+Thirty-three native safety assertions verify variance cancellation/retry, relation-cache rollback, reliability markers, discriminant caching, signature erasure and nullable facts. The same artifact passes 160 identity/key, 216 signature, 192 property/view, 192 source-type and 2,904 type/state cases, plus 190 earlier safety assertions. Evidence: [structural relations](../csharp/compatibility/evidence/phase4-assignability.json), [identity](../csharp/compatibility/evidence/phase4-assignability-identity-regression.json), [signatures](../csharp/compatibility/evidence/phase4-assignability-signatures-regression.json), [properties](../csharp/compatibility/evidence/phase4-assignability-properties-regression.json), [source types](../csharp/compatibility/evidence/phase4-assignability-types-regression.json), [type/state](../csharp/compatibility/evidence/phase4-assignability-state-regression.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-assignability-validation.json).
+
+```powershell
+node csharp/tools/checker-program.mjs --assignability --record phase4-assignability
+& ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-assignability-safety
+```
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
@@ -310,4 +329,4 @@ The following phase-4 requirements remain open:
 6. Type display, node builders, symbol accessibility and emit-resolver APIs.
 7. All active checker/compiler type/symbol/diagnostic comparisons at single and reference-default concurrency; audits of intentional differences; complete semantic workload memory/performance measurements.
 
-The next integration step is structural assignability/subtyping and variance measurement, followed by complete value inference, conditional services and module type adaptation over the program-backed symbol environment. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.
+The next integration step is the remaining mapped/indexed/conditional relation services and inference, followed by complete value checking, diagnostics and module type adaptation over the program-backed symbol environment. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.

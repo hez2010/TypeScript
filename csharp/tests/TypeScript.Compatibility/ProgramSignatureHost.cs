@@ -30,7 +30,7 @@ internal sealed partial class ProgramTypeHost : ISignatureParameterHost, ISignat
         if (CompareTypes is not null)
             return await CompareTypes(source, target, subtype, cancellation);
         if (subtype)
-            return relations.Related(source, target, false) ? Ternary.True : Ternary.False;
+            return await Relations.RelatedAsync(source, target, RelationKind.Subtype, cancellation) ? Ternary.True : Ternary.False;
         return await Relations.RelatedAsync(source, target, RelationKind.Identity, cancellation) ? Ternary.True : Ternary.False;
     }
 }

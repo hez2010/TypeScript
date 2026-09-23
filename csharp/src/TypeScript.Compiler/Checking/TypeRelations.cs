@@ -167,6 +167,13 @@ internal sealed class RelationOperation(
     internal RelationKind Kind => kind;
     internal RelationSession Session => session;
 
+    internal ValueTask<bool> SimpleAsync(Type source, Type target, CancellationToken cancellation = default)
+        => relations.SimpleAsync(source, target, kind, cancellation);
+
+    internal ValueTask<Ternary> RecursiveAsync(Type source, Type target, RecursionFlags recursion, IntersectionState intersection,
+        Func<ValueTask<Ternary>> compare, CancellationToken cancellation = default)
+        => session.RecursiveAsync(source, target, intersection, recursion, false, compare, host.ComplexityOverflow, cancellation);
+
     internal async ValueTask<Ternary> CompareAsync(Type source, Type target, RecursionFlags recursion = RecursionFlags.Both,
             IntersectionState intersection = 0, CancellationToken cancellation = default)
     {

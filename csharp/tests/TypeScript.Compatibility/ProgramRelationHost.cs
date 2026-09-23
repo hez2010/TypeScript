@@ -24,7 +24,7 @@ internal sealed partial class ProgramTypeHost : ITypeNormalizationHost, ITypeRel
         RecursionFlags recursion,
         IntersectionState intersection,
         CancellationToken cancellation)
-            => throw new InvalidOperationException("Probe requires non-identity structural relations");
+            => Structural.RelatedAsync(operation, source, target, recursion, intersection, cancellation);
 
     public ValueTask<bool> EnumRelatedAsync(Symbol source, Symbol target, CancellationToken cancellation)
             => source == target ? ValueTask.FromResult(true) : throw new InvalidOperationException("Probe requires enum relations");
@@ -35,11 +35,5 @@ internal sealed partial class ProgramTypeHost : ITypeNormalizationHost, ITypeRel
             => throw new InvalidOperationException("Probe requires conditional branches");
 
     public ValueTask<Ternary?> VarianceAsync(RelationOperation operation, Type source, Type target, CancellationToken cancellation)
-    {
-        if (source.Alias is { TypeArguments.Count: > 0 } sourceAlias && target.Alias?.Symbol == sourceAlias.Symbol
-            || source is TypeReference sr && target is TypeReference tr && (source.ObjectFlags & ObjectFlags.Reference) != 0
-                && (target.ObjectFlags & ObjectFlags.Reference) != 0 && sr.Target == tr.Target && sr.Target is not TupleType)
-            throw new InvalidOperationException("Probe requires generic variance measurement");
-        return ValueTask.FromResult<Ternary?>(null);
-    }
+        => Variances.RelateAsync(operation, source, target, cancellation: cancellation);
 }

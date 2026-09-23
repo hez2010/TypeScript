@@ -1,0 +1,70 @@
+{
+    "timestamp": "2026-09-23T20:41:02.6847147Z",
+    "scope": "Structural relations, signature assignability, variance, discriminants, type facts and template matching with required advanced semantic services; full phase 4 remains incomplete",
+    "candidateSha256": "f1b2dda73e545cabccbea19e530c32a9536bd798a6ee492a5b50fc1212bc1e2a",
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "languageVersion": "15.0",
+    "runtimeAsync": true,
+    "optimizationPreference": "Speed",
+    "instructionSet": "native",
+    "publish": {
+        "sha256": "03933be2dc34223ee88005d844f6919fd7786869077fd93acbb392005d81ccfb",
+        "log": "logs/csharp-phase4-assignability-publish.log",
+        "exitCode": 0
+    },
+    "relations": {
+        "exact": 332,
+        "relationDecisions": 33480,
+        "referenceConcurrency": [
+            "singleThreaded",
+            "default"
+        ],
+        "scope": "Five relation kinds, cache counts, variance caches, type facts and type graphs; mapped/indexed/conditional branches, fresh objects, contextual inference, enums and full diagnostics remain open",
+        "typePairs": 6696,
+        "candidateConcurrency": [
+            1,
+            4
+        ],
+        "failed": 0,
+        "sourceConfigurations": 166,
+        "cases": 332
+    },
+    "state": {
+        "exitCode": 0,
+        "output": "33 structural relation/variance/facts/cancellation assertions"
+    },
+    "regression": {
+        "typeState": 2904,
+        "properties": 192,
+        "identity": 160,
+        "signatures": 216,
+        "safetyOutputs": [
+            "36 relation key/cache/normalization/cancellation assertions; exact 100-level comparison cutoff; key and base chains depth 20000",
+            "39 signature matching/arity/composition/cancellation assertions; binding label depth 20000",
+            "49 property/view/index/cache/cancellation assertions; reduction chain depth 20000",
+            "25 source-type/cache/cancellation assertions; array and alias ancestry depth 20000",
+            "41 checker ownership/state assertions; mapper and type-order depth 50000; 16 independent contexts"
+        ],
+        "sourceTypes": 192,
+        "typeStateOperations": 1333980,
+        "failed": 0
+    },
+    "repository": {
+        "extensionTests": 12,
+        "apiTests": 813,
+        "node": "24.20.0",
+        "exitCode": 0,
+        "benchmarkScope": "Required smoke runs only; no performance claim",
+        "goTestResults": 163380,
+        "goSkips": 2152,
+        "command": "npx --no-install hereby validate --all",
+        "log": "logs/csharp-phase4-assignability-validation.log",
+        "sha256": "709d86d49208e3512b81b7fbd5d0410047d7dc5d05973f983129f2d066129659",
+        "lintIssues": 0,
+        "toolTests": 17,
+        "go": "1.27.1"
+    },
+    "formatting": "Twenty-one C# files verified with identical tokens, comments and syntax under both library configurations; single-line auto-properties retained. Final dotnet format whitespace verification, constant-generator freshness and applicable dprint checks passed.",
+    "dependenciesAdded": false
+}

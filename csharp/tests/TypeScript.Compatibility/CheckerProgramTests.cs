@@ -367,7 +367,8 @@ internal static class CheckerProgramTests
         if (input.TryGetProperty("properties", out var propertyOption) && propertyOption.GetBoolean())
             await CheckerPropertyTests.WriteAsync(writer, nodes, environment, typeHost!, TypeId, SymbolId, Node);
         if (input.TryGetProperty("identity", out var identityOption) && identityOption.GetBoolean())
-            await CheckerRelationTests.WriteAsync(writer, nodes, environment, typeHost!, TypeId, Node);
+            await CheckerRelationTests.WriteAsync(writer, nodes, environment, typeHost!, TypeId, Node,
+                input.TryGetProperty("assignability", out var assignabilityOption) && assignabilityOption.GetBoolean());
         writer.WriteStartArray("types");
         for (int i = 0; i < types.Count; i++)
         {

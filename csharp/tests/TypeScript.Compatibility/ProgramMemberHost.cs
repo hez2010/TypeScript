@@ -137,7 +137,7 @@ internal sealed partial class ProgramTypeHost : ISignatureHost, IStructuredMembe
             throw new InvalidOperationException("Probe requires computed keys");
 
     public ValueTask<bool> AssignableAsync(Type source, Type target, CancellationToken cancellation) =>
-        Instantiation.IsAssignableAsync(source, target, cancellation);
+        Relations.RelatedAsync(source, target, RelationKind.Assignable, cancellation);
 
     public ValueTask<bool> SymbolNameAsync(Symbol symbol, CancellationToken cancellation) =>
             throw new InvalidOperationException("Probe requires symbol name evaluation");

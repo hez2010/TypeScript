@@ -83,6 +83,34 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
             new TypeRecursion(async (type, token) => await Instantiation.Members.ModifiersTypeAsync(type, token)),
             this);
         Identity = new(context, links, Members, Properties, Values, SignatureComparison, Instantiation.Mapped, this);
+        ObjectRelations = new(
+            context,
+            Algebra,
+            Members,
+            Properties,
+            Values,
+            IndexSignatures,
+            References,
+            Instantiation.Tuples,
+            Instantiation.Mapped,
+            this);
+        Structural = new(
+            context,
+            Algebra,
+            Normalization,
+            Views,
+            Instantiation.Constraints,
+            Properties,
+            ObjectRelations,
+            Instantiation.Mapped,
+            this);
+        RelationSupport = new(context, links, Algebra, Instantiation.Constraints, Normalization, Views, Properties, Declared, Bases, this);
+        Variances = new(context, links, Declared, References, Instantiation.Engine, Instantiation.Constraints, Instantiation.Resolutions,
+            new(program.Symbols.Program.SourceFiles.Select(f => f.Syntax).ToArray()), Relations.State, this);
+        SignatureAssignability = new(context, Parameters, Signatures, Instantiation.Engine, this);
+        Facts = new(context, Algebra, Instantiation.Constraints, Views, Members, this);
+        Discriminants = new(context, Algebra, Properties, Values, Instantiation.Mapped, ObjectRelations, this);
+        Templates = new(context, Algebra, Instantiation.Constraints, Relations);
         relations.EmptyAnonymousSource = Views.EmptyAnonymousAsync;
         relations.EmptyObjectSource = Views.EmptyObjectAsync;
         relations.PropertiesSource = Properties.GetAsync;
@@ -129,7 +157,7 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
     public Type ArrayTarget(bool isReadonly) => program.Globals.Types[isReadonly ? "ReadonlyArray" : "Array"];
 
     public ValueTask<bool> IdenticalAsync(Type first, Type second, CancellationToken cancellation)
-            => ValueTask.FromResult(first == second || first.Flags == second.Flags && (first.Flags & TypeFlags.Intrinsic) != 0);
+            => Relations.RelatedAsync(first, second, RelationKind.Identity, cancellation);
 
     public ValueTask<Type> IndexAsync(Type type, CancellationToken cancellation) => Instantiation.IndexTypeAsync(type, cancellation);
 
