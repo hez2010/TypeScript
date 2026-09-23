@@ -163,7 +163,8 @@ internal sealed class ObjectInstantiation(
         context.RequireOwned(type);
         RequireAlias(alias);
         var result = context.NewObjectType(
-            type.ObjectFlags & ~(O.CouldContainTypeVariablesComputed | O.CouldContainTypeVariables) | O.Instantiated, type.Symbol);
+            type.ObjectFlags & ~(O.CouldContainTypeVariablesComputed | O.CouldContainTypeVariables | O.MembersResolved) | O.Instantiated,
+            type.Symbol);
         if (type is MappedType mapped)
         {
             var copy = (MappedType)result;

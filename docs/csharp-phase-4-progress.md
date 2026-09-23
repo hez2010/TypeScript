@@ -1,6 +1,6 @@
 # Phase 4: checker port in progress
 
-**Phase 4 is incomplete.** The implementation now covers checker type/state foundations, lexical name and reference resolution, symbol-merge primitives, type normalization, constraint/default resolution, generic/object instantiation workers and tuple normalization. It does not satisfy the complete semantic-checker gate in the [rewrite plan](csharp-rewrite-plan.md). Semantic diagnostics, full type/symbol queries and the complete emit resolver remain unavailable in the C# backend.
+**Phase 4 is incomplete.** The implementation now covers checker type/state foundations, lexical name and reference resolution, symbol-merge primitives, type normalization, constraint/default resolution, generic/object/mapped instantiation, tuple normalization and type-node substitutions. It does not satisfy the complete semantic-checker gate in the [rewrite plan](csharp-rewrite-plan.md). Semantic diagnostics, full type/symbol queries and the complete emit resolver remain unavailable in the C# backend.
 
 ## Implemented checkpoint
 
@@ -132,15 +132,32 @@ node csharp/tools/checker-objects.mjs --record phase4-object-instantiation
 & ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-objects-safety
 ```
 
+## Mapped types and type-node substitutions
+
+`MappedTypes.cs` implements lazy mapped parameter, constraint, name and template resolution; generic-type classification and its caches; homomorphic distribution; array/tuple mappings; readonly/optional modifiers; wildcard/error handling; and actual-variable normalization. `TypeNodeFlow.cs` applies substitutions in conditional true branches, including parameter variance and unary tuple constraints, and narrows homomorphic iteration keys under array/tuple constraints. This is type-node substitution, not expression control-flow analysis.
+
+The required `IMappedTypeHost` retains general AST type evaluation, structural reduction, array recognition, indexed access and type-fact filtering as checker services. The comparison host connects the implemented constraint, instantiation, object and tuple components, supplies explicit AST values and resolved array/index dependencies, and rejects unsupported structural queries. Mapped member creation, property-name remapping, apparent/modifier type resolution and full checker integration remain open.
+
+Anonymous instantiation also clears the source's member-resolution flag: the new instance owns lazy member state. Differential fixtures exercise instantiation of a resolved source, and state assertions verify that the resulting member data remains unresolved.
+
+NativeAOT passes **784 exact comparisons**, containing **34,692 operations**. They cover strict/loose null checks, exact optional-property handling, readonly/optional modifiers, name-clause resolution and generic classification, indexed templates, array/tuple/rest/variadic/intersection mappings, error aliases, constrained `any`, and 120 parsed conditional type-node substitution cases. Thirty-seven safety assertions cover lazy caches, cancellation/retry, tuple labels, ownership and **20,000-level** actual-variable, generic-flag, kind and unary-tuple analysis. The same artifact passes the earlier 2,176 instantiation cases, 579 object cases and 613 constraint cases, together with their 87 safety assertions.
+
+Evidence: [mapped types](../csharp/compatibility/evidence/phase4-mapped-types.json), [instantiation regression](../csharp/compatibility/evidence/phase4-mapped-instantiation-regression.json), [object regression](../csharp/compatibility/evidence/phase4-mapped-object-regression.json), [constraint regression](../csharp/compatibility/evidence/phase4-mapped-constraint-regression.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-mapped-validation.json). These component checks do not establish complete compiler semantics or performance.
+
+```powershell
+node csharp/tools/checker-mapped.mjs --record phase4-mapped-types
+& ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-mapped-safety
+```
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
 
 1. Program/checker integration, global symbol initialization, alias/module export/augmentation resolution and type/value symbol resolution. The lexical resolver and merge primitives are now implemented; their checker-specific callbacks remain to be connected.
-2. Structural relations and their caches, general AST constraint evaluation/inference, outer type-parameter discovery and mapped/conditional instantiation; connect the implemented algebra, constraints, instantiation workers and tuple algorithms to these complete checker services.
+2. Structural relations and their caches, general AST constraint evaluation/inference, outer type-parameter discovery and conditional instantiation; connect the implemented algebra, constraints, instantiation workers and tuple algorithms to these complete checker services.
 3. Inference, contextual typing, signatures and overload selection, expression/declaration checking, JavaScript and JSDoc semantics.
 4. Flow analysis and narrowing, evolving arrays, definite assignment, exhaustiveness and semantic diagnostics.
-5. Mapped, conditional, indexed-access and template type evaluation; JSX, decorators and grammar checks.
+5. Mapped members, property remapping and modifier/apparent types; conditional, indexed-access and template type evaluation; JSX, decorators and grammar checks.
 6. Type display, node builders, symbol accessibility and emit-resolver APIs.
 7. All active checker/compiler type/symbol/diagnostic comparisons at single and reference-default concurrency; audits of intentional differences; complete semantic workload memory/performance measurements.
 

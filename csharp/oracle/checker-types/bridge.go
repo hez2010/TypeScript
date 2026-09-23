@@ -145,7 +145,14 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 	constraints := false
 	instantiations := false
 	objects := false
+	mappedTypes := false
 	for _, step := range steps {
+		if step.Op == "mapped" || step.Op == "typeNodeFlow" {
+			mappedTypes = true
+			objects = true
+			instantiations = true
+			algebra = true
+		}
 		if step.Op == "capturedObject" || step.Op == "deferredObject" || step.Op == "anonymousInstance" || step.Op == "possiblyReferenced" {
 			objects = true
 			instantiations = true
@@ -437,6 +444,88 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 		case "mappedIdentity":
 			t = c.newObjectType(ObjectFlagsMapped|ObjectFlagsInstantiated, symbol(step.Symbol))
 			t.AsMappedType().modifiersType = args[0]
+		case "mapped":
+			factory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+			parameter := args[0]
+			parameterNode := factory.NewTypeParameterDeclaration(nil, factory.NewIdentifier(parameter.symbol.Name), factory.NewTypeReferenceNode(factory.NewIdentifier("SeedConstraint"), nil), nil, nil)
+			var readonlyToken, questionToken, nameType *ast.Node
+			if step.Flags&3 != 0 {
+				readonlyToken = factory.NewToken(core.IfElse(step.Flags&1 != 0, ast.KindReadonlyKeyword, ast.KindMinusToken))
+			}
+			if step.Flags&12 != 0 {
+				questionToken = factory.NewToken(core.IfElse(step.Flags&4 != 0, ast.KindQuestionToken, ast.KindMinusToken))
+			}
+			if step.Origin != 0 {
+				nameType = factory.NewTypeReferenceNode(factory.NewIdentifier("SeedName"), nil)
+				c.typeNodeLinks.Get(nameType).resolvedType = values[step.Origin]
+			}
+			template := factory.NewTypeReferenceNode(factory.NewIdentifier("SeedTemplate"), nil)
+			declaration := factory.NewMappedTypeNode(readonlyToken, parameterNode, nameType, questionToken, template, nil)
+			declaration.Parent = factory.NewTypeAliasDeclaration(nil, factory.NewIdentifier("Fixture"), nil, declaration)
+			template.Parent = declaration
+			if nameType != nil {
+				nameType.Parent = declaration
+			}
+			parameterNode.Parent = declaration
+			parameterNode.AsTypeParameterDeclaration().Constraint.Parent = parameterNode
+			name := symbol(step.Text)
+			name.Flags = ast.SymbolFlagsTypeLiteral
+			name.Declarations = append(name.Declarations, declaration)
+			parameter.symbol.Declarations = append(parameter.symbol.Declarations, parameterNode)
+			parameter.AsTypeParameter().constraint = args[1]
+			c.typeNodeLinks.Get(template).resolvedType = args[2]
+			t = c.newObjectType(ObjectFlagsMapped, name)
+			t.AsMappedType().declaration = declaration.AsMappedTypeNode()
+			t.AsMappedType().typeParameter = parameter
+			c.typeNodeLinks.Get(declaration).resolvedType = t
+			if step.Symbol != "" {
+				t.alias = &TypeAlias{symbol: symbol(step.Symbol), typeArguments: selectTypes(step.AliasArgs)}
+			}
+			c.typeNodeLinks.Get(declaration).outerTypeParameters = append([]*Type{}, args[3:]...)
+		case "mappedParameter":
+			t = c.getTypeParameterFromMappedType(args[0])
+		case "mappedConstraint":
+			t = c.getConstraintTypeFromMappedType(args[0])
+		case "mappedName":
+			t = c.getNameTypeFromMappedType(args[0])
+		case "mappedTemplate":
+			t = c.getTemplateTypeFromMappedType(args[0])
+		case "homomorphic":
+			t = c.getHomomorphicTypeVariable(args[0])
+		case "actualVariable":
+			t = c.getActualTypeVariable(args[0])
+		case "genericMapped":
+			t = core.IfElse(c.isGenericMappedType(args[0]), c.regularTrueType, c.regularFalseType)
+		case "genericType":
+			t = core.IfElse(c.isGenericType(args[0]), c.regularTrueType, c.regularFalseType)
+		case "resolveEmpty":
+			t = args[0]
+			c.setStructuredTypeMembers(t, nil, nil, nil, nil)
+		case "typeNodeFlow":
+			file := parser.ParseSourceFile(ast.SourceFileParseOptions{FileName: "/type-flow/fixture.ts", Path: "/type-flow/fixture.ts"}, step.Text, core.ScriptKindTS)
+			pending := []*ast.Node{file.AsNode()}
+			var selected *ast.Node
+			for len(pending) != 0 {
+				node := pending[len(pending)-1]
+				pending = pending[:len(pending)-1]
+				node.ForEachChild(func(child *ast.Node) bool { pending = append(pending, child); return false })
+				if ast.IsTypeReferenceNode(node) {
+					var value *Type
+					switch node.AsTypeReferenceNode().TypeName.Text() {
+					case "Value":
+						value = args[0]
+						selected = node
+					case "Check":
+						value = args[1]
+					case "Extends":
+						value = args[2]
+					default:
+						panic("unseeded type-flow reference")
+					}
+					c.typeNodeLinks.Get(node).resolvedType = value
+				}
+			}
+			t = c.getConditionalFlowTypeOfType(args[0], selected)
 		case "identityEquals":
 			t = c.regularFalseType
 			if getRecursionIdentity(args[0]) == getRecursionIdentity(args[1]) {
@@ -464,7 +553,7 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 				target.AsInterfaceType().instantiations = make(map[CacheHashKey]*Type)
 			}
 			t = c.createTypeReferenceEx(target, args[1:], ObjectFlags(step.Flags))
-		case "instantiate":
+		case "instantiate", "mappedInstantiate":
 			sources := []*Type{}
 			targets := []*Type{}
 			for i := 1; i < len(args); i += 2 {
@@ -475,7 +564,11 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 			if step.Symbol != "" {
 				alias = &TypeAlias{symbol: symbol(step.Symbol), typeArguments: selectTypes(step.AliasArgs)}
 			}
-			t = c.instantiateTypeWithAlias(args[0], newTypeMapper(sources, targets), alias)
+			if step.Op == "mappedInstantiate" {
+				t = c.instantiateMappedType(args[0], newTypeMapper(sources, targets), alias)
+			} else {
+				t = c.instantiateTypeWithAlias(args[0], newTypeMapper(sources, targets), alias)
+			}
 		case "restrictive":
 			t = c.getRestrictiveInstantiation(args[0])
 		case "permissive":
@@ -539,7 +632,7 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 		default:
 			panic(step.Op)
 		}
-		if t == nil && step.Op != "baseConstraint" && step.Op != "constraint" && step.Op != "default" {
+		if t == nil && step.Op != "baseConstraint" && step.Op != "constraint" && step.Op != "default" && step.Op != "mappedName" && step.Op != "homomorphic" {
 			panic("nil type")
 		}
 		values = append(values, t)
@@ -624,6 +717,11 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 			name = ast.EscapeSymbolName(t.symbol.Name)
 		}
 		row := map[string]any{"flags": t.flags, "objectFlags": t.objectFlags, "symbol": name, "literal": isLiteralType(t), "unit": isUnitType(t)}
+		if objects && t.flags&TypeFlagsObject != 0 {
+			row["objectTarget"] = ref(t.AsObjectType().target)
+			row["hasMapper"] = t.Mapper() != nil
+			row["deferred"] = t.objectFlags&ObjectFlagsReference != 0 && t.AsTypeReference().node != nil
+		}
 		if instantiations && t.objectFlags&ObjectFlagsTuple != 0 {
 			d := t.AsTupleType()
 			flags := []uint32{}
@@ -633,7 +731,7 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 			row["tuple"] = []any{flags, d.minLength, d.fixedLength, uint32(d.combinedFlags), d.readonly}
 			row["thisType"] = ref(d.thisType)
 		}
-		if constraints {
+		if constraints || mappedTypes {
 			if d := t.AsConstrainedType(); d != nil {
 				row["baseConstraint"] = ref(d.resolvedBaseConstraint)
 			}
@@ -654,6 +752,12 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 				row["distributiveConstraint"] = ref(d.resolvedConstraintOfDistributive)
 			}
 		}
+		if mappedTypes && t.objectFlags&ObjectFlagsMapped != 0 {
+			row["mappedParameter"] = ref(t.AsMappedType().typeParameter)
+			row["mappedConstraint"] = ref(t.AsMappedType().constraintType)
+			row["mappedName"] = ref(t.AsMappedType().nameType)
+			row["mappedTemplate"] = ref(t.AsMappedType().templateType)
+		}
 		if t.alias != nil {
 			arguments := refs(t.alias.typeArguments)
 			// Alias arguments are not a lazy-resolution slot; nil and an empty slice both mean arity zero.
@@ -661,11 +765,6 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 				arguments = []int{}
 			}
 			row["alias"] = []any{names[t.alias.symbol], arguments}
-		}
-		if objects && t.flags&TypeFlagsObject != 0 {
-			row["objectTarget"] = ref(t.AsObjectType().target)
-			row["hasMapper"] = t.Mapper() != nil
-			row["deferred"] = t.objectFlags&ObjectFlagsReference != 0 && t.AsTypeReference().node != nil
 		}
 		switch {
 		case t.flags&TypeFlagsIntrinsic != 0:

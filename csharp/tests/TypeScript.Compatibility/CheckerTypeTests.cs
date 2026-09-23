@@ -81,7 +81,8 @@ internal static class CheckerTypeTests
         var builtins = Builtins(c);
         var host = new AlgebraFixtureHost(c);
         var algebra = new TypeAlgebra(c, new([]), host);
-        bool objectMode = input.GetProperty("steps").EnumerateArray().Any(
+        bool mappedMode = input.GetProperty("steps").EnumerateArray().Any(step => Text(step, "op") is "mapped" or "typeNodeFlow");
+        bool objectMode = mappedMode || input.GetProperty("steps").EnumerateArray().Any(
             step => Text(step, "op") is "capturedObject" or "deferredObject" or "anonymousInstance" or "possiblyReferenced");
         bool instantiationMode = objectMode || input.GetProperty("steps").EnumerateArray().Any(
             step => Text(step, "op") is "instantiate" or "tuple" or "array" or "permissive" or "restrictive");
@@ -161,6 +162,20 @@ internal static class CheckerTypeTests
                 "objectMap" => ((ObjectType)args[0]).Mapper!.MapType(args[1]),
                 "possiblyReferenced" => PossiblyReferenced() ? c.RegularTrueType : c.RegularFalseType,
                 "mappedIdentity" => MappedIdentity(),
+                "mapped" => Mapped(),
+                "mappedInstantiate" => Instantiate(true),
+                "mappedParameter" => instantiationHost!.Mapped.ParameterAsync((MappedType)args[0]).GetAwaiter().GetResult(),
+                "mappedConstraint" => instantiationHost!.Mapped.ConstraintAsync((MappedType)args[0]).GetAwaiter().GetResult(),
+                "mappedName" => instantiationHost!.Mapped.NameAsync((MappedType)args[0]).GetAwaiter().GetResult(),
+                "mappedTemplate" => instantiationHost!.Mapped.TemplateAsync((MappedType)args[0]).GetAwaiter().GetResult(),
+                "homomorphic" => instantiationHost!.Mapped.HomomorphicVariableAsync((MappedType)args[0]).GetAwaiter().GetResult(),
+                "actualVariable" => instantiationHost!.Mapped.ActualVariableAsync(args[0]).GetAwaiter().GetResult(),
+                "genericMapped" => instantiationHost!.Mapped.IsGenericAsync((MappedType)args[0]).GetAwaiter().GetResult()
+                    ? c.RegularTrueType : c.RegularFalseType,
+                "genericType" => instantiationHost!.Mapped.GenericFlagsAsync(args[0]).GetAwaiter().GetResult() != 0
+                    ? c.RegularTrueType : c.RegularFalseType,
+                "typeNodeFlow" => TypeNodeFlow(),
+                "resolveEmpty" => ResolveEmpty(),
                 "identityEquals" => recursion.IdentityAsync(args[0]).GetAwaiter().GetResult() == recursion.IdentityAsync(args[1]).GetAwaiter().GetResult()
                     ? c.RegularTrueType
                     : c.RegularFalseType,
@@ -177,7 +192,7 @@ internal static class CheckerTypeTests
                     args,
                     SymbolFor(symbol)),
                 "reference" => c.CreateTypeReference((InterfaceType)args[0], args.AsSpan(1), (ObjectFlags)flags),
-                "instantiate" => Instantiate(),
+                "instantiate" => Instantiate(false),
                 "restrictive" => instantiationHost!.Engine.RestrictiveAsync(args[0]).GetAwaiter().GetResult(),
                 "permissive" => instantiationHost!.Engine.PermissiveAsync(args[0]).GetAwaiter().GetResult(),
                 "array" => instantiationHost!.Tuples.ArrayAsync(args[0], Bool(step, "this")).GetAwaiter().GetResult(),
@@ -205,6 +220,36 @@ internal static class CheckerTypeTests
                 _ => throw new InvalidOperationException(op)
             };
             values.Add(type);
+            Type ResolveEmpty()
+            {
+                var result = (ObjectType)args[0];
+                result.ObjectFlags |= ObjectFlags.MembersResolved;
+                result.Members = new Dictionary<string, Symbol>().AsReadOnly();
+                result.Properties = [];
+                result.CallSignatures = [];
+                result.ConstructSignatures = [];
+                result.IndexInfos = [];
+                return result;
+            }
+            Type TypeNodeFlow()
+            {
+                var file = Parser.ParseSourceFile(new("/type-flow/fixture.ts"), new SourceText(text));
+                TypeReferenceNode? selected = null;
+                foreach (var reference in file.DescendantsAndSelf().OfType<TypeReferenceNode>())
+                {
+                    var value = ((IdentifierNode)reference.TypeName!).Text switch
+                    {
+                        "Value" => args[0],
+                        "Check" => args[1],
+                        "Extends" => args[2],
+                        _ => throw new InvalidOperationException("Unseeded type-flow reference")
+                    };
+                    instantiationHost!.ConstraintDependencies.Nodes[reference] = _ => ValueTask.FromResult(value);
+                    if (((IdentifierNode)reference.TypeName!).Text == "Value")
+                        selected = reference;
+                }
+                return instantiationHost!.TypeNodeFlow.ApplyAsync(args[0], selected!).GetAwaiter().GetResult();
+            }
             bool PossiblyReferenced()
             {
                 var file = Parser.ParseSourceFile(new("/references/fixture.ts"), new SourceText(text));
@@ -258,7 +303,51 @@ internal static class CheckerTypeTests
                 data.ResolvedType = result;
                 return result;
             }
-            Type? Instantiate()
+            MappedType Mapped()
+            {
+                var parameter = (TypeParameter)args[0];
+                var declaration = new MappedTypeNode
+                {
+                    TypeParameter = new TypeParameterDeclarationNode
+                    {
+                        Name = new IdentifierNode { Text = parameter.Symbol!.Name },
+                        Constraint = new TypeReferenceNode { TypeName = new IdentifierNode { Text = "SeedConstraint" } }
+                    },
+                    Type = new TypeReferenceNode { TypeName = new IdentifierNode { Text = "SeedTemplate" } },
+                    ReadonlyToken = (flags & 3) == 0
+                        ? null
+                        : new TokenNode((flags & 1) != 0 ? SyntaxKind.ReadonlyKeyword : SyntaxKind.MinusToken),
+                    QuestionToken = (flags & 12) == 0
+                        ? null
+                        : new TokenNode((flags & 4) != 0 ? SyntaxKind.QuestionToken : SyntaxKind.MinusToken)
+                };
+                if (step.TryGetProperty("origin", out var origin) && origin.GetInt32() != 0)
+                {
+                    declaration.NameType = new TypeReferenceNode { TypeName = new IdentifierNode { Text = "SeedName" } };
+                    instantiationHost!.ConstraintDependencies.Nodes[declaration.NameType] = _ => ValueTask.FromResult(values[origin.GetInt32()]!);
+                }
+                declaration.SetParents();
+                declaration.Parent = new TypeAliasDeclarationNode(SyntaxKind.TypeAliasDeclaration)
+                {
+                    Name = new IdentifierNode { Text = "Fixture" },
+                    Type = declaration
+                };
+                var name = SymbolFor(text)!;
+                name.Flags = SymbolFlags.TypeLiteral;
+                name.DeclarationList.Add(declaration);
+                parameter.Symbol!.DeclarationList.Add(declaration.TypeParameter);
+                parameter.Constraint = args[1];
+                instantiationHost!.Parameters[declaration.TypeParameter] = parameter;
+                instantiationHost.ConstraintDependencies.Nodes[declaration.Type!] = _ => ValueTask.FromResult(args[2]);
+                var result = (MappedType)c.NewObjectType(ObjectFlags.Mapped, name);
+                result.Declaration = declaration;
+                result.TypeParameter = parameter;
+                result.Alias = Alias();
+                instantiationHost.MappedNodes[declaration] = result;
+                links.TypeNodes.Get(declaration).OuterTypeParameters = Array.AsReadOnly(args.Skip(3).ToArray());
+                return result;
+            }
+            Type? Instantiate(bool mapped)
             {
                 var sources = new List<Type>();
                 var targets = new List<Type>();
@@ -267,6 +356,9 @@ internal static class CheckerTypeTests
                     sources.Add(args[i]);
                     targets.Add(args[i + 1]);
                 }
+                if (mapped)
+                    return instantiationHost!.Mapped.InstantiateAsync((MappedType)args[0],
+                        TypeMapper.Create(sources.ToArray(), targets.ToArray()), Alias()).GetAwaiter().GetResult();
                 return instantiationHost!.Engine.InstantiateAsync(
                     args[0],
                     TypeMapper.Create(sources.ToArray(), targets.ToArray()),
@@ -445,7 +537,7 @@ internal static class CheckerTypeTests
                 writer.WriteEndArray();
                 writer.WriteNumber("thisType", Ref(tuple.ThisType));
             }
-            if (constraintMode)
+            if (constraintMode || mappedMode)
             {
                 if (type is ConstrainedType constrained)
                     writer.WriteNumber("baseConstraint", Ref(constrained.ResolvedBaseConstraint));
@@ -465,6 +557,13 @@ internal static class CheckerTypeTests
                     writer.WriteNumber("defaultConstraint", Ref(conditional.ResolvedDefaultConstraint));
                     writer.WriteNumber("distributiveConstraint", Ref(conditional.ResolvedConstraintOfDistributive));
                 }
+            }
+            if (mappedMode && type is MappedType mappedType)
+            {
+                writer.WriteNumber("mappedParameter", Ref(mappedType.TypeParameter));
+                writer.WriteNumber("mappedConstraint", Ref(mappedType.ConstraintType));
+                writer.WriteNumber("mappedName", Ref(mappedType.NameType));
+                writer.WriteNumber("mappedTemplate", Ref(mappedType.TemplateType));
             }
             if (type.Alias is { } alias)
             {

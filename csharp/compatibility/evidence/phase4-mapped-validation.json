@@ -1,0 +1,74 @@
+{
+    "timestamp": "2026-09-23T13:40:19.3595558Z",
+    "scope": "Mapped type instantiation, generic classification and type-node substitutions with explicit semantic dependencies; full phase 4 remains incomplete",
+    "candidateSha256": "eec6d4f2aa069abb9368d3f676ee747ba157e999d96dcbe85d842d6b77e7519b",
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "languageVersion": "15.0",
+    "runtimeAsync": true,
+    "optimizationPreference": "Speed",
+    "instructionSet": "native",
+    "publish": {
+        "exitCode": 0,
+        "sha256": "03933be2dc34223ee88005d844f6919fd7786869077fd93acbb392005d81ccfb",
+        "log": "logs/csharp-phase4-mapped-publish.log"
+    },
+    "mapped": {
+        "failed": 0,
+        "cases": 784,
+        "operations": 34692,
+        "parsedTypeNodeFlowCases": 120,
+        "exact": 784
+    },
+    "state": {
+        "output": "37 mapped type assertions; actual-variable, generic-flag, kind and unary-tuple analysis depth 20000",
+        "exitCode": 0
+    },
+    "regression": {
+        "safetyOutputs": [
+            "26 instantiation/signature/tuple assertions; exact 100-depth, 5,000,000-work and 10,000-tuple limits",
+            "40 object instantiation assertions; reference, parent and entity-name depth 20000",
+            "21 constraint/default/recursion state assertions; default and indexed identity depth 20000"
+        ],
+        "comparisons": [
+            {
+                "failed": 0,
+                "name": "instantiation",
+                "operations": 43584,
+                "cases": 2176,
+                "exact": 2176
+            },
+            {
+                "failed": 0,
+                "name": "object",
+                "operations": 10923,
+                "cases": 579,
+                "exact": 579
+            },
+            {
+                "failed": 0,
+                "name": "constraint",
+                "operations": 20154,
+                "cases": 613,
+                "exact": 613
+            }
+        ]
+    },
+    "repository": {
+        "sha256": "1b3ddcdb2015e92ac87824e2bc89f44ca1b3b719c511fa63c9b747cc2d689d96",
+        "extensionTests": 12,
+        "node": "24.20.0",
+        "toolTests": 17,
+        "goSkips": 2152,
+        "goTestResults": 163380,
+        "benchmarkScope": "Required smoke runs only; no performance claim",
+        "apiTests": 813,
+        "log": "logs/csharp-phase4-mapped-validation.log",
+        "command": "npx --no-install hereby validate --all",
+        "lintIssues": 0,
+        "exitCode": 0,
+        "go": "1.27.1"
+    },
+    "formatting": "Nine C# files verified with identical tokens, comments and syntax under both library configurations; single-line auto-properties retained. Final dotnet format whitespace verification and dprint checks passed.",
+    "dependenciesAdded": false
+}

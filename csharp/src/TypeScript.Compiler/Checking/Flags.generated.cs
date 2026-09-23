@@ -270,3 +270,12 @@ public enum IntersectionFlags : uint
     NoSupertypeReduction = 1u << 0,
     NoConstraintReduction = 1u << 1,
 }
+
+[Flags]
+public enum MappedTypeModifiers : uint
+{
+    IncludeReadonly = 1u << 0,
+    ExcludeReadonly = 1u << 1,
+    IncludeOptional = 1u << 2,
+    ExcludeOptional = 1u << 3,
+}

@@ -9,7 +9,7 @@ namespace TypeScript.Compatibility;
 
 // Fixed, resolved fixture dependencies. No AST/member/inference fallback is
 // supplied: an unsupported query fails the differential test.
-internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleTypeHost, IObjectInstantiationHost
+internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleTypeHost, IObjectInstantiationHost, IMappedTypeHost
 {
     private readonly TypeContext context;
     private readonly TypeAlgebra algebra;
@@ -19,6 +19,13 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
     internal TupleTypes Tuples { get; }
     internal TypeInstantiation Engine { get; }
     internal ObjectInstantiation Objects { get; }
+    internal MappedTypes Mapped { get; }
+    internal TypeNodeFlow TypeNodeFlow { get; }
+    internal Dictionary<MappedTypeNode, MappedType> MappedNodes { get; } = [];
+    internal TypeConstraints Constraints { get; }
+    internal TypeResolutionStack Resolutions { get; }
+    internal ConstraintFixtureHost ConstraintDependencies { get; }
+    internal Dictionary<TypeParameterDeclarationNode, TypeParameter> Parameters { get; } = [];
     internal Dictionary<SyntaxNode, IReadOnlyList<Type>> OuterParameters { get; } = [];
     internal Dictionary<TypeReferenceNode, Symbol?> ReferenceSymbols { get; } = [];
     internal Dictionary<IdentifierNode, Symbol> ValueSymbols { get; } = [];
@@ -37,6 +44,19 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
         Tuples = new(context, algebra, links, this);
         Engine = new(context, algebra, links, this);
         Objects = new(context, links, Engine, new(TypeArgumentsAsync), this);
+        Resolutions = new(links);
+        ConstraintDependencies = new(context, relations)
+        {
+            Instantiator = (type, mapper, cancellation) => Engine.InstantiateAsync(type, mapper, cancellation: cancellation)
+        };
+        Constraints = new(
+            context,
+            algebra,
+            Resolutions,
+            new((_, _) => throw new InvalidOperationException("Fixture requires mapped modifiers resolution")),
+            ConstraintDependencies);
+        Mapped = new(context, algebra, Engine, Objects, Tuples, Resolutions, this);
+        TypeNodeFlow = new(context, algebra, Mapped, this);
     }
 
     private InterfaceType ArrayTargetType(string name)
@@ -85,19 +105,53 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
         => ValueTask.FromResult(NodeAliases[node]);
 
     public ValueTask<TypeParameter> MappedParameterAsync(MappedType type, CancellationToken cancellation)
-        => ValueTask.FromResult(type.TypeParameter ?? throw new InvalidOperationException("Fixture requires mapped parameter resolution"));
+        => Mapped.ParameterAsync(type, cancellation);
 
     public ValueTask<Type> InstantiateMappedAsync(MappedType type, TypeMapper mapper, TypeAlias? alias, CancellationToken cancellation)
-        => throw new InvalidOperationException("Fixture requires homomorphic mapped instantiation");
+        => Mapped.InstantiateAsync(type, mapper, alias, cancellation);
+
+    public ValueTask<TypeParameter> DeclaredParameterAsync(TypeParameterDeclarationNode declaration, CancellationToken cancellation)
+        => ValueTask.FromResult(Parameters[declaration]);
+
+    public ValueTask<Type?> ParameterConstraintAsync(TypeParameter parameter, CancellationToken cancellation)
+        => Constraints.ParameterConstraintAsync(parameter, cancellation);
+
+    public async ValueTask<Type> TypeFromNodeAsync(SyntaxNode node, CancellationToken cancellation)
+    {
+        var raw = node is MappedTypeNode mapped ? MappedNodes[mapped]
+            : await ConstraintDependencies.TypeFromNodeAsync(node, cancellation).ConfigureAwait(false);
+        return await TypeNodeFlow.ApplyAsync(raw, node, cancellation).ConfigureAwait(false);
+    }
+
+    public ValueTask<Type> ReducedTypeAsync(Type type, CancellationToken cancellation)
+    {
+        var pending = new Stack<Type>();
+        pending.Push(type);
+        while (pending.TryPop(out var current))
+        {
+            if (current is IntersectionType && (current.ObjectFlags & O.IsNeverIntersectionComputed) == 0)
+                throw new InvalidOperationException("Fixture requires intersection reduction");
+            if (current is UnionOrIntersectionType composite)
+                foreach (var part in composite.Types)
+                    pending.Push(part);
+        }
+        return ValueTask.FromResult(type);
+    }
+
+    public bool IsArrayType(Type type) =>
+        type is TypeReference reference && (reference.Target == array || reference.Target == readonlyArray);
+
+    public bool IsReadonlyArrayType(Type type) => type is TypeReference reference && reference.Target == readonlyArray;
+
+    public ValueTask<Type> WithoutUndefinedFactsAsync(Type type, CancellationToken cancellation)
+        => ValueTask.FromResult(algebra.Filter(type, part => part is UnionOrIntersectionType or ObjectType or TypeParameter
+            ? throw new InvalidOperationException("Fixture requires structural type facts") : (part.Flags & (F.Undefined | F.Void)) == 0));
 
     public ValueTask<Type?> InferReverseMappedAsync(Type source, MappedType mapped, IndexType constraint, CancellationToken cancellation)
             => throw new InvalidOperationException("Fixture requires reverse mapped inference");
 
     public ValueTask<bool> IsGenericMappedAsync(Type type, CancellationToken cancellation)
-            =>
-                type is MappedType
-                    ? throw new InvalidOperationException("Fixture requires mapped generic analysis")
-                    : ValueTask.FromResult(false);
+        => type is MappedType mapped ? Mapped.IsGenericAsync(mapped, cancellation) : ValueTask.FromResult(false);
 
     public async ValueTask<Type?> ArrayLikeElementAsync(Type type, CancellationToken cancellation)
     {
@@ -130,8 +184,22 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
     public async ValueTask<Type> IndexTypeAsync(Type target, CancellationToken cancellation)
     {
         OnIndex?.Invoke(target);
-        if ((target.Flags & F.InstantiableNonPrimitive) != 0)
+        if ((target.Flags & F.InstantiableNonPrimitive) != 0 || TypeConstraints.IsGenericTuple(target))
             return context.GetIndexTypeForGenericType(target);
+        if (target is IntersectionType intersection && intersection.Types.All(IsArrayType))
+        {
+            var parts = new Type[intersection.Types.Count];
+            for (int i = 0; i < parts.Length; i++)
+                parts[i] = await IndexTypeAsync(intersection.Types[i], cancellation).ConfigureAwait(false);
+            return await algebra.UnionAsync(parts, cancellation: cancellation).ConfigureAwait(false);
+        }
+        if (IsArrayType(target))
+        {
+            await ArrayElement((TypeReference)target, cancellation).ConfigureAwait(false);
+            return await algebra.UnionAsync(
+                [context.NumberType, context.GetStringLiteralType("length")],
+                cancellation: cancellation).ConfigureAwait(false);
+        }
         if (target == context.WildcardType)
             return target;
         if ((target.Flags & F.Unknown) != 0)
@@ -199,7 +267,20 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
         if ((indexType.Flags & F.Number) != 0 && (objectType.Flags & F.Primitive) != 0)
             return context.UnknownType;
         if (indexType is LiteralType { Value: string name })
+        {
+            if (objectType is TypeReference { Target: TupleType target } fixedTuple
+                && int.TryParse(
+                    name,
+                    System.Globalization.NumberStyles.None,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    out int position)
+                && position < target.FixedLength && name == position.ToString(System.Globalization.CultureInfo.InvariantCulture))
+            {
+                await IndexedAccessAsync(objectType, context.NumberType, cancellation).ConfigureAwait(false);
+                return fixedTuple.ResolvedTypeArguments![position];
+            }
             return await relations.GetPropertyTypeAsync(objectType, name, cancellation).ConfigureAwait(false) ?? context.UnknownType;
+        }
         throw new InvalidOperationException("Fixture requires general indexed access");
     }
 
@@ -210,8 +291,8 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
         CancellationToken cancellation)
             => throw new InvalidOperationException("Fixture requires conditional evaluation");
 
-    public ValueTask<bool> IsGenericTypeAsync(Type type, CancellationToken cancellation)
-            => ValueTask.FromResult(AlgebraFixtureHost.GenericFlags(type) != 0);
+    public async ValueTask<bool> IsGenericTypeAsync(Type type, CancellationToken cancellation)
+        => await Mapped.GenericFlagsAsync(type, cancellation).ConfigureAwait(false) != 0;
 
     public ValueTask<bool> IsAssignableAsync(Type source, Type target, CancellationToken cancellation)
             => ValueTask.FromResult((source.Flags & F.Any) != 0 || relations.Related(source, target, false));

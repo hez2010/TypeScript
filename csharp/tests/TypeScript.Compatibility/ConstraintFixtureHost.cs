@@ -13,6 +13,7 @@ internal sealed class ConstraintFixtureHost(TypeContext context, AlgebraFixtureH
     internal HashSet<ConditionalType> Restrictive { get; } = [];
     internal Dictionary<ConditionalType, Type> ConditionalInstantiations { get; } = [];
     internal Func<Type, bool, CancellationToken, ValueTask<Type>>? Simplifier { get; set; }
+    internal Func<Type?, TypeMapper?, CancellationToken, ValueTask<Type?>>? Instantiator { get; set; }
     private readonly Dictionary<(Type, Type, AccessFlags), Type> indexedAccesses = [];
     private readonly TypeVariables variables = new((type, _) => ValueTask.FromResult(type.ResolvedTypeArguments
         ?? throw new InvalidOperationException("Fixture requires deferred type arguments")));
@@ -31,6 +32,8 @@ internal sealed class ConstraintFixtureHost(TypeContext context, AlgebraFixtureH
 
     public async ValueTask<Type?> InstantiateAsync(Type? type, TypeMapper? mapper, CancellationToken cancellation)
     {
+        if (Instantiator is { } instantiator)
+            return await instantiator(type, mapper, cancellation).ConfigureAwait(false);
         if (type is null || mapper is null || !await variables.CouldContainAsync(type, cancellation).ConfigureAwait(false))
             return type;
         if (type is TypeParameter)

@@ -1,0 +1,18 @@
+{
+    "timestamp": "2026-09-23T13:36:55.325Z",
+    "scope": "Mapped type instantiation, templates and modifiers with explicit semantic fixture dependencies; full checker integration remains incomplete",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "managed": false,
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "cases": 784,
+    "operations": 34692,
+    "passed": 784,
+    "failed": 0,
+    "inputSha256": "3b757ab5f8b293e0b90ac4de7f542974b14e936a384ef44372bbc0f4b41be1f5",
+    "referenceOutputSha256": "dee43af41dd477c4876194e3867ad83ebebe90f9705d5f577b8e09a5de736353",
+    "outputSha256": "16d57d0f09bd06cb977343f12037aaa893ebe36ea50677e066528bfcdf0d3d02",
+    "oracleSha256": "53bb630200999afb1f484cd974289dd14359d5c940c2b84c41d223bcc5e397cc",
+    "candidateSha256": "eec6d4f2aa069abb9368d3f676ee747ba157e999d96dcbe85d842d6b77e7519b",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "go": "go version go1.27.1 windows/amd64"
+}
