@@ -13,6 +13,21 @@ internal static class Program
     {
         try
         {
+            if (args is ["--checker-names-safety"])
+            {
+                CheckerNameTests.Safety();
+                return 0;
+            }
+            if (args is ["--checker-symbols-lines"])
+            {
+                CheckerSymbolTests.Lines();
+                return 0;
+            }
+            if (args is ["--checker-names-lines"])
+            {
+                CheckerNameTests.Lines();
+                return 0;
+            }
             if (args is ["--checker-state"])
             {
                 CheckerStateTests.Safety();

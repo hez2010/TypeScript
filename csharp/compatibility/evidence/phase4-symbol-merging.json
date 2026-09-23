@@ -1,0 +1,13 @@
+{
+    "timestamp": "2026-09-23T10:07:04.689Z",
+    "scope": "Symbol merge identities, declaration precedence, exclusion masks, alias callbacks and member/export ownership; diagnostic formatting is a checker responsibility",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "managed": false,
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "cases": 4083,
+    "exact": 4083,
+    "failed": 0,
+    "inputSha256": "349d1de532d3f4609fc326ac59c4acc4ebfe83117f3cc4e2ef97f191548067c3",
+    "candidateSha256": "881ad2e9f6ab2f2e6adfa99a11938586781d5f4b4f0224a9e572c06ad61a2a1c",
+    "oracleSha256": "f6909e5f32a98d56cb5ed3bd06fbaa46890ca4e004066ae24fdb0866973645e4"
+}

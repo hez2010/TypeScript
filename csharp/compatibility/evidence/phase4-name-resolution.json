@@ -1,0 +1,17 @@
+{
+    "timestamp": "2026-09-23T10:11:03.140Z",
+    "scope": "Lexical name and reference resolver; checker alias/merge hooks are separate",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "managed": false,
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "cases": 17989,
+    "queries": 2983848,
+    "references": 497308,
+    "exact": 17609,
+    "strictDifferences": 380,
+    "permittedDifferences": 380,
+    "failed": 0,
+    "inputSha256": "6ddda1c5c9b0faa2f13a8d1ba29a0ad68527eb10715e8d495efc9e0a195a9de4",
+    "candidateSha256": "881ad2e9f6ab2f2e6adfa99a11938586781d5f4b4f0224a9e572c06ad61a2a1c",
+    "oracleSha256": "307c4a5ae73ffc6480b2568a6e181efe8ea3307bc0c5e73161188b36e4c28092"
+}

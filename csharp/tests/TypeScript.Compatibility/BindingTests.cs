@@ -41,7 +41,7 @@ internal static class BindingTests
         }
     }
 
-    private static string SyntaxFingerprint(SourceFileNode file)
+    internal static string SyntaxFingerprint(SourceFileNode file)
     {
         using var stream = new MemoryStream();
         using (var writer = new Utf8JsonWriter(stream))
@@ -163,7 +163,7 @@ internal static class BindingTests
         diagnostic.Arguments.Select(a => Convert.ToBase64String(Wtf8.Encode(a))).ToArray(),
         diagnostic.RelatedInformation.Select(DiagnosticValue).ToArray()];
 
-    private static void Write(Utf8JsonWriter writer, object value)
+    internal static void Write(Utf8JsonWriter writer, object value)
     {
         switch (value)
         {
