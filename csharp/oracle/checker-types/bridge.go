@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"math"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -20,6 +21,7 @@ type CSharpTypeStep struct {
 	Args, AliasArgs          []int
 	Flags                    uint32
 	Origin                   int
+	Keyof                    int
 	This                     bool
 	Texts                    []string
 	Properties               []string
@@ -146,7 +148,12 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 	instantiations := false
 	objects := false
 	mappedTypes := false
+	members := false
 	for _, step := range steps {
+		switch step.Op {
+		case "resolveMembers", "mappedProperty", "mappedModifiers", "keyLowerBound", "mappedOptionality", "apparentKeys":
+			members, mappedTypes, objects, instantiations, algebra = true, true, true, true, true
+		}
 		if step.Op == "mapped" || step.Op == "typeNodeFlow" {
 			mappedTypes = true
 			objects = true
@@ -185,7 +192,8 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 		"never": c.neverType, "silentNever": c.silentNeverType, "implicitNever": c.implicitNeverType,
 		"unreachableNever": c.unreachableNeverType, "object": c.nonPrimitiveType, "uniqueLiteral": c.uniqueLiteralType,
 		"empty": c.emptyObjectType, "unknownEmpty": c.unknownEmptyObjectType, "anyFunction": c.anyFunctionType,
-		"unknownUnion": c.unknownUnionType, "numericString": c.numericStringType, "templateConstraint": c.templateConstraintType,
+		"emptyTypeLiteral": c.emptyTypeLiteralType,
+		"unknownUnion":     c.unknownUnionType, "numericString": c.numericStringType, "templateConstraint": c.templateConstraintType,
 		"noConstraint": c.noConstraintType, "circularConstraint": c.circularConstraintType, "resolvingDefault": c.resolvingDefaultType,
 	}
 	syms := map[string]*ast.Symbol{}
@@ -448,6 +456,13 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 			factory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
 			parameter := args[0]
 			parameterNode := factory.NewTypeParameterDeclaration(nil, factory.NewIdentifier(parameter.symbol.Name), factory.NewTypeReferenceNode(factory.NewIdentifier("SeedConstraint"), nil), nil, nil)
+			if step.Keyof != 0 {
+				operand := factory.NewTypeReferenceNode(factory.NewIdentifier("SeedModifiers"), nil)
+				operator := factory.NewTypeOperatorNode(ast.KindKeyOfKeyword, operand)
+				operand.Parent = operator
+				parameterNode.AsTypeParameterDeclaration().Constraint = operator
+				c.typeNodeLinks.Get(operand).resolvedType = values[step.Keyof]
+			}
 			var readonlyToken, questionToken, nameType *ast.Node
 			if step.Flags&3 != 0 {
 				readonlyToken = factory.NewToken(core.IfElse(step.Flags&1 != 0, ast.KindReadonlyKeyword, ast.KindMinusToken))
@@ -490,6 +505,30 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 			t = c.getNameTypeFromMappedType(args[0])
 		case "mappedTemplate":
 			t = c.getTemplateTypeFromMappedType(args[0])
+		case "resolveMembers":
+			t = args[0]
+			c.resolveStructuredTypeMembers(t)
+		case "mappedProperty", "mappedProperty64":
+			c.resolveStructuredTypeMembers(args[0])
+			name := step.Text
+			if step.Op == "mappedProperty64" {
+				bytes, err := base64.StdEncoding.DecodeString(name)
+				if err != nil {
+					panic(err)
+				}
+				name = string(bytes)
+			}
+			if property := args[0].AsStructuredType().members[name]; property != nil {
+				t = c.getTypeOfMappedSymbol(property)
+			}
+		case "mappedModifiers":
+			t = c.getModifiersTypeFromMappedType(args[0])
+		case "keyLowerBound":
+			t = c.getLowerBoundOfKeyType(args[0])
+		case "mappedOptionality":
+			t = c.getNumberLiteralType(jsnum.Number(c.getCombinedMappedTypeOptionality(args[0])))
+		case "apparentKeys":
+			t = c.getApparentMappedTypeKeys(args[1], args[0])
 		case "homomorphic":
 			t = c.getHomomorphicTypeVariable(args[0])
 		case "actualVariable":
@@ -541,12 +580,29 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 			if c.isDeeplyNestedType(args[0], args[1:], int(step.Flags)) {
 				t = c.regularTrueType
 			}
-		case "shape":
+		case "shape", "memberShape":
 			members := ast.SymbolTable{}
 			for i, name := range step.Properties {
 				members[name] = c.newProperty(name, args[i])
 			}
 			t = c.newAnonymousType(symbol(step.Symbol), members, nil, nil, nil)
+		case "propertyMetadata":
+			t = args[0]
+			property := t.AsStructuredType().members[step.Text]
+			property.Flags |= ast.SymbolFlags(step.Flags)
+			property.CheckFlags |= ast.CheckFlags(step.Origin)
+			factory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+			declaration := factory.NewPropertySignatureDeclaration(nil, factory.NewIdentifier(step.Text), nil, nil, nil)
+			declaration.Loc = core.NewTextRange(len(values)+1, len(values)+2)
+			declaration.Parent = c.files[0].AsNode()
+			property.Declarations = append(property.Declarations, declaration)
+			property.ValueDeclaration = declaration
+			if len(args) > 1 {
+				c.valueSymbolLinks.Get(property).nameType = args[1]
+			}
+		case "addIndex":
+			t = args[0]
+			t.AsStructuredType().indexInfos = append(t.AsStructuredType().indexInfos, c.newIndexInfo(args[1], args[2], step.This, nil, nil))
 		case "reference":
 			target := args[0]
 			if target.AsInterfaceType().instantiations == nil {
@@ -632,7 +688,7 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 		default:
 			panic(step.Op)
 		}
-		if t == nil && step.Op != "baseConstraint" && step.Op != "constraint" && step.Op != "default" && step.Op != "mappedName" && step.Op != "homomorphic" {
+		if t == nil && step.Op != "baseConstraint" && step.Op != "constraint" && step.Op != "default" && step.Op != "mappedName" && step.Op != "homomorphic" && step.Op != "mappedProperty" && step.Op != "mappedProperty64" {
 			panic("nil type")
 		}
 		values = append(values, t)
@@ -757,6 +813,46 @@ func (c *Checker) CSharpTypeProbe(steps []CSharpTypeStep, mapperSteps []CSharpMa
 			row["mappedConstraint"] = ref(t.AsMappedType().constraintType)
 			row["mappedName"] = ref(t.AsMappedType().nameType)
 			row["mappedTemplate"] = ref(t.AsMappedType().templateType)
+			if members {
+				row["modifiersType"] = ref(t.AsMappedType().modifiersType)
+				row["containsError"] = t.AsMappedType().containsError
+			}
+		}
+		if members && t.flags&TypeFlagsStructuredType != 0 {
+			structure := t.AsStructuredType()
+			row["members"] = nil
+			if structure.members != nil {
+				keys := []string{}
+				for key := range structure.members {
+					keys = append(keys, key)
+				}
+				slices.Sort(keys)
+				memberRows := []any{}
+				for _, key := range keys {
+					property := structure.members[key]
+					data := c.valueSymbolLinks.Get(property)
+					mapping := c.mappedSymbolLinks.Get(property)
+					origin := ""
+					if mapping.syntheticOrigin != nil {
+						origin = ast.EscapeSymbolName(mapping.syntheticOrigin.Name)
+					}
+					memberRows = append(memberRows, []any{
+						base64.StdEncoding.EncodeToString([]byte(ast.EscapeSymbolName(key))), property.Flags, property.CheckFlags,
+						ref(data.resolvedType), ref(data.nameType), ref(mapping.keyType), ref(data.containingType), base64.StdEncoding.EncodeToString([]byte(origin)), len(property.Declarations),
+					})
+				}
+				row["members"] = memberRows
+			}
+			properties := []string{}
+			for _, property := range structure.properties {
+				properties = append(properties, base64.StdEncoding.EncodeToString([]byte(ast.EscapeSymbolName(property.Name))))
+			}
+			row["properties"] = properties
+			indexes := []any{}
+			for _, index := range structure.indexInfos {
+				indexes = append(indexes, []any{ref(index.keyType), ref(index.valueType), index.isReadonly})
+			}
+			row["indexes"] = indexes
 		}
 		if t.alias != nil {
 			arguments := refs(t.alias.typeArguments)

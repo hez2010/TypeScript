@@ -14,6 +14,8 @@ internal sealed class LinkStore<TKey, TValue> where TKey : class where TValue : 
 
     internal bool Has(TKey key) => values.ContainsKey(key);
 
+    internal bool Remove(TKey key) => values.Remove(key);
+
     internal TValue Get(TKey key)
     {
         if (!values.TryGetValue(key, out var value))
@@ -41,6 +43,12 @@ internal sealed class AliasSymbolLinks
     internal SyntaxNode? TypeOnlyDeclaration { get; set; }
 }
 
+internal sealed class MappedSymbolLinks
+{
+    internal Type? KeyType { get; set; }
+    internal Symbol? SyntheticOrigin { get; set; }
+}
+
 internal sealed class TypeAliasLinks
 {
     internal Type? DeclaredType { get; set; }
@@ -66,6 +74,7 @@ internal sealed class CheckerLinks
 {
     internal LinkStore<Symbol, ValueSymbolLinks> Values { get; } = new();
     internal LinkStore<Symbol, AliasSymbolLinks> Aliases { get; } = new();
+    internal LinkStore<Symbol, MappedSymbolLinks> MappedSymbols { get; } = new();
     internal LinkStore<Symbol, TypeAliasLinks> TypeAliases { get; } = new();
     internal LinkStore<SyntaxNode, NodeLinks> Nodes { get; } = new();
     internal LinkStore<SyntaxNode, TypeNodeLinks> TypeNodes { get; } = new();

@@ -1,0 +1,18 @@
+{
+    "timestamp": "2026-09-23T14:12:59.628Z",
+    "scope": "Mapped member construction and lazy property resolution with explicit semantic fixture dependencies; full checker integration remains incomplete",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "managed": false,
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "cases": 1592,
+    "operations": 28962,
+    "passed": 1592,
+    "failed": 0,
+    "inputSha256": "526e3068019ccfe7a5693081c8efb5d24e52bb49068170acbc6a779cadda0dd7",
+    "referenceOutputSha256": "1307f08d3a48f111543184126d79635569f182673c296f0a5f4018ec755a866c",
+    "outputSha256": "2bae9689e5b47b494f792e9d2525af31b6dd3c4b679bf30762fddf91ea2d3d05",
+    "oracleSha256": "3a60f6f47587c6e4f0b469fe99355b606af66f4c31a696d8e49e4c34689d8f1d",
+    "candidateSha256": "efc0ed924f8d687dd0cd2b0bd85125418e261b2287e379e2dd9342dd45ced198",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "go": "go version go1.27.1 windows/amd64"
+}

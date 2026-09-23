@@ -136,7 +136,7 @@ node csharp/tools/checker-objects.mjs --record phase4-object-instantiation
 
 `MappedTypes.cs` implements lazy mapped parameter, constraint, name and template resolution; generic-type classification and its caches; homomorphic distribution; array/tuple mappings; readonly/optional modifiers; wildcard/error handling; and actual-variable normalization. `TypeNodeFlow.cs` applies substitutions in conditional true branches, including parameter variance and unary tuple constraints, and narrows homomorphic iteration keys under array/tuple constraints. This is type-node substitution, not expression control-flow analysis.
 
-The required `IMappedTypeHost` retains general AST type evaluation, structural reduction, array recognition, indexed access and type-fact filtering as checker services. The comparison host connects the implemented constraint, instantiation, object and tuple components, supplies explicit AST values and resolved array/index dependencies, and rejects unsupported structural queries. Mapped member creation, property-name remapping, apparent/modifier type resolution and full checker integration remain open.
+The required `IMappedTypeHost` retains general AST type evaluation, structural reduction, array recognition, indexed access and type-fact filtering as checker services. The comparison host connects the implemented constraint, instantiation, object and tuple components, supplies explicit AST values and resolved array/index dependencies, and rejects unsupported structural queries. Full structural relations, apparent-type resolution and checker integration remain open.
 
 Anonymous instantiation also clears the source's member-resolution flag: the new instance owns lazy member state. Differential fixtures exercise instantiation of a resolved source, and state assertions verify that the resulting member data remains unresolved.
 
@@ -149,6 +149,23 @@ node csharp/tools/checker-mapped.mjs --record phase4-mapped-types
 & ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-mapped-safety
 ```
 
+## Mapped member construction
+
+`MappedMembers.cs` implements mapped property/index construction, name filtering and remapping, merged keys for colliding names, source declarations and modifier inheritance, lazy property types, circular-property detection, index signature combination, modifier-type resolution, combined optionality and key lower bounds. Lower bounds retain the special primitive/empty-type-literal intersections and use the distinct `EmptyTypeLiteralType` sentinel.
+
+Member resolution exposes an initially empty resolved type to recursive queries, then installs the completed members. Cancellation restores the prior member state and removes newly allocated property links. Lazy property resolution unwinds its resolution stack on failure, caches completed types and reports diagnostic 2615 for a circular property through the required reporting callback.
+
+The required `IMappedMemberHost` supplies general apparent types, properties, semantic readonly/name queries, applicable index signatures, assignability and conditional instantiation. The test host provides explicit resolved property/index fixtures, preserving metadata and rejecting unsupported structural operations. Complete semantic name/alias/type construction and the structural relater remain required for checker integration.
+
+NativeAOT passes **1,592 exact comparisons**, containing **28,962 operations**. They cover finite keys, optional/readonly inheritance and overrides, filtering and constant remapping, declaration order, lazy property caches, colliding enum names, string/number/symbol/pattern index signatures, and primitive/empty-literal lower bounds. Member names are compared as WTF-8 bytes, retaining NUL, supplementary characters and lone surrogates without JSON replacement loss. Thirty safety assertions verify re-entry into member construction, cancellation cleanup and retry, circular property resolution, ownership and **20,000-level** key/modifier traversals.
+
+The same native artifact passes 784 mapped-type cases, 2,176 instantiation/tuple cases and 2,904 type/state cases, plus their 104 safety assertions. Evidence: [members](../csharp/compatibility/evidence/phase4-mapped-members.json), [mapped regression](../csharp/compatibility/evidence/phase4-members-mapped-regression.json), [instantiation regression](../csharp/compatibility/evidence/phase4-members-instantiation-regression.json), [type/state regression](../csharp/compatibility/evidence/phase4-members-type-regression.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-mapped-members-validation.json). Full semantic workload performance remains unmeasured.
+
+```powershell
+node csharp/tools/checker-mapped-members.mjs --record phase4-mapped-members
+& ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-mapped-members-safety
+```
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
@@ -157,7 +174,7 @@ The following phase-4 requirements remain open:
 2. Structural relations and their caches, general AST constraint evaluation/inference, outer type-parameter discovery and conditional instantiation; connect the implemented algebra, constraints, instantiation workers and tuple algorithms to these complete checker services.
 3. Inference, contextual typing, signatures and overload selection, expression/declaration checking, JavaScript and JSDoc semantics.
 4. Flow analysis and narrowing, evolving arrays, definite assignment, exhaustiveness and semantic diagnostics.
-5. Mapped members, property remapping and modifier/apparent types; conditional, indexed-access and template type evaluation; JSX, decorators and grammar checks.
+5. Apparent mapped types and remapping integration with structural relations; conditional, indexed-access and template type evaluation; JSX, decorators and grammar checks.
 6. Type display, node builders, symbol accessibility and emit-resolver APIs.
 7. All active checker/compiler type/symbol/diagnostic comparisons at single and reference-default concurrency; audits of intentional differences; complete semantic workload memory/performance measurements.
 

@@ -9,17 +9,19 @@ namespace TypeScript.Compatibility;
 
 // Fixed, resolved fixture dependencies. No AST/member/inference fallback is
 // supplied: an unsupported query fails the differential test.
-internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleTypeHost, IObjectInstantiationHost, IMappedTypeHost
+internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleTypeHost, IObjectInstantiationHost, IMappedMemberHost
 {
     private readonly TypeContext context;
     private readonly TypeAlgebra algebra;
     private readonly AlgebraFixtureHost relations;
+    private readonly CheckerLinks links;
     private readonly Dictionary<(Type, Type, AccessFlags), Type> accesses = [];
     private readonly InterfaceType array, readonlyArray;
     internal TupleTypes Tuples { get; }
     internal TypeInstantiation Engine { get; }
     internal ObjectInstantiation Objects { get; }
     internal MappedTypes Mapped { get; }
+    internal MappedMembers Members { get; }
     internal TypeNodeFlow TypeNodeFlow { get; }
     internal Dictionary<MappedTypeNode, MappedType> MappedNodes { get; } = [];
     internal TypeConstraints Constraints { get; }
@@ -33,12 +35,14 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
     internal List<int> Diagnostics { get; } = [];
     internal Action<Type>? OnIndex { get; set; }
     internal Action<TypeReference>? OnTypeArguments { get; set; }
+    internal Action<string>? BeforeProperty { get; set; }
 
     internal InstantiationFixtureHost(TypeContext context, TypeAlgebra algebra, CheckerLinks links, AlgebraFixtureHost relations)
     {
         this.context = context;
         this.algebra = algebra;
         this.relations = relations;
+        this.links = links;
         array = ArrayTargetType("Array");
         readonlyArray = ArrayTargetType("ReadonlyArray");
         Tuples = new(context, algebra, links, this);
@@ -56,6 +60,7 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
             new((_, _) => throw new InvalidOperationException("Fixture requires mapped modifiers resolution")),
             ConstraintDependencies);
         Mapped = new(context, algebra, Engine, Objects, Tuples, Resolutions, this);
+        Members = new(context, algebra, Engine, Mapped, links, Resolutions, new([]), this);
         TypeNodeFlow = new(context, algebra, Mapped, this);
     }
 
@@ -74,6 +79,9 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
         target.Instantiations = new() { [new TypeCacheKey([parameter])] = target };
         target.DeclaredMembersResolved = true;
         target.BaseTypesResolved = true;
+        var length = new Symbol(SymbolFlags.Property | SymbolFlags.Transient, "length");
+        links.Values.Get(length).ResolvedType = context.NumberType;
+        target.DeclaredMembers = new Dictionary<string, Symbol> { ["length"] = length }.AsReadOnly();
         return target;
     }
 
@@ -115,6 +123,84 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
 
     public ValueTask<Type?> ParameterConstraintAsync(TypeParameter parameter, CancellationToken cancellation)
         => Constraints.ParameterConstraintAsync(parameter, cancellation);
+
+    public ValueTask<MappedType> DeclaredMappedTypeAsync(MappedTypeNode node, CancellationToken cancellation)
+        => ValueTask.FromResult(MappedNodes[node]);
+
+    public async ValueTask<Type> ApparentTypeAsync(Type type, CancellationToken cancellation)
+    {
+        if ((type.Flags & F.Instantiable) != 0)
+            type = await Constraints.BaseConstraintAsync(type, cancellation).ConfigureAwait(false) ?? context.UnknownType;
+        if (type is MappedType or IntersectionType)
+            throw new InvalidOperationException("Fixture requires apparent mapped/intersection types");
+        if ((type.Flags & (F.StringLike | F.NumberLike | F.BigIntLike | F.BooleanLike | F.ESSymbolLike | F.NonPrimitive)) != 0
+            || (type.Flags & F.Unknown) != 0 && !context.StrictNullChecks)
+            return context.EmptyObjectType; // No primitive library members in this fixture program.
+        return (type.Flags & F.Index) != 0 ? context.StringNumberSymbolType : type;
+    }
+
+    public async ValueTask<IReadOnlyList<Symbol>> PropertiesAsync(Type type, CancellationToken cancellation)
+    {
+        if (type is MappedType mapped)
+            await Members.ResolveAsync(mapped, cancellation).ConfigureAwait(false);
+        if (IsArrayType(type))
+            await ArrayElement((TypeReference)type, cancellation).ConfigureAwait(false);
+        if (type is ObjectType { ObjectFlags: var flags } structure && (flags & O.MembersResolved) != 0)
+            return structure.Properties ?? [];
+        if ((type.Flags & (F.Primitive | F.AnyOrUnknown | F.Never)) != 0)
+            return [];
+        throw new InvalidOperationException("Fixture requires general property resolution");
+    }
+
+    public async ValueTask<IReadOnlyList<IndexInfo>> IndexInfosAsync(Type type, CancellationToken cancellation)
+    {
+        await PropertiesAsync(type, cancellation).ConfigureAwait(false);
+        return type is StructuredType structured ? structured.IndexInfos : [];
+    }
+
+    public async ValueTask<Symbol?> PropertyAsync(Type type, string name, CancellationToken cancellation)
+    {
+        BeforeProperty?.Invoke(name);
+        await PropertiesAsync(type, cancellation).ConfigureAwait(false);
+        return type is StructuredType structured ? structured.Members?.GetValueOrDefault(name) : null;
+    }
+
+    public ValueTask<Type> PropertyNameTypeAsync(Symbol symbol, CancellationToken cancellation)
+    {
+        var name = links.Values.Get(symbol).NameType;
+        if (name is not null)
+            return ValueTask.FromResult((name.Flags & F.StringOrNumberLiteralOrUnique) != 0 ? name : context.NeverType);
+        if (symbol.Name.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal))
+            throw new InvalidOperationException("Fixture requires private/computed property names");
+        return ValueTask.FromResult<Type>(context.GetStringLiteralType(symbol.Name));
+    }
+
+    public bool IsReadonly(Symbol symbol) => (symbol.CheckFlags & CheckFlags.Readonly) != 0;
+
+    public async ValueTask<IndexInfo?> ApplicableIndexAsync(Type type, Type key, CancellationToken cancellation)
+    {
+        IndexInfo? exact = null, fallback = null;
+        foreach (var info in await IndexInfosAsync(type, cancellation).ConfigureAwait(false))
+        {
+            if (info.KeyType == context.StringType)
+            {
+                if ((key.Flags & (F.StringLike | F.NumberLike)) != 0)
+                    fallback = info;
+            }
+            else if (info.KeyType == key || relations.Related(key, info.KeyType, false))
+            {
+                if (exact is not null)
+                    throw new InvalidOperationException("Fixture requires multiple applicable index signatures");
+                exact = info;
+            }
+        }
+        return exact ?? fallback;
+    }
+
+    public ValueTask<Type> ConditionalInstantiationAsync(ConditionalType type, TypeMapper mapper, CancellationToken cancellation)
+        => throw new InvalidOperationException("Fixture requires conditional instantiation");
+
+    public void CircularProperty(Symbol symbol, MappedType type) => Diagnostics.Add(2615);
 
     public async ValueTask<Type> TypeFromNodeAsync(SyntaxNode node, CancellationToken cancellation)
     {
@@ -176,6 +262,8 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
                 cancellation: cancellation).ConfigureAwait(false)
                 ?? throw new InvalidOperationException("Array element instantiation failed");
             reference.IndexInfos = [context.NewIndexInfo(context.NumberType, mapped)];
+            reference.Members = target.DeclaredMembers;
+            reference.Properties = target.DeclaredMembers!.Values.ToArray();
             reference.ObjectFlags |= O.MembersResolved;
         }
         return reference.IndexInfos[0].ValueType;
@@ -207,9 +295,18 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
         if ((target.Flags & (F.Any | F.Never)) != 0)
             return context.StringNumberSymbolType;
         if (target is ObjectType { Members: { } members })
-            return await algebra.UnionAsync(
-                members.Keys.Select(context.GetStringLiteralType).ToArray(),
-                cancellation: cancellation).ConfigureAwait(false);
+        {
+            var keys = new List<Type>();
+            foreach (var property in members.Values)
+                keys.Add(await PropertyNameTypeAsync(property, cancellation).ConfigureAwait(false));
+            foreach (var index in ((ObjectType)target).IndexInfos)
+            {
+                keys.Add(index.KeyType);
+                if (index.KeyType == context.StringType)
+                    keys.Add(context.NumberType);
+            }
+            return await algebra.UnionAsync(keys, cancellation: cancellation).ConfigureAwait(false);
+        }
         if ((target.Flags & F.Primitive) != 0)
             return context.NeverType; // No standard primitive libraries in this fixture program.
         throw new InvalidOperationException("Fixture requires general keyof resolution");
@@ -229,7 +326,8 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
             return objectType;
         if ((objectType.Flags & F.Never) != 0)
             return context.NeverType;
-        if (objectType is TypeParameter || (indexType.Flags & F.InstantiableNonPrimitive) != 0)
+        bool genericIndex = (await Mapped.GenericFlagsAsync(indexType, cancellation).ConfigureAwait(false) & O.IsGenericIndexType) != 0;
+        if (genericIndex || objectType is TypeParameter)
         {
             if (alias is not null)
                 throw new InvalidOperationException("Fixture requires indexed alias caching");
@@ -237,6 +335,18 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
             if (!accesses.TryGetValue(key, out var cached))
                 accesses.Add(key, cached = context.NewIndexedAccessType(key.objectType, key.indexType, key.Item3));
             return cached;
+        }
+        if (indexType is UnionType union && objectType is ObjectType { ObjectFlags: var objectFlags }
+            && (objectFlags & O.MembersResolved) != 0)
+        {
+            if (alias is not null)
+                throw new InvalidOperationException("Fixture requires indexed union alias handling");
+            var values = new Type[union.Types.Count];
+            for (int i = 0; i < values.Length; i++)
+                values[i] = await IndexedAccessAsync(objectType, union.Types[i], flags, null, cancellation).ConfigureAwait(false);
+            return (flags & AccessFlags.Writing) != 0
+                ? await algebra.IntersectionAsync(values, cancellation: cancellation).ConfigureAwait(false)
+                : await algebra.UnionAsync(values, cancellation: cancellation).ConfigureAwait(false);
         }
         if ((indexType.Flags & F.Number) != 0
             && objectType is TypeReference reference
@@ -295,7 +405,10 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
         => await Mapped.GenericFlagsAsync(type, cancellation).ConfigureAwait(false) != 0;
 
     public ValueTask<bool> IsAssignableAsync(Type source, Type target, CancellationToken cancellation)
-            => ValueTask.FromResult((source.Flags & F.Any) != 0 || relations.Related(source, target, false));
+        => ValueTask.FromResult(source == target || (source.Flags & (F.Any | F.Never)) != 0
+            || (target is TypeParameter && (source.Flags & (F.Primitive | F.Unknown)) != 0
+                ? false
+                : relations.Related(source, target, false)));
 
     public ValueTask<bool> IsEmptyAnonymousAsync(Type type, CancellationToken cancellation)
             => relations.IsEmptyAnonymousObjectAsync(type, cancellation);

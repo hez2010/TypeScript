@@ -279,3 +279,10 @@ public enum MappedTypeModifiers : uint
     IncludeOptional = 1u << 2,
     ExcludeOptional = 1u << 3,
 }
+
+public enum MappedTypeNameTypeKind : int
+{
+    None = 0,
+    Filtering = 1,
+    Remapping = 2,
+}

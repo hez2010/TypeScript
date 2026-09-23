@@ -1,0 +1,75 @@
+{
+    "timestamp": "2026-09-23T14:22:08.7492730Z",
+    "scope": "Mapped member/index construction, lazy property types, modifiers and key lower bounds with explicit semantic dependencies; full phase 4 remains incomplete",
+    "candidateSha256": "efc0ed924f8d687dd0cd2b0bd85125418e261b2287e379e2dd9342dd45ced198",
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "languageVersion": "15.0",
+    "runtimeAsync": true,
+    "optimizationPreference": "Speed",
+    "instructionSet": "native",
+    "publish": {
+        "log": "logs/csharp-phase4-mapped-members-publish.log",
+        "exitCode": 0,
+        "sha256": "03933be2dc34223ee88005d844f6919fd7786869077fd93acbb392005d81ccfb"
+    },
+    "members": {
+        "failed": 0,
+        "exact": 1592,
+        "propertyNameEncoding": "WTF-8 base64, preserving NUL and lone surrogates",
+        "operations": 28962,
+        "cases": 1592
+    },
+    "state": {
+        "exitCode": 0,
+        "output": "30 mapped member assertions; key validity, lower-bound and modifier chains at depth 20000"
+    },
+    "regression": {
+        "safetyOutputs": [
+            "37 mapped type assertions; actual-variable, generic-flag, kind and unary-tuple analysis depth 20000",
+            "26 instantiation/signature/tuple assertions; exact 100-depth, 5,000,000-work and 10,000-tuple limits",
+            "41 checker ownership/state assertions; mapper and type-order depth 50000; 16 independent contexts"
+        ],
+        "comparisons": [
+            {
+                "name": "mapped",
+                "failed": 0,
+                "exact": 784,
+                "operations": 34692,
+                "cases": 784
+            },
+            {
+                "name": "instantiation",
+                "failed": 0,
+                "exact": 2176,
+                "operations": 43584,
+                "cases": 2176
+            },
+            {
+                "name": "type",
+                "failed": 0,
+                "exact": 2904,
+                "operations": 1333980,
+                "cases": 2904
+            }
+        ]
+    },
+    "repository": {
+        "toolTests": 17,
+        "go": "1.27.1",
+        "lintIssues": 0,
+        "command": "npx --no-install hereby validate --all",
+        "log": "logs/csharp-phase4-mapped-members-validation2.log",
+        "goTestResults": 163380,
+        "node": "24.20.0",
+        "initialAttempt": "Windows error 1224 prevented formatting scriptkind_stringer_generated.go. Formatting retry succeeded, and the full validation rerun passed.",
+        "goSkips": 2152,
+        "exitCode": 0,
+        "apiTests": 813,
+        "benchmarkScope": "Required smoke runs only; no performance claim",
+        "extensionTests": 12,
+        "sha256": "bf75218f5cfa67fb88d870442891b8e24e7c1b5dba35d46009e573043034f3da"
+    },
+    "formatting": "Nine C# files verified with identical tokens, comments and syntax under both library configurations; single-line auto-properties retained. Final dotnet format whitespace verification and applicable dprint checks passed.",
+    "dependenciesAdded": false
+}

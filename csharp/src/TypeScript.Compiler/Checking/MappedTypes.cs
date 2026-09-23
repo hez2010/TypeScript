@@ -302,15 +302,20 @@ internal sealed class MappedTypes(TypeContext context, TypeAlgebra algebra, Type
         if (context.StrictNullChecks && (modifiers & M.IncludeOptional) != 0 && !MaybeKind(result, F.Undefined | F.Void, cancellation))
             return await OptionalAsync(result, cancellation).ConfigureAwait(false);
         if (context.StrictNullChecks && (modifiers & M.ExcludeOptional) != 0 && isOptional)
-        {
-            result = context.ExactOptionalPropertyTypes ? algebra.Filter(result, t => t != context.MissingType)
-                : await host.WithoutUndefinedFactsAsync(result, cancellation).ConfigureAwait(false);
-            context.RequireOwned(result);
-        }
+            result = await RemoveOptionalAsync(result, cancellation).ConfigureAwait(false);
         return result;
     }
 
-    private ValueTask<Type> OptionalAsync(Type type, CancellationToken cancellation)
+    internal async ValueTask<Type> RemoveOptionalAsync(Type type, CancellationToken cancellation)
+    {
+        context.RequireOwned(type);
+        var result = context.ExactOptionalPropertyTypes ? algebra.Filter(type, t => t != context.MissingType)
+            : await host.WithoutUndefinedFactsAsync(type, cancellation).ConfigureAwait(false);
+        context.RequireOwned(result);
+        return result;
+    }
+
+    internal ValueTask<Type> OptionalAsync(Type type, CancellationToken cancellation)
         => type == context.UndefinedOrMissingType || type is UnionType union && union.Types[0] == context.UndefinedOrMissingType
             ? ValueTask.FromResult(type) : algebra.UnionAsync([type, context.UndefinedOrMissingType], cancellation: cancellation);
 

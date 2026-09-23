@@ -59,6 +59,7 @@ public sealed class TypeContext
     public TemplateLiteralType NumericStringType { get; }
     public Type TemplateConstraintType { get; }
     public ObjectType EmptyObjectType { get; }
+    public ObjectType EmptyTypeLiteralType { get; }
     public ObjectType UnknownEmptyObjectType { get; }
     public ObjectType AnyFunctionType { get; }
     public Type UnknownUnionType { get; }
@@ -110,6 +111,8 @@ public sealed class TypeContext
             : [StringType, NumberType, BigIntType, RegularFalseType, RegularTrueType], ObjectFlags.PrimitiveUnion);
         UniqueLiteralType = new(this, TypeFlags.Never, "never");
         EmptyObjectType = NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved);
+        EmptyTypeLiteralType = NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved,
+            new Symbol(SymbolFlags.TypeLiteral | SymbolFlags.Transient, Symbol.InternalPrefix + "type"));
         UnknownEmptyObjectType = NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved);
         UnknownUnionType = strictNullChecks ? GetUnionFromSortedTypes([UndefinedType, NullType, UnknownEmptyObjectType], 0) : UnknownType;
         EmptyGenericType = NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved);

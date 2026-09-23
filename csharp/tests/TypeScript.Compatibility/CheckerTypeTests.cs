@@ -60,6 +60,7 @@ internal static class CheckerTypeTests
         ["object"] = c.NonPrimitiveType,
         ["uniqueLiteral"] = c.UniqueLiteralType,
         ["empty"] = c.EmptyObjectType,
+        ["emptyTypeLiteral"] = c.EmptyTypeLiteralType,
         ["unknownEmpty"] = c.UnknownEmptyObjectType,
         ["anyFunction"] = c.AnyFunctionType,
         ["unknownUnion"] = c.UnknownUnionType,
@@ -81,7 +82,11 @@ internal static class CheckerTypeTests
         var builtins = Builtins(c);
         var host = new AlgebraFixtureHost(c);
         var algebra = new TypeAlgebra(c, new([]), host);
-        bool mappedMode = input.GetProperty("steps").EnumerateArray().Any(step => Text(step, "op") is "mapped" or "typeNodeFlow");
+        bool memberMode = input.GetProperty("steps").EnumerateArray().Any(step => Text(step, "op")
+            is "resolveMembers" or "mappedProperty" or "mappedModifiers" or "keyLowerBound" or "mappedOptionality" or "apparentKeys");
+        var memberSource = memberMode ? Parser.ParseSourceFile(new("/input.ts"), new SourceText("")) : null;
+        bool mappedMode = memberMode
+            || input.GetProperty("steps").EnumerateArray().Any(step => Text(step, "op") is "mapped" or "typeNodeFlow");
         bool objectMode = mappedMode || input.GetProperty("steps").EnumerateArray().Any(
             step => Text(step, "op") is "capturedObject" or "deferredObject" or "anonymousInstance" or "possiblyReferenced");
         bool instantiationMode = objectMode || input.GetProperty("steps").EnumerateArray().Any(
@@ -176,6 +181,17 @@ internal static class CheckerTypeTests
                     ? c.RegularTrueType : c.RegularFalseType,
                 "typeNodeFlow" => TypeNodeFlow(),
                 "resolveEmpty" => ResolveEmpty(),
+                "resolveMembers" => ResolveMembers(),
+                "mappedProperty" => MappedProperty(),
+                "mappedProperty64" => MappedProperty(),
+                "mappedModifiers" => instantiationHost!.Members.ModifiersTypeAsync((MappedType)args[0]).GetAwaiter().GetResult(),
+                "keyLowerBound" => instantiationHost!.Members.LowerBoundAsync(args[0]).GetAwaiter().GetResult(),
+                "mappedOptionality" => c.GetNumberLiteralType(
+                    instantiationHost!.Members.CombinedOptionalityAsync(args[0]).GetAwaiter().GetResult()),
+                "apparentKeys" => instantiationHost!.Members.ApparentKeysAsync(args[1], (MappedType)args[0]).GetAwaiter().GetResult(),
+                "memberShape" => MemberShape(),
+                "propertyMetadata" => PropertyMetadata(),
+                "addIndex" => AddIndex(),
                 "identityEquals" => recursion.IdentityAsync(args[0]).GetAwaiter().GetResult() == recursion.IdentityAsync(args[1]).GetAwaiter().GetResult()
                     ? c.RegularTrueType
                     : c.RegularFalseType,
@@ -220,6 +236,55 @@ internal static class CheckerTypeTests
                 _ => throw new InvalidOperationException(op)
             };
             values.Add(type);
+            Type MemberShape()
+            {
+                var names = step.GetProperty("properties").EnumerateArray().Select(p => p.GetString()!).ToArray();
+                var result = (ObjectType)host.Shape(names, args, SymbolFor(symbol));
+                for (int i = 0; i < names.Length; i++)
+                    links.Values.Get(result.Members![names[i]]).ResolvedType = args[i];
+                return result;
+            }
+            Type PropertyMetadata()
+            {
+                var result = (ObjectType)args[0];
+                var property = result.Members![text];
+                property.Flags |= (SymbolFlags)flags;
+                property.CheckFlags |= (CheckFlags)step.GetProperty("origin").GetUInt32();
+                var declaration = new PropertySignatureDeclarationNode
+                {
+                    Name = new IdentifierNode { Text = text },
+                    Pos = values.Count,
+                    End = values.Count + 1,
+                    Parent = memberSource!
+                };
+                property.DeclarationList.Add(declaration);
+                property.ValueDeclaration = declaration;
+                if (args.Length > 1)
+                    links.Values.Get(property).NameType = args[1];
+                return result;
+            }
+            Type AddIndex()
+            {
+                var result = (ObjectType)args[0];
+                result.IndexInfos = [.. result.IndexInfos, c.NewIndexInfo(args[1], args[2], Bool(step, "this"))];
+                return result;
+            }
+            Type ResolveMembers()
+            {
+                instantiationHost!.Members.ResolveAsync((MappedType)args[0]).GetAwaiter().GetResult();
+                return args[0];
+            }
+            Type? MappedProperty()
+            {
+                var structure = (MappedType)args[0];
+                instantiationHost!.Members.ResolveAsync(structure).GetAwaiter().GetResult();
+                string decoded = op == "mappedProperty64" ? Wtf8.DecodeString(Convert.FromBase64String(text)) : text;
+                string name = decoded.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal)
+                    ? Symbol.InternalPrefix + decoded
+                    : decoded;
+                return structure.Members!.TryGetValue(name, out var property)
+                    ? instantiationHost.Members.SymbolTypeAsync(property).GetAwaiter().GetResult() : null;
+            }
             Type ResolveEmpty()
             {
                 var result = (ObjectType)args[0];
@@ -325,6 +390,12 @@ internal static class CheckerTypeTests
                 {
                     declaration.NameType = new TypeReferenceNode { TypeName = new IdentifierNode { Text = "SeedName" } };
                     instantiationHost!.ConstraintDependencies.Nodes[declaration.NameType] = _ => ValueTask.FromResult(values[origin.GetInt32()]!);
+                }
+                if (step.TryGetProperty("keyof", out var keyof) && keyof.GetInt32() != 0)
+                {
+                    var operand = new TypeReferenceNode { TypeName = new IdentifierNode { Text = "SeedModifiers" } };
+                    declaration.TypeParameter.Constraint = new TypeOperatorNode { Operator = SyntaxKind.KeyOfKeyword, Type = operand };
+                    instantiationHost!.ConstraintDependencies.Nodes[operand] = _ => ValueTask.FromResult(values[keyof.GetInt32()]!);
                 }
                 declaration.SetParents();
                 declaration.Parent = new TypeAliasDeclarationNode(SyntaxKind.TypeAliasDeclaration)
@@ -564,6 +635,54 @@ internal static class CheckerTypeTests
                 writer.WriteNumber("mappedConstraint", Ref(mappedType.ConstraintType));
                 writer.WriteNumber("mappedName", Ref(mappedType.NameType));
                 writer.WriteNumber("mappedTemplate", Ref(mappedType.TemplateType));
+                if (memberMode)
+                {
+                    writer.WriteNumber("modifiersType", Ref(mappedType.ModifiersType));
+                    writer.WriteBoolean("containsError", mappedType.ContainsError);
+                }
+            }
+            if (memberMode && type is StructuredType structure)
+            {
+                writer.WritePropertyName("members");
+                if (structure.Members is null)
+                    writer.WriteNullValue();
+                else
+                {
+                    writer.WriteStartArray();
+                    foreach (var pair in structure.Members.OrderBy(p => p.Key, Comparer<string>.Create(TypeOrder.CompareSymbolNames)))
+                    {
+                        var property = pair.Value;
+                        var data = links.Values.Get(property);
+                        var mapping = links.MappedSymbols.TryGet(property);
+                        writer.WriteStartArray();
+                        writer.WriteBase64StringValue(Wtf8.Encode(Symbol.EscapeName(pair.Key)));
+                        writer.WriteNumberValue((uint)property.Flags);
+                        writer.WriteNumberValue((uint)property.CheckFlags);
+                        writer.WriteNumberValue(Ref(data.ResolvedType));
+                        writer.WriteNumberValue(Ref(data.NameType));
+                        writer.WriteNumberValue(Ref(mapping?.KeyType));
+                        writer.WriteNumberValue(Ref(data.ContainingType));
+                        writer.WriteBase64StringValue(
+                            Wtf8.Encode(mapping?.SyntheticOrigin is { } original ? Symbol.EscapeName(original.Name) : ""));
+                        writer.WriteNumberValue(property.Declarations.Count);
+                        writer.WriteEndArray();
+                    }
+                    writer.WriteEndArray();
+                }
+                writer.WriteStartArray("properties");
+                foreach (var property in structure.Properties ?? [])
+                    writer.WriteBase64StringValue(Wtf8.Encode(Symbol.EscapeName(property.Name)));
+                writer.WriteEndArray();
+                writer.WriteStartArray("indexes");
+                foreach (var index in structure.IndexInfos)
+                {
+                    writer.WriteStartArray();
+                    writer.WriteNumberValue(Ref(index.KeyType));
+                    writer.WriteNumberValue(Ref(index.ValueType));
+                    writer.WriteBooleanValue(index.IsReadonly);
+                    writer.WriteEndArray();
+                }
+                writer.WriteEndArray();
             }
             if (type.Alias is { } alias)
             {
