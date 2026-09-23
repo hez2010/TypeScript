@@ -1,0 +1,361 @@
+using System.Text;
+using System.Text.Json;
+using TypeScript.Compiler.Ast;
+using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Checking;
+using TypeScript.Compiler.Configuration;
+using TypeScript.Compiler.Hosts;
+using TypeScript.Compiler.Programs;
+using TypeScript.Compiler.Syntax;
+using TypeScript.Compiler.Text;
+using Type = TypeScript.Compiler.Checking.Type;
+
+namespace TypeScript.Compatibility;
+
+internal static class CheckerProgramTests
+{
+    internal static async Task Safety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Checker program assertion {checks + 1}");
+            checks++;
+        }
+        static async ValueTask<CompilerProgram> Build(Dictionary<string, string> sources, CompilerProgram? previous = null)
+        {
+            var files = sources.ToDictionary(p => p.Key, p => Wtf8.Encode(p.Value));
+            var options = new CompilerOptions();
+            options.SetRaw("noLib", "true");
+            return await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
+                new("/project/tsconfig.json", options, sources.Keys.ToArray(), [], [], []), previous, concurrency: 4);
+        }
+        var sources = new Dictionary<string, string>
+        {
+            ["/project/a.ts"] = "interface I<T> { a: T } namespace N { export interface A {} }",
+            ["/project/b.ts"] = "interface I<T> { b: T; self: this } namespace N { export interface B {} }"
+        };
+        var program = await Build(sources);
+        var original = program.SourceFiles[0].Binding.Locals["I"];
+        var context = new TypeContext(true, true);
+        var links = new CheckerLinks();
+        var host = new ProgramScopeHost(context, links);
+        var environment = await CheckerSymbols.CreateAsync(program, links, host);
+        var merged = environment.Globals["I"];
+        Check(merged != original && merged.Declarations.Count == 2 && original.Declarations.Count == 1);
+        Check(merged.Members.ContainsKey("a") && merged.Members.ContainsKey("b") && !original.Members.ContainsKey("b"));
+        Check(ReferenceEquals(environment.Globals["globalThis"].Exports["I"], merged));
+        var declaration = program.SourceFiles[1].Syntax.DescendantsAndSelf().OfType<InterfaceDeclarationNode>().First();
+        Check(environment.Declaration(declaration) == merged);
+        var type = await host.Scopes.ClassOrInterfaceAsync(merged);
+        Check(type.ThisType is { IsThisType: true } && type.ThisType.Constraint == type && type.Target == type);
+        Check(type.AllTypeParameters.Count == 2 && type.ResolvedTypeArguments!.Count == 1);
+        Check(await host.Scopes.ClassOrInterfaceAsync(merged) == type);
+        var updated = await Build(sources, program);
+        Check(updated.ReusedSourceFiles == 2 && ReferenceEquals(updated.SourceFiles[0].Binding, program.SourceFiles[0].Binding));
+        var otherContext = new TypeContext(true, true);
+        var otherLinks = new CheckerLinks();
+        var otherHost = new ProgramScopeHost(otherContext, otherLinks);
+        var otherEnvironment = await CheckerSymbols.CreateAsync(updated, otherLinks, otherHost);
+        Check(otherEnvironment.Globals["I"] != merged && original.Declarations.Count == 1);
+        Check((await otherHost.Scopes.ClassOrInterfaceAsync(otherEnvironment.Globals["I"])).Context == otherContext);
+        Check(links.Values.Get(environment.UndefinedSymbol).ResolvedType == context.UndefinedWideningType);
+        Check(host.Globals.AnyArrayType == context.EmptyObjectType && host.Globals.AutoArrayType != context.EmptyObjectType);
+
+        var cancelledLinks = new CheckerLinks();
+        var cancelledHost = new ProgramScopeHost(new(true, true), cancelledLinks);
+        using var cancellation = new CancellationTokenSource();
+        cancelledHost.BeforeGlobalTypes = cancellation.Cancel;
+        try
+        {
+            await CheckerSymbols.CreateAsync(program, cancelledLinks, cancelledHost, cancellation.Token);
+            throw new InvalidOperationException("Cancellation ignored");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        Check(original.Declarations.Count == 1 && !original.Members.ContainsKey("b"));
+        var recoveredLinks = new CheckerLinks();
+        var recoveredHost = new ProgramScopeHost(new(true, true), recoveredLinks);
+        var recovered = await CheckerSymbols.CreateAsync(program, recoveredLinks, recoveredHost);
+        Check(recovered.Globals["I"].Declarations.Count == 2);
+
+        var retryProgram = await Build(
+            new() { ["/project/rollback.ts"] = "interface Finished {} interface Stop {} interface Root extends Finished, Stop {}" });
+        var retryContext = new TypeContext();
+        var retryLinks = new CheckerLinks();
+        var retryHost = new ProgramScopeHost(retryContext, retryLinks);
+        var retryEnvironment = await CheckerSymbols.CreateAsync(retryProgram, retryLinks, retryHost);
+        int resolutions = 0;
+        retryHost.BeforeResolveType = () =>
+        {
+            if (++resolutions == 2)
+                throw new OperationCanceledException();
+        };
+        try
+        {
+            await retryHost.Scopes.ClassOrInterfaceAsync(retryEnvironment.Globals["Root"]);
+            throw new InvalidOperationException("Cancellation ignored");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        Check(retryLinks.DeclaredTypes.Get(retryEnvironment.Globals["Root"]).DeclaredType is null);
+        Check(retryLinks.DeclaredTypes.Get(retryEnvironment.Globals["Finished"]).DeclaredType is null);
+        retryHost.BeforeResolveType = null;
+        Check((await retryHost.Scopes.ClassOrInterfaceAsync(retryEnvironment.Globals["Root"])).ThisType is null);
+
+        var contextualProgram = await Build(new() { ["/project/contextual.ts"] = "function outer<T>() { const f = value => value; }" });
+        var contextualContext = new TypeContext();
+        var contextualLinks = new CheckerLinks();
+        var contextualHost = new ProgramScopeHost(contextualContext, contextualLinks);
+        var contextualEnvironment = await CheckerSymbols.CreateAsync(contextualProgram, contextualLinks, contextualHost);
+        var arrow = contextualProgram.SourceFiles[0].Syntax.DescendantsAndSelf().OfType<ArrowFunctionNode>().Single();
+        var parameter = contextualContext.NewTypeParameter(new(SymbolFlags.TypeParameter, "Contextual"));
+        var signature = contextualContext.NewSignature(0, arrow, [parameter], null, [], contextualContext.UnknownType, null, 0);
+        contextualHost.ContextualSignatures[arrow] = signature;
+        var scope = await contextualHost.Scopes.OuterAsync(arrow.Body!);
+        Check(scope.Count == 2 && scope[1] == parameter && scope[0].Symbol?.Name == "T");
+
+        const int depth = 20_000;
+        var source = new StringBuilder();
+        for (int i = 0; i < depth - 1; i++)
+            source.Append("interface I").Append(i).Append(" extends I").Append(i + 1).Append(" {}\n");
+        source.Append("interface I").Append(depth - 1).Append(" { self: this }");
+        var deepProgram = await Build(new() { ["/project/deep.ts"] = source.ToString() });
+        var deepContext = new TypeContext();
+        var deepLinks = new CheckerLinks();
+        var deepHost = new ProgramScopeHost(deepContext, deepLinks);
+        var deepEnvironment = await CheckerSymbols.CreateAsync(deepProgram, deepLinks, deepHost);
+        Check((await deepHost.Scopes.ClassOrInterfaceAsync(deepEnvironment.Globals["I0"])).ThisType is not null);
+        Check(deepLinks.DeclaredTypes.Count == depth);
+        SyntaxNode nested = deepProgram.SourceFiles[0].Syntax;
+        for (int i = 0; i < depth; i++)
+            nested = new BlockNode { Parent = nested };
+        Check(deepEnvironment.Binding(nested) == deepProgram.SourceFiles[0].Binding);
+        Check((await deepHost.Scopes.OuterAsync(nested)).Count == 0);
+        using var stop = new CancellationTokenSource();
+        stop.Cancel();
+        try
+        {
+            await deepHost.Scopes.OuterAsync(nested, cancellation: stop.Token);
+            throw new InvalidOperationException("Cancellation ignored");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        Console.WriteLine($"{checks} program/checker ownership assertions; interface and scope depth 20000");
+    }
+
+    internal static void Lines()
+    {
+        while (Console.ReadLine() is { } line)
+        {
+            using var input = JsonDocument.Parse(line);
+            using var stream = new MemoryStream();
+            using (var writer = new Utf8JsonWriter(stream))
+                Process(input.RootElement, writer).GetAwaiter().GetResult();
+            Console.WriteLine(Encoding.UTF8.GetString(stream.ToArray()));
+        }
+    }
+
+    private static async Task Process(JsonElement input, Utf8JsonWriter writer)
+    {
+        var files = input.GetProperty("files").EnumerateObject().ToDictionary(
+            p => p.Name,
+            p => Convert.FromBase64String(p.Value.GetString()!));
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        if (input.TryGetProperty("options", out var supplied))
+            foreach (var property in supplied.EnumerateObject())
+                options.Set(property.Name, property.Value);
+        var roots = input.GetProperty("roots").EnumerateArray().Select(p => p.GetString()!).ToArray();
+        int concurrency = input.GetProperty("concurrency").GetInt32();
+        var config = new ParsedConfig("/project/tsconfig.json", options, roots, [], [], []);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project", config, concurrency: concurrency);
+        var context = new TypeContext(options.Boolean("strictNullChecks") ?? options.Boolean("strict") ?? false,
+            options.Boolean("exactOptionalPropertyTypes") ?? false);
+        var links = new CheckerLinks();
+        var host = new ProgramScopeHost(context, links);
+        var environment = await CheckerSymbols.CreateAsync(program, links, host);
+        var nodes = program.SourceFiles.SelectMany(file => file.Syntax.DescendantsAndSelf()).ToArray();
+        var nodeIds = nodes.Select((node, i) => (node, i)).ToDictionary(p => p.node, p => p.i + 1);
+        int Node(SyntaxNode? node) => node is null ? 0 : nodeIds.GetValueOrDefault(node);
+        var symbolIds = new Dictionary<Symbol, int>(ReferenceEqualityComparer.Instance);
+        var symbols = new List<Symbol>();
+        int SymbolId(Symbol? symbol)
+        {
+            if (symbol is null)
+                return 0;
+            if (!symbolIds.TryGetValue(symbol, out int id))
+            {
+                symbolIds.Add(symbol, id = symbols.Count + 1);
+                symbols.Add(symbol);
+            }
+            return id;
+        }
+        var typeIds = new Dictionary<Type, int>();
+        var types = new List<Type>();
+        int TypeId(Type? type)
+        {
+            if (type is null)
+                return 0;
+            if (!typeIds.TryGetValue(type, out int id))
+            {
+                typeIds.Add(type, id = types.Count + 1);
+                types.Add(type);
+            }
+            return id;
+        }
+        void Name(string text) => writer.WriteBase64StringValue(Wtf8.Encode(Symbol.EscapeName(text)));
+        void Table(IReadOnlyDictionary<string, Symbol> table)
+        {
+            writer.WriteStartArray();
+            foreach (var (name, symbol) in table.OrderBy(p => p.Key, Comparer<string>.Create(TypeOrder.CompareSymbolNames)))
+            {
+                writer.WriteStartArray();
+                Name(name);
+                writer.WriteNumberValue(SymbolId(symbol));
+                writer.WriteEndArray();
+            }
+            writer.WriteEndArray();
+        }
+        void TypeIds(IEnumerable<Type>? values)
+        {
+            if (values is null)
+            {
+                writer.WriteNullValue();
+                return;
+            }
+            writer.WriteStartArray();
+            foreach (var type in values)
+                writer.WriteNumberValue(TypeId(type));
+            writer.WriteEndArray();
+        }
+        writer.WriteStartObject();
+        writer.WriteStartArray("files");
+        foreach (var file in program.SourceFiles)
+        {
+            writer.WriteStartArray();
+            writer.WriteStringValue(file.Syntax.FileName);
+            writer.WriteBooleanValue(file.Binding.IsModule);
+            writer.WriteEndArray();
+        }
+        writer.WriteEndArray();
+        writer.WritePropertyName("globals");
+        Table(environment.Globals);
+        writer.WriteStartArray("patterns");
+        foreach (var pattern in environment.PatternModules)
+        {
+            writer.WriteStartArray();
+            Name(pattern.Pattern);
+            writer.WriteNumberValue(SymbolId(pattern.Symbol));
+            writer.WriteEndArray();
+        }
+        writer.WriteEndArray();
+        writer.WritePropertyName("augmentations");
+        Table(environment.PatternAugmentations);
+        writer.WritePropertyName("augmentationTargets");
+        Table(environment.PatternTargets);
+        writer.WriteStartArray("globalTypes");
+        foreach (var (name, type) in host.Globals.Types.OrderBy(p => p.Key, StringComparer.Ordinal))
+        {
+            writer.WriteStartArray();
+            writer.WriteStringValue(name);
+            writer.WriteNumberValue(TypeId(type));
+            writer.WriteEndArray();
+        }
+        writer.WriteEndArray();
+        writer.WriteStartArray("specialTypes");
+        foreach (var symbol in new[]
+        {
+            environment.UndefinedSymbol,
+            environment.ArgumentsSymbol,
+            environment.UnknownSymbol,
+            environment.GlobalThisSymbol
+        })
+            writer.WriteNumberValue(TypeId(links.Values.Get(symbol).ResolvedType));
+        writer.WriteNumberValue(TypeId(host.Globals.AnyArrayType));
+        writer.WriteNumberValue(TypeId(host.Globals.AutoArrayType));
+        writer.WriteNumberValue(TypeId(host.Globals.AnyReadonlyArrayType));
+        writer.WriteEndArray();
+        writer.WriteStartArray("declarations");
+        foreach (var node in nodes)
+            if (environment.Binding(node)?.Get(node)?.Symbol is not null)
+            {
+                writer.WriteStartArray();
+                writer.WriteNumberValue(Node(node));
+                writer.WriteNumberValue(SymbolId(environment.Declaration(node)));
+                writer.WriteEndArray();
+            }
+        writer.WriteEndArray();
+        writer.WriteStartArray("classes");
+        foreach (var node in nodes.Where(
+            n => n.Kind is SyntaxKind.ClassDeclaration or SyntaxKind.ClassExpression or SyntaxKind.InterfaceDeclaration))
+        {
+            writer.WriteStartArray();
+            writer.WriteNumberValue(Node(node));
+            writer.WriteNumberValue(TypeId(await host.Scopes.ClassOrInterfaceAsync(environment.Declaration(node)!)));
+            writer.WriteEndArray();
+        }
+        writer.WriteEndArray();
+        writer.WriteStartArray("scopes");
+        foreach (var node in nodes.Where(n => n.Kind is SyntaxKind.TypeReference or SyntaxKind.ThisType or SyntaxKind.TypeParameter))
+        {
+            writer.WriteStartArray();
+            writer.WriteNumberValue(Node(node));
+            TypeIds(await host.Scopes.OuterAsync(node));
+            writer.WriteEndArray();
+        }
+        writer.WriteEndArray();
+        writer.WriteStartArray("types");
+        for (int i = 0; i < types.Count; i++)
+        {
+            var type = types[i];
+            var parameter = type as TypeParameter;
+            var intf = type as InterfaceType;
+            writer.WriteStartArray();
+            writer.WriteNumberValue((uint)type.Flags);
+            writer.WriteNumberValue((uint)type.ObjectFlags);
+            writer.WriteNumberValue(SymbolId(type.Symbol));
+            writer.WriteNumberValue(TypeId(type is ObjectType obj ? obj.Target : parameter?.Target));
+            TypeIds(type is TypeReference reference ? reference.ResolvedTypeArguments : null);
+            TypeIds(intf?.AllTypeParameters);
+            writer.WriteNumberValue(intf?.OuterTypeParameterCount ?? 0);
+            writer.WriteNumberValue(TypeId(intf?.ThisType));
+            writer.WriteBooleanValue(parameter?.IsThisType ?? false);
+            writer.WriteNumberValue(TypeId(parameter?.Constraint));
+            writer.WriteStringValue(type is IntrinsicType intrinsic ? intrinsic.IntrinsicName : "");
+            writer.WriteEndArray();
+        }
+        writer.WriteEndArray();
+        writer.WriteStartArray("symbols");
+        for (int i = 0; i < symbols.Count; i++)
+        {
+            var symbol = symbols[i];
+            writer.WriteStartArray();
+            Name(symbol.Name);
+            writer.WriteNumberValue((uint)symbol.Flags);
+            writer.WriteNumberValue((uint)symbol.CheckFlags);
+            writer.WriteNumberValue(SymbolId(symbol.Parent));
+            writer.WriteStartArray();
+            foreach (var declaration in symbol.Declarations)
+                writer.WriteNumberValue(Node(declaration));
+            writer.WriteEndArray();
+            writer.WriteNumberValue(Node(symbol.ValueDeclaration));
+            Table(symbol.Members);
+            Table(symbol.Exports);
+            writer.WriteEndArray();
+        }
+        writer.WriteEndArray();
+        writer.WriteStartArray("diagnostics");
+        foreach (int code in host.Diagnostics.Order())
+            writer.WriteNumberValue(code);
+        writer.WriteEndArray();
+        writer.WriteEndObject();
+    }
+}

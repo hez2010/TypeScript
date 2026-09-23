@@ -1,0 +1,62 @@
+{
+    "timestamp": "2026-09-23T15:15:25.4917082Z",
+    "scope": "Program-owned globals, class/interface declaration headers and generic scopes with required semantic hosts; full phase 4 remains incomplete",
+    "candidateSha256": "4c1e3db7d5ccf443f1086b1f437c17b7496a5c6ed3c0c94c06b1301aa24c0f9e",
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "languageVersion": "15.0",
+    "runtimeAsync": true,
+    "optimizationPreference": "Speed",
+    "instructionSet": "native",
+    "publish": {
+        "log": "logs/csharp-phase4-symbol-environment-publish-final.log",
+        "sha256": "03933be2dc34223ee88005d844f6919fd7786869077fd93acbb392005d81ccfb",
+        "exitCode": 0
+    },
+    "programs": {
+        "exact": 180,
+        "failed": 0,
+        "referenceConcurrency": [
+            "singleThreaded",
+            "default"
+        ],
+        "diagnosticScope": "Initialization diagnostic codes; full semantic diagnostic formatting and attribution remain open",
+        "candidateConcurrency": [
+            1,
+            4
+        ],
+        "cases": 180,
+        "sourceConfigurations": 90
+    },
+    "state": {
+        "output": "25 program/checker ownership assertions; interface and scope depth 20000",
+        "exitCode": 0
+    },
+    "regression": {
+        "exact": 2904,
+        "cases": 2904,
+        "safetyOutputs": [
+            "41 checker ownership/state assertions; mapper and type-order depth 50000; 16 independent contexts",
+            "21 name/symbol state assertions; scope, initializer and merge depth 20000"
+        ],
+        "operations": 1333980,
+        "failed": 0
+    },
+    "repository": {
+        "extensionTests": 12,
+        "benchmarkScope": "Required smoke runs only; no performance claim",
+        "go": "1.27.1",
+        "node": "24.20.0",
+        "goTestResults": 163380,
+        "sha256": "1aad4d3f240e4863ada67fd0ad28a3ff4d4baed0aac558f84d5243705f40d62e",
+        "toolTests": 17,
+        "lintIssues": 0,
+        "exitCode": 0,
+        "apiTests": 813,
+        "goSkips": 2152,
+        "command": "npx --no-install hereby validate --all",
+        "log": "logs/csharp-phase4-symbol-environment-validation-final.log"
+    },
+    "formatting": "Seven C# files verified with identical tokens, comments and syntax under both library configurations; single-line auto-properties retained. Final dotnet format whitespace verification and applicable dprint checks passed.",
+    "dependenciesAdded": false
+}

@@ -1,0 +1,18 @@
+{
+    "timestamp": "2026-09-23T15:12:53.585Z",
+    "scope": "checker type constructors, identity, order, mapper composition and resolution state; not complete semantic checking",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "managed": false,
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "cases": 2904,
+    "operations": 1333980,
+    "passed": 2904,
+    "failed": 0,
+    "inputSha256": "fe27e1e1f476dd2af15580accca06a83d2f5e5e18bbe25319d7bf624d83a0b2b",
+    "referenceOutputSha256": "d3b720f113d1d27d163a9c8feb67c041f7cddc423327d53fc5d0931fd0ef9a59",
+    "outputSha256": "f21979d22a442df29852f64a095f3603bc7c0634061a9051371fd288233b1c28",
+    "oracleSha256": "b83c54f30e3b1d129fda226e81660e7291570eac2019598d18733fca11ba0eb1",
+    "candidateSha256": "4c1e3db7d5ccf443f1086b1f437c17b7496a5c6ed3c0c94c06b1301aa24c0f9e",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "go": "go version go1.27.1 windows/amd64"
+}

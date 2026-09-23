@@ -13,6 +13,16 @@ internal static class Program
     {
         try
         {
+            if (args is ["--checker-program-safety"])
+            {
+                CheckerProgramTests.Safety().GetAwaiter().GetResult();
+                return 0;
+            }
+            if (args is ["--checker-program-lines"])
+            {
+                CheckerProgramTests.Lines();
+                return 0;
+            }
             if (args is ["--checker-mapped-members-safety"])
             {
                 CheckerMappedMemberTests.Safety().GetAwaiter().GetResult();

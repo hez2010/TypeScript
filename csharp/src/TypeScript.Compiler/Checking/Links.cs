@@ -57,6 +57,11 @@ internal sealed class TypeAliasLinks
     internal bool IsConstructorDeclaredProperty { get; set; }
 }
 
+internal sealed class DeclaredTypeLinks
+{
+    internal Type? DeclaredType { get; set; }
+}
+
 internal sealed class NodeLinks
 {
     internal NodeCheckFlags Flags { get; set; }
@@ -76,6 +81,7 @@ internal sealed class CheckerLinks
     internal LinkStore<Symbol, AliasSymbolLinks> Aliases { get; } = new();
     internal LinkStore<Symbol, MappedSymbolLinks> MappedSymbols { get; } = new();
     internal LinkStore<Symbol, TypeAliasLinks> TypeAliases { get; } = new();
+    internal LinkStore<Symbol, DeclaredTypeLinks> DeclaredTypes { get; } = new();
     internal LinkStore<SyntaxNode, NodeLinks> Nodes { get; } = new();
     internal LinkStore<SyntaxNode, TypeNodeLinks> TypeNodes { get; } = new();
 

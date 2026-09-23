@@ -166,16 +166,33 @@ node csharp/tools/checker-mapped-members.mjs --record phase4-mapped-members
 & ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-mapped-members-safety
 ```
 
+## Program symbols and declaration headers
+
+`CheckerSymbols.cs` now owns global symbols over a `CompilerProgram`, connects the lexical resolver to merged declarations, tracks reference kinds and scope caches, and preserves the ordering of global, ambient and module augmentations. It maintains UMD first-in-wins behavior and separate directional pattern-augmentation tables without modifying shared bindings.
+
+`GlobalTypes.cs` resolves standard global class/interface types with the reference's arity checks and missing-type fallbacks. `TypeParameterScopes.cs` constructs class/interface headers, captured and local generic parameters, mapped/infer scopes and polymorphic `this` types. Interface analysis reads `ContainsThis` from binding state rather than modifying syntax. Failed recursive class construction removes the provisional headers owned by that operation.
+
+The required symbol host still supplies alias and computed-name resolution, import-attribute identity, export-star resolution and checker diagnostic hooks. Contextual signatures and entity-name resolution remain required scope dependencies. The program probe uses actual parsed/bound file graphs and these production initialization/header algorithms, while rejecting semantic queries outside its explicit host domain. This does not yet expose a complete checker through `CompilerProgram`.
+
+NativeAOT passes **180 exact program comparisons**: 90 source configurations under single-worker and parallel program construction. They cover merged interfaces/namespaces, nested generic scopes, polymorphic `this`, cyclic interface headers, global and module augmentations, directional pattern augmentations, UMD exports, Unicode names and global-type arity errors. The probe compares global/member/export symbol graphs, declaration identities, class/interface header graphs, captured parameters and initialization diagnostic codes. It does not validate general diagnostic formatting or expression/declaration checking.
+
+Twenty-five native assertions verify shared program/binding ownership, isolated checker caches, initialization cancellation, rollback of recursive interface construction, contextual-signature injection and **20,000-level** interface and scope chains. The same artifact passes the 2,904 type/state comparisons, 41 type/state assertions and 21 name/merge assertions. Evidence: [program symbols and headers](../csharp/compatibility/evidence/phase4-program-symbols.json), [type/state regression](../csharp/compatibility/evidence/phase4-program-type-regression.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-program-symbols-validation.json).
+
+```powershell
+node csharp/tools/checker-program.mjs --record phase4-program-symbols
+& ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-program-safety
+```
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
 
-1. Program/checker integration, global symbol initialization, alias/module export/augmentation resolution and type/value symbol resolution. The lexical resolver and merge primitives are now implemented; their checker-specific callbacks remain to be connected.
-2. Structural relations and their caches, general AST constraint evaluation/inference, outer type-parameter discovery and conditional instantiation; connect the implemented algebra, constraints, instantiation workers and tuple algorithms to these complete checker services.
+1. Complete the program/checker entry point, alias/module export resolution and type/value symbol resolution. Program-backed global registration, augmentation merging and declaration headers now exist; their remaining semantic callbacks must be connected.
+2. Structural relations and their caches, general AST type/constraint evaluation, contextual generic signatures and conditional instantiation; connect the implemented algebra, constraints, scope, instantiation and tuple algorithms to these complete checker services.
 3. Inference, contextual typing, signatures and overload selection, expression/declaration checking, JavaScript and JSDoc semantics.
 4. Flow analysis and narrowing, evolving arrays, definite assignment, exhaustiveness and semantic diagnostics.
 5. Apparent mapped types and remapping integration with structural relations; conditional, indexed-access and template type evaluation; JSX, decorators and grammar checks.
 6. Type display, node builders, symbol accessibility and emit-resolver APIs.
 7. All active checker/compiler type/symbol/diagnostic comparisons at single and reference-default concurrency; audits of intentional differences; complete semantic workload memory/performance measurements.
 
-The next integration step is checker-owned global/alias resolution and declared-type construction over the phase-3 program and binding model. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.
+The next integration step is alias resolution and general declared-type/type-node evaluation over the program-backed symbol environment. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.
