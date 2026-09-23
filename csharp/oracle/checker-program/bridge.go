@@ -11,7 +11,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/jsnum"
 )
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -154,6 +154,28 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 			}
 			if result != nil {
 				typeQueries = append(typeQueries, []any{nodeIDs[node], tid(result)})
+			}
+		}
+	}
+	keyRows, indexRows := []any{}, []any{}
+	if indexingQueries {
+		for _, node := range nodes {
+			if ast.IsTypeOperatorNode(node) && node.AsTypeOperatorNode().Operator == ast.KindKeyOfKeyword {
+				t := c.getTypeFromTypeNode(node.Type())
+				for flags := IndexFlags(0); flags < 8; flags++ {
+					keyRows = append(keyRows, []any{nodeIDs[node], flags, tid(c.getIndexTypeEx(t, flags))})
+				}
+			}
+			if ast.IsIndexedAccessTypeNode(node) {
+				d := node.AsIndexedAccessTypeNode()
+				objectType, indexType := c.getTypeFromTypeNode(d.ObjectType), c.getTypeFromTypeNode(d.IndexType)
+				for _, flags := range []AccessFlags{0, 1, 2, 3, 4, 5, 16, 32, 64, 128} {
+					t := c.getIndexedAccessTypeEx(objectType, indexType, flags, nil, nil)
+					id := tid(t)
+					read := tid(c.getSimplifiedType(t, false))
+					write := tid(c.getSimplifiedType(t, true))
+					indexRows = append(indexRows, []any{nodeIDs[node], flags, id, read, write})
+				}
 			}
 		}
 	}
@@ -589,6 +611,9 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	if assignabilityQueries {
 		result["variances"] = varianceRows
 		result["facts"] = factRows
+	}
+	if indexingQueries {
+		result["keyQueries"], result["indexQueries"] = keyRows, indexRows
 	}
 	return result
 }

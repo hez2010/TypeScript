@@ -111,6 +111,12 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
         Facts = new(context, Algebra, Instantiation.Constraints, Views, Members, this);
         Discriminants = new(context, Algebra, Properties, Values, Instantiation.Mapped, ObjectRelations, this);
         Templates = new(context, Algebra, Instantiation.Constraints, Relations);
+        Keys = new(context, Algebra, Views, Instantiation.Engine, Instantiation.Mapped, Instantiation.Members, this);
+        Indexed = new(context, Algebra, Views, Keys, Properties, Values, IndexSignatures, Relations,
+            Instantiation.Engine, Instantiation.Constraints, Instantiation.Tuples, Instantiation.Mapped, Instantiation.Members, this);
+        Instantiation.ConstraintDependencies.Simplifier = SimplifyAsync;
+        Instantiation.ConstraintDependencies.Indexed = Indexed;
+        Instantiation.ConstraintDependencies.Mapped = Instantiation.Mapped;
         relations.EmptyAnonymousSource = Views.EmptyAnonymousAsync;
         relations.EmptyObjectSource = Views.EmptyObjectAsync;
         relations.PropertiesSource = Properties.GetAsync;
@@ -159,7 +165,7 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
     public ValueTask<bool> IdenticalAsync(Type first, Type second, CancellationToken cancellation)
             => Relations.RelatedAsync(first, second, RelationKind.Identity, cancellation);
 
-    public ValueTask<Type> IndexAsync(Type type, CancellationToken cancellation) => Instantiation.IndexTypeAsync(type, cancellation);
+    public ValueTask<Type> IndexAsync(Type type, CancellationToken cancellation) => Keys.GetAsync(type, cancellation: cancellation);
 
     public ValueTask<Type> IndexedAccessAsync(
         Type objectType,
@@ -167,7 +173,7 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
         SyntaxNode node,
         TypeAlias? alias,
         CancellationToken cancellation)
-            => Instantiation.IndexedAccessAsync(objectType, indexType, 0, alias, cancellation);
+            => Indexed.GetAsync(objectType, indexType, node: node, alias: alias, cancellation: cancellation);
 
     public ValueTask<IReadOnlyDictionary<string, Symbol>> MembersAsync(Symbol symbol, CancellationToken cancellation)
     {

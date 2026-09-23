@@ -317,6 +317,21 @@ node csharp/tools/checker-program.mjs --assignability --record phase4-assignabil
 & ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-assignability-safety
 ```
 
+## Key enumeration and indexed-access validation
+
+`TypeKeys.cs` implements `keyof` over ordinary, union/intersection, mapped and generic types. It preserves key origins, accessibility, index-signature filtering and the unique-literal substitution used to detect generic intersections that can reduce to `never`. Property-key caches retain the reference's distinction between unresolved and resolved members.
+
+`IndexedTypes.cs` implements type-level indexed access, tuple bounds, index-signature selection, missing/undefined handling, generic deferral, read/write distribution and mapped-template substitution. Simplification caches recover after cancellation. Generic indexed-access cache keys retain all access flags while the resulting type stores only persistent flags, matching the reference. Expression access, contextual properties and deprecation reporting remain required host services.
+
+The source probe uses these production components for key and indexed-access evaluation, including instantiation and constraint queries. NativeAOT passes **320 exact program comparisons** at single and reference-default concurrency: **4,736 key queries** across all key flags and **8,000 indexed-access queries**, each also simplified for reading and writing. Cases cover strict nulls, exact optional properties, unchecked indexing, tuples, generic intersections, remapping/filtering, nested accesses, accessor write types and multiple missing-key diagnostics. Comparisons retain diagnostics codes, complete type graphs and cache identities.
+
+Twenty-four native safety assertions cover cancellation/retry, context ownership, flag-sensitive interning and **20,000-level** indexed simplification/key traversal. The same artifact passes 1,404 earlier source-program comparisons, 2,904 type/state cases (1,333,980 operations), and 511 earlier safety assertions. Evidence: [indexing](../csharp/compatibility/evidence/phase4-indexing.json), [structural relations](../csharp/compatibility/evidence/phase4-indexing-assignability-regression.json), [type/state](../csharp/compatibility/evidence/phase4-indexing-state-regression.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-indexing-validation.json).
+
+```powershell
+node csharp/tools/checker-program.mjs --indexing --record phase4-indexing
+& ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-indexing-safety
+```
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
@@ -325,7 +340,7 @@ The following phase-4 requirements remain open:
 2. Structural relations and their caches, remaining type-node dependencies, general constraint evaluation/inference, contextual generic signatures and conditional instantiation; connect the implemented declaration/type-node, algebra, scope, instantiation and tuple algorithms to complete checker services.
 3. Inference, contextual typing, signatures and overload selection, expression/declaration checking, JavaScript and JSDoc semantics.
 4. Flow analysis and narrowing, evolving arrays, definite assignment, exhaustiveness and semantic diagnostics.
-5. Apparent mapped types and remapping integration with structural relations; conditional, indexed-access and template type evaluation; JSX, decorators and grammar checks.
+5. Apparent mapped types and remapping integration with structural relations; conditional evaluation and indexed expression checking; JSX, decorators and grammar checks.
 6. Type display, node builders, symbol accessibility and emit-resolver APIs.
 7. All active checker/compiler type/symbol/diagnostic comparisons at single and reference-default concurrency; audits of intentional differences; complete semantic workload memory/performance measurements.
 

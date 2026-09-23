@@ -1,0 +1,20 @@
+{
+    "timestamp": "2026-09-23T21:06:45.155Z",
+    "scope": "Structural identity, primitive relation predicates, normalization and recursive caches with required advanced relation services; full checker integration remains incomplete",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "managed": false,
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "cases": 160,
+    "keyQueries": 0,
+    "indexQueries": 0,
+    "numericStringConversions": 0,
+    "relationPairs": 3000,
+    "relationKeyQueries": 6240,
+    "exact": 160,
+    "failed": 0,
+    "inputSha256": "e3e8d6c18ceb0fa705780a2ecf007d1309c0f663df7112aebb8304121a8539e8",
+    "referenceOutputSha256": "8aabae8ea071eea798d422f6f8f00572ccc43f081aadf00f403eeea29a20e1b5",
+    "outputSha256": "175a29f1b664338e5fc37745e66335e254bf6c3dc1c881c48ca99107a5ce39d3",
+    "candidateSha256": "ecab7727892beec65db8fe71dd57e3b2393b45570ee13e4ed51c90dcaacb2e6c",
+    "oracleSha256": "9a2938477bd05d785bd8edea042ddc13e40d0571bc87b73dcb4c61ac217b01cd"
+}

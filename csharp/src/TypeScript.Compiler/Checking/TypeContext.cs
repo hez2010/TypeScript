@@ -316,10 +316,9 @@ public sealed class TypeContext
         if (alias is not null)
             foreach (var argument in alias.TypeArguments)
                 RequireOwned(argument);
-        flags &= AccessFlags.Persistent;
         var key = (TypeCacheKey.Instantiation([objectType, indexType], alias, false), flags);
         if (!indexedAccesses.TryGetValue(key, out var result))
-            indexedAccesses.Add(key, result = new(this, objectType, indexType, flags) { Alias = alias });
+            indexedAccesses.Add(key, result = new(this, objectType, indexType, flags & AccessFlags.Persistent) { Alias = alias });
         return result;
     }
 

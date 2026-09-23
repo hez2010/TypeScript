@@ -46,6 +46,7 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
 {
     private readonly IndexInfo anyBaseIndex = context.NewIndexInfo(context.StringType, context.AnyType);
     private readonly IndexInfo enumIndex = context.NewIndexInfo(context.NumberType, context.StringType, true);
+    internal IndexInfo EnumNumberIndex => enumIndex;
 
     internal async ValueTask<StructuredType> ResolveAsync(StructuredType type, CancellationToken cancellation = default)
     {

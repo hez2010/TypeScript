@@ -9,6 +9,14 @@ namespace TypeScript.Compatibility;
 
 internal interface IInstantiationFixtureSource
 {
+    ValueTask<Type> IndexAsync(Type type, CancellationToken cancellation);
+
+    ValueTask<Type> ReducedTypeAsync(Type type, CancellationToken cancellation);
+
+    ValueTask<bool> AssignableAsync(Type source, Type target, CancellationToken cancellation);
+
+    ValueTask<Type> IndexedAccessAsync(Type objectType, Type indexType, AccessFlags flags, TypeAlias? alias, CancellationToken cancellation);
+
     Type ArrayTarget(bool isReadonly);
 
     ValueTask<IReadOnlyList<Type>> TypeArgumentsAsync(TypeReference type, CancellationToken cancellation);
@@ -269,6 +277,8 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
 
     public ValueTask<Type> ReducedTypeAsync(Type type, CancellationToken cancellation)
     {
+        if (source is not null)
+            return source.ReducedTypeAsync(type, cancellation);
         var pending = new Stack<Type>();
         pending.Push(type);
         while (pending.TryPop(out var current))
@@ -334,6 +344,8 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
     public async ValueTask<Type> IndexTypeAsync(Type target, CancellationToken cancellation)
     {
         OnIndex?.Invoke(target);
+        if (source is not null)
+            return await source.IndexAsync(target, cancellation).ConfigureAwait(false);
         if ((target.Flags & F.InstantiableNonPrimitive) != 0 || TypeConstraints.IsGenericTuple(target))
             return context.GetIndexTypeForGenericType(target);
         if (target is IntersectionType intersection && intersection.Types.All(IsArrayType))
@@ -384,6 +396,8 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
         TypeAlias? alias,
         CancellationToken cancellation)
     {
+        if (source is not null)
+            return await source.IndexedAccessAsync(objectType, indexType, flags, alias, cancellation).ConfigureAwait(false);
         if ((objectType.Flags & F.Any) != 0)
             return objectType;
         if ((objectType.Flags & F.Never) != 0)
@@ -392,24 +406,6 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
         if (genericIndex || objectType is TypeParameter)
         {
             return context.GetGenericIndexedAccess(objectType, indexType, flags, alias);
-        }
-        if (source is not null && indexType is LiteralType { Value: double number })
-        {
-            if (await source.PropertyAsync(
-                objectType,
-                TypeScript.Compiler.Syntax.TokenFacts.NumberText(number),
-                cancellation).ConfigureAwait(false) is { } property)
-                return await source.SymbolTypeAsync(property, cancellation).ConfigureAwait(false);
-            if (objectType is TypeReference { Target: TupleType tupleTarget } tupleReference
-                && number >= 0
-                && number == Math.Truncate(number))
-                return await Tuples.SliceElementAsync(
-                    tupleReference,
-                    tupleTarget.FixedLength,
-                    cancellation: cancellation).ConfigureAwait(false) ?? context.UndefinedType;
-            if (await source.ApplicableIndexAsync(objectType, indexType, cancellation).ConfigureAwait(false) is { } index)
-                return index.ValueType;
-            throw new InvalidOperationException("Probe requires missing numeric indexed access handling");
         }
         if (indexType is UnionType union && objectType is ObjectType { ObjectFlags: var objectFlags }
             && (objectFlags & O.MembersResolved) != 0)
@@ -429,10 +425,6 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
             return await ArrayElement(reference, cancellation).ConfigureAwait(false);
         if ((indexType.Flags & F.Number) != 0 && objectType is TypeReference { Target: TupleType } tuple)
         {
-            if (source is not null)
-                return (await source.IndexesAsync(
-                    tuple,
-                    cancellation).ConfigureAwait(false)).First(i => i.KeyType == context.NumberType).ValueType;
             if ((tuple.ObjectFlags & O.MembersResolved) == 0)
             {
                 var target = (TupleType)tuple.ReferencedType;
@@ -484,8 +476,8 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
         => await Mapped.GenericFlagsAsync(type, cancellation).ConfigureAwait(false) != 0;
 
     public async ValueTask<bool> IsAssignableAsync(Type source, Type target, CancellationToken cancellation)
-        => source == target || (source.Flags & (F.Any | F.Never)) != 0
-            || this.source is not null && await this.source.UnknownLikeUnionAsync(target, cancellation).ConfigureAwait(false)
+        => this.source is not null ? await this.source.AssignableAsync(source, target, cancellation).ConfigureAwait(false)
+            : source == target || (source.Flags & (F.Any | F.Never)) != 0
             || (target is TypeParameter && (source.Flags & (F.Primitive | F.Unknown)) != 0
                 ? false : relations.Related(source, target, false));
 

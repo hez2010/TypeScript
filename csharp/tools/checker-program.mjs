@@ -394,7 +394,39 @@ for (const count of [5, 6]) {
     const variants = first.flatMap(a => second.map(b => `{a:${a};b:${b};value:number}`)).join("|");
     add(`assignability:discriminant-limit-${count * 5}`, { "globals.d.ts": library, "main.ts": `type R0={a:${first.join("|")};b:${second.join("|")};value:number};type R1=${variants};` }, { strict: true }, false, true, false, false, false, false, true, true);
 }
-let selected = process.argv.includes("--assignability") ? cases.filter(c => c.assignability) : process.argv.includes("--identity") ? cases.filter(c => c.identity && !c.assignability) : process.argv.includes("--signatures") ? cases.filter(c => c.signatures) : process.argv.includes("--properties") ? cases.filter(c => c.properties) : process.argv.includes("--values") ? cases.filter(c => c.values) : process.argv.includes("--members") ? cases.filter(c => c.members && !c.values && !c.signatures) : process.argv.includes("--type-nodes") ? cases.filter(c => c.typeNodes && !c.members && !c.properties && !c.identity)
+for (const strict of [false, true]) {
+    for (const exactOptionalPropertyTypes of [false, true]) {
+        for (
+            const [name, source] of Object.entries({
+                special: "type A=keyof any;type B=keyof unknown;type C=keyof never;type D=keyof {};type E=keyof null;type F=keyof undefined;",
+                object: "interface I {a:string;b?:number;readonly c:boolean;0:string;'01':number;__x:boolean}type A=keyof I;type B=keyof {x:1;y:2};",
+                composite: "type A=keyof ({a:1;b:2}|{a:3;c:4});type B=keyof ({a:1}&{b:2});type C=keyof ({a:1}&{a:2});",
+                signatures: "type A=keyof {[s:string]:number};type B=keyof {[n:number]:string};type C=keyof {[s:symbol]:number};type D=keyof {[s:`data-${string}`]:number};",
+                tuples: "type A=keyof [string,number?];type B=keyof readonly [string,...number[]];type C=keyof string[];type D<T extends unknown[]>=keyof [1,...T];",
+                generic: "type A<T>=keyof T;type B<T>=keyof (T&{});type C<T>=keyof ({a:T}&{a:'x'});type D<T>=keyof ({a:T}&{a:'x'}|{b:1});",
+                mapped: "type M<T>={[P in keyof T]:T[P]};type A=keyof M<{a:1;b?:2}>;type N={[P in 'a'|'b' as `get-${P}`]:number};type B=keyof N;type C=keyof {[P in string]:number};",
+                noinfer: "type NoInfer<T>=intrinsic;type A<T>=keyof NoInfer<T>;type B=A<{a:1}>;",
+                accessibility: "class C{private p:string;protected q:number;public r:boolean;readonly x:string}type A=keyof C;",
+                access: "interface I{a:string;b?:number;readonly c:boolean}type A=I['a'];type B=I['b'];type C=I['a'|'b'];type D=I[keyof I];type E=I['missing'];",
+                indexAccess: "type I={[s:string]:number};type A=I[string];type B=I[number];type C=I[symbol];type D=I[never];type E=I[any];type F=I[boolean];type G=I[undefined];type H=I[1n];",
+                tupleAccess: "type T=[string,number?];type A=T[0];type B=T['1'];type C=T[2];type D=T[-1];type E=T[number];type F=T['0'|'1'];type G=readonly [1,...string[]];type H=G[4];type I=([1]|[2,3])[1];",
+                genericAccess: "type A<T,K extends keyof T>=T[K];type B=A<{a:1;b:2},'a'|'b'>;type C<T extends unknown[]>=T[number];type D<T extends unknown[]>=[1,...T,2][0];type E<T>=(T&{a:1})['a'];",
+                mappedAccess: "type M<T>={[P in keyof T]?:T[P]};type A=M<{a:1;b:2}>['a'];type B<T,K extends keyof T>=M<T>[K];type C=B<{a:1},'a'>;type N<K extends string>={[P in K]:P};type D=N<'a'|'b'>['a'];",
+                accessors: "interface I{get value():string;set value(v:number);get other():boolean}type A=I['value'];type B=I['value'|'other'];",
+                indexNormalization: "type A<K extends number>={[s:string]:1}[K];type B<T extends number>={[s:string]:T}[number];type C<T>={[n:number]:T}['1'];",
+                distribution: "type A<T>=({a:T}|{a:number})['a'];type B<T>=({a:T}&{a:number})['a'];type C<T,K extends 'a'|'b'>=({a:T;b:string}|{a:number;b:T})[K];",
+                genericMapping: "type A<K extends string>={[P in K]?:P}[K];type B<K extends string>={[P in K as P&'a']:P}[K];type C<T>={[P in 'a'|'b']?:T}[keyof T];type D<T>={[P in 'a'|'b']-?:T}[keyof T];",
+                nestedAccess: "type A<T,K extends keyof T>=T[K][keyof T[K]];type B<K extends string,U extends string>={[P in K]:{[Q in U]:number}}[K][U];",
+                missingUnion: "type I={a:1};type A=I['x'|'y'|'a'];type B=I[1|2];type C=[1][-2|-1|2|3];",
+            })
+        ) add(`indexing:${name}:${strict}:${exactOptionalPropertyTypes}`, { "globals.d.ts": library, "main.ts": source }, { strict, exactOptionalPropertyTypes, target: "esnext" }, false, true);
+    }
+}
+for (const input of cases.filter(c => c.name.startsWith("indexing:"))) {
+    input.indexing = true;
+    cases.push({ ...input, name: `${input.name}:unchecked`, options: { ...input.options, noUncheckedIndexedAccess: true } });
+}
+let selected = process.argv.includes("--indexing") ? cases.filter(c => c.name.startsWith("indexing:")) : process.argv.includes("--assignability") ? cases.filter(c => c.assignability) : process.argv.includes("--identity") ? cases.filter(c => c.identity && !c.assignability) : process.argv.includes("--signatures") ? cases.filter(c => c.signatures) : process.argv.includes("--properties") ? cases.filter(c => c.properties) : process.argv.includes("--values") ? cases.filter(c => c.values) : process.argv.includes("--members") ? cases.filter(c => c.members && !c.values && !c.signatures) : process.argv.includes("--type-nodes") ? cases.filter(c => c.typeNodes && !c.members && !c.properties && !c.identity && !c.name.startsWith("indexing:"))
     : cases.filter(c => !c.typeNodes && Boolean(c.aliases) === process.argv.includes("--aliases"));
 if (option("--filter")) selected = selected.filter(c => c.name.includes(option("--filter")));
 async function probe(command, args) {
@@ -428,7 +460,7 @@ for (let i = 0; i < selected.length; i++) {
 await json(path.join(output, "checker-program-failures.json"), failures);
 const summary = {
     timestamp: new Date().toISOString(),
-    scope: process.argv.includes("--assignability") ? "Structural relation decisions, signature variance, discriminants and generic variance caches with required advanced semantic services; full checker integration remains incomplete" : process.argv.includes("--identity") ? "Structural identity, primitive relation predicates, normalization and recursive caches with required advanced relation services; full checker integration remains incomplete" : process.argv.includes("--signatures") ? "Signature matching, composition, tuple rest parameters and array member fallback with explicit type relation dependencies; full checker integration remains incomplete" :
+    scope: process.argv.includes("--indexing") ? "Key enumeration, indexed access, read/write simplification and generic cache identity; expression checking and full checker integration remain incomplete" : process.argv.includes("--assignability") ? "Structural relation decisions, signature variance, discriminants and generic variance caches with required advanced semantic services; full checker integration remains incomplete" : process.argv.includes("--identity") ? "Structural identity, primitive relation predicates, normalization and recursive caches with required advanced relation services; full checker integration remains incomplete" : process.argv.includes("--signatures") ? "Signature matching, composition, tuple rest parameters and array member fallback with explicit type relation dependencies; full checker integration remains incomplete" :
         process.argv.includes("--properties") ? "Composite properties, apparent types and intersection reduction with explicit relation and signature dependencies; full checker integration remains incomplete" : process.argv.includes("--values") ? "Source symbol read/write types, accessors, value aliases and declaration value objects with explicit inference dependencies; full checker integration remains incomplete" : process.argv.includes("--members") ? "Source structured members, interface bases, signatures and index signatures with annotated value dependencies; full checker integration remains incomplete" : process.argv.includes("--type-nodes") ? "Source type-node evaluation, declared aliases and references with explicit semantic dependencies; full checker integration remains incomplete" : process.argv.includes("--aliases")
         ? "Program-backed alias targets, type-only chains and module exports with explicit semantic dependencies; full checker integration remains incomplete"
         : "Program-owned global symbols, class/interface headers and generic scopes with explicit semantic dependencies; full checker integration remains incomplete",
@@ -436,6 +468,8 @@ const summary = {
     managed,
     runtime: managed ? "managed development run" : await run(candidate, ["--native-check"]),
     cases: selected.length,
+    keyQueries: actual.reduce((count, c) => count + (c.keyQueries?.length ?? 0), 0),
+    indexQueries: actual.reduce((count, c) => count + (c.indexQueries?.length ?? 0), 0),
     numericStringConversions: selected.reduce((count, c) => count + (c.numberStrings?.length ?? 0), 0),
     relationPairs: actual.reduce((count, c) => count + (c.relations?.length ?? 0), 0),
     relationKeyQueries: actual.reduce((count, c) => count + (c.relationKeys?.length ?? 0), 0),

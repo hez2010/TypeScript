@@ -1,0 +1,20 @@
+{
+    "timestamp": "2026-09-23T21:06:43.803Z",
+    "scope": "Structural relation decisions, signature variance, discriminants and generic variance caches with required advanced semantic services; full checker integration remains incomplete",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "managed": false,
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "cases": 332,
+    "keyQueries": 0,
+    "indexQueries": 0,
+    "numericStringConversions": 0,
+    "relationPairs": 6696,
+    "relationKeyQueries": 0,
+    "exact": 332,
+    "failed": 0,
+    "inputSha256": "b03a5bc6fbe737233ca8ec1c5360777f27c4275f214584ed85acfa8d40f1f31c",
+    "referenceOutputSha256": "5752da7270bd6521b9872eb94d08435d57cac10b0e3e0e57d474ce259a4bfd73",
+    "outputSha256": "115cdfa555ee52ac1b7210380fcaef39d0d9f4e211dbb79abd0796772504af35",
+    "candidateSha256": "ecab7727892beec65db8fe71dd57e3b2393b45570ee13e4ed51c90dcaacb2e6c",
+    "oracleSha256": "9a2938477bd05d785bd8edea042ddc13e40d0571bc87b73dcb4c61ac217b01cd"
+}

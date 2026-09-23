@@ -52,20 +52,20 @@ internal sealed partial class ProgramTypeHost : ITypePropertyHost, ITypeViewHost
     public async ValueTask<IndexInfo?> ApplicableIndexAsync(Type type, Type key, CancellationToken cancellation)
             => await IndexSignatures.ApplicableAsync(await IndexesAsync(type, cancellation), key, cancellation);
 
-    public ValueTask<Type> PropertyNameTypeAsync(Symbol symbol, CancellationToken cancellation)
+    public async ValueTask<Type> PropertyNameTypeAsync(Symbol symbol, CancellationToken cancellation)
     {
         if (links.Values.Get(symbol).NameType is { } cached)
-            return ValueTask.FromResult((cached.Flags & TypeFlags.StringOrNumberLiteralOrUnique) != 0 ? cached : context.NeverType);
+            return (cached.Flags & TypeFlags.StringOrNumberLiteralOrUnique) != 0 ? cached : context.NeverType;
         var name = (symbol.ValueDeclaration as INamedNode)?.Name;
-        return ValueTask.FromResult<Type>(name switch
+        return name switch
         {
-            NumericLiteralNode numeric => context.GetNumberLiteralType(
-                double.Parse(numeric.Text, System.Globalization.CultureInfo.InvariantCulture)),
+            NumericLiteralNode numeric => ((LiteralType)await LiteralExpressionAsync(numeric, cancellation)).RegularType!,
+            PrivateIdentifierNode => context.NeverType,
             StringLiteralNode text => context.GetStringLiteralType(text.Text),
             IdentifierNode identifier => context.GetStringLiteralType(identifier.Text),
             null when !symbol.Name.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal) => context.GetStringLiteralType(symbol.Name),
             _ => throw new InvalidOperationException("Probe requires computed property name types")
-        });
+        };
     }
 
     public ValueTask<Type> ParameterTypeAsync(Symbol parameter, CancellationToken cancellation) =>

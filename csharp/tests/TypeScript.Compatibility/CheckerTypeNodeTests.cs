@@ -91,7 +91,7 @@ internal static class CheckerTypeNodeTests
         var alias = context.CreateAlias(d, [p]);
         var indexed = context.GetGenericIndexedAccess(p, context.StringType, AccessFlags.Writing, alias);
         Check(context.GetGenericIndexedAccess(p, context.StringType, AccessFlags.Writing, context.CreateAlias(d, [p])) == indexed);
-        Check(context.GetGenericIndexedAccess(p, context.StringType, 0, alias) == indexed);
+        Check(context.GetGenericIndexedAccess(p, context.StringType, 0, alias) != indexed && indexed.AccessFlags == 0);
         Check(context.GetGenericIndexedAccess(p, context.StringType, AccessFlags.IncludeUndefined, alias) != indexed);
         var foreign = new TypeContext(true, true);
         try

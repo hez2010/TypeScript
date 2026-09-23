@@ -13,6 +13,11 @@ internal static class Program
     {
         try
         {
+            if (args is ["--checker-indexing-safety"])
+            {
+                CheckerIndexTests.Safety().GetAwaiter().GetResult();
+                return 0;
+            }
             if (args is ["--checker-assignability-safety"])
             {
                 CheckerAssignabilityTests.Safety().GetAwaiter().GetResult();

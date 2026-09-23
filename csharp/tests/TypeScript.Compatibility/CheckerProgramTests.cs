@@ -360,6 +360,8 @@ internal static class CheckerProgramTests
             }
             writer.WriteEndArray();
         }
+        if (input.TryGetProperty("indexing", out var indexingOption) && indexingOption.GetBoolean())
+            await CheckerIndexTests.WriteAsync(writer, nodes, typeHost!, TypeId, Node);
         if (input.TryGetProperty("members", out var memberOption) && memberOption.GetBoolean())
             await CheckerMemberTests.WriteAsync(writer, nodes, environment, typeHost!, TypeId, SymbolId, Node,
                 input.TryGetProperty("values", out var valueOption) && valueOption.GetBoolean(),

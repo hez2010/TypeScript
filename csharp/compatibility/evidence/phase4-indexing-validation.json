@@ -1,0 +1,88 @@
+{
+  "timestamp": "2026-09-23T21:10:58.7761287Z",
+  "scope": "Key enumeration, indexed-access resolution, generic deferral and read/write simplification with required expression/contextual services; full phase 4 remains incomplete",
+  "candidateSha256": "ecab7727892beec65db8fe71dd57e3b2393b45570ee13e4ed51c90dcaacb2e6c",
+  "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+  "sdk": "11.0.100-rc.2.26470.103",
+  "languageVersion": "15.0",
+  "runtimeAsync": true,
+  "optimizationPreference": "Speed",
+  "instructionSet": "native",
+  "publish": {
+    "sha256": "03933be2dc34223ee88005d844f6919fd7786869077fd93acbb392005d81ccfb",
+    "log": "logs/csharp-phase4-indexing-publish.log",
+    "exitCode": 0
+  },
+  "state": {
+    "assertions": 24,
+    "exitCode": 0,
+    "output": "Checker indexed type safety: 24 assertions; 20,000-level simplification and key traversal"
+  },
+  "regression": {
+    "typeState": 2904,
+    "assignability": 332,
+    "typeStateOperations": 1333980,
+    "safetyAssertions": 511,
+    "failed": 0,
+    "safetyOutputs": [
+      "33 structural relation/variance/facts/cancellation assertions",
+      "36 relation key/cache/normalization/cancellation assertions; exact 100-level comparison cutoff; key and base chains depth 20000",
+      "39 signature matching/arity/composition/cancellation assertions; binding label depth 20000",
+      "49 property/view/index/cache/cancellation assertions; reduction chain depth 20000",
+      "32 symbol read/write/cache/cancellation assertions; instantiated symbol chain depth 20000",
+      "31 structured member/signature assertions; base and signature chains depth 20000",
+      "25 source-type/cache/cancellation assertions; array and alias ancestry depth 20000",
+      "30 mapped member assertions; key validity, lower-bound and modifier chains at depth 20000",
+      "37 mapped type assertions; actual-variable, generic-flag, kind and unary-tuple analysis depth 20000",
+      "40 object instantiation assertions; reference, parent and entity-name depth 20000",
+      "26 instantiation/signature/tuple assertions; exact 100-depth, 5,000,000-work and 10,000-tuple limits",
+      "21 constraint/default/recursion state assertions; default and indexed identity depth 20000",
+      "15 algebra ownership/limit/cancellation assertions; template, intersection and origin depth 20000",
+      "25 program/checker ownership assertions; interface and scope depth 20000",
+      "31 alias/cycle/cancellation/module-export assertions; alias chain depth 20000",
+      "41 checker ownership/state assertions; mapper and type-order depth 50000; 16 independent contexts"
+    ],
+    "identity": 160,
+    "members": 176,
+    "signatures": 216,
+    "values": 136,
+    "sourceProgramCases": 1404,
+    "properties": 192,
+    "sourceTypes": 192
+  },
+  "repository": {
+    "extensionTests": 12,
+    "apiTests": 813,
+    "node": "24.20.0",
+    "exitCode": 0,
+    "benchmarkScope": "Required smoke runs only; no performance claim",
+    "goTestResults": 163380,
+    "goSkips": 2152,
+    "command": "npx --no-install hereby validate --all",
+    "log": "logs/csharp-phase4-indexing-validation.log",
+    "sha256": "86681fd65b5b6f53e7b7d0d9ba97bb5b177bdbb2f3842f6dfe5837afbbca6919",
+    "lintIssues": 0,
+    "toolTests": 17,
+    "go": "1.27.1"
+  },
+  "formatting": "Fourteen C# files verified with identical tokens, comments and syntax under both library configurations; single-line auto-properties retained. Final dotnet format whitespace verification, constant-generator freshness and applicable dprint checks passed.",
+  "dependenciesAdded": false,
+  "indexing": {
+    "indexQueries": 8000,
+    "exact": 320,
+    "scope": "Eight key flags; ten access-flag combinations; reading and writing simplifications; optional/unchecked/strict settings; diagnostics codes and complete type/cache graphs",
+    "sourceConfigurations": 160,
+    "referenceConcurrency": [
+      "singleThreaded",
+      "default"
+    ],
+    "keyQueries": 4736,
+    "cases": 320,
+    "simplifications": 16000,
+    "candidateConcurrency": [
+      1,
+      4
+    ],
+    "failed": 0
+  }
+}

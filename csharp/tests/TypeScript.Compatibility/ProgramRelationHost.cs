@@ -12,7 +12,9 @@ internal sealed partial class ProgramTypeHost : ITypeNormalizationHost, ITypeRel
     internal TypeIdentity Identity { get; }
 
     public ValueTask<Type> SimplifyAsync(Type type, bool writing, CancellationToken cancellation)
-            => throw new InvalidOperationException("Probe requires indexed/conditional simplification");
+            => type is IndexedAccessType indexed ? Indexed.SimplifyAsync(indexed, writing, cancellation)
+                : type is ConditionalType ? throw new InvalidOperationException("Probe requires conditional simplification")
+                : ValueTask.FromResult(type);
 
     public ValueTask<Ternary> IdentityAsync(RelationOperation operation, Type source, Type target, CancellationToken cancellation)
             => Identity.CompareAsync(operation, source, target, cancellation);
