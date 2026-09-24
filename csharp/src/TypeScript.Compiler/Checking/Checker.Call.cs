@@ -86,6 +86,36 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
         CheckMode mode,
         CancellationToken cancellation)
     {
+        if (node is BinaryExpressionNode binary)
+        {
+            var type = await Expressions.CheckAsync(binary.Right!, cancellation: cancellation);
+            if ((type.Flags & TypeFlags.Any) == 0)
+            {
+                if (await HasInstanceMethodAsync(type, cancellation) is { } method)
+                {
+                    var apparent = await Views.ApparentAsync(method, cancellation);
+                    if (apparent == context.ErrorType)
+                        return await CallResolution.UntypedAsync(node, true, cancellation);
+                    var calls = await SignaturesAsync(apparent, false, cancellation);
+                    var constructors = await SignaturesAsync(apparent, true, cancellation);
+                    if ((method.Flags & TypeFlags.Any) != 0 || (apparent.Flags & TypeFlags.Any) != 0 && method is TypeParameter
+                        || calls.Count == 0 && constructors.Count == 0 && apparent is not UnionType
+                            && ((await Views.ReducedAsync(apparent, cancellation)).Flags & TypeFlags.Never) == 0
+                            && await AssignableAsync(method, GlobalFunction, cancellation))
+                        return await CallResolution.UntypedAsync(node, false, cancellation);
+                    if (calls.Count != 0)
+                        return await CallResolution.OverloadAsync(node, calls, candidates, mode, cancellation: cancellation);
+                }
+                else if ((await SignaturesAsync(type, false, cancellation)).Count == 0
+                    && (await SignaturesAsync(type, true, cancellation)).Count == 0
+                    && !await Relations.RelatedAsync(type, GlobalFunction, RelationKind.Subtype, cancellation))
+                {
+                    Error(binary.Right!, 2359);
+                    return await CallResolution.UntypedAsync(node, true, cancellation);
+                }
+            }
+            return CallSignatures.Any;
+        }
         if (node is TaggedTemplateExpressionNode tagged)
         {
             var type = await Expressions.CheckAsync(tagged.Tag!, cancellation: cancellation);
@@ -159,7 +189,7 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
         if (errorNode is null)
             return await Relations.RelatedAsync(source, target, relation, cancellation);
         int? previous = relationDiagnosticHead;
-        if (code == 2769)
+        if (code is 2769 or 2860)
             relationDiagnosticHead = code;
         try
         {
@@ -267,7 +297,7 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
         if (state.ArgumentErrors.Count != 0)
         {
             await CallResolution.ApplicableAsync(state.Node, state.Arguments, state.ArgumentErrors[^1], RelationKind.Assignable, 0,
-                true, state.ArgumentErrors.Count > 1 ? 2769 : 2345, cancellation);
+                true, state.ArgumentErrors.Count > 1 ? 2769 : state.Node is BinaryExpressionNode ? 2860 : 2345, cancellation);
             return;
         }
         if (state.ArgumentArityError is { } arity)

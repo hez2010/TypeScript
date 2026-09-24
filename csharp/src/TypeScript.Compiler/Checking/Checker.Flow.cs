@@ -164,8 +164,18 @@ internal sealed partial class Checker : IFlowTypeHost, IFlowReferenceHost, IFlow
             ((CallExpressionNode)node).Expression!,
             cancellation);
 
-    public ValueTask<Type?> HasInstanceMethodAsync(Type type, CancellationToken cancellation) =>
-        throw new InvalidOperationException("Checker requires Symbol.hasInstance lookup");
+    public async ValueTask<Type?> HasInstanceMethodAsync(Type type, CancellationToken cancellation)
+    {
+        string name = await KnownSymbolNameAsync("hasInstance", cancellation);
+        if (await AllAssignableKindAsync(type, TypeFlags.NonPrimitive, cancellation)
+            && await Properties.PropertyAsync(type, name, cancellation: cancellation) is { } property)
+        {
+            var method = await Values.GetAsync(property, cancellation);
+            if ((await SignaturesAsync(method, false, cancellation)).Count != 0)
+                return method;
+        }
+        return null;
+    }
 
     public async ValueTask<Signature?> ResolvedCallAsync(SyntaxNode node, CancellationToken cancellation) =>
         await CallResolution.GetAsync(node, cancellation: cancellation);
@@ -184,18 +194,38 @@ internal sealed partial class Checker : IFlowTypeHost, IFlowReferenceHost, IFlow
         if (AssignmentMarks.Constant(symbol)
             && symbol.ValueDeclaration is VariableDeclarationNode { Type: null, Initializer: { } initializer })
         {
-            if (reference.Kind == SyntaxKind.ThisKeyword)
+            if (await ConstantReferenceAsync(reference, cancellation))
                 return initializer;
-            if (reference is IdentifierNode identifier && !FlowReferences.ThisInQuery(identifier))
-            {
-                var target = program.ReferenceSymbols.Resolve(identifier, cancellation);
-                if (await ConstantOrUnassignedAsync(target, cancellation) || target.ValueDeclaration is FunctionExpressionNode)
-                    return initializer;
-                return null;
-            }
-            throw new InvalidOperationException("Checker requires readonly or binding-pattern reference analysis");
         }
         return null;
+    }
+
+    public async ValueTask<bool> ConstantReferenceAsync(SyntaxNode node, CancellationToken cancellation)
+    {
+        while (node is PropertyAccessExpressionNode or ElementAccessExpressionNode)
+        {
+            cancellation.ThrowIfCancellationRequested();
+            if (links.SymbolNodes.TryGet(node)?.ResolvedSymbol is not { } property || !IsReadonly(property))
+                return false;
+            node = FlowReferences.Receiver(node)!;
+        }
+        if (node.Kind == SyntaxKind.ThisKeyword)
+            return true;
+        if (node is IdentifierNode identifier && !FlowReferences.ThisInQuery(identifier))
+        {
+            var symbol = program.ReferenceSymbols.Resolve(identifier, cancellation);
+            return await ConstantOrUnassignedAsync(symbol, cancellation) || symbol.ValueDeclaration is FunctionExpressionNode;
+        }
+        if (node is BindingPatternNode)
+        {
+            var declaration = node.Parent!;
+            while (declaration is BindingElementNode)
+                declaration = declaration.Parent!.Parent!;
+            if (declaration is ParameterDeclarationNode || declaration is VariableDeclarationNode { Parent: CatchClauseNode })
+                return !await Assignments.SomeAsync(declaration, cancellation);
+            return declaration is VariableDeclarationNode && AssignmentMarks.ConstLike(declaration);
+        }
+        return false;
     }
 
     public ValueTask<string?> AccessNameAsync(SyntaxNode node, CancellationToken cancellation) => AccessNames.GetAsync(node, cancellation);
@@ -225,7 +255,7 @@ internal sealed partial class Checker : IFlowTypeHost, IFlowReferenceHost, IFlow
         BinaryExpressionNode expression,
         bool assumeTrue,
         CancellationToken cancellation)
-            => throw new InvalidOperationException("Checker requires in/instanceof narrowing");
+            => NarrowRelationalKeywordAsync(state, type, expression, assumeTrue, cancellation);
 
     public ValueTask<Type> NarrowPredicateAsync(
         FlowState state,

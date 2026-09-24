@@ -1,0 +1,22 @@
+{
+    "timestamp": "2026-09-24T15:30:21.727Z",
+    "mode": "default",
+    "configuration": "Release",
+    "selectedConfigurations": 3446,
+    "previousMatches": 2349,
+    "graphAndCodeMatches": 2613,
+    "recoveredConfigurations": 264,
+    "regressions": [],
+    "parts": [
+        {
+            "directory": "built/csharp/semantic-corpus-condition-default/default",
+            "configurations": 3446,
+            "candidateSha256": "0b7f433e5894e8084b0784c1adac80ea9a872d36052a1e94cf814fd35a1ab4df",
+            "compilerSha256": "6dd1499d9eb0e25fbbb82dc9d757f2f712c106768088ff999cad9c0225c89c40",
+            "outputSha256": "a8a535659639b17220396e8e491312e715d0121698814ac948d68cb6cad868b0",
+            "selectionSha256": "4760aa98fc1e1090baa7913ff1557910f84567f4d57b8ba905bdd13f9d1580ca"
+        }
+    ],
+    "scope": "Callable/awaitable conditions, in/instanceof checking and narrowing, custom hasInstance signatures and constant-reference analysis; full phase 4 remains incomplete.",
+    "nativeAotVerification": "Deferred until final completion per user instruction"
+}

@@ -557,7 +557,7 @@ internal sealed partial class Checker
                         }
                     }
                     break;
-                case CallExpressionNode or NewExpressionNode or TaggedTemplateExpressionNode:
+                case CallExpressionNode or NewExpressionNode or TaggedTemplateExpressionNode or BinaryExpressionNode:
                     await CallResolution.UntypedAsync(node, false, cancellation).ConfigureAwait(false);
                     break;
                 case TypeParameterDeclarationNode parameter:

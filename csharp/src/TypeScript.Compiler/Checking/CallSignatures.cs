@@ -77,6 +77,11 @@ internal sealed class CallSignatures(TypeContext context, CheckerSymbols symbols
                 return spread >= minimum
                     && (await parameters.HasRestAsync(signature, cancellation).ConfigureAwait(false) || spread < count);
         }
+        else if (node is BinaryExpressionNode)
+        {
+            argumentCount = 1;
+            incomplete = false;
+        }
         else
             return await host.SpecialArityAsync(node, arguments, signature, cancellation).ConfigureAwait(false);
         if (!await parameters.HasRestAsync(signature, cancellation).ConfigureAwait(false) && argumentCount > count)

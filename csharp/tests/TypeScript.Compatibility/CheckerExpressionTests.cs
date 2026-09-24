@@ -122,8 +122,71 @@ internal static class CheckerExpressionTests
         Check((await evaluator.EvaluateAsync(deep)).Value is 1d);
         checks += await LiteralSafety();
         checks += await OrdinarySafety();
+        checks += await ConditionSafety();
         Console.WriteLine(
             $"{checks} expression/literal/context/enum/cache/cancellation assertions; 20000-level expression, constant and context traversal");
+    }
+
+    private static async Task<int> ConditionSafety()
+    {
+        const string source = """
+            interface Object { }
+            interface Function { readonly name: string; }
+            interface Array<T> { length: number; [n: number]: T; }
+            interface I { method(): void; }
+            interface SymbolConstructor { readonly hasInstance: unique symbol; }
+            declare const Symbol: SymbolConstructor;
+            declare const a: I, b: I;
+            declare const callable: () => void;
+            if (callable) { }
+            if (callable) { callable(); }
+            if (a.method) { b.method(); a.method(); }
+            if (a.method) { b.method(); }
+            function assertion(x: unknown) { if (((x as I)).method) { } }
+            function presence(x: { a: string } | { b: number }) {
+                if ('a' in x) { const text: string = x.a; }
+                else { const number: number = x.b; }
+            }
+            function unknownPresence(x: unknown) { if (x && typeof x === 'object' && 'a' in x) { x.a; } }
+            type Record<K extends keyof any, T> = { [P in K]: T };
+            class C { #field = 1; test(x: C | string) { if (#field in x) { const c: C = x; } } }
+            1 instanceof C;
+            true in {};
+            'a' in 1;
+            declare const accept: { [Symbol.hasInstance](value: { value: string }): boolean };
+            declare const invalid: { [Symbol.hasInstance](value: object): string };
+            ({ value: 1 }) instanceof accept;
+            ({ }) instanceof invalid;
+            declare const predicate: { [Symbol.hasInstance](value: unknown): value is { value: string } };
+            function customGuard(value: { value: string } | number) {
+                if (value instanceof predicate) { const text: string = value.value; }
+                else { const number: number = value; }
+            }
+            """;
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        options.SetRaw("target", "\"esnext\"");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
+            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var file = program.SourceFiles[0].Syntax;
+        await checker.CheckSourceFileAsync(file);
+        var codes = checker.DiagnosticCodesForFile(file).Order().ToArray();
+        int[] expected = [2322, 2322, 2322, 2322, 2358, 2774, 2774, 2860, 2861];
+        if (!codes.SequenceEqual(expected))
+            throw new InvalidOperationException($"Condition diagnostics: {string.Join(',', codes)}");
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+        try
+        {
+            var condition = file.DescendantsAndSelf().OfType<IfStatementNode>().First();
+            await checker.KnownTruthyAsync(checker.Context.AnyType, condition.Expression!, condition.ThenStatement, cancellation.Token);
+            throw new InvalidOperationException("Condition cancellation ignored");
+        }
+        catch (OperationCanceledException) { }
+        return 2;
     }
 
     private static async Task<int> OrdinarySafety()

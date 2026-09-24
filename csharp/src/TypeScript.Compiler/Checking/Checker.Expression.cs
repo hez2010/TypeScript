@@ -60,6 +60,25 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
 
     public async ValueTask<Type> OtherExpressionAsync(SyntaxNode node, CheckMode mode, CancellationToken cancellation)
     {
+        if (node is PrivateIdentifierNode)
+        {
+            var symbol = ResolveReference(node, cancellation);
+            if (symbol != UnknownSymbol)
+            {
+                links.SymbolNodes.Get(node).ResolvedSymbol = symbol;
+                MemberAccess.MarkReferenced(symbol, node, node, null, cancellation);
+            }
+            if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
+            {
+                if (PrivateAccess.ContainingClass(node) is null)
+                    Error(node, 18016);
+                else if (node.Parent?.Kind != SyntaxKind.ForInStatement
+                    && !(node.Parent is BinaryExpressionNode { OperatorToken.Kind: SyntaxKind.InKeyword } inExpression
+                        && inExpression.Left == node))
+                    Error(node, 1451);
+            }
+            return context.AnyType;
+        }
         if (node is CallExpressionNode or NewExpressionNode or TaggedTemplateExpressionNode)
             return await Calls.CheckAsync(node, mode, cancellation);
         if (node is SyntheticExpressionNode synthetic)
@@ -123,16 +142,7 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
     {
         if (!context.StrictNullChecks)
             return;
-        if ((await Facts.GetAsync(type, TypeFacts.Truthy, cancellation)) == 0)
-            return;
-        var calls = await SignaturesAsync(type, false, cancellation);
-        await program.Globals.GetAsync("Promise", 1, false, cancellation);
-        var constraint = await Instantiation.Constraints.BaseConstraintOrTypeAsync(type, cancellation);
-        if (calls.Count == 0 && (constraint is UnionType union ? union.Types.All(
-            t => (t.Flags & (TypeFlags.Primitive | TypeFlags.Never)) != 0)
-            : (constraint.Flags & (TypeFlags.Primitive | TypeFlags.Never)) != 0))
-            return;
-        throw new InvalidOperationException("Checker requires callable/awaitable condition analysis");
+        await CheckKnownConditionAsync(type, node, body, cancellation).ConfigureAwait(false);
     }
 
     public async ValueTask<bool> TemplateContextAsync(SyntaxNode node, CancellationToken cancellation)

@@ -111,14 +111,6 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
         return data.ResolvedType = type;
     }
 
-    public async ValueTask<bool> ConstantReferenceAsync(SyntaxNode node, CancellationToken cancellation)
-    {
-        if (node is not IdentifierNode identifier)
-            return false;
-        var symbol = program.ReferenceSymbols.Resolve(identifier, cancellation);
-        return symbol.ValueDeclaration is FunctionExpressionNode || await ConstantOrUnassignedAsync(symbol, cancellation);
-    }
-
     public async ValueTask<Type> PromiseResultAsync(SyntaxNode node, Type type, bool reportMissing, CancellationToken cancellation)
     {
         var target = await program.Globals.GetAsync("Promise", 1, true, cancellation);
@@ -330,6 +322,9 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
             ClassMemberModifiers(node);
             return ValueTask.CompletedTask;
         }
+        if (node is ConstructorTypeNode { Modifiers: { Count: 1 } constructorModifiers }
+            && constructorModifiers[0].Kind == SyntaxKind.AbstractKeyword)
+            return ValueTask.CompletedTask;
         if (node is IModifiedNode { Modifiers: { } modifiers }
             && modifiers.Any(
                 m => m.Kind is not (SyntaxKind.AsyncKeyword or SyntaxKind.ExportKeyword or SyntaxKind.DefaultKeyword

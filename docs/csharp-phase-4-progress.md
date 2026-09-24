@@ -677,6 +677,14 @@ Release comparisons cover **6,210 affected and regression configurations per mod
 
 Evidence: [single-threaded affected corpus](../csharp/compatibility/evidence/phase4-expando-corpus-single.json), [reference-default affected corpus](../csharp/compatibility/evidence/phase4-expando-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-expando-mode-parity.json), and [validation and reused results](../csharp/compatibility/evidence/phase4-expando-validation.json). Unchanged Go/tooling validation and unaffected component results are reused. NativeAOT verification remains deferred until final completion; import types, condition analysis, remaining diagnostics and other phase-4 services are still open.
 
+## Conditions and relational operators
+
+Known-truthy callable, promise and enum conditions now use the reference's branch-usage rules, including receiver identity, logical chains and parenthesized assertion exemptions. The `in` and `instanceof` operators check operand types and support private names. Custom `Symbol.hasInstance` methods use overload resolution, argument and return-type diagnostics, and predicate narrowing. Flow analysis now handles property presence, private-name guards, constructor instances and constant references through readonly properties or binding patterns.
+
+Targeted Release corpus validation covers **3,446 affected configurations per reference mode**. Graph/code matches increased from **2,349 to 2,613**, recovering **264 configurations**, with **no previously matching case regressing**. The focused condition/operator test also agrees with the saved Go oracle. Unchanged corpus and repository validation results are reused, and NativeAOT verification remains deferred until final completion.
+
+Evidence: [single-threaded affected corpus](../csharp/compatibility/evidence/phase4-condition-corpus-single.json), [reference-default affected corpus](../csharp/compatibility/evidence/phase4-condition-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-condition-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-condition-validation.json). Complete diagnostic fidelity, remaining semantic services and the final workload gates remain open.
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
@@ -684,7 +692,7 @@ The following phase-4 requirements remain open:
 1. Complete semantic-pass coverage and finalization, remaining module adaptation and import-attribute checks, computed exports and remaining type/value symbol resolution. Checker creation, source traversal, program-backed queries, globals, augmentation merging, declaration headers and alias/export algorithms now exist; their remaining semantic callbacks must be connected.
 2. Complete relation diagnostics and remaining type-node dependencies; connect the implemented declaration/type-node, algebra, scope, inference, instantiation and tuple algorithms to complete checker services.
 3. Remaining expression forms and special call forms, full declaration checking, JavaScript and JSDoc semantics, and completion of contextual/inference integration across those services.
-4. Complete property/declaration flow integration, constructor/`in`/`instanceof` narrowing, initialization/reference services, and iterator/generator diagnostic and emit integration.
+4. Complete property/declaration flow integration, constructor-identity narrowing, initialization/reference services, and iterator/generator diagnostic and emit integration.
 5. Remaining indexed/member diagnostic and declaration services, JSX, decorators and grammar checks.
 6. Type display, node builders, symbol accessibility and emit-resolver APIs.
 7. All active checker/compiler type/symbol/diagnostic comparisons at single and reference-default concurrency; audits of intentional differences; complete semantic workload memory/performance measurements.

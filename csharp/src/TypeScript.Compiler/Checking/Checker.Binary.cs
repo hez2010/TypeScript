@@ -91,11 +91,57 @@ internal sealed partial class Checker : IBinaryExpressionHost, IAwaitedTypeHost
         CancellationToken cancellation)
             => throw new InvalidOperationException("Checker requires destructuring assignment checking");
 
-    public ValueTask<Type> RelationalKeywordAsync(
+    public async ValueTask<Type> RelationalKeywordAsync(
         BinaryExpressionNode node,
         Type left,
         Type right,
         CheckMode mode,
         CancellationToken cancellation)
-            => throw new InvalidOperationException("Checker requires in/instanceof checking");
+    {
+        if (left == context.SilentNeverType || right == context.SilentNeverType)
+            return context.SilentNeverType;
+        if (node.OperatorToken!.Kind == SyntaxKind.InstanceOfKeyword)
+        {
+            if ((left.Flags & TypeFlags.Any) == 0 && await AllAssignableKindAsync(left, TypeFlags.Primitive, cancellation))
+                Error(node.Left!, 2358);
+            var signature = await CallResolution.GetAsync(node, mode: mode, cancellation: cancellation);
+            if (signature == CallSignatures.Resolving)
+                return context.SilentNeverType;
+            await RelationDiagnostics.CheckAsync(await Signatures.ReturnAsync(signature, cancellation), context.BooleanType,
+                RelationKind.Assignable, node.Right!, node.Right!, 2861, cancellation);
+        }
+        else
+        {
+            if (node.Left is PrivateIdentifierNode)
+            {
+                if (TargetYear < int.MaxValue || !UseDefineForClassFields)
+                    await PrivateEmitHelpersAsync(node.Left, false, false, cancellation);
+                if (links.SymbolNodes.TryGet(node.Left)?.ResolvedSymbol is null && PrivateAccess.ContainingClass(node.Left) is not null)
+                    MissingProperty(node.Left, right, await UncheckedJsAsync(node.Left, right.Symbol, cancellation));
+            }
+            else
+                await RelationDiagnostics.CheckAsync(await NonNullAsync(left, node.Left!, cancellation), context.StringNumberSymbolType,
+                    RelationKind.Assignable, node.Left!, node.Left!, 2322, cancellation);
+            if (await RelationDiagnostics.CheckAsync(await NonNullAsync(right, node.Right!, cancellation), context.NonPrimitiveType,
+                RelationKind.Assignable, node.Right!, node.Right!, 2322, cancellation))
+                foreach (var part in right is UnionType union ? union.Types : [right])
+                    if (part == context.UnknownEmptyObjectType || part is IntersectionType
+                        && await Views.EmptyAnonymousAsync(
+                            await Instantiation.Constraints.BaseConstraintOrTypeAsync(part, cancellation),
+                            cancellation))
+                    {
+                        Error(node.Right!, 2638);
+                        break;
+                    }
+        }
+        return context.BooleanType;
+    }
+
+    private async ValueTask<bool> AllAssignableKindAsync(Type type, TypeFlags flags, CancellationToken cancellation)
+    {
+        foreach (var part in type is UnionType union ? union.Types : [type])
+            if (!await AssignableKindAsync(part, flags, cancellation))
+                return false;
+        return true;
+    }
 }
