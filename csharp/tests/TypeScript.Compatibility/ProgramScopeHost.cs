@@ -29,6 +29,7 @@ internal sealed partial class ProgramScopeHost(TypeContext context, CheckerLinks
     internal List<int> Diagnostics { get; } = [];
     internal Action? BeforeGlobalTypes { get; set; }
     internal Action? BeforeResolveType { get; set; }
+    internal Action? BeforeValueResolution { get; set; }
     internal Dictionary<SyntaxNode, Signature> ContextualSignatures { get; } = [];
 
     public void Bind(CheckerSymbols symbols)
@@ -136,7 +137,10 @@ internal sealed partial class ProgramScopeHost(TypeContext context, CheckerLinks
         SyntaxNode? last,
         SyntaxNode? declaration,
         bool deferred)
-        => ValueUses.ResolvedAsync(location, symbol, meaning, last, declaration, deferred).GetAwaiter().GetResult();
+    {
+        BeforeValueResolution?.Invoke();
+        ValueUses.ResolvedAsync(location, symbol, meaning, last, declaration, deferred).GetAwaiter().GetResult();
+    }
 
     public void ValueUseError(SyntaxNode? node, DiagnosticMessage message, params string[] arguments) => Error(node, message, arguments);
 

@@ -1,0 +1,165 @@
+{
+    "timestamp": "2026-09-24T02:08:17.200888+00:00",
+    "scope": "Flow graph evaluation, assignment reduction, branch and loop joins, evolving arrays, reachability, predicates, discriminants, switches, explicit callees and assignment tracking; full checker integration remains incomplete",
+    "candidateSha256": "7207805742bc5e28bcc0f792d5a1a8cf71620d734419145137fec516b306fe3b",
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "languageVersion": "15.0",
+    "runtimeAsync": true,
+    "optimizationPreference": "Speed",
+    "instructionSet": "native",
+    "publish": {
+        "exitCode": 0,
+        "log": "logs/csharp-phase4-flow-publish.log",
+        "sha256": "03933be2dc34223ee88005d844f6919fd7786869077fd93acbb392005d81ccfb"
+    },
+    "flow": {
+        "cases": 212,
+        "exact": 212,
+        "failed": 0,
+        "flowQueries": 496,
+        "assignmentQueries": 944
+    },
+    "flowStateComparisons": 212,
+    "state": {
+        "exitCode": 0,
+        "assertions": 47,
+        "output": "47 flow/cache/reachability/assignment/cancellation assertions; 20,000-node traversal and exact 2,000 recursion limit."
+    },
+    "regression": {
+        "sourceProgramCases": 2840,
+        "sourceModes": {
+            "aliases": 124,
+            "assignability": 332,
+            "awaited": 24,
+            "binary": 56,
+            "conditional": 152,
+            "constants": 48,
+            "expressions": 40,
+            "generic-relations": 128,
+            "identity": 160,
+            "indexing": 320,
+            "inference": 176,
+            "initializers": 48,
+            "members": 176,
+            "program": 180,
+            "properties": 192,
+            "references": 140,
+            "signatures": 216,
+            "type-nodes": 192,
+            "values": 136
+        },
+        "typeState": 2904,
+        "typeStateOperations": 1333980,
+        "constraints": 613,
+        "constraintOperations": 20154,
+        "safetyAssertions": 692,
+        "safetyOutputs": [
+            "23 reference safety assertions; 20,000-level syntax traversal.",
+            "28 binary/awaited/recursion/cancellation assertions; 20000-level binary expressions",
+            "25 expression/enum/cache/cancellation assertions; 20000-level expression and constant traversal",
+            "35 inference/priority/fixing/cancellation/widening/reverse-map assertions; 20000-level traversal",
+            "24 conditional/cache/cancellation assertions; exact 1000 tail and 10 relation nesting limits",
+            "22 generic relation/optionality/key variance/cancellation assertions",
+            "Checker indexed type safety: 24 assertions; 20,000-level simplification and key traversal",
+            "33 structural relation/variance/facts/cancellation assertions",
+            "36 relation key/cache/normalization/cancellation assertions; exact 100-level comparison cutoff; key and base chains depth 20000",
+            "39 signature matching/arity/composition/cancellation assertions; binding label depth 20000",
+            "49 property/view/index/cache/cancellation assertions; reduction chain depth 20000",
+            "32 symbol read/write/cache/cancellation assertions; instantiated symbol chain depth 20000",
+            "31 structured member/signature assertions; base and signature chains depth 20000",
+            "25 source-type/cache/cancellation assertions; array and alias ancestry depth 20000",
+            "30 mapped member assertions; key validity, lower-bound and modifier chains at depth 20000",
+            "37 mapped type assertions; actual-variable, generic-flag, kind and unary-tuple analysis depth 20000",
+            "40 object instantiation assertions; reference, parent and entity-name depth 20000",
+            "26 instantiation/signature/tuple assertions; exact 100-depth, 5,000,000-work and 10,000-tuple limits",
+            "21 constraint/default/recursion state assertions; default and indexed identity depth 20000",
+            "15 algebra ownership/limit/cancellation assertions; template, intersection and origin depth 20000",
+            "25 program/checker ownership assertions; interface and scope depth 20000",
+            "31 alias/cycle/cancellation/module-export assertions; alias chain depth 20000",
+            "41 checker ownership/state assertions; mapper and type-order depth 50000; 16 independent contexts"
+        ],
+        "failed": 0
+    },
+    "repository": {
+        "extensionTests": 12,
+        "apiTests": 813,
+        "node": "24.20.0",
+        "exitCode": 0,
+        "benchmarkScope": "Required smoke runs only; no performance claim",
+        "goTestResults": 163380,
+        "goSkips": 2152,
+        "command": "npx --no-install hereby validate --all",
+        "lintIssues": 0,
+        "toolTests": 17,
+        "go": "1.27.1",
+        "log": "logs/csharp-phase4-flow-validation-isolated-retry.log",
+        "sha256": "6a8784c6191074c94f5a0d0ca6596cbd01c843b5000bedf3986996563cf91555",
+        "workingDirectory": "D:/source/repos/TypeScript-phase4-flow-validation",
+        "lintCache": "D:/source/repos/TypeScript-phase4-flow-validation/built/golangci-lint-cache",
+        "inputFiles": 52,
+        "inputManifest": "built/csharp/flow-validation-files.json",
+        "inputManifestSha256": "0bd3fdc33d483e2f780077506bff795f9260006da59930ffb6d5dae99f94ef20",
+        "verification": "All changed and new source/probe/evidence/documentation files were verified byte-identical before and after validation. Shared node_modules was reused through a directory junction; no dependencies were changed.",
+        "previousAttempts": [
+            {
+                "exitCode": 1,
+                "reason": "Windows mapped-file error 1224 formatting generated script-kind code",
+                "log": "logs/csharp-phase4-flow-validation.log",
+                "sha256": "7470b8a2cbe16c8994e962f3928817862c0930df9d68dec5833f315f3df3dddc"
+            },
+            {
+                "exitCode": 1,
+                "reason": "Windows mapped-file error 1224 formatting generated API enum values",
+                "log": "logs/csharp-phase4-flow-validation-retry.log",
+                "sha256": "5161ca972b0a5fcbb86769f6b05203f2b5c392e37c99c90f1db946340cbbb0b3"
+            },
+            {
+                "exitCode": 1,
+                "reason": "Windows mapped-file error 1224 formatting generated localization code",
+                "log": "logs/csharp-phase4-flow-validation-retry-2.log",
+                "sha256": "ebc05b8dac9d2d7e3d17be2042358672b38d46cc80971580334e41cbae08f5ca"
+            },
+            {
+                "exitCode": 1,
+                "reason": "All tests passed; lint cache cleanup failed on the existing shared cache junction",
+                "log": "logs/csharp-phase4-flow-validation-isolated.log",
+                "sha256": "bc4b406207eb3a20ee864f6fa84bcad478bfb4e480b0bc30c728f70caa379637"
+            }
+        ]
+    },
+    "concurrency": {
+        "candidate": [
+            1,
+            4
+        ],
+        "reference": [
+            "singleThreaded",
+            "default"
+        ]
+    },
+    "formatting": "Twenty-five C# files verified with identical tokens, comments and syntax under both library configurations; single-line auto-properties retained. dotnet format whitespace verification, checker generator freshness, git diff whitespace and applicable dprint checks passed.",
+    "regressionsFixed": [
+        {
+            "problem": "Nested assignment-scan markers survived cancellation of their active ancestor scan",
+            "fix": "Borrowed markers are owned and rolled back by the ancestor scan",
+            "beforeLog": "logs/csharp-phase4-flow-rollback-before.log",
+            "beforeLogSha256": "bd785e9710169ac3614b052ab6c2b981a1007f8e495af3d76982965aaab6f4da"
+        },
+        {
+            "problem": "Generic nullable narrowing returned the correct type but left global String members unresolved because the program algebra used a primitive-only fixture subtype relation",
+            "fix": "Program algebra delegates subtype queries to the production relation engine",
+            "referenceTrace": "logs/csharp-phase4-flow-string-trace.log",
+            "referenceTraceSha256": "cef2e086f332429a2f2991de32f87ee8f48e37158a46e5b9ad9710ab564e8491",
+            "temporaryReferenceInstrumentationRemoved": true
+        }
+    ],
+    "dependenciesAdded": false,
+    "remaining": [
+        "General identifier and access expression integration",
+        "Constructor, in and instanceof narrowing and some reference/initializer services",
+        "Call-site inference, overload resolution and full declaration diagnostics",
+        "Full checker corpus/concurrency and semantic workload performance/memory gates"
+    ],
+    "fullPhase4Complete": false
+}

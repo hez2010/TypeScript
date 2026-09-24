@@ -658,11 +658,78 @@ for (const target of ["es2015", "es2022"]) {
 }
 for (const input of cases.filter(c => c.name.startsWith("references:"))) input.references = true;
 
-let selected = process.argv.includes("--references") ? cases.filter(c => c.references) : process.argv.includes("--awaited") ? cases.filter(c => c.awaited) : process.argv.includes("--binary") ? cases.filter(c => c.name.startsWith("binary:")) : process.argv.includes("--initializers") ? cases.filter(c => c.name.startsWith("initializers:")) : process.argv.includes("--expressions") ? cases.filter(c => c.expressions && !c.name.startsWith("binary:") && !c.name.startsWith("awaited:")) : process.argv.includes("--constants") ? cases.filter(c => c.name.startsWith("constants:")) : process.argv.includes("--inference") ? cases.filter(c => c.typeNodes && c.name.startsWith("inference:")) : process.argv.includes("--conditional") ? cases.filter(c => c.typeNodes && c.name.startsWith("conditional:")) :
+for (const strict of [false, true]) {
+    for (
+        const [name, source] of Object.entries({
+            straight: "function f(x: string | number) { __flow(x); x = 1; __flow(x); x = 'a'; __flow(x); }",
+            branches: "function f(x: string | number, condition: boolean) { if (condition) x = 1; else x = 'a'; __flow(x); if (condition) x = 2; __flow(x); }",
+            returns: "function f(x: string | number, condition: boolean) { if(condition) { x = 1; return __flow(x); } x = 'a'; __flow(x); }",
+            loop: "function f(x: string | number, condition: boolean) { while(condition) { __flow(x); x = 1; } __flow(x); }",
+            nestedLoops: "function f(x: string | number, a: boolean, b: boolean) { while(a) { while(b) { __flow(x); x = 1; } x = 'a'; } __flow(x); }",
+            finally: "function f(x: string | number, condition: boolean) { try { x = 1; if(condition) return __flow(x); } finally { __flow(x); x = 'a'; } __flow(x); }",
+            truthiness: "function f(x: string | null | undefined) { if(x) { __flow(x); } else { __flow(x); } }",
+            typeof: "function f(x: string | number | boolean | undefined) { if(typeof x === 'string') __flow(x); else __flow(x); }",
+            equality: "function f(x: 'a' | 'b' | 1 | undefined) { if(x === 'a') __flow(x); else __flow(x); if(x != null) __flow(x); }",
+            numbers: "function f(x: 1 | 2 | 3 | string) { if(x === 2) __flow(x); else __flow(x); if(x != 1) __flow(x); }",
+            genericPredicate: "declare function isString(value: unknown): value is string; function f<T>(x: T) { if(isString(x)) __flow(x); else __flow(x); }",
+            genericTypeof: "function f<T extends string | number | undefined>(x: T) { if(typeof x === 'string') __flow(x); else __flow(x); if(x !== undefined) __flow(x); }",
+            genericAssert: "declare function assertString(value: unknown): asserts value is string; function f<T>(x: T) { assertString(x); __flow(x); }",
+            enumGuards: "enum E { A=1, B=2 } function f(x: E | 'a') { if(x === 1) __flow(x); else __flow(x); }",
+
+            nullable: "function f(x: string | number | null | undefined) { if(x === null) __flow(x); else __flow(x); if(x === undefined) __flow(x); else __flow(x); }",
+            coercion: "function f(x: string | number | boolean) { if(x == 1) __flow(x); else __flow(x); if(x == true) __flow(x); }",
+            typeofAll: "function f(x: unknown) { if(typeof x === 'object') __flow(x); if(typeof x !== 'function') __flow(x); if(typeof x === 'bigint') __flow(x); if(typeof x === 'symbol') __flow(x); if(typeof x === 'host') __flow(x); }",
+            unknownEquality: "function f(x: unknown) { if(x === 1) __flow(x); else __flow(x); if(x == 'a') __flow(x); }",
+            booleanLiterals: "function f(x: boolean | number) { x = true; __flow(x); x = false; __flow(x); if(x === true) __flow(x); else __flow(x); }",
+            guards: "function f(x: string | number | undefined) { if(typeof x === 'string' || x === undefined) __flow(x); else __flow(x); if(x && typeof x !== 'number') __flow(x); }",
+            aliased: "function f(x: string | number) { const isString = typeof x === 'string'; if(isString) __flow(x); else __flow(x); }",
+            aliasedChain: "function f(x: string | number) { const a = typeof x === 'string'; const b = a; const c = b; const d = c; const e = d; const g = e; if(e) __flow(x); if(g) __flow(x); }",
+            aliasedAssigned: "function f(x: string | number) { const a = typeof x === 'string'; x = 1; if(a) __flow(x); }",
+            loopGuards: "function f(x: string | number, condition: boolean) { while(typeof x === 'string') { __flow(x); if(condition) { x = 1; continue; } x = 'a'; } __flow(x); }",
+            doLoop: "function f(x: string | number, c: boolean) { do { __flow(x); x = 1; } while(c); __flow(x); }",
+            labeled: "function f(x: string | number, a: boolean, b: boolean) { outer: while(a) { x = 1; while(b) { if(a) break outer; x = 'a'; } __flow(x); } __flow(x); }",
+            catchFinally: "function f(x: string | number, c: boolean) { try { if(c) { x = 1; throw 1; } x = 'a'; } catch(e) { __flow(x); x = 2; } finally { __flow(x); } __flow(x); }",
+            evolving: "function f() { let x; x = []; __flow(x); x.push(1); __flow(x); x.unshift('a'); __flow(x); }",
+            evolvingBranches: "function f(c: boolean) { let x; if(c) { x = []; x.push(1); } else { x = []; x.push('a'); } __flow(x); }",
+            evolvingLoop: "function f(c: boolean) { let x; x = []; while(c) { x.push(1); __flow(x); } __flow(x); }",
+            evolvingIndex: "function f() { let x; x = []; x[0] = 1; __flow(x); x['key'] = 'a'; __flow(x); }",
+            assertions: "declare function assert(value: unknown): asserts value; function f(x: string | undefined) { assert(x); __flow(x); }",
+            assertionNever: "declare function assert(value: unknown): asserts value; function f(x: string | number) { assert(false || false); x = 1; __flow(x); }",
+            predicate: "declare function isString(value: unknown): value is string; function f(x: string | number) { if(isString(x)) __flow(x); else __flow(x); }",
+            assertType: "declare function assertString(value: unknown): asserts value is string; function f(x: string | number) { assertString(x); __flow(x); }",
+            neverCall: "declare function fail(): never; function f(x: string | number) { fail(); x = 1; __flow(x); }",
+            objectPredicate: "interface A { a: number } interface B { b: string } declare function isA(value: unknown): value is A; function f(x: A | B) { if(isA(x)) __flow(x); else __flow(x); }",
+            switchLiterals: "function f(x: 'a' | 'b' | 1) { switch(x) { case 'a': __flow(x); break; case 'b': __flow(x); break; default: __flow(x); } __flow(x); }",
+            switchFallthrough: "function f(x: 'a' | 'b' | 'c') { switch(x) { case 'a': case 'b': __flow(x); break; case 'c': __flow(x); break; } __flow(x); }",
+            switchExhaustive: "function f(x: 'a' | 'b') { switch(x) { case 'a': return; case 'b': return; } __flow(x); }",
+            switchTypeof: "function f(x: string | number | boolean) { switch(typeof x) { case 'string': __flow(x); break; case 'number': __flow(x); break; default: __flow(x); } }",
+            switchTypeofExhaustive: "function f(x: string | number) { switch(typeof x) { case 'string': return; case 'number': return; } __flow(x); }",
+            switchTypeofDuplicate: "function f(x: unknown) { switch(typeof x) { case 'string': __flow(x); break; case 'string': __flow(x); break; case 'host': __flow(x); break; default: __flow(x); } }",
+            switchTrue: "function f(x: string | number | undefined) { switch(true) { case typeof x === 'string': __flow(x); break; case x === undefined: __flow(x); break; default: __flow(x); } }",
+            switchTrueDefault: "function f(x: string | number | boolean) { switch(true) { case typeof x === 'string': __flow(x); default: __flow(x); break; case typeof x === 'number': __flow(x); } }",
+            switchUnknown: "function f(x: unknown) { switch(x) { case 1: __flow(x); break; case 'a': __flow(x); break; default: __flow(x); } }",
+            discriminant: "function f(x: {kind:'a', a:number} | {kind:'b', b:string}) { if(x.kind === 'a') __flow(x); else __flow(x); }",
+            discriminantAlias: "function f(x: {kind:'a', a:number} | {kind:'b', b:string}) { const kind = x.kind; if(kind === 'a') __flow(x); else __flow(x); }",
+            discriminantSwitch: "function f(x: {kind:'a', a:number} | {kind:'b', b:string}) { switch(x.kind) { case 'a': __flow(x); break; default: __flow(x); } }",
+            optionalDiscriminant: "function f(x: {kind:'a', a:number} | {kind:'b', b:string} | undefined) { if(x?.kind === 'a') __flow(x); else __flow(x); }",
+            booleanComparison: "function f(x: string | number) { if((typeof x === 'string') === true) __flow(x); else __flow(x); }",
+            lastAssignments: "export {}; function f(x: string | number, c: boolean) { let y: string | number; y = 1; if(c) { y = 'a'; } const h = () => { x = 1; }; __flow(x); } let local = 1; export {local};",
+        })
+    ) {
+        add(`flow:${name}:${strict}`, { "globals.d.ts": library + " declare function __flow(value: unknown): void;", "main.ts": source }, { strict }, false, true);
+    }
+}
+for (const strict of [false, true]) {
+    const variants = Array.from({ length: 12 }, (_, i) => `{kind:'k${i}',value:${i}}`).join(" | ");
+    add(`flow:large-discriminant:${strict}`, { "globals.d.ts": library + " declare function __flow(value: unknown): void;", "main.ts": `type Item = ${variants}; function f(x: Item) { if(x.kind === 'k3') __flow(x); else __flow(x); switch(x.kind) { case 'k2': case 'k5': __flow(x); break; default: __flow(x); } }` }, { strict }, false, true);
+}
+for (const input of cases.filter(c => c.name.startsWith("flow:"))) input.flow = true;
+
+let selected = process.argv.includes("--flow") ? cases.filter(c => c.flow) : process.argv.includes("--references") ? cases.filter(c => c.references) : process.argv.includes("--awaited") ? cases.filter(c => c.awaited) : process.argv.includes("--binary") ? cases.filter(c => c.name.startsWith("binary:")) : process.argv.includes("--initializers") ? cases.filter(c => c.name.startsWith("initializers:")) : process.argv.includes("--expressions") ? cases.filter(c => c.expressions && !c.name.startsWith("binary:") && !c.name.startsWith("awaited:")) : process.argv.includes("--constants") ? cases.filter(c => c.name.startsWith("constants:")) : process.argv.includes("--inference") ? cases.filter(c => c.typeNodes && c.name.startsWith("inference:")) : process.argv.includes("--conditional") ? cases.filter(c => c.typeNodes && c.name.startsWith("conditional:")) :
     process.argv.includes("--generic-relations") ? cases.filter(c => c.genericRelations) :
     process.argv.includes("--indexing") ? cases.filter(c => c.name.startsWith("indexing:")) :
     process.argv.includes("--assignability") ? cases.filter(c => c.assignability && !c.genericRelations && !c.name.startsWith("conditional:") && !c.name.startsWith("inference:") && !c.name.startsWith("constants:") && !c.name.startsWith("expressions:") && !c.name.startsWith("binary:") && !c.name.startsWith("awaited:")) :
-    process.argv.includes("--identity") ? cases.filter(c => c.identity && !c.assignability) : process.argv.includes("--signatures") ? cases.filter(c => c.signatures) : process.argv.includes("--properties") ? cases.filter(c => c.properties) : process.argv.includes("--values") ? cases.filter(c => c.values && !c.name.startsWith("initializers:")) : process.argv.includes("--members") ? cases.filter(c => c.members && !c.values && !c.signatures) : process.argv.includes("--type-nodes") ? cases.filter(c => c.typeNodes && !c.members && !c.properties && !c.identity && !c.name.startsWith("indexing:") && !c.name.startsWith("conditional:") && !c.name.startsWith("inference:") && !c.name.startsWith("constants:") && !c.name.startsWith("expressions:") && !c.name.startsWith("binary:") && !c.name.startsWith("awaited:"))
+    process.argv.includes("--identity") ? cases.filter(c => c.identity && !c.assignability) : process.argv.includes("--signatures") ? cases.filter(c => c.signatures) : process.argv.includes("--properties") ? cases.filter(c => c.properties) : process.argv.includes("--values") ? cases.filter(c => c.values && !c.name.startsWith("initializers:")) : process.argv.includes("--members") ? cases.filter(c => c.members && !c.values && !c.signatures) : process.argv.includes("--type-nodes") ? cases.filter(c => c.typeNodes && !c.flow && !c.members && !c.properties && !c.identity && !c.name.startsWith("indexing:") && !c.name.startsWith("conditional:") && !c.name.startsWith("inference:") && !c.name.startsWith("constants:") && !c.name.startsWith("expressions:") && !c.name.startsWith("binary:") && !c.name.startsWith("awaited:"))
     : cases.filter(c => !c.references && !c.typeNodes && Boolean(c.aliases) === process.argv.includes("--aliases"));
 if (option("--filter")) selected = selected.filter(c => c.name.includes(option("--filter")));
 async function probe(command, args) {
@@ -696,7 +763,7 @@ for (let i = 0; i < selected.length; i++) {
 await json(path.join(output, "checker-program-failures.json"), failures);
 const summary = {
     timestamp: new Date().toISOString(),
-    scope: process.argv.includes("--references") ? "Value-name resolution, declaration order, parameter initialization and type-only alias diagnostics" : process.argv.includes("--binary") ? "Binary expression result types, operator diagnostics and nullish semantics with required assignment/access services" : process.argv.includes("--awaited") ? "Promise and thenable fulfillment, awaited types, recursion and generic wrappers; classification queries make lazy generic metadata deterministic" : process.argv.includes("--expressions") ? "Primitive expression types, template evaluation, diagnostics and grammar checks with required advanced expression services" :
+    scope: process.argv.includes("--flow") ? "Control-flow types, assignment reduction, branch and loop joins and narrowing; full checker integration remains incomplete" : process.argv.includes("--references") ? "Value-name resolution, declaration order, parameter initialization and type-only alias diagnostics" : process.argv.includes("--binary") ? "Binary expression result types, operator diagnostics and nullish semantics with required assignment/access services" : process.argv.includes("--awaited") ? "Promise and thenable fulfillment, awaited types, recursion and generic wrappers; classification queries make lazy generic metadata deterministic" : process.argv.includes("--expressions") ? "Primitive expression types, template evaluation, diagnostics and grammar checks with required advanced expression services" :
         process.argv.includes("--constants") ? "Constant and enum evaluation with provenance, forward references and numeric boundaries" : process.argv.includes("--initializers") ? "Variable, parameter and property initializer types with required flow, binding-pattern and contextual services" : process.argv.includes("--inference") ? "Type inference, constraints, reverse mapped types, widening and contextual signatures; expression inference and full checker integration remain incomplete" : process.argv.includes("--conditional") ? "Conditional evaluation, distribution, tail recursion, constraints and relations with required inference services; full checker integration remains incomplete" : process.argv.includes("--generic-relations") ? "Generic key/indexed/mapped relations, optionality, variance and cache graphs; conditional and full diagnostic services remain incomplete" :
         process.argv.includes("--indexing") ? "Key enumeration, indexed access, read/write simplification and generic cache identity; expression checking and full checker integration remain incomplete" : process.argv.includes("--assignability") ? "Structural relation decisions, signature variance, discriminants and generic variance caches with required advanced semantic services; full checker integration remains incomplete" : process.argv.includes("--identity") ? "Structural identity, primitive relation predicates, normalization and recursive caches with required advanced relation services; full checker integration remains incomplete" : process.argv.includes("--signatures") ? "Signature matching, composition, tuple rest parameters and array member fallback with explicit type relation dependencies; full checker integration remains incomplete" :
         process.argv.includes("--properties") ? "Composite properties, apparent types and intersection reduction with explicit relation and signature dependencies; full checker integration remains incomplete" : process.argv.includes("--values") ? "Source symbol read/write types, accessors, value aliases and declaration value objects with explicit inference dependencies; full checker integration remains incomplete" : process.argv.includes("--members") ? "Source structured members, interface bases, signatures and index signatures with annotated value dependencies; full checker integration remains incomplete" : process.argv.includes("--type-nodes") ? "Source type-node evaluation, declared aliases and references with explicit semantic dependencies; full checker integration remains incomplete" : process.argv.includes("--aliases")
@@ -706,6 +773,8 @@ const summary = {
     managed,
     runtime: managed ? "managed development run" : await run(candidate, ["--native-check"]),
     cases: selected.length,
+    assignmentQueries: actual.reduce((count, c) => count + (c.assignmentMarks?.length ?? 0), 0),
+    flowQueries: actual.reduce((count, c) => count + (c.flowQueries?.length ?? 0), 0),
     declarationOrderQueries: actual.reduce((count, c) => count + (c.declarationOrder?.length ?? 0), 0),
     referenceSyntaxQueries: actual.reduce((count, c) => count + (c.referenceSyntax?.length ?? 0), 0),
     referenceQueries: actual.reduce((count, c) => count + (c.referenceQueries?.length ?? 0), 0),

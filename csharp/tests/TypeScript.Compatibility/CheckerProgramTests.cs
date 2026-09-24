@@ -391,6 +391,43 @@ internal static class CheckerProgramTests
             }
             writer.WriteEndArray();
         }
+        if (input.TryGetProperty("flow", out var flowOption) && flowOption.GetBoolean())
+        {
+            writer.WriteStartArray("flowQueries");
+            foreach (var call in nodes.OfType<CallExpressionNode>())
+                if (call.Expression is IdentifierNode { Text: "__flow" })
+                    foreach (var argument in call.Arguments!.OfType<IdentifierNode>())
+                    {
+                        var declared = await typeHost!.Values.GetAsync(host.ReferenceSymbols.Resolve(argument));
+                        writer.WriteStartArray();
+                        writer.WriteNumberValue(Node(argument));
+                        writer.WriteNumberValue(TypeId(declared));
+                        writer.WriteNumberValue(TypeId(await typeHost.FlowTypes.GetAsync(argument, declared)));
+                        var flowNode = typeHost.FlowOf(argument);
+                        writer.WriteBooleanValue(flowNode is null || await typeHost.FlowTypes.Reachability.ReachableAsync(flowNode));
+                        writer.WriteEndArray();
+                    }
+            writer.WriteEndArray();
+            writer.WriteStartArray("assignmentMarks");
+            foreach (var declaration in nodes.Where(n => n is VariableDeclarationNode or ParameterDeclarationNode))
+                if (environment.Declaration(declaration) is { } symbol && typeHost!.Assignments.ParameterOrMutableLocal(symbol))
+                {
+                    var mark = await typeHost.Assignments.GetAsync(symbol);
+                    writer.WriteStartArray();
+                    writer.WriteNumberValue(Node(declaration));
+                    writer.WriteNumberValue(mark.LastPosition);
+                    writer.WriteBooleanValue(mark.Definite);
+                    writer.WriteEndArray();
+                }
+            writer.WriteEndArray();
+            writer.WriteStartArray("flowState");
+            writer.WriteNumberValue(typeHost!.FlowTypes.LoopCacheCount);
+            writer.WriteNumberValue(typeHost.FlowTypes.ActiveLoopCount);
+            writer.WriteNumberValue(typeHost.FlowTypes.SharedCount);
+            writer.WriteBooleanValue(typeHost.FlowTypes.AnalysisDisabled);
+            writer.WriteNumberValue(typeHost.FlowTypes.Reachability.ReachableCacheCount);
+            writer.WriteEndArray();
+        }
         if (input.TryGetProperty("references", out var referenceOption) && referenceOption.GetBoolean())
         {
             writer.WriteStartArray("declarationOrder");

@@ -47,7 +47,7 @@ internal sealed class DiscriminantRelations(TypeContext context, TypeAlgebra alg
         return match == context.UnknownType ? null : match;
     }
 
-    private async ValueTask<string> KeyAsync(UnionType type, CancellationToken cancellation)
+    internal async ValueTask<string> KeyAsync(UnionType type, CancellationToken cancellation)
     {
         const string missing = Symbol.InternalPrefix + "missing";
         if (type.KeyPropertyName is null or "")
@@ -213,7 +213,7 @@ internal sealed class DiscriminantRelations(TypeContext context, TypeAlgebra alg
         return result;
     }
 
-    private static bool Literal(Type type) =>
+    internal static bool Literal(Type type) =>
         (type.Flags & TypeFlags.Boolean) != 0
             || (type is UnionType union
                 ? (type.Flags & TypeFlags.EnumLiteral) != 0 || union.Types.All(t => (t.Flags & TypeFlags.Unit) != 0)

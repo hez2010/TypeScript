@@ -11,7 +11,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/jsnum"
 )
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -192,6 +192,32 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 			}
 			if result != nil {
 				typeQueries = append(typeQueries, []any{nodeIDs[node], tid(result)})
+			}
+		}
+	}
+	flowRows := []any{}
+	if flowQueries {
+		for _, node := range nodes {
+			if ast.IsCallExpression(node) && ast.IsIdentifier(node.Expression()) && node.Expression().Text() == "__flow" {
+				for _, argument := range node.Arguments() {
+					if ast.IsIdentifier(argument) {
+						declared := c.getTypeOfSymbol(c.getResolvedSymbol(argument))
+						flowRows = append(flowRows, []any{nodeIDs[argument], tid(declared), tid(c.getFlowTypeOfReference(argument, declared)), c.isReachableFlowNode(getFlowNodeOfNode(argument))})
+					}
+				}
+			}
+		}
+	}
+	assignmentRows := []any{}
+	if flowQueries {
+		for _, node := range nodes {
+			if ast.IsVariableDeclaration(node) || ast.IsParameterDeclaration(node) {
+				symbol := c.getSymbolOfDeclaration(node)
+				if symbol != nil && c.isParameterOrMutableLocalVariable(symbol) {
+					c.ensureAssignmentsMarked(symbol)
+					data := c.markedAssignmentSymbolLinks.Get(symbol)
+					assignmentRows = append(assignmentRows, []any{nodeIDs[node], int(data.lastAssignmentPos), data.hasDefiniteAssignment})
+				}
 			}
 		}
 	}
@@ -750,6 +776,11 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	}
 	if constantQueries {
 		result["constantQueries"] = constantRows
+	}
+	if flowQueries {
+		result["flowQueries"] = flowRows
+		result["assignmentMarks"] = assignmentRows
+		result["flowState"] = []any{len(c.flowLoopCache), len(c.flowLoopStack), len(c.sharedFlows), c.flowAnalysisDisabled, len(c.flowNodeReachable)}
 	}
 	if referenceQueries {
 		result["referenceQueries"] = referenceRows

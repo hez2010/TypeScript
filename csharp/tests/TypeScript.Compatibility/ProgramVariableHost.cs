@@ -23,7 +23,7 @@ internal sealed partial class ProgramTypeHost : IVariableTypeHost
         var data = links.TypeNodes.Get(node);
         if (data.ResolvedType is { } cached)
             return cached;
-        var type = await Expressions.CheckAsync(node, cancellation: cancellation);
+        var type = await FlowTypes.StableAsync(() => Expressions.CheckAsync(node, cancellation: cancellation), cancellation);
         cancellation.ThrowIfCancellationRequested();
         return data.ResolvedType = type;
     }

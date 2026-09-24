@@ -429,6 +429,23 @@ node csharp/tools/checker-program.mjs --references --record phase4-references
 & ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-references-safety
 ```
 
+## Control-flow evaluation and narrowing
+
+`FlowTypes.*.cs` evaluates binder flow graphs, including assignment reduction, branch and loop joins, shared-node caches, reduced labels and evolving arrays. Stable expression checks isolate temporary loop/cache state. `FlowReachability.cs` supplies reachability, assertion/never-call effects and post-super analysis. `FlowReferences.cs` matches references and constructs loop keys, including qualified `this` references.
+
+`FlowNarrowing.*.cs` implements truthiness, optionality, equality, `typeof`, aliased conditions, type predicates/assertions, discriminant properties, switch clauses and exhaustiveness. `AssignmentMarks.cs` tracks definite/last assignments and exported or nested-function writes. `ExplicitValueTypes.cs` and `FlowEffects.cs` resolve explicit callee types and annotated predicate/never effects. General identifier/access expression checking, constructor/`in`/`instanceof` narrowing, some reference/initializer services and full call resolution remain required dependencies.
+
+NativeAOT passes **212 exact source-program comparisons**, covering **496 flow-type/reachability queries**, **944 assignment-state queries** and loop/shared/reachability cache state at single and reference-default concurrency. Cases include nested loops, `try`/`finally`, aliased guards, nullable/generic constraints, evolving arrays, assertions, predicates, switches and large discriminated unions. Forty-seven native safety assertions cover cache isolation, cancellation/retry, reentrant assignment scans, reduced labels, post-super state, **20,000-node** traversal and the exact **2,000-level** recursive-flow limit.
+
+A generic nullable guard exposed an old primitive-only subtype shortcut in the program test host: its result agreed with the reference, but it skipped resolution of the global `String` members. Program algebra now calls the production relation engine. A separate cancellation test exposed nested assignment-scan markers surviving an interrupted ancestor scan; their ownership and rollback now follow the ancestor scan.
+
+The same artifact passes all **2,840** earlier source-program comparisons, **2,904** type/state cases, **613** constraint cases and **692** earlier safety assertions. These probes exercise the flow components directly; they do not establish complete semantic checking of arbitrary programs. Evidence: [flow](../csharp/compatibility/evidence/phase4-flow.json), [constraints](../csharp/compatibility/evidence/phase4-flow-constraints-regression.json), [structural relations](../csharp/compatibility/evidence/phase4-flow-assignability-regression.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-flow-validation.json).
+
+```powershell
+node csharp/tools/checker-program.mjs --flow --record phase4-flow
+& ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-flow-safety
+```
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
@@ -436,7 +453,7 @@ The following phase-4 requirements remain open:
 1. Complete the program/checker entry point, module interop/type adaptation, computed exports and type/value symbol resolution. Program-backed globals, augmentation merging, declaration headers and alias/export algorithms now exist; their remaining semantic callbacks must be connected.
 2. Complete relation diagnostics and remaining type-node dependencies; connect the implemented declaration/type-node, algebra, scope, inference, instantiation and tuple algorithms to complete checker services.
 3. Remaining expression forms, call-site inference, context-sensitive expression typing, overload selection, full declaration checking, JavaScript and JSDoc semantics.
-4. Flow analysis and narrowing, evolving arrays, definite assignment, exhaustiveness and semantic diagnostics.
+4. Connect flow evaluation/narrowing to full identifier, property and declaration checking; complete constructor/`in`/`instanceof` narrowing, initialization/reference services and semantic diagnostics.
 5. Indexed expression checking, JSX, decorators and grammar checks.
 6. Type display, node builders, symbol accessibility and emit-resolver APIs.
 7. All active checker/compiler type/symbol/diagnostic comparisons at single and reference-default concurrency; audits of intentional differences; complete semantic workload memory/performance measurements.

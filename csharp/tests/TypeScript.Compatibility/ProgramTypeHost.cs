@@ -159,7 +159,27 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
         Awaited = new(context, Algebra, Instantiation.Constraints, Properties, Values, Parameters, Relations,
             Instantiation.Mapped, Predicates, Views, Facts, this);
         Binary = new(context, Algebra, Predicates, Facts, Widening, Relations, ExpressionChecks, EnumValues.Evaluator, this);
+        Assignments = new(links, program.Symbols, program.ReferenceSymbols, program.EntityNames);
+        FlowReferences = new(this);
+        FlowTypes = new(context, Algebra, Widening, Facts, Relations, Predicates, this);
+        FlowNarrowing = new(
+            context,
+            Algebra,
+            Facts,
+            Relations,
+            Instantiation.Constraints,
+            Views,
+            Predicates,
+            program.Symbols,
+            FlowReferences,
+            Discriminants,
+            FlowTypes,
+            this);
+        FlowEffects = new(context, Views, Signatures, this);
+        ExplicitValues = new(links, program.Symbols, program.ReferenceSymbols, program.Aliases, Values, Properties, this);
         relations.EmptyAnonymousSource = Views.EmptyAnonymousAsync;
+        relations.SubtypeSource = (source, target, strict, cancellation) =>
+            Relations.RelatedAsync(source, target, strict ? RelationKind.StrictSubtype : RelationKind.Subtype, cancellation);
         relations.EmptyObjectSource = Views.EmptyObjectAsync;
         relations.PropertiesSource = Properties.GetAsync;
         relations.SymbolTypeSource = Values.GetAsync;

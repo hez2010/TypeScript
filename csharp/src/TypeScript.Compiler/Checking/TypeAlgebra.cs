@@ -441,6 +441,41 @@ internal sealed partial class TypeAlgebra(TypeContext context, TypeOrder order, 
         return context.GetUnionFromSortedTypes(filtered, union.ObjectFlags & (O.PrimitiveUnion | O.ContainsIntersections), origin: origin);
     }
 
+    internal async ValueTask<Type> FilterAsync(Type type, Func<Type, ValueTask<bool>> predicate, CancellationToken cancellation = default)
+    {
+        cancellation.ThrowIfCancellationRequested();
+        context.RequireOwned(type);
+        if (type is not UnionType union)
+            return (type.Flags & F.Never) != 0 || await predicate(type).ConfigureAwait(false) ? type : context.NeverType;
+        List<Type> filtered = [];
+        foreach (var part in union.Types)
+        {
+            cancellation.ThrowIfCancellationRequested();
+            if (await predicate(part).ConfigureAwait(false))
+                filtered.Add(part);
+        }
+        if (filtered.Count == union.Types.Count)
+            return type;
+        Type? origin = null;
+        if (union.Origin is UnionType oldOrigin)
+        {
+            List<Type> originTypes = [];
+            foreach (var part in oldOrigin.Types)
+                if (part is UnionType || await predicate(part).ConfigureAwait(false))
+                    originTypes.Add(part);
+            if (oldOrigin.Types.Count - originTypes.Count == union.Types.Count - filtered.Count)
+            {
+                if (originTypes.Count == 1)
+                    return originTypes[0];
+                origin = context.NewUnionType(originTypes.ToArray());
+            }
+        }
+        return context.GetUnionFromSortedTypes(
+            filtered.ToArray(),
+            union.ObjectFlags & (O.PrimitiveUnion | O.ContainsIntersections),
+            origin: origin);
+    }
+
     internal static long CrossProductSize(IReadOnlyList<Type> types)
     {
         long size = 1;

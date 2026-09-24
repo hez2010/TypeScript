@@ -20,6 +20,7 @@ internal sealed class AlgebraFixtureHost(TypeContext context) : ITypeAlgebraHost
     internal Func<Type, CancellationToken, ValueTask<IReadOnlyList<Symbol>>>? PropertiesSource { get; set; }
     internal Func<Symbol, CancellationToken, ValueTask<Type>>? SymbolTypeSource { get; set; }
     internal Func<Type, string, CancellationToken, ValueTask<Type?>>? PropertyTypeSource { get; set; }
+    internal Func<Type, Type, bool, CancellationToken, ValueTask<bool>>? SubtypeSource { get; set; }
 
     internal Type Shape(string[] names, Type[] types, Symbol? symbol)
     {
@@ -46,7 +47,10 @@ internal sealed class AlgebraFixtureHost(TypeContext context) : ITypeAlgebraHost
                 : throw new InvalidOperationException("Fixture requires general constraint resolution"));
 
     public ValueTask<bool> IsSubtypeAsync(Type source, Type target, bool strict, CancellationToken cancellation)
-            => ValueTask.FromResult(Related(source, target, strict));
+            =>
+                SubtypeSource is { } subtype
+                    ? subtype(source, target, strict, cancellation)
+                    : ValueTask.FromResult(Related(source, target, strict));
 
     public ValueTask<bool> IsDerivedFromAsync(Type source, Type target, CancellationToken cancellation)
             => throw new InvalidOperationException("Fixture requires class derivation");

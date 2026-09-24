@@ -221,7 +221,7 @@ internal sealed class Signatures(TypeContext context, CheckerLinks links, Checke
         }
     }
 
-    private async ValueTask<Type?> AnnotationAsync(SyntaxNode declaration, CancellationToken cancellation)
+    internal async ValueTask<Type?> AnnotationAsync(SyntaxNode declaration, CancellationToken cancellation)
     {
         if (declaration is ConstructorDeclarationNode)
             return await scopes.ClassOrInterfaceAsync(symbols.Declaration(declaration.Parent!)!, cancellation).ConfigureAwait(false);
