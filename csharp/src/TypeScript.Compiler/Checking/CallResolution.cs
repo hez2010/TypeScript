@@ -137,7 +137,7 @@ internal sealed partial class CallResolution(TypeContext context, CheckerLinks l
         CancellationToken cancellation)
     {
         if (node is not CallExpressionNode and not NewExpressionNode
-            || CallArguments.Target(node)?.Kind is SyntaxKind.SuperKeyword or SyntaxKind.ImportKeyword)
+            || node is CallExpressionNode && CallArguments.Target(node)?.Kind is SyntaxKind.SuperKeyword or SyntaxKind.ImportKeyword)
             return await host.SpecialCallAsync(node, candidates, mode, cancellation).ConfigureAwait(false);
         bool construct = node is NewExpressionNode;
         var target = CallArguments.Target(node)!;

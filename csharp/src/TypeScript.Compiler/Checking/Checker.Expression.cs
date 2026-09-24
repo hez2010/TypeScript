@@ -66,6 +66,8 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
             return await CheckImportCallAsync(importCall, cancellation);
         if (node.Kind == SyntaxKind.MissingDeclaration)
             return context.ErrorType;
+        if (node is ComputedPropertyNameNode || node.Kind == SyntaxKind.ImportKeyword)
+            return context.ErrorType;
         if (node is PrivateIdentifierNode)
         {
             var symbol = ResolveReference(node, cancellation);
@@ -192,7 +194,7 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
         if (node is NumericLiteralNode number)
         {
             var scanner = new Scanner(file.Source);
-            scanner.ResetPosition(node.Pos);
+            scanner.ResetPosition(file.Source.ToUtf16Position(node.Pos));
             scanner.Scan();
             if (!scanner.TokenText.Contains('.') && (number.TokenFlags & TokenFlags.Scientific) == 0
                 && JsNumber.FromString(number.Text) > JsNumber.MaxSafeInteger && suggestionLocations.Add((node, 80008)))

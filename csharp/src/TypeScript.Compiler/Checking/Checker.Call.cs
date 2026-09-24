@@ -325,7 +325,16 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
         else if (await FlowEffects.GetAsync(node, cancellation) is null)
         {
             Error(node.Expression!, 2775);
-            await ExplicitValues.DottedAsync(node.Expression!, true, cancellation);
+            var previous = explicitAnnotationError;
+            explicitAnnotationError = node.Expression;
+            try
+            {
+                await ExplicitValues.DottedAsync(node.Expression!, true, cancellation);
+            }
+            finally
+            {
+                explicitAnnotationError = previous;
+            }
         }
     }
 

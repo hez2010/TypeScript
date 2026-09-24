@@ -165,10 +165,10 @@ internal sealed partial class TypeInference(TypeContext context, TypeAlgebra alg
                     if (preferCovariant)
                         foreach (var other in inference.Inferences)
                         {
-                            if (other != info
-                                && await constraints.ParameterConstraintAsync(
-                                    (TypeParameter)other.Parameter,
-                                    cancellation).ConfigureAwait(false) != info.Parameter)
+                            if (other != info && (other.Parameter is not TypeParameter otherParameter
+                                || await constraints.ParameterConstraintAsync(
+                                    otherParameter,
+                                    cancellation).ConfigureAwait(false) != info.Parameter))
                                 continue;
                             foreach (var candidate in other.Candidates)
                                 if (!await relations.RelatedAsync(
@@ -189,7 +189,8 @@ internal sealed partial class TypeInference(TypeContext context, TypeAlgebra alg
             }
             else if ((inference.Flags & InferenceFlags.NoDefault) != 0)
                 inferred = context.SilentNeverType;
-            else if (await constraints.DefaultAsync((TypeParameter)info.Parameter, cancellation).ConfigureAwait(false) is { } defaultType)
+            else if (info.Parameter is TypeParameter defaultParameter
+                && await constraints.DefaultAsync(defaultParameter, cancellation).ConfigureAwait(false) is { } defaultType)
             {
                 var backreferences = TypeMapper.ToSingle(
                     inference.Inferences.Skip(index).Select(i => i.Parameter).ToArray(),
@@ -205,7 +206,8 @@ internal sealed partial class TypeInference(TypeContext context, TypeAlgebra alg
         // Publish the provisional result before resolving constraints. The mapper
         // may re-enter for this parameter through another parameter's constraint.
         info.InferredType = inferred ?? ((inference.Flags & InferenceFlags.AnyDefault) != 0 ? context.AnyType : context.UnknownType);
-        if (await constraints.ParameterConstraintAsync((TypeParameter)info.Parameter, cancellation).ConfigureAwait(false) is { } constraint)
+        if (info.Parameter is TypeParameter parameter
+            && await constraints.ParameterConstraintAsync(parameter, cancellation).ConfigureAwait(false) is { } constraint)
         {
             var instantiated = await instantiation.InstantiateAsync(
                 constraint,

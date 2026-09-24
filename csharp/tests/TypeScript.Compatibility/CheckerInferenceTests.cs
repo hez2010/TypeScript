@@ -143,6 +143,33 @@ internal static class CheckerInferenceTests
             deep = context.NewIntersectionType([deep]);
         Check(await host.Inference.TopLevelAsync(deep, p));
         Check(!await host.Inference.ConstVariableAsync(deep));
+        checks += await ConditionalCallSafety();
         Console.WriteLine($"{checks} inference/priority/fixing/cancellation/widening/reverse-map assertions; 20000-level traversal");
+    }
+
+    private static async Task<int> ConditionalCallSafety()
+    {
+        const string source = """
+            declare const f: <T>(f: (x: T) => unknown) => (x: T) => unknown;
+            declare const g: <T extends unknown>(x: { foo: T }) => unknown;
+            const h = f(g);
+            type FirstParameter<T> = T extends (x: infer P) => unknown ? P : unknown;
+            type X = FirstParameter<typeof h>["foo"];
+            """;
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
+            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var file = program.SourceFiles[0].Syntax;
+        await checker.CheckSourceFileAsync(file);
+        if (checker.DiagnosticCodesForFile(file).Count != 0)
+            throw new InvalidOperationException("Conditional call inference reported an error");
+        var alias = file.DescendantsAndSelf().OfType<TypeAliasDeclarationNode>().Single(n => n.Name!.Text == "X");
+        if (await checker.Nodes.FromNodeAsync(alias.Type!) != checker.Context.UnknownType)
+            throw new InvalidOperationException("Conditional inference lost its unknown result");
+        return 2;
     }
 }

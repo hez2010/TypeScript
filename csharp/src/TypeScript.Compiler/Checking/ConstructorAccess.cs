@@ -47,7 +47,9 @@ internal sealed class ConstructorAccess(CheckerSymbols symbols, DeclaredTypes de
         while (pending.TryPop(out var current))
         {
             cancellation.ThrowIfCancellationRequested();
-            var actual = current is TypeReference { Target: InterfaceType generic } ? generic : (InterfaceType)current;
+            var actual = current is TypeReference { Target: InterfaceType generic } ? generic : current as InterfaceType;
+            if (actual is null)
+                continue;
             var baseTypes = await bases.GetAsync(actual, cancellation).ConfigureAwait(false);
             if (baseTypes.Count == 0)
                 continue;

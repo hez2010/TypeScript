@@ -125,8 +125,26 @@ internal static class CheckerExpressionTests
         checks += await ConditionSafety();
         checks += await JsxSafety();
         checks += await WithAndTemplateSafety();
+        checks += await UnicodeLiteralSafety();
         Console.WriteLine(
             $"{checks} expression/literal/context/enum/cache/cancellation assertions; 20000-level expression, constant and context traversal");
+    }
+
+    private static async Task<int> UnicodeLiteralSafety()
+    {
+        const string source = "/* 😀😀😀😀😀😀😀😀 */ const large = 9007199254740993; const pair = (0, 1);";
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
+            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        await checker.CheckProgramAsync();
+        if (!checker.DiagnosticCodesForFile(program.SourceFiles[0].Syntax).SequenceEqual([2695]))
+            throw new InvalidOperationException("Unicode literal/comma diagnostics changed");
+        if (!checker.Suggestions.Contains(80008))
+            throw new InvalidOperationException("Unsafe integer suggestion was lost");
+        return 2;
     }
 
     private static async Task<int> WithAndTemplateSafety()

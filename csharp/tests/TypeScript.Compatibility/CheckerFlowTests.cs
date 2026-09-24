@@ -196,7 +196,52 @@ internal static class CheckerFlowTests
         Check((await assignments.GetAsync(y)).LastPosition == int.MaxValue && await assignments.DefiniteAsync(y));
         Check(!await assignments.PastLastAsync(y, reference));
         Check(host.FlowTypes.ActiveLoopCount == 0 && host.FlowTypes.SharedCount == 0);
+        checks += await ConstructorAndCallSafety();
         Console.WriteLine(
             $"{checks} flow/cache/reachability/assignment/cancellation assertions; 20,000-node traversal and exact 2,000 recursion limit.");
+    }
+
+    private static async Task<int> ConstructorAndCallSafety()
+    {
+        const string source = """
+            class A { value = 0; }
+            class B { value = 0; }
+            function narrow(value: A | B) {
+                if (value.constructor === A) { const equal = value; }
+                if (value.constructor !== A) { const unequal = value; }
+            }
+            declare const predicate: ((value: unknown) => value is string) | undefined;
+            function optional(value: unknown) {
+                if (predicate?.(value)) { const text: string = value; }
+            }
+            const assert = (value: unknown): asserts value => {};
+            function assertion(value: unknown) { assert(value); }
+            """;
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        {
+            ["/project/main.ts"] = Wtf8.Encode(source),
+            ["/project/globals.d.ts"] = Wtf8.Encode("interface Object { constructor: Function; } interface Function { prototype: any; }")
+        }), "/project", new("/project/tsconfig.json", options, ["/project/main.ts", "/project/globals.d.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var file = program.GetFile("/project/main.ts")!.Syntax;
+        await checker.CheckSourceFileAsync(file);
+        var codes = checker.DiagnosticCodesForFile(file);
+        if (!codes.SequenceEqual([2775]))
+            throw new InvalidOperationException($"Constructor/call diagnostics: {string.Join(',', codes)}");
+        var declarations = file.DescendantsAndSelf().OfType<VariableDeclarationNode>()
+            .Where(n => n.Name is IdentifierNode).ToDictionary(n => ((IdentifierNode)n.Name!).Text);
+        if ((await checker.GetExpressionTypeAsync(declarations["equal"].Initializer!)).Symbol?.Name != "A")
+            throw new InvalidOperationException("Constructor identity did not select the matching class");
+        if (await checker.GetExpressionTypeAsync(declarations["unequal"].Initializer!) is not UnionType { Types.Count: 2 })
+            throw new InvalidOperationException("Constructor inequality narrowed a structural union");
+        if (await checker.GetExpressionTypeAsync(declarations["text"].Initializer!) != checker.Context.StringType)
+            throw new InvalidOperationException("Optional call lost its predicate");
+        if (checker.AssertionRelatedDeclarations.Count != 1
+            || checker.AssertionRelatedDeclarations.Values.Single().Single().Symbol.Name != "assert")
+            throw new InvalidOperationException("Assertion diagnostic lost the unannotated declaration");
+        return 5;
     }
 }

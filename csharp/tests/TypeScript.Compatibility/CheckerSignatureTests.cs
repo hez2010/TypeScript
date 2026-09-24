@@ -218,8 +218,32 @@ internal static class CheckerSignatureTests
         checks += await DocumentationSafety();
         checks += await DecoratorSafety();
         checks += await VarianceSafety();
+        checks += await PredicateSafety();
         Console.WriteLine(
             $"{checks} signature/function/call/iteration/inference/context/cancellation assertions; binding and return traversal depth 20000");
+    }
+
+    private static async Task<int> PredicateSafety()
+    {
+        const string source = """
+            interface Array<T> { length: number; [n: number]: T; }
+            type Invalid = asserts value;
+            function wrong(value: number): value is string { return true; }
+            function rest(...values: unknown[]): values is string[] { return true; }
+            function binding({ value }: { value: unknown }): value is string { return true; }
+            function missing(value: unknown): absent is string { return true; }
+            """;
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
+            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        await checker.CheckProgramAsync();
+        var codes = checker.DiagnosticCodesForFile(program.SourceFiles[0].Syntax);
+        if (!codes.SequenceEqual([1225, 1228, 1229, 1230, 2677]))
+            throw new InvalidOperationException($"Predicate diagnostics: {string.Join(',', codes)}");
+        return 1;
     }
 
     private static async Task<int> VarianceSafety()

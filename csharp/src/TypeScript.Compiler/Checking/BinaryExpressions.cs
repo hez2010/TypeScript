@@ -261,9 +261,10 @@ internal sealed class BinaryExpressions(TypeContext context, TypeAlgebra algebra
                 {
                     var file = TypeScript.Compiler.Binding.SemanticSyntax.Source(left);
                     var scanner = file is null ? null : new Scanner(file.Source);
-                    scanner?.ResetPosition(left.Pos);
+                    if (scanner is not null)
+                        scanner.ResetPosition(file!.Source.ToUtf16Position(left.Pos));
                     scanner?.Scan();
-                    int start = scanner?.TokenStart ?? left.Pos;
+                    int start = scanner is not null ? file!.Source.ToBytePosition(scanner.TokenStart) : left.Pos;
                     if (file?.ParseDiagnostics.Any(d => d.Code == 2657 && d.Start <= start && start < d.Start + d.Length) != true)
                         host.BinaryDiagnostic(left, 2695);
                 }

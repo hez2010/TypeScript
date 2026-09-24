@@ -139,8 +139,17 @@ internal sealed partial class Checker : IFlowTypeHost, IFlowReferenceHost, IFlow
 
     public string PrivatePropertyName(Symbol symbol, PrivateIdentifierNode name) => PrivateAccess.Name(symbol, name.Text);
 
-    public void MissingExplicitAnnotation(Symbol symbol, SyntaxNode declaration) =>
-        throw new InvalidOperationException("Checker requires explicit annotation related information");
+    private SyntaxNode? explicitAnnotationError;
+    internal Dictionary<SyntaxNode, List<(Symbol Symbol, SyntaxNode Declaration)>> AssertionRelatedDeclarations { get; } = [];
+
+    public void MissingExplicitAnnotation(Symbol symbol, SyntaxNode declaration)
+    {
+        var target = explicitAnnotationError ?? throw new InvalidOperationException("Missing assertion diagnostic context");
+        if (!AssertionRelatedDeclarations.TryGetValue(target, out var related))
+            AssertionRelatedDeclarations[target] = related = [];
+        if (!related.Contains((symbol, declaration)))
+            related.Add((symbol, declaration));
+    }
 
     public async ValueTask<Type> NonNullExpressionAsync(SyntaxNode node, CancellationToken cancellation)
         => await NonNullAsync(await ExpressionAsync(node, cancellation), node, cancellation);
@@ -150,8 +159,8 @@ internal sealed partial class Checker : IFlowTypeHost, IFlowReferenceHost, IFlow
 
     public async ValueTask<Type> OptionalCallTargetAsync(SyntaxNode node, CancellationToken cancellation) =>
         await Optional.ReceiverAsync(
-            await Expressions.CheckAsync(((CallExpressionNode)node).Expression!, cancellation: cancellation),
-            ((CallExpressionNode)node).Expression!,
+            await Expressions.CheckAsync(node, cancellation: cancellation),
+            node,
             cancellation);
 
     public async ValueTask<Type?> HasInstanceMethodAsync(Type type, CancellationToken cancellation)
@@ -231,13 +240,35 @@ internal sealed partial class Checker : IFlowTypeHost, IFlowReferenceHost, IFlow
         return null;
     }
 
-    public ValueTask<Type> ConstructorNarrowAsync(
+    public async ValueTask<Type> ConstructorNarrowAsync(
         Type type,
         SyntaxKind op,
         SyntaxNode expression,
         bool assumeTrue,
         CancellationToken cancellation)
-            => throw new InvalidOperationException("Checker requires constructor identity narrowing");
+    {
+        if (assumeTrue && op is not (SyntaxKind.EqualsEqualsToken or SyntaxKind.EqualsEqualsEqualsToken)
+            || !assumeTrue && op is not (SyntaxKind.ExclamationEqualsToken or SyntaxKind.ExclamationEqualsEqualsToken))
+            return type;
+        var constructor = await ExpressionAsync(expression, cancellation).ConfigureAwait(false);
+        bool callable = (constructor.Flags & TypeFlags.Object) != 0 && (await SignaturesAsync(constructor, false, cancellation)).Count != 0
+            || (await SignaturesAsync(constructor, true, cancellation)).Count != 0;
+        if (!callable && (constructor.Flags & TypeFlags.TypeVariable) != 0
+            && await Instantiation.Constraints.BaseConstraintAsync(constructor, cancellation) is { } constraint)
+            callable = await Composites.MixinAsync(await SignaturesAsync(constraint, true, cancellation), cancellation);
+        if (!callable || await Properties.PropertyAsync(constructor, "prototype", cancellation: cancellation) is not { } prototype)
+            return type;
+        var candidate = await Values.GetAsync(prototype, cancellation).ConfigureAwait(false);
+        if ((candidate.Flags & TypeFlags.Any) != 0 || candidate == GlobalObject || candidate == GlobalFunction)
+            return type;
+        if ((type.Flags & TypeFlags.Any) != 0)
+            return candidate;
+        return await Algebra.FilterAsync(type, async part =>
+            (part.Flags & TypeFlags.Object) != 0 && (part.ObjectFlags & ObjectFlags.Class) != 0
+                || (candidate.Flags & TypeFlags.Object) != 0 && (candidate.ObjectFlags & ObjectFlags.Class) != 0
+                ? part.Symbol == candidate.Symbol
+                : await Relations.RelatedAsync(part, candidate, RelationKind.Subtype, cancellation), cancellation);
+    }
 
     public ValueTask<Type> OtherBinaryAsync(
         FlowState state,

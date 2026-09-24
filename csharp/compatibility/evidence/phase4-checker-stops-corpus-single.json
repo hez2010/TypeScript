@@ -1,0 +1,113 @@
+{
+    "timestamp": "2026-09-24T19:17:01.921Z",
+    "mode": "single",
+    "configuration": "Release",
+    "selectedConfigurations": 1564,
+    "replayedConfigurations": 1545,
+    "retainedConfigurations": 19,
+    "previousMatches": 1378,
+    "graphAndCodeMatches": 1410,
+    "recoveredConfigurations": 32,
+    "regressions": [],
+    "scope": "Constructor and optional-call flow, inference type guards, byte/UTF-16 positions, assertion related information, malformed expressions and predicate diagnostics; full phase 4 remains incomplete",
+    "parts": [
+        {
+            "directory": "built/csharp/semantic-corpus-checker-stops-affected/single",
+            "summary": {
+                "timestamp": "2026-09-24T19:13:18.870Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "mode": "single",
+                "filter": "",
+                "managed": true,
+                "reuseSyntax": true,
+                "referenceJobs": 4,
+                "scope": "Original compiler test program graphs and semantic diagnostic codes; full diagnostic/type/symbol fidelity and parallel candidate checker scheduling remain incomplete",
+                "referenceExitCode": 0,
+                "exportedConfigurations": 15208,
+                "readyConfigurations": 1513,
+                "availableConfigurations": 13446,
+                "selectionSha256": "b2061b264063753d8cb0b11c7dbccd9187c55e746a8d69394c9aa7c7c8d82f9d",
+                "referenceInventoryFiles": 12730,
+                "plannedConfigurations": 15208,
+                "referenceMissingFiles": [],
+                "referenceMissingConfigurations": [],
+                "referenceSkipped": 1762,
+                "referenceFailed": 0,
+                "candidateFailures": 1,
+                "graphMismatches": 1,
+                "diagnosticMismatches": 149,
+                "graphAndCodeMatches": 1363,
+                "errorGroups": [
+                    {
+                        "error": "create-program: Corpus adapter requires the reference test content-mapper host",
+                        "count": 1
+                    }
+                ],
+                "inputSha256": "63befffd43c6e1a36331426b4dd2f3b01e4002f3d7f124c3da66f30a33a5c180",
+                "oracleSha256": "072ce20500e1dfa626e6029e8ba98ed84b925a304216116200dd33d97f54654a",
+                "candidateSha256": "75ec7df17dd2d79cb988e7aab7984b8c986828b6ebf6c06a50030cfd712ec718",
+                "compilerSha256": "99d352aa400455fa2afd9d935542c436d1258a396798ef297fb31919a4f7d068",
+                "candidateOutputSha256": "925e3ebb4e51484943de3a0b1b1b39bd88c1396e740902ffa2bbdd74cca9afff",
+                "fullSemanticCorpusGateComplete": false
+            },
+            "outputSha256": "925e3ebb4e51484943de3a0b1b1b39bd88c1396e740902ffa2bbdd74cca9afff"
+        },
+        {
+            "retainedFrom": "built/csharp/semantic-corpus-checker-stops/single/candidate.jsonl",
+            "retainedOutputSha256": "a6ba5044031060ee8f0174a4f86e001307c80dd98d78167cec45da990b1b2661",
+            "reason": "These 19 cases contain no type predicates affected by the follow-up predicate diagnostic implementation"
+        },
+        {
+            "directory": "built/csharp/semantic-corpus-checker-stops-additional/single",
+            "configurations": 32,
+            "summary": {
+                "timestamp": "2026-09-24T19:16:45.779Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "mode": "single",
+                "filter": "",
+                "managed": true,
+                "reuseSyntax": true,
+                "referenceJobs": 4,
+                "scope": "Original compiler test program graphs and semantic diagnostic codes; full diagnostic/type/symbol fidelity and parallel candidate checker scheduling remain incomplete",
+                "referenceExitCode": 0,
+                "exportedConfigurations": 15208,
+                "readyConfigurations": 32,
+                "availableConfigurations": 13446,
+                "selectionSha256": "838b447e9532acece4603922066f678292de9c2e57f13d1f71ad421f487459f1",
+                "referenceInventoryFiles": 12730,
+                "plannedConfigurations": 15208,
+                "referenceMissingFiles": [],
+                "referenceMissingConfigurations": [],
+                "referenceSkipped": 1762,
+                "referenceFailed": 0,
+                "candidateFailures": 0,
+                "graphMismatches": 0,
+                "diagnosticMismatches": 3,
+                "graphAndCodeMatches": 29,
+                "errorGroups": [],
+                "inputSha256": "63befffd43c6e1a36331426b4dd2f3b01e4002f3d7f124c3da66f30a33a5c180",
+                "oracleSha256": "072ce20500e1dfa626e6029e8ba98ed84b925a304216116200dd33d97f54654a",
+                "candidateSha256": "75ec7df17dd2d79cb988e7aab7984b8c986828b6ebf6c06a50030cfd712ec718",
+                "compilerSha256": "99d352aa400455fa2afd9d935542c436d1258a396798ef297fb31919a4f7d068",
+                "candidateOutputSha256": "eccc4594662007a90ddaf122444cd8da4acceb70ac77d42f118a0225b53cb6e4",
+                "fullSemanticCorpusGateComplete": false
+            },
+            "outputSha256": "eccc4594662007a90ddaf122444cd8da4acceb70ac77d42f118a0225b53cb6e4",
+            "reason": "Additional predicate forms with object or literal targets were identified during selection review; completed cases were not replayed"
+        }
+    ],
+    "cumulative": {
+        "activeConfigurations": 13446,
+        "matches": 12489,
+        "remaining": 957,
+        "failed": 15,
+        "diagnosticMismatches": 941,
+        "graphMismatches": 20,
+        "topStops": [
+            [
+                "Corpus adapter requires the reference test content-mapper host",
+                15
+            ]
+        ]
+    }
+}

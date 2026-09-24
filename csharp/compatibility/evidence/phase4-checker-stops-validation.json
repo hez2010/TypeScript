@@ -1,0 +1,124 @@
+{
+    "timestamp": "2026-09-24T19:18:36.4425179+00:00",
+    "configuration": "Release",
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "managed": true,
+    "scope": "Constructor and optional-call flow, inference type guards, byte/UTF-16 positions, assertion related information, malformed expressions and predicate diagnostics; phase 4 remains incomplete",
+    "candidateSha256": "75ec7df17dd2d79cb988e7aab7984b8c986828b6ebf6c06a50030cfd712ec718",
+    "compilerSha256": "99d352aa400455fa2afd9d935542c436d1258a396798ef297fb31919a4f7d068",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-checker-stops-final-build.log",
+        "sha256": "4ba365cb16b0024a0d7b667f9389e726aaacc8a0bb18775f69ba01fd152c1797"
+    },
+    "queries": {
+        "flow": {
+            "record": "phase4-checker-stops-flow.json",
+            "cases": 212,
+            "exact": 212,
+            "candidateSha256": "75ec7df17dd2d79cb988e7aab7984b8c986828b6ebf6c06a50030cfd712ec718",
+            "compilerSha256": "99d352aa400455fa2afd9d935542c436d1258a396798ef297fb31919a4f7d068"
+        },
+        "inference": {
+            "record": "phase4-checker-stops-inference.json",
+            "cases": 176,
+            "exact": 176,
+            "candidateSha256": "75ec7df17dd2d79cb988e7aab7984b8c986828b6ebf6c06a50030cfd712ec718",
+            "compilerSha256": "99d352aa400455fa2afd9d935542c436d1258a396798ef297fb31919a4f7d068"
+        },
+        "calls": {
+            "record": "phase4-checker-stops-calls.json",
+            "cases": 180,
+            "exact": 180,
+            "candidateSha256": "75ec7df17dd2d79cb988e7aab7984b8c986828b6ebf6c06a50030cfd712ec718",
+            "compilerSha256": "99d352aa400455fa2afd9d935542c436d1258a396798ef297fb31919a4f7d068"
+        }
+    },
+    "safety": {
+        "totalAssertions": 282,
+        "newAssertions": 10,
+        "suites": {
+            "flow": {
+                "assertions": 52,
+                "log": "logs/csharp-phase4-checker-stops-flow-safety.log",
+                "sha256": "e315fba81105e1e7bf607b4cf9c65e9730c44a0fa7d1d84c04527a31fad6aa18"
+            },
+            "inference": {
+                "assertions": 37,
+                "log": "logs/csharp-phase4-checker-stops-inference-safety.log",
+                "sha256": "61f6f723fb6d56da9664b860edc7379bc55ac5a5c23e921546a41cd745b63f3b"
+            },
+            "expressions": {
+                "assertions": 78,
+                "log": "logs/csharp-phase4-checker-stops-expressions-safety.log",
+                "sha256": "71b2e98f6c97d1164b08e32837b62050cbc91c94b593ca82526a49b8aec980ec"
+            },
+            "signatures": {
+                "assertions": 115,
+                "log": "logs/csharp-phase4-checker-stops-signatures-safety.log",
+                "sha256": "de27c6ed0791b446ec2a03530d5369f34b39c1ffa874a1fbddb391b88c5c459b"
+            }
+        },
+        "referenceFixture": "built/csharp/checker-stops-safety-reference.jsonl",
+        "referenceFixtureSha256": "f2423f11ec02079dfd79cc13130614e67851f3f88a2867813e97767336252964",
+        "referenceFixtures": 4,
+        "runBeforeWhitespaceFormatting": true,
+        "retainedAfterFollowup": "The flow, inference and expression suites were executed before adding predicate diagnostics. Their valid predicates are unchanged; the signature suite and predicate corpus cover the addition."
+    },
+    "corpus": {
+        "single": "phase4-checker-stops-corpus-single.json",
+        "referenceDefault": "phase4-checker-stops-corpus-default.json",
+        "parity": "phase4-checker-stops-mode-parity.json",
+        "selectedConfigurationsPerMode": 1564,
+        "previousMatches": 1378,
+        "graphAndCodeMatches": 1410,
+        "recoveredConfigurations": 32,
+        "regressions": [],
+        "cumulative": {
+            "activeConfigurations": 13446,
+            "matches": 12489,
+            "remaining": 957,
+            "failed": 15,
+            "diagnosticMismatches": 941,
+            "graphMismatches": 20,
+            "topStops": [
+                [
+                    "Corpus adapter requires the reference test content-mapper host",
+                    15
+                ]
+            ]
+        }
+    },
+    "formatting": {
+        "csharpFiles": 14,
+        "tokenCommentSyntaxIdentical": true,
+        "libraryConfigurations": 2,
+        "dotnetWhitespaceExitCode": 0,
+        "diffCheckExitCode": 0,
+        "proofLog": "logs/csharp-phase4-checker-stops-format.log",
+        "proofSha256": "d3ca6d50bbe5255f801567e2302186d5840c3670727f3161bd76beee3df41798"
+    },
+    "reusedValidation": {
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "repositoryCommand": "npx hereby validate --all",
+        "repositoryExitCode": 0,
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "generatorRecord": "phase4-name-errors-validation.json",
+        "generatorValidatedCommit": "72b0e2d7c6",
+        "retainedInitialSingleModeCases": 19,
+        "additionalPreviouslyUnrunConfigurationsPerMode": 32,
+        "reason": "User directed reuse of unchanged results. Go/repository tooling and C# generation inputs are unchanged. Nineteen initial cases have no predicates affected by the follow-up. Selection review found 32 additional cases with object/literal predicate targets; only those additional cases were run, preserving completed results."
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "phase4Complete": false
+}

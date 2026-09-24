@@ -96,7 +96,9 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
             return await Generators.OperandContextAsync(yield, flags, cancellation);
         if (node.Parent is ReturnStatementNode or ArrowFunctionNode)
         {
-            var function = DeclarationOrder.Ancestor(node.Parent, n => n is IFunctionSignature)!;
+            var function = DeclarationOrder.Ancestor(node.Parent, n => n is IFunctionSignature);
+            if (function is null)
+                return null;
             var contextual = await FunctionContexts.ReturnAsync(function, flags, cancellation);
             if (contextual is null)
                 return null;
