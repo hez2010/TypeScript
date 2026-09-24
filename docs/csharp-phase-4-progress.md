@@ -12,7 +12,7 @@ These comparisons cover source graphs and diagnostic codes. **94.8% matching on 
 | --- | --- |
 | Execute active corpus and match source graphs | Complete: 13,446 configurations |
 | Match semantic diagnostic codes | 12,750 match; 696 differ |
-| Match diagnostic text, locations and related information | Incomplete: detailed records match in 1,314 of 2,652 selected configurations, including 698 with nonempty semantic diagnostics; the remaining corpus has not been compared at this level |
+| Match diagnostic text, locations and related information | Incomplete: detailed records match in 1,361 of 2,652 selected configurations, including 745 with nonempty semantic diagnostics; the remaining corpus has not been compared at this level |
 | Complete type/symbol comparisons, type display, node builders, accessibility and emit-resolver APIs | Incomplete |
 | Validate actual parallel checker scheduling | Incomplete; reference-mode corpus agreement is a narrower check |
 | Meet complete semantic workload memory/performance budgets | Incomplete |
@@ -892,6 +892,18 @@ Six focused diagnostics match the complete pinned-reference records, including p
 Remaining relation work includes signature/overload explanations, missing and inaccessible nested properties, readonly/tuple-specific errors, related declarations and complete error-selection behavior. This checkpoint does not complete diagnostic parity.
 
 Evidence: [single-mode corpus](../csharp/compatibility/evidence/phase4-relation-chains-corpus-single.json), [reference-default corpus](../csharp/compatibility/evidence/phase4-relation-chains-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-relation-chains-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-relation-chains-validation.json).
+
+## Signature explanations and display
+
+Signature comparisons now retain parameter-count, parameter-type, `this`-type, return-type and type-predicate explanations. Constructor comparisons report abstractness and visibility mismatches, and missing call/construct signatures include the target signature. Multiple-signature comparisons retain the first failed explanation and discard it if a later signature matches. Bivariant trial comparisons suppress explanations. Return-type markers produce method-return paths and are removed from the final diagnostic chain. Primitive wrapper comparisons follow the reference's structural-error suppression rule.
+
+Diagnostic display now preserves predicate returns, method syntax and abstract constructor types. These additions do not complete overload resolution, signature display or diagnostic selection.
+
+Release validation covers **1,541 configurations per reference mode**. Detailed matches increase from **527 to 574**, recovering **47 configurations with no regressions or checker failures**. Graph/code matches remain **1,411**, and both modes agree on every final record. Cumulative detailed matches reach **1,361/2,652**, including **745 with semantic diagnostics** and 616 with empty semantic diagnostics. The cumulative graph/code result remains **12,750/13,446**.
+
+A focused fixture matches **13 complete pinned-reference diagnostic records** and verifies that a successful later overload discards earlier failures. Safety passes **129 signature/function/call assertions**, **127 program assertions** and **39 relation assertions**. The Release build has zero warnings and errors. The follow-up single-mode run replays 1,135 affected configurations and retains 406 completed results; reference outputs are reused. Formatting preserves tokens, comments and syntax in seven C# files. Unchanged repository validation was reused. NativeAOT remains deferred until final phase-4 completion.
+
+Evidence: [single-mode corpus](../csharp/compatibility/evidence/phase4-signature-diagnostics-corpus-single.json), [reference-default corpus](../csharp/compatibility/evidence/phase4-signature-diagnostics-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-signature-diagnostics-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-signature-diagnostics-validation.json).
 
 ## Remaining completion work
 

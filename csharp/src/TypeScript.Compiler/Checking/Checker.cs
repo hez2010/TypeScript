@@ -302,6 +302,7 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
         Assertions = new(context, Algebra, Widening, ObjectLiterals, Relations, RelationDiagnostics, this);
         TypeDisplay = new(
             context,
+            Algebra,
             Members,
             Instantiation.Constraints,
             References,

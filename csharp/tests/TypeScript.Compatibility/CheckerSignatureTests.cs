@@ -219,8 +219,76 @@ internal static class CheckerSignatureTests
         checks += await DecoratorSafety();
         checks += await VarianceSafety();
         checks += await PredicateSafety();
+        checks += await SignatureDiagnosticSafety();
         Console.WriteLine(
             $"{checks} signature/function/call/iteration/inference/context/cancellation assertions; binding and return traversal depth 20000");
+    }
+
+    private static async Task<int> SignatureDiagnosticSafety()
+    {
+        string source = "\n" + """
+            interface Array<T> { length: number; [n: number]: T; }
+            declare const parameterSource: (s: string) => void;
+            const parameterTarget: (n: number) => void = parameterSource;
+            declare const aritySource: (a: number, b: number) => void;
+            const arityTarget: (a: number) => void = aritySource;
+            declare const returnSource: () => number;
+            const returnTarget: () => string = returnSource;
+            declare const methodSource: { method(): number };
+            const methodTarget: { method(): string } = methodSource;
+            declare const callbackSource: (cb: (n: number) => void) => void;
+            const callbackTarget: (cb: (s: string) => void) => void = callbackSource;
+            declare const thisSource: (this: { x: number }) => void;
+            const thisTarget: (this: { x: string }) => void = thisSource;
+            declare const overloaded: { (s: string): void; (n: number): void };
+            const overloadTarget: (b: boolean) => void = overloaded;
+            const overloadSuccess: (n: number) => void = overloaded;
+            declare const empty: {};
+            const noCall: (x: number) => void = empty;
+            declare const abstractSource: abstract new () => {};
+            const concreteTarget: new () => {} = abstractSource;
+            declare const guardSource: (x: unknown) => x is number;
+            const guardTarget: (x: unknown) => x is string = guardSource;
+            declare const booleanSource: (x: unknown) => boolean;
+            const predicateTarget: (x: unknown) => x is string = booleanSource;
+            declare const thisGuard: (this: any) => this is { value: number };
+            const identifierGuard: (x: unknown) => x is { value: number } = thisGuard;
+            declare const secondGuard: (x: unknown, y: unknown) => y is string;
+            const firstGuard: (a: unknown, b: unknown) => a is string = secondGuard;
+            """.Replace("\r\n", "\n", StringComparison.Ordinal) + "\n";
+        // Complete diagnostics from the pinned checker, including overload order and predicates.
+        const string reference = """
+            [{"arguments":["(s: string) => void","(n: number) => void"],"category":1,"chain":[{"arguments":["s","n"],"category":1,"chain":[{"arguments":["number","string"],"category":1,"chain":[],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":15,"related":[],"start":114}],"code":2328,"file":"/project/main.ts","key":"Types_of_parameters_0_and_1_are_incompatible_2328","length":15,"related":[],"start":114}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":15,"related":[],"start":114},{"arguments":["(a: number, b: number) => void","(a: number) => void"],"category":1,"chain":[{"arguments":["2","1"],"category":1,"chain":[],"code":2849,"file":"/project/main.ts","key":"Target_signature_provides_too_few_arguments_Expected_0_or_more_but_got_1_2849","length":11,"related":[],"start":235}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":11,"related":[],"start":235},{"arguments":["() => number","() => string"],"category":1,"chain":[{"arguments":["number","string"],"category":1,"chain":[],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":12,"related":[],"start":331}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":12,"related":[],"start":331},{"arguments":["{ method(): number; }","{ method(): string; }"],"category":1,"chain":[{"arguments":["method()"],"category":1,"chain":[{"arguments":["number","string"],"category":1,"chain":[],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":12,"related":[],"start":430}],"code":2201,"file":"/project/main.ts","key":"The_types_returned_by_0_are_incompatible_between_these_types_2201","length":12,"related":[],"start":430}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":12,"related":[],"start":430},{"arguments":["(cb: (n: number) => void) => void","(cb: (s: string) => void) => void"],"category":1,"chain":[{"arguments":["cb","cb"],"category":1,"chain":[{"arguments":["s","n"],"category":1,"chain":[{"arguments":["number","string"],"category":1,"chain":[],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":14,"related":[],"start":552}],"code":2328,"file":"/project/main.ts","key":"Types_of_parameters_0_and_1_are_incompatible_2328","length":14,"related":[],"start":552}],"code":2328,"file":"/project/main.ts","key":"Types_of_parameters_0_and_1_are_incompatible_2328","length":14,"related":[],"start":552}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":14,"related":[],"start":552},{"arguments":["(this: { x: number; }) => void","(this: { x: string; }) => void"],"category":1,"chain":[{"arguments":[],"category":1,"chain":[{"arguments":["{ x: string; }","{ x: number; }"],"category":1,"chain":[{"arguments":["x"],"category":1,"chain":[{"arguments":["string","number"],"category":1,"chain":[],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":10,"related":[],"start":683}],"code":2326,"file":"/project/main.ts","key":"Types_of_property_0_are_incompatible_2326","length":10,"related":[],"start":683}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":10,"related":[],"start":683}],"code":2685,"file":"/project/main.ts","key":"The_this_types_of_each_signature_are_incompatible_2685","length":10,"related":[],"start":683}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":10,"related":[],"start":683},{"arguments":["{ (s: string): void; (n: number): void; }","(b: boolean) => void"],"category":1,"chain":[{"arguments":["s","b"],"category":1,"chain":[{"arguments":["boolean","string"],"category":1,"chain":[],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":14,"related":[],"start":813}],"code":2328,"file":"/project/main.ts","key":"Types_of_parameters_0_and_1_are_incompatible_2328","length":14,"related":[],"start":813}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":14,"related":[],"start":813},{"arguments":["{}","(x: number) => void"],"category":1,"chain":[{"arguments":["{}","(x: number): void"],"category":1,"chain":[],"code":2658,"file":"/project/main.ts","key":"Type_0_provides_no_match_for_the_signature_1_2658","length":6,"related":[],"start":952}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":6,"related":[],"start":952},{"arguments":["abstract new () => {}","new () => {}"],"category":1,"chain":[{"arguments":[],"category":1,"chain":[],"code":2517,"file":"/project/main.ts","key":"Cannot_assign_an_abstract_constructor_type_to_a_non_abstract_constructor_type_2517","length":14,"related":[],"start":1048}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":14,"related":[],"start":1048},{"arguments":["(x: unknown) => x is number","(x: unknown) => x is string"],"category":1,"chain":[{"arguments":["x is number","x is string"],"category":1,"chain":[{"arguments":["number","string"],"category":1,"chain":[],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":11,"related":[],"start":1157}],"code":1226,"file":"/project/main.ts","key":"Type_predicate_0_is_not_assignable_to_1_1226","length":11,"related":[],"start":1157}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":11,"related":[],"start":1157},{"arguments":["(x: unknown) => boolean","(x: unknown) => x is string"],"category":1,"chain":[{"arguments":["(x: unknown): boolean"],"category":1,"chain":[],"code":1224,"file":"/project/main.ts","key":"Signature_0_must_be_a_type_predicate_1224","length":15,"related":[],"start":1273}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":15,"related":[],"start":1273},{"arguments":["(this: any) => this is { value: number; }","(x: unknown) => x is { value: number; }"],"category":1,"chain":[{"arguments":["this is { value: number; }","x is { value: number; }"],"category":1,"chain":[{"arguments":[],"category":1,"chain":[],"code":2518,"file":"/project/main.ts","key":"A_this_based_type_guard_is_not_compatible_with_a_parameter_based_type_guard_2518","length":15,"related":[],"start":1408}],"code":1226,"file":"/project/main.ts","key":"Type_predicate_0_is_not_assignable_to_1_1226","length":15,"related":[],"start":1408}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":15,"related":[],"start":1408},{"arguments":["(x: unknown, y: unknown) => y is string","(a: unknown, b: unknown) => a is string"],"category":1,"chain":[{"arguments":["y is string","a is string"],"category":1,"chain":[{"arguments":["y","a"],"category":1,"chain":[],"code":1227,"file":"/project/main.ts","key":"Parameter_0_is_not_in_the_same_position_as_parameter_1_1227","length":10,"related":[],"start":1551}],"code":1226,"file":"/project/main.ts","key":"Type_predicate_0_is_not_assignable_to_1_1226","length":10,"related":[],"start":1551}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":10,"related":[],"start":1551}]
+            """;
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        options.SetRaw("noErrorTruncation", "true");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
+            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        await checker.CheckProgramAsync();
+        var file = program.GetFile("/project/main.ts")!.Syntax;
+        using var stream = new MemoryStream();
+        using (var writer = new System.Text.Json.Utf8JsonWriter(stream))
+            CheckerCorpusTests.WriteDiagnostics(writer, checker.DetailedDiagnosticsForFile(file).OrderBy(d => d.Start));
+        using var actual = System.Text.Json.JsonDocument.Parse(stream.ToArray());
+        using var expected = System.Text.Json.JsonDocument.Parse(reference);
+        if (actual.RootElement.GetArrayLength() != expected.RootElement.GetArrayLength())
+            throw new InvalidOperationException("Signature diagnostic count");
+        int checks = 0;
+        for (int i = 0; i < actual.RootElement.GetArrayLength(); i++)
+        {
+            if (!System.Text.Json.JsonElement.DeepEquals(actual.RootElement[i], expected.RootElement[i]))
+                throw new InvalidOperationException($"Signature diagnostic {i}: {actual.RootElement[i].GetRawText()}");
+            checks++;
+        }
+        var successful = file.DescendantsAndSelf().OfType<VariableDeclarationNode>()
+            .Single(d => d.Name is IdentifierNode { Text: "overloadSuccess" });
+        if (checker.DetailedDiagnosticsForFile(file).Any(d => d.Start >= successful.Pos && d.Start < successful.End))
+            throw new InvalidOperationException("Successful overload retained trial failures");
+        return checks + 1;
     }
 
     private static async Task<int> PredicateSafety()

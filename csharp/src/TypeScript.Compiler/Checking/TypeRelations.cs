@@ -200,7 +200,7 @@ internal sealed class TypeRelations(TypeContext context, TypeNormalization norma
 }
 
 internal sealed record RelationExplanation(int Code, Type? Source = null, Type? Target = null, Symbol? Property = null,
-    RelationExplanation? Next = null);
+    RelationExplanation? Next = null, IReadOnlyList<object>? Arguments = null);
 
 internal sealed class RelationOperation(
     TypeContext context,
@@ -223,6 +223,25 @@ internal sealed class RelationOperation(
     {
         if (ReportErrors)
             Explanation = new(code, source, target, property, Explanation);
+    }
+
+    internal void ExplainArguments(int code, params object[] arguments)
+    {
+        if (ReportErrors)
+            Explanation = new(code, Next: Explanation, Arguments: Array.AsReadOnly(arguments));
+    }
+
+    internal async ValueTask<Ternary> WithoutErrorsAsync(Func<ValueTask<Ternary>> compare)
+    {
+        suppressed++;
+        try
+        {
+            return await compare().ConfigureAwait(false);
+        }
+        finally
+        {
+            suppressed--;
+        }
     }
 
     internal async ValueTask<Ternary> CompareWithoutErrorsAsync(Type source, Type target, RecursionFlags recursion = RecursionFlags.Both,

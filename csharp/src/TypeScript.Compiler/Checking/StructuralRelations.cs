@@ -168,6 +168,7 @@ internal sealed class StructuralRelations(TypeContext context, TypeAlgebra algeb
         IntersectionState intersection,
         CancellationToken cancellation)
     {
+        var previousExplanation = operation.Explanation;
         if (source is UnionOrIntersectionType || target is UnionOrIntersectionType)
         {
             var result = await UnionIntersectionAsync(operation, source, target, intersection, cancellation).ConfigureAwait(false);
@@ -205,31 +206,10 @@ internal sealed class StructuralRelations(TypeContext context, TypeAlgebra algeb
             return Ternary.False;
         if ((source.Flags & (TypeFlags.Object | TypeFlags.Intersection)) != 0 && target is ObjectType)
         {
-            var result = await objects.PropertiesAsync(operation, source, target, false, intersection, cancellation).ConfigureAwait(false);
-            if (result != Ternary.False)
-                result &= await host.SignatureRelationAsync(
-                    operation,
-                    source,
-                    target,
-                    false,
-                    intersection,
-                    cancellation).ConfigureAwait(false);
-            if (result != Ternary.False)
-                result &= await host.SignatureRelationAsync(
-                    operation,
-                    source,
-                    target,
-                    true,
-                    intersection,
-                    cancellation).ConfigureAwait(false);
-            if (result != Ternary.False)
-                result &= await objects.IndexesAsync(
-                    operation,
-                    source,
-                    target,
-                    primitive,
-                    intersection,
-                    cancellation).ConfigureAwait(false);
+            var result = operation.ReportErrors && (primitive || operation.Explanation != previousExplanation)
+                ? await operation.WithoutErrorsAsync(
+                    () => MembersAsync(operation, source, target, primitive, intersection, cancellation)).ConfigureAwait(false)
+                : await MembersAsync(operation, source, target, primitive, intersection, cancellation).ConfigureAwait(false);
             if (result != Ternary.False)
                 return result;
         }
@@ -242,6 +222,19 @@ internal sealed class StructuralRelations(TypeContext context, TypeAlgebra algeb
                 return await host.DiscriminatedAsync(operation, source, objectUnion, cancellation).ConfigureAwait(false);
         }
         return Ternary.False;
+    }
+
+    private async ValueTask<Ternary> MembersAsync(RelationOperation operation, Type source, Type target, bool primitive,
+        IntersectionState intersection, CancellationToken cancellation)
+    {
+        var result = await objects.PropertiesAsync(operation, source, target, false, intersection, cancellation).ConfigureAwait(false);
+        if (result != Ternary.False)
+            result &= await host.SignatureRelationAsync(operation, source, target, false, intersection, cancellation).ConfigureAwait(false);
+        if (result != Ternary.False)
+            result &= await host.SignatureRelationAsync(operation, source, target, true, intersection, cancellation).ConfigureAwait(false);
+        if (result != Ternary.False)
+            result &= await objects.IndexesAsync(operation, source, target, primitive, intersection, cancellation).ConfigureAwait(false);
+        return result;
     }
 
     private async ValueTask<Ternary> UnionIntersectionAsync(

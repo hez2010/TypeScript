@@ -48,7 +48,21 @@ internal sealed partial class Checker
                 diagnostic = diagnostic with { MessageChain = [chain] };
             diagnostic = await ConstraintReasonAsync(diagnostic, originalSource, source, target, sourceText, targetText, cancellation);
         }
-        Error(node, diagnostic);
+        Error(node, StripRelationMarkers(diagnostic));
+    }
+
+    private static Diagnostic StripRelationMarkers(Diagnostic diagnostic)
+    {
+        var children = new List<Diagnostic>();
+        foreach (var child in diagnostic.MessageChain)
+        {
+            var current = child;
+            while (current.Message.ElidedInCompatibilityPyramid && current.MessageChain.Count == 1)
+                current = current.MessageChain[0];
+            if (!current.Message.ElidedInCompatibilityPyramid)
+                children.Add(StripRelationMarkers(current));
+        }
+        return diagnostic with { MessageChain = children };
     }
 
     private async ValueTask<Diagnostic?> RelationChainAsync(
@@ -80,23 +94,56 @@ internal sealed partial class Checker
             diagnostic = diagnostic with { Arguments = [sourceText, targetText] };
             return await ConstraintReasonAsync(diagnostic, originalSource, source, target, sourceText, targetText, cancellation);
         }
-        diagnostic = diagnostic with
+        if (explanation.Arguments is { } supplied)
         {
-            Arguments = explanation.Code switch
+            var arguments = new string[supplied.Count];
+            for (int i = 0; i < arguments.Length; i++)
+                arguments[i] = supplied[i] switch
+                {
+                    string text => text,
+                    int count => count.ToString(CultureInfo.InvariantCulture),
+                    Type type => await TypeDisplay.GetAsync(type, cancellation),
+                    Signature signature => await TypeDisplay.GetSignatureAsync(signature, cancellation),
+                    TypePredicate predicate => await TypeDisplay.GetPredicateAsync(predicate, cancellation),
+                    _ => throw new InvalidOperationException("Unsupported relation argument")
+                };
+            diagnostic = diagnostic with { Arguments = arguments };
+        }
+        else
+            diagnostic = diagnostic with
             {
-                2326 or 2530 => [TypeDisplay.SymbolName(explanation.Property!)],
-                2634 => [await TypeDisplay.GetAsync(explanation.Source!, cancellation)],
-                2330 or 2329 =>
-                    [
-                        await TypeDisplay.GetAsync(explanation.Source!, cancellation),
+                Arguments = explanation.Code switch
+                {
+                    2326 or 2530 => [TypeDisplay.SymbolName(explanation.Property!)],
+                    2634 => [await TypeDisplay.GetAsync(explanation.Source!, cancellation)],
+                    2517 or 2518 or 2685 => [],
+                    2330 or 2329 or 2202 or 2203 or 2204 or 2205 =>
+                        [
+                            await TypeDisplay.GetAsync(explanation.Source!, cancellation),
                         await TypeDisplay.GetAsync(explanation.Target!, cancellation)
-                    ],
-                _ => throw new InvalidOperationException($"Unsupported relation explanation {explanation.Code}")
-            }
-        };
+                        ],
+                    _ => throw new InvalidOperationException($"Unsupported relation explanation {explanation.Code}")
+                }
+            };
+        if (explanation.Code == 2326 && next is { MessageChain.Count: 1 } && next.MessageChain[0] is { Code: >= 2202 and <= 2205 } marker)
+        {
+            string name = PropertyPath(diagnostic.Arguments[0]);
+            string path = marker.Code switch
+            {
+                2202 => name + "(...)",
+                2203 => "new " + name + "(...)",
+                2204 => name + "()",
+                _ => "new " + name + "()"
+            };
+            return diagnostic with
+            {
+                Message = DiagnosticLocalization.GetMessage(2201),
+                Arguments = [path],
+                MessageChain = marker.MessageChain
+            };
+        }
         if (explanation.Code == 2326 && next is { MessageChain.Count: 1 } && next.MessageChain[0] is { Code: 2326 or 2200 } inner)
         {
-            static string PropertyPath(string name) => name.Length != 0 && name[0] is '\'' or '"' or '`' ? "[" + name + "]" : name;
             string head = PropertyPath(diagnostic.Arguments[0]), tail = PropertyPath(inner.Arguments[0]);
             diagnostic = diagnostic with
             {
@@ -107,6 +154,8 @@ internal sealed partial class Checker
         }
         return diagnostic;
     }
+
+    private static string PropertyPath(string name) => name.Length != 0 && name[0] is '\'' or '"' or '`' ? "[" + name + "]" : name;
 
     private async ValueTask<Diagnostic> ConstraintReasonAsync(Diagnostic diagnostic, Type originalSource, Type source, Type target,
         string sourceText, string targetText, CancellationToken cancellation)

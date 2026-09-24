@@ -14,6 +14,7 @@ namespace TypeScript.Compiler.Checking;
 // building require the separate node-builder service.
 internal sealed class TypeDisplay(
     TypeContext context,
+    TypeAlgebra algebra,
     StructuredMembers members,
     TypeConstraints constraints,
     TypeReferences references,
@@ -38,6 +39,23 @@ internal sealed class TypeDisplay(
     private int serializationLevel;
     // The reference printer's absolute limits are twice its normal/no-truncation budgets.
     private int MaximumLength => noTruncation ? 2_000_000 : 320;
+
+    internal ValueTask<string> GetSignatureAsync(Signature signature, CancellationToken cancellation = default)
+    {
+        if (signature.Context != context)
+            throw new ArgumentException("Signature belongs to another checker", nameof(signature));
+        return SignatureAsync(signature, (signature.Flags & SignatureFlags.Construct) != 0, false, new(), cancellation);
+    }
+
+    internal ValueTask<string> GetPredicateAsync(TypePredicate predicate, CancellationToken cancellation = default)
+        => PredicateAsync(predicate, new(), cancellation);
+
+    private async ValueTask<string> PredicateAsync(TypePredicate predicate, DisplayState active, CancellationToken cancellation)
+    {
+        string name = predicate.Kind is TypePredicateKind.This or TypePredicateKind.AssertsThis ? "this" : predicate.ParameterName;
+        return (predicate.Kind is TypePredicateKind.AssertsThis or TypePredicateKind.AssertsIdentifier ? "asserts " : "") + name
+            + (predicate.Type is null ? "" : " is " + await WriteAsync(predicate.Type, active, cancellation).ConfigureAwait(false));
+    }
 
     internal async ValueTask<string> GetAsync(Type type, CancellationToken cancellation = default)
     {
@@ -302,6 +320,23 @@ internal sealed class TypeDisplay(
                 else
                 {
                     var value = await values.GetAsync(property, cancellation).ConfigureAwait(false);
+                    bool readOnly = (property.CheckFlags & CheckFlags.Readonly) != 0
+                        || property.Declarations.Any(d => SemanticSyntax.HasModifier(d, SyntaxKind.ReadonlyKeyword));
+                    if ((property.Flags & (SymbolFlags.Function | SymbolFlags.Method)) != 0 && !readOnly)
+                    {
+                        var callable = algebra.Filter(value, t => (t.Flags & TypeFlags.Undefined) == 0);
+                        var method = callable is StructuredType structured
+                            ? await members.ResolveAsync(structured, cancellation).ConfigureAwait(false)
+                            : null;
+                        if (method is null || method.Properties is null or { Count: 0 })
+                        {
+                            foreach (var signature in method?.CallSignatures ?? [])
+                                fields.Add(PropertyName(property) + ((property.Flags & SymbolFlags.Optional) != 0 ? "?" : "")
+                                    + await SignatureAsync(signature, false, false, active, cancellation).ConfigureAwait(false) + ";");
+                            if (method?.CallSignatures.Count > 0 || (property.Flags & SymbolFlags.Optional) == 0)
+                                continue;
+                        }
+                    }
                     bool reverse = (property.CheckFlags & CheckFlags.ReverseMapped) != 0;
                     if (reverse)
                         active.ReverseMapped.Add(property);
@@ -484,12 +519,16 @@ internal sealed class TypeDisplay(
                     active,
                     cancellation).ConfigureAwait(false));
         }
-        return (construct ? "new " : "") + (typeParameters.Count == 0 ? "" : "<" + string.Join(", ", typeParameters) + ">")
-            + "(" + string.Join(", ", arguments) + ")" + (arrow ? " => " : ": ")
-            + await WriteAsync(
+        string returned = await signatures.PredicateAsync(signature, cancellation).ConfigureAwait(false) is { } predicate
+            ? await PredicateAsync(predicate, active, cancellation).ConfigureAwait(false)
+            : await WriteAsync(
                 await signatures.ReturnAsync(signature, cancellation).ConfigureAwait(false),
                 active,
                 cancellation).ConfigureAwait(false);
+        return (construct ? arrow && (signature.Flags & SignatureFlags.Abstract) != 0 ? "abstract new " : "new " : "")
+            + (typeParameters.Count == 0 ? "" : "<" + string.Join(", ", typeParameters) + ">")
+            + "(" + string.Join(", ", arguments) + ")" + (arrow ? " => " : ": ")
+            + returned;
     }
 
     private static string? Reuse(SyntaxNode node)

@@ -48,9 +48,16 @@ internal sealed class SignatureAssignability(TypeContext context, SignatureParam
         if (construct && sources.Count != 0 && targets.Count != 0)
         {
             if ((sources[0].Flags & SignatureFlags.Abstract) != 0 && (targets[0].Flags & SignatureFlags.Abstract) == 0)
+            {
+                operation.Explain(2517);
                 return Ternary.False;
+            }
             if (!Visible(sources[0], targets[0]))
+            {
+                if (operation.ReportErrors)
+                    operation.ExplainArguments(2672, Visibility(sources[0]), Visibility(targets[0]));
                 return Ternary.False;
+            }
         }
         Ternary result = Ternary.True;
         if ((source.ObjectFlags & ObjectFlags.Instantiated) != 0
@@ -81,21 +88,34 @@ internal sealed class SignatureAssignability(TypeContext context, SignatureParam
                 cancellation).ConfigureAwait(false);
         foreach (var targetSignature in targets)
         {
+            var previousExplanation = operation.Explanation;
+            bool first = true;
             Ternary related = Ternary.False;
             foreach (var sourceSignature in sources)
             {
-                related = await PairAsync(
-                    operation,
-                    sourceSignature,
-                    targetSignature,
-                    true,
-                    intersection,
-                    cancellation).ConfigureAwait(false);
+                related = operation.ReportErrors && !first
+                    ? await operation.WithoutErrorsAsync(
+                        () => PairAsync(
+                            operation,
+                            sourceSignature,
+                            targetSignature,
+                            true,
+                            intersection,
+                            cancellation)).ConfigureAwait(false)
+                    : await PairAsync(operation, sourceSignature, targetSignature, true, intersection, cancellation).ConfigureAwait(false);
                 if (related != Ternary.False)
+                {
+                    operation.RestoreExplanation(previousExplanation);
                     break;
+                }
+                first = false;
             }
             if (related == Ternary.False)
+            {
+                if (first && operation.ReportErrors)
+                    operation.ExplainArguments(2658, source, targetSignature);
                 return related;
+            }
             result &= related;
         }
         return result;
@@ -164,7 +184,14 @@ internal sealed class SignatureAssignability(TypeContext context, SignatureParam
             && ((mode & SignatureCheckMode.StrictArity) != 0 ? await parameters.HasRestAsync(source, cancellation).ConfigureAwait(false)
                 || await parameters.CountAsync(source, cancellation).ConfigureAwait(false) > targetCount
                 : await parameters.MinimumAsync(source, cancellation: cancellation).ConfigureAwait(false) > targetCount))
+        {
+            if (operation.ReportErrors && (mode & SignatureCheckMode.StrictArity) == 0)
+                operation.ExplainArguments(
+                    2849,
+                    await parameters.MinimumAsync(source, cancellation: cancellation).ConfigureAwait(false),
+                    targetCount);
             return Ternary.False;
+        }
         if (source.TypeParameters.Count != 0 && !ReferenceEquals(source.TypeParameters, target.TypeParameters))
             source = await host.ContextualInstantiationAsync(source, target, operation, cancellation).ConfigureAwait(false);
         int sourceCount = await parameters.CountAsync(source, cancellation).ConfigureAwait(false);
@@ -184,7 +211,7 @@ internal sealed class SignatureAssignability(TypeContext context, SignatureParam
         {
             var related = strict
                 ? Ternary.False
-                : await operation.CompareAsync(
+                : await operation.CompareWithoutErrorsAsync(
                     sourceThis,
                     targetThis,
                     intersection: intersection,
@@ -196,7 +223,10 @@ internal sealed class SignatureAssignability(TypeContext context, SignatureParam
                     intersection: intersection,
                     cancellation: cancellation).ConfigureAwait(false);
             if (related == Ternary.False)
+            {
+                operation.Explain(2685);
                 return related;
+            }
             result &= related;
         }
         bool nonArrayRest = sourceRest is not null || targetRest is not null;
@@ -237,7 +267,11 @@ internal sealed class SignatureAssignability(TypeContext context, SignatureParam
             else
             {
                 related = (mode & SignatureCheckMode.Callback) == 0 && !strict
-                    ? await operation.CompareAsync(s, t, intersection: intersection, cancellation: cancellation).ConfigureAwait(false)
+                    ? await operation.CompareWithoutErrorsAsync(
+                        s,
+                        t,
+                        intersection: intersection,
+                        cancellation: cancellation).ConfigureAwait(false)
                     : Ternary.False;
                 if (related == Ternary.False)
                     related = await operation.CompareAsync(
@@ -250,14 +284,19 @@ internal sealed class SignatureAssignability(TypeContext context, SignatureParam
                 && (mode & SignatureCheckMode.StrictArity) != 0
                 && i >= await parameters.MinimumAsync(source, cancellation: cancellation).ConfigureAwait(false)
                 && i < await parameters.MinimumAsync(target, cancellation: cancellation).ConfigureAwait(false)
-                && await operation.CompareAsync(
+                && await operation.CompareWithoutErrorsAsync(
                     s,
                     t,
                     intersection: intersection,
                     cancellation: cancellation).ConfigureAwait(false) != Ternary.False)
                 related = Ternary.False;
             if (related == Ternary.False)
+            {
+                if (operation.ReportErrors)
+                    operation.ExplainArguments(2328, await parameters.NameAsync(source, i, cancellation).ConfigureAwait(false),
+                        await parameters.NameAsync(target, i, cancellation).ConfigureAwait(false));
                 return related;
+            }
             result &= related;
         }
         if ((mode & SignatureCheckMode.IgnoreReturnTypes) != 0)
@@ -272,11 +311,24 @@ internal sealed class SignatureAssignability(TypeContext context, SignatureParam
             var sourcePredicate = await signatures.PredicateAsync(source, cancellation).ConfigureAwait(false);
             if (sourcePredicate is not null)
             {
-                if (sourcePredicate.Kind != targetPredicate.Kind
-                    || sourcePredicate.Kind is TypePredicateKind.Identifier or TypePredicateKind.AssertsIdentifier
-                        && sourcePredicate.ParameterIndex != targetPredicate.ParameterIndex)
+                if (sourcePredicate.Kind != targetPredicate.Kind)
+                {
+                    operation.Explain(2518);
+                    if (operation.ReportErrors)
+                        operation.ExplainArguments(1226, sourcePredicate, targetPredicate);
                     return Ternary.False;
-                result &= sourcePredicate.Type == targetPredicate.Type ? Ternary.True
+                }
+                if (sourcePredicate.Kind is TypePredicateKind.Identifier or TypePredicateKind.AssertsIdentifier
+                    && sourcePredicate.ParameterIndex != targetPredicate.ParameterIndex)
+                {
+                    if (operation.ReportErrors)
+                    {
+                        operation.ExplainArguments(1227, sourcePredicate.ParameterName, targetPredicate.ParameterName);
+                        operation.ExplainArguments(1226, sourcePredicate, targetPredicate);
+                    }
+                    return Ternary.False;
+                }
+                var related = sourcePredicate.Type == targetPredicate.Type ? Ternary.True
                     : sourcePredicate.Type is not null && targetPredicate.Type is not null
                         ? await operation.CompareAsync(
                             sourcePredicate.Type,
@@ -284,14 +336,21 @@ internal sealed class SignatureAssignability(TypeContext context, SignatureParam
                             intersection: intersection,
                             cancellation: cancellation).ConfigureAwait(false)
                         : Ternary.False;
+                if (related == Ternary.False && operation.ReportErrors)
+                    operation.ExplainArguments(1226, sourcePredicate, targetPredicate);
+                result &= related;
             }
             else if (targetPredicate.Kind is TypePredicateKind.Identifier or TypePredicateKind.This)
+            {
+                if (operation.ReportErrors)
+                    operation.ExplainArguments(1224, source);
                 return Ternary.False;
+            }
         }
         else
         {
             var related = (mode & SignatureCheckMode.BivariantCallback) != 0
-                ? await operation.CompareAsync(
+                ? await operation.CompareWithoutErrorsAsync(
                     targetReturn,
                     sourceReturn,
                     intersection: intersection,
@@ -304,6 +363,12 @@ internal sealed class SignatureAssignability(TypeContext context, SignatureParam
                     intersection: intersection,
                     cancellation: cancellation).ConfigureAwait(false);
             result &= related;
+            if (result == Ternary.False)
+            {
+                bool construct = (source.Flags & SignatureFlags.Construct) != 0;
+                operation.Explain(source.Parameters.Count == 0 && target.Parameters.Count == 0
+                    ? construct ? 2205 : 2204 : construct ? 2203 : 2202, sourceReturn, targetReturn);
+            }
         }
         return result;
     }
@@ -359,4 +424,8 @@ internal sealed class SignatureAssignability(TypeContext context, SignatureParam
             SyntaxKind.PrivateKeyword), targetProtected = SemanticSyntax.HasModifier(target.Declaration, SyntaxKind.ProtectedKeyword);
         return targetPrivate || targetProtected && !sourcePrivate || !targetProtected && !sourcePrivate && !sourceProtected;
     }
+
+    private static string Visibility(Signature signature) => signature.Declaration is not { } declaration ? "public"
+        : SemanticSyntax.HasModifier(declaration, SyntaxKind.PrivateKeyword) ? "private"
+        : SemanticSyntax.HasModifier(declaration, SyntaxKind.ProtectedKeyword) ? "protected" : "public";
 }
