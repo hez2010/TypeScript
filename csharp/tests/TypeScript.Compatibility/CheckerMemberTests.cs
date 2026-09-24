@@ -175,7 +175,8 @@ internal static class CheckerMemberTests
         Func<Symbol?, int> symbolId,
         Func<SyntaxNode?, int> nodeId,
         bool values,
-        bool signatureQueries)
+        bool signatureQueries,
+        bool callQueries = false)
     {
         var pending = new List<StructuredType>();
         var seen = new HashSet<Type>();
@@ -271,6 +272,12 @@ internal static class CheckerMemberTests
             int restAt = typeId(await host.Parameters.RestAtAsync(signature, 0));
             return [.. row, new object[] { id, count, minimum, syntacticMinimum, rest, effectiveRest, positions, restAt }];
         }
+        var callRows = new List<object[]>();
+        if (callQueries)
+            foreach (var node in nodes)
+                if (node is CallExpressionNode or NewExpressionNode or TaggedTemplateExpressionNode
+                    && CallArguments.Target(node) is not IdentifierNode { Text: "__expr" })
+                    callRows.Add([nodeId(node), SignatureId(await host.CallResolution.GetAsync(node))]);
         var members = new List<object[]>();
         for (int i = 0; i < pending.Count; i++)
         {
@@ -301,6 +308,11 @@ internal static class CheckerMemberTests
         Write(queries);
         writer.WritePropertyName("members");
         Write(members);
+        if (callQueries)
+        {
+            writer.WritePropertyName("resolvedCalls");
+            Write(callRows);
+        }
         if (signatureQueries)
         {
             var rows = new List<object[]>();

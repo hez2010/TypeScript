@@ -72,6 +72,18 @@ internal sealed class TypeDiscrimination(TypeContext context, TypeAlgebra algebr
     }
 
     internal async ValueTask<Type?> MatchAsync(Type source, UnionType target, RelationOperation operation, CancellationToken cancellation)
+        =>
+            await MatchAsync(
+                source,
+                target,
+                async (s, t) => await operation.CompareAsync(s, t, cancellation: cancellation).ConfigureAwait(false) != Ternary.False,
+                cancellation).ConfigureAwait(false);
+
+    internal async ValueTask<Type?> MatchAsync(
+        Type source,
+        UnionType target,
+        Func<Type, Type, ValueTask<bool>> compare,
+        CancellationToken cancellation)
     {
         if ((source.Flags & (TypeFlags.Intersection | TypeFlags.Object)) == 0)
             return null;
@@ -87,7 +99,7 @@ internal sealed class TypeDiscrimination(TypeContext context, TypeAlgebra algebr
         {
             var from = await values.GetAsync(candidates[index], cancellation).ConfigureAwait(false);
             foreach (var part in from is UnionType union ? union.Types : [from])
-                if (await operation.CompareAsync(part, type, cancellation: cancellation).ConfigureAwait(false) != Ternary.False)
+                if (await compare(part, type).ConfigureAwait(false))
                     return true;
             return false;
         }, cancellation).ConfigureAwait(false);

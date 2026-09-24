@@ -140,8 +140,31 @@ internal sealed partial class ProgramTypeHost : IFunctionContextHost, IFunctionB
             ? await Awaited.GetAsync(type, false, cancellation: cancellation) ?? context.ErrorType : type;
     }
 
-    public ValueTask<Type?> InvokedParameterAsync(ParameterDeclarationNode node, CallExpressionNode call, CancellationToken cancellation) =>
-        throw new InvalidOperationException("Probe requires immediately invoked argument contextual types");
+    public async ValueTask<Type?> InvokedParameterAsync(
+        ParameterDeclarationNode node,
+        CallExpressionNode call,
+        CancellationToken cancellation)
+    {
+        var arguments = await CallArguments.EffectiveAsync(call, cancellation);
+        int index = ((IFunctionSignature)node.Parent!).Parameters!.ToList().IndexOf(node);
+        if (node.DotDotDotToken is not null)
+            return await CallArguments.SpreadAsync(arguments, index, context.AnyType, cancellation: cancellation);
+        var data = links.Signatures.Get(call);
+        var cached = data.ResolvedSignature;
+        data.ResolvedSignature = CallSignatures.Any;
+        try
+        {
+            return index < arguments.Count ? await Widening.LiteralAsync(
+                await Expressions.CheckAsync(arguments[index], cancellation: cancellation),
+                cancellation)
+                : node.Initializer is not null ? null : context.UndefinedWideningType;
+        }
+        finally
+        {
+            if (data.ResolvedSignature == CallSignatures.Any)
+                data.ResolvedSignature = cached;
+        }
+    }
 
     public ValueTask<Type?> GeneratorContextReturnAsync(SyntaxNode node, Type type, CancellationToken cancellation) =>
         throw new InvalidOperationException("Probe requires contextual generator validation");

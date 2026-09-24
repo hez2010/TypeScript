@@ -60,7 +60,7 @@ internal sealed class RelationDiagnostics(TypeContext context, TypeRelations rel
         return false;
     }
 
-    private async ValueTask<bool> ElaborateAsync(
+    internal async ValueTask<bool> ElaborateAsync(
         SyntaxNode? node,
         Type source,
         Type target,

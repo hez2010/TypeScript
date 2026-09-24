@@ -62,14 +62,14 @@ internal sealed partial class ProgramTypeHost : IIdentifierTypeHost, IReferenceT
         }
         if (node.Parent is CallExpressionNode call && call.Expression != node)
         {
-            var type = await ExpressionAsync(call.Expression!, cancellation);
-            var signatures = await SignaturesAsync(type, false, cancellation);
-            if (signatures.Count != 1 || signatures[0].TypeParameters.Count != 0)
-                throw new InvalidOperationException("Probe requires contextual call overload/inference resolution");
-            return await Parameters.AtAsync(signatures[0], call.Arguments!.ToList().IndexOf(node), cancellation);
+            return await ContextualCallArgumentAsync(call, node, cancellation);
         }
         if (node.Parent is CallExpressionNode)
             return null;
+        if (node.Parent is NewExpressionNode construct)
+            return await ContextualCallArgumentAsync(construct, node, cancellation);
+        if (node.Parent is TemplateSpanNode { Parent: TemplateExpressionNode { Parent: TaggedTemplateExpressionNode tag } })
+            return await ContextualCallArgumentAsync(tag, node, cancellation);
         if (node.Parent is AwaitExpressionNode awaitExpression)
         {
             var contextual = await Contexts.GetAsync(awaitExpression, flags, cancellation);
@@ -194,16 +194,16 @@ internal sealed partial class ProgramTypeHost : IIdentifierTypeHost, IReferenceT
         bool related = await Relations.RelatedAsync(source, target, kind, cancellation);
         if (!related && node is not null)
         {
-            if ((target is UnionType union
-                ? union.Types
-                : (IReadOnlyList<Type>)[target]).Any(
-                    t => (t.Flags & (TypeFlags.Primitive | TypeFlags.Never | TypeFlags.TypeVariable)) == 0))
-                throw new InvalidOperationException("Probe requires structural relation diagnostic elaboration");
+            if (await ExcessProperties.UnknownPropertyAsync(source, target, kind, Relations, cancellation) is { } excess)
+            {
+                Error((excess.ValueDeclaration as INamedNode)?.Name ?? node, relationDiagnosticHead ?? 2353);
+                return false;
+            }
             int code = headCode ?? (context.ExactOptionalPropertyTypes
                 && (await RelationDiagnostics.ExactOptionalPropertiesAsync(source, target, cancellation)).Count != 0
                 ? 2375
                 : 2322);
-            Error(node, code);
+            Error(node, relationDiagnosticHead ?? code);
         }
         return related;
     }
@@ -216,8 +216,7 @@ internal sealed partial class ProgramTypeHost : IIdentifierTypeHost, IReferenceT
         Type target,
         RelationKind kind,
         CancellationToken cancellation)
-            => node is ObjectLiteralExpressionNode
-                && (target.Flags & (TypeFlags.Primitive | TypeFlags.Never)) != 0 ? ValueTask.FromResult(false)
-                : throw new InvalidOperationException("Probe requires object/array/arrow/JSX error elaboration");
+            => node is JsxAttributesNode ? throw new InvalidOperationException("Probe requires JSX error elaboration")
+                : LiteralElaboration.CheckAsync(node, source, target, kind, cancellation);
 
 }

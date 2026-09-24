@@ -284,6 +284,28 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
             this);
         Identifiers = new(context, links, program.Symbols, program.ReferenceSymbols, program.Aliases, Values, Algebra, Widening, Facts,
             Instantiation.Resolutions, Assignments, FlowTypes, this);
+        GenericExpressions = new(context, Members, Signatures, SignatureInstantiation, Contexts, Facts, Inference);
+        CallArguments = new(context, Algebra, Contexts, Inference, Predicates, Instantiation.Constraints, Widening,
+            Instantiation.Tuples, Indexed, Optional, FlowTypes, this);
+        CallSignatures = new(context, program.Symbols, Parameters, Instantiation.Constraints, Instantiation.Engine, Bases, Relations, this);
+        CallInference = new(Inference, Instantiation.Constraints, Instantiation.Engine, Signatures, SignatureInstantiation,
+            Parameters, new TypeVariables(References.TypeArgumentsAsync), Contexts, GenericExpressions, CallSignatures, CallArguments);
+        CallResolution = new(context, links, Instantiation.Resolutions, Algebra, Views, ExpressionChecks, Optional,
+            Contexts, ObjectLiterals, Relations, Signatures, Parameters, SignatureInstantiation, Inference,
+            Instantiation.Constraints,
+            Values,
+            Widening,
+            Instantiation.Tuples,
+            CallSignatures,
+            CallArguments,
+            CallInference,
+            FlowTypes,
+            this);
+        Calls = new(context, CallResolution, CallSignatures, Signatures, this);
+        ConstructorAccess = new(program.Symbols, Declared, Bases, Composites, this);
+        BestMatchingTypes = new(TypeDiscrimination, Relations, Algebra, Keys, this, this);
+        LiteralElaboration = new(context, program.Symbols, Algebra, Relations, RelationDiagnostics, Indexed, Keys,
+            Properties, Values, Predicates, BestMatchingTypes, Contexts, ArrayLiterals, GenericExpressions, Signatures, this);
         relations.EmptyAnonymousSource = Views.EmptyAnonymousAsync;
         relations.SubtypeSource = (source, target, strict, cancellation) =>
             Relations.RelatedAsync(source, target, strict ? RelationKind.StrictSubtype : RelationKind.Subtype, cancellation);

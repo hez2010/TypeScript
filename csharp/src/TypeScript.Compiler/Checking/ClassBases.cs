@@ -138,7 +138,7 @@ internal sealed class ClassBases(TypeContext context, DeclaredTypes declared, Ty
             || await host.ArrayElementAsync(parameter, cancellation).ConfigureAwait(false) == context.AnyType;
     }
 
-    private async ValueTask<IReadOnlyList<Signature>> ConstructorsAsync(
+    internal async ValueTask<IReadOnlyList<Signature>> ConstructorsAsync(
         Type type,
         ExpressionWithTypeArgumentsNode node,
         CancellationToken cancellation)

@@ -16,7 +16,13 @@ internal interface IExpressionCheckHost
 
 internal sealed class ExpressionChecks(TypeContext context, TypeFactQueries facts, IExpressionCheckHost host)
 {
-    internal async ValueTask<Type> NonNullAsync(Type type, SyntaxNode node, CancellationToken cancellation = default)
+    internal ValueTask<Type> NonNullAsync(Type type, SyntaxNode node, CancellationToken cancellation = default) =>
+        NonNullCoreAsync(type, node, false, cancellation);
+
+    internal ValueTask<Type> InvocationAsync(Type type, SyntaxNode node, CancellationToken cancellation = default) =>
+        NonNullCoreAsync(type, node, true, cancellation);
+
+    private async ValueTask<Type> NonNullCoreAsync(Type type, SyntaxNode node, bool invocation, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         context.RequireOwned(type);
@@ -30,7 +36,8 @@ internal sealed class ExpressionChecks(TypeContext context, TypeFactQueries fact
         if ((nullable & TypeFacts.IsUndefinedOrNull) == 0)
             return type;
         bool undefined = (nullable & TypeFacts.IsUndefined) != 0, nullValue = (nullable & TypeFacts.IsNull) != 0;
-        int code = node.Kind == SyntaxKind.NullKeyword || node is IdentifierNode { Text: "undefined" } ? 18050
+        int code = invocation ? undefined ? nullValue ? 2723 : 2722 : 2721
+            : node.Kind == SyntaxKind.NullKeyword || node is IdentifierNode { Text: "undefined" } ? 18050
             : name is { Length: > 0 } && Wtf8.Encode(name).Length < 100 ? undefined ? nullValue ? 18049 : 18048 : 18047
             : undefined ? nullValue ? 2533 : 2532 : 2531;
         host.ExpressionError(node, code);

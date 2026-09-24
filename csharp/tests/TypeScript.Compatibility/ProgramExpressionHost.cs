@@ -44,15 +44,26 @@ internal sealed partial class ProgramTypeHost : IExpressionTypeHost, IExpression
     public ValueTask<Type> FinishExpressionAsync(SyntaxNode node, Type type, CheckMode mode, CancellationToken cancellation)
     {
         BeforeExpressionFinish?.Invoke();
-        if ((mode & (CheckMode.Inferential | CheckMode.SkipGenericFunctions)) != 0)
-            throw new InvalidOperationException("Probe requires contextual expression instantiation");
         if ((type.ObjectFlags & ObjectFlags.Anonymous) != 0 && type.Symbol is { Flags: var flags } && (flags & SymbolFlags.ConstEnum) != 0)
             throw new InvalidOperationException("Probe requires const enum access checks");
-        return ValueTask.FromResult(type);
+        return GenericExpressions.FinishAsync(node, type, mode, cancellation);
     }
 
     public async ValueTask<Type> OtherExpressionAsync(SyntaxNode node, CheckMode mode, CancellationToken cancellation)
     {
+        if (node is CallExpressionNode or NewExpressionNode or TaggedTemplateExpressionNode)
+            return await Calls.CheckAsync(node, mode, cancellation);
+        if (node is SyntheticExpressionNode synthetic)
+        {
+            var type = (Type)synthetic.Type!;
+            context.RequireOwned(type);
+            return type;
+        }
+        if (node is SpreadElementNode spread)
+            return await SpreadElementAsync(
+                await Expressions.CheckAsync(spread.Expression!, cancellation: cancellation),
+                spread.Expression!,
+                cancellation);
         if (node is FunctionExpressionNode or ArrowFunctionNode)
             return await Functions.CheckAsync(node, mode, cancellation);
         if (node is AwaitExpressionNode awaitExpression)

@@ -611,7 +611,8 @@ internal static class CheckerProgramTests
         if (input.TryGetProperty("members", out var memberOption) && memberOption.GetBoolean())
             await CheckerMemberTests.WriteAsync(writer, nodes, environment, typeHost!, TypeId, SymbolId, Node,
                 input.TryGetProperty("values", out var valueOption) && valueOption.GetBoolean(),
-                input.TryGetProperty("signatures", out var signatureOption) && signatureOption.GetBoolean());
+                input.TryGetProperty("signatures", out var signatureOption) && signatureOption.GetBoolean(),
+                input.TryGetProperty("calls", out var callOption) && callOption.GetBoolean());
         if (input.TryGetProperty("properties", out var propertyOption) && propertyOption.GetBoolean())
             await CheckerPropertyTests.WriteAsync(writer, nodes, environment, typeHost!, TypeId, SymbolId, Node);
         if (input.TryGetProperty("identity", out var identityOption) && identityOption.GetBoolean())

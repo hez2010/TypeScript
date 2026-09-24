@@ -48,6 +48,25 @@ internal sealed class ExpressionContexts(TypeContext context, TypeAlgebra algebr
     internal int ContextDepth => contexts.Count;
     internal int InferenceDepth => inferences.Count;
 
+    internal async ValueTask<T> WithAsync<T>(
+        SyntaxNode node,
+        Type type,
+        Func<ValueTask<T>> action,
+        CancellationToken cancellation = default)
+    {
+        cancellation.ThrowIfCancellationRequested();
+        context.RequireOwned(type);
+        contexts.Add((node, type, false));
+        try
+        {
+            return await action().ConfigureAwait(false);
+        }
+        finally
+        {
+            contexts.RemoveAt(contexts.Count - 1);
+        }
+    }
+
     internal Type? CachedContextFree(SyntaxNode node) => contextFree.GetValueOrDefault(node);
 
     internal void SetContextFree(SyntaxNode node, Type type)

@@ -156,7 +156,7 @@ internal sealed class CompositeMembers(TypeContext context, TypeAlgebra algebra,
         Set(type, calls.AsReadOnly(), constructs.AsReadOnly(), indexes.AsReadOnly());
     }
 
-    private async ValueTask<bool> MixinAsync(IReadOnlyList<Signature> signatures, CancellationToken cancellation)
+    internal async ValueTask<bool> MixinAsync(IReadOnlyList<Signature> signatures, CancellationToken cancellation)
     {
         if (signatures.Count != 1)
             return false;

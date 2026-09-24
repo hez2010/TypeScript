@@ -841,6 +841,40 @@ for (const strict of [false, true]) {
             functionAsyncMissing: "const f=async()=>{}; const g=async()=>{throw 1;}; __expr(f); __expr(g);",
             functionBindingContext: "const f:(value:{kind:'a';value:number}|{kind:'b';value:string})=>number|string=({kind,value})=>{if(kind==='a')return value;return value;}; __expr(f);",
             functionReturnObjects: "function f(flag:boolean){if(flag)return {a:1};return {b:'a'};} const g=()=>({z:1,a:2}); __expr(f); __expr(g);",
+            callBasic: "declare function add(x:number,y:number):number; __expr(add(1,2)); const identity=(x:string)=>x; __expr(identity('a'));",
+            callGeneric: "declare function identity<T>(value:T):T; __expr(identity(1)); __expr(identity('a')); __expr(identity<string>('a'));",
+            callOverload: "declare function f(x:'a'):1; declare function f(x:string):2; declare function f(x:number):3; __expr(f('a')); __expr(f('b')); __expr(f(1));",
+            callCallback: "declare function map<T,U>(value:T,callback:(value:T)=>U):U; __expr(map(1,value=>value+1)); __expr(map('a',value=>({value})));",
+            callRest: "declare function f(...args:[number,string?]):boolean; __expr(f(1)); __expr(f(1,'a')); declare const tuple:[number,string]; __expr(f(...tuple));",
+            callNew: "class Box<T>{constructor(public value:T){}} __expr(new Box(1)); __expr(new Box<string>('a'));",
+            callHigherOrder: "declare function wrap<T,U>(f:(value:T)=>U):(value:T)=>U; function identity<A>(value:A){return value;} const f=wrap(identity); __expr(f); __expr(f(1)); __expr(f('a'));",
+            callContextReturn: "declare function map<T,U>(f:(value:T)=>U):(values:T[])=>U[]; const f:(values:string[])=>number[]=map(value=>value.length); __expr(f);",
+            callIife: "__expr((function(value){return value;})(1)); __expr(((first,...rest)=>rest)(1,'a',true)); __expr(((value='a')=>value)());",
+            callOptional: "declare const f:((value:number)=>string)|undefined; __expr(f?.(1)); declare const object:{method(value:number):number}|undefined; __expr(object?.method(1));",
+            callErrors: "declare function f(value:number):string; __expr(f()); __expr(f(1,2)); __expr(f('a')); declare const anyValue:any; __expr(anyValue<string>(1));",
+            callOverloadError: "declare function f(value:string):1; declare function f(value:number):2; __expr(f(true)); __expr(f());",
+            callConstraintError: "declare function f<T extends number>(value:T):T; __expr(f<string>('a')); __expr(f(1));",
+            callArity: "declare function f(x:number):1; declare function f(x:number,y:string,z:boolean):2; __expr(f(1,'a')); declare function rest(...values:number[]):number; __expr(rest(...[1,2]));",
+            callRecursiveReturn: "function f(value:number):number {return value?f(value-1):0;} __expr(f(3));",
+            callSuper: "class Base<T>{constructor(public value:T){}} class Derived extends Base<number>{constructor(){super(1);}} __expr(new Derived());",
+            callConstructorAccess: "class Private {private constructor(){} static make(){return new Private();}} class Protected{protected constructor(){}} class Derived extends Protected {static make(){return new Protected();}} __expr(new Private()); __expr(new Protected());",
+            callAbstract: "abstract class Base {constructor(public value:number){}} __expr(new Base(1)); declare const Construct:abstract new()=>Base; __expr(new Construct());",
+            callNewFunction: "declare function f():number; declare function g(this:void):void; __expr(new f()); __expr(new g());",
+            callThis: "declare const object:{x:number;f(this:{x:number},value:number):string}; __expr(object.f(1)); const detached=object.f; __expr(detached(1));",
+            callTagged: "interface TemplateStringsArray extends ReadonlyArray<string>{raw:readonly string[]} declare function tag<T>(strings:TemplateStringsArray,value:T):T; __expr(tag`value ${1}`); __expr(tag`value ${'a'}`);",
+            callSymbols: "interface SymbolConstructor {():symbol;for(key:string):symbol} declare const Symbol:SymbolConstructor; const unique=Symbol(); let ordinary=Symbol(); const registry=Symbol.for('key'); __expr(unique); __expr(ordinary); __expr(registry);",
+            callDefaults: "declare function f<T=string>():T; __expr(f()); __expr(f<number>()); declare function tuple<T extends readonly unknown[]>(...values:T):T; __expr(tuple(1,'a',true));",
+            callObjectErrors: "declare function f(value:{x:number}):void; __expr(f({x:1,extra:true})); __expr(f({x:'a'}));",
+            callNestedErrors: "declare function f(value:{a:{b:number}}):void; __expr(f({a:{b:'a'}}));",
+            callArrayErrors: "declare function f(values:number[]):void; __expr(f([1,'a'])); declare function tuple(value:[number,string]):void; __expr(tuple([1,2]));",
+            callUnionFunctions: "declare const f:((value:'a')=>1)|((value:'b')=>2); __expr(f('a')); declare const g:(()=>number)|number; __expr(g());",
+            callNullable: "declare const f:((value:number)=>string)|null|undefined; __expr(f(1)); __expr(f?.(1));",
+            callNestedGeneric: "declare function make<T>(value:T):()=>T; declare function use<T>(callback:()=>T):T; __expr(use(make(1))); __expr(use(()=>make('a')));",
+            callBindPatternInference: "declare function f<T>(callback:()=>T):T; const [first,second]=f(()=>[1,'a']); __expr(first); __expr(second);",
+            callMappedInference: "declare function f<T>(value:{[K in keyof T]:{value:T[K]}}):T; __expr(f({a:{value:1},b:{value:'a'}}));",
+            callReadonlySpread: "declare function f<const T extends readonly unknown[]>(...values:T):T; const input=[1,'a'] as const; __expr(f(...input)); __expr(f(1,'a'));",
+            callDeprecated: "/** @deprecated */ declare function old(value:number):number; __expr(old(1));",
+            callOverloadObjectError: "declare function f(value:{x:number}):1; declare function f(value:{x:string}):2; __expr(f({x:true}));",
         })
     ) add(`identifiers:${name}:${strict}`, { "globals.d.ts": library + " declare function __expr(value: unknown): void;", "main.ts": text }, { strict }, false, true);
 }
@@ -875,6 +909,12 @@ for (const exactOptionalPropertyTypes of [false, true]) {
 for (const input of cases.filter(c => c.name.startsWith("identifiers:"))) input.identifiers = true;
 for (const input of cases.filter(c => c.name.startsWith("identifiers:function"))) {
     input.functionBodies = true;
+    input.members = true;
+    input.values = true;
+    input.signatures = true;
+}
+for (const input of cases.filter(c => c.name.startsWith("identifiers:call") && !c.name.startsWith("identifiers:callHint:"))) {
+    input.calls = true;
     input.members = true;
     input.values = true;
     input.signatures = true;
@@ -945,7 +985,7 @@ let selected = process.argv.includes("--access") ? cases.filter(c => c.access) :
     process.argv.includes("--generic-relations") ? cases.filter(c => c.genericRelations) :
     process.argv.includes("--indexing") ? cases.filter(c => c.name.startsWith("indexing:")) :
     process.argv.includes("--assignability") ? cases.filter(c => c.assignability && !c.genericRelations && !c.name.startsWith("conditional:") && !c.name.startsWith("inference:") && !c.name.startsWith("constants:") && !c.name.startsWith("expressions:") && !c.name.startsWith("binary:") && !c.name.startsWith("awaited:")) :
-    process.argv.includes("--identity") ? cases.filter(c => c.identity && !c.assignability) : process.argv.includes("--signatures") ? cases.filter(c => c.signatures && !c.functionBodies) : process.argv.includes("--properties") ? cases.filter(c => c.properties) : process.argv.includes("--values") ? cases.filter(c => c.values && !c.functionBodies && !c.name.startsWith("initializers:")) : process.argv.includes("--members") ? cases.filter(c => c.members && !c.values && !c.signatures) : process.argv.includes("--type-nodes") ? cases.filter(c => c.typeNodes && !c.access && !c.identifiers && !c.flow && !c.members && !c.properties && !c.identity && !c.name.startsWith("indexing:") && !c.name.startsWith("conditional:") && !c.name.startsWith("inference:") && !c.name.startsWith("constants:") && !c.name.startsWith("expressions:") && !c.name.startsWith("binary:") && !c.name.startsWith("awaited:"))
+    process.argv.includes("--identity") ? cases.filter(c => c.identity && !c.assignability) : process.argv.includes("--signatures") ? cases.filter(c => c.signatures && !c.functionBodies && !c.calls) : process.argv.includes("--properties") ? cases.filter(c => c.properties) : process.argv.includes("--values") ? cases.filter(c => c.values && !c.functionBodies && !c.calls && !c.name.startsWith("initializers:")) : process.argv.includes("--members") ? cases.filter(c => c.members && !c.values && !c.signatures) : process.argv.includes("--type-nodes") ? cases.filter(c => c.typeNodes && !c.access && !c.identifiers && !c.flow && !c.members && !c.properties && !c.identity && !c.name.startsWith("indexing:") && !c.name.startsWith("conditional:") && !c.name.startsWith("inference:") && !c.name.startsWith("constants:") && !c.name.startsWith("expressions:") && !c.name.startsWith("binary:") && !c.name.startsWith("awaited:"))
     : cases.filter(c => !c.references && !c.typeNodes && Boolean(c.aliases) === process.argv.includes("--aliases"));
 if (option("--filter")) selected = selected.filter(c => c.name.includes(option("--filter")));
 async function probe(command, args) {

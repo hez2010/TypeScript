@@ -538,16 +538,37 @@ node csharp/tools/checker-program.mjs --identifiers --filter function
 & ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-signatures-safety
 ```
 
+## Calls, overloads and generic expression finishing
+
+`GenericExpressions.cs` connects generic function arguments to contextual signatures, including inferred return type parameters and unique parameter names. `CallArguments.cs`, `CallSignatures.cs`, `CallInference.cs`, `CallResolution.*.cs` and `CallExpressions.cs` implement effective tuple-spread arguments, argument/type-argument arity, contextual inference, candidate ordering, the subtype/assignability passes, error-candidate selection and resolved-signature caching. Immediately-invoked parameter contexts and optional-call flow use the same services.
+
+Constructor calls now include private/protected access through `ConstructorAccess.cs`, abstract checks, inherited constructors and `super` instantiation. Tagged templates and global `Symbol` call result types are connected. `BestMatchingTypes.cs` and `LiteralElaboration.cs` add object/array/arrow diagnostic elaboration and union-target selection. Diagnostic comparisons still cover codes and selected state, not complete text, spans or related information.
+
+The new oracle inputs force member/value/signature queries and additionally serialize each resolved call signature and its graph. Candidate-output lists retain the actual instantiated candidates. Cancellation restores resolution markers, published error candidates, inference metadata and contextual callback state. Inference rollback also restores replaced inference records by identity.
+
+A strict object-argument error initially differed only in the Boolean union's lazy classification flag. A temporary trace in the ignored reference checkout located the missing `maybeAddMissingAwaitInfo` call. The implementation now runs the real promised-type checks and records the resulting hint; the reference source was restored byte-for-byte, and serialization flags were not overridden.
+
+Windows x64 NativeAOT passes **4,048 exact source-program configurations**, including **136 new call configurations**, and **611 safety assertions**. Cases cover generic and higher-order calls, contextual returns, immediate invocation, overloads and failures, tuple/readonly spreads, defaults/constraints, optional and nullable calls, recursive calls, constructors/accessibility/`super`, tagged templates, symbols, inferred binding/mapped types, deprecations and property/element-level argument errors. Twenty-two new safety assertions cover argument/callback cancellation, failure-candidate rollback, cached calls, candidate output and inference-record restoration.
+
+Dynamic imports and JavaScript call adaptation, decorators, JSX and `instanceof` dispatch, complete invocation/argument diagnostic details, and some emit-related checks remain required dependencies. The production checker entry point and complete semantic corpus/memory/performance gates remain open.
+
+Evidence: [call and identifier comparisons](../csharp/compatibility/evidence/phase4-calls-identifiers.json), [signature regressions](../csharp/compatibility/evidence/phase4-calls-signatures.json), [relation regressions](../csharp/compatibility/evidence/phase4-calls-assignability.json), [inference regressions](../csharp/compatibility/evidence/phase4-calls-inference.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-calls-validation.json).
+
+```powershell
+node csharp/tools/checker-program.mjs --identifiers --filter call
+& ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-signatures-safety
+```
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
 
 1. Complete the program/checker entry point, module interop/type adaptation, computed exports and type/value symbol resolution. Program-backed globals, augmentation merging, declaration headers and alias/export algorithms now exist; their remaining semantic callbacks must be connected.
 2. Complete relation diagnostics and remaining type-node dependencies; connect the implemented declaration/type-node, algebra, scope, inference, instantiation and tuple algorithms to complete checker services.
-3. Remaining expression forms, call-site inference, context-sensitive expression typing, overload selection, full declaration checking, JavaScript and JSDoc semantics.
-4. Complete call-site/immediately-invoked function contexts, iterator/generator services and property/declaration flow integration; complete constructor/`in`/`instanceof` narrowing, initialization/reference services and semantic diagnostics.
+3. Remaining expression forms and special call forms, full declaration checking, JavaScript and JSDoc semantics, and completion of contextual/inference integration across those services.
+4. Complete iterator/generator services and property/declaration flow integration; complete constructor/`in`/`instanceof` narrowing, initialization/reference services and semantic diagnostics.
 5. Remaining indexed/member diagnostic and declaration services, JSX, decorators and grammar checks.
 6. Type display, node builders, symbol accessibility and emit-resolver APIs.
 7. All active checker/compiler type/symbol/diagnostic comparisons at single and reference-default concurrency; audits of intentional differences; complete semantic workload memory/performance measurements.
 
-The next integration step is call-site inference, overload selection and immediately-invoked/spread argument contexts, followed by iterator/generator protocols, full declaration checks, diagnostics and module type adaptation over the program-backed symbol environment. Function-body checking still depends on these services for calls and generators, and generic-expression finishing remains open. There is still no complete production checker entry point. Component comparison counts and validation of the existing Go backend do not measure full C# checker completion. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.
+The next integration work is iterator/generator protocols and remaining expression/declaration services, followed by complete diagnostic attribution and module type adaptation over the program-backed symbol environment. There is still no complete production checker entry point. Component comparison counts and validation of the existing Go backend do not measure full C# checker completion. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.

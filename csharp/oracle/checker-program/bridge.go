@@ -13,7 +13,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/jsnum"
 )
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -385,6 +385,7 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	memberRoots, memberRows := []any{}, []any{}
 	valueRows := []any{}
 	signatureRows := []any{}
+	callRows := []any{}
 	if memberQueries {
 		pending := []*Type{}
 		seen := map[*Type]bool{}
@@ -467,6 +468,13 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 			}
 			restAt := tid(c.getRestTypeAtPosition(s, 0, false))
 			return append(row, []any{id, count, minimum, syntacticMinimum, rest, effectiveRest, positions, restAt})
+		}
+		if callQueries {
+			for _, node := range nodes {
+				if ast.IsTaggedTemplateExpression(node) || (ast.IsCallExpression(node) || ast.IsNewExpression(node)) && !(ast.IsIdentifier(node.Expression()) && node.Expression().Text() == "__expr") {
+					callRows = append(callRows, []any{nodeIDs[node], qid(c.getResolvedSignature(node, nil, CheckModeNormal))})
+				}
+			}
 		}
 		for i := 0; i < len(pending); i++ {
 			t := pending[i]
@@ -836,6 +844,9 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	}
 	if signatureQueries {
 		result["signatureGraph"] = signatureRows
+	}
+	if callQueries {
+		result["resolvedCalls"] = callRows
 	}
 	if identityQueries {
 		result["relations"] = relationRows

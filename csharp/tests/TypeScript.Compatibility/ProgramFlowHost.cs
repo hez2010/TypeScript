@@ -135,14 +135,17 @@ internal sealed partial class ProgramTypeHost : IFlowTypeHost, IFlowReferenceHos
     public ValueTask<IReadOnlyList<Signature>> CallSignaturesAsync(Type type, CancellationToken cancellation) =>
         SignaturesAsync(type, false, cancellation);
 
-    public ValueTask<Type> OptionalCallTargetAsync(SyntaxNode node, CancellationToken cancellation) =>
-        throw new InvalidOperationException("Probe requires optional call target typing");
+    public async ValueTask<Type> OptionalCallTargetAsync(SyntaxNode node, CancellationToken cancellation) =>
+        await Optional.ReceiverAsync(
+            await Expressions.CheckAsync(((CallExpressionNode)node).Expression!, cancellation: cancellation),
+            ((CallExpressionNode)node).Expression!,
+            cancellation);
 
     public ValueTask<Type?> HasInstanceMethodAsync(Type type, CancellationToken cancellation) =>
         throw new InvalidOperationException("Probe requires Symbol.hasInstance lookup");
 
-    public ValueTask<Signature?> ResolvedCallAsync(SyntaxNode node, CancellationToken cancellation) =>
-        throw new InvalidOperationException("Probe requires call overload selection");
+    public async ValueTask<Signature?> ResolvedCallAsync(SyntaxNode node, CancellationToken cancellation) =>
+        await CallResolution.GetAsync(node, cancellation: cancellation);
 
     public async ValueTask<bool> ConstantOrUnassignedAsync(Symbol symbol, CancellationToken cancellation)
         =>

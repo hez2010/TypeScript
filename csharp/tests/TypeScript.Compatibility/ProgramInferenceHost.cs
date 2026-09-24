@@ -31,7 +31,7 @@ internal sealed partial class ProgramTypeHost : ITypeInferenceHost, IInferredCon
                 && (flags & SymbolFlags.EnumMember) != 0 ? await Declared.GetAsync(parent, cancellation) : type;
 
     public ValueTask<Type?> IntraContextualTypeAsync(SyntaxNode node, CancellationToken cancellation)
-            => throw new InvalidOperationException("Probe requires intra-expression contextual typing");
+            => Contexts.GetAsync(node, cancellation: cancellation);
 
     public ValueTask<Type?> ReverseMappedInferenceAsync(
         Type source,

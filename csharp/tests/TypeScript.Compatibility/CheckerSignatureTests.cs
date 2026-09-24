@@ -213,8 +213,140 @@ internal static class CheckerSignatureTests
             checks++;
         }
         checks += await FunctionSafety();
+        checks += await CallSafety();
         Console.WriteLine(
-            $"{checks} signature/function/context/predicate/cancellation assertions; binding and return traversal depth 20000");
+            $"{checks} signature/function/call/inference/context/cancellation assertions; binding and return traversal depth 20000");
+    }
+
+    private static async Task<int> CallSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Call assertion {checks + 1}");
+            checks++;
+        }
+        const string source = "interface Array<T>{length:number;[n:number]:T} interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T} declare function f(value:number):number; f(1); f('bad'); declare function map<T,U>(value:T,callback:(value:T)=>U):U; map(1,value=>value+1);";
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        var program = await CompilerProgram.CreateAsync(
+            new MemoryFileSystem(new Dictionary<string, byte[]> { ["/project/main.ts"] = Wtf8.Encode(source) }),
+            "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var context = new TypeContext(true, true);
+        var links = new CheckerLinks();
+        var scope = new ProgramScopeHost(context, links);
+        await CheckerSymbols.CreateAsync(program, links, scope);
+        var host = new ProgramTypeHost(context, links, scope);
+        var calls = program.SourceFiles[0].Syntax.DescendantsAndSelf().OfType<CallExpressionNode>().ToArray();
+        using (var cancellation = new CancellationTokenSource())
+        {
+            host.BeforeExpressionFinish = () =>
+            {
+                if (host.Expressions.CurrentNode is NumericLiteralNode)
+                    cancellation.Cancel();
+            };
+            try
+            {
+                await host.Calls.CheckAsync(calls[0], cancellation: cancellation.Token);
+                throw new InvalidOperationException("Call cancellation ignored");
+            }
+            catch (OperationCanceledException)
+            {
+                checks++;
+            }
+        }
+        host.BeforeExpressionFinish = null;
+        Check(links.Signatures.Get(calls[0]).ResolvedSignature is null);
+        Check(
+            host.CallResolution.ActiveCount == 0
+                && host.CallResolution.ResolutionDepth == 0
+                && host.Instantiation.Resolutions.ResolutionStart == 0);
+        Check(host.Contexts.ContextDepth == 0 && host.Contexts.InferenceDepth == 0 && host.Expressions.CurrentNode is null);
+        Check(await host.Calls.CheckAsync(calls[0]) == context.NumberType);
+        var cached = links.Signatures.Get(calls[0]).ResolvedSignature;
+        Check(cached is not null && cached != host.CallSignatures.Resolving);
+        Check(await host.CallResolution.GetAsync(calls[0]) == cached);
+        var candidates = new List<Signature>();
+        Check(await host.CallResolution.GetAsync(calls[0], candidates) == cached && candidates.Count == 1);
+        using (var cancellation = new CancellationTokenSource())
+        {
+            host.BeforeCallDiagnostics = _ => cancellation.Cancel();
+            try
+            {
+                await host.CallResolution.GetAsync(calls[1], cancellation: cancellation.Token);
+                throw new InvalidOperationException("Failure diagnostic cancellation ignored");
+            }
+            catch (OperationCanceledException)
+            {
+                checks++;
+            }
+        }
+        host.BeforeCallDiagnostics = null;
+        Check(links.Signatures.Get(calls[1]).ResolvedSignature is null);
+        Check(
+            host.CallResolution.ActiveCount == 0
+                && host.CallResolution.ResolutionDepth == 0
+                && host.Instantiation.Resolutions.ResolutionStart == 0);
+        Check(await host.Calls.CheckAsync(calls[1]) == context.NumberType && host.Diagnostics.Contains(2345));
+        var arrow = (ArrowFunctionNode)calls[2].Arguments![1];
+        using (var cancellation = new CancellationTokenSource())
+        {
+            host.BeforeFunctionDeclaration = _ => cancellation.Cancel();
+            try
+            {
+                await host.CallResolution.GetAsync(calls[2], cancellation: cancellation.Token);
+                throw new InvalidOperationException("Callback inference cancellation ignored");
+            }
+            catch (OperationCanceledException)
+            {
+                checks++;
+            }
+        }
+        host.BeforeFunctionDeclaration = null;
+        Check(
+            links.Signatures.Get(calls[2]).ResolvedSignature is null
+                && (links.Nodes.Get(arrow).Flags & NodeCheckFlags.ContextChecked) == 0);
+        Check(host.Contexts.ContextDepth == 0 && host.Contexts.InferenceDepth == 0 && host.CallResolution.ResolutionDepth == 0);
+        Check(await host.Calls.CheckAsync(calls[2]) == context.NumberType);
+        var genericCandidates = new List<Signature> { host.CallSignatures.Any };
+        var genericResult = await host.CallResolution.GetAsync(calls[2], genericCandidates);
+        Check(genericCandidates.Count == 1 && genericCandidates[0] == genericResult && genericResult.TypeParameters.Count == 0);
+        var original = host.Inference.Create([context.NewTypeParameter()]);
+        var first = original.Inferences[0];
+        first.Candidates.Add(context.NumberType);
+        try
+        {
+            await original.RunAsync<Type>(() =>
+            {
+                original.Inferences[0] = new InferenceInfo(first.Parameter);
+                original.InferredTypeParameters = [context.NewTypeParameter()];
+                original.ReturnMapper = TypeMapper.Create([first.Parameter], [context.StringType]);
+                throw new OperationCanceledException();
+            }, default);
+            throw new InvalidOperationException("Inference rollback failure ignored");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        Check(original.Inferences[0] == first && first.Candidates.SequenceEqual([context.NumberType]));
+        Check(original.InferredTypeParameters is null && original.ReturnMapper is null);
+        using var cancelled = new CancellationTokenSource();
+        cancelled.Cancel();
+        try
+        {
+            await host.CallResolution.GetAsync(calls[0], cancellation: cancelled.Token);
+            throw new InvalidOperationException("Cached call cancellation ignored");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        Check(
+            host.CallResolution.ActiveCount == 0 && host.CallResolution.ResolutionDepth == 0 && host.Instantiation.Resolutions.Count == 0);
+        return checks;
     }
 
     private static async Task<int> FunctionSafety()

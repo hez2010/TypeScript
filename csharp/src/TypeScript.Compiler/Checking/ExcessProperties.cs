@@ -76,6 +76,32 @@ internal sealed class ExcessProperties(TypeContext context, TypeAlgebra algebra,
         return target;
     }
 
+    internal async ValueTask<Symbol?> UnknownPropertyAsync(Type source, Type target, RelationKind kind, TypeRelations relations,
+        CancellationToken cancellation = default)
+    {
+        if ((source.ObjectFlags & (ObjectFlags.ObjectLiteral | ObjectFlags.FreshLiteral)) != (ObjectFlags.ObjectLiteral | ObjectFlags.FreshLiteral)
+            || !Target(target) || !host.NoImplicitAny && (target.ObjectFlags & ObjectFlags.JSLiteral) != 0)
+            return null;
+        bool jsx = (source.ObjectFlags & ObjectFlags.JsxAttributes) != 0;
+        if (kind is RelationKind.Assignable or RelationKind.Comparable
+            && (target == host.GlobalObject || target is UnionType objectUnion && objectUnion.Types.Contains(host.GlobalObject)
+                || !jsx && await views.EmptyObjectAsync(target, cancellation).ConfigureAwait(false)))
+            return null;
+        if (target is UnionType union)
+            target = await discrimination.MatchAsync(
+                source,
+                union,
+                (s, t) => relations.RelatedAsync(s, t, kind, cancellation),
+                cancellation).ConfigureAwait(false)
+                ?? FilterPrimitives(union);
+        foreach (var property in await properties.GetAsync(source, cancellation).ConfigureAwait(false))
+            if (property.ValueDeclaration is not null && source.Symbol?.ValueDeclaration is not null
+                && property.ValueDeclaration.Parent == source.Symbol.ValueDeclaration && !(jsx && property.Name.Contains('-'))
+                && !await KnownAsync(target, property.Name, jsx, cancellation).ConfigureAwait(false))
+                return property;
+        return null;
+    }
+
     private async ValueTask<bool> KnownAsync(Type type, string name, bool jsx, CancellationToken cancellation)
     {
         await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()

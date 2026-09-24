@@ -63,9 +63,13 @@ internal sealed class InferenceContext(InferenceInfo[] inferences, Signature? si
     {
         cancellation.ThrowIfCancellationRequested();
         bool outer = active++ == 0;
+        var originals = outer ? Inferences.ToArray() : null;
         var previous = outer ? Inferences.Select(i => i.Clone()).ToArray() : null;
         var sites = outer ? IntraExpressionSites.ToArray() : null;
         var oldFlags = Flags;
+        var oldParameters = InferredTypeParameters;
+        var oldReturnMapper = ReturnMapper;
+        var oldOuterReturnMapper = OuterReturnMapper;
         try
         {
             var result = await action().ConfigureAwait(false);
@@ -77,9 +81,15 @@ internal sealed class InferenceContext(InferenceInfo[] inferences, Signature? si
             if (outer)
             {
                 for (int i = 0; i < Inferences.Length; i++)
+                {
+                    Inferences[i] = originals![i];
                     Inferences[i].Restore(previous![i]);
+                }
                 IntraExpressionSites = [.. sites!];
                 Flags = oldFlags;
+                InferredTypeParameters = oldParameters;
+                ReturnMapper = oldReturnMapper;
+                OuterReturnMapper = oldOuterReturnMapper;
             }
             throw;
         }

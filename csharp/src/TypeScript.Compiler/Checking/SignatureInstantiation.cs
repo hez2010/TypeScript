@@ -31,16 +31,7 @@ internal sealed class SignatureInstantiation(TypeContext context, TypeInstantiat
             throw new ArgumentException("Signature belongs to another checker", nameof(signature));
         var types = await constraints.FillMissingArgumentsAsync(arguments, signature.TypeParameters, javaScript,
             (s, t, token) => relations.RelatedAsync(s, t, RelationKind.Identity, token), cancellation).ConfigureAwait(false);
-        var key = (signature, new TypeCacheKey(types.ToArray()));
-        if (!cache.TryGetValue(key, out var result))
-        {
-            result = await instantiation.SignatureAsync(signature,
-                TypeMapper.Create((await ParametersAsync(signature, cancellation).ConfigureAwait(false)).ToArray(), types.ToArray()),
-                true,
-                cancellation).ConfigureAwait(false);
-            cancellation.ThrowIfCancellationRequested();
-            cache[key] = result;
-        }
+        var result = await WithoutFillingAsync(signature, types, cancellation).ConfigureAwait(false);
         if (inferredParameters is { Count: > 0 }
             && await SingleAsync(
                 await signatures.ReturnAsync(result, cancellation).ConfigureAwait(false),
@@ -55,6 +46,27 @@ internal sealed class SignatureInstantiation(TypeContext context, TypeInstantiat
             return newResult;
         }
         return result;
+    }
+
+    internal async ValueTask<Signature> WithoutFillingAsync(
+        Signature signature,
+        IReadOnlyList<Type> arguments,
+        CancellationToken cancellation = default)
+    {
+        cancellation.ThrowIfCancellationRequested();
+        if (signature.Context != context)
+            throw new ArgumentException("Signature belongs to another checker", nameof(signature));
+        foreach (var argument in arguments)
+            context.RequireOwned(argument);
+        var key = (signature, new TypeCacheKey(arguments.ToArray()));
+        if (cache.TryGetValue(key, out var result))
+            return result;
+        result = await instantiation.SignatureAsync(signature,
+            TypeMapper.Create((await ParametersAsync(signature, cancellation).ConfigureAwait(false)).ToArray(), arguments.ToArray()),
+            true,
+            cancellation).ConfigureAwait(false);
+        cancellation.ThrowIfCancellationRequested();
+        return cache[key] = result;
     }
 
     private async ValueTask<Signature?> SingleAsync(Type type, CancellationToken cancellation)
