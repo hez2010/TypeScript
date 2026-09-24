@@ -693,6 +693,14 @@ Targeted Release corpus validation covers **4,408 affected configurations per re
 
 Evidence: [single-threaded affected corpus](../csharp/compatibility/evidence/phase4-destructuring-corpus-single.json), [reference-default affected corpus](../csharp/compatibility/evidence/phase4-destructuring-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-destructuring-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-destructuring-validation.json). External emit-helper checks and full diagnostic fidelity remain open alongside the other phase-4 requirements.
 
+## Disposable declarations and imported helpers
+
+`using` and `await using` initializers now use the global disposal interfaces, including null/undefined acceptance and async-or-sync disposal. Declaration checks cover binding patterns, required initializers, modifiers, ambient contexts, switch clauses, invalid block placement and await context. Imported-helper lookup resolves `tslib`, checks each requested helper once per source file, and validates private-field helper arity. Disposable declarations, private-field access, object rest, async functions, async generators and async iteration now use that service.
+
+Targeted Release corpus validation covers **1,801 affected configurations per reference mode**. Graph/code matches increased from **1,069 to 1,182**, recovering **113 configurations**, with **no previously matching case regressing**. The affected suites pass **628 query configurations**, **678 semantic diagnostic-code configurations**, and **70 program safety assertions**, including four new disposal/helper checks. The disposal fixture agrees with the Go oracle. Formatting-equivalent results and unchanged repository validations are reused. NativeAOT verification remains deferred until final completion.
+
+Evidence: [single-threaded affected corpus](../csharp/compatibility/evidence/phase4-disposable-corpus-single.json), [reference-default affected corpus](../csharp/compatibility/evidence/phase4-disposable-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-disposable-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-disposable-validation.json). Decorators, complete diagnostic fidelity, remaining semantic/emit integration and the final workload gates remain open.
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:

@@ -168,8 +168,8 @@ internal sealed partial class Checker
                 Error(property, 2462);
                 return;
             }
-            if (TargetYear < 2018 && program.Symbols.Program.Configuration.Options.Boolean("importHelpers") == true)
-                throw new InvalidOperationException("Checker requires object-rest emit helpers");
+            if (TargetYear < 2018)
+                await ExternalHelpersAsync(property, ["__rest"], cancellation);
             var excluded = node.Properties.Where(p => p is not SpreadAssignmentNode).Select(p => SemanticSyntax.Name(p)!).ToArray();
             var rest = await Bindings.RestAsync(source, excluded, source.Symbol, cancellation);
             DestructuringTrailingComma(node.Properties, node);

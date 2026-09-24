@@ -119,14 +119,14 @@ internal sealed partial class Checker
                     await CheckSourceElementAsync(variable.DeclarationList, cancellation).ConfigureAwait(false);
                     break;
                 case VariableDeclarationListNode declarations:
-                    if ((declarations.Flags & NodeFlags.Using) != 0)
-                        throw new InvalidOperationException("Checker requires disposable declaration checks");
+                    await CheckVariableListAsync(declarations, cancellation).ConfigureAwait(false);
                     foreach (var declaration in declarations.Declarations!)
                         await CheckSourceElementAsync(declaration, cancellation).ConfigureAwait(false);
                     break;
                 case VariableDeclarationNode declaration:
                     VariableGrammar(declaration);
                     await FunctionDeclarations.VariableAsync(declaration, cancellation).ConfigureAwait(false);
+                    await CheckDisposableInitializerAsync(declaration, cancellation).ConfigureAwait(false);
                     await CheckMergedExportsAsync(declaration, cancellation).ConfigureAwait(false);
                     break;
                 case BindingElementNode element:
@@ -213,7 +213,7 @@ internal sealed partial class Checker
                     break;
                 case ForInOrOfStatementNode loop when loop.Kind == SyntaxKind.ForOfStatement:
                     RegisterUnused(loop);
-                    ForEachGrammar(loop);
+                    await ForEachGrammarAsync(loop, cancellation).ConfigureAwait(false);
                     if (loop.Initializer is VariableDeclarationListNode)
                         await CheckSourceElementAsync(loop.Initializer, cancellation).ConfigureAwait(false);
                     else
@@ -381,11 +381,16 @@ internal sealed partial class Checker
         if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count != 0)
             return;
         var flags = node.Flags | (node.Parent is VariableDeclarationListNode list ? list.Flags : 0);
+        if ((flags & NodeFlags.Using) != 0 && node.Name is BindingPatternNode)
+        {
+            Error(node, 1492);
+            return;
+        }
         if (node.Parent?.Parent is not ForInOrOfStatementNode && (flags & NodeFlags.Ambient) == 0 && node.Initializer is null)
         {
             if (node.Name is BindingPatternNode)
                 Error(node, 1182);
-            else if ((flags & NodeFlags.Const) != 0)
+            else if ((flags & NodeFlags.Constant) != 0)
                 Error(node, 1155);
         }
         if (node.ExclamationToken is not null

@@ -1,0 +1,22 @@
+{
+    "timestamp": "2026-09-24T15:58:04.438Z",
+    "mode": "default",
+    "configuration": "Release",
+    "selectedConfigurations": 1801,
+    "previousMatches": 1069,
+    "graphAndCodeMatches": 1182,
+    "recoveredConfigurations": 113,
+    "regressions": [],
+    "parts": [
+        {
+            "directory": "built/csharp/semantic-corpus-disposable-affected/default",
+            "configurations": 1801,
+            "candidateSha256": "52b1295238b0f388d15b5f0e9eeeecc38f9891c672080d1b0a40ea87169fc37a",
+            "compilerSha256": "288b3e84732ca44f364486714aad6cbc6ec2c557c13e1936a9a5981fff41d20a",
+            "outputSha256": "f1c88c7755ad5c71f5e6382deadc2a249ae5f5715f7566f7233590dd6f3cdf2b",
+            "selectionSha256": "a1ee4e1d52785bd5866128abbd5ca950d50b1d5dba1b2ce57028969e81a6eb40"
+        }
+    ],
+    "scope": "Disposable declaration types and grammar, imported helper lookup, private fields, object rest, async functions and generators; full phase 4 remains incomplete.",
+    "nativeAotVerification": "Deferred until final completion per user instruction"
+}

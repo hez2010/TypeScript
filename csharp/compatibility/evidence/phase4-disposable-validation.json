@@ -1,0 +1,111 @@
+{
+    "timestamp": "2026-09-24T15:59:23.1143138+00:00",
+    "configuration": "Release",
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "managed": true,
+    "scope": "Disposable declaration types and grammar, imported helper lookup, private fields, object rest, async functions and generators; full phase 4 remains incomplete",
+    "finalBuildCandidateSha256": "6bcf5d68cd94b994a35d83455cff8cc73803b49a7438b799b050343b842ea224",
+    "finalBuildCompilerSha256": "a2af80efa363876939de6b132d0137397b56968e401d8ad819d0214b6ef43c56",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-disposable-build.log",
+        "sha256": "6969fb0c8f975d291835d2401f9f5f018b5f6565c4d07934044540b709529463",
+        "retryReason": "The formatting-only build overlapped a corpus process and failed copying a loaded DLL. It was retried only after that process completed.",
+        "priorFailureLog": "logs/csharp-phase4-disposable-format-build-lock.log"
+    },
+    "queries": {
+        "signatures": {
+            "record": "phase4-disposable-signatures.json",
+            "cases": 216,
+            "exact": 216,
+            "candidateSha256": "52b1295238b0f388d15b5f0e9eeeecc38f9891c672080d1b0a40ea87169fc37a",
+            "compilerSha256": "a2af80efa363876939de6b132d0137397b56968e401d8ad819d0214b6ef43c56"
+        },
+        "access": {
+            "record": "phase4-disposable-access.json",
+            "cases": 412,
+            "exact": 412,
+            "candidateSha256": "52b1295238b0f388d15b5f0e9eeeecc38f9891c672080d1b0a40ea87169fc37a",
+            "compilerSha256": "a2af80efa363876939de6b132d0137397b56968e401d8ad819d0214b6ef43c56"
+        },
+        "semantic": {
+            "record": "phase4-disposable-semantic.json",
+            "cases": 678,
+            "exact": 678,
+            "candidateSha256": "52b1295238b0f388d15b5f0e9eeeecc38f9891c672080d1b0a40ea87169fc37a",
+            "compilerSha256": "a2af80efa363876939de6b132d0137397b56968e401d8ad819d0214b6ef43c56"
+        }
+    },
+    "safety": {
+        "programAssertions": 70,
+        "newAssertions": 4,
+        "disposableReferenceCodes": [
+            1492,
+            1547,
+            2850,
+            2851,
+            2852,
+            18054
+        ],
+        "referenceInputSha256": "70ac2427514a60df7d5c11683fb96a887e7bc12758902a33e71693ebcc837983",
+        "referenceOutputSha256": "e2a9675de3dc2f41150defef2b86ea19c6b21c92152d59cfea4e03456e24b0f1",
+        "logs": [
+            "logs/csharp-phase4-disposable-program-safety.log"
+        ],
+        "runBeforeWhitespaceFormatting": true
+    },
+    "corpus": {
+        "single": "phase4-disposable-corpus-single.json",
+        "referenceDefault": "phase4-disposable-corpus-default.json",
+        "parity": "phase4-disposable-mode-parity.json",
+        "selectedConfigurationsPerMode": 1801,
+        "previousMatches": 1069,
+        "graphAndCodeMatches": 1182,
+        "recoveredConfigurations": 113,
+        "regressions": []
+    },
+    "formatting": {
+        "csharpFiles": 11,
+        "tokenCommentSyntaxIdentical": true,
+        "libraryConfigurations": 2,
+        "dotnetWhitespaceExitCode": 0,
+        "diffCheckExitCode": 0,
+        "proofLog": "logs/csharp-phase4-disposable-format.log",
+        "proofSha256": "a1619b60de88c314d23216351be3fadd18dbc6c6639ad1b69dd4e9429c5d6a6d",
+        "validationReuse": "Validation used normal Release binaries from before and after whitespace formatting. Tokens, comments and syntax are identical in both library configurations. Artifact hashes remain in individual records; the successful checks were not repeated after the copy retry."
+    },
+    "reusedValidation": {
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "repositoryCommand": "npx hereby validate --all",
+        "repositoryExitCode": 0,
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            "csharp/tools",
+            ".github/copilot-instructions.md"
+        ],
+        "reason": "User directed reuse of unchanged validation results. Go product code, repository tooling and checker generators are unchanged; only affected C# query, safety and corpus checks were rerun.",
+        "fullCorpusBaseline": [
+            "phase4-corpus-release-single.json",
+            "phase4-corpus-release-default.json"
+        ],
+        "previousAffectedCorpus": [
+            "phase4-jsdoc-corpus-single.json",
+            "phase4-jsdoc-corpus-default.json",
+            "phase4-expando-corpus-single.json",
+            "phase4-expando-corpus-default.json",
+            "phase4-condition-corpus-single.json",
+            "phase4-condition-corpus-default.json",
+            "phase4-destructuring-corpus-single.json",
+            "phase4-destructuring-corpus-default.json"
+        ]
+    },
+    "nativeAotVerification": "Deferred until final completion per user instruction; no NativeAOT build or execution",
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "phase4Complete": false
+}

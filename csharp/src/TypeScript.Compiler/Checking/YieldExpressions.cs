@@ -14,7 +14,7 @@ internal interface IYieldExpressionHost
 
     void ExpressionError(SyntaxNode node, int code);
 
-    void AsyncYieldHelpers(SyntaxNode node);
+    ValueTask AsyncYieldHelpersAsync(SyntaxNode node, CancellationToken cancellation);
 }
 
 internal sealed class YieldExpressions(TypeContext context, TypeAlgebra algebra, GeneratorTypes generators, IteratorProtocols protocols,
@@ -34,7 +34,7 @@ internal sealed class YieldExpressions(TypeContext context, TypeAlgebra algebra,
             return context.AnyType;
         bool async = SemanticSyntax.HasModifier(function, SyntaxKind.AsyncKeyword);
         if (async && node.AsteriskToken is not null)
-            host.AsyncYieldHelpers(node);
+            await host.AsyncYieldHelpersAsync(node, cancellation).ConfigureAwait(false);
         var annotation = await signatures.AnnotationAsync(function, cancellation).ConfigureAwait(false);
         if (annotation is UnionType)
             annotation = await algebra.FilterAsync(

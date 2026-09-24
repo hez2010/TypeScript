@@ -155,7 +155,7 @@ internal sealed partial class Checker
 
     private async ValueTask CheckForInSourceAsync(ForInOrOfStatementNode node, CancellationToken cancellation)
     {
-        ForEachGrammar(node);
+        await ForEachGrammarAsync(node, cancellation).ConfigureAwait(false);
         var right = await Expressions.CheckAsync(node.Expression!, cancellation: cancellation).ConfigureAwait(false);
         if (await Facts.GetAsync(right, TypeFacts.IsUndefinedOrNull, cancellation).ConfigureAwait(false) != 0)
             right = await Facts.NonNullableAsync(right, cancellation).ConfigureAwait(false);
@@ -195,7 +195,7 @@ internal sealed partial class Checker
         await CheckSourceElementAsync(node.Statement, cancellation).ConfigureAwait(false);
     }
 
-    private void ForEachGrammar(ForInOrOfStatementNode node)
+    private async ValueTask ForEachGrammarAsync(ForInOrOfStatementNode node, CancellationToken cancellation)
     {
         if (AmbientStatement(node))
             return;
@@ -219,8 +219,8 @@ internal sealed partial class Checker
                     return;
                 }
             }
-            if (TargetYear < 2018 && program.Symbols.Program.Configuration.Options.Boolean("importHelpers") == true)
-                throw new InvalidOperationException("Checker requires for-await emit helper validation");
+            if (TargetYear < 2018)
+                await ExternalHelpersAsync(node, ["__asyncValues"], cancellation);
         }
         if (!grammar)
             return;

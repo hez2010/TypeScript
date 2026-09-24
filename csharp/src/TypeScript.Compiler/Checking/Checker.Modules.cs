@@ -84,6 +84,11 @@ internal sealed partial class Checker
             && program.Symbols.Program.Configuration.Options.Boolean("verbatimModuleSyntax") == true && EmitModuleKind(node) == 1
             && modifiers.FirstOrDefault(m => m.Kind == SyntaxKind.ExportKeyword) is { } export)
             Error(export, 1287);
+        else if (node is VariableStatementNode { DeclarationList: { } declarations } && (declarations.Flags & NodeFlags.Using) != 0
+            && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0
+            && modifiers.FirstOrDefault(
+                m => m.Kind is SyntaxKind.ExportKeyword or SyntaxKind.DefaultKeyword or SyntaxKind.DeclareKeyword) is { } modifier)
+            Error(modifier, (declarations.Flags & NodeFlags.BlockScoped) == NodeFlags.AwaitUsing ? 1495 : 1491);
     }
 
     private async ValueTask CheckNamespaceSourceAsync(ModuleDeclarationNode node, CancellationToken cancellation)

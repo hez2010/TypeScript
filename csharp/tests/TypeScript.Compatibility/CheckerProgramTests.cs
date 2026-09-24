@@ -377,7 +377,80 @@ internal static class CheckerProgramTests
         }
         Check(loopChecker.CheckedFileCount == 1 && loopChecker.DiagnosticCodesForFile(loopProgram.SourceFiles[0].Syntax).Count == 0);
         Check(loopChecker.FlowTypes.ActiveLoopCount == 0);
+        checks += await DisposableSafety();
         Console.WriteLine($"{checks} program/checker ownership assertions; interface and scope depth 20000");
+    }
+
+    private static async Task<int> DisposableSafety()
+    {
+        const string library = """
+            interface Array<T> { length: number; [n: number]: T; }
+            interface SymbolConstructor { readonly dispose: unique symbol; readonly asyncDispose: unique symbol; }
+            declare const Symbol: SymbolConstructor;
+            interface Disposable { [Symbol.dispose](): void; }
+            interface AsyncDisposable { [Symbol.asyncDispose](): PromiseLike<void>; }
+            interface PromiseLike<T> { then(onfulfilled: (value: T) => unknown): unknown; }
+            interface Promise<T> extends PromiseLike<T> { }
+            declare const Promise: any;
+            """;
+        const string source = """
+            export {};
+            function sync() {
+                using good = { [Symbol.dispose]() {} };
+                using bad = 1;
+                switch (0) { case 0: using invalid = null; }
+            }
+            async function asynchronous() {
+                await using good = { [Symbol.asyncDispose]() { return null as any; } };
+                await using bad = 1;
+            }
+            function nonAsync() { await using invalid = null; }
+            class C { static { await using invalid = null; } }
+            using { x } = { x: null };
+            """;
+        static async ValueTask<(Checker Checker, SourceFileNode File)> Create(
+            string text,
+            string library,
+            string? helpers,
+            bool importHelpers)
+        {
+            var options = new CompilerOptions();
+            options.SetRaw("noLib", "true");
+            options.SetRaw("strict", "true");
+            options.SetRaw("target", "\"es2015\"");
+            options.SetRaw("module", "\"esnext\"");
+            options.SetRaw("importHelpers", importHelpers ? "true" : "false");
+            var files = new Dictionary<string, byte[]>
+            { ["/project/main.ts"] = Wtf8.Encode(text), ["/project/globals.d.ts"] = Wtf8.Encode(library) };
+            if (helpers is not null)
+                files.Add("/project/node_modules/tslib/index.d.ts", Wtf8.Encode(helpers));
+            var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
+                new("/project/tsconfig.json", options, ["/project/main.ts", "/project/globals.d.ts"], [], [], []));
+            return (await program.CreateCheckerAsync(), program.GetFile("/project/main.ts")!.Syntax);
+        }
+        var (checker, file) = await Create(source, library, null, false);
+        await checker.CheckSourceFileAsync(file);
+        int[] expected = [1492, 1547, 2850, 2851, 2852, 18054];
+        var codes = checker.DiagnosticCodesForFile(file);
+        if (!codes.SequenceEqual(expected))
+            throw new InvalidOperationException($"Disposable diagnostics: {string.Join(',', codes)}");
+        int checks = 1;
+        foreach (string? helpers in new string?[]
+        {
+            null,
+            "export {};",
+            "export declare const __addDisposableResource: any, __disposeResources: any;"
+        })
+        {
+            var (helperChecker, helperFile) = await Create("export {}; using first = null; using second = null;", library, helpers, true);
+            await helperChecker.CheckSourceFileAsync(helperFile);
+            int[] helperExpected = helpers is null ? [2354] : helpers == "export {};" ? [2343, 2343] : [];
+            var helperCodes = helperChecker.DiagnosticCodesForFile(helperFile);
+            if (!helperCodes.SequenceEqual(helperExpected))
+                throw new InvalidOperationException($"Disposable helper diagnostics: {string.Join(',', helperCodes)}");
+            checks++;
+        }
+        return checks;
     }
 
     internal static void Lines()

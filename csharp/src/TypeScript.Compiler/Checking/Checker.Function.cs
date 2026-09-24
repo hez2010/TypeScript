@@ -62,13 +62,14 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
     public void TopLevelAwait(SyntaxNode node)
         => TopLevelAwait(node, 1375, 1378);
 
-    private void TopLevelAwait(SyntaxNode node, int moduleRequired, int invalidMode)
+    private bool TopLevelAwait(SyntaxNode node, int moduleRequired, int invalidMode)
     {
         var file = SemanticSyntax.Source(node)!;
         var options = program.Symbols.Program.Configuration.Options;
-        if (program.Symbols.Binding(file)?.IsModule != true
+        bool invalid = program.Symbols.Binding(file)?.IsModule != true
             && options.String("moduleDetection") != "force"
-            && options.Number("moduleDetection") != 3)
+            && options.Number("moduleDetection") != 3;
+        if (invalid)
             Error(node, moduleRequired);
         var module = options.String("module") ?? options.Number("module") switch
         {
@@ -87,9 +88,16 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
             module = TargetYear >= 2022 ? "es2022" : "commonjs";
         bool nodeModule = module is "node16" or "node18" or "node20" or "nodenext";
         if (nodeModule && program.Symbols.Program.SourceFiles.First(f => f.Syntax == file).ImpliedFormat == ReferenceResolutionMode.Require)
+        {
             Error(node, 1309);
+            invalid = true;
+        }
         else if (TargetYear < 2017 || !nodeModule && module is not ("es2022" or "esnext" or "preserve" or "system"))
+        {
             Error(node, invalidMode);
+            invalid = true;
+        }
+        return invalid;
     }
 
     internal HashSet<SyntaxNode> UnusedIdentifierScopes { get; } = [];
@@ -237,11 +245,13 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
     {
         cancellation.ThrowIfCancellationRequested();
         await CheckUnmatchedDocumentationParametersAsync(node, cancellation).ConfigureAwait(false);
-        if (SemanticSyntax.Generator(node))
-            AsyncYieldHelpers(node);
-        if (SemanticSyntax.HasModifier(node, SyntaxKind.AsyncKeyword)
-            && TargetYear < 2017 && program.Symbols.Program.Configuration.Options.Boolean("importHelpers") == true)
-            throw new InvalidOperationException("Checker requires async emit helpers");
+        if (SemanticSyntax.HasModifier(node, SyntaxKind.AsyncKeyword))
+        {
+            if (SemanticSyntax.Generator(node) && TargetYear < 2018)
+                await ExternalHelpersAsync(node, ["__await", "__asyncGenerator"], cancellation);
+            else if (!SemanticSyntax.Generator(node) && TargetYear < 2017)
+                await ExternalHelpersAsync(node, ["__awaiter"], cancellation);
+        }
     }
 
     public async ValueTask CheckFunctionReturnAsync(SyntaxNode node, SyntaxNode annotation, Type type, CancellationToken cancellation)
@@ -313,9 +323,8 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
             RenamedBindingElements.Add(node);
             return true;
         }
-        if (node.DotDotDotToken is not null && node.Parent!.Kind == SyntaxKind.ObjectBindingPattern && TargetYear < 2018
-            && program.Symbols.Program.Configuration.Options.Boolean("importHelpers") == true)
-            throw new InvalidOperationException("Checker requires object-rest emit helpers");
+        if (node.DotDotDotToken is not null && node.Parent!.Kind == SyntaxKind.ObjectBindingPattern && TargetYear < 2018)
+            await ExternalHelpersAsync(node, ["__rest"], cancellation);
         if (node.PropertyName is ComputedPropertyNameNode computed)
             await ObjectLiterals.ComputedAsync(computed, cancellation);
         return false;

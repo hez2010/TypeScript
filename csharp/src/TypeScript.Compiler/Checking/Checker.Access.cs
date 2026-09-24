@@ -253,8 +253,8 @@ internal sealed partial class Checker : IAccessExpressionHost, IIndexedAccessVal
             && program.Symbols.Program.Configuration.Options.Boolean("checkJs") is null;
 
     public ValueTask PrivateEmitHelpersAsync(SyntaxNode node, bool read, bool write, CancellationToken cancellation)
-            => program.Symbols.Program.Configuration.Options.Boolean("importHelpers") != true ? ValueTask.CompletedTask
-                : throw new InvalidOperationException("Checker requires external private-field emit helpers");
+            => ExternalHelpersAsync(node, read && write ? ["__classPrivateFieldGet", "__classPrivateFieldSet"]
+                : read ? ["__classPrivateFieldGet"] : write ? ["__classPrivateFieldSet"] : ["__classPrivateFieldIn"], cancellation);
 
     public async ValueTask<Type> LiteralNameTypeAsync(SyntaxNode node, CancellationToken cancellation)
     {

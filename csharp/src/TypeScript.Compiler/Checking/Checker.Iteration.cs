@@ -53,11 +53,11 @@ internal sealed partial class Checker : IIteratorProtocolHost, IIterationElement
     public ValueTask<Type> CheckGeneratorOperandAsync(SyntaxNode node, CheckMode mode, CancellationToken cancellation) =>
         Expressions.CheckAsync(node, mode, cancellation);
 
-    public void AsyncYieldHelpers(SyntaxNode node)
-    {
-        if (TargetYear < 2018 && program.Symbols.Program.Configuration.Options.Boolean("importHelpers") == true)
-            throw new InvalidOperationException("Checker requires async generator emit helper validation");
-    }
+    public ValueTask AsyncYieldHelpersAsync(SyntaxNode node, CancellationToken cancellation)
+        =>
+            TargetYear < 2018
+                ? ExternalHelpersAsync(node, ["__await", "__asyncDelegator", "__asyncValues"], cancellation)
+                : ValueTask.CompletedTask;
 
     public void DeferIteratorDiagnostic(SyntaxNode node, Type type, bool async, IReadOnlyList<IterationDiagnostic> related) =>
         DeferredIterationDiagnostics.Add((node, type, async, related));
