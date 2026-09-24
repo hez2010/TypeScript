@@ -82,6 +82,8 @@ internal sealed partial class ProgramTypeHost : IIdentifierTypeHost, IReferenceT
             return await Algebra.UnionAsync([awaited, promise == context.EmptyGenericType ? context.UnknownType
                 : context.CreateTypeReference((InterfaceType)promise, [awaited])], cancellation: cancellation);
         }
+        if (node.Parent is YieldExpressionNode yield)
+            return await Generators.OperandContextAsync(yield, flags, cancellation);
         if (node.Parent is ReturnStatementNode or ArrowFunctionNode)
         {
             var function = DeclarationOrder.Ancestor(node.Parent, n => n is IFunctionSignature)!;
@@ -89,7 +91,14 @@ internal sealed partial class ProgramTypeHost : IIdentifierTypeHost, IReferenceT
             if (contextual is null)
                 return null;
             if (SemanticSyntax.Generator(function))
-                throw new InvalidOperationException("Probe requires generator return-expression contexts");
+            {
+                contextual = await Generators.ReturnExpressionAsync(
+                    contextual,
+                    SemanticSyntax.HasModifier(function, SyntaxKind.AsyncKeyword),
+                    cancellation);
+                if (contextual is null)
+                    return null;
+            }
             if (SemanticSyntax.HasModifier(function, SyntaxKind.AsyncKeyword))
             {
                 var awaited = await Awaited.GetAsync(contextual, false, cancellation: cancellation);

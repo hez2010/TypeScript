@@ -110,8 +110,16 @@ internal static class FunctionSyntax
         {
             if (node is YieldExpressionNode expression)
                 yield return expression;
-            if (node != body && (node is IFunctionSignature || SemanticSyntax.ClassLike(node)))
+            if (node.Kind is SyntaxKind.EnumDeclaration or SyntaxKind.InterfaceDeclaration or SyntaxKind.ModuleDeclaration
+                or SyntaxKind.TypeAliasDeclaration
+                || SemanticSyntax.TypeNode(node))
                 continue;
+            if (node is IFunctionSignature)
+            {
+                if (node is INamedNode { Name: ComputedPropertyNameNode { Expression: { } name } })
+                    pending.Push(name);
+                continue;
+            }
             for (int i = node.ChildCount - 1; i >= 0; i--)
                 pending.Push(node.GetChild(i));
         }

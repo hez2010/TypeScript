@@ -17,6 +17,7 @@ public sealed class TypeContext
     private readonly Dictionary<(Type, bool), IndexType> indexes = [];
     private readonly Dictionary<(Type, Type), SubstitutionType> substitutions = [];
     private readonly Dictionary<Symbol, UniqueSymbolType> uniqueSymbols = [];
+    internal IEnumerable<UniqueSymbolType> UniqueSymbols => uniqueSymbols.Values;
 
     public bool StrictNullChecks { get; }
     public bool ExactOptionalPropertyTypes { get; }

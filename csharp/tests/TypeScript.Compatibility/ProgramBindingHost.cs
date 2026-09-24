@@ -13,22 +13,16 @@ internal sealed partial class ProgramTypeHost : IBindingTypeHost
         links.TypeNodes.Get(expression).ResolvedType is { } type ? ValueTask.FromResult(type) : ExpressionAsync(expression, cancellation);
 
     public ValueTask<Type> BindingIterationAsync(Type type, SyntaxNode? pattern, bool possiblyOutOfBounds, CancellationToken cancellation) =>
-        Bindings.ArrayIterationAsync(type, pattern, possiblyOutOfBounds, cancellation);
-
-    public ValueTask<Type> IterableTypeAsync(CancellationToken cancellation) =>
-        program.Globals.GetAsync("Iterable", 3, false, cancellation);
-
-    public ValueTask<Type> IterableElementAsync(Type type, SyntaxNode? node, bool possiblyOutOfBounds, CancellationToken cancellation) =>
-        throw new InvalidOperationException("Probe requires Symbol.iterator protocol validation");
-
-    public ValueTask InvalidArrayIterationAsync(Type type, SyntaxNode node, CancellationToken cancellation) =>
-        throw new InvalidOperationException("Probe requires iterator diagnostic and awaited-type hints");
+        Iteration.CheckAsync(IterationUse.Destructuring | (possiblyOutOfBounds ? IterationUse.PossiblyOutOfBounds : 0),
+            type, context.UndefinedType, pattern, cancellation);
 
     public ValueTask<Type> InitialVariableAsync(VariableDeclarationNode variable, CancellationToken cancellation) =>
         variable.Initializer is { } initializer ? InitializerTypeAsync(initializer, cancellation)
             : variable.Parent?.Parent?.Kind == TypeScript.Compiler.Syntax.SyntaxKind.ForInStatement ? ValueTask.FromResult<Type>(context.StringType)
             : variable.Parent?.Parent?.Kind == TypeScript.Compiler.Syntax.SyntaxKind.ForOfStatement
-                ? throw new InvalidOperationException("Probe requires for-of initial types") : ValueTask.FromResult<Type>(context.ErrorType);
+                ? ForOfElementAsync(
+                    (ForInOrOfStatementNode)variable.Parent.Parent,
+                    cancellation) : ValueTask.FromResult<Type>(context.ErrorType);
 
     public async ValueTask<bool> ArrayLikeAsync(Type type, CancellationToken cancellation) =>
         IsArray(type) || (type.Flags & TypeFlags.Nullable) == 0

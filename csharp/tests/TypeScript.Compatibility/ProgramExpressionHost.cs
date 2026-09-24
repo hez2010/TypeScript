@@ -78,6 +78,8 @@ internal sealed partial class ProgramTypeHost : IExpressionTypeHost, IExpression
         }
         if (node is ArrayLiteralExpressionNode array)
             return await ArrayLiterals.CheckAsync(array, mode, cancellation);
+        if (node is YieldExpressionNode yield)
+            return await Yields.CheckAsync(yield, cancellation);
         if (node is ObjectLiteralExpressionNode literal)
             return await ObjectLiterals.CheckAsync(literal, mode, cancellation);
         if (node.Kind == SyntaxKind.ThisKeyword)

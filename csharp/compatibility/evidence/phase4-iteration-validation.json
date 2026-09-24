@@ -1,0 +1,191 @@
+{
+    "timestamp": "2026-09-24T08:31:30.2325864+00:00",
+    "scope": "Iterator protocols, iteration elements, generator contexts and inference, yield expressions, spreads, destructuring and for-of/for-await-of/for-in variable types; complete checker integration remains open",
+    "candidateSha256": "f65c20c3ad6c2583b3321386aac6f8c7ca9cd7a281918ff5be57a2f068939073",
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "languageVersion": "15.0",
+    "runtimeAsync": true,
+    "optimizationPreference": "Speed",
+    "instructionSet": "native",
+    "publish": {
+        "exitCode": 0,
+        "log": "logs/csharp-phase4-iteration-publish.log",
+        "sha256": "03933be2dc34223ee88005d844f6919fd7786869077fd93acbb392005d81ccfb"
+    },
+    "sourceComparisons": {
+        "program": {
+            "cases": 180,
+            "exact": 180,
+            "failed": 0,
+            "record": "phase4-iteration-program.json"
+        },
+        "aliases": {
+            "cases": 124,
+            "exact": 124,
+            "failed": 0,
+            "record": "phase4-iteration-aliases.json"
+        },
+        "type-nodes": {
+            "cases": 192,
+            "exact": 192,
+            "failed": 0,
+            "record": "phase4-iteration-type-nodes.json"
+        },
+        "members": {
+            "cases": 176,
+            "exact": 176,
+            "failed": 0,
+            "record": "phase4-iteration-members.json"
+        },
+        "values": {
+            "cases": 136,
+            "exact": 136,
+            "failed": 0,
+            "record": "phase4-iteration-values.json"
+        },
+        "properties": {
+            "cases": 192,
+            "exact": 192,
+            "failed": 0,
+            "record": "phase4-iteration-properties.json"
+        },
+        "signatures": {
+            "cases": 216,
+            "exact": 216,
+            "failed": 0,
+            "record": "phase4-iteration-signatures.json"
+        },
+        "identity": {
+            "cases": 160,
+            "exact": 160,
+            "failed": 0,
+            "record": "phase4-iteration-identity.json"
+        },
+        "assignability": {
+            "cases": 332,
+            "exact": 332,
+            "failed": 0,
+            "record": "phase4-iteration-assignability.json"
+        },
+        "indexing": {
+            "cases": 320,
+            "exact": 320,
+            "failed": 0,
+            "record": "phase4-iteration-indexing.json"
+        },
+        "generic-relations": {
+            "cases": 128,
+            "exact": 128,
+            "failed": 0,
+            "record": "phase4-iteration-generic-relations.json"
+        },
+        "conditional": {
+            "cases": 152,
+            "exact": 152,
+            "failed": 0,
+            "record": "phase4-iteration-conditional.json"
+        },
+        "inference": {
+            "cases": 176,
+            "exact": 176,
+            "failed": 0,
+            "record": "phase4-iteration-inference.json"
+        },
+        "expressions": {
+            "cases": 40,
+            "exact": 40,
+            "failed": 0,
+            "record": "phase4-iteration-expressions.json"
+        },
+        "constants": {
+            "cases": 48,
+            "exact": 48,
+            "failed": 0,
+            "record": "phase4-iteration-constants.json"
+        },
+        "initializers": {
+            "cases": 48,
+            "exact": 48,
+            "failed": 0,
+            "record": "phase4-iteration-initializers.json"
+        },
+        "binary": {
+            "cases": 56,
+            "exact": 56,
+            "failed": 0,
+            "record": "phase4-iteration-binary.json"
+        },
+        "awaited": {
+            "cases": 24,
+            "exact": 24,
+            "failed": 0,
+            "record": "phase4-iteration-awaited.json"
+        },
+        "references": {
+            "cases": 140,
+            "exact": 140,
+            "failed": 0,
+            "record": "phase4-iteration-references.json"
+        },
+        "flow": {
+            "cases": 212,
+            "exact": 212,
+            "failed": 0,
+            "record": "phase4-iteration-flow.json"
+        },
+        "identifiers": {
+            "cases": 652,
+            "exact": 652,
+            "failed": 0,
+            "record": "phase4-iteration-identifiers.json"
+        },
+        "access": {
+            "cases": 412,
+            "exact": 412,
+            "failed": 0,
+            "record": "phase4-iteration-access.json"
+        }
+    },
+    "totalSourceComparisons": 4116,
+    "newIterationConfigurations": 68,
+    "comparisonPolicyChanges": [
+        "Unique-symbol property-name allocator suffixes are serialized using the defining declaration AST identity; names, distinct declarations, and checker state remain observable, with no additional type resolution"
+    ],
+    "diagnosticBoundary": "Diagnostic codes and selected state only; deferred iterator diagnostics and related information are not a complete semantic diagnostic comparison",
+    "safety": {
+        "assertions": 629,
+        "newIterationAssertions": 18,
+        "log": "logs/csharp-phase4-iteration-safety.log",
+        "sha256": "6477a104e1be62f03ffb4b1802c48083df8c9025e73f6b2eddf76cba45352aca"
+    },
+    "formatting": {
+        "csharpFiles": 19,
+        "tokenCommentSyntaxIdentical": true,
+        "libraryConfigurations": 2,
+        "dotnetWhitespaceExitCode": 0,
+        "checkerGenerationExitCode": 0,
+        "diffCheckExitCode": 0
+    },
+    "repositoryValidation": {
+        "command": "npx hereby validate --all",
+        "exitCode": 0,
+        "isolatedCheckout": "D:/source/repos/TypeScript-phase4-iteration-validation",
+        "snapshotFiles": 46,
+        "snapshotHashesVerifiedBeforeAndAfter": true,
+        "snapshotManifestSha256": "2802b75cf6d4f9551560237f966eb037e91c21f4559024e60722ef5477c9f1e3",
+        "log": "logs/csharp-phase4-iteration-validation.log",
+        "sha256": "6c8e1c30ebe8f13906b798e248aa318492ac09a0ac33f92d039cd5b36818faf1",
+        "goTests": 163380,
+        "goSkipped": 2152,
+        "apiTests": 813,
+        "extensionTests": 12,
+        "toolsTests": 17,
+        "lintIssues": 0,
+        "elapsed": "5m 8.2s",
+        "productGoJavaScriptUnchanged": true
+    },
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "phase4Complete": false
+}

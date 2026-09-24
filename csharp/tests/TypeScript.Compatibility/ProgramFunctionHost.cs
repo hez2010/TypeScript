@@ -135,7 +135,16 @@ internal sealed partial class ProgramTypeHost : IFunctionContextHost, IFunctionB
     public async ValueTask<Type?> UnwrapReturnAsync(SyntaxNode node, Type type, CancellationToken cancellation)
     {
         if (SemanticSyntax.Generator(node))
-            throw new InvalidOperationException("Probe requires generator return iteration types");
+        {
+            var result = (await Iterators.GeneratorAsync(
+                type,
+                SemanticSyntax.HasModifier(node, SyntaxKind.AsyncKeyword),
+                cancellation)).Return;
+            if (result is null)
+                return context.ErrorType;
+            return SemanticSyntax.HasModifier(node, SyntaxKind.AsyncKeyword)
+                ? await Awaited.GetAsync(await Awaited.UnwrapAsync(result, cancellation), false, cancellation: cancellation) : result;
+        }
         return SemanticSyntax.HasModifier(node, SyntaxKind.AsyncKeyword)
             ? await Awaited.GetAsync(type, false, cancellation: cancellation) ?? context.ErrorType : type;
     }
@@ -166,26 +175,35 @@ internal sealed partial class ProgramTypeHost : IFunctionContextHost, IFunctionB
         }
     }
 
-    public ValueTask<Type?> GeneratorContextReturnAsync(SyntaxNode node, Type type, CancellationToken cancellation) =>
-        throw new InvalidOperationException("Probe requires contextual generator validation");
+    public async ValueTask<Type?> GeneratorContextReturnAsync(SyntaxNode node, Type type, CancellationToken cancellation) =>
+        await Generators.ContextReturnAsync(type, SemanticSyntax.HasModifier(node, SyntaxKind.AsyncKeyword), cancellation);
 
     public ValueTask<(IReadOnlyList<Type> Yield, IReadOnlyList<Type> Next)> YieldTypesAsync(
         SyntaxNode node,
         CheckMode mode,
         CancellationToken cancellation) =>
-        throw new InvalidOperationException("Probe requires generator yield/next inference");
+        Generators.AggregateAsync(node, mode, cancellation);
 
-    public ValueTask<Type> GeneratorResultAsync(SyntaxNode node, Type yield, Type result, Type? next, CancellationToken cancellation) =>
-        throw new InvalidOperationException("Probe requires generator result types");
+    public async ValueTask<Type> GeneratorResultAsync(SyntaxNode node, Type yield, Type result, Type? next, CancellationToken cancellation) =>
+        await Generators.CreateAsync(yield, result, next ?? await Generators.ContextualAsync(node, IterationTypeKind.Next, cancellation),
+            SemanticSyntax.HasModifier(node, SyntaxKind.AsyncKeyword), cancellation);
 
     public ValueTask<Type> WidenIterationAsync(SyntaxNode node, Type type, Type? contextual, int kind, CancellationToken cancellation) =>
-        throw new InvalidOperationException("Probe requires contextual iteration widening");
+        Generators.WidenAsync(
+            type,
+            contextual,
+            (IterationTypeKind)kind,
+            SemanticSyntax.HasModifier(node, SyntaxKind.AsyncKeyword),
+            cancellation);
 
     public ValueTask ReportReturnWideningAsync(SyntaxNode node, Type type, WideningKind kind, CancellationToken cancellation) =>
         FunctionWidening.ReportAsync(node, type, kind, cancellation);
 
-    public ValueTask<Type?> ContextualIterationAsync(SyntaxNode node, Type type, WideningKind kind, CancellationToken cancellation) =>
-        throw new InvalidOperationException("Probe requires contextual generator iteration types");
+    public async ValueTask<Type?> ContextualIterationAsync(SyntaxNode node, Type type, WideningKind kind, CancellationToken cancellation) =>
+        (await Iterators.GeneratorAsync(type, SemanticSyntax.HasModifier(node, SyntaxKind.AsyncKeyword), cancellation)).Get(
+            kind == WideningKind.GeneratorYield
+                ? IterationTypeKind.Yield
+                : kind == WideningKind.GeneratorNext ? IterationTypeKind.Next : IterationTypeKind.Return);
 
     public ValueTask CheckFunctionDeclarationAsync(SyntaxNode node, CancellationToken cancellation)
     {
@@ -217,7 +235,7 @@ internal sealed partial class ProgramTypeHost : IFunctionContextHost, IFunctionB
         if ((node.Flags & NodeFlags.JavaScriptFile) != 0)
             throw new InvalidOperationException("Probe requires JSDoc signature declarations");
         if (SemanticSyntax.Generator(node))
-            throw new InvalidOperationException("Probe requires generator signature validation");
+            AsyncYieldHelpers(node);
         if (SemanticSyntax.HasModifier(node, SyntaxKind.AsyncKeyword)
             && TargetYear < 2017 && program.Symbols.Program.Configuration.Options.Boolean("importHelpers") == true)
             throw new InvalidOperationException("Probe requires async emit helpers");
@@ -227,7 +245,13 @@ internal sealed partial class ProgramTypeHost : IFunctionContextHost, IFunctionB
     public async ValueTask CheckFunctionReturnAsync(SyntaxNode node, SyntaxNode annotation, Type type, CancellationToken cancellation)
     {
         if (SemanticSyntax.Generator(node))
-            throw new InvalidOperationException("Probe requires generator annotation validation");
+        {
+            if (type == context.VoidType)
+                Error(annotation, 2505);
+            else if (!await Generators.AssignableReturnAsync(type, SemanticSyntax.HasModifier(node, SyntaxKind.AsyncKeyword), cancellation))
+                Error(annotation, 2322);
+            return;
+        }
         if (!SemanticSyntax.HasModifier(node, SyntaxKind.AsyncKeyword) || type == context.ErrorType
             || (type.Flags & TypeFlags.Any) != 0 && type.Alias is not null)
             return;

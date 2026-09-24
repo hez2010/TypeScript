@@ -38,6 +38,21 @@ if (!process.argv.includes("--no-build")) {
 
 const cases = [];
 const library = `interface IArguments {} interface Object {} interface Function {} interface CallableFunction extends Function {} interface NewableFunction extends Function {} interface String {} interface Number {} interface Boolean {} interface RegExp {} interface Array<T> { length: number; [n: number]: T; } interface ReadonlyArray<T> { readonly length: number; readonly [n: number]: T; } interface ThisType<T> {}`;
+const iterationLibrary = `interface SymbolConstructor { readonly iterator: unique symbol; readonly asyncIterator: unique symbol; } declare const Symbol: SymbolConstructor;
+interface IteratorYieldResult<T> { done?: false; value: T; } interface IteratorReturnResult<T> { done: true; value: T; }
+type IteratorResult<T,TReturn=any> = IteratorYieldResult<T> | IteratorReturnResult<TReturn>;
+interface Iterator<T,TReturn=any,TNext=any> { next(...args: [] | [TNext]): IteratorResult<T,TReturn>; return?(value:TReturn):IteratorResult<T,TReturn>; throw?(error:any):IteratorResult<T,TReturn>; }
+interface Iterable<T,TReturn=any,TNext=any> { [Symbol.iterator](): Iterator<T,TReturn,TNext>; }
+interface IterableIterator<T,TReturn=any,TNext=any> extends Iterator<T,TReturn,TNext> { [Symbol.iterator](): IterableIterator<T,TReturn,TNext>; }
+interface Generator<T=unknown,TReturn=any,TNext=any> extends Iterator<T,TReturn,TNext> { [Symbol.iterator](): Generator<T,TReturn,TNext>; }
+interface Array<T> { [Symbol.iterator](): IterableIterator<T>; } interface ReadonlyArray<T> { [Symbol.iterator](): IterableIterator<T>; }
+interface String { [Symbol.iterator](): IterableIterator<string>; }
+interface PromiseLike<T> { then(onfulfilled:(value:T)=>unknown):unknown; } interface Promise<T> extends PromiseLike<T> {} declare const Promise:any;
+type Awaited<T> = T extends PromiseLike<infer U> ? Awaited<U> : T;
+interface AsyncIterator<T,TReturn=any,TNext=any> { next(...args: [] | [TNext]):Promise<IteratorResult<T,TReturn>>; return?(value:TReturn|PromiseLike<TReturn>):Promise<IteratorResult<T,TReturn>>; throw?(error:any):Promise<IteratorResult<T,TReturn>>; }
+interface AsyncIterable<T,TReturn=any,TNext=any> { [Symbol.asyncIterator]():AsyncIterator<T,TReturn,TNext>; }
+interface AsyncIterableIterator<T,TReturn=any,TNext=any> extends AsyncIterator<T,TReturn,TNext> { [Symbol.asyncIterator]():AsyncIterableIterator<T,TReturn,TNext>; }
+interface AsyncGenerator<T=unknown,TReturn=any,TNext=any> extends AsyncIterator<T,TReturn,TNext> { [Symbol.asyncIterator]():AsyncGenerator<T,TReturn,TNext>; }`;
 function add(name, sources, options = {}, aliases = false, typeNodes = false, members = false, values = false, properties = false, signatures = false, identity = false, assignability = false) {
     for (const concurrency of [1, 4]) {
         const files = Object.fromEntries(Object.entries(sources).map(([name, text]) => [`/project/${name}`, Buffer.from(text).toString("base64")]));
@@ -906,7 +921,36 @@ for (const exactOptionalPropertyTypes of [false, true]) {
         );
     }
 }
+for (const strict of [false, true]) {
+    for (
+        const [name, source] of Object.entries({
+            iterationSpread: "declare const values:Iterable<number>; const result=[...values]; __expr(result); const [first,...rest]=values; __expr(first); __expr(rest);",
+            iterationCustom: "declare const values:{[Symbol.iterator]():{next():{done:false;value:number}|{done:true;value:string}}}; const result=[...values]; __expr(result);",
+            iterationForOf: "declare const values:Iterable<string>; for(const value of values){__expr(value);} for(const value of 'text'){__expr(value);}",
+            iterationGenerator: "function* values(){yield 1;yield 'a';return true;} __expr(values); __expr(values());",
+            iterationAsync: "declare const values:AsyncIterable<Promise<number>>; async function consume(){for await(const value of values){__expr(value);}} __expr(consume);",
+            iterationYield: "function* values():Generator<number,string,boolean>{const next=yield 1; __expr(next); __expr(yield 2); return 'done';} __expr(values);",
+            iterationYieldStar: "declare const source:Iterable<number,string,boolean>; function* values(){return yield* source;} __expr(values); __expr(values());",
+            iterationAsyncGenerator: "declare const promise:Promise<number>; async function* values(){yield promise; return promise;} __expr(values); __expr(values());",
+            iterationAsyncFallback: "declare const source:Iterable<Promise<number>>; async function consume(){for await(const value of source){__expr(value);}} __expr(consume);",
+            iterationUnion: "declare const source:Iterable<number>|Iterable<string>; const [first,...rest]=source; __expr(first); __expr(rest);",
+            iterationOptionalNext: "declare const source:{[Symbol.iterator]():{next?():{value:number}}}; const result=[...source]; __expr(result);",
+            iterationReturnThrow: "declare const source:{[Symbol.iterator]():{next():{done:false;value:number};return?(value:string):{done:true;value:string};throw?():{done:false;value:boolean}}}; const result=[...source]; __expr(result);",
+            iterationInvalidNext: "declare const source:{[Symbol.iterator]():{next(value:string):{value:number}}}; const result=[...source]; __expr(result);",
+            iterationBuiltin: "interface ArrayIterator<T> extends Iterator<T,any,unknown>{[Symbol.iterator]():ArrayIterator<T>} declare const source:ArrayIterator<number>; const result=[...source]; __expr(result);",
+            iterationGeneratorContext: "const values:()=>Generator<1,2,string>=function*(){const next=yield 1; __expr(next); return 2;}; __expr(values);",
+            iterationForOfBinding: "declare const source:Iterable<[number,string]>; for(const [first,second] of source){__expr(first); __expr(second);}",
+            iterationForIn: "type Extract<T,U>=T extends U?T:never; function keys<T>(source:T){for(const key in source){__expr(key);}} declare const source:{value:number}|null; for(const key in source){__expr(key);}",
+        })
+    ) add(`identifiers:${name}:${strict}`, { "globals.d.ts": library + iterationLibrary + " declare function __expr(value:unknown):void;", "main.ts": source }, { strict }, false, true);
+}
 for (const input of cases.filter(c => c.name.startsWith("identifiers:"))) input.identifiers = true;
+for (const input of cases.filter(c => c.name.startsWith("identifiers:iteration"))) {
+    input.functionBodies = true;
+    input.members = true;
+    input.values = true;
+    input.signatures = true;
+}
 for (const input of cases.filter(c => c.name.startsWith("identifiers:function"))) {
     input.functionBodies = true;
     input.members = true;

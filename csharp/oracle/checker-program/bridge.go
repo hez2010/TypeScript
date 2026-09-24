@@ -111,6 +111,15 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 		}
 	}
 	canonicalName := func(s string) string {
+		// Unique-symbol keys embed an allocator ID. Preserve the symbol name and
+		// identity using its declaration, without resolving any additional types.
+		if strings.HasPrefix(s, ast.InternalSymbolNamePrefix+"@") {
+			for symbol, unique := range c.uniqueESSymbolTypes {
+				if unique.AsUniqueESSymbolType().name == s && len(symbol.Declarations) != 0 {
+					return ast.InternalSymbolNamePrefix + "@" + symbol.Name + "@node" + strconv.Itoa(nodeIDs[symbol.Declarations[0]])
+				}
+			}
+		}
 		if end := strings.IndexByte(s, '@'); end > 0 {
 			if owner, ok := privateOwners[s[:end]]; ok {
 				return ast.InternalSymbolNamePrefix + "#node" + strconv.Itoa(owner) + s[end:]

@@ -92,7 +92,7 @@ internal sealed partial class ProgramTypeHost : IFlowTypeHost, IFlowReferenceHos
             else if (variable.Parent?.Parent?.Kind == SyntaxKind.ForInStatement)
                 type = context.StringType;
             else if (variable.Parent?.Parent?.Kind == SyntaxKind.ForOfStatement)
-                throw new InvalidOperationException("Probe requires iteration element types");
+                type = await ForOfElementAsync((ForInOrOfStatementNode)variable.Parent.Parent, cancellation);
             else
                 type = context.ErrorType;
         }
@@ -122,7 +122,8 @@ internal sealed partial class ProgramTypeHost : IFlowTypeHost, IFlowReferenceHos
     public ValueTask<Type> SuperAsync(SyntaxNode node, CancellationToken cancellation) => ThisExpressions.SuperAsync(node, cancellation);
 
     public ValueTask<Type?> IteratedTypeAsync(ForInOrOfStatementNode node, Type expression, CancellationToken cancellation) =>
-        throw new InvalidOperationException("Probe requires iteration type");
+        Iteration.TryAsync(node.AwaitModifier is null ? IterationUse.ForOf : IterationUse.ForAwaitOf,
+            expression, context.UndefinedType, cancellation: cancellation);
 
     public string PrivatePropertyName(Symbol symbol, PrivateIdentifierNode name) => PrivateAccess.Name(symbol, name.Text);
 

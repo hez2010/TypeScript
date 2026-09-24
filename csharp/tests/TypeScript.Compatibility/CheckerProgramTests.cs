@@ -223,6 +223,10 @@ internal static class CheckerProgramTests
                         privateOwners[key[..end]] = Node(node);
         string CanonicalName(string name)
         {
+            if (name.StartsWith(Symbol.InternalPrefix + "@", StringComparison.Ordinal))
+                foreach (var unique in context.UniqueSymbols)
+                    if (unique.Name == name && unique.Symbol?.Declarations.FirstOrDefault() is { } declaration)
+                        return Symbol.InternalPrefix + "@" + unique.Symbol.Name + "@node" + Node(declaration).ToString(CultureInfo.InvariantCulture);
             int end = name.IndexOf('@');
             return end > 0 && privateOwners.TryGetValue(name[..end], out int owner)
                 ? Symbol.InternalPrefix + "#node" + owner.ToString(CultureInfo.InvariantCulture) + name[end..] : name;

@@ -159,6 +159,8 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
         WideningDiagnostics = new(program.Symbols, Widening, Views, Properties, Values, this, (node, code) => Error(node, code));
         Awaited = new(context, Algebra, Instantiation.Constraints, Properties, Values, Parameters, Relations,
             Instantiation.Mapped, Predicates, Views, Facts, this);
+        Iterators = new(context, Algebra, Views, Facts, Properties, Values, Parameters, Signatures, Relations, Awaited, this);
+        Iteration = new(context, Algebra, Iterators, Relations, Awaited, this);
         Binary = new(context, Algebra, Predicates, Facts, Widening, Relations, ExpressionChecks, EnumValues.Evaluator, this);
         Assignments = new(links, program.Symbols, program.ReferenceSymbols, program.EntityNames);
         FlowReferences = new(this);
@@ -207,6 +209,8 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
         FunctionContexts = new(context, links, program.Symbols, Contexts, Algebra, Instantiation.Constraints, Instantiation.Engine,
             Relations, Inference, Signatures, Parameters, SignatureComparison, SignatureComposition, Values, Widening,
             Variables, Bindings, BindingPatterns, Awaited, Instantiation.Resolutions, this);
+        Generators = new(context, Algebra, Iterators, Iteration, Awaited, Contexts, FunctionContexts, Relations, this);
+        Yields = new(context, Algebra, Generators, Iterators, Contexts, Signatures, this);
         FunctionBodies = new(context, program.Symbols, Algebra, Views, Widening, Contexts, FunctionContexts, Signatures,
             Values, Awaited, FlowTypes, Assignments, this);
         FunctionWidening = new(FunctionContexts, Signatures, Awaited, Instantiation.Mapped, WideningDiagnostics, this);

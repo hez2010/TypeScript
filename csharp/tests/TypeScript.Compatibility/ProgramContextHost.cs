@@ -44,7 +44,7 @@ internal sealed partial class ProgramTypeHost : IBindingPatternHost, IExpression
     public bool ContextSensitive(SyntaxNode node) => program.IsContextSensitive(node);
 
     public ValueTask<Type> SpreadElementAsync(Type type, SyntaxNode node, CancellationToken cancellation) =>
-        Bindings.ArrayIterationAsync(type, node, false, cancellation);
+        Iteration.CheckAsync(IterationUse.Spread, type, context.UndefinedType, node, cancellation);
 
     public ValueTask<Type> PatternInitializerAsync(BindingElementNode element, Type contextual, CancellationToken cancellation) =>
         DeclarationInitializerWithContextAsync(element, 0, contextual, cancellation);
@@ -97,16 +97,8 @@ internal sealed partial class ProgramTypeHost : IBindingPatternHost, IExpression
     public ValueTask<Type> DiscriminateObjectContextAsync(ObjectLiteralExpressionNode node, UnionType type, CancellationToken cancellation) =>
         TypeDiscrimination.ObjectAsync(node, type, cancellation);
 
-    public async ValueTask<Type?> IteratedContextAsync(Type type, CancellationToken cancellation)
-    {
-        if ((type.Flags & TypeFlags.Any) != 0)
-            return type;
-        if (await IterableTypeAsync(cancellation) != context.EmptyGenericType)
-            throw new InvalidOperationException("Probe requires contextual iterator types");
-        if (!await ArrayLikeAsync(type, cancellation))
-            return null;
-        return (await IndexesAsync(type, cancellation)).FirstOrDefault(i => i.KeyType == context.NumberType)?.ValueType;
-    }
+    public ValueTask<Type?> IteratedContextAsync(Type type, CancellationToken cancellation) =>
+        Iteration.TryAsync(IterationUse.Element, type, context.UndefinedType, cancellation: cancellation);
 
     public async ValueTask<bool> ConstArgumentAsync(SyntaxNode node, CancellationToken cancellation)
     {

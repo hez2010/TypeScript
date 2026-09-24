@@ -79,12 +79,22 @@ internal sealed partial class ProgramTypeHost : IVariableTypeHost
     public ValueTask<Type> BindingPatternAsync(SyntaxNode pattern, CancellationToken cancellation)
             => BindingPatterns.GetAsync((BindingPatternNode)pattern, false, true, cancellation);
 
-    public ValueTask<Type> IterationVariableAsync(
+    public async ValueTask<Type> IterationVariableAsync(
         VariableDeclarationNode declaration,
         SyntaxNode statement,
         CheckMode mode,
         CancellationToken cancellation)
-            => throw new InvalidOperationException("Probe requires iteration variable inference");
+    {
+        if (statement.Kind == SyntaxKind.ForOfStatement)
+            return await ForOfElementAsync((ForInOrOfStatementNode)statement, cancellation);
+        var expression = await Expressions.CheckAsync(((ForInOrOfStatementNode)statement).Expression!, mode, cancellation);
+        var index = await Keys.GetAsync(await Facts.GetAsync(expression, TypeFacts.IsUndefinedOrNull, cancellation) != 0
+            ? await Facts.NonNullableAsync(expression, cancellation) : expression, cancellation: cancellation);
+        if ((index.Flags & (TypeFlags.TypeParameter | TypeFlags.Index)) != 0
+            && await program.Globals.AliasAsync("Extract", 2, Declared, cancellation) is { } extract)
+            return await References.AliasInstantiationAsync(extract, [index, context.StringType], cancellation: cancellation);
+        return context.StringType;
+    }
 
     public async ValueTask<bool> NullOrUndefinedAsync(SyntaxNode node, CancellationToken cancellation)
     {

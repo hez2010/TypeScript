@@ -11,12 +11,6 @@ internal interface IBindingTypeHost
 
     ValueTask<Type> InitialVariableAsync(VariableDeclarationNode variable, CancellationToken cancellation);
 
-    ValueTask<Type> IterableTypeAsync(CancellationToken cancellation);
-
-    ValueTask<Type> IterableElementAsync(Type type, SyntaxNode? node, bool possiblyOutOfBounds, CancellationToken cancellation);
-
-    ValueTask InvalidArrayIterationAsync(Type type, SyntaxNode node, CancellationToken cancellation);
-
     ValueTask<Type> DeclarationInitializerAsync(SyntaxNode declaration, CheckMode mode, CancellationToken cancellation);
 
     ValueTask<Type> InitializerTypeAsync(SyntaxNode expression, CancellationToken cancellation);
@@ -90,33 +84,6 @@ internal sealed class BindingTypes(TypeContext context, CheckerLinks links, Chec
                     cancellation: cancellation).ConfigureAwait(false);
         }
         return type;
-    }
-
-    internal async ValueTask<Type> ArrayIterationAsync(Type type, SyntaxNode? node, bool possiblyOutOfBounds,
-        CancellationToken cancellation = default)
-    {
-        cancellation.ThrowIfCancellationRequested();
-        context.RequireOwned(type);
-        if ((type.Flags & TypeFlags.Any) != 0)
-            return type;
-        if (type == context.NeverType)
-        {
-            if (node is not null)
-                host.BindingError(node, 2488);
-            return context.AnyType;
-        }
-        if (await host.IterableTypeAsync(cancellation).ConfigureAwait(false) != context.EmptyGenericType)
-            return await host.IterableElementAsync(type, node, possiblyOutOfBounds, cancellation).ConfigureAwait(false);
-        if (!await host.ArrayLikeAsync(type, cancellation).ConfigureAwait(false))
-        {
-            if (node is not null)
-                await host.InvalidArrayIterationAsync(type, node, cancellation).ConfigureAwait(false);
-            return context.AnyType;
-        }
-        var element = (await host.IndexesAsync(type, cancellation).ConfigureAwait(false))
-            .FirstOrDefault(info => info.KeyType == context.NumberType)?.ValueType;
-        return element is null ? context.AnyType : possiblyOutOfBounds && host.NoUncheckedIndexedAccess
-            ? await algebra.UnionAsync([element, context.MissingType], cancellation: cancellation).ConfigureAwait(false) : element;
     }
 
     internal async ValueTask<Type> InitialArrayElementAsync(Type type, int index, CancellationToken cancellation = default)

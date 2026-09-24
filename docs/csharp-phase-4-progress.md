@@ -559,6 +559,16 @@ node csharp/tools/checker-program.mjs --identifiers --filter call
 & ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-signatures-safety
 ```
 
+## Iterator and generator protocols
+
+`IteratorProtocols`, `IterationElements`, `GeneratorTypes` and `YieldExpressions` implement synchronous/asynchronous iterator lookup, standard-library fast paths, structural `next`/`return`/`throw` analysis, async-from-sync behavior, iteration element checks, generator yield/return/next inference, contextual generator types and yield-expression checks. Spread, destructuring, contextual array elements and `for…of` now share these services. The superseded array-only binding helper was removed. Iteration-variable inference also handles generic `for…in` keys.
+
+Windows x64 NativeAOT passes **4,116 exact source-program configurations**, including **68 new iteration configurations**, and **629 safety assertions**. The new cases cover structural and builtin iterators, optional/invalid `next`, return/throw unions, synchronous/asynchronous iteration, promise elements, destructured loop variables, generator contexts, `yield` and `yield*`. Eighteen new assertions cover iteration results, negative-cache diagnostic retries, cancellation/recovery, ownership and a 20,000-level yield traversal. These are component checks, not the complete semantic corpus gate.
+
+The comparison serializer replaces the allocator suffix in unique-symbol property names with the defining declaration's AST identity. It preserves names and distinct declarations, reads existing symbol/type state, and does not change checker keys or force type resolution. This makes `Symbol.iterator` and `Symbol.asyncIterator` graphs comparable across processes.
+
+Evidence: [identifier and iteration comparisons](../csharp/compatibility/evidence/phase4-iteration-identifiers.json), [signature regressions](../csharp/compatibility/evidence/phase4-iteration-signatures.json), [flow regressions](../csharp/compatibility/evidence/phase4-iteration-flow.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-iteration-validation.json). Deferred iterator diagnostic formatting and related information, generator emit helpers, remaining declaration/body checks and complete checker integration remain open.
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
@@ -566,9 +576,9 @@ The following phase-4 requirements remain open:
 1. Complete the program/checker entry point, module interop/type adaptation, computed exports and type/value symbol resolution. Program-backed globals, augmentation merging, declaration headers and alias/export algorithms now exist; their remaining semantic callbacks must be connected.
 2. Complete relation diagnostics and remaining type-node dependencies; connect the implemented declaration/type-node, algebra, scope, inference, instantiation and tuple algorithms to complete checker services.
 3. Remaining expression forms and special call forms, full declaration checking, JavaScript and JSDoc semantics, and completion of contextual/inference integration across those services.
-4. Complete iterator/generator services and property/declaration flow integration; complete constructor/`in`/`instanceof` narrowing, initialization/reference services and semantic diagnostics.
+4. Complete property/declaration flow integration, constructor/`in`/`instanceof` narrowing, initialization/reference services, and iterator/generator diagnostic and emit integration.
 5. Remaining indexed/member diagnostic and declaration services, JSX, decorators and grammar checks.
 6. Type display, node builders, symbol accessibility and emit-resolver APIs.
 7. All active checker/compiler type/symbol/diagnostic comparisons at single and reference-default concurrency; audits of intentional differences; complete semantic workload memory/performance measurements.
 
-The next integration work is iterator/generator protocols and remaining expression/declaration services, followed by complete diagnostic attribution and module type adaptation over the program-backed symbol environment. There is still no complete production checker entry point. Component comparison counts and validation of the existing Go backend do not measure full C# checker completion. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.
+The next integration work is remaining expression/declaration services, complete diagnostic attribution and module type adaptation over the program-backed symbol environment. There is still no complete production checker entry point. Component comparison counts and validation of the existing Go backend do not measure full C# checker completion. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.

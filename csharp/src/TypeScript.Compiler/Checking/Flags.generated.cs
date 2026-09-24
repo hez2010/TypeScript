@@ -430,6 +430,36 @@ public enum WideningKind : int
     GeneratorYield = 3,
 }
 
+[Flags]
+public enum IterationUse : uint
+{
+    AllowsSyncIterablesFlag = 1u << 0,
+    AllowsAsyncIterablesFlag = 1u << 1,
+    AllowsStringInputFlag = 1u << 2,
+    ForOfFlag = 1u << 3,
+    YieldStarFlag = 1u << 4,
+    SpreadFlag = 1u << 5,
+    DestructuringFlag = 1u << 6,
+    PossiblyOutOfBounds = 1u << 7,
+    Element = AllowsSyncIterablesFlag,
+    Spread = AllowsSyncIterablesFlag | SpreadFlag,
+    Destructuring = AllowsSyncIterablesFlag | DestructuringFlag,
+    ForOf = AllowsSyncIterablesFlag | AllowsStringInputFlag | ForOfFlag,
+    ForAwaitOf = AllowsSyncIterablesFlag | AllowsAsyncIterablesFlag | AllowsStringInputFlag | ForOfFlag,
+    YieldStar = AllowsSyncIterablesFlag | YieldStarFlag,
+    AsyncYieldStar = AllowsSyncIterablesFlag | AllowsAsyncIterablesFlag | YieldStarFlag,
+    GeneratorReturnType = AllowsSyncIterablesFlag,
+    AsyncGeneratorReturnType = AllowsAsyncIterablesFlag,
+    CacheFlags = AllowsSyncIterablesFlag | AllowsAsyncIterablesFlag | ForOfFlag,
+}
+
+public enum IterationTypeKind : int
+{
+    Yield = 0,
+    Return = 1,
+    Next = 2,
+}
+
 // relater.go SHA256 e191ef007847b5827a87d0310838594ec53bce1fca12bfb736637ea5299e99e3
 [Flags]
 public enum SignatureCheckMode : uint

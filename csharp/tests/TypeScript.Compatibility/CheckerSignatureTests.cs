@@ -214,8 +214,105 @@ internal static class CheckerSignatureTests
         }
         checks += await FunctionSafety();
         checks += await CallSafety();
+        checks += await IterationSafety();
         Console.WriteLine(
-            $"{checks} signature/function/call/inference/context/cancellation assertions; binding and return traversal depth 20000");
+            $"{checks} signature/function/call/iteration/inference/context/cancellation assertions; binding and return traversal depth 20000");
+    }
+
+    private static async Task<int> IterationSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Iteration assertion {checks + 1}");
+            checks++;
+        }
+        const string source = "interface Array<T>{length:number;[n:number]:T} interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T} interface SymbolConstructor{readonly iterator:unique symbol} declare const Symbol:SymbolConstructor; interface Iterable<T,R=any,N=any>{[Symbol.iterator]():Iterator<T,R,N>} interface Iterator<T,R=any,N=any>{next(value:N):{done:false;value:T}|{done:true;value:R}} interface Generator<T,R,N> extends Iterable<T,R,N>,Iterator<T,R,N>{} declare const values:Iterable<number,string,boolean>; interface Invalid{[Symbol.iterator]():{next?:()=>{value:number}}} type Yielded={done:false;value:number}; type Returned={done:true;value:string};";
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        var program = await CompilerProgram.CreateAsync(
+            new MemoryFileSystem(new Dictionary<string, byte[]> { ["/project/main.ts"] = Wtf8.Encode(source) }),
+            "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var context = new TypeContext(true, true);
+        var links = new CheckerLinks();
+        var scope = new ProgramScopeHost(context, links);
+        var symbols = await CheckerSymbols.CreateAsync(program, links, scope);
+        var host = new ProgramTypeHost(context, links, scope);
+        var values = await host.Values.GetAsync(symbols.Globals["values"]);
+        var result = await host.Iterators.IterableAsync(values, IterationUse.Spread);
+        Check(result == new IterationTypes(context.NumberType, context.StringType, context.BooleanType));
+        int cached = host.Iterators.CacheCount;
+        Check(await host.Iterators.IterableAsync(values, IterationUse.Destructuring) == result && host.Iterators.CacheCount == cached);
+        var node = symbols.Globals["values"].ValueDeclaration!;
+        Check(await host.Iteration.CheckAsync(IterationUse.Spread, values, context.UndefinedType, node) == context.NumberType);
+        Check(host.Diagnostics.Contains(2764));
+        var invalid = await host.Declared.GetAsync(symbols.Globals["Invalid"]);
+        Check(!(await host.Iterators.IterableAsync(invalid, IterationUse.Spread)).HasTypes);
+        cached = host.Iterators.CacheCount;
+        Check(!(await host.Iterators.IterableAsync(invalid, IterationUse.Spread, node)).HasTypes);
+        Check(host.Iterators.CacheCount == cached && host.DeferredIterationDiagnostics.Single().Related.Single().Code == 2489);
+        var yielded = await host.Declared.GetAsync(symbols.Globals["Yielded"]);
+        var returned = await host.Declared.GetAsync(symbols.Globals["Returned"]);
+        Check(await host.Iterators.ResultAsync(yielded) == new IterationTypes(context.NumberType, context.VoidType, null));
+        Check(await host.Iterators.ResultAsync(returned) == new IterationTypes(null, context.StringType, null));
+        Check(
+            await host.Iterators.ResultAsync(await host.Algebra.UnionAsync(
+                [
+                    yielded,
+                    returned
+                ])) == new IterationTypes(context.NumberType, context.StringType, null));
+        Check(
+            await host.Iterators.IterableAsync(
+                context.AnyType,
+                IterationUse.ForAwaitOf) == new IterationTypes(context.AnyType, context.AnyType, context.AnyType));
+        using (var cancelled = new CancellationTokenSource())
+        {
+            cancelled.Cancel();
+            try
+            {
+                await host.Iterators.IterableAsync(values, IterationUse.Spread, cancellation: cancelled.Token);
+                throw new InvalidOperationException("Cancelled iterator cache query accepted");
+            }
+            catch (OperationCanceledException)
+            {
+                checks++;
+            }
+        }
+        try
+        {
+            await host.Iterators.IterableAsync(new TypeContext().AnyType, IterationUse.Spread);
+            throw new InvalidOperationException("Foreign iterator accepted");
+        }
+        catch (ArgumentException)
+        {
+            checks++;
+        }
+        Check(await host.Iterators.IterableAsync(values, IterationUse.Spread) == result);
+        var other = context.CreateTypeReference(
+            (InterfaceType)((TypeReference)values).Target!,
+            [context.BigIntType, context.StringType, context.BooleanType]);
+        cached = host.Iterators.CacheCount;
+        host.BeforeIterationGlobal = _ => throw new OperationCanceledException();
+        try
+        {
+            await host.Iterators.IterableAsync(other, IterationUse.Spread);
+            throw new InvalidOperationException("Interrupted iterator query completed");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        host.BeforeIterationGlobal = null;
+        Check(host.Iterators.CacheCount == cached);
+        Check((await host.Iterators.IterableAsync(other, IterationUse.Spread)).Yield == context.BigIntType);
+        SyntaxNode body = new YieldExpressionNode { Expression = new NumericLiteralNode { Text = "1" } };
+        var leaf = body;
+        for (int i = 0; i < 20000; i++)
+            body = new ParenthesizedExpressionNode { Expression = body };
+        Check(FunctionSyntax.Yields(body).Single() == leaf);
+        return checks;
     }
 
     private static async Task<int> CallSafety()
