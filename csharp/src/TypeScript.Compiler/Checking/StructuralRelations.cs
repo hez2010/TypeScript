@@ -5,6 +5,8 @@ namespace TypeScript.Compiler.Checking;
 
 internal interface IStructuralRelationHost
 {
+    ValueTask<Ternary?> GenericTupleRelationAsync(RelationOperation operation, Type source, Type target, CancellationToken cancellation);
+
     Type GlobalObject { get; }
 
     ValueTask<Ternary?> VarianceAsync(RelationOperation operation, Type source, Type target, CancellationToken cancellation);
@@ -175,6 +177,8 @@ internal sealed class StructuralRelations(TypeContext context, TypeAlgebra algeb
         }
         if (await host.VarianceAsync(operation, source, target, cancellation).ConfigureAwait(false) is { } variance)
             return variance;
+        if (await host.GenericTupleRelationAsync(operation, source, target, cancellation).ConfigureAwait(false) is { } tuple)
+            return tuple;
         if ((source.Flags & TypeFlags.Instantiable) != 0 && !(source is TemplateLiteralType && target is ObjectType)
             || (target.Flags & TypeFlags.Instantiable) != 0
             || source is MappedType sm && await mapped.IsGenericAsync(sm, cancellation).ConfigureAwait(false)

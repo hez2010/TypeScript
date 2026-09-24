@@ -17,6 +17,39 @@ internal sealed partial class Checker : IStructuralRelationHost, IObjectRelation
 
     public bool IsReadonlyArray(Type type) => Instantiation.IsReadonlyArrayType(type);
 
+    public async ValueTask<Ternary?> GenericTupleRelationAsync(RelationOperation operation, Type source, Type target,
+        CancellationToken cancellation)
+    {
+        if (source is TypeReference { Target: TupleType { ElementInfos.Count: 1, IsReadonly: false } }
+            && TypeConstraints.IsGenericTuple(source))
+        {
+            var result = await operation.CompareAsync((await References.TypeArgumentsAsync((TypeReference)source, cancellation))[0],
+                target, RecursionFlags.Source, cancellation: cancellation);
+            if (result != Ternary.False)
+                return result;
+        }
+        if (target is TypeReference { Target: TupleType { ElementInfos.Count: 1 } targetTuple }
+            && TypeConstraints.IsGenericTuple(target))
+        {
+            bool mutable = targetTuple.IsReadonly;
+            if (!mutable)
+            {
+                var constraint = await Instantiation.Constraints.BaseConstraintOrTypeAsync(source, cancellation);
+                mutable = constraint is TypeReference { Target: TupleType { IsReadonly: false } }
+                    || IsArray(constraint) && !IsReadonlyArray(constraint);
+            }
+            if (mutable)
+            {
+                var result = await operation.CompareAsync(source,
+                    (await References.TypeArgumentsAsync((TypeReference)target, cancellation))[0], RecursionFlags.Target,
+                    cancellation: cancellation);
+                if (result != Ternary.False)
+                    return result;
+            }
+        }
+        return null;
+    }
+
     public ValueTask<bool> IsGenericTypeAsync(Type type, CancellationToken cancellation) =>
         Instantiation.IsGenericTypeAsync(type, cancellation);
 

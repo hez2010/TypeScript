@@ -1,0 +1,111 @@
+{
+    "timestamp": "2026-09-24T21:24:15.2518319+00:00",
+    "configuration": "Release",
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "managed": true,
+    "scope": "Single-element generic tuple relations and recursive constraint termination; phase 4 remains incomplete",
+    "candidateSha256": "5f9d8be02211375e74cc665f258a404708fbfdc05ff82f96fb2af44f59325cb1",
+    "compilerSha256": "2c2c3e73302466069fb0d2a7731a7099a42e071c39eb707b0ea51b695560fff8",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-variadic-relations-build.log",
+        "sha256": "66cebfca844b18ecc2ab61c02668a09529e0a1c832097578be3fcb131bc2dfcc"
+    },
+    "diagnosis": {
+        "case": "compiler/infiniteConstraints2.ts",
+        "previousInstantiationErrors": 13481,
+        "currentInstantiationErrors": 0,
+        "referenceInstantiationErrors": 0,
+        "cause": "Missing early single-element generic-tuple relations forced recursive constraints during signature comparison",
+        "instantiationLimitsUnchanged": true,
+        "cachesUnchanged": true,
+        "temporaryTracingRemoved": true,
+        "pinnedGoSourcesRestored": true,
+        "referenceTrace": "logs/csharp-phase4-constraint-reference-trace.log",
+        "candidateTrace": "logs/csharp-phase4-constraint-candidate-trace.log"
+    },
+    "queries": {
+        "generic-relations": {
+            "record": "phase4-variadic-relations-generic-relations.json",
+            "cases": 128,
+            "exact": 128,
+            "candidateSha256": "5f9d8be02211375e74cc665f258a404708fbfdc05ff82f96fb2af44f59325cb1",
+            "compilerSha256": "2c2c3e73302466069fb0d2a7731a7099a42e071c39eb707b0ea51b695560fff8"
+        },
+        "conditional": {
+            "record": "phase4-variadic-relations-conditional.json",
+            "cases": 152,
+            "exact": 152,
+            "candidateSha256": "5f9d8be02211375e74cc665f258a404708fbfdc05ff82f96fb2af44f59325cb1",
+            "compilerSha256": "2c2c3e73302466069fb0d2a7731a7099a42e071c39eb707b0ea51b695560fff8"
+        },
+        "signatures": {
+            "record": "phase4-variadic-relations-signatures.json",
+            "cases": 216,
+            "exact": 216,
+            "candidateSha256": "5f9d8be02211375e74cc665f258a404708fbfdc05ff82f96fb2af44f59325cb1",
+            "compilerSha256": "2c2c3e73302466069fb0d2a7731a7099a42e071c39eb707b0ea51b695560fff8"
+        }
+    },
+    "safety": {
+        "assertions": 27,
+        "newAssertions": 5,
+        "checks": [
+            "recursive conditional/variadic constraint terminates without diagnostics",
+            "mutable variadic source relates to its underlying parameter",
+            "mutable-constrained source relates to a generic variadic target",
+            "generic source relates to readonly variadic target",
+            "readonly-constrained source is rejected for mutable variadic target"
+        ],
+        "log": "logs/csharp-phase4-variadic-relations-safety.log",
+        "sha256": "3ce94de47413ebf64e2b1b7098257606e91e46cae8fd6205a0bbedc52e2f6969",
+        "runBeforeWhitespaceFormatting": true
+    },
+    "corpus": {
+        "single": "phase4-variadic-relations-corpus-single.json",
+        "referenceDefault": "phase4-variadic-relations-corpus-default.json",
+        "parity": "phase4-variadic-relations-mode-parity.json",
+        "selectedConfigurationsPerMode": 1244,
+        "previousMatches": 1152,
+        "graphAndCodeMatches": 1156,
+        "recoveredConfigurations": 4,
+        "regressions": [],
+        "cumulative": {
+            "activeConfigurations": 13446,
+            "matches": 12729,
+            "remaining": 717,
+            "failed": 0,
+            "diagnosticMismatches": 717,
+            "graphMismatches": 0,
+            "topStops": []
+        }
+    },
+    "formatting": {
+        "csharpFiles": 3,
+        "tokenCommentSyntaxIdentical": true,
+        "libraryConfigurations": 2,
+        "dotnetWhitespaceExitCode": 0,
+        "diffCheckExitCode": 0,
+        "proofLog": "logs/csharp-phase4-variadic-relations-format.log",
+        "proofSha256": "f4071583f5e9081876d122070b65d9231300fa23ee43f6e544db47b6b204b098"
+    },
+    "reusedValidation": {
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "repositoryCommand": "npx hereby validate --all",
+        "repositoryExitCode": 0,
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "reason": "User directed reuse of unchanged results. Cached reference results and unchanged repository validation were reused. Runtime comparisons cover variadic/infer and instantiation-limit cases affected by the added relation."
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "phase4Complete": false
+}

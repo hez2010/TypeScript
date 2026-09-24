@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Checking;
 using TypeScript.Compiler.Configuration;
 using TypeScript.Compiler.Hosts;
@@ -85,6 +86,49 @@ internal static class CheckerGenericRelationTests
         Check(await host.Relations.RelatedAsync(access, context.StringType, RelationKind.Assignable));
         Check(await host.Relations.RelatedAsync(context.StringType, access, RelationKind.Assignable));
         Check(!await host.Relations.RelatedAsync(context.NumberType, access, RelationKind.Assignable));
+        checks += await VariadicConstraintSafety();
         Console.WriteLine($"{checks} generic relation/optionality/key variance/cancellation assertions");
+    }
+
+    private static async Task<int> VariadicConstraintSafety()
+    {
+        const string source = """
+            export type Prepend<Elm, T extends unknown[]> =
+                T extends unknown ? ((arg: Elm, ...rest: T) => void) extends ((...args: infer T2) => void) ? T2 : never : never;
+            export type ExactExtract<T, U> = (T extends U ? U extends T ? T : never : never) & string;
+            type Conv<T, U = T> = { 0: [T]; 1: Prepend<T, Conv<ExactExtract<U, T>, { a: number }>> }[U extends T ? 0 : 1];
+            declare function relations<T extends unknown[], U extends T>(value: U, spread: [...U], base: T, mutable: [...T], readonlyTuple: readonly [...T]): void;
+            declare function readonlyRelations<R extends readonly unknown[]>(value: R, mutable: [...R]): void;
+            """;
+        var options = new CompilerOptions();
+        options.SetRaw("noEmit", "true");
+        options.SetRaw("skipDefaultLibCheck", "true");
+        var program = await CompilerProgram.CreateAsync(new LibraryFileSystem(new MemoryFileSystem(new Dictionary<string, byte[]>
+        { ["/project/main.ts"] = Wtf8.Encode(source) })), "/project",
+            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var file = program.GetFile("/project/main.ts")!.Syntax;
+        await checker.CheckProgramAsync();
+        if (checker.DiagnosticCodesForFile(file).Count != 0)
+            throw new InvalidOperationException("Recursive variadic constraints produced diagnostics");
+        var declarations = file.DescendantsAndSelf().OfType<FunctionDeclarationNode>().ToDictionary(n => n.Name!.Text);
+        async ValueTask<Type[]> ParameterTypes(string name)
+        {
+            var result = new List<Type>();
+            foreach (ParameterDeclarationNode parameter in declarations[name].Parameters!)
+                result.Add(await checker.Nodes.FromNodeAsync(parameter.Type!));
+            return result.ToArray();
+        }
+        var types = await ParameterTypes("relations");
+        if (!await checker.AssignableAsync(types[1], types[2], default))
+            throw new InvalidOperationException("Variadic source was not related to its underlying parameter");
+        if (!await checker.AssignableAsync(types[0], types[3], default))
+            throw new InvalidOperationException("Mutable constraint was not related to its variadic target");
+        if (!await checker.AssignableAsync(types[0], types[4], default))
+            throw new InvalidOperationException("Generic source was not related to a readonly variadic target");
+        var readonlyTypes = await ParameterTypes("readonlyRelations");
+        if (await checker.AssignableAsync(readonlyTypes[0], readonlyTypes[1], default))
+            throw new InvalidOperationException("Readonly constraint was accepted for a mutable variadic target");
+        return 5;
     }
 }

@@ -1,0 +1,61 @@
+{
+    "timestamp": "2026-09-24T21:22:44.848Z",
+    "mode": "default",
+    "configuration": "Release",
+    "selectedConfigurations": 1244,
+    "replayedConfigurations": 1244,
+    "retainedConfigurations": 0,
+    "previousMatches": 1152,
+    "graphAndCodeMatches": 1156,
+    "recoveredConfigurations": 4,
+    "regressions": [],
+    "scope": "Single-element generic tuple relations and recursive constraint termination; full phase 4 remains incomplete",
+    "parts": [
+        {
+            "directory": "built/csharp/semantic-corpus-variadic-relations/default",
+            "summary": {
+                "timestamp": "2026-09-24T21:22:19.837Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "mode": "default",
+                "filter": "",
+                "managed": true,
+                "reuseSyntax": true,
+                "referenceJobs": 4,
+                "scope": "Original compiler test program graphs and semantic diagnostic codes; full diagnostic/type/symbol fidelity and parallel candidate checker scheduling remain incomplete",
+                "referenceExitCode": 0,
+                "exportedConfigurations": 15208,
+                "readyConfigurations": 1244,
+                "availableConfigurations": 13446,
+                "selectionSha256": "0c4252ae44db0e61460dcb643750c54447237c8e4e0c325d532af8e22b73ed9c",
+                "referenceInventoryFiles": 12730,
+                "plannedConfigurations": 15208,
+                "referenceMissingFiles": [],
+                "referenceMissingConfigurations": [],
+                "referenceSkipped": 1762,
+                "referenceFailed": 0,
+                "candidateFailures": 0,
+                "graphMismatches": 0,
+                "diagnosticMismatches": 88,
+                "graphAndCodeMatches": 1156,
+                "errorGroups": [],
+                "inputSha256": "1021223d26cfedad8b1989a152ffb776bc54750978c457480fc0a0bb8f8bb3bf",
+                "referenceInputCorrectionsSha256": "4c16c7b555e8df466548ca7d8a484772673d2bb3a67015d60276ca9b7b933718",
+                "oracleSha256": "072ce20500e1dfa626e6029e8ba98ed84b925a304216116200dd33d97f54654a",
+                "candidateSha256": "5f9d8be02211375e74cc665f258a404708fbfdc05ff82f96fb2af44f59325cb1",
+                "compilerSha256": "2c2c3e73302466069fb0d2a7731a7099a42e071c39eb707b0ea51b695560fff8",
+                "candidateOutputSha256": "24b18583ee7a86ea3842746002f34e0cb49a5a75f8c0b233d26f56a5d4ce7293",
+                "fullSemanticCorpusGateComplete": false
+            },
+            "outputSha256": "24b18583ee7a86ea3842746002f34e0cb49a5a75f8c0b233d26f56a5d4ce7293"
+        }
+    ],
+    "cumulative": {
+        "activeConfigurations": 13446,
+        "matches": 12729,
+        "remaining": 717,
+        "failed": 0,
+        "diagnosticMismatches": 717,
+        "graphMismatches": 0,
+        "topStops": []
+    }
+}
