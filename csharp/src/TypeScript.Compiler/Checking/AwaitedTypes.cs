@@ -235,7 +235,7 @@ internal sealed class AwaitedTypes(TypeContext context, TypeAlgebra algebra, Typ
                 await UnwrapAsync(type, cancellation).ConfigureAwait(false),
                 cancellation).ConfigureAwait(false) : type;
 
-    private async ValueTask<Type> UnwrapAsync(Type type, CancellationToken cancellation)
+    internal async ValueTask<Type> UnwrapAsync(Type type, CancellationToken cancellation = default)
     {
         await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
             ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);

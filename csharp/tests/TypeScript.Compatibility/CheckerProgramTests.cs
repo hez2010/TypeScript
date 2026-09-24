@@ -444,14 +444,6 @@ internal static class CheckerProgramTests
                         writer.WriteEndArray();
                     }
             writer.WriteEndArray();
-            writer.WriteStartArray("assignmentHints");
-            foreach (int code in typeHost!.AssignmentHints.Select(h => h.Construct ? 6213 : 6212).Order())
-                writer.WriteNumberValue(code);
-            writer.WriteEndArray();
-            writer.WriteStartArray("identifierSuggestions");
-            foreach (int code in host.ValueSuggestions.Concat(typeHost!.Suggestions).Order())
-                writer.WriteNumberValue(code);
-            writer.WriteEndArray();
             writer.WriteStartArray("identifierAliasReferences");
             var seen = new HashSet<Symbol>();
             foreach (var node in nodes)
@@ -827,6 +819,17 @@ internal static class CheckerProgramTests
         foreach (int code in diagnostics.Order())
             writer.WriteNumberValue(code);
         writer.WriteEndArray();
+        if (identifierOption.ValueKind == JsonValueKind.True)
+        {
+            writer.WriteStartArray("assignmentHints");
+            foreach (int code in typeHost!.AssignmentHints.Select(h => h.Construct ? 6213 : 6212).Order())
+                writer.WriteNumberValue(code);
+            writer.WriteEndArray();
+            writer.WriteStartArray("identifierSuggestions");
+            foreach (int code in host.ValueSuggestions.Concat(typeHost!.Suggestions).Order())
+                writer.WriteNumberValue(code);
+            writer.WriteEndArray();
+        }
         if (input.TryGetProperty("numberStrings", out var numberStrings))
         {
             writer.WriteStartArray("numberStrings");

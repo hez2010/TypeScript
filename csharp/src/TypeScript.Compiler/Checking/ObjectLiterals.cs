@@ -242,7 +242,7 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
         }, cancellation).ConfigureAwait(false);
     }
 
-    private async ValueTask<Type> PropertyAsync(SyntaxNode node, bool destructuring, CheckMode mode, CancellationToken cancellation)
+    internal async ValueTask<Type> PropertyAsync(SyntaxNode node, bool destructuring, CheckMode mode, CancellationToken cancellation)
     {
         SyntaxNode expression = node is PropertyAssignmentNode property ? property.Initializer!
             : !destructuring && ((ShorthandPropertyAssignmentNode)node).ObjectAssignmentInitializer is { } initializer

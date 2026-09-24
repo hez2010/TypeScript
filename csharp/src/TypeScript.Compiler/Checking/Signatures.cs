@@ -356,7 +356,7 @@ internal sealed class Signatures(TypeContext context, CheckerLinks links, Checke
             || node.Kind is K.MethodSignature or K.CallSignature or K.JSDocSignature or K.ConstructSignature or K.IndexSignature
                 or K.FunctionType or K.ConstructorType;
 
-    private static CallExpressionNode? Invoked(SyntaxNode node)
+    internal static CallExpressionNode? Invoked(SyntaxNode node)
     {
         if (node is not (FunctionExpressionNode or ArrowFunctionNode))
             return null;

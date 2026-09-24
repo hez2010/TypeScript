@@ -1,0 +1,190 @@
+{
+    "timestamp": "2026-09-24T06:55:02.4930388+00:00",
+    "scope": "Function/method expressions, contextual signatures/parameters/this, return and predicate inference, async/await types, parameter and type-argument checks; call/overload and generator integration remains open",
+    "candidateSha256": "d0b105d1a0d477ecc4ee3e14ade03fc9c607fa815dbd786ec065bd8717638389",
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "languageVersion": "15.0",
+    "runtimeAsync": true,
+    "optimizationPreference": "Speed",
+    "instructionSet": "native",
+    "publish": {
+        "exitCode": 0,
+        "log": "logs/csharp-phase4-functions-publish.log",
+        "sha256": "03933be2dc34223ee88005d844f6919fd7786869077fd93acbb392005d81ccfb"
+    },
+    "sourceComparisons": {
+        "program": {
+            "cases": 180,
+            "exact": 180,
+            "failed": 0,
+            "record": "phase4-functions-program.json"
+        },
+        "aliases": {
+            "cases": 124,
+            "exact": 124,
+            "failed": 0,
+            "record": "phase4-functions-aliases.json"
+        },
+        "type-nodes": {
+            "cases": 192,
+            "exact": 192,
+            "failed": 0,
+            "record": "phase4-functions-type-nodes.json"
+        },
+        "members": {
+            "cases": 176,
+            "exact": 176,
+            "failed": 0,
+            "record": "phase4-functions-members.json"
+        },
+        "values": {
+            "cases": 136,
+            "exact": 136,
+            "failed": 0,
+            "record": "phase4-functions-values.json"
+        },
+        "properties": {
+            "cases": 192,
+            "exact": 192,
+            "failed": 0,
+            "record": "phase4-functions-properties.json"
+        },
+        "signatures": {
+            "cases": 216,
+            "exact": 216,
+            "failed": 0,
+            "record": "phase4-functions-signatures.json"
+        },
+        "identity": {
+            "cases": 160,
+            "exact": 160,
+            "failed": 0,
+            "record": "phase4-functions-identity.json"
+        },
+        "assignability": {
+            "cases": 332,
+            "exact": 332,
+            "failed": 0,
+            "record": "phase4-functions-assignability.json"
+        },
+        "indexing": {
+            "cases": 320,
+            "exact": 320,
+            "failed": 0,
+            "record": "phase4-functions-indexing.json"
+        },
+        "generic-relations": {
+            "cases": 128,
+            "exact": 128,
+            "failed": 0,
+            "record": "phase4-functions-generic-relations.json"
+        },
+        "conditional": {
+            "cases": 152,
+            "exact": 152,
+            "failed": 0,
+            "record": "phase4-functions-conditional.json"
+        },
+        "inference": {
+            "cases": 176,
+            "exact": 176,
+            "failed": 0,
+            "record": "phase4-functions-inference.json"
+        },
+        "expressions": {
+            "cases": 40,
+            "exact": 40,
+            "failed": 0,
+            "record": "phase4-functions-expressions.json"
+        },
+        "constants": {
+            "cases": 48,
+            "exact": 48,
+            "failed": 0,
+            "record": "phase4-functions-constants.json"
+        },
+        "initializers": {
+            "cases": 48,
+            "exact": 48,
+            "failed": 0,
+            "record": "phase4-functions-initializers.json"
+        },
+        "binary": {
+            "cases": 56,
+            "exact": 56,
+            "failed": 0,
+            "record": "phase4-functions-binary.json"
+        },
+        "awaited": {
+            "cases": 24,
+            "exact": 24,
+            "failed": 0,
+            "record": "phase4-functions-awaited.json"
+        },
+        "references": {
+            "cases": 140,
+            "exact": 140,
+            "failed": 0,
+            "record": "phase4-functions-references.json"
+        },
+        "flow": {
+            "cases": 212,
+            "exact": 212,
+            "failed": 0,
+            "record": "phase4-functions-flow.json"
+        },
+        "identifiers": {
+            "cases": 448,
+            "exact": 448,
+            "failed": 0,
+            "record": "phase4-functions-identifiers.json"
+        },
+        "access": {
+            "cases": 412,
+            "exact": 412,
+            "failed": 0,
+            "record": "phase4-functions-access.json"
+        }
+    },
+    "totalSourceComparisons": 3912,
+    "newFunctionConfigurations": 96,
+    "functionQueryBoundary": "New function inputs request member/value/signature graphs in addition to identifier queries, forcing parameter types, return types and predicates; full semantic checking remains incomplete",
+    "comparisonPolicyChanges": [],
+    "harnessSnapshotChange": "Collect identifier suggestions and assignment hints after the remaining queries, matching the reference snapshot point",
+    "safety": {
+        "assertions": 589,
+        "newFunctionAssertions": 17,
+        "log": "logs/csharp-phase4-functions-safety.log",
+        "sha256": "a0f936f9b0abec0c8e8f0e2054f541c058270a19c472dcbc42f659ca0bd5dae7"
+    },
+    "formatting": {
+        "csharpFiles": 33,
+        "tokenCommentSyntaxIdentical": true,
+        "libraryConfigurations": 2,
+        "dotnetWhitespaceExitCode": 0,
+        "checkerGenerationExitCode": 0,
+        "diffCheckExitCode": 0
+    },
+    "repositoryValidation": {
+        "command": "npx hereby validate --all",
+        "exitCode": 0,
+        "isolatedCheckout": "D:/source/repos/TypeScript-phase4-functions-validation",
+        "snapshotFiles": 59,
+        "snapshotHashesVerifiedBeforeAndAfter": true,
+        "snapshotManifestSha256": "b72db7d1fe13c0745cd215516eb72414ccc65e08b00c00f36ad0b980ead71ac6",
+        "log": "logs/csharp-phase4-functions-validation.log",
+        "sha256": "7a36cd2196d7c69b23001a3a7be763ef92a951c9a3c5afd6f8276b954be5b4fa",
+        "goTests": 163380,
+        "goSkipped": 2152,
+        "apiTests": 813,
+        "extensionTests": 12,
+        "toolsTests": 17,
+        "lintIssues": 0,
+        "elapsed": "6m 22.9s",
+        "productGoJavaScriptUnchanged": true
+    },
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "phase4Complete": false
+}

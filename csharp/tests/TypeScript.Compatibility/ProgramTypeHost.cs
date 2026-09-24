@@ -204,6 +204,22 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
         ExcessProperties = new(context, Algebra, Views, Properties, Values, Predicates, TypeDiscrimination, this);
         LateMembers = new(program.Symbols, links, this);
         program.LateMemberSymbol = symbol => LateMembers.SymbolAsync(symbol).GetAwaiter().GetResult();
+        FunctionContexts = new(context, links, program.Symbols, Contexts, Algebra, Instantiation.Constraints, Instantiation.Engine,
+            Relations, Inference, Signatures, Parameters, SignatureComparison, SignatureComposition, Values, Widening,
+            Variables, Bindings, BindingPatterns, Awaited, Instantiation.Resolutions, this);
+        FunctionBodies = new(context, program.Symbols, Algebra, Views, Widening, Contexts, FunctionContexts, Signatures,
+            Values, Awaited, FlowTypes, Assignments, this);
+        FunctionWidening = new(FunctionContexts, Signatures, Awaited, Instantiation.Mapped, WideningDiagnostics, this);
+        FunctionThis = new(program.Symbols, FunctionContexts, Contexts, Algebra, Values, Instantiation.Engine, Facts, Widening, this);
+        AwaitExpressions = new(context, Awaited, this);
+        TypeReferenceChecks = new(context, links, References, Declared, program.Scopes, Instantiation.Constraints,
+            Instantiation.Engine, Relations, (node, code) => Error(node, code));
+        program.CallSignature = async (symbol, token) => (await SignaturesAsync(
+            await Values.GetAsync(symbol, token),
+            false,
+            token)).FirstOrDefault();
+        Functions = new(context, links, program.Symbols, Values, Signatures, FunctionContexts, FunctionBodies, Contexts, Parameters,
+            Instantiation.Engine, new TypeVariables(References.TypeArgumentsAsync), this);
         AccessFlow = new(context, Algebra, Values, Widening, ReferenceNarrowing, FlowTypes, this);
         MemberAccess = new(program.Symbols, links, program.ReferenceSymbols, Declared, Properties, Bases, program.DeclarationOrder, this);
         IndexValidation = new(
@@ -218,6 +234,8 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
             this);
         ElementErrors = new(context, Algebra, program.Symbols, Properties, Values, this);
         MemberAccessibility = new(program.Symbols, links, Declared, Bases, Instantiation.Constraints, Properties, this);
+        FunctionDeclarations = new(context, program.Symbols, program.Scopes, Instantiation.Constraints, Instantiation.Engine, Bases,
+            Relations, Values, Variables, Bindings, Properties, MemberAccess, MemberAccessibility, this);
         PrivateAccess = new(context, program.Symbols, Properties, this);
         SymbolSuggestions = new(program.Aliases, new(program.Symbols.Program.SourceFiles.Select(f => f.Syntax)));
         ClassBases = new(
@@ -355,6 +373,7 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
             return cached;
         var type = await FlowTypes.StableAsync(() => Expressions.CheckAsync(node, cancellation: cancellation), cancellation);
         cancellation.ThrowIfCancellationRequested();
+        Functions.RecordExpressionCache(node, type);
         return data.ResolvedType = type;
     }
 

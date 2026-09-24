@@ -86,7 +86,7 @@ internal sealed class BindingPatterns(TypeContext context, CheckerLinks links, T
         }
         var result = context.NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved | flags);
         result.Members = members.AsReadOnly();
-        result.Properties = members.Values.ToArray();
+        result.Properties = members.Values.Order(algebra.Order).ToArray();
         result.CallSignatures = result.ConstructSignatures = [];
         result.IndexInfos = stringIndex is null ? [] : [stringIndex];
         if (includePattern)
@@ -185,7 +185,7 @@ internal sealed class BindingPatterns(TypeContext context, CheckerLinks links, T
             }
             var result = context.NewObjectType(ObjectFlags.Anonymous, type.Symbol);
             result.Members = members.AsReadOnly();
-            result.Properties = members.Values.ToArray();
+            result.Properties = members.Values.Order(algebra.Order).ToArray();
             result.CallSignatures = result.ConstructSignatures = [];
             result.IndexInfos = await host.IndexesAsync(type, cancellation).ConfigureAwait(false);
             result.ObjectFlags = type.ObjectFlags;

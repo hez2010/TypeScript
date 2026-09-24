@@ -29,7 +29,7 @@ internal sealed partial class ProgramTypeHost : IBindingPatternHost, IExpression
         program.ModuleExports.ResolveAsync(symbol, cancellation);
 
     public ValueTask<Type> ObjectMethodAsync(MethodDeclarationNode node, CheckMode mode, CancellationToken cancellation) =>
-        throw new InvalidOperationException("Probe requires contextual method body inference");
+        Functions.CheckAsync(node, mode, cancellation);
 
     public async ValueTask CheckLiteralAssignableAsync(
         Type source,

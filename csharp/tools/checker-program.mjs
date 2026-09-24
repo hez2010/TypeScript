@@ -817,6 +817,30 @@ for (const strict of [false, true]) {
             literalComputedInterface: "declare const key:'value'; interface Box { [key]:number } declare const source:Box; const object={...source}; __expr(object);",
             literalReadonlySpread: "const source={value:1,nested:{text:'a'}} as const; const copy={...source}; const frozen={...source} as const; __expr(copy); __expr(frozen);",
             literalPrimitiveSpreads: "declare const condition:boolean; const object={...(condition && {value:1})}; __expr(object); const invalid={...1}; __expr(invalid);",
+            functionReturns: "function f(x:boolean) { if(x) return 1; return 'a'; } function empty() {} function fail() { throw 1; } __expr(f); __expr(empty); __expr(fail);",
+            functionArrows: "const f=(x:number)=>x+1; const g=function(x:string){return x;}; const h=()=>({value:1,items:[1,2]}); __expr(f); __expr(g); __expr(h);",
+            functionContext: "const f:(value:number)=>number=value=>value+1; const g:(value:'a'|'b')=>'a'|'b'=value=>value; __expr(f); __expr(g);",
+            functionMethods: "const object={method(x:number){return x+1;},get value(){return 1;},set value(v:number){}}; __expr(object);",
+            functionPredicate: "const predicate=(value:string|number)=>typeof value==='string'; function hasValue(value:string|undefined) { return value!==undefined; } __expr(predicate); __expr(hasValue);",
+            functionDefaults: "const f:(x?:number)=>number=(x=1)=>x; const g=({value=1,label='a'}={})=>value; __expr(f); __expr(g);",
+            functionRest: "const f:(...args:[number,string])=>number=(...args)=>args[0]; const g=(...values:number[])=>values; __expr(f); __expr(g);",
+            functionGeneric: "const identity=<T>(value:T)=>value; const contextual:<T>(value:T)=>T=value=>value; __expr(identity); __expr(contextual);",
+            functionGenericConstraint: "const identity=<T extends string,U extends T=T>(value:U)=>value; __expr(identity);",
+            functionUnionContext: "const f:((x:number)=>number)|((x:number)=>string)=x=>x; const g:((x:number)=>number)&((x:string)=>string)=x=>x; __expr(f); __expr(g);",
+            functionPredicateWrites: "const changed=(value:string|number)=>{value=1;return typeof value==='number'}; const rest=(...values:unknown[])=>values!==undefined; __expr(changed); __expr(rest);",
+            functionImplicitReturn: "const f=(value:boolean)=>{if(value)return 1;}; const g=()=>{throw 1;}; const h=()=>{return;}; __expr(f); __expr(g); __expr(h);",
+            functionRecursion: "function f(){return f();} const g=function inner(){return inner();}; __expr(f); __expr(g);",
+            functionConstReturn: "const f=()=>({kind:'a',value:1} as const); const g=()=>[1,'a'] as const; __expr(f); __expr(g);",
+            functionNested: "const outer=(x:number)=>{function hidden(){return 'a';} const local=()=>true; return x;}; __expr(outer);",
+            functionThis: "const object={value:1,method(){return this.value;},fn:function(){return this.value;}}; const f:(this:{value:number})=>number=function(){return this.value;}; __expr(object); __expr(f);",
+            functionThisMarker: "type ObjectType={value:number; method():number}&ThisType<{value:number}>; const object:ObjectType={value:1,method(){return this.value;}}; __expr(object);",
+            functionAsync: "interface Promise<T>{then(callback:(value:T)=>unknown):unknown} declare const Promise:any; const f=async(x:number)=>x+1; async function g(flag:boolean){if(flag)return 1;return 2;} const h=async()=>{}; __expr(f); __expr(g); __expr(h);",
+            functionAwait: "interface Promise<T>{then(callback:(value:T)=>unknown):unknown} interface PromiseLike<T>{then(callback:(value:T)=>unknown):unknown} declare const Promise:any; const f=async(x:Promise<number>)=>await x; const g=async()=>await 1; __expr(f); __expr(g);",
+            functionAsyncAnnotation: "interface Promise<T>{then(callback:(value:T)=>unknown):unknown} declare const Promise:any; const good=async():Promise<number>=>1; const bad=async():number=>1; __expr(good); __expr(bad);",
+            functionConstraintError: "interface Box<T extends number>{value:T} const f=(value:Box<string>)=>value; __expr(f);",
+            functionAsyncMissing: "const f=async()=>{}; const g=async()=>{throw 1;}; __expr(f); __expr(g);",
+            functionBindingContext: "const f:(value:{kind:'a';value:number}|{kind:'b';value:string})=>number|string=({kind,value})=>{if(kind==='a')return value;return value;}; __expr(f);",
+            functionReturnObjects: "function f(flag:boolean){if(flag)return {a:1};return {b:'a'};} const g=()=>({z:1,a:2}); __expr(f); __expr(g);",
         })
     ) add(`identifiers:${name}:${strict}`, { "globals.d.ts": library + " declare function __expr(value: unknown): void;", "main.ts": text }, { strict }, false, true);
 }
@@ -849,6 +873,12 @@ for (const exactOptionalPropertyTypes of [false, true]) {
     }
 }
 for (const input of cases.filter(c => c.name.startsWith("identifiers:"))) input.identifiers = true;
+for (const input of cases.filter(c => c.name.startsWith("identifiers:function"))) {
+    input.functionBodies = true;
+    input.members = true;
+    input.values = true;
+    input.signatures = true;
+}
 
 for (const strict of [false, true]) {
     for (const exactOptionalPropertyTypes of [false, true]) {
@@ -915,7 +945,7 @@ let selected = process.argv.includes("--access") ? cases.filter(c => c.access) :
     process.argv.includes("--generic-relations") ? cases.filter(c => c.genericRelations) :
     process.argv.includes("--indexing") ? cases.filter(c => c.name.startsWith("indexing:")) :
     process.argv.includes("--assignability") ? cases.filter(c => c.assignability && !c.genericRelations && !c.name.startsWith("conditional:") && !c.name.startsWith("inference:") && !c.name.startsWith("constants:") && !c.name.startsWith("expressions:") && !c.name.startsWith("binary:") && !c.name.startsWith("awaited:")) :
-    process.argv.includes("--identity") ? cases.filter(c => c.identity && !c.assignability) : process.argv.includes("--signatures") ? cases.filter(c => c.signatures) : process.argv.includes("--properties") ? cases.filter(c => c.properties) : process.argv.includes("--values") ? cases.filter(c => c.values && !c.name.startsWith("initializers:")) : process.argv.includes("--members") ? cases.filter(c => c.members && !c.values && !c.signatures) : process.argv.includes("--type-nodes") ? cases.filter(c => c.typeNodes && !c.access && !c.identifiers && !c.flow && !c.members && !c.properties && !c.identity && !c.name.startsWith("indexing:") && !c.name.startsWith("conditional:") && !c.name.startsWith("inference:") && !c.name.startsWith("constants:") && !c.name.startsWith("expressions:") && !c.name.startsWith("binary:") && !c.name.startsWith("awaited:"))
+    process.argv.includes("--identity") ? cases.filter(c => c.identity && !c.assignability) : process.argv.includes("--signatures") ? cases.filter(c => c.signatures && !c.functionBodies) : process.argv.includes("--properties") ? cases.filter(c => c.properties) : process.argv.includes("--values") ? cases.filter(c => c.values && !c.functionBodies && !c.name.startsWith("initializers:")) : process.argv.includes("--members") ? cases.filter(c => c.members && !c.values && !c.signatures) : process.argv.includes("--type-nodes") ? cases.filter(c => c.typeNodes && !c.access && !c.identifiers && !c.flow && !c.members && !c.properties && !c.identity && !c.name.startsWith("indexing:") && !c.name.startsWith("conditional:") && !c.name.startsWith("inference:") && !c.name.startsWith("constants:") && !c.name.startsWith("expressions:") && !c.name.startsWith("binary:") && !c.name.startsWith("awaited:"))
     : cases.filter(c => !c.references && !c.typeNodes && Boolean(c.aliases) === process.argv.includes("--aliases"));
 if (option("--filter")) selected = selected.filter(c => c.name.includes(option("--filter")));
 async function probe(command, args) {

@@ -14,7 +14,7 @@ internal sealed class WideningDiagnostics(CheckerSymbols symbols, TypeWidening w
             await host.ReportImplicitAnyAsync(declaration, type, cancellation).ConfigureAwait(false);
     }
 
-    private async ValueTask<bool> InsideAsync(Type type, CancellationToken cancellation)
+    internal async ValueTask<bool> InsideAsync(Type type, CancellationToken cancellation)
     {
         await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
             ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);

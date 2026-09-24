@@ -68,12 +68,38 @@ internal sealed partial class ProgramTypeHost : IIdentifierTypeHost, IReferenceT
                 throw new InvalidOperationException("Probe requires contextual call overload/inference resolution");
             return await Parameters.AtAsync(signatures[0], call.Arguments!.ToList().IndexOf(node), cancellation);
         }
-        if (node.Parent is ReturnStatementNode)
+        if (node.Parent is CallExpressionNode)
+            return null;
+        if (node.Parent is AwaitExpressionNode awaitExpression)
+        {
+            var contextual = await Contexts.GetAsync(awaitExpression, flags, cancellation);
+            if (contextual is null)
+                return null;
+            var awaited = await Awaited.GetAsync(contextual, false, cancellation: cancellation);
+            if (awaited is null)
+                return null;
+            var promise = await program.Globals.GetAsync("PromiseLike", 1, false, cancellation);
+            return await Algebra.UnionAsync([awaited, promise == context.EmptyGenericType ? context.UnknownType
+                : context.CreateTypeReference((InterfaceType)promise, [awaited])], cancellation: cancellation);
+        }
+        if (node.Parent is ReturnStatementNode or ArrowFunctionNode)
         {
             var function = DeclarationOrder.Ancestor(node.Parent, n => n is IFunctionSignature)!;
-            if (SemanticSyntax.HasModifier(function, SyntaxKind.AsyncKeyword) || SemanticSyntax.Generator(function))
-                throw new InvalidOperationException("Probe requires async/generator return context");
-            return function is ITypedNode { Type: { } annotation } ? await Nodes.FromNodeAsync(annotation, cancellation) : null;
+            var contextual = await FunctionContexts.ReturnAsync(function, flags, cancellation);
+            if (contextual is null)
+                return null;
+            if (SemanticSyntax.Generator(function))
+                throw new InvalidOperationException("Probe requires generator return-expression contexts");
+            if (SemanticSyntax.HasModifier(function, SyntaxKind.AsyncKeyword))
+            {
+                var awaited = await Awaited.GetAsync(contextual, false, cancellation: cancellation);
+                if (awaited is null)
+                    return null;
+                var promise = await program.Globals.GetAsync("PromiseLike", 1, false, cancellation);
+                return await Algebra.UnionAsync([awaited, promise == context.EmptyGenericType ? context.UnknownType
+                    : context.CreateTypeReference((InterfaceType)promise, [awaited])], cancellation: cancellation);
+            }
+            return contextual;
         }
         if (node.Parent is BinaryExpressionNode binary)
         {
@@ -114,10 +140,11 @@ internal sealed partial class ProgramTypeHost : IIdentifierTypeHost, IReferenceT
             ? program.IsContextSensitive(node) : false;
 
     public ValueTask<Signature?> ContextualSignatureAsync(SyntaxNode node, CancellationToken cancellation) =>
-        ValueTask.FromResult(program.ContextualSignatures.GetValueOrDefault(node));
+        program.ContextualSignatures.TryGetValue(node, out var signature) ? ValueTask.FromResult<Signature?>(signature)
+            : FunctionContexts.GetAsync(node, cancellation);
 
     public TypeMapper? NonFixingMapper(SyntaxNode node) =>
-        throw new InvalidOperationException("Probe requires expression inference contexts");
+        Contexts.InferenceFor(node)?.NonFixingMapper;
 
     public bool ExportsPropertyAssignment(SyntaxNode left)
             =>

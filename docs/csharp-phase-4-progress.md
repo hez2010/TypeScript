@@ -519,6 +519,25 @@ node csharp/tools/checker-program.mjs --identifiers --filter literal
 & ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-expressions-safety
 ```
 
+## Function bodies and contextual parameters
+
+`FunctionSyntax.cs`, `FunctionContexts.cs`, `FunctionExpressions.cs` and `FunctionBodies.cs` connect function/arrow/object-method expressions to contextual signature selection, parameter/default/rest assignment, return-expression collection, contextual return widening and inferred type predicates. Contextual checks roll back parameter types, signature metadata, flags and owned expression caches on failure. Return traversal excludes nested functions and uses an explicit stack.
+
+`FunctionThis.cs` connects contextual receivers and `ThisType<T>` to the existing `this` checker. `AwaitExpressions.cs` connects `await` types and diagnostics; async return inference uses the existing awaited-type engine. `FunctionDeclarations.cs`, `FunctionWidening.cs` and `TypeReferenceChecks.cs` add the parameter/type-parameter and annotation checks needed by these expression paths. Broader declaration, modifier, JavaScript, generator and emit-helper services remain required dependencies.
+
+The new tests explicitly request member, value and signature queries in addition to identifier queries, so return types, parameter types and predicates are forced. Function value lookups alone were insufficient to test body inference. The candidate now collects identifier suggestions and assignment hints after the remaining queries, matching the reference's snapshot point. No comparison exceptions were added.
+
+The stronger queries exposed two earlier integration bugs: synthesized binding-pattern members were not sorted using the reference's symbol order, and context-sensitive `this` detection read only syntax flags instead of including binder-owned flags. Anonymous binding/rest/spread/widened properties now use the shared symbol ordering, and function sensitivity reads the binder's immutable side data. Function annotation checks also resolve actual type-argument constraints instead of forcing cache flags in the serializer.
+
+Windows x64 NativeAOT passes **3,912 exact source-program configurations**, including **96 new function configurations**, and **589 safety assertions**. The new function cases cover arrows, methods/accessors, default/rest/destructured parameters, generics and constraints, union/intersection contexts, recursive returns, inferred predicates, implicit returns, nested functions, const returns, contextual `this`, async promises and `await`. Seventeen new safety assertions cover cancellation followed by a different contextual type, generic rollback, predicates, cached checks and **20,000-level** return traversal.
+
+Evidence: [function and identifier comparisons](../csharp/compatibility/evidence/phase4-functions-identifiers.json), [signature regressions](../csharp/compatibility/evidence/phase4-functions-signatures.json), [literal/property regressions](../csharp/compatibility/evidence/phase4-functions-properties.json), [flow regressions](../csharp/compatibility/evidence/phase4-functions-flow.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-functions-validation.json).
+
+```powershell
+node csharp/tools/checker-program.mjs --identifiers --filter function
+& ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-signatures-safety
+```
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
@@ -526,9 +545,9 @@ The following phase-4 requirements remain open:
 1. Complete the program/checker entry point, module interop/type adaptation, computed exports and type/value symbol resolution. Program-backed globals, augmentation merging, declaration headers and alias/export algorithms now exist; their remaining semantic callbacks must be connected.
 2. Complete relation diagnostics and remaining type-node dependencies; connect the implemented declaration/type-node, algebra, scope, inference, instantiation and tuple algorithms to complete checker services.
 3. Remaining expression forms, call-site inference, context-sensitive expression typing, overload selection, full declaration checking, JavaScript and JSDoc semantics.
-4. Complete contextual function/parameter integration, iterator services and property/declaration flow integration; complete constructor/`in`/`instanceof` narrowing, initialization/reference services and semantic diagnostics.
+4. Complete call-site/immediately-invoked function contexts, iterator/generator services and property/declaration flow integration; complete constructor/`in`/`instanceof` narrowing, initialization/reference services and semantic diagnostics.
 5. Remaining indexed/member diagnostic and declaration services, JSX, decorators and grammar checks.
 6. Type display, node builders, symbol accessibility and emit-resolver APIs.
 7. All active checker/compiler type/symbol/diagnostic comparisons at single and reference-default concurrency; audits of intentional differences; complete semantic workload memory/performance measurements.
 
-The next integration step is function/method body inference and contextual parameters, followed by call-site inference/overload selection, declaration checks, diagnostics and module type adaptation over the program-backed symbol environment. There is still no complete production checker entry point. Component comparison counts and validation of the existing Go backend do not measure full C# checker completion. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.
+The next integration step is call-site inference, overload selection and immediately-invoked/spread argument contexts, followed by iterator/generator protocols, full declaration checks, diagnostics and module type adaptation over the program-backed symbol environment. Function-body checking still depends on these services for calls and generators, and generic-expression finishing remains open. There is still no complete production checker entry point. Component comparison counts and validation of the existing Go backend do not measure full C# checker completion. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.

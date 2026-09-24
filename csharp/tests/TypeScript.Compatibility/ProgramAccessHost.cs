@@ -119,8 +119,7 @@ internal sealed partial class ProgramTypeHost : IAccessExpressionHost, IIndexedA
             => await MemberAccessibility.CheckAsync(node, super, writing, type, property, cancellation: cancellation);
 
     public ValueTask<Type?> ContextualThisAsync(SyntaxNode node, CancellationToken cancellation)
-            => (node.Flags & NodeFlags.JavaScriptFile) == 0 && (node is FunctionDeclarationNode || SemanticSyntax.ClassLike(node.Parent))
-                ? ValueTask.FromResult<Type?>(null) : throw new InvalidOperationException("Probe requires contextual this types");
+        => FunctionThis.GetAsync(node, cancellation);
 
     public bool ClassInstanceProperty(SyntaxNode declaration)
             => (declaration.Flags & NodeFlags.JavaScriptFile) != 0 && declaration is BinaryExpressionNode

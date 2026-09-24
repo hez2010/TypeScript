@@ -26,7 +26,7 @@ internal sealed partial class ProgramTypeHost : ISignatureHost, IStructuredMembe
             ? throw new InvalidOperationException("Probe requires JSDoc signatures") : ValueTask.FromResult<Signature?>(null);
 
     public ValueTask<Type?> ContextualTypeAsync(SyntaxNode declaration, CancellationToken cancellation) =>
-            throw new InvalidOperationException("Probe requires contextual signatures");
+        Contexts.GetAsync(declaration, ContextFlags.Signature, cancellation);
 
     public async ValueTask<bool> BindableNameAsync(SyntaxNode node, CancellationToken cancellation) =>
         (node as INamedNode)?.Name is not ComputedPropertyNameNode
@@ -34,13 +34,10 @@ internal sealed partial class ProgramTypeHost : ISignatureHost, IStructuredMembe
             || await LateMembers.BindableAsync(node, cancellation);
 
     public ValueTask<Type> ReturnFromBodyAsync(SyntaxNode declaration, CancellationToken cancellation) =>
-            ReturnBody?.Invoke(declaration, cancellation) ?? throw new InvalidOperationException("Probe requires return inference");
+        ReturnBody?.Invoke(declaration, cancellation) ?? FunctionBodies.ReturnAsync(declaration, cancellation: cancellation);
 
     public ValueTask<TypePredicate?> PredicateFromBodyAsync(SyntaxNode declaration, CancellationToken cancellation) =>
-            PredicateBody?.Invoke(
-                declaration,
-                cancellation) ?? (SemanticSyntax.Body(declaration) is null ? ValueTask.FromResult<TypePredicate?>(null)
-                : throw new InvalidOperationException("Probe requires predicate inference"));
+        PredicateBody?.Invoke(declaration, cancellation) ?? FunctionBodies.PredicateAsync(declaration, cancellation);
 
     public ValueTask<int> ParameterCountAsync(Signature signature, CancellationToken cancellation) =>
         Parameters.CountAsync(signature, cancellation);
@@ -137,6 +134,10 @@ internal sealed partial class ProgramTypeHost : ISignatureHost, IStructuredMembe
         if (symbol.ValueDeclaration is VariableDeclarationNode or ParameterDeclarationNode or PropertyDeclarationNode
             or PropertySignatureDeclarationNode or BindingElementNode)
             return await Variables.GetAsync(symbol.ValueDeclaration, reportErrors, cancellation);
+        if (symbol.ValueDeclaration is PropertyAssignmentNode or ShorthandPropertyAssignmentNode)
+            return await ObjectLiterals.PropertyAsync(symbol.ValueDeclaration, true, 0, cancellation);
+        if (symbol.ValueDeclaration is MethodDeclarationNode method)
+            return await Functions.CheckAsync(method, cancellation: cancellation);
         Type result;
         if (symbol.ValueDeclaration is ITypedNode { Type: { } annotation } declaration)
         {
@@ -157,10 +158,9 @@ internal sealed partial class ProgramTypeHost : ISignatureHost, IStructuredMembe
     {
         if (SensitiveParameter is not null)
             return SensitiveParameter(symbol);
-        if (symbol.ValueDeclaration is ParameterDeclarationNode parameter && parameter.Type is null
-            && parameter.Parent is ArrowFunctionNode or FunctionExpressionNode)
-            throw new InvalidOperationException("Probe requires contextual parameter analysis");
-        return false;
+        return symbol.ValueDeclaration is { } declaration
+            && SemanticSyntax.RootDeclaration(declaration) is ParameterDeclarationNode parameter
+            && FunctionSyntax.Contextual(parameter.Parent!) && FunctionSyntax.Sensitive(parameter.Parent!, program.Symbols);
     }
 
     public ValueTask<Type> ReverseMappedAsync(Symbol symbol, CancellationToken cancellation) =>

@@ -53,6 +53,10 @@ internal sealed partial class ProgramTypeHost : IExpressionTypeHost, IExpression
 
     public async ValueTask<Type> OtherExpressionAsync(SyntaxNode node, CheckMode mode, CancellationToken cancellation)
     {
+        if (node is FunctionExpressionNode or ArrowFunctionNode)
+            return await Functions.CheckAsync(node, mode, cancellation);
+        if (node is AwaitExpressionNode awaitExpression)
+            return await AwaitExpressions.CheckAsync(awaitExpression, cancellation);
         if (node is AsExpressionNode or TypeAssertionNode && SemanticSyntax.ConstAssertion(node))
         {
             var expression = node is AsExpressionNode assertion ? assertion.Expression! : ((TypeAssertionNode)node).Expression!;

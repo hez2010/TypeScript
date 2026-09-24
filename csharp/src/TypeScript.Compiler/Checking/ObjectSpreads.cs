@@ -152,7 +152,7 @@ internal sealed class ObjectSpreads(TypeContext context, CheckerLinks links, Typ
         result.Properties = members.Values.Where(p => (p.Flags & SymbolFlags.Value) != 0
             && (!p.Name.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal)
                 || p.Name.StartsWith(Symbol.InternalPrefix + Symbol.InternalPrefix, StringComparison.Ordinal)
-                || p.Name.Length >= 2 && p.Name[1] is '@' or '#')).ToArray();
+                || p.Name.Length >= 2 && p.Name[1] is '@' or '#')).Order(algebra.Order).ToArray();
         result.CallSignatures = result.ConstructSignatures = [];
         result.IndexInfos = indexes;
         return result;

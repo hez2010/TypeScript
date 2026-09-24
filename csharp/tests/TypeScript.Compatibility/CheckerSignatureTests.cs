@@ -212,6 +212,97 @@ internal static class CheckerSignatureTests
         {
             checks++;
         }
-        Console.WriteLine($"{checks} signature matching/arity/composition/cancellation assertions; binding label depth 20000");
+        checks += await FunctionSafety();
+        Console.WriteLine(
+            $"{checks} signature/function/context/predicate/cancellation assertions; binding and return traversal depth 20000");
+    }
+
+    private static async Task<int> FunctionSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Function assertion {checks + 1}");
+            checks++;
+        }
+        const string source = "interface Array<T>{length:number;[n:number]:T} interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T} type NumberFunction=(value:number)=>number; type StringFunction=(value:string)=>string; type GenericFunction=<T>(value:T)=>T; const f=value=>value; const generic=value=>value; const predicate=(value:string|number)=>typeof value==='string';";
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        var program = await CompilerProgram.CreateAsync(
+            new MemoryFileSystem(new Dictionary<string, byte[]> { ["/project/main.ts"] = Wtf8.Encode(source) }),
+            "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var context = new TypeContext(true, true);
+        var links = new CheckerLinks();
+        var scope = new ProgramScopeHost(context, links);
+        var symbols = await CheckerSymbols.CreateAsync(program, links, scope);
+        var host = new ProgramTypeHost(context, links, scope);
+        var nodes = program.SourceFiles[0].Syntax.DescendantsAndSelf().ToArray();
+        var arrows = nodes.OfType<ArrowFunctionNode>().ToArray();
+        var number = await host.Declared.GetAsync(symbols.Globals["NumberFunction"]);
+        var text = await host.Declared.GetAsync(symbols.Globals["StringFunction"]);
+        var generic = await host.Declared.GetAsync(symbols.Globals["GenericFunction"]);
+        var signature = await host.Signatures.FromDeclarationAsync(arrows[0]);
+        using (var cancellation = new CancellationTokenSource())
+        {
+            host.BeforeFunctionDeclaration = _ => cancellation.Cancel();
+            try
+            {
+                await host.Contexts.CheckWithAsync(arrows[0], number, cancellation: cancellation.Token);
+                throw new InvalidOperationException("Function cancellation ignored");
+            }
+            catch (OperationCanceledException)
+            {
+                checks++;
+            }
+        }
+        host.BeforeFunctionDeclaration = null;
+        Check((links.Nodes.Get(arrows[0]).Flags & NodeCheckFlags.ContextChecked) == 0);
+        Check(signature.ResolvedReturnType is null && links.Values.Get(signature.Parameters[0]).ResolvedType is null);
+        Check(host.Contexts.ContextDepth == 0 && host.Contexts.InferenceDepth == 0 && host.Expressions.CurrentNode is null);
+        await host.Contexts.CheckWithAsync(arrows[0], text);
+        Check(await host.Signatures.ReturnAsync(signature) == context.StringType);
+        Check(await host.Values.GetAsync(signature.Parameters[0]) == context.StringType);
+        var genericSignature = await host.Signatures.FromDeclarationAsync(arrows[1]);
+        host.BeforeFunctionDeclaration = _ => throw new InvalidOperationException("generic-failure");
+        try
+        {
+            await host.Contexts.CheckWithAsync(arrows[1], generic);
+            throw new InvalidOperationException("Generic failure ignored");
+        }
+        catch (InvalidOperationException error) when (error.Message == "generic-failure")
+        {
+            checks++;
+        }
+        host.BeforeFunctionDeclaration = null;
+        Check(genericSignature.TypeParameters.Count == 0 && genericSignature.ResolvedReturnType is null);
+        Check(links.Values.Get(genericSignature.Parameters[0]).ResolvedType is null);
+        await host.Contexts.CheckWithAsync(arrows[1], generic);
+        Check(genericSignature.TypeParameters.Count == 1);
+        Check(await host.Signatures.ReturnAsync(genericSignature) == genericSignature.TypeParameters[0]);
+        await host.Functions.CheckAsync(arrows[2]);
+        var predicateSignature = await host.Signatures.FromDeclarationAsync(arrows[2]);
+        Check(await host.Signatures.ReturnAsync(predicateSignature) == context.BooleanType);
+        Check(await host.Signatures.PredicateAsync(predicateSignature) is { Type: { } predicate } && predicate == context.StringType);
+        using var cancelled = new CancellationTokenSource();
+        cancelled.Cancel();
+        try
+        {
+            await host.Functions.ContextualAsync(arrows[0], cancellation: cancelled.Token);
+            throw new InvalidOperationException("Cached contextual function cancellation ignored");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        var returnStatement = new ReturnStatementNode { Expression = new NumericLiteralNode { Text = "1" } };
+        SyntaxNode body = returnStatement;
+        for (int i = 0; i < 20_000; i++)
+            body = new BlockNode { Statements = new NodeList([body]) };
+        Check(FunctionSyntax.Returns(body).Single() == returnStatement);
+        Check(!FunctionSyntax.Sensitive(arrows[2], symbols));
+        Check(host.Instantiation.Resolutions.Count == 0 && host.Contexts.ContextDepth == 0 && host.Contexts.InferenceDepth == 0);
+        return checks;
     }
 }

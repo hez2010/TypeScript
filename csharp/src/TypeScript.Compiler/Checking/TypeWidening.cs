@@ -137,7 +137,7 @@ internal sealed class TypeWidening(TypeContext context, TypeAlgebra algebra, Typ
                 index.IsReadonly, index.Declaration, index.Components.ToArray()));
         var result = context.NewObjectType(ObjectFlags.Anonymous, type.Symbol);
         result.Members = members.AsReadOnly();
-        result.Properties = members.Values.ToArray();
+        result.Properties = members.Values.Order(algebra.Order).ToArray();
         result.CallSignatures = [];
         result.ConstructSignatures = [];
         result.IndexInfos = indexes.AsReadOnly();
@@ -180,9 +180,10 @@ internal sealed class TypeWidening(TypeContext context, TypeAlgebra algebra, Typ
         return widening.Siblings = siblings.AsReadOnly();
     }
 
-    internal Symbol WithType(Symbol source, Type type)
+    internal Symbol WithType(Symbol source, Type? type)
     {
-        context.RequireOwned(type);
+        if (type is not null)
+            context.RequireOwned(type);
         var result = new Symbol(source.Flags | SymbolFlags.Transient, source.Name)
         { CheckFlags = source.CheckFlags & CheckFlags.Readonly, Parent = source.Parent, ValueDeclaration = source.ValueDeclaration };
         result.DeclarationList.AddRange(source.Declarations);

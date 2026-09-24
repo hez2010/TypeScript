@@ -191,7 +191,7 @@ internal sealed class ThisExpressions(TypeContext context, CheckerLinks links, C
                 ? parameter
                 : null;
 
-    private static bool ParameterInitializer(SyntaxNode node)
+    internal static bool ParameterInitializer(SyntaxNode node)
     {
         bool binding = false;
         while (node.Parent is not null && node.Parent is not IFunctionSignature)

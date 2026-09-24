@@ -337,7 +337,7 @@ internal sealed class BindingTypes(TypeContext context, CheckerLinks links, Chec
             members[property.Name] = await SpreadSymbolAsync(property, false, cancellation).ConfigureAwait(false);
         var result = context.NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved | ObjectFlags.ObjectRestType, symbol);
         result.Members = members.AsReadOnly();
-        result.Properties = members.Values.ToArray();
+        result.Properties = members.Values.Order(algebra.Order).ToArray();
         result.CallSignatures = result.ConstructSignatures = [];
         result.IndexInfos = await host.IndexesAsync(source, cancellation).ConfigureAwait(false);
         return result;

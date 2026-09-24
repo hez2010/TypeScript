@@ -48,6 +48,14 @@ internal sealed class ExpressionContexts(TypeContext context, TypeAlgebra algebr
     internal int ContextDepth => contexts.Count;
     internal int InferenceDepth => inferences.Count;
 
+    internal Type? CachedContextFree(SyntaxNode node) => contextFree.GetValueOrDefault(node);
+
+    internal void SetContextFree(SyntaxNode node, Type type)
+    {
+        context.RequireOwned(type);
+        contextFree[node] = type;
+    }
+
     internal async ValueTask<Type> ContextFreeAsync(SyntaxNode node, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
@@ -417,6 +425,11 @@ internal sealed class ExpressionContexts(TypeContext context, TypeAlgebra algebr
             node,
             0,
             cancellation).ConfigureAwait(false);
+        return await WidenLiteralAsync(type, contextual, cancellation).ConfigureAwait(false);
+    }
+
+    internal async ValueTask<Type> WidenLiteralAsync(Type type, Type? contextual, CancellationToken cancellation = default)
+    {
         if (!await LiteralAsync(type, contextual, cancellation).ConfigureAwait(false))
         {
             type = await widening.LiteralAsync(type, cancellation).ConfigureAwait(false);

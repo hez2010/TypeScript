@@ -34,6 +34,7 @@ internal interface ITypeAlgebraHost
 
 internal sealed partial class TypeAlgebra(TypeContext context, TypeOrder order, ITypeAlgebraHost host)
 {
+    internal TypeOrder Order => order;
     private readonly Dictionary<(uint First, uint Second, UnionReduction Reduction, TypeCacheKey Alias), Type> unionPairs = [];
     private readonly Dictionary<(TypeCacheKey Types, IntersectionFlags Flags), Type> intersections = [];
     private readonly Dictionary<TypeCacheKey, Type[]> subtypeReductions = [];

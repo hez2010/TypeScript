@@ -422,6 +422,14 @@ public enum CheckMode : uint
     ForceTuple = 1u << 7,
 }
 
+public enum WideningKind : int
+{
+    Normal = 0,
+    FunctionReturn = 1,
+    GeneratorNext = 2,
+    GeneratorYield = 3,
+}
+
 // relater.go SHA256 e191ef007847b5827a87d0310838594ec53bce1fca12bfb736637ea5299e99e3
 [Flags]
 public enum SignatureCheckMode : uint

@@ -41,6 +41,7 @@ internal sealed partial class ProgramScopeHost(TypeContext context, CheckerLinks
     internal Action? BeforeValueResolution { get; set; }
     internal Func<SyntaxNode, string, ValueTask<bool>>? MissingPrefixCheck { get; set; }
     internal Func<Symbol, Symbol>? LateMemberSymbol { get; set; }
+    internal Func<Symbol, CancellationToken, ValueTask<Signature?>>? CallSignature { get; set; }
     internal Dictionary<SyntaxNode, Signature> ContextualSignatures { get; } = [];
 
     public void Bind(CheckerSymbols symbols)
@@ -179,13 +180,12 @@ internal sealed partial class ProgramScopeHost(TypeContext context, CheckerLinks
     {
         if (ContextualSignatures.ContainsKey(declaration))
             return true;
-        if (declaration is IFunctionSignature { TypeParameters.Count: > 0 })
-            return false;
-        throw new InvalidOperationException("Probe requires contextual function analysis");
+        return FunctionSyntax.Sensitive(declaration, Symbols);
     }
 
     public ValueTask<Signature?> FirstCallSignatureAsync(Symbol symbol, CancellationToken cancellation)
-        => ValueTask.FromResult<Signature?>(ContextualSignatures[symbol.Declarations[0]]);
+        => ContextualSignatures.TryGetValue(symbol.Declarations[0], out var signature) ? ValueTask.FromResult<Signature?>(signature)
+            : CallSignature?.Invoke(symbol, cancellation) ?? throw new InvalidOperationException("Probe requires function signatures");
 
     public async ValueTask<Symbol?> ResolveTypeNameAsync(SyntaxNode name, CancellationToken cancellation)
     {

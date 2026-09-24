@@ -40,6 +40,7 @@ internal sealed partial class ProgramTypeHost : IVariableTypeHost
             {
                 type = await FlowTypes.StableAsync(() => Expressions.CheckAsync(node, cancellation: cancellation), cancellation);
                 cancellation.ThrowIfCancellationRequested();
+                Functions.RecordExpressionCache(node, type);
                 data.ResolvedType = type;
             }
         }
@@ -59,8 +60,7 @@ internal sealed partial class ProgramTypeHost : IVariableTypeHost
     }
 
     public ValueTask<Type?> ContextualParameterAsync(ParameterDeclarationNode parameter, CancellationToken cancellation)
-        => parameter.Parent is FunctionExpressionNode or ArrowFunctionNode or MethodDeclarationNode { Parent: ObjectLiteralExpressionNode }
-            ? throw new InvalidOperationException("Probe requires contextual function parameters") : ValueTask.FromResult<Type?>(null);
+        => FunctionContexts.ParameterAsync(parameter, cancellation);
 
     public ValueTask<Type?> PropertyInitializationAsync(PropertyDeclarationNode property, CancellationToken cancellation)
     {
@@ -105,7 +105,10 @@ internal sealed partial class ProgramTypeHost : IVariableTypeHost
     public ValueTask ReportWideningAsync(SyntaxNode declaration, Type type, CancellationToken cancellation) =>
         WideningDiagnostics.ReportAsync(declaration, type, cancellation);
 
-    public async ValueTask ReportImplicitAnyAsync(SyntaxNode declaration, Type type, CancellationToken cancellation)
+    public ValueTask ReportImplicitAnyAsync(SyntaxNode declaration, Type type, CancellationToken cancellation) =>
+        ReportImplicitAnyAsync(declaration, type, WideningKind.Normal, cancellation);
+
+    public async ValueTask ReportImplicitAnyAsync(SyntaxNode declaration, Type type, WideningKind kind, CancellationToken cancellation)
     {
         if ((declaration.Flags & NodeFlags.JavaScriptFile) != 0 && SemanticSyntax.Source(declaration)?.CheckJsDirective?.Enabled != true
             && program.Symbols.Program.Configuration.Options.Boolean("checkJs") != true)
@@ -135,6 +138,19 @@ internal sealed partial class ProgramTypeHost : IVariableTypeHost
             if (!NoImplicitAny)
                 return;
             code = 7031;
+        }
+        else if (declaration is FunctionDeclarationNode or FunctionExpressionNode or ArrowFunctionNode or MethodDeclarationNode
+            or MethodSignatureDeclarationNode or GetAccessorDeclarationNode or SetAccessorDeclarationNode)
+        {
+            var name = (declaration as INamedNode)?.Name;
+            if (NoImplicitAny && name is null)
+                code = kind == WideningKind.GeneratorYield ? 7025 : 7011;
+            else if (!NoImplicitAny)
+                code = 7050;
+            else if ((declaration.Flags & NodeFlags.Reparsed) != 0)
+                code = name is null ? 7012 : 7010;
+            else
+                code = kind == WideningKind.GeneratorYield ? 7055 : 7010;
         }
         else
             code = NoImplicitAny ? 7005 : 7043;

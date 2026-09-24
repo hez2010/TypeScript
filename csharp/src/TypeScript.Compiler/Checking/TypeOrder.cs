@@ -6,7 +6,7 @@ namespace TypeScript.Compiler.Checking;
 
 // Deterministic order used by normalized unions and relation keys. This is not
 // assignability or structural equality. Declarations precede allocation IDs.
-internal sealed class TypeOrder : IComparer<Type>
+internal sealed class TypeOrder : IComparer<Type>, IComparer<Symbol>
 {
     private readonly Dictionary<SourceFileNode, int> files = new(ReferenceEqualityComparer.Instance);
 
@@ -297,6 +297,8 @@ internal sealed class TypeOrder : IComparer<Type>
         int name = CompareSymbolNames(left.Name, right.Name);
         return name != 0 ? name : left.Id.CompareTo(right.Id);
     }
+
+    int IComparer<Symbol>.Compare(Symbol? left, Symbol? right) => CompareSymbols(left, right);
 
     internal int CompareNodes(SyntaxNode? left, SyntaxNode? right)
     {
