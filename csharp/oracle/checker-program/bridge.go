@@ -13,7 +13,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/jsnum"
 )
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -672,6 +672,13 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 			}
 		}
 	}
+	if assertionQueries {
+		for _, node := range nodes {
+			if (node.Kind == ast.KindAsExpression || node.Kind == ast.KindTypeAssertionExpression) && c.assertionLinks.Get(node).exprType != nil {
+				c.checkAssertionDeferred(node)
+			}
+		}
+	}
 	typeRows := []any{}
 	for i := 0; i < len(types); i++ {
 		t := types[i]
@@ -780,6 +787,9 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 			}
 			if t.objectFlags&(ObjectFlagsReference|ObjectFlagsClassOrInterface) != 0 {
 				shape["node"] = nodeIDs[t.AsTypeReference().node]
+			}
+			if t.flags&TypeFlagsObject != 0 && t.objectFlags&ObjectFlagsInstantiationExpressionType != 0 {
+				shape["node"] = nodeIDs[t.AsInstantiationExpressionType().node]
 			}
 			if t.objectFlags&ObjectFlagsTuple != 0 {
 				d := t.AsTupleType()
@@ -921,6 +931,15 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	}
 	if awaitedQueries {
 		result["awaitedQueries"] = awaitedRows
+	}
+	if identifierQueries {
+		instantiationErrors := []any{}
+		for _, diagnostic := range c.diagnostics.GetDiagnostics() {
+			if diagnostic.Code() == 2635 {
+				instantiationErrors = append(instantiationErrors, diagnostic.MessageArgs()[0])
+			}
+		}
+		result["instantiationErrors"] = instantiationErrors
 	}
 	if expressionQueries {
 		result["expressionQueries"] = expressionRows

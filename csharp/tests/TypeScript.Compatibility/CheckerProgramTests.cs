@@ -622,6 +622,9 @@ internal static class CheckerProgramTests
         if (input.TryGetProperty("identity", out var identityOption) && identityOption.GetBoolean())
             await CheckerRelationTests.WriteAsync(writer, nodes, environment, typeHost!, TypeId, Node,
                 input.TryGetProperty("assignability", out var assignabilityOption) && assignabilityOption.GetBoolean());
+        if (input.TryGetProperty("assertions", out var assertionOption) && assertionOption.GetBoolean())
+            foreach (var assertion in typeHost!.Assertions.CheckedNodes.OrderBy(Node).ToArray())
+                await typeHost.Assertions.DeferredAsync(assertion);
         var variableQueries = typeHost is not null
             && input.TryGetProperty("awaited", out var classifyVariables)
             && classifyVariables.GetBoolean()
@@ -742,6 +745,8 @@ internal static class CheckerProgramTests
                 }
                 if (type is TypeReference referenceType)
                     writer.WriteNumber("node", Node(referenceType.Node));
+                if (type is InstantiationExpressionType instantiatedExpression)
+                    writer.WriteNumber("node", Node(instantiatedExpression.Node));
                 if (type is TupleType tuple)
                 {
                     writer.WriteStartArray("tuple");
@@ -833,6 +838,13 @@ internal static class CheckerProgramTests
             writer.WriteStartArray("identifierSuggestions");
             foreach (int code in host.ValueSuggestions.Concat(typeHost!.Suggestions).Order())
                 writer.WriteNumberValue(code);
+            writer.WriteEndArray();
+        }
+        if (input.TryGetProperty("identifiers", out var instantiationOption) && instantiationOption.GetBoolean())
+        {
+            writer.WriteStartArray("instantiationErrors");
+            foreach (var error in typeHost!.InstantiationErrors.OrderBy(p => Node(p.Key)))
+                writer.WriteStringValue(error.Value);
             writer.WriteEndArray();
         }
         if (input.TryGetProperty("numberStrings", out var numberStrings))

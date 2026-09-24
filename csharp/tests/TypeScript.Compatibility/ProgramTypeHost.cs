@@ -306,6 +306,10 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
             FlowTypes,
             this);
         Calls = new(context, CallResolution, CallSignatures, Signatures, this);
+        Assertions = new(context, Algebra, Widening, ObjectLiterals, Relations, RelationDiagnostics, this);
+        TypeDisplay = new(context, Members, Instantiation.Constraints, References, Values, Signatures, Parameters, Nodes);
+        ValueExpressions = new(context, links, program.Symbols, Values, Facts, this);
+        InstantiationExpressions = new(context, Algebra, Instantiation.Constraints, Members, CallSignatures, SignatureInstantiation, this);
         ConstructorAccess = new(program.Symbols, Declared, Bases, Composites, this);
         BestMatchingTypes = new(TypeDiscrimination, Relations, Algebra, Keys, this, this);
         LiteralElaboration = new(context, program.Symbols, Algebra, Relations, RelationDiagnostics, Indexed, Keys,
@@ -379,7 +383,9 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
     public async ValueTask<Type> TypeQueryAsync(TypeQueryNode node, CancellationToken cancellation)
     {
         if (node.TypeArguments is not null)
-            throw new InvalidOperationException("Probe requires instantiation-expression checking");
+            return await Algebra.RegularTypeAsync(
+                await Widening.GetAsync(await InstantiationExpressions.CheckAsync(node, cancellation), cancellation),
+                cancellation);
         return await Algebra.RegularTypeAsync(
             await Widening.GetAsync(await Expressions.CheckAsync(node.ExprName!, cancellation: cancellation), cancellation),
             cancellation);

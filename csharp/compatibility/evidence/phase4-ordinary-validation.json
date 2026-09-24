@@ -1,0 +1,194 @@
+{
+    "timestamp": "2026-09-24T09:05:26.6146923+00:00",
+    "scope": "Assertions and deferred overlap diagnostics, satisfies, explicit generic instantiation and type queries, delete, metadata and const-enum access checks, and structural instantiation diagnostic display; complete checker integration remains open",
+    "candidateSha256": "51c1a9099bc6460a85751d37b2b464d1a885f3bd8cc34a709fde5760f71df0fd",
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "languageVersion": "15.0",
+    "runtimeAsync": true,
+    "optimizationPreference": "Speed",
+    "instructionSet": "native",
+    "publish": {
+        "exitCode": 0,
+        "log": "logs/csharp-phase4-ordinary-publish.log",
+        "sha256": "03933be2dc34223ee88005d844f6919fd7786869077fd93acbb392005d81ccfb"
+    },
+    "sourceComparisons": {
+        "program": {
+            "cases": 180,
+            "exact": 180,
+            "failed": 0,
+            "record": "phase4-ordinary-program.json"
+        },
+        "aliases": {
+            "cases": 124,
+            "exact": 124,
+            "failed": 0,
+            "record": "phase4-ordinary-aliases.json"
+        },
+        "type-nodes": {
+            "cases": 192,
+            "exact": 192,
+            "failed": 0,
+            "record": "phase4-ordinary-type-nodes.json"
+        },
+        "members": {
+            "cases": 176,
+            "exact": 176,
+            "failed": 0,
+            "record": "phase4-ordinary-members.json"
+        },
+        "values": {
+            "cases": 136,
+            "exact": 136,
+            "failed": 0,
+            "record": "phase4-ordinary-values.json"
+        },
+        "properties": {
+            "cases": 192,
+            "exact": 192,
+            "failed": 0,
+            "record": "phase4-ordinary-properties.json"
+        },
+        "signatures": {
+            "cases": 216,
+            "exact": 216,
+            "failed": 0,
+            "record": "phase4-ordinary-signatures.json"
+        },
+        "identity": {
+            "cases": 160,
+            "exact": 160,
+            "failed": 0,
+            "record": "phase4-ordinary-identity.json"
+        },
+        "assignability": {
+            "cases": 332,
+            "exact": 332,
+            "failed": 0,
+            "record": "phase4-ordinary-assignability.json"
+        },
+        "indexing": {
+            "cases": 320,
+            "exact": 320,
+            "failed": 0,
+            "record": "phase4-ordinary-indexing.json"
+        },
+        "generic-relations": {
+            "cases": 128,
+            "exact": 128,
+            "failed": 0,
+            "record": "phase4-ordinary-generic-relations.json"
+        },
+        "conditional": {
+            "cases": 152,
+            "exact": 152,
+            "failed": 0,
+            "record": "phase4-ordinary-conditional.json"
+        },
+        "inference": {
+            "cases": 176,
+            "exact": 176,
+            "failed": 0,
+            "record": "phase4-ordinary-inference.json"
+        },
+        "expressions": {
+            "cases": 40,
+            "exact": 40,
+            "failed": 0,
+            "record": "phase4-ordinary-expressions.json"
+        },
+        "constants": {
+            "cases": 48,
+            "exact": 48,
+            "failed": 0,
+            "record": "phase4-ordinary-constants.json"
+        },
+        "initializers": {
+            "cases": 48,
+            "exact": 48,
+            "failed": 0,
+            "record": "phase4-ordinary-initializers.json"
+        },
+        "binary": {
+            "cases": 56,
+            "exact": 56,
+            "failed": 0,
+            "record": "phase4-ordinary-binary.json"
+        },
+        "awaited": {
+            "cases": 24,
+            "exact": 24,
+            "failed": 0,
+            "record": "phase4-ordinary-awaited.json"
+        },
+        "references": {
+            "cases": 140,
+            "exact": 140,
+            "failed": 0,
+            "record": "phase4-ordinary-references.json"
+        },
+        "flow": {
+            "cases": 212,
+            "exact": 212,
+            "failed": 0,
+            "record": "phase4-ordinary-flow.json"
+        },
+        "identifiers": {
+            "cases": 754,
+            "exact": 754,
+            "failed": 0,
+            "record": "phase4-ordinary-identifiers.json"
+        },
+        "access": {
+            "cases": 412,
+            "exact": 412,
+            "failed": 0,
+            "record": "phase4-ordinary-access.json"
+        }
+    },
+    "totalSourceComparisons": 4218,
+    "newExpressionConfigurations": 102,
+    "comparisonPolicyChanges": [],
+    "expandedObservations": [
+        "Instantiation-expression source AST identity",
+        "Rendered type argument of diagnostic 2635",
+        "Deferred assertion diagnostics for the new expression configurations"
+    ],
+    "diagnosticBoundary": "Other diagnostics remain code/state comparisons; complete text/range/related-information comparison and complete type display/node building remain open",
+    "safety": {
+        "assertions": 643,
+        "newExpressionAssertions": 14,
+        "log": "logs/csharp-phase4-ordinary-safety.log",
+        "sha256": "03b5dcfdca2239a5fe64443b2c7e4bacf7bb571078b3c5582630a56950446445"
+    },
+    "formatting": {
+        "csharpFiles": 9,
+        "tokenCommentSyntaxIdentical": true,
+        "libraryConfigurations": 2,
+        "dotnetWhitespaceExitCode": 0,
+        "checkerGenerationExitCode": 0,
+        "diffCheckExitCode": 0
+    },
+    "repositoryValidation": {
+        "command": "npx hereby validate --all",
+        "exitCode": 0,
+        "isolatedCheckout": "D:/source/repos/TypeScript-phase4-ordinary-validation",
+        "snapshotFiles": 36,
+        "snapshotHashesVerifiedBeforeAndAfter": true,
+        "snapshotManifestSha256": "a114a8370a8f665074f4fd8890811ab5e2c5d8d1645d0c4241409ac217a31ded",
+        "log": "logs/csharp-phase4-ordinary-validation.log",
+        "sha256": "b6869ceb05927e81f697c3d15c4f1fe91392e855396b6cfc0239330d30b4b581",
+        "goTests": 163380,
+        "goSkipped": 2152,
+        "apiTests": 813,
+        "extensionTests": 12,
+        "toolsTests": 17,
+        "lintIssues": 0,
+        "elapsed": "5m 23.2s",
+        "productGoJavaScriptUnchanged": true
+    },
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "phase4Complete": false
+}

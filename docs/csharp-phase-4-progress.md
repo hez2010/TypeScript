@@ -569,6 +569,18 @@ The comparison serializer replaces the allocator suffix in unique-symbol propert
 
 Evidence: [identifier and iteration comparisons](../csharp/compatibility/evidence/phase4-iteration-identifiers.json), [signature regressions](../csharp/compatibility/evidence/phase4-iteration-signatures.json), [flow regressions](../csharp/compatibility/evidence/phase4-iteration-flow.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-iteration-validation.json). Deferred iterator diagnostic formatting and related information, generator emit helpers, remaining declaration/body checks and complete checker integration remain open.
 
+## Assertions, explicit instantiation and value expressions
+
+`TypeAssertions` implements ordinary and const assertions, deferred overlap diagnostics and `satisfies`. `InstantiationExpressions` specializes generic call/construct signatures, filters overloads by type-argument arity, checks constraints, preserves object members and handles unions/intersections and constrained type variables. Results are cached by expression and source type; a cancelled diagnostic rolls back the result published by that request. Type queries with explicit arguments share this implementation.
+
+`ValueExpressionChecks` implements deletion requirements, `new.target`, `import.meta` module restrictions and const-enum access checks. Regular-expression values use the global `RegExp` type. The initial `TypeDisplay` service renders structural instantiation diagnostics, including generic parameter constraints/defaults, signatures, tuples and literal escaping. Complete accessibility-aware type display, all type forms and declaration node building remain open.
+
+Windows x64 NativeAOT passes **4,218 exact source-program configurations**, including **102 new configurations**, and **643 safety assertions**. New cases include overload/union/intersection instantiation, constructors, constraints/defaults, optional/rest parameters, assertion grammar and deferred errors, const assertions, `satisfies`, delete/readonly/optional checks, metadata module modes, const enums and Unicode diagnostic text. Fourteen new safety assertions exercise cache identity, diagnostic cancellation/recovery, cross-context rejection and deferred assertion publication.
+
+The probe now compares instantiation-expression source nodes and the rendered type argument of diagnostic 2635, and explicitly runs deferred assertion checks for the new expression cases. The renderer performs the real constraint/default queries required by that diagnostic; no lazy state is forced by the serializer. Full diagnostic text, range and related-information comparison across the checker remains a separate unfinished gate.
+
+Evidence: [expression and identifier comparisons](../csharp/compatibility/evidence/phase4-ordinary-identifiers.json), [signature regressions](../csharp/compatibility/evidence/phase4-ordinary-signatures.json), [property regressions](../csharp/compatibility/evidence/phase4-ordinary-properties.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-ordinary-validation.json).
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:

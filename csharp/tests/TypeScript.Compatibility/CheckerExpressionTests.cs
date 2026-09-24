@@ -121,8 +121,97 @@ internal static class CheckerExpressionTests
             deep = new PrefixUnaryExpressionNode { Operator = SyntaxKind.TildeToken, Operand = deep };
         Check((await evaluator.EvaluateAsync(deep)).Value is 1d);
         checks += await LiteralSafety();
+        checks += await OrdinarySafety();
         Console.WriteLine(
             $"{checks} expression/literal/context/enum/cache/cancellation assertions; 20000-level expression, constant and context traversal");
+    }
+
+    private static async Task<int> OrdinarySafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Ordinary expression assertion {checks + 1}");
+            checks++;
+        }
+        const string source = "interface Array<T>{length:number;[n:number]:T} interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T} declare function f<T>(value:T):T; f<number>; f<number,string>; 1 as string; 2 as number;";
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        var program = await CompilerProgram.CreateAsync(
+            new MemoryFileSystem(new Dictionary<string, byte[]> { ["/project/main.ts"] = Wtf8.Encode(source) }),
+            "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var context = new TypeContext(true, true);
+        var links = new CheckerLinks();
+        var scope = new ProgramScopeHost(context, links);
+        var symbols = await CheckerSymbols.CreateAsync(program, links, scope);
+        var host = new ProgramTypeHost(context, links, scope);
+        var allNodes = program.SourceFiles[0].Syntax.DescendantsAndSelf().ToArray();
+        var instantiations = allNodes.OfType<ExpressionWithTypeArgumentsNode>().ToArray();
+        var assertions = allNodes.OfType<AsExpressionNode>().ToArray();
+        var function = await host.Values.GetAsync(symbols.Globals["f"]);
+        var specialized = await host.InstantiationExpressions.GetAsync(function, instantiations[0]);
+        Check(specialized is InstantiationExpressionType { Node: var node } && node == instantiations[0]);
+        Check(
+            await host.InstantiationExpressions.GetAsync(function, instantiations[0]) == specialized
+                && host.InstantiationExpressions.CacheCount == 1);
+        var signature = (await host.SignaturesAsync(specialized, false, default)).Single();
+        Check(
+            await host.Signatures.ReturnAsync(signature) == context.NumberType
+                && await host.Parameters.AtAsync(signature, 0) == context.NumberType);
+        host.BeforeInstantiationDiagnostic = () => throw new OperationCanceledException();
+        try
+        {
+            await host.InstantiationExpressions.GetAsync(function, instantiations[1]);
+            throw new InvalidOperationException("Instantiation diagnostic cancellation ignored");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        Check(host.InstantiationExpressions.CacheCount == 1 && host.InstantiationErrors.Count == 0);
+        host.BeforeInstantiationDiagnostic = null;
+        await host.InstantiationExpressions.GetAsync(function, instantiations[1]);
+        Check(host.InstantiationErrors.Values.Single() == "<T>(value: T) => T" && host.Diagnostics.Contains(2635));
+        try
+        {
+            await host.InstantiationExpressions.GetAsync(new TypeContext().NumberType, instantiations[0]);
+            throw new InvalidOperationException("Foreign instantiation accepted");
+        }
+        catch (ArgumentException)
+        {
+            checks++;
+        }
+        Check(await host.Assertions.CheckAsync(assertions[0]) == context.StringType && host.Assertions.OperandCount == 1);
+        Check(!host.Diagnostics.Contains(2352));
+        await host.Assertions.DeferredAsync(assertions[0]);
+        Check(host.Diagnostics.Contains(2352));
+        host.BeforeExpressionFinish = () => throw new OperationCanceledException();
+        try
+        {
+            await host.Assertions.CheckAsync(assertions[1]);
+            throw new InvalidOperationException("Assertion cancellation ignored");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        Check(host.Assertions.OperandCount == 1 && !host.DeferredExpressions.Contains(assertions[1]));
+        host.BeforeExpressionFinish = null;
+        Check(await host.Assertions.CheckAsync(assertions[1]) == context.NumberType && host.Assertions.OperandCount == 2);
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+        try
+        {
+            await host.InstantiationExpressions.GetAsync(function, instantiations[0], cancellation.Token);
+            throw new InvalidOperationException("Cancelled cached instantiation accepted");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        return checks;
     }
 
     private static async Task<int> LiteralSafety()

@@ -944,6 +944,42 @@ for (const strict of [false, true]) {
         })
     ) add(`identifiers:${name}:${strict}`, { "globals.d.ts": library + iterationLibrary + " declare function __expr(value:unknown):void;", "main.ts": source }, { strict }, false, true);
 }
+for (const strict of [false, true]) {
+    for (
+        const [name, source] of Object.entries({
+            assertion: "declare const value:unknown; __expr(value as string); __expr(<number>value); __expr(({value:1} as {value:number}).value);",
+            satisfies: "const value={kind:'a',count:1} satisfies {kind:'a'|'b';count:number}; __expr(value); __expr({value:'bad'} satisfies {value:number});",
+            delete: "declare const value:{required:number; optional?:number; readonly frozen?:number; undef:number|undefined}; __expr(delete value.required); __expr(delete value.optional); __expr(delete value.frozen); __expr(delete value.undef); __expr(delete value);",
+            instantiate: "declare function id<T>(value:T):T; const numberId=id<number>; __expr(numberId); __expr(numberId(1)); type F=typeof id<string>; declare const f:F; __expr(f);",
+            instantiateOverload: "declare function f<T>(value:T):T; declare function f<T,U=string>(x:T,y:U):[T,U]; declare function f(x:number):string; __expr(f<number>); __expr(f<number,string>); __expr(f<number,string,boolean>);",
+            instantiateConstraint: "declare function f<T extends string>(value:T):T; __expr(f<number>); __expr(f<'a'>);",
+            instantiateUnion: "declare const value:(<T>(value:T)=>T)|(<T,U>(x:T,y:U)=>U)|undefined; __expr(value<number>);",
+            instantiateIntersection: "declare const value:(<T>(value:T)=>T)&{readonly label:string}; __expr(value<number>);",
+            instantiateGeneric: "function f<T extends <U>(value:U)=>U>(value:T){__expr(value<number>);}",
+            newTarget: "function f(){__expr(new.target); const arrow=()=>__expr(new.target);} class C{constructor(){__expr(new.target);}} __expr(new.target);",
+            importMeta: "interface ImportMeta{url:string} __expr(import.meta); __expr(import.meta.url);",
+            constEnum: "const enum E{A=1,B=2} __expr(E.A); __expr(E['B']); __expr(E);",
+            instantiateDisplay: "declare function f<T extends 'a'|'b',U=number>(value:T,other?:U,...rest:string[]):T[]; __expr(f<string,number,boolean>);",
+            instantiateConstruct: "declare const C:{new<T>(value:T):{value:T}}; const N=C<number>; __expr(N); __expr(new N(1)); __expr(C<number,string>);",
+            instantiatePrimitive: "declare const x:number, y:any, z:unknown; __expr(x<string>); __expr(y<string>); __expr(z<string>);",
+            instantiateLiteralDefault: "declare function f<T='a\\n\\u0000x\\u0085\\ud800'>(value:T):T; __expr(f<number,string>);",
+            instantiateUnicodeConstraint: "const 雪=1; declare function f<T extends /* comment */ 'x'>(value:T):T; __expr(f<number,string>);",
+            assertionObject: "__expr({value:1} as {other:string}); __expr([1,2] as const); __expr('a' as const); __expr(/test/);",
+            deleteElement: "declare const value:{required:number; optional?:number}; __expr(delete value['required']); __expr(delete value['optional']); __expr(delete value?.required);",
+        })
+    ) add(`identifiers:ordinary${name}:${strict}`, { "globals.d.ts": library + " declare function __expr(value:unknown):void;", "main.ts": source }, { strict }, false, true);
+}
+for (const exactOptionalPropertyTypes of [false, true]) add(`identifiers:ordinarydeleteExact:${exactOptionalPropertyTypes}`, { "globals.d.ts": library + " declare function __expr(value:unknown):void;", "main.ts": "declare const value:{required:number|undefined;optional?:number}; __expr(delete value.required); __expr(delete value.optional);" }, { strict: true, exactOptionalPropertyTypes }, false, true);
+for (const module of ["commonjs", "es2020", "node16", "nodenext", "preserve"]) add(`identifiers:ordinarymeta:${module}`, { "globals.d.ts": library + " interface ImportMeta{url:string} declare function __expr(value:unknown):void;", "main.ts": "__expr(import.meta);" }, { strict: true, module }, false, true);
+for (const isolatedModules of [false, true]) add(`identifiers:ordinaryenum:${isolatedModules}`, { "globals.d.ts": library + " declare function __expr(value:unknown):void;", "main.ts": "declare const enum E{A=1} __expr(E.A); __expr(E);" }, { strict: true, isolatedModules }, false, true);
+for (const extension of ["ts", "mts"]) for (const erasableSyntaxOnly of [false, true]) add(`identifiers:ordinaryassertionGrammar:${extension}:${erasableSyntaxOnly}`, { "globals.d.ts": library + " declare function __expr(value:unknown):void;", [`main.${extension}`]: "declare const value:unknown; __expr(<number>value);" }, { strict: true, erasableSyntaxOnly }, false, true);
+for (const input of cases.filter(c => c.name.startsWith("identifiers:ordinary"))) {
+    input.assertions = true;
+    input.functionBodies = true;
+    input.members = true;
+    input.values = true;
+    input.signatures = true;
+}
 for (const input of cases.filter(c => c.name.startsWith("identifiers:"))) input.identifiers = true;
 for (const input of cases.filter(c => c.name.startsWith("identifiers:iteration"))) {
     input.functionBodies = true;

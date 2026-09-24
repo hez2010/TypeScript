@@ -41,12 +41,12 @@ internal sealed partial class ProgramTypeHost : IExpressionTypeHost, IExpression
                     true,
                     cancellation: cancellation) == program.Symbols.UndefinedSymbol;
 
-    public ValueTask<Type> FinishExpressionAsync(SyntaxNode node, Type type, CheckMode mode, CancellationToken cancellation)
+    public async ValueTask<Type> FinishExpressionAsync(SyntaxNode node, Type type, CheckMode mode, CancellationToken cancellation)
     {
         BeforeExpressionFinish?.Invoke();
-        if ((type.ObjectFlags & ObjectFlags.Anonymous) != 0 && type.Symbol is { Flags: var flags } && (flags & SymbolFlags.ConstEnum) != 0)
-            throw new InvalidOperationException("Probe requires const enum access checks");
-        return GenericExpressions.FinishAsync(node, type, mode, cancellation);
+        type = await GenericExpressions.FinishAsync(node, type, mode, cancellation);
+        ValueExpressions.ConstEnum(node, type, cancellation);
+        return type;
     }
 
     public async ValueTask<Type> OtherExpressionAsync(SyntaxNode node, CheckMode mode, CancellationToken cancellation)
@@ -68,14 +68,18 @@ internal sealed partial class ProgramTypeHost : IExpressionTypeHost, IExpression
             return await Functions.CheckAsync(node, mode, cancellation);
         if (node is AwaitExpressionNode awaitExpression)
             return await AwaitExpressions.CheckAsync(awaitExpression, cancellation);
-        if (node is AsExpressionNode or TypeAssertionNode && SemanticSyntax.ConstAssertion(node))
-        {
-            var expression = node is AsExpressionNode assertion ? assertion.Expression! : ((TypeAssertionNode)node).Expression!;
-            var type = await Expressions.CheckAsync(expression, mode, cancellation);
-            if (!await ConstArgumentAsync(expression, cancellation))
-                Error(expression, 1355);
-            return await Algebra.RegularTypeAsync(type, cancellation);
-        }
+        if (node is AsExpressionNode or TypeAssertionNode)
+            return await Assertions.CheckAsync(node, mode, cancellation);
+        if (node is SatisfiesExpressionNode satisfies)
+            return await Assertions.SatisfiesAsync(satisfies, cancellation);
+        if (node is ExpressionWithTypeArgumentsNode)
+            return await InstantiationExpressions.CheckAsync(node, cancellation);
+        if (node is DeleteExpressionNode delete)
+            return await ValueExpressions.DeleteAsync(delete, cancellation);
+        if (node is MetaPropertyNode meta)
+            return await ValueExpressions.MetaAsync(meta, cancellation);
+        if (node.Kind == SyntaxKind.RegularExpressionLiteral)
+            return program.Globals.Types["RegExp"];
         if (node is ArrayLiteralExpressionNode array)
             return await ArrayLiterals.CheckAsync(array, mode, cancellation);
         if (node is YieldExpressionNode yield)
