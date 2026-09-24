@@ -211,7 +211,46 @@ internal static class CheckerIdentifierTests
             checks++;
         }
         Check(await bindingHost.Bindings.FromParentAsync(elements[0], bindingContext.AnyType) == bindingContext.AnyType);
+        checks += await MissingNameSafety();
         Console.WriteLine(
             $"{checks} identifier/binding/default/alias/cancellation/ownership assertions; 20,000-level reference traversal.");
+    }
+
+    private static async Task<int> MissingNameSafety()
+    {
+        const string source = """
+            interface Shape { size: number; }
+            const value = 1;
+            type Value = value;
+            type Size = Shape.size;
+            type Wrong = Shape.missing;
+            Shape;
+            namespace OnlyTypes { export interface Item {} }
+            OnlyTypes;
+            let bad: OnlyTypes;
+            const counter = 1;
+            countr;
+            type Text = strng;
+            type Misspelled = OnlyTypez.Item;
+            export { number };
+            class Numeric extends number {}
+            """;
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        {
+            ["/project/main.ts"] = Wtf8.Encode(source),
+            ["/project/globals.d.ts"] = Wtf8.Encode("interface String {}")
+        }), "/project", new("/project/tsconfig.json", options, ["/project/main.ts", "/project/globals.d.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var file = program.GetFile("/project/main.ts")!.Syntax;
+        await checker.CheckSourceFileAsync(file);
+        var codes = checker.DiagnosticCodesForFile(file);
+        if (!codes.SequenceEqual([2552, 2552, 2661, 2693, 2702, 2708, 2709, 2713, 2749, 2833, 2863]))
+            throw new InvalidOperationException($"Missing name diagnostics: {string.Join(',', codes)}");
+        var spelling = file.DescendantsAndSelf().OfType<IdentifierNode>().Single(n => n.Text == "countr");
+        if (checker.SuggestedNameDeclarations.GetValueOrDefault(spelling)?.Name != "counter")
+            throw new InvalidOperationException("Name suggestion lost its declaration");
+        return 2;
     }
 }

@@ -132,22 +132,23 @@ internal sealed class CheckerSymbols
 
     internal void MarkReferenced(Symbol symbol, S meaning) => references[symbol] = references.GetValueOrDefault(symbol) | meaning;
 
-    internal NameResolver NameResolver(CancellationToken cancellation = default) => new(program.Configuration.Options, Binding)
-    {
-        Globals = Globals,
-        ArgumentsSymbol = ArgumentsSymbol,
-        RequireSymbol = RequireSymbol,
-        GetSymbolOfDeclaration = Declaration,
-        Lookup = Lookup,
-        Error = (node, message, arguments) => host.Error(node, message, arguments),
-        SymbolReferenced = MarkReferenced,
-        GetRequiresScopeChangeCache = node => links.Nodes.Get(node).DeclarationRequiresScopeChange,
-        SetRequiresScopeChangeCache = (node, value) => links.Nodes.Get(node).DeclarationRequiresScopeChange = value,
-        OnPropertyWithInvalidInitializer = host.InvalidInitializer,
-        OnFailedToResolveSymbol = host.FailedResolution,
-        OnSuccessfullyResolvedSymbol = host.SuccessfulResolution,
-        Cancellation = cancellation
-    };
+    internal NameResolver NameResolver(CancellationToken cancellation = default,
+        Func<IReadOnlyDictionary<string, Symbol>?, string, S, Symbol?>? lookup = null) => new(program.Configuration.Options, Binding)
+        {
+            Globals = Globals,
+            ArgumentsSymbol = ArgumentsSymbol,
+            RequireSymbol = RequireSymbol,
+            GetSymbolOfDeclaration = Declaration,
+            Lookup = lookup ?? Lookup,
+            Error = (node, message, arguments) => host.Error(node, message, arguments),
+            SymbolReferenced = MarkReferenced,
+            GetRequiresScopeChangeCache = node => links.Nodes.Get(node).DeclarationRequiresScopeChange,
+            SetRequiresScopeChangeCache = (node, value) => links.Nodes.Get(node).DeclarationRequiresScopeChange = value,
+            OnPropertyWithInvalidInitializer = host.InvalidInitializer,
+            OnFailedToResolveSymbol = host.FailedResolution,
+            OnSuccessfullyResolvedSymbol = host.SuccessfulResolution,
+            Cancellation = cancellation
+        };
 
     private async ValueTask InitializeAsync(CancellationToken cancellation)
     {

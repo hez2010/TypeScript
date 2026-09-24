@@ -1,0 +1,170 @@
+{
+    "timestamp": "2026-09-24T18:59:47.348Z",
+    "mode": "default",
+    "configuration": "Release",
+    "selectedConfigurations": 1000,
+    "replayedConfigurations": 1000,
+    "retainedConfigurations": 0,
+    "previousMatches": 607,
+    "graphAndCodeMatches": 770,
+    "recoveredConfigurations": 163,
+    "regressions": [],
+    "scope": "Unresolved name meanings, lexical spelling suggestions and library hints; full phase 4 remains incomplete",
+    "parts": [
+        {
+            "directory": "built/csharp/semantic-corpus-name-errors/default",
+            "summary": {
+                "timestamp": "2026-09-24T18:58:57.700Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "mode": "default",
+                "filter": "",
+                "managed": true,
+                "reuseSyntax": true,
+                "referenceJobs": 4,
+                "scope": "Original compiler test program graphs and semantic diagnostic codes; full diagnostic/type/symbol fidelity and parallel candidate checker scheduling remain incomplete",
+                "referenceExitCode": 0,
+                "exportedConfigurations": 15208,
+                "readyConfigurations": 1000,
+                "availableConfigurations": 13446,
+                "selectionSha256": "dc21ae34f99e4d5efc873196b1fdcfb8734e17d338ddda3e6615c77ee272440f",
+                "referenceInventoryFiles": 12730,
+                "plannedConfigurations": 15208,
+                "referenceMissingFiles": [],
+                "referenceMissingConfigurations": [],
+                "referenceSkipped": 1762,
+                "referenceFailed": 0,
+                "candidateFailures": 40,
+                "graphMismatches": 16,
+                "diagnosticMismatches": 190,
+                "graphAndCodeMatches": 770,
+                "errorGroups": [
+                    {
+                        "error": "create-program: Corpus adapter requires the reference test content-mapper host",
+                        "count": 15
+                    },
+                    {
+                        "error": "check-program: Checker requires constructor identity narrowing",
+                        "count": 5
+                    },
+                    {
+                        "error": "check-program: Unable to cast object of type 'TypeScript.Compiler.Checking.IntrinsicType' to type 'TypeScript.Compiler.Checking.TypeParameter'.",
+                        "count": 4
+                    },
+                    {
+                        "error": "check-program: Unable to cast object of type 'TypeScript.Compiler.Checking.ObjectType' to type 'TypeScript.Compiler.Checking.InterfaceType'.",
+                        "count": 2
+                    },
+                    {
+                        "error": "check-program: Checker requires explicit annotation related information",
+                        "count": 2
+                    },
+                    {
+                        "error": "check-program: Checker requires expression checking for ComputedPropertyName",
+                        "count": 2
+                    },
+                    {
+                        "error": "check-program: position ('1930') must be less than or equal to '1902'. (Parameter 'position')\r\nActual value was 1930.",
+                        "count": 2
+                    },
+                    {
+                        "error": "check-program: position ('1133') must be less than or equal to '1124'. (Parameter 'position')\r\nActual value was 1133.",
+                        "count": 1
+                    },
+                    {
+                        "error": "check-program: Checker requires import/tagged-template/decorator/JSX/instanceof call resolution",
+                        "count": 1
+                    },
+                    {
+                        "error": "check-program: position ('419') must be less than or equal to '333'. (Parameter 'position')\r\nActual value was 419.",
+                        "count": 1
+                    },
+                    {
+                        "error": "check-program: Unable to cast object of type 'TypeScript.Compiler.Ast.PropertyAccessExpressionNode' to type 'TypeScript.Compiler.Ast.CallExpressionNode'.",
+                        "count": 1
+                    },
+                    {
+                        "error": "check-program: Unable to cast object of type 'TypeScript.Compiler.Ast.IdentifierNode' to type 'TypeScript.Compiler.Ast.CallExpressionNode'.",
+                        "count": 1
+                    },
+                    {
+                        "error": "check-program: Checker requires expression checking for ImportKeyword",
+                        "count": 1
+                    },
+                    {
+                        "error": "check-program: Object reference not set to an instance of an object.",
+                        "count": 1
+                    },
+                    {
+                        "error": "check-program: position ('169') must be less than or equal to '82'. (Parameter 'position')\r\nActual value was 169.",
+                        "count": 1
+                    }
+                ],
+                "inputSha256": "1021223d26cfedad8b1989a152ffb776bc54750978c457480fc0a0bb8f8bb3bf",
+                "oracleSha256": "072ce20500e1dfa626e6029e8ba98ed84b925a304216116200dd33d97f54654a",
+                "candidateSha256": "47f593ac2883c00d1feb764ee9a8bdf68012c7fb0dd746b9114adcbfe2a5a76d",
+                "compilerSha256": "581b89d7fa5e4c01a63f58a56851472dfd6f9a037b5be41ecc956c4415885918",
+                "candidateOutputSha256": "3f44dc1fdd2fefa78a226c53ade5c918428ed6089b20cfeaf2c2ad1611b74d96",
+                "fullSemanticCorpusGateComplete": false
+            },
+            "outputSha256": "3f44dc1fdd2fefa78a226c53ade5c918428ed6089b20cfeaf2c2ad1611b74d96"
+        }
+    ],
+    "cumulative": {
+        "activeConfigurations": 13446,
+        "matches": 12457,
+        "remaining": 989,
+        "failed": 40,
+        "diagnosticMismatches": 948,
+        "graphMismatches": 20,
+        "topStops": [
+            [
+                "Corpus adapter requires the reference test content-mapper host",
+                15
+            ],
+            [
+                "Checker requires constructor identity narrowing",
+                5
+            ],
+            [
+                "Unable to cast object of type 'TypeScript.Compiler.Checking.IntrinsicType' to type 'TypeScript.Compiler.Checking.TypeParameter'.",
+                4
+            ],
+            [
+                "Unable to cast object of type 'TypeScript.Compiler.Checking.ObjectType' to type 'TypeScript.Compiler.Checking.InterfaceType'.",
+                2
+            ],
+            [
+                "Checker requires explicit annotation related information",
+                2
+            ],
+            [
+                "Checker requires expression checking for ComputedPropertyName",
+                2
+            ],
+            [
+                "position ('1930') must be less than or equal to '1902'. (Parameter 'position')\r\nActual value was 1930.",
+                2
+            ],
+            [
+                "position ('1133') must be less than or equal to '1124'. (Parameter 'position')\r\nActual value was 1133.",
+                1
+            ],
+            [
+                "Checker requires import/tagged-template/decorator/JSX/instanceof call resolution",
+                1
+            ],
+            [
+                "position ('419') must be less than or equal to '333'. (Parameter 'position')\r\nActual value was 419.",
+                1
+            ],
+            [
+                "Unable to cast object of type 'TypeScript.Compiler.Ast.PropertyAccessExpressionNode' to type 'TypeScript.Compiler.Ast.CallExpressionNode'.",
+                1
+            ],
+            [
+                "Unable to cast object of type 'TypeScript.Compiler.Ast.IdentifierNode' to type 'TypeScript.Compiler.Ast.CallExpressionNode'.",
+                1
+            ]
+        ]
+    }
+}

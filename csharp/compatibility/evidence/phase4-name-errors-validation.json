@@ -1,0 +1,146 @@
+{
+    "timestamp": "2026-09-24T19:01:19.2915877+00:00",
+    "configuration": "Release",
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "managed": true,
+    "scope": "Unresolved name meanings, lexical spelling suggestions and library hints; phase 4 remains incomplete",
+    "candidateSha256": "47f593ac2883c00d1feb764ee9a8bdf68012c7fb0dd746b9114adcbfe2a5a76d",
+    "compilerSha256": "581b89d7fa5e4c01a63f58a56851472dfd6f9a037b5be41ecc956c4415885918",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-name-errors-final-build.log",
+        "sha256": "98f5f672b0f62a01dc94df4743857ddcb6eb0599a17d5e1537ad4b3fad984f98"
+    },
+    "queries": {
+        "record": "phase4-name-errors-identifiers.json",
+        "cases": 830,
+        "exact": 830,
+        "candidateSha256": "47f593ac2883c00d1feb764ee9a8bdf68012c7fb0dd746b9114adcbfe2a5a76d",
+        "compilerSha256": "1685c4f09b826f01ff20d042d5605e83d6151b0b05d5efcbdfd1154fc9933ea8",
+        "execution": "Executed before the final const-reference and mixed-meaning corrections; those paths received a separate 48-case corpus replay."
+    },
+    "safety": {
+        "assertions": 39,
+        "newAssertions": 2,
+        "checks": [
+            "type/value/namespace misuse and primitive exports",
+            "lexical and primitive-type spelling suggestions",
+            "heritage primitive-name diagnostics",
+            "suggested declaration preservation"
+        ],
+        "log": "logs/csharp-phase4-name-errors-safety.log",
+        "sha256": "c2f0821cb1468b5d422a65051abfe75e3f8f37f3db80b0a0e475a75c25e9fbcb",
+        "referenceFixture": "built/csharp/name-errors-safety-reference.jsonl",
+        "referenceFixtureSha256": "e332fe77b6fd4bc0070a86f671c44ecbf2088dbe33c1cb4b71a66c1d13debf96",
+        "retainedAfterFollowup": "The fixture has no generic const reference or export assignment; the two follow-up corrections leave its paths unchanged.",
+        "runBeforeWhitespaceFormatting": true
+    },
+    "corpus": {
+        "single": "phase4-name-errors-corpus-single.json",
+        "referenceDefault": "phase4-name-errors-corpus-default.json",
+        "parity": "phase4-name-errors-mode-parity.json",
+        "selectedConfigurationsPerMode": 1000,
+        "previousMatches": 607,
+        "graphAndCodeMatches": 770,
+        "recoveredConfigurations": 163,
+        "regressions": [],
+        "cumulative": {
+            "activeConfigurations": 13446,
+            "matches": 12457,
+            "remaining": 989,
+            "failed": 40,
+            "diagnosticMismatches": 948,
+            "graphMismatches": 20,
+            "topStops": [
+                [
+                    "Corpus adapter requires the reference test content-mapper host",
+                    15
+                ],
+                [
+                    "Checker requires constructor identity narrowing",
+                    5
+                ],
+                [
+                    "Unable to cast object of type 'TypeScript.Compiler.Checking.IntrinsicType' to type 'TypeScript.Compiler.Checking.TypeParameter'.",
+                    4
+                ],
+                [
+                    "Unable to cast object of type 'TypeScript.Compiler.Checking.ObjectType' to type 'TypeScript.Compiler.Checking.InterfaceType'.",
+                    2
+                ],
+                [
+                    "Checker requires explicit annotation related information",
+                    2
+                ],
+                [
+                    "Checker requires expression checking for ComputedPropertyName",
+                    2
+                ],
+                [
+                    "position ('1930') must be less than or equal to '1902'. (Parameter 'position')\r\nActual value was 1930.",
+                    2
+                ],
+                [
+                    "position ('1133') must be less than or equal to '1124'. (Parameter 'position')\r\nActual value was 1133.",
+                    1
+                ],
+                [
+                    "Checker requires import/tagged-template/decorator/JSX/instanceof call resolution",
+                    1
+                ],
+                [
+                    "position ('419') must be less than or equal to '333'. (Parameter 'position')\r\nActual value was 419.",
+                    1
+                ],
+                [
+                    "Unable to cast object of type 'TypeScript.Compiler.Ast.PropertyAccessExpressionNode' to type 'TypeScript.Compiler.Ast.CallExpressionNode'.",
+                    1
+                ],
+                [
+                    "Unable to cast object of type 'TypeScript.Compiler.Ast.IdentifierNode' to type 'TypeScript.Compiler.Ast.CallExpressionNode'.",
+                    1
+                ]
+            ]
+        }
+    },
+    "generation": {
+        "generator": "csharp/tools/generate-checker.mjs",
+        "generatorSha256": "4c7f4a8a59716353fbbd1057ba434a60cb9b9ba54618effc8a9619ea6bad13d1",
+        "generated": "csharp/src/TypeScript.Compiler/Checking/LibraryFeatures.generated.cs",
+        "generatedSha256": "def00db3220ecbaf1b96940f008c02a124d7a7537d075e4d6ccc3b7cbc4d424c",
+        "source": "tsc/internal/checker/utilities.go",
+        "sourceSha256": "0c0dfcbccf2128a1290a74a33cbf090b78c313b143151443b3e16326201ae302",
+        "regenerationExitCode": 0,
+        "freshnessExitCode": 0,
+        "generatorFormatExitCode": 0
+    },
+    "formatting": {
+        "csharpFiles": 6,
+        "tokenCommentSyntaxIdentical": true,
+        "libraryConfigurations": 2,
+        "dotnetWhitespaceExitCode": 0,
+        "diffCheckExitCode": 0,
+        "proofLog": "logs/csharp-phase4-name-errors-format.log",
+        "proofSha256": "beba90ac76e38552161ed5488b4c381c3f84d98ac3c71513bf885db33034e09b"
+    },
+    "reusedValidation": {
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "repositoryCommand": "npx hereby validate --all",
+        "repositoryExitCode": 0,
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "retainedInitialSingleModeCases": 952,
+        "reason": "User directed reuse of unchanged results. Go product code and main repository tooling are unchanged. The changed C# generator was executed, its generated data compiled, freshness checked and formatting validated. The two final corrections were replayed only on the 48 affected configurations; the other 952 initial results were retained."
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "phase4Complete": false
+}

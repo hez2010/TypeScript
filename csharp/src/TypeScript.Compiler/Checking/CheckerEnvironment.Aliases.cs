@@ -18,7 +18,7 @@ internal sealed partial class CheckerEnvironment
     public void DeprecatedAlias(SyntaxNode location, Symbol symbol) =>
         Suggestion(location, 6385, symbol.Name);
 
-    public DiagnosticMessage CannotFindName(IdentifierNode name) => Messages.Cannot_find_name_0;
+    public DiagnosticMessage CannotFindName(IdentifierNode name) => ReferenceSymbols.MissingName(name);
 
     public ValueTask<IReadOnlyDictionary<string, Symbol>> ExportsAsync(Symbol symbol, CancellationToken cancellation)
     {

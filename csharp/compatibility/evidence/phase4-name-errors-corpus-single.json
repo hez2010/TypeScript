@@ -1,0 +1,114 @@
+{
+    "timestamp": "2026-09-24T18:59:45.845Z",
+    "mode": "single",
+    "configuration": "Release",
+    "selectedConfigurations": 1000,
+    "replayedConfigurations": 48,
+    "retainedConfigurations": 952,
+    "previousMatches": 607,
+    "graphAndCodeMatches": 770,
+    "recoveredConfigurations": 163,
+    "regressions": [],
+    "scope": "Unresolved name meanings, lexical spelling suggestions and library hints; full phase 4 remains incomplete",
+    "parts": [
+        {
+            "directory": "built/csharp/semantic-corpus-name-errors-followup/single",
+            "summary": {
+                "timestamp": "2026-09-24T18:58:40.323Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "mode": "single",
+                "filter": "",
+                "managed": true,
+                "reuseSyntax": true,
+                "referenceJobs": 4,
+                "scope": "Original compiler test program graphs and semantic diagnostic codes; full diagnostic/type/symbol fidelity and parallel candidate checker scheduling remain incomplete",
+                "referenceExitCode": 0,
+                "exportedConfigurations": 15208,
+                "readyConfigurations": 48,
+                "availableConfigurations": 13446,
+                "selectionSha256": "6f01d7f1f88366685ad1a66939d18da3348dfe589701235c085ab09aa3c8394e",
+                "referenceInventoryFiles": 12730,
+                "plannedConfigurations": 15208,
+                "referenceMissingFiles": [],
+                "referenceMissingConfigurations": [],
+                "referenceSkipped": 1762,
+                "referenceFailed": 0,
+                "candidateFailures": 0,
+                "graphMismatches": 1,
+                "diagnosticMismatches": 11,
+                "graphAndCodeMatches": 37,
+                "errorGroups": [],
+                "inputSha256": "63befffd43c6e1a36331426b4dd2f3b01e4002f3d7f124c3da66f30a33a5c180",
+                "oracleSha256": "072ce20500e1dfa626e6029e8ba98ed84b925a304216116200dd33d97f54654a",
+                "candidateSha256": "47f593ac2883c00d1feb764ee9a8bdf68012c7fb0dd746b9114adcbfe2a5a76d",
+                "compilerSha256": "581b89d7fa5e4c01a63f58a56851472dfd6f9a037b5be41ecc956c4415885918",
+                "candidateOutputSha256": "b055a885ad20443c895545516043d22fde2e4d7a03600ebe639fb3a94f332218",
+                "fullSemanticCorpusGateComplete": false
+            },
+            "outputSha256": "b055a885ad20443c895545516043d22fde2e4d7a03600ebe639fb3a94f332218"
+        },
+        {
+            "retainedFrom": "built/csharp/semantic-corpus-name-errors/single/candidate.jsonl",
+            "retainedOutputSha256": "204428437adf589942b97b62bf87cf07458e8409b09e1e7acdc99e7ae75cadde",
+            "reason": "These 952 cases do not contain export assignments or generic const references affected by the two follow-up corrections"
+        }
+    ],
+    "cumulative": {
+        "activeConfigurations": 13446,
+        "matches": 12457,
+        "remaining": 989,
+        "failed": 40,
+        "diagnosticMismatches": 948,
+        "graphMismatches": 20,
+        "topStops": [
+            [
+                "Corpus adapter requires the reference test content-mapper host",
+                15
+            ],
+            [
+                "Checker requires constructor identity narrowing",
+                5
+            ],
+            [
+                "Unable to cast object of type 'TypeScript.Compiler.Checking.IntrinsicType' to type 'TypeScript.Compiler.Checking.TypeParameter'.",
+                4
+            ],
+            [
+                "Unable to cast object of type 'TypeScript.Compiler.Checking.ObjectType' to type 'TypeScript.Compiler.Checking.InterfaceType'.",
+                2
+            ],
+            [
+                "Checker requires explicit annotation related information",
+                2
+            ],
+            [
+                "Checker requires expression checking for ComputedPropertyName",
+                2
+            ],
+            [
+                "position ('1930') must be less than or equal to '1902'. (Parameter 'position')\r\nActual value was 1930.",
+                2
+            ],
+            [
+                "position ('1133') must be less than or equal to '1124'. (Parameter 'position')\r\nActual value was 1133.",
+                1
+            ],
+            [
+                "Checker requires import/tagged-template/decorator/JSX/instanceof call resolution",
+                1
+            ],
+            [
+                "position ('419') must be less than or equal to '333'. (Parameter 'position')\r\nActual value was 419.",
+                1
+            ],
+            [
+                "Unable to cast object of type 'TypeScript.Compiler.Ast.PropertyAccessExpressionNode' to type 'TypeScript.Compiler.Ast.CallExpressionNode'.",
+                1
+            ],
+            [
+                "Unable to cast object of type 'TypeScript.Compiler.Ast.IdentifierNode' to type 'TypeScript.Compiler.Ast.CallExpressionNode'.",
+                1
+            ]
+        ]
+    }
+}

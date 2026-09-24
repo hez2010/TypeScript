@@ -194,6 +194,11 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
 
     public void FailedResolution(SyntaxNode? location, string name, SymbolFlags meaning, DiagnosticMessage message)
     {
+        if (SemanticChecker is { } checker)
+        {
+            checker.FailedNameAsync(location, name, meaning, message).GetAwaiter().GetResult();
+            return;
+        }
         if (location is not null && MissingPrefixCheck is not null && MissingPrefixCheck(location, name).GetAwaiter().GetResult())
             return;
         if (location is not null && ExtendingInterfaceCheck is not null && ExtendingInterfaceCheck(location).GetAwaiter().GetResult())
