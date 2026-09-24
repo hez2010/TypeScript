@@ -144,6 +144,7 @@ internal sealed partial class Checker
                     await CheckFunctionOverloadsAsync(function, cancellation).ConfigureAwait(false);
                     await CheckSourceElementAsync(function.Body, cancellation).ConfigureAwait(false);
                     await CheckFunctionPathsAsync(function, cancellation).ConfigureAwait(false);
+                    await CheckFullSignatureAsync(function, cancellation).ConfigureAwait(false);
                     if (function.Type is null && (function.Body is null || function.Body.Pos == function.Body.End))
                         await ReportImplicitAnyAsync(function, context.AnyType, cancellation).ConfigureAwait(false);
                     if (function.Type is null && SemanticSyntax.Generator(function) && function.Body is not null)

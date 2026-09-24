@@ -196,10 +196,17 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
             ExpressionSuggestion(node, 6387);
     }
 
-    public ValueTask<Type?> SpecialCallResultAsync(SyntaxNode node, Type result, CancellationToken cancellation)
+    public async ValueTask<Type?> SpecialCallResultAsync(SyntaxNode node, Type result, CancellationToken cancellation)
     {
-        if ((node.Flags & NodeFlags.JavaScriptFile) != 0)
-            throw new InvalidOperationException("Checker requires CommonJS call adaptation");
+        if ((node.Flags & NodeFlags.JavaScriptFile) != 0 && CommonJsRequire(node, cancellation))
+        {
+            var specifier = ((CallExpressionNode)node).Arguments![0];
+            var module = await program.ExternalModuleAsync(specifier, specifier, null, cancellation).ConfigureAwait(false);
+            var target = module is null
+                ? null
+                : await program.AliasTargets.ExternalModuleAsync(module, false, cancellation).ConfigureAwait(false);
+            return target is null ? context.AnyType : await Values.GetAsync(target, cancellation).ConfigureAwait(false);
+        }
         if ((result.Flags & TypeFlags.ESSymbolLike) != 0 && node is CallExpressionNode call)
         {
             var target = call.Expression is PropertyAccessExpressionNode { Name: IdentifierNode { Text: "for" } } property
@@ -212,10 +219,25 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
                 var declaration = node.Parent;
                 while (declaration is ParenthesizedExpressionNode)
                     declaration = declaration.Parent;
-                return ValueTask.FromResult<Type?>(Nodes.UniqueSymbol(declaration));
+                return Nodes.UniqueSymbol(declaration);
             }
         }
-        return ValueTask.FromResult<Type?>(null);
+        return null;
+    }
+
+    private bool CommonJsRequire(SyntaxNode node, CancellationToken cancellation)
+    {
+        if (node is not CallExpressionNode { Expression: IdentifierNode { Text: "require" } name, Arguments.Count: 1 } call
+            || call.Arguments[0] is not (StringLiteralNode or NoSubstitutionTemplateLiteralNode))
+            return false;
+        var symbol = program.Symbols.NameResolver(cancellation).Resolve(name, name.Text, SymbolFlags.Value);
+        if (symbol == program.Symbols.RequireSymbol)
+            return true;
+        if (symbol is null || (symbol.Flags & SymbolFlags.Alias) != 0)
+            return false;
+        var declaration = (symbol.Flags & SymbolFlags.Function) != 0 ? symbol.Declarations.FirstOrDefault(d => d is FunctionDeclarationNode)
+            : (symbol.Flags & SymbolFlags.Variable) != 0 ? symbol.Declarations.FirstOrDefault(d => d is VariableDeclarationNode) : null;
+        return declaration is not null && (declaration.Flags & NodeFlags.Ambient) != 0;
     }
 
     public async ValueTask CheckAssertionCallAsync(CallExpressionNode node, CancellationToken cancellation)

@@ -392,10 +392,7 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
     }
 
     public ValueTask<Type?> IntendedJsDocTypeAsync(SyntaxNode node, CancellationToken cancellation)
-            =>
-                (node.Flags & NodeFlags.JSDoc) != 0
-                    ? throw new InvalidOperationException("Checker requires JSDoc type interpretation")
-                    : ValueTask.FromResult<Type?>(null);
+        => DocumentationTypeReferenceAsync(node, cancellation);
 
     public void InvalidThisType(SyntaxNode node) => Error(node, 2526);
 

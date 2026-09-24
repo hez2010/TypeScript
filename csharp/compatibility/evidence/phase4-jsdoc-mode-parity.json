@@ -1,0 +1,12 @@
+{
+    "configurations": 1453,
+    "classificationsGraphsAndCodesIdentical": true,
+    "exceptionTextDifferences": [
+        {
+            "name": "conformance/lateBoundAssignmentDeclarationSupport7.ts",
+            "single": "Checker requires value inference for ﷐@_sym@2292",
+            "default": "Checker requires value inference for ﷐@_sym@2604"
+        }
+    ],
+    "allExceptionDifferencesRemainFailures": true
+}

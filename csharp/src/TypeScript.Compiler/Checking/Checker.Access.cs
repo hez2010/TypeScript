@@ -47,10 +47,25 @@ internal sealed partial class Checker : IAccessExpressionHost, IIndexedAccessVal
             => PrivateAccess.ResolveAsync(node, leftType, apparentType, name, anyLike, assignment, cancellation);
 
     public ValueTask<bool> UncheckedJsAsync(SyntaxNode node, Symbol? symbol, CancellationToken cancellation)
-            =>
-                (node.Flags & NodeFlags.JavaScriptFile) == 0
-                    ? ValueTask.FromResult(false)
-                    : throw new InvalidOperationException("Checker requires JavaScript suggestion policy");
+    {
+        cancellation.ThrowIfCancellationRequested();
+        var file = SemanticSyntax.Source(node)!;
+        if (program.Symbols.Program.Configuration.Options.Boolean("checkJs") is not null || file.CheckJsDirective is not null
+            || file.ScriptKind is not (ScriptKind.JS or ScriptKind.JSX))
+            return ValueTask.FromResult(false);
+        var declarationFile = SemanticSyntax.Source(symbol?.Declarations.FirstOrDefault());
+        if (declarationFile is not null && declarationFile != file && program.Symbols.Binding(declarationFile)?.IsModule != true)
+            return ValueTask.FromResult(false);
+        var declaration = symbol?.ValueDeclaration;
+        bool exclude = declaration is null || !SemanticSyntax.ClassLike(declaration)
+            || (declaration is ClassDeclarationNode c
+                ? c.HeritageClauses
+                : ((ClassExpressionNode)declaration).HeritageClauses)?.OfType<HeritageClauseNode>().Any(
+                    h => h.Token == SyntaxKind.ExtendsKeyword && h.Types?.Count > 0) == true
+            || declaration is IModifiedNode { Modifiers: { } modifiers } && modifiers.Any(m => m is DecoratorNode);
+        return ValueTask.FromResult(!((symbol?.Flags & SymbolFlags.Class) != 0 && symbol is not null && exclude)
+            && !(node is PropertyAccessExpressionNode { Expression.Kind: SyntaxKind.ThisKeyword } && exclude));
+    }
 
     public async ValueTask<bool> JsLiteralAsync(Type type, CancellationToken cancellation)
     {
@@ -133,8 +148,27 @@ internal sealed partial class Checker : IAccessExpressionHost, IIndexedAccessVal
             => MemberAccess.AutoConstructorAsync(node, property, cancellation);
 
     public ValueTask<SyntaxNode?> ConstructorPropertyAsync(Symbol symbol, CancellationToken cancellation)
-            => symbol.ValueDeclaration is not BinaryExpressionNode ? ValueTask.FromResult<SyntaxNode?>(null)
-                : throw new InvalidOperationException("Checker requires JavaScript constructor property classification");
+    {
+        if (symbol.ValueDeclaration is not BinaryExpressionNode)
+            return ValueTask.FromResult<SyntaxNode?>(null);
+        SyntaxNode? constructor = null;
+        foreach (var declaration in symbol.Declarations)
+        {
+            cancellation.ThrowIfCancellationRequested();
+            if (declaration is not BinaryExpressionNode { Type: null, OperatorToken.Kind: SyntaxKind.EqualsToken } binary
+                || (declaration.Flags & NodeFlags.JavaScriptFile) == 0
+                || !(binary.Left is PropertyAccessExpressionNode { Expression.Kind: SyntaxKind.ThisKeyword }
+                    || binary.Left is ElementAccessExpressionNode
+                    {
+                        Expression.Kind: SyntaxKind.ThisKeyword, ArgumentExpression: StringLiteralNode
+                        or NumericLiteralNode or NoSubstitutionTemplateLiteralNode
+                    }))
+                return ValueTask.FromResult<SyntaxNode?>(null);
+            if (constructor is null && MissingNamePrefixes.ThisContainer(declaration, false, false) is ConstructorDeclarationNode found)
+                constructor = found;
+        }
+        return ValueTask.FromResult(constructor);
+    }
 
     public ValueTask<Type> AutoPropertyFlowAsync(SyntaxNode node, Symbol? property, CancellationToken cancellation)
             => PropertyInitializers.FlowAsync(node, property, cancellation: cancellation);

@@ -15,7 +15,9 @@ internal sealed class TypeReferenceChecks(TypeContext context, CheckerLinks link
             || (type.Flags & TypeFlags.Any) != 0 && type.Alias is not null
             || typeArguments is not { Count: > 0 })
             return;
-        var symbol = await references.SymbolAsync(node, cancellation).ConfigureAwait(false);
+        var symbol = links.SymbolNodes.TryGet(node)?.ResolvedSymbol;
+        if (symbol is null)
+            return;
         IReadOnlyList<TypeParameter> parameters;
         if ((symbol.Flags & (SymbolFlags.Class | SymbolFlags.Interface)) != 0)
         {

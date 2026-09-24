@@ -199,9 +199,10 @@ internal sealed partial class Checker
     private async ValueTask CheckFunctionOverloadsAsync(SyntaxNode node, CancellationToken cancellation)
     {
         var symbol = program.Symbols.Declaration(node)!;
-        await CheckOverloadDeclarationsAsync(
-            program.Symbols.Binding(node)?.Get(node)?.LocalSymbol ?? symbol,
-            cancellation).ConfigureAwait(false);
+        if ((node.Flags & NodeFlags.JavaScriptFile) == 0)
+            await CheckOverloadDeclarationsAsync(
+                program.Symbols.Binding(node)?.Get(node)?.LocalSymbol ?? symbol,
+                cancellation).ConfigureAwait(false);
         if (symbol.Parent is not null)
             await CheckOverloadDeclarationsAsync(symbol, cancellation).ConfigureAwait(false);
     }

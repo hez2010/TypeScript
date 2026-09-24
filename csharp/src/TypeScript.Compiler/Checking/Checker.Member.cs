@@ -19,9 +19,18 @@ internal sealed partial class Checker : ISignatureHost, IStructuredMemberHost, I
     internal Func<Symbol, bool, CancellationToken, ValueTask<Type>>? VariableBody { get; set; }
     internal Func<Symbol, bool>? SensitiveParameter { get; set; }
 
-    public ValueTask<Signature?> FullSignatureAsync(SyntaxNode declaration, CancellationToken cancellation) =>
-        (declaration.Flags & NodeFlags.JavaScriptFile) != 0
-            ? throw new InvalidOperationException("Checker requires JSDoc signatures") : ValueTask.FromResult<Signature?>(null);
+    public async ValueTask<Signature?> FullSignatureAsync(SyntaxNode declaration, CancellationToken cancellation)
+    {
+        if ((declaration.Flags & NodeFlags.JavaScriptFile) == 0
+            || declaration is not (FunctionDeclarationNode or MethodDeclarationNode or FunctionExpressionNode or ArrowFunctionNode)
+            || declaration is not IFullSignatureNode { FullSignature: { } annotation })
+            return null;
+        var signatures = await SignaturesAsync(
+            await Nodes.FromNodeAsync(annotation, cancellation).ConfigureAwait(false),
+            false,
+            cancellation).ConfigureAwait(false);
+        return signatures.Count == 1 ? signatures[0] : null;
+    }
 
     public ValueTask<Type?> ContextualTypeAsync(SyntaxNode declaration, CancellationToken cancellation) =>
         Contexts.GetAsync(declaration, ContextFlags.Signature, cancellation);

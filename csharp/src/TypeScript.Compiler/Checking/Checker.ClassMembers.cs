@@ -62,6 +62,7 @@ internal sealed partial class Checker
             Error(node.Name, 1368);
         await CheckSourceElementAsync(node.Body, cancellation).ConfigureAwait(false);
         await CheckFunctionPathsAsync(node, cancellation).ConfigureAwait(false);
+        await CheckFullSignatureAsync(node, cancellation).ConfigureAwait(false);
         if (node.Type is null && (node.Body is null || node.Body.Pos == node.Body.End)
             && !((node.Flags & NodeFlags.Ambient) != 0
                 && (SemanticSyntax.HasModifier(node, SyntaxKind.PrivateKeyword) || node.Name is PrivateIdentifierNode)))

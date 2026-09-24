@@ -32,9 +32,15 @@ internal sealed partial class Checker
             }
         foreach (var diagnostic in program.Symbols.Binding(file)!.Diagnostics)
             diagnostics.Add((diagnostic.Start, diagnostic.Code));
+        if ((file.Flags & NodeFlags.JavaScriptFile) != 0
+            && (file.CheckJsDirective?.Enabled ?? program.Symbols.Program.Configuration.Options.Boolean("checkJs") ?? false))
+            foreach (var diagnostic in file.JSDocDiagnostics)
+                diagnostics.Add((diagnostic.Start, diagnostic.Code));
         bool plainJavaScript = (file.Flags & NodeFlags.JavaScriptFile) != 0 && file.CheckJsDirective?.Enabled != true
             && program.Symbols.Program.Configuration.Options.Boolean("checkJs") != true;
-        if (file.CommentDirectives.Count == 0 || plainJavaScript)
+        if (plainJavaScript)
+            return diagnostics.Where(d => JavaScriptDiagnostics.IsPlainError(d.Code)).Select(d => d.Code).Order().ToArray();
+        if (file.CommentDirectives.Count == 0)
             return diagnostics.Select(d => d.Code).Order().ToArray();
         var directives = new Dictionary<int, bool>();
         foreach (var directive in file.CommentDirectives)

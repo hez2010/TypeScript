@@ -1,0 +1,87 @@
+{
+    "timestamp": "2026-09-24T14:33:49.3921001+00:00",
+    "scope": "JSDoc signature/type interpretation, unmatched parameters, CommonJS call/assignment classification and JavaScript diagnostic policy; affected corpus validation with explicit reuse",
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "configuration": "Release",
+    "managed": true,
+    "candidateSha256": "262af5bc18032dc355767a1aab043a38474cdb29b377dcb918e4618918913193",
+    "compilerSha256": "4713e805bc989d22b93c9ad588c06451d48dce4cbc2545821df6397302c9bc31",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-jsdoc-build.log",
+        "sha256": "dddd54374d29ae6af9b987530656a16a4388a334edd3dacc3cbefe40aa956356"
+    },
+    "queries": {
+        "type-nodes": {
+            "record": "phase4-jsdoc-type-nodes.json",
+            "exact": 192,
+            "cases": 192
+        },
+        "signatures": {
+            "record": "phase4-jsdoc-signatures.json",
+            "exact": 216,
+            "cases": 216
+        }
+    },
+    "safety": {
+        "signatures": {
+            "assertions": 105,
+            "newAssertions": 9,
+            "log": "logs/csharp-phase4-jsdoc-signatures-safety.log",
+            "sha256": "e3a95ad3510257fc3ee4eed6d416b0eaf8e1f796ce7ef467522a9108d460087a"
+        },
+        "program": {
+            "assertions": 66,
+            "log": "logs/csharp-phase4-jsdoc-program-safety.log",
+            "sha256": "4e7661ace3479cff44d6db25d1f12e556e9bbc24d4de8e4b8da6f1eedb036f15"
+        }
+    },
+    "corpus": {
+        "single": "phase4-jsdoc-corpus-single.json",
+        "referenceDefault": "phase4-jsdoc-corpus-default.json",
+        "parity": "phase4-jsdoc-mode-parity.json",
+        "selectedConfigurationsPerMode": 1453,
+        "previousMatches": 221,
+        "graphAndCodeMatches": 561,
+        "recoveredConfigurations": 340,
+        "regressions": []
+    },
+    "reusedEvidence": {
+        "fullCorpusBaseline": "phase4-corpus-release-single.json",
+        "fullCorpusReferenceDefault": "phase4-corpus-release-default.json",
+        "unchangedComponentBaseline": "phase4-corpus-validation.json",
+        "reason": "Run affected cases and direct query/safety checks only; retain earlier results where code, inputs and configuration are unchanged. Each corpus evidence part records its assembly hashes and selection."
+    },
+    "formatting": {
+        "csharpFiles": 16,
+        "tokenCommentSyntaxIdentical": true,
+        "libraryConfigurations": 2,
+        "dotnetWhitespaceExitCode": 0,
+        "checkerGenerationExitCode": 0,
+        "diffCheckExitCode": 0
+    },
+    "repositoryValidation": {
+        "command": "npx hereby validate --all",
+        "exitCode": 0,
+        "isolatedCheckout": "D:/source/repos/TypeScript-phase4-jsdoc-validation",
+        "snapshotFiles": 24,
+        "snapshotHashesVerifiedBeforeAndAfter": true,
+        "snapshotManifestSha256": "f1ddf9e315b733b19be6b18e2035dcc1f2229e73e5d21b7782a3da2570d3828c",
+        "log": "logs/csharp-phase4-jsdoc-validation.log",
+        "sha256": "5b60dc85e3248931d71cc504eb4117a4ad77a6be7b593c2e84e8202e5339e0d0",
+        "goTests": 163380,
+        "goSkipped": 2152,
+        "toolsTests": 17,
+        "extensionTests": 12,
+        "apiTests": 813,
+        "lintIssues": 0,
+        "elapsed": "6m 31.2s",
+        "productGoJavaScriptUnchanged": true
+    },
+    "nativeAotVerification": "Deferred until final completion per user instruction; no NativeAOT builds or execution this turn",
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "phase4Complete": false
+}

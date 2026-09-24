@@ -154,10 +154,21 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
         Contexts.InferenceFor(node)?.NonFixingMapper;
 
     public bool ExportsPropertyAssignment(SyntaxNode left)
-            =>
-                (left.Flags & NodeFlags.JavaScriptFile) == 0
-                    ? false
-                    : throw new InvalidOperationException("Checker requires CommonJS assignment classification");
+    {
+        if ((left.Flags & NodeFlags.JavaScriptFile) == 0
+            || left.Parent is not BinaryExpressionNode { OperatorToken.Kind: SyntaxKind.EqualsToken })
+            return false;
+        var receiver = left switch
+        {
+            PropertyAccessExpressionNode property => property.Expression,
+            ElementAccessExpressionNode element when element.ArgumentExpression is StringLiteralNode or NumericLiteralNode
+                or NoSubstitutionTemplateLiteralNode => element.Expression,
+            _ => null
+        };
+        return receiver is IdentifierNode { Text: "exports" }
+            or PropertyAccessExpressionNode { Expression: IdentifierNode { Text: "module" }, Name: IdentifierNode { Text: "exports" } }
+            or ElementAccessExpressionNode { Expression: IdentifierNode { Text: "module" }, ArgumentExpression: StringLiteralNode { Text: "exports" } };
+    }
 
     public ValueTask<Type> PropertyWriteAsync(PropertyAccessExpressionNode left, CancellationToken cancellation)
             => Access.PropertyAsync(left, writeOnly: true, cancellation: cancellation);

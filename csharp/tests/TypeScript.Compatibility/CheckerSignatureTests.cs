@@ -215,8 +215,72 @@ internal static class CheckerSignatureTests
         checks += await FunctionSafety();
         checks += await CallSafety();
         checks += await IterationSafety();
+        checks += await DocumentationSafety();
         Console.WriteLine(
             $"{checks} signature/function/call/iteration/inference/context/cancellation assertions; binding and return traversal depth 20000");
+    }
+
+    private static async Task<int> DocumentationSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Documentation signature assertion {checks + 1}");
+            checks++;
+        }
+        const string source = """
+            /** @type {(value:number, optional?:string)=>boolean} */
+            function typed(value, optional) { return true; }
+            /**
+             * @template T
+             * @param {T} value
+             * @returns {T}
+             */
+            function identity(value) { return value; }
+            """;
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("allowJs", "true");
+        options.SetRaw("checkJs", "true");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        {
+            ["/project/main.js"] = Wtf8.Encode(source)
+        }), "/project", new("/project/tsconfig.json", options, ["/project/main.js"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var functions = program.SourceFiles[0].Syntax.Statements!.OfType<FunctionDeclarationNode>().ToArray();
+        var typed = (await checker.FullSignatureAsync(functions[0], default))!;
+        Check(typed.Parameters.Count == 2 && typed.MinArgumentCount == 1);
+        Check(await checker.Parameters.AtAsync(typed, 0) == checker.Context.NumberType);
+        Check(await checker.Signatures.ReturnAsync(typed) == checker.Context.BooleanType);
+        Check(await checker.FullSignatureAsync(functions[0], default) == typed);
+        var generic = await checker.Signatures.FromDeclarationAsync(functions[1]);
+        Check(generic.TypeParameters.Count == 1 && await checker.Signatures.ReturnAsync(generic) == generic.TypeParameters[0]);
+        Check(functions[0].FullSignature is not null && ((ParameterDeclarationNode)functions[0].Parameters![0]).Type is null);
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+        try
+        {
+            await checker.FullSignatureAsync(functions[0], cancellation.Token);
+            throw new InvalidOperationException("Cancelled documentation signature query completed");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        var independent = await program.CreateCheckerAsync();
+        var independentSignature = (await independent.FullSignatureAsync(functions[0], default))!;
+        Check(independentSignature != typed && independentSignature.Context != typed.Context);
+        var inheritedDocumentationProgram = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        {
+            ["/project/docs.js"] = Wtf8.Encode("/** @param {number} missing */\nconst f = /** prose */ function(value) {};")
+        }), "/project", new("/project/tsconfig.json", options, ["/project/docs.js"], [], [], []));
+        var inheritedDocumentationChecker = await inheritedDocumentationProgram.CreateCheckerAsync();
+        await inheritedDocumentationChecker.CheckProgramAsync();
+        Check(
+            inheritedDocumentationChecker.DiagnosticCodesForProgramFile(
+                inheritedDocumentationProgram.SourceFiles[0].Syntax).Contains(8024));
+        return checks;
     }
 
     private static async Task<int> IterationSafety()

@@ -85,7 +85,7 @@ internal sealed partial class Checker : ITypePropertyHost, ITypeViewHost, ICompo
 
     public bool IsReadonly(Symbol symbol)
     {
-        if (symbol.Declarations.Any(n => n is BinaryExpressionNode or CallExpressionNode))
+        if (symbol.Declarations.Any(n => n is CallExpressionNode))
             throw new InvalidOperationException("Checker requires assignment readonly analysis");
         return (symbol.CheckFlags & CheckFlags.Readonly) != 0
             || (symbol.Flags & SymbolFlags.Property) != 0

@@ -655,6 +655,18 @@ The normal Release component suite passes **4,294 query configurations**, **678 
 
 Evidence: [single-threaded corpus](../csharp/compatibility/evidence/phase4-corpus-release-single.json), [reference-default corpus](../csharp/compatibility/evidence/phase4-corpus-release-default.json), [loop reproduction](../csharp/compatibility/evidence/phase4-corpus-const-loop-single.json), and [Release/repository validation](../csharp/compatibility/evidence/phase4-corpus-validation.json).
 
+## JSDoc signatures and JavaScript diagnostic policy
+
+Function `@type` signatures now supply parameter, return and generic types through the existing signature services. Source and expression checks validate signature arity. Unmatched `@param` checks follow documentation ownership, binding-pattern positions and `arguments` references, including inherited documentation behind a tagless comment. JSDoc primitive names and `Object<K,V>` use the reference's type interpretation, and constraint checking uses already resolved symbols rather than resolving JSDoc primitive names again.
+
+The JavaScript paths now distinguish ordinary calls from CommonJS `require`, classify exported-property assignments and constructor `this` properties, and apply the reference's unchecked-JavaScript suggestion rules. Checked JavaScript includes JSDoc parse diagnostics; plain JavaScript uses a generated, source-hashed diagnostic allowlist. Mixed JavaScript/TypeScript overload checking preserves the reference's local-symbol check policy.
+
+Targeted Release comparisons cover **1,453 affected and regression configurations per mode**. Graph/code matches increased from **221 to 561**, recovering **340 configurations**, with **no previously matching case regressing**. Earlier valid case results were retained; only the subset affected by the final documentation-parent correction was rechecked. Source graphs, diagnostic codes and failure classifications agree between modes. One remaining exception differs only in a generated symbol number and remains a failure in both records.
+
+The affected type-node and signature suites pass **408 query configurations**. Signature safety passes **105 assertions**, including nine new documentation checks; the existing **66 program assertions** also pass. Unchanged validation results are reused. NativeAOT verification remains deferred until final completion.
+
+Evidence: [single-threaded affected corpus](../csharp/compatibility/evidence/phase4-jsdoc-corpus-single.json), [reference-default affected corpus](../csharp/compatibility/evidence/phase4-jsdoc-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-jsdoc-mode-parity.json), and [Release/repository validation](../csharp/compatibility/evidence/phase4-jsdoc-validation.json). JavaScript classes and expandos, import types, JSX and other remaining callbacks still block cases; the full phase-4 gate remains incomplete.
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:

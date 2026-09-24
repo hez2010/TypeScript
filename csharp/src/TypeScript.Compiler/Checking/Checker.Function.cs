@@ -241,17 +241,15 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
         return ValueTask.CompletedTask;
     }
 
-    public ValueTask SignatureEnvironmentAsync(SyntaxNode node, CancellationToken cancellation)
+    public async ValueTask SignatureEnvironmentAsync(SyntaxNode node, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
-        if ((node.Flags & NodeFlags.JavaScriptFile) != 0)
-            throw new InvalidOperationException("Checker requires JSDoc signature declarations");
+        await CheckUnmatchedDocumentationParametersAsync(node, cancellation).ConfigureAwait(false);
         if (SemanticSyntax.Generator(node))
             AsyncYieldHelpers(node);
         if (SemanticSyntax.HasModifier(node, SyntaxKind.AsyncKeyword)
             && TargetYear < 2017 && program.Symbols.Program.Configuration.Options.Boolean("importHelpers") == true)
             throw new InvalidOperationException("Checker requires async emit helpers");
-        return ValueTask.CompletedTask;
     }
 
     public async ValueTask CheckFunctionReturnAsync(SyntaxNode node, SyntaxNode annotation, Type type, CancellationToken cancellation)

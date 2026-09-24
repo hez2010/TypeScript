@@ -16,6 +16,8 @@ internal interface IFunctionExpressionHost
 
     ValueTask<Signature?> FullSignatureAsync(SyntaxNode node, CancellationToken cancellation);
 
+    ValueTask CheckFullSignatureAsync(SyntaxNode node, CancellationToken cancellation);
+
     void DeferExpression(SyntaxNode node);
 }
 
@@ -71,7 +73,7 @@ internal sealed class FunctionExpressions(TypeContext context, CheckerLinks link
         }
         await host.FunctionGrammarAsync(node, cancellation).ConfigureAwait(false);
         if (node is IFullSignatureNode { FullSignature: not null })
-            await host.FullSignatureAsync(node, cancellation).ConfigureAwait(false);
+            await host.CheckFullSignatureAsync(node, cancellation).ConfigureAwait(false);
         await ContextualAsync(node, mode, cancellation).ConfigureAwait(false);
         return await values.GetAsync(symbols.Declaration(node)!, cancellation).ConfigureAwait(false);
     }

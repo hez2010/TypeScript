@@ -90,7 +90,17 @@ for (const mode of modes) {
     if (completedNames.size !== cases.length) throw Error("Duplicate reference configuration names");
     const missingFiles = inventory.filter(f => !completedSources.has(f));
     const missingConfigurations = planned.filter(c => !completedNames.has(c.name));
-    const ready = cases.filter(c => c.status === "ready");
+    let ready = cases.filter(c => c.status === "ready");
+    const availableConfigurations = ready.length;
+    let selectionSha256;
+    if (option("--cases")) {
+        const selectionText = await readFile(option("--cases"), "utf8");
+        const names = new Set(JSON.parse(selectionText));
+        const available = new Set(ready.map(c => c.name));
+        for (const name of names) if (!available.has(name)) throw Error(`Unknown active corpus configuration: ${name}`);
+        ready = ready.filter(c => names.has(c.name));
+        selectionSha256 = sha256(Buffer.from(selectionText));
+    }
     let candidateFailures = 0, graphMismatches = 0, diagnosticMismatches = 0, codeMatches = 0, processed = 0;
     const errors = new Map();
     const results = createWriteStream(path.join(modeDirectory, "candidate.jsonl"));
@@ -162,6 +172,8 @@ for (const mode of modes) {
         referenceExitCode: referenceRun.exitCode,
         exportedConfigurations: cases.length,
         readyConfigurations: ready.length,
+        availableConfigurations,
+        selectionSha256,
         referenceInventoryFiles: inventory.length,
         plannedConfigurations: planned.length,
         referenceMissingFiles: missingFiles,

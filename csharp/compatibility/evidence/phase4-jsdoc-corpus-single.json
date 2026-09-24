@@ -1,0 +1,54 @@
+{
+    "timestamp": "2026-09-24T14:25:23.065Z",
+    "mode": "single",
+    "configuration": "Release",
+    "selectedConfigurations": 1453,
+    "previousMatches": 221,
+    "graphAndCodeMatches": 561,
+    "recoveredConfigurations": 340,
+    "regressions": [],
+    "parts": [
+        {
+            "directory": "built/csharp/semantic-corpus-jsdoc/single",
+            "configurations": 432,
+            "candidateSha256": "a45cc1e63624453142daa85777afcd8ea09809aef9d73d6e665c1be6e4f1314d",
+            "compilerSha256": "996fbd66aea12134fc136087a02878965d8d46ba3d489344fc4dc9f90319a6a2",
+            "outputSha256": "2c3c3f4147b4cef36305dd332c792b80ea6cd067af0e19f1f8bacb3af44ef0cc",
+            "selectionSha256": "c03affc839da5ca18a61c656bae9c64ffda7a1f2b2135f98930fd0088f1d0d1b"
+        },
+        {
+            "directory": "built/csharp/semantic-corpus-jsdoc-regression/single",
+            "configurations": 966,
+            "candidateSha256": "a45cc1e63624453142daa85777afcd8ea09809aef9d73d6e665c1be6e4f1314d",
+            "compilerSha256": "996fbd66aea12134fc136087a02878965d8d46ba3d489344fc4dc9f90319a6a2",
+            "outputSha256": "0747cb983a0465f1498e51f786a4dea611de6e563705805989aa35ae56887ef5",
+            "selectionSha256": "18febc90bf049c083861b3d0a16be61a047a69bdb2bfb7012959c5d1e3d9aee1"
+        },
+        {
+            "directory": "built/csharp/semantic-corpus-jsdoc-extra/single",
+            "configurations": 41,
+            "candidateSha256": "def799cabae7ab8c6436965151740fcaa02a40ce75925d47ba44bdb785e7697c",
+            "compilerSha256": "996fbd66aea12134fc136087a02878965d8d46ba3d489344fc4dc9f90319a6a2",
+            "outputSha256": "94368ca6142ce361086de078f91c6d648e3c211b0f6d40a9eeffbc2c37462230",
+            "selectionSha256": "93aef913fc3705e1072cbea9316db87e9c238a5ff05a8820df8874983c6a0f74"
+        },
+        {
+            "directory": "built/csharp/semantic-corpus-jsdoc-docinherit/single",
+            "configurations": 369,
+            "candidateSha256": "262af5bc18032dc355767a1aab043a38474cdb29b377dcb918e4618918913193",
+            "compilerSha256": "4713e805bc989d22b93c9ad588c06451d48dce4cbc2545821df6397302c9bc31",
+            "outputSha256": "5bcafc542bfc4ae4ca96de92e4144db0cec5697abeec5cbcbea82b871a1da483",
+            "selectionSha256": "0410f48088c0a60db1e74be6c06ca9e5c94ffb0eb74111ac0d6c4bb6cab46ae0"
+        },
+        {
+            "directory": "built/csharp/semantic-corpus-jsdoc-module-extensions/single",
+            "configurations": 14,
+            "candidateSha256": "262af5bc18032dc355767a1aab043a38474cdb29b377dcb918e4618918913193",
+            "compilerSha256": "4713e805bc989d22b93c9ad588c06451d48dce4cbc2545821df6397302c9bc31",
+            "outputSha256": "0570f3a7e0b762a3f8ec74d4cf084b1d8f7a36968cb5dc7d443be811ff70d949",
+            "selectionSha256": "dd97f4a12a27be33dd44f2687d53a8d9b0bf4b4b4b2a50aa983e1a48a7e53f9c"
+        }
+    ],
+    "scope": "Affected JavaScript/JSDoc and readonly-assignment corpus cases; earlier valid case results retained until a relevant code change. Documentation-parent lookup correction revalidated on its affected subset. Full phase 4 remains incomplete.",
+    "nativeAotVerification": "Deferred until final completion per user instruction"
+}
