@@ -483,6 +483,23 @@ node csharp/tools/checker-program.mjs --access --record phase4-access
 node csharp/tools/generate-go-casing.mjs --check
 ```
 
+## Destructuring bindings
+
+`BindingTypes.cs` connects object/array binding extraction to variable and identifier checking, indexed access, initializer flow and correlated narrowing. It handles nested bindings, defaults, object rest, generic `Omit` instantiation, tuple rest slices, array element types and synthetic flow references. Synthetic references preserve the original AST parents and use weak flow associations. `GlobalTypes.cs` resolves and caches required global aliases, including missing/incorrect-arity errors.
+
+Out-of-range tuple defaults exposed an existing widening bug: `VariableTypes.Constant` inspected the binding element instead of its root declaration. Following the root now preserves a default's literal type for `const` bindings. Annotated defaults retain the reference's strict-null-dependent evaluation order.
+
+The Windows x64 NativeAOT artifact passes **88 new binding configurations**, within **252 exact identifier comparisons**. Cases cover nested/defaulted bindings, discriminant correlation, generic/union rest, readonly and accessor properties, class member exclusions, nullable/invalid rest, array/tuple unions, tuple bounds, exact optional properties and unchecked indexed access. The same artifact passes **1,128 affected regression comparisons** across flow, access, initializers, symbol values and indexed types, for **1,380 comparisons total**, plus **199 safety assertions**. Ten additional identifier safety assertions cover binding cancellation/retry, resolution cleanup, readonly spread origins, cached-parent cancellation and foreign-context rejection.
+
+This completes the binding extraction slice, not general destructuring support or expression inference. Implied binding-pattern contextual types, object/array literal checking, computed-name checking, `Symbol.iterator` protocol validation, iteration diagnostic hints and `for-of` initializers still require services. The tests use the explicit minimal array library without `Iterable`; full-library iteration and full-checker performance gates remain open.
+
+Evidence: [identifier and binding comparisons](../csharp/compatibility/evidence/phase4-binding-identifiers.json), [flow](../csharp/compatibility/evidence/phase4-binding-flow.json), [access](../csharp/compatibility/evidence/phase4-binding-access.json), [initializers](../csharp/compatibility/evidence/phase4-binding-initializers.json), [values](../csharp/compatibility/evidence/phase4-binding-values.json), [indexing](../csharp/compatibility/evidence/phase4-binding-indexing.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-binding-validation.json).
+
+```powershell
+node csharp/tools/checker-program.mjs --identifiers --filter binding
+& ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-identifiers-safety
+```
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
@@ -490,9 +507,9 @@ The following phase-4 requirements remain open:
 1. Complete the program/checker entry point, module interop/type adaptation, computed exports and type/value symbol resolution. Program-backed globals, augmentation merging, declaration headers and alias/export algorithms now exist; their remaining semantic callbacks must be connected.
 2. Complete relation diagnostics and remaining type-node dependencies; connect the implemented declaration/type-node, algebra, scope, inference, instantiation and tuple algorithms to complete checker services.
 3. Remaining expression forms, call-site inference, context-sensitive expression typing, overload selection, full declaration checking, JavaScript and JSDoc semantics.
-4. Complete binding/contextual dependencies of identifier checking and property/declaration flow integration; complete constructor/`in`/`instanceof` narrowing, initialization/reference services and semantic diagnostics.
+4. Complete implied binding-pattern/contextual types, iterator services and property/declaration flow integration; complete constructor/`in`/`instanceof` narrowing, initialization/reference services and semantic diagnostics.
 5. Remaining indexed/member diagnostic and declaration services, JSX, decorators and grammar checks.
 6. Type display, node builders, symbol accessibility and emit-resolver APIs.
 7. All active checker/compiler type/symbol/diagnostic comparisons at single and reference-default concurrency; audits of intentional differences; complete semantic workload memory/performance measurements.
 
-The next integration step is binding and object/array expression inference, followed by contextual checking, call-site inference/overload selection, diagnostics and module type adaptation over the program-backed symbol environment. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.
+The next integration step is implied binding-pattern and object/array expression inference, followed by contextual checking, call-site inference/overload selection, diagnostics and module type adaptation over the program-backed symbol environment. There is still no complete production checker entry point. Component comparison counts and validation of the existing Go backend do not measure full C# checker completion. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.

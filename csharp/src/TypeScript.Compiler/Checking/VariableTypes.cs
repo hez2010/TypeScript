@@ -191,8 +191,12 @@ internal sealed class VariableTypes(TypeContext context, TypeAlgebra algebra, Ty
         _ => false
     };
 
-    internal static bool Constant(SyntaxNode node) =>
-        (node.Flags & NodeFlags.Constant) != 0 || node.Parent is VariableDeclarationListNode list && (list.Flags & NodeFlags.Constant) != 0;
+    internal static bool Constant(SyntaxNode node)
+    {
+        node = SemanticSyntax.RootDeclaration(node);
+        return (node.Flags & NodeFlags.Constant) != 0
+            || node.Parent is VariableDeclarationListNode list && (list.Flags & NodeFlags.Constant) != 0;
+    }
 
     internal static bool Readonly(SyntaxNode node) => SemanticSyntax.HasModifier(node, SyntaxKind.ReadonlyKeyword)
             && !(node is ParameterDeclarationNode && node.Parent is ConstructorDeclarationNode);

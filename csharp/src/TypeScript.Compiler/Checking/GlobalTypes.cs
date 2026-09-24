@@ -10,10 +10,35 @@ internal sealed class GlobalTypes(TypeContext context, CheckerLinks links, Check
     TypeParameterScopes scopes, Action<SyntaxNode?, DiagnosticMessage, string[]> error)
 {
     private readonly Dictionary<string, Type> types = new(StringComparer.Ordinal);
+    private readonly Dictionary<(string Name, int Arity), Symbol?> aliases = [];
     internal IReadOnlyDictionary<string, Type> Types => types.AsReadOnly();
     internal Type? AnyArrayType { get; private set; }
     internal Type? AutoArrayType { get; private set; }
     internal Type? AnyReadonlyArrayType { get; private set; }
+
+    internal async ValueTask<Symbol?> AliasAsync(string name, int arity, DeclaredTypes declared, CancellationToken cancellation = default)
+    {
+        cancellation.ThrowIfCancellationRequested();
+        if (aliases.TryGetValue((name, arity), out var cached))
+            return cached;
+        var symbol = symbols.Lookup(symbols.Globals, name, SymbolFlags.TypeAlias);
+        if (symbol is null)
+            error(null, Messages.Cannot_find_global_type_0, [name]);
+        else
+        {
+            var declaration = symbol.Declarations.OfType<TypeAliasDeclarationNode>().First();
+            await declared.GetAsync(symbol, cancellation).ConfigureAwait(false);
+            if (links.TypeAliases.Get(symbol).TypeParameters?.Count != arity)
+            {
+                error(declaration, Messages.Global_type_0_must_have_1_type_parameter_s,
+                    [name, arity.ToString(CultureInfo.InvariantCulture)]);
+                symbol = null;
+            }
+        }
+        cancellation.ThrowIfCancellationRequested();
+        aliases[(name, arity)] = symbol;
+        return symbol;
+    }
 
     internal async ValueTask<Type> GetAsync(string name, int arity, bool reportErrors, CancellationToken cancellation = default)
     {

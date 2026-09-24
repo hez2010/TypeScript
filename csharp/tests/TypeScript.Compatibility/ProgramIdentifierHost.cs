@@ -94,13 +94,13 @@ internal sealed partial class ProgramTypeHost : IIdentifierTypeHost, IReferenceT
     }
 
     public ValueTask<Type?> BindingParentAsync(SyntaxNode declaration, CancellationToken cancellation) =>
-        throw new InvalidOperationException("Probe requires binding parent types");
+        Bindings.ParentAsync(declaration, cancellation: cancellation);
 
     public ValueTask<Type> BindingFromParentAsync(
         BindingElementNode element,
         Type parent,
         bool noTupleBoundsCheck,
-        CancellationToken cancellation) => throw new InvalidOperationException("Probe requires binding element extraction");
+        CancellationToken cancellation) => Bindings.FromParentAsync(element, parent, noTupleBoundsCheck, cancellation);
 
     public ValueTask<bool> SomeAssignedAsync(SyntaxNode declaration, CancellationToken cancellation) =>
         Assignments.SomeAsync(declaration, cancellation);

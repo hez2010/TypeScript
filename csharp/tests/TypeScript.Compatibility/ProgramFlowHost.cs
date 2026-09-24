@@ -16,7 +16,7 @@ internal sealed partial class ProgramTypeHost : IFlowTypeHost, IFlowReferenceHos
     internal AssignmentMarks Assignments { get; }
     internal Action<SyntaxNode>? BeforeFlowExpression { get; set; }
 
-    public FlowNode? FlowOf(SyntaxNode node) => program.Symbols.Binding(node)?.Get(node)?.Flow;
+    public FlowNode? FlowOf(SyntaxNode node) => Bindings.SyntheticFlow(node) ?? program.Symbols.Binding(node)?.Get(node)?.Flow;
 
     public Symbol UnknownSymbol => program.Symbols.UnknownSymbol;
 
@@ -102,8 +102,8 @@ internal sealed partial class ProgramTypeHost : IFlowTypeHost, IFlowReferenceHos
             else
                 type = context.ErrorType;
         }
-        else if (node is BindingElementNode)
-            throw new InvalidOperationException("Probe requires binding initializer types");
+        else if (node is BindingElementNode binding)
+            type = await Bindings.InitialAsync(binding, cancellation);
         else if (node.Parent is BinaryExpressionNode binary)
         {
             if (binary.Parent is ArrayLiteralExpressionNode or PropertyAssignmentNode)

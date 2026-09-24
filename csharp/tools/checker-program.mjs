@@ -774,8 +774,42 @@ for (const strict of [false, true]) {
             catchVariable: "function f() { try {} catch(e) { __expr(e); } }",
             outerNeverInitialized: "function f(c: boolean) { let x: number; const g = () => { __expr(x); }; if(c) { const h = () => { __expr(x); }; } }",
             genericContext: "function f<T extends string | undefined>(x: T) { if(x) { const y: string = x; __expr(x); } }",
+            bindingObject: "declare const source: { value: number; label?: string }; const {value, label = 'fallback'} = source; __expr(value); __expr(label);",
+            bindingNested: "declare const source: { box: { value: 1 | 2 } }; const {box: {value}} = source; __expr(value);",
+            bindingParameter: "function f({value, label = 'fallback'}: {value: number; label?: string}) { __expr(value); __expr(label); }",
+            bindingRest: "declare const source: {readonly value: number; label?: string; other: boolean}; const {value, ...rest} = source; __expr(value); __expr(rest);",
+            bindingFlow: "function f(source: {kind: 'a'; value: number} | {kind: 'b'; value: string}) { if(source.kind === 'a') { const {value} = source; __expr(value); } const {kind, value} = source; if(kind === 'a') __expr(value); else __expr(value); }",
+            bindingGeneric: "type Exclude<T,U> = T extends U ? never : T; type Omit<T,K extends keyof any> = {[P in Exclude<keyof T,K>]:T[P]}; function f<T extends {value:number; label:string}>(source:T) { const {value,...rest}=source; __expr(value); __expr(rest); }",
+            bindingRestUnion: "declare const source: {kind:'a'; a:number} | {kind:'b'; b:string}; const {kind,...rest}=source; __expr(rest);",
+            bindingRestClass: "class C { readonly x: number; private p: string; protected q: string; method():void{} get value():number{return 1;} } declare const source:C; const {x,...rest}=source; __expr(rest);",
+            bindingRestAccessors: "declare const source:{readonly x:number; get value():number; set only(v:string); method():void}; const {x,...rest}=source; __expr(rest);",
+            bindingAny: "declare const source:any; const {value=1,...rest}=source; __expr(value); __expr(rest);",
+            bindingUnknownRest: "declare const source:unknown; const {...rest}=source; __expr(rest);",
+            bindingTuple: "declare const source:readonly [number,string?,...boolean[]]; const [first,second='default',...rest]=source; __expr(first); __expr(second); __expr(rest);",
+            bindingArray: "declare const source:number[]; const [first=1,,third,...rest]=source; __expr(first); __expr(third); __expr(rest);",
+            bindingTupleUnion: "function f(source:['a',number]|['b',string]) { const [kind,value]=source; if(kind==='a') __expr(value); else __expr(value); }",
+            bindingTupleGeneric: "function f<T extends [number,string,boolean?]>(source:T) { const [value,...rest]=source; __expr(value); __expr(rest); }",
+            bindingTupleBounds: "declare const source:[number]; const [first,second,third=1,...rest]=source; __expr(first); __expr(second); __expr(third); __expr(rest);",
+            bindingArrayUnion: "declare const source:number[]|string[]; const [first,...rest]=source; __expr(first); __expr(rest);",
+            bindingRestNullable: "declare const source:{value:number}|null|undefined; const {...rest}=source; __expr(rest);",
+            bindingRestInvalid: "declare const source:number; const {...rest}=source; __expr(rest);",
+            bindingRestGenericMissingOmit: "function f<T extends {value:number}>(source:T) { const {value,...rest}=source; __expr(rest); const {value: other,...rest2}=source; __expr(rest2); }",
         })
     ) add(`identifiers:${name}:${strict}`, { "globals.d.ts": library + " declare function __expr(value: unknown): void;", "main.ts": text }, { strict }, false, true);
+}
+for (const exactOptionalPropertyTypes of [false, true]) {
+    for (const noUncheckedIndexedAccess of [false, true]) {
+        add(
+            `identifiers:bindingOptions:${exactOptionalPropertyTypes}:${noUncheckedIndexedAccess}`,
+            {
+                "globals.d.ts": library + " declare function __expr(value: unknown): void;",
+                "main.ts": "declare const tuple:[number?,...string[]]; const [value=1,,third,...rest]=tuple; __expr(value); __expr(third); __expr(rest); declare const source:{value?:number; readonly label?:string}; const {value:other=2,...objectRest}=source; __expr(other); __expr(objectRest); declare const values:number[]; const [first,...remaining]=values; __expr(first); __expr(remaining);",
+            },
+            { strict: true, exactOptionalPropertyTypes, noUncheckedIndexedAccess },
+            false,
+            true,
+        );
+    }
 }
 for (const input of cases.filter(c => c.name.startsWith("identifiers:"))) input.identifiers = true;
 

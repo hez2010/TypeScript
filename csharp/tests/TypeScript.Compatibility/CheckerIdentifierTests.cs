@@ -158,6 +158,60 @@ internal static class CheckerIdentifierTests
         var deprecatedSymbols = await CheckerSymbols.CreateAsync(deprecatedProgram, deprecatedLinks, deprecatedScope);
         Check(deprecatedScope.Deprecations.Symbol(deprecatedSymbols.Globals["old"]));
         Check(!deprecatedScope.Deprecations.Symbol(deprecatedSymbols.Globals["current"]));
-        Console.WriteLine($"{checks} identifier/default/alias/cancellation/ownership assertions; 20,000-level reference traversal.");
+
+        var bindingProgram = await Build(
+            "declare const source:{readonly value:number; text?:string}; const {value,text='fallback',...rest}=source; __expr(text);");
+        var bindingContext = new TypeContext(true, true);
+        var bindingLinks = new CheckerLinks();
+        var bindingScope = new ProgramScopeHost(bindingContext, bindingLinks);
+        var bindingSymbols = await CheckerSymbols.CreateAsync(bindingProgram, bindingLinks, bindingScope);
+        var bindingHost = new ProgramTypeHost(bindingContext, bindingLinks, bindingScope);
+        var elements = bindingProgram.SourceFiles[0].Syntax.DescendantsAndSelf().OfType<BindingElementNode>().ToArray();
+        var textSymbol = bindingSymbols.Declaration(elements[1])!;
+        using (var cancellation = new CancellationTokenSource())
+        {
+            bindingHost.BeforeInitializer = _ => cancellation.Cancel();
+            try
+            {
+                await bindingHost.Values.GetAsync(textSymbol, cancellation.Token);
+                throw new InvalidOperationException("Binding default cancellation ignored");
+            }
+            catch (OperationCanceledException)
+            {
+                checks++;
+            }
+        }
+        Check(bindingHost.Instantiation.Resolutions.Count == 0 && bindingLinks.Values.Get(textSymbol).ResolvedType is null);
+        Check(bindingHost.FlowTypes.SharedCount == 0 && bindingHost.FlowTypes.ActiveLoopCount == 0);
+        bindingHost.BeforeInitializer = null;
+        Check(await bindingHost.Values.GetAsync(textSymbol) == bindingContext.StringType);
+        var parent = (await bindingHost.Bindings.ParentAsync(elements[0].Parent!.Parent!))!;
+        var spread = await bindingHost.Bindings.RestAsync(parent, [], null);
+        var original = (await bindingHost.Properties.PropertyAsync(parent, "value"))!;
+        var copied = (await bindingHost.Properties.PropertyAsync(spread, "value"))!;
+        Check(original != copied && bindingHost.IsReadonly(original) && !bindingHost.IsReadonly(copied));
+        Check(bindingLinks.MappedSymbols.Get(copied).SyntheticOrigin == original);
+        Check(await bindingHost.Values.GetAsync(copied) == bindingContext.NumberType);
+        try
+        {
+            await bindingHost.Bindings.ParentAsync(elements[0].Parent!.Parent!, cancellation: cancelled.Token);
+            throw new InvalidOperationException("Cached binding parent cancellation ignored");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        try
+        {
+            await bindingHost.Bindings.FromParentAsync(elements[0], context.AnyType);
+            throw new InvalidOperationException("Foreign binding parent accepted");
+        }
+        catch (ArgumentException)
+        {
+            checks++;
+        }
+        Check(await bindingHost.Bindings.FromParentAsync(elements[0], bindingContext.AnyType) == bindingContext.AnyType);
+        Console.WriteLine(
+            $"{checks} identifier/binding/default/alias/cancellation/ownership assertions; 20,000-level reference traversal.");
     }
 }

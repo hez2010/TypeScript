@@ -1,0 +1,92 @@
+{
+    "timestamp": "2026-09-24T04:47:48.9169891+00:00",
+    "scope": "Object/array binding extraction, defaults, rest types and correlated flow; complete checker integration and iterator protocols remain open",
+    "candidateSha256": "d7bcdd1bcba02f6e66a9345bed7c46b404763227d099c27234c4911f0996f3fe",
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "languageVersion": "15.0",
+    "runtimeAsync": true,
+    "optimizationPreference": "Speed",
+    "instructionSet": "native",
+    "publish": {
+        "exitCode": 0,
+        "log": "logs/csharp-phase4-binding-publish.log",
+        "sha256": "03933be2dc34223ee88005d844f6919fd7786869077fd93acbb392005d81ccfb"
+    },
+    "sourceComparisons": {
+        "identifiers": {
+            "cases": 252,
+            "exact": 252,
+            "failed": 0,
+            "record": "phase4-binding-identifiers.json"
+        },
+        "flow": {
+            "cases": 212,
+            "exact": 212,
+            "failed": 0,
+            "record": "phase4-binding-flow.json"
+        },
+        "access": {
+            "cases": 412,
+            "exact": 412,
+            "failed": 0,
+            "record": "phase4-binding-access.json"
+        },
+        "initializers": {
+            "cases": 48,
+            "exact": 48,
+            "failed": 0,
+            "record": "phase4-binding-initializers.json"
+        },
+        "values": {
+            "cases": 136,
+            "exact": 136,
+            "failed": 0,
+            "record": "phase4-binding-values.json"
+        },
+        "indexing": {
+            "cases": 320,
+            "exact": 320,
+            "failed": 0,
+            "record": "phase4-binding-indexing.json"
+        }
+    },
+    "totalSourceComparisons": 1380,
+    "newBindingConfigurations": 88,
+    "bindingLibraryBoundary": "Explicit minimal Array/ReadonlyArray declarations, without Iterable; Symbol.iterator protocol validation is not exercised",
+    "safety": {
+        "assertions": 199,
+        "newBindingAssertions": 10,
+        "log": "logs/csharp-phase4-binding-safety.log",
+        "sha256": "904c82d3529d2ae57c410dd300704da05ed8b5a16708e0e8dd287261dba9ef3c"
+    },
+    "formatting": {
+        "csharpFiles": 9,
+        "tokenCommentSyntaxIdentical": true,
+        "libraryConfigurations": 2,
+        "dotnetWhitespaceExitCode": 0,
+        "checkerGenerationExitCode": 0,
+        "diffCheckExitCode": 0
+    },
+    "repositoryValidation": {
+        "command": "npx hereby validate --all",
+        "exitCode": 0,
+        "isolatedCheckout": "D:/source/repos/TypeScript-phase4-binding-validation",
+        "snapshotFiles": 18,
+        "snapshotHashesVerifiedBeforeAndAfter": true,
+        "snapshotManifestSha256": "ff76e42b34c6aa2611d26818cebe889478a378b586915eb161117e34c3f4e15a",
+        "log": "logs/csharp-phase4-binding-validation.log",
+        "sha256": "450a9fd3edae18ed4847758c8f457d80dafd3ee6261d139e33ebfa87882cf880",
+        "goTests": 163380,
+        "goSkipped": 2152,
+        "apiTests": 813,
+        "extensionTests": 12,
+        "toolsTests": 17,
+        "lintIssues": 0,
+        "elapsed": "5m 36.5s",
+        "productGoJavaScriptUnchanged": true
+    },
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "phase4Complete": false
+}

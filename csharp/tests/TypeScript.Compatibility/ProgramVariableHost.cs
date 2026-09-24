@@ -57,7 +57,7 @@ internal sealed partial class ProgramTypeHost : IVariableTypeHost
     }
 
     public ValueTask<Type?> BindingElementAsync(BindingElementNode element, CancellationToken cancellation)
-        => throw new InvalidOperationException("Probe requires binding element inference");
+        => Bindings.GetAsync(element, cancellation);
 
     public ValueTask<Type> BindingPatternAsync(SyntaxNode pattern, CancellationToken cancellation)
             => throw new InvalidOperationException("Probe requires binding pattern contextual types");

@@ -186,6 +186,9 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
         RelationDiagnostics = new(context, Relations, Signatures, Properties, Values, Predicates, this);
         Optional = new(context, Algebra, Facts);
         AccessNames = new(program.EntityNames, program.DeclarationOrder, this);
+        Bindings = new(context, links, program.Symbols, Algebra, Facts, Views, Instantiation.Constraints,
+            Instantiation.Mapped, Properties, Values, Keys, Relations, Indexed, Instantiation.Tuples, Variables,
+            AccessNames, FlowTypes, this);
         AccessFlow = new(context, Algebra, Values, Widening, ReferenceNarrowing, FlowTypes, this);
         MemberAccess = new(program.Symbols, links, program.ReferenceSymbols, Declared, Properties, Bases, program.DeclarationOrder, this);
         IndexValidation = new(
