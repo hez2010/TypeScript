@@ -34,9 +34,9 @@ internal static class CheckerPropertyTests
             "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
-        var scope = new ProgramScopeHost(context, links);
+        var scope = new CheckerEnvironment(context, links);
         var symbols = await CheckerSymbols.CreateAsync(program, links, scope);
-        var host = new ProgramTypeHost(context, links, scope);
+        var host = new Checker(context, links, scope);
         var union = (UnionType)await host.Declared.GetAsync(symbols.Globals["U"]);
         host.BeforeNode = _ => throw new OperationCanceledException();
         try
@@ -148,7 +148,7 @@ internal static class CheckerPropertyTests
         Console.WriteLine($"{checks} property/view/index/cache/cancellation assertions; reduction chain depth 20000");
     }
 
-    internal static async Task WriteAsync(Utf8JsonWriter writer, SyntaxNode[] nodes, CheckerSymbols symbols, ProgramTypeHost host,
+    internal static async Task WriteAsync(Utf8JsonWriter writer, SyntaxNode[] nodes, CheckerSymbols symbols, Checker host,
         Func<Type?, int> typeId, Func<Symbol?, int> symbolId, Func<SyntaxNode?, int> nodeId)
     {
         writer.WriteStartArray("propertyQueries");

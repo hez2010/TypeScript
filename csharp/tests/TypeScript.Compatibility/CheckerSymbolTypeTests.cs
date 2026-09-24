@@ -29,9 +29,9 @@ internal static class CheckerSymbolTypeTests
             "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
-        var scope = new ProgramScopeHost(context, links);
+        var scope = new CheckerEnvironment(context, links);
         var symbols = await CheckerSymbols.CreateAsync(program, links, scope);
-        var host = new ProgramTypeHost(context, links, scope);
+        var host = new Checker(context, links, scope);
         var instance = (ObjectType)await host.Declared.GetAsync(symbols.Globals["S"]);
         await host.Members.ResolveAsync(instance);
         var accessor = instance.Properties!.Single(p => p.Name == "value");

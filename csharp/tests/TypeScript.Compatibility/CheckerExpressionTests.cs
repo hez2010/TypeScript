@@ -31,9 +31,9 @@ internal static class CheckerExpressionTests
             new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
-        var scope = new ProgramScopeHost(context, links);
+        var scope = new CheckerEnvironment(context, links);
         var symbols = await CheckerSymbols.CreateAsync(program, links, scope);
-        var host = new ProgramTypeHost(context, links, scope);
+        var host = new Checker(context, links, scope);
         var enumNode = program.SourceFiles[0].Syntax.DescendantsAndSelf().OfType<EnumDeclarationNode>().Single();
         var enumMembers = enumNode.Members!.OfType<EnumMemberNode>().ToArray();
         host.BeforeConstantReference = _ => throw new OperationCanceledException();
@@ -144,9 +144,9 @@ internal static class CheckerExpressionTests
             "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
-        var scope = new ProgramScopeHost(context, links);
+        var scope = new CheckerEnvironment(context, links);
         var symbols = await CheckerSymbols.CreateAsync(program, links, scope);
-        var host = new ProgramTypeHost(context, links, scope);
+        var host = new Checker(context, links, scope);
         var allNodes = program.SourceFiles[0].Syntax.DescendantsAndSelf().ToArray();
         var instantiations = allNodes.OfType<ExpressionWithTypeArgumentsNode>().ToArray();
         var assertions = allNodes.OfType<AsExpressionNode>().ToArray();
@@ -233,9 +233,9 @@ internal static class CheckerExpressionTests
             new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
-        var scope = new ProgramScopeHost(context, links);
+        var scope = new CheckerEnvironment(context, links);
         var symbols = await CheckerSymbols.CreateAsync(program, links, scope);
-        var host = new ProgramTypeHost(context, links, scope);
+        var host = new Checker(context, links, scope);
         var nodes = program.SourceFiles[0].Syntax.DescendantsAndSelf().ToArray();
         var literal = nodes.OfType<ObjectLiteralExpressionNode>().Single();
         var rawObject = symbols.Binding(literal)!.Get(literal)!.Symbol!;

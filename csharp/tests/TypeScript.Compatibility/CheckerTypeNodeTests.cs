@@ -30,9 +30,9 @@ internal static class CheckerTypeNodeTests
             new("/project/tsconfig.json", options, ["/project/input.ts"], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
-        var scopeHost = new ProgramScopeHost(context, links);
+        var scopeHost = new CheckerEnvironment(context, links);
         var symbols = await CheckerSymbols.CreateAsync(program, links, scopeHost);
-        var host = new ProgramTypeHost(context, links, scopeHost);
+        var host = new Checker(context, links, scopeHost);
         var a = (TypeReference)await host.Declared.GetAsync(symbols.Globals["A"]);
         Check(a.ResolvedTypeArguments is null && a.Node is ArrayTypeNode);
         host.BeforeNode = _ => throw new OperationCanceledException();

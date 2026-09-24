@@ -34,9 +34,9 @@ internal static class CheckerIdentifierTests
         var program = await Build(source);
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
-        var scope = new ProgramScopeHost(context, links);
+        var scope = new CheckerEnvironment(context, links);
         var symbols = await CheckerSymbols.CreateAsync(program, links, scope);
-        var host = new ProgramTypeHost(context, links, scope);
+        var host = new Checker(context, links, scope);
         var nodes = program.SourceFiles[0].Syntax.DescendantsAndSelf().ToArray();
         var queries = nodes.OfType<CallExpressionNode>().Where(
             n => n.Expression is IdentifierNode { Text: "__expr" }).Select(n => n.Arguments![0]).ToArray();
@@ -121,7 +121,7 @@ internal static class CheckerIdentifierTests
         var aliasProgram = await Build("namespace N { export class C {} } import A = N; import B = A.C; B;");
         var aliasContext = new TypeContext(true, true);
         var aliasLinks = new CheckerLinks();
-        var aliasScope = new ProgramScopeHost(aliasContext, aliasLinks);
+        var aliasScope = new CheckerEnvironment(aliasContext, aliasLinks);
         var aliasSymbols = await CheckerSymbols.CreateAsync(aliasProgram, aliasLinks, aliasScope);
         var references = new AliasReferences(aliasSymbols, aliasLinks, aliasScope.ReferenceSymbols, aliasScope.Aliases);
         var aliases = aliasProgram.SourceFiles[0].Syntax.DescendantsAndSelf().OfType<ImportEqualsDeclarationNode>().ToArray();
@@ -154,7 +154,7 @@ internal static class CheckerIdentifierTests
 
         var deprecatedProgram = await Build("/** @deprecated */ const old = 1; const current = 2; old; current;");
         var deprecatedLinks = new CheckerLinks();
-        var deprecatedScope = new ProgramScopeHost(new(true, true), deprecatedLinks);
+        var deprecatedScope = new CheckerEnvironment(new(true, true), deprecatedLinks);
         var deprecatedSymbols = await CheckerSymbols.CreateAsync(deprecatedProgram, deprecatedLinks, deprecatedScope);
         Check(deprecatedScope.Deprecations.Symbol(deprecatedSymbols.Globals["old"]));
         Check(!deprecatedScope.Deprecations.Symbol(deprecatedSymbols.Globals["current"]));
@@ -163,9 +163,9 @@ internal static class CheckerIdentifierTests
             "declare const source:{readonly value:number; text?:string}; const {value,text='fallback',...rest}=source; __expr(text);");
         var bindingContext = new TypeContext(true, true);
         var bindingLinks = new CheckerLinks();
-        var bindingScope = new ProgramScopeHost(bindingContext, bindingLinks);
+        var bindingScope = new CheckerEnvironment(bindingContext, bindingLinks);
         var bindingSymbols = await CheckerSymbols.CreateAsync(bindingProgram, bindingLinks, bindingScope);
-        var bindingHost = new ProgramTypeHost(bindingContext, bindingLinks, bindingScope);
+        var bindingHost = new Checker(bindingContext, bindingLinks, bindingScope);
         var elements = bindingProgram.SourceFiles[0].Syntax.DescendantsAndSelf().OfType<BindingElementNode>().ToArray();
         var textSymbol = bindingSymbols.Declaration(elements[1])!;
         using (var cancellation = new CancellationTokenSource())

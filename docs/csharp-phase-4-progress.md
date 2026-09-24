@@ -1,6 +1,6 @@
 # Phase 4: checker port in progress
 
-**Phase 4 is incomplete.** The implementation now covers checker type/state foundations, lexical name and reference resolution, symbol-merge primitives, type normalization, constraint/default resolution, generic/object/mapped instantiation, tuple normalization and type-node substitutions. It does not satisfy the complete semantic-checker gate in the [rewrite plan](csharp-rewrite-plan.md). Semantic diagnostics, full type/symbol queries and the complete emit resolver remain unavailable in the C# backend.
+**Phase 4 is incomplete.** Checker creation and internal expression/type-node queries now run in the production compiler assembly, using the implemented type system, scope, instantiation, inference, flow and expression services. This does not satisfy the complete semantic-checker gate in the [rewrite plan](csharp-rewrite-plan.md). Whole-program semantic diagnostics, full type/symbol queries and the complete emit resolver remain unavailable in the C# backend.
 
 ## Implemented checkpoint
 
@@ -17,7 +17,7 @@
 
 Type and signature IDs are local to their owning context. Factories reject combinations from different contexts. Cache keys compare complete identity sequences, including alias arguments and union origins; a hash collision cannot merge unrelated types. Caller-owned arrays are copied before they enter retained type state. Links remain separate from the AST and binder symbols shared by programs.
 
-`TypeAlgebra.cs`, `TypeAlgebra.Intersections.cs` and `TypeAlgebra.Templates.cs` now implement union normalization, literal/subtype reduction, constrained-variable reduction, intersection distribution and disjointness, nullable factoring, aliases/origins, filtering, template construction and intrinsic string mappings. Their required `ITypeAlgebraHost` supplies the checker's structural relations, member/constraint resolution and diagnostics. There is no production fallback for these dependencies. Full checker integration and the implementations of those services remain open.
+`TypeAlgebra.cs`, `TypeAlgebra.Intersections.cs` and `TypeAlgebra.Templates.cs` implement union normalization, literal/subtype reduction, constrained-variable reduction, intersection distribution and disjointness, nullable factoring, aliases/origins, filtering, template construction and intrinsic string mappings. Their required `ITypeAlgebraHost` is now supplied by `Checker`, using its structural relations, member/constraint resolution and diagnostics. Whole-program checking and complete diagnostic attribution remain open.
 
 Intersection keys preserve the reference's distinction between constraint reduction modes, including suppression of alias keys when constraint reduction is disabled. Completed results are cached after normalization. Cross-product and subtype complexity limits are retained; overflow calculations use 64-bit saturation. Input-shaped traversals use explicit stacks or BCL `ValueTask` continuations. The casing implementation uses generated Unicode 15.1.0 data, including full case expansions, Final_Sigma context and lone-surrogate preservation.
 
@@ -550,7 +550,7 @@ A strict object-argument error initially differed only in the Boolean union's la
 
 Windows x64 NativeAOT passes **4,048 exact source-program configurations**, including **136 new call configurations**, and **611 safety assertions**. Cases cover generic and higher-order calls, contextual returns, immediate invocation, overloads and failures, tuple/readonly spreads, defaults/constraints, optional and nullable calls, recursive calls, constructors/accessibility/`super`, tagged templates, symbols, inferred binding/mapped types, deprecations and property/element-level argument errors. Twenty-two new safety assertions cover argument/callback cancellation, failure-candidate rollback, cached calls, candidate output and inference-record restoration.
 
-Dynamic imports and JavaScript call adaptation, decorators, JSX and `instanceof` dispatch, complete invocation/argument diagnostic details, and some emit-related checks remain required dependencies. The production checker entry point and complete semantic corpus/memory/performance gates remain open.
+Dynamic imports and JavaScript call adaptation, decorators, JSX and `instanceof` dispatch, complete invocation/argument diagnostic details, and some emit-related checks remain required dependencies. The complete semantic pass and corpus/memory/performance gates remain open.
 
 Evidence: [call and identifier comparisons](../csharp/compatibility/evidence/phase4-calls-identifiers.json), [signature regressions](../csharp/compatibility/evidence/phase4-calls-signatures.json), [relation regressions](../csharp/compatibility/evidence/phase4-calls-assignability.json), [inference regressions](../csharp/compatibility/evidence/phase4-calls-inference.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-calls-validation.json).
 
@@ -581,11 +581,23 @@ The probe now compares instantiation-expression source nodes and the rendered ty
 
 Evidence: [expression and identifier comparisons](../csharp/compatibility/evidence/phase4-ordinary-identifiers.json), [signature regressions](../csharp/compatibility/evidence/phase4-ordinary-signatures.json), [property regressions](../csharp/compatibility/evidence/phase4-ordinary-properties.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-ordinary-validation.json).
 
+## Production checker composition and queries
+
+`CompilerProgram.CreateCheckerAsync` now creates an exclusive production `Checker`, with its own context, links, symbols and semantic caches. Internal expression and type-node queries validate syntax ownership and serialize access to each checker; independent checkers share immutable program syntax and binding. Cancellation during creation does not publish a checker, and a cancelled queued query does not disturb the active request.
+
+Twenty-four composition files moved from the compatibility project into the compiler assembly as `Checker` and `CheckerEnvironment` partials. Production composition no longer references `AlgebraFixtureHost`, `InstantiationFixtureHost` or `ConstraintFixtureHost`. `InstantiationServices` connects the actual mapped, tuple, constraint, inference, index and relation implementations. Algebra now uses full generic classification, template matching and class derivation. Primitive fixture hosts remain confined to isolated component tests.
+
+The source-program differential harness now creates the production checker and uses its query methods. Windows x64 NativeAOT passes **4,254 exact source-program configurations**, including **36 new integration configurations**, and **656 safety assertions**. New cases cover optional mapped properties, template reduction, generic/array-like tuples, derived unions, captured type queries, and type-literal index/duplicate checks. Thirteen additional safety assertions cover independent ownership, rejected syntax, queued cancellation/recovery and an `Array.map` query using the actual bundled ES5 declarations; that query returns `number[]` without diagnostics.
+
+`IndexDeclarationChecks` adds index compatibility and duplicate checks while checking type-literal annotations. Complete declaration/body checking and the whole-program semantic pass remain unfinished; the new factory is not a complete compiler-check operation, and the product backend remains Go.
+
+Evidence: [production query comparisons](../csharp/compatibility/evidence/phase4-composition-identifiers.json), [constraint/relation regressions](../csharp/compatibility/evidence/phase4-composition-generic-relations.json), [property regressions](../csharp/compatibility/evidence/phase4-composition-properties.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-composition-validation.json).
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
 
-1. Complete the program/checker entry point, module interop/type adaptation, computed exports and type/value symbol resolution. Program-backed globals, augmentation merging, declaration headers and alias/export algorithms now exist; their remaining semantic callbacks must be connected.
+1. Complete the whole-program semantic pass, module interop/type adaptation, computed exports and remaining type/value symbol resolution. Checker creation, program-backed queries, globals, augmentation merging, declaration headers and alias/export algorithms now exist; their remaining semantic callbacks must be connected.
 2. Complete relation diagnostics and remaining type-node dependencies; connect the implemented declaration/type-node, algebra, scope, inference, instantiation and tuple algorithms to complete checker services.
 3. Remaining expression forms and special call forms, full declaration checking, JavaScript and JSDoc semantics, and completion of contextual/inference integration across those services.
 4. Complete property/declaration flow integration, constructor/`in`/`instanceof` narrowing, initialization/reference services, and iterator/generator diagnostic and emit integration.
@@ -593,4 +605,4 @@ The following phase-4 requirements remain open:
 6. Type display, node builders, symbol accessibility and emit-resolver APIs.
 7. All active checker/compiler type/symbol/diagnostic comparisons at single and reference-default concurrency; audits of intentional differences; complete semantic workload memory/performance measurements.
 
-The next integration work is remaining expression/declaration services, complete diagnostic attribution and module type adaptation over the program-backed symbol environment. There is still no complete production checker entry point. Component comparison counts and validation of the existing Go backend do not measure full C# checker completion. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.
+The next integration work is the whole-program semantic pass, remaining expression/declaration services, complete diagnostic attribution and module type adaptation. The production query entry points do not yet supply complete program checking. Component comparison counts and validation of the existing Go backend do not measure full C# checker completion. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.

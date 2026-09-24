@@ -1,0 +1,143 @@
+using TypeScript.Compiler.Ast;
+using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Syntax;
+
+namespace TypeScript.Compiler.Checking;
+
+internal sealed class IndexDeclarationChecks(CheckerSymbols symbols, TypeNodes nodes, StructuredMembers members,
+    TypeProperties properties, SymbolTypes values, IndexSignatures indexes, BaseTypes bases, TypeRelations relations,
+    Func<Symbol, CancellationToken, ValueTask<Type>> propertyName, Action<SyntaxNode, int> error)
+{
+    internal async ValueTask TypeLiteralAsync(TypeLiteralNode node, CancellationToken cancellation = default)
+    {
+        var type = (ObjectType)await nodes.FromNodeAsync(node, cancellation).ConfigureAwait(false);
+        await CheckAsync(type, false, cancellation).ConfigureAwait(false);
+        await DuplicateIndexesAsync(node, cancellation).ConfigureAwait(false);
+        var names = new Dictionary<string, int>(StringComparer.Ordinal);
+        foreach (var member in node.Members!)
+        {
+            cancellation.ThrowIfCancellationRequested();
+            if (symbols.Declaration(member) is not { Declarations.Count: > 1 } symbol)
+                continue;
+            int kind = member is PropertySignatureDeclarationNode
+                ? 1
+                : member is GetAccessorDeclarationNode or SetAccessorDeclarationNode ? 2 : 0;
+            if (kind == 0)
+                continue;
+            int state = names.GetValueOrDefault(symbol.Name);
+            if (state == 0)
+                names[symbol.Name] = kind;
+            else if (state == 1 || state == 2 && kind != 2)
+            {
+                foreach (var duplicate in node.Members)
+                    if (symbols.Declaration(duplicate)?.Name == symbol.Name && duplicate is INamedNode { Name: { } name })
+                        error(name, 2300);
+                names[symbol.Name] = 3;
+            }
+        }
+    }
+
+    internal async ValueTask CheckAsync(StructuredType type, bool isStatic, CancellationToken cancellation = default)
+    {
+        var resolved = await members.ResolveAsync(type, cancellation).ConfigureAwait(false);
+        if (resolved.IndexInfos.Count == 0)
+            return;
+        foreach (var property in resolved.Properties ?? [])
+        {
+            if (isStatic && (property.Flags & SymbolFlags.Prototype) != 0)
+                continue;
+            var declaration = property.ValueDeclaration;
+            if (declaration is INamedNode { Name: PrivateIdentifierNode })
+                continue;
+            var name = await propertyName(property, cancellation).ConfigureAwait(false);
+            var value = values.NonMissing(
+                await values.GetAsync(property, cancellation).ConfigureAwait(false),
+                (property.Flags & SymbolFlags.Optional) != 0);
+            foreach (var index in resolved.IndexInfos)
+            {
+                if (!await indexes.ApplicableTypeAsync(name, index.KeyType, cancellation).ConfigureAwait(false))
+                    continue;
+                var location = symbols.Parent(property) == type.Symbol ? declaration : null;
+                location ??= LocalIndex(type, index);
+                if (location is null && type is InterfaceType { ObjectFlags: var flags } iface && (flags & ObjectFlags.Interface) != 0)
+                {
+                    bool inheritedTogether = false;
+                    foreach (var baseType in await bases.GetAsync(iface, cancellation).ConfigureAwait(false))
+                        if (await properties.PropertyAsync(
+                            baseType,
+                            property.Name,
+                            cancellation: cancellation).ConfigureAwait(false) is not null
+                            && baseType is StructuredType structured && (await members.ResolveAsync(
+                                structured,
+                                cancellation).ConfigureAwait(false)).IndexInfos.Any(i => i.KeyType == index.KeyType))
+                        {
+                            inheritedTogether = true;
+                            break;
+                        }
+                    if (!inheritedTogether)
+                        location = type.Symbol?.Declarations.OfType<InterfaceDeclarationNode>().FirstOrDefault();
+                }
+                if (location is not null
+                    && !await relations.RelatedAsync(value, index.ValueType, RelationKind.Assignable, cancellation).ConfigureAwait(false))
+                    error(location, 2411);
+            }
+        }
+        foreach (var check in resolved.IndexInfos)
+            foreach (var index in resolved.IndexInfos)
+            {
+                if (check == index || !await indexes.ApplicableTypeAsync(check.KeyType, index.KeyType, cancellation).ConfigureAwait(false))
+                    continue;
+                var location = LocalIndex(type, check) ?? LocalIndex(type, index);
+                if (location is null && type is InterfaceType { ObjectFlags: var flags } iface && (flags & ObjectFlags.Interface) != 0)
+                {
+                    bool inheritedTogether = false;
+                    foreach (var baseType in await bases.GetAsync(iface, cancellation).ConfigureAwait(false))
+                        if (baseType is StructuredType structured)
+                        {
+                            var baseIndexes = (await members.ResolveAsync(structured, cancellation).ConfigureAwait(false)).IndexInfos;
+                            if (baseIndexes.Any(i => i.KeyType == check.KeyType) && baseIndexes.Any(i => i.KeyType == index.KeyType))
+                            {
+                                inheritedTogether = true;
+                                break;
+                            }
+                        }
+                    if (!inheritedTogether)
+                        location = type.Symbol?.Declarations.OfType<InterfaceDeclarationNode>().FirstOrDefault();
+                }
+                if (location is not null
+                    && !await relations.RelatedAsync(
+                        check.ValueType,
+                        index.ValueType,
+                        RelationKind.Assignable,
+                        cancellation).ConfigureAwait(false))
+                    error(location, 2413);
+            }
+    }
+
+    private SyntaxNode? LocalIndex(Type type, IndexInfo index) => index.Declaration is { } declaration
+        && symbols.Declaration(declaration) is { } symbol && symbols.Parent(symbol) == type.Symbol ? declaration : null;
+
+    internal async ValueTask DuplicateIndexesAsync(SyntaxNode node, CancellationToken cancellation = default)
+    {
+        var symbol = symbols.Declaration(node);
+        if (symbol?.Members.GetValueOrDefault(Symbol.InternalPrefix + "index") is not { Declarations.Count: > 1 } index)
+            return;
+        var groups = new Dictionary<Type, List<SyntaxNode>>();
+        foreach (var declaration in index.Declarations)
+            if (declaration is IndexSignatureDeclarationNode { Parameters.Count: 1 } signature
+                && signature.Parameters[0] is ITypedNode { Type: { } annotation })
+            {
+                var type = await nodes.FromNodeAsync(annotation, cancellation).ConfigureAwait(false);
+                foreach (var part in type is UnionType union ? union.Types : [type])
+                {
+                    if (!groups.TryGetValue(part, out var declarations))
+                        groups.Add(part, declarations = []);
+                    declarations.Add(declaration);
+                }
+            }
+        foreach (var declarations in groups.Values)
+            if (declarations.Count > 1)
+                foreach (var declaration in declarations)
+                    error(declaration, 2374);
+    }
+}

@@ -973,6 +973,27 @@ for (const exactOptionalPropertyTypes of [false, true]) add(`identifiers:ordinar
 for (const module of ["commonjs", "es2020", "node16", "nodenext", "preserve"]) add(`identifiers:ordinarymeta:${module}`, { "globals.d.ts": library + " interface ImportMeta{url:string} declare function __expr(value:unknown):void;", "main.ts": "__expr(import.meta);" }, { strict: true, module }, false, true);
 for (const isolatedModules of [false, true]) add(`identifiers:ordinaryenum:${isolatedModules}`, { "globals.d.ts": library + " declare function __expr(value:unknown):void;", "main.ts": "declare const enum E{A=1} __expr(E.A); __expr(E);" }, { strict: true, isolatedModules }, false, true);
 for (const extension of ["ts", "mts"]) for (const erasableSyntaxOnly of [false, true]) add(`identifiers:ordinaryassertionGrammar:${extension}:${erasableSyntaxOnly}`, { "globals.d.ts": library + " declare function __expr(value:unknown):void;", [`main.${extension}`]: "declare const value:unknown; __expr(<number>value);" }, { strict: true, erasableSyntaxOnly }, false, true);
+for (const strict of [false, true]) {
+    for (
+        const [name, source] of Object.entries({
+            mappedOptional: "type Required<T>={[K in keyof T]-?:T[K]}; type A=Required<{value?:{x:number}|undefined}>; declare const value:A; __expr(value);",
+            templateReduction: "type A='x1'|'xa'|`x${number}`; type B='true'|'no'|`${boolean}`; declare const a:A,b:B; __expr(a); __expr(b);",
+            tupleConstraint: "type A<T extends readonly [string,...number[]]>=[...T]; type B=A<[string,number,number]>; declare const value:B; __expr(value);",
+            arrayLikeTuple: "type A=[...{[n:number]:string;length:number}]; declare const value:A; __expr(value);",
+            derivedUnion: "declare class Base{x:number} declare class Derived extends Base{y:string} declare const b:Base,d:Derived,c:boolean; __expr(c?b:d);",
+            capturedQuery: "function outer<T>(value:T){return {} as {data:typeof value};} __expr(outer);",
+            indexConstraint: "__expr({} as {[key:string]:number;value:string}); __expr({} as {[key:string]:number;[key:number]:string});",
+            duplicateIndexes: "__expr({} as {[key:string]:number;[other:string]:number});",
+            duplicateProperties: "__expr({} as {value:number;value:number});",
+        })
+    ) add(`identifiers:composition${name}:${strict}`, { "globals.d.ts": library + " declare function __expr(value:unknown):void;", "main.ts": source }, { strict }, false, true);
+}
+for (const input of cases.filter(c => c.name.startsWith("identifiers:composition"))) {
+    input.functionBodies = true;
+    input.members = true;
+    input.values = true;
+    input.signatures = true;
+}
 for (const input of cases.filter(c => c.name.startsWith("identifiers:ordinary"))) {
     input.assertions = true;
     input.functionBodies = true;

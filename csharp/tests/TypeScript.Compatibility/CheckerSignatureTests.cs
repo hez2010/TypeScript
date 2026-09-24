@@ -30,9 +30,9 @@ internal static class CheckerSignatureTests
             "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
-        var scope = new ProgramScopeHost(context, links);
+        var scope = new CheckerEnvironment(context, links);
         var symbols = await CheckerSymbols.CreateAsync(program, links, scope);
-        var host = new ProgramTypeHost(context, links, scope);
+        var host = new Checker(context, links, scope);
         async Task<Signature> Get(string name)
         {
             var type = (ObjectType)await host.Declared.GetAsync(symbols.Globals[name]);
@@ -237,9 +237,9 @@ internal static class CheckerSignatureTests
             "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
-        var scope = new ProgramScopeHost(context, links);
+        var scope = new CheckerEnvironment(context, links);
         var symbols = await CheckerSymbols.CreateAsync(program, links, scope);
-        var host = new ProgramTypeHost(context, links, scope);
+        var host = new Checker(context, links, scope);
         var values = await host.Values.GetAsync(symbols.Globals["values"]);
         var result = await host.Iterators.IterableAsync(values, IterationUse.Spread);
         Check(result == new IterationTypes(context.NumberType, context.StringType, context.BooleanType));
@@ -333,9 +333,9 @@ internal static class CheckerSignatureTests
             "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
-        var scope = new ProgramScopeHost(context, links);
+        var scope = new CheckerEnvironment(context, links);
         await CheckerSymbols.CreateAsync(program, links, scope);
-        var host = new ProgramTypeHost(context, links, scope);
+        var host = new Checker(context, links, scope);
         var calls = program.SourceFiles[0].Syntax.DescendantsAndSelf().OfType<CallExpressionNode>().ToArray();
         using (var cancellation = new CancellationTokenSource())
         {
@@ -464,9 +464,9 @@ internal static class CheckerSignatureTests
             "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
-        var scope = new ProgramScopeHost(context, links);
+        var scope = new CheckerEnvironment(context, links);
         var symbols = await CheckerSymbols.CreateAsync(program, links, scope);
-        var host = new ProgramTypeHost(context, links, scope);
+        var host = new Checker(context, links, scope);
         var nodes = program.SourceFiles[0].Syntax.DescendantsAndSelf().ToArray();
         var arrows = nodes.OfType<ArrowFunctionNode>().ToArray();
         var number = await host.Declared.GetAsync(symbols.Globals["NumberFunction"]);

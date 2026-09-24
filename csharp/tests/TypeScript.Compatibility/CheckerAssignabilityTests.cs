@@ -31,9 +31,9 @@ internal static class CheckerAssignabilityTests
             new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
-        var scope = new ProgramScopeHost(context, links);
+        var scope = new CheckerEnvironment(context, links);
         var symbols = await CheckerSymbols.CreateAsync(program, links, scope);
-        var host = new ProgramTypeHost(context, links, scope);
+        var host = new Checker(context, links, scope);
         async ValueTask<Type> Type(string name) => await host.Declared.GetAsync(symbols.Globals[name]);
         var output = (InterfaceType)await Type("Out");
         host.BeforeNode = _ => throw new OperationCanceledException();

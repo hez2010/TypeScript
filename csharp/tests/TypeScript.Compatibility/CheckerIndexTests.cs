@@ -31,9 +31,9 @@ internal static class CheckerIndexTests
             new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
-        var scope = new ProgramScopeHost(context, links);
+        var scope = new CheckerEnvironment(context, links);
         var symbols = await CheckerSymbols.CreateAsync(program, links, scope);
-        var host = new ProgramTypeHost(context, links, scope);
+        var host = new Checker(context, links, scope);
         var i = await host.Declared.GetAsync(symbols.Globals["I"]);
         var j = await host.Declared.GetAsync(symbols.Globals["J"]);
         host.BeforeMemberTable = _ => throw new OperationCanceledException();
@@ -118,7 +118,7 @@ internal static class CheckerIndexTests
         Console.WriteLine($"Checker indexed type safety: {checks} assertions; 20,000-level simplification and key traversal");
     }
 
-    internal static async Task WriteAsync(Utf8JsonWriter writer, IReadOnlyList<SyntaxNode> nodes, ProgramTypeHost host,
+    internal static async Task WriteAsync(Utf8JsonWriter writer, IReadOnlyList<SyntaxNode> nodes, Checker host,
         Func<Type?, int> typeId, Func<SyntaxNode?, int> nodeId)
     {
         var keys = new List<int[]>();

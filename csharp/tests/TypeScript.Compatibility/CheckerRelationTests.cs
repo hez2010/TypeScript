@@ -29,9 +29,9 @@ internal static class CheckerRelationTests
             "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
-        var scope = new ProgramScopeHost(context, links);
+        var scope = new CheckerEnvironment(context, links);
         var symbols = await CheckerSymbols.CreateAsync(program, links, scope);
-        var host = new ProgramTypeHost(context, links, scope);
+        var host = new Checker(context, links, scope);
         var box = (InterfaceType)await host.Declared.GetAsync(symbols.Globals["Box"]);
         var other = (InterfaceType)await host.Declared.GetAsync(symbols.Globals["Other"]);
         var p = context.NewTypeParameter();
@@ -301,7 +301,7 @@ internal static class CheckerRelationTests
             $"{checks} relation key/cache/normalization/cancellation assertions; exact 100-level comparison cutoff; key and base chains depth 20000");
     }
 
-    internal static async Task WriteAsync(Utf8JsonWriter writer, SyntaxNode[] nodes, CheckerSymbols symbols, ProgramTypeHost host,
+    internal static async Task WriteAsync(Utf8JsonWriter writer, SyntaxNode[] nodes, CheckerSymbols symbols, Checker host,
         Func<Type?, int> typeId, Func<SyntaxNode?, int> nodeId, bool allKinds = false)
     {
         var roots = new List<(SyntaxNode Node, Type Type)>();

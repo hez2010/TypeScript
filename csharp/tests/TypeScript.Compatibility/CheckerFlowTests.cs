@@ -31,9 +31,9 @@ internal static class CheckerFlowTests
             new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
-        var scope = new ProgramScopeHost(context, links);
+        var scope = new CheckerEnvironment(context, links);
         var symbols = await CheckerSymbols.CreateAsync(program, links, scope);
-        var host = new ProgramTypeHost(context, links, scope);
+        var host = new Checker(context, links, scope);
         var nodes = program.SourceFiles[0].Syntax.DescendantsAndSelf().ToArray();
         var function = nodes.OfType<FunctionDeclarationNode>().Single(n => n.Name?.Text == "f");
         var reference = nodes.OfType<CallExpressionNode>().Single(n => n.Expression is IdentifierNode { Text: "__flow" }).Arguments![0];
@@ -161,7 +161,7 @@ internal static class CheckerFlowTests
 
         var freshLinks = new CheckerLinks();
         var freshContext = new TypeContext(true, true);
-        var freshScope = new ProgramScopeHost(freshContext, freshLinks);
+        var freshScope = new CheckerEnvironment(freshContext, freshLinks);
         var freshSymbols = await CheckerSymbols.CreateAsync(program, freshLinks, freshScope);
         var assignments = new AssignmentMarks(freshLinks, freshSymbols, freshScope.ReferenceSymbols, freshScope.EntityNames);
         var x = freshSymbols.Declaration((SyntaxNode)((IFunctionSignature)function).Parameters![0])!;

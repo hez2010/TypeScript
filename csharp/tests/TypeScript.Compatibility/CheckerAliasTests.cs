@@ -61,7 +61,7 @@ internal static class CheckerAliasTests
             new("/project/tsconfig.json", options, ["/project/input.ts"], [], [], []));
         var context = new TypeContext();
         var links = new CheckerLinks();
-        var programHost = new ProgramScopeHost(context, links);
+        var programHost = new CheckerEnvironment(context, links);
         var symbols = await CheckerSymbols.CreateAsync(program, links, programHost);
         var host = new Host();
         var resolutions = new TypeResolutionStack(links);

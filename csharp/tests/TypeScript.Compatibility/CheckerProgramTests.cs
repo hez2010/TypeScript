@@ -42,7 +42,7 @@ internal static class CheckerProgramTests
         var original = program.SourceFiles[0].Binding.Locals["I"];
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
-        var host = new ProgramScopeHost(context, links);
+        var host = new CheckerEnvironment(context, links);
         var environment = await CheckerSymbols.CreateAsync(program, links, host);
         var merged = environment.Globals["I"];
         Check(merged != original && merged.Declarations.Count == 2 && original.Declarations.Count == 1);
@@ -58,7 +58,7 @@ internal static class CheckerProgramTests
         Check(updated.ReusedSourceFiles == 2 && ReferenceEquals(updated.SourceFiles[0].Binding, program.SourceFiles[0].Binding));
         var otherContext = new TypeContext(true, true);
         var otherLinks = new CheckerLinks();
-        var otherHost = new ProgramScopeHost(otherContext, otherLinks);
+        var otherHost = new CheckerEnvironment(otherContext, otherLinks);
         var otherEnvironment = await CheckerSymbols.CreateAsync(updated, otherLinks, otherHost);
         Check(otherEnvironment.Globals["I"] != merged && original.Declarations.Count == 1);
         Check((await otherHost.Scopes.ClassOrInterfaceAsync(otherEnvironment.Globals["I"])).Context == otherContext);
@@ -66,7 +66,7 @@ internal static class CheckerProgramTests
         Check(host.Globals.AnyArrayType == context.EmptyObjectType && host.Globals.AutoArrayType != context.EmptyObjectType);
 
         var cancelledLinks = new CheckerLinks();
-        var cancelledHost = new ProgramScopeHost(new(true, true), cancelledLinks);
+        var cancelledHost = new CheckerEnvironment(new(true, true), cancelledLinks);
         using var cancellation = new CancellationTokenSource();
         cancelledHost.BeforeGlobalTypes = cancellation.Cancel;
         try
@@ -80,7 +80,7 @@ internal static class CheckerProgramTests
         }
         Check(original.Declarations.Count == 1 && !original.Members.ContainsKey("b"));
         var recoveredLinks = new CheckerLinks();
-        var recoveredHost = new ProgramScopeHost(new(true, true), recoveredLinks);
+        var recoveredHost = new CheckerEnvironment(new(true, true), recoveredLinks);
         var recovered = await CheckerSymbols.CreateAsync(program, recoveredLinks, recoveredHost);
         Check(recovered.Globals["I"].Declarations.Count == 2);
 
@@ -88,7 +88,7 @@ internal static class CheckerProgramTests
             new() { ["/project/rollback.ts"] = "interface Finished {} interface Stop {} interface Root extends Finished, Stop {}" });
         var retryContext = new TypeContext();
         var retryLinks = new CheckerLinks();
-        var retryHost = new ProgramScopeHost(retryContext, retryLinks);
+        var retryHost = new CheckerEnvironment(retryContext, retryLinks);
         var retryEnvironment = await CheckerSymbols.CreateAsync(retryProgram, retryLinks, retryHost);
         int resolutions = 0;
         retryHost.BeforeResolveType = () =>
@@ -113,7 +113,7 @@ internal static class CheckerProgramTests
         var contextualProgram = await Build(new() { ["/project/contextual.ts"] = "function outer<T>() { const f = value => value; }" });
         var contextualContext = new TypeContext();
         var contextualLinks = new CheckerLinks();
-        var contextualHost = new ProgramScopeHost(contextualContext, contextualLinks);
+        var contextualHost = new CheckerEnvironment(contextualContext, contextualLinks);
         var contextualEnvironment = await CheckerSymbols.CreateAsync(contextualProgram, contextualLinks, contextualHost);
         var arrow = contextualProgram.SourceFiles[0].Syntax.DescendantsAndSelf().OfType<ArrowFunctionNode>().Single();
         var parameter = contextualContext.NewTypeParameter(new(SymbolFlags.TypeParameter, "Contextual"));
@@ -130,7 +130,7 @@ internal static class CheckerProgramTests
         var deepProgram = await Build(new() { ["/project/deep.ts"] = source.ToString() });
         var deepContext = new TypeContext();
         var deepLinks = new CheckerLinks();
-        var deepHost = new ProgramScopeHost(deepContext, deepLinks);
+        var deepHost = new CheckerEnvironment(deepContext, deepLinks);
         var deepEnvironment = await CheckerSymbols.CreateAsync(deepProgram, deepLinks, deepHost);
         Check((await deepHost.Scopes.ClassOrInterfaceAsync(deepEnvironment.Globals["I0"])).ThisType is not null);
         Check(deepLinks.DeclaredTypes.Count == depth);
@@ -150,6 +150,82 @@ internal static class CheckerProgramTests
         {
             checks++;
         }
+        var queryProgram = await Build(new() { ["/project/query.ts"] = "const value = 1;" });
+        var queryNode = queryProgram.SourceFiles[0].Syntax.DescendantsAndSelf().OfType<NumericLiteralNode>().Single();
+        var firstChecker = await queryProgram.CreateCheckerAsync();
+        var secondChecker = await queryProgram.CreateCheckerAsync();
+        var firstType = await firstChecker.GetExpressionTypeAsync(queryNode);
+        var secondType = await secondChecker.GetExpressionTypeAsync(queryNode);
+        Check(firstType is LiteralType { Value: 1d } && secondType is LiteralType { Value: 1d });
+        Check(firstType.Context != secondType.Context && firstType != secondType);
+        Check(await firstChecker.GetExpressionTypeAsync(queryNode) == firstType);
+        using var queryCancellation = new CancellationTokenSource();
+        queryCancellation.Cancel();
+        try
+        {
+            await queryProgram.CreateCheckerAsync(queryCancellation.Token);
+            throw new InvalidOperationException("Cancelled checker initialization completed");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        try
+        {
+            await firstChecker.GetExpressionTypeAsync(new NumericLiteralNode { Text = "1" });
+            throw new InvalidOperationException("Foreign syntax accepted");
+        }
+        catch (ArgumentException)
+        {
+            checks++;
+        }
+        using var enteredQuery = new ManualResetEventSlim();
+        using var releaseQuery = new ManualResetEventSlim();
+        firstChecker.BeforeExpressionFinish = () =>
+        {
+            enteredQuery.Set();
+            if (!releaseQuery.Wait(TimeSpan.FromSeconds(30)))
+                throw new InvalidOperationException("Checker query was not released");
+        };
+        var activeQuery = Task.Run(async () => await firstChecker.GetExpressionTypeAsync(queryNode));
+        try
+        {
+            Check(enteredQuery.Wait(TimeSpan.FromSeconds(30)));
+            using var queuedCancellation = new CancellationTokenSource();
+            var queuedQuery = firstChecker.GetExpressionTypeAsync(queryNode, queuedCancellation.Token);
+            Check(!queuedQuery.IsCompleted);
+            queuedCancellation.Cancel();
+            try
+            {
+                await queuedQuery;
+                throw new InvalidOperationException("Queued query cancellation ignored");
+            }
+            catch (OperationCanceledException)
+            {
+                checks++;
+            }
+        }
+        finally
+        {
+            releaseQuery.Set();
+        }
+        Check(await activeQuery == firstType);
+        firstChecker.BeforeExpressionFinish = null;
+        Check(await firstChecker.GetExpressionTypeAsync(queryNode) == firstType);
+        var libraryOptions = new CompilerOptions();
+        libraryOptions.SetRaw("strict", "true");
+        libraryOptions.SetRaw("lib", "[\"es5\"]");
+        var libraryProgram = await CompilerProgram.CreateAsync(new LibraryFileSystem(new MemoryFileSystem(new Dictionary<string, byte[]>
+        {
+            ["/project/library.ts"] = Wtf8.Encode("const values = [1,2,3].map(value => value + 1);")
+        })), "/project", new("/project/tsconfig.json", libraryOptions, ["/project/library.ts"], [], [], []));
+        Check(libraryProgram.SourceFiles.Any(f => f.Library));
+        var libraryChecker = await libraryProgram.CreateCheckerAsync();
+        var mapped = libraryProgram.GetFile("/project/library.ts")!.Syntax.DescendantsAndSelf().OfType<VariableDeclarationNode>().Single().Initializer!;
+        var mappedType = await libraryChecker.GetExpressionTypeAsync(mapped);
+        Check(mappedType is TypeReference reference && reference.Target == libraryChecker.ArrayTarget(false)
+            && (await libraryChecker.TypeArgumentsAsync(reference, default)).Single() == libraryChecker.Context.NumberType);
+        Check(libraryChecker.Diagnostics.Count == 0 && libraryChecker.Environment.Diagnostics.Count == 0);
         Console.WriteLine($"{checks} program/checker ownership assertions; interface and scope depth 20000");
     }
 
@@ -179,14 +255,14 @@ internal static class CheckerProgramTests
         int concurrency = input.GetProperty("concurrency").GetInt32();
         var config = new ParsedConfig("/project/tsconfig.json", options, roots, [], [], []);
         var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project", config, concurrency: concurrency);
-        var context = new TypeContext(options.StrictOption("strictNullChecks"),
+        Checker? typeHost = input.TryGetProperty("typeNodes", out var typeOption) && typeOption.GetBoolean()
+            ? await program.CreateCheckerAsync() : null;
+        var context = typeHost?.Context ?? new TypeContext(options.StrictOption("strictNullChecks"),
             options.Boolean("exactOptionalPropertyTypes") ?? false);
-        var links = new CheckerLinks();
-        var host = new ProgramScopeHost(context, links);
-        var environment = await CheckerSymbols.CreateAsync(program, links, host);
+        var links = typeHost?.Links ?? new CheckerLinks();
+        var host = typeHost?.Environment ?? new CheckerEnvironment(context, links);
+        var environment = typeHost?.Symbols ?? await CheckerSymbols.CreateAsync(program, links, host);
         var nodes = program.SourceFiles.SelectMany(file => file.Syntax.DescendantsAndSelf()).ToArray();
-        ProgramTypeHost? typeHost = input.TryGetProperty("typeNodes", out var typeOption) && typeOption.GetBoolean()
-            ? new(context, links, host) : null;
         var nodeIds = nodes.Select((node, i) => (node, i)).ToDictionary(p => p.node, p => p.i + 1);
         int Node(SyntaxNode? node) => node is null ? 0 : nodeIds.GetValueOrDefault(node);
         var symbolIds = new Dictionary<Symbol, int>(ReferenceEqualityComparer.Instance);
@@ -397,7 +473,7 @@ internal static class CheckerProgramTests
                     && (node is IFunctionSignature
                         || node.Kind is SyntaxKind.VariableDeclaration or SyntaxKind.PropertyDeclaration or SyntaxKind.PropertySignature
                             or SyntaxKind.Parameter or SyntaxKind.IndexSignature))
-                    result = await typeHost.Nodes.FromNodeAsync(annotation);
+                    result = await typeHost.GetTypeFromTypeNodeAsync(annotation);
                 if (result is null)
                     continue;
                 writer.WriteStartArray();
@@ -416,7 +492,7 @@ internal static class CheckerProgramTests
                     {
                         writer.WriteStartArray();
                         writer.WriteNumberValue(Node(argument));
-                        writer.WriteNumberValue(TypeId(await typeHost!.Expressions.CheckAsync(argument)));
+                        writer.WriteNumberValue(TypeId(await typeHost!.GetExpressionTypeAsync(argument)));
                         writer.WriteEndArray();
                     }
             writer.WriteEndArray();
@@ -444,7 +520,7 @@ internal static class CheckerProgramTests
                     {
                         writer.WriteStartArray();
                         writer.WriteNumberValue(Node(argument));
-                        writer.WriteNumberValue(TypeId(await typeHost!.Expressions.CheckAsync(argument)));
+                        writer.WriteNumberValue(TypeId(await typeHost!.GetExpressionTypeAsync(argument)));
                         writer.WriteEndArray();
                     }
             writer.WriteEndArray();
@@ -573,7 +649,7 @@ internal static class CheckerProgramTests
                 {
                     writer.WriteStartArray();
                     writer.WriteNumberValue(Node(expression));
-                    writer.WriteNumberValue(TypeId(await typeHost!.Expressions.CheckAsync(expression)));
+                    writer.WriteNumberValue(TypeId(await typeHost!.GetExpressionTypeAsync(expression)));
                     writer.WriteEndArray();
                 }
             writer.WriteEndArray();
@@ -825,7 +901,7 @@ internal static class CheckerProgramTests
         IEnumerable<int> diagnostics = host.Diagnostics;
         if (typeHost is not null)
             diagnostics = diagnostics.Concat(typeHost.Diagnostics).Concat(typeHost.Instantiation.Diagnostics)
-                .Concat(typeHost.Instantiation.ConstraintDependencies.Diagnostics).Concat(typeHost.AlgebraDiagnostics);
+                .Concat(typeHost.Instantiation.ConstraintDiagnostics).Concat(typeHost.AlgebraDiagnostics);
         foreach (int code in diagnostics.Order())
             writer.WriteNumberValue(code);
         writer.WriteEndArray();

@@ -27,9 +27,9 @@ internal static class CheckerGenericRelationTests
             new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
-        var scope = new ProgramScopeHost(context, links);
+        var scope = new CheckerEnvironment(context, links);
         var symbols = await CheckerSymbols.CreateAsync(program, links, scope);
-        var host = new ProgramTypeHost(context, links, scope);
+        var host = new Checker(context, links, scope);
         var parameter = context.NewTypeParameter();
         parameter.Constraint = context.StringType;
         async ValueTask<Type> Instantiate(string name) => await host.References.AliasInstantiationAsync(symbols.Globals[name], [parameter]);

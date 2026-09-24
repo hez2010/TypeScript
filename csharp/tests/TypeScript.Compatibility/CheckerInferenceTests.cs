@@ -30,9 +30,9 @@ internal static class CheckerInferenceTests
             new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
-        var scope = new ProgramScopeHost(context, links);
+        var scope = new CheckerEnvironment(context, links);
         var symbols = await CheckerSymbols.CreateAsync(program, links, scope);
-        var host = new ProgramTypeHost(context, links, scope);
+        var host = new Checker(context, links, scope);
         var p = context.NewTypeParameter();
         var inference = host.Inference.Create([p]);
         await host.Inference.InferAsync(inference, context.StringType, p, InferencePriority.ReturnType);

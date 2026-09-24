@@ -29,9 +29,9 @@ internal static class CheckerMemberTests
             "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
-        var scopes = new ProgramScopeHost(context, links);
+        var scopes = new CheckerEnvironment(context, links);
         var symbols = await CheckerSymbols.CreateAsync(program, links, scopes);
-        var host = new ProgramTypeHost(context, links, scopes);
+        var host = new Checker(context, links, scopes);
         var child = (InterfaceType)await host.Declared.GetAsync(symbols.Globals["Child"]);
         host.BeforeNode = _ => throw new OperationCanceledException();
         try
@@ -170,7 +170,7 @@ internal static class CheckerMemberTests
         Utf8JsonWriter writer,
         SyntaxNode[] nodes,
         CheckerSymbols symbols,
-        ProgramTypeHost host,
+        Checker host,
         Func<Type?, int> typeId,
         Func<Symbol?, int> symbolId,
         Func<SyntaxNode?, int> nodeId,

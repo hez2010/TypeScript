@@ -29,7 +29,7 @@ internal static class CheckerReferenceTests
             new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
         var context = new TypeContext(true, true);
         var links = new CheckerLinks();
-        var scope = new ProgramScopeHost(context, links);
+        var scope = new CheckerEnvironment(context, links);
         var symbols = await CheckerSymbols.CreateAsync(program, links, scope);
         var nodes = program.SourceFiles[0].Syntax.DescendantsAndSelf().ToArray();
         var uses = nodes.OfType<IdentifierNode>().Where(n => n.Text == "x" && n.Parent is not VariableDeclarationNode).ToArray();
@@ -76,7 +76,7 @@ internal static class CheckerReferenceTests
             checks++;
         }
         var otherLinks = new CheckerLinks();
-        var otherScope = new ProgramScopeHost(new(true, true), otherLinks);
+        var otherScope = new CheckerEnvironment(new(true, true), otherLinks);
         var otherSymbols = await CheckerSymbols.CreateAsync(program, otherLinks, otherScope);
         Check(otherLinks.SymbolNodes.Get(use).ResolvedSymbol is null);
         Check(otherScope.ReferenceSymbols.Resolve(use) == otherSymbols.Globals["later"]);
