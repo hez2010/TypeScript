@@ -61,6 +61,7 @@ internal sealed partial class Checker : ITypePropertyHost, ITypeViewHost, ICompo
             PrivateIdentifierNode => context.NeverType,
             StringLiteralNode text => context.GetStringLiteralType(text.Text),
             IdentifierNode identifier => context.GetStringLiteralType(identifier.Text),
+            JsxNamespacedNameNode namespaced => context.GetStringLiteralType(JsxName(namespaced)),
             null when !symbol.Name.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal) => context.GetStringLiteralType(symbol.Name),
             _ => throw new InvalidOperationException("Checker requires computed property name types")
         };

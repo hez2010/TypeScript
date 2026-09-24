@@ -11,6 +11,8 @@ internal sealed class CallInference(TypeInference inference, TypeConstraints con
     internal ValueTask<IReadOnlyList<Type>> InferAsync(SyntaxNode node, Signature signature, IReadOnlyList<SyntaxNode> args,
         CheckMode mode, InferenceContext target, CancellationToken cancellation = default) => target.RunAsync(async () =>
     {
+        if (node is JsxOpeningElementNode or JsxSelfClosingElementNode or JsxOpeningFragmentNode)
+            return await arguments.InferJsxAsync(node, signature, mode, target, cancellation).ConfigureAwait(false);
         if (node is not DecoratorNode and not BinaryExpressionNode)
         {
             bool skipPatterns = true;

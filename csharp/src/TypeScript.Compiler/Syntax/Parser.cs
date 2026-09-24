@@ -97,6 +97,13 @@ public sealed partial class Parser
     public static SourceFileNode ParseSourceFile(ParseOptions options, SourceText source, CancellationToken cancellation = default) =>
         RunParse(ParseSourceFileAsync(options, source, cancellation));
 
+    internal static SyntaxNode? ParseIsolatedEntityName(string text)
+    {
+        var parser = new Parser(new("", ScriptKind.JS), new SourceText(text), default);
+        var name = parser.EntityName();
+        return parser.Token == K.EndOfFile && parser.diagnostics.Count == 0 ? name : null;
+    }
+
     public static async ValueTask<SourceFileNode> ParseSourceFileAsync(
         ParseOptions options,
         SourceText source,

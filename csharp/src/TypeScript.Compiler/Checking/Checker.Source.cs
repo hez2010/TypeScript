@@ -570,14 +570,15 @@ internal sealed partial class Checker
                         }
                     }
                     break;
-                case CallExpressionNode or NewExpressionNode or TaggedTemplateExpressionNode or BinaryExpressionNode or DecoratorNode:
+                case CallExpressionNode or NewExpressionNode or TaggedTemplateExpressionNode or BinaryExpressionNode or DecoratorNode
+                    or JsxOpeningElementNode or JsxOpeningFragmentNode:
                     await CallResolution.UntypedAsync(node, false, cancellation).ConfigureAwait(false);
                     break;
                 case TypeParameterDeclarationNode parameter:
                     if (parameter.Modifiers?.Any(m => m.Kind is SyntaxKind.InKeyword or SyntaxKind.OutKeyword) == true)
                         throw new InvalidOperationException("Checker requires variance annotation diagnostics");
                     break;
-                case ObjectLiteralExpressionNode:
+                case ObjectLiteralExpressionNode or JsxAttributesNode:
                     await ContextualDeprecationsAsync(node, cancellation).ConfigureAwait(false);
                     break;
                 case ClassExpressionNode expression:
@@ -588,7 +589,11 @@ internal sealed partial class Checker
                     await CheckAccessorSourceAsync(node, cancellation).ConfigureAwait(false);
                     break;
                 default:
-                    throw new InvalidOperationException($"Checker requires deferred source checking for {node.Kind}");
+                    if (node is JsxElementNode or JsxSelfClosingElementNode)
+                        await CheckJsxDeferredAsync(node, cancellation).ConfigureAwait(false);
+                    else
+                        throw new InvalidOperationException($"Checker requires deferred source checking for {node.Kind}");
+                    break;
             }
         }
         finally
@@ -602,7 +607,7 @@ internal sealed partial class Checker
         var contextual = await Contexts.ApparentAsync(node, cancellation: cancellation).ConfigureAwait(false);
         if (contextual is null)
             return;
-        foreach (var member in ((ObjectLiteralExpressionNode)node).Properties!)
+        foreach (var member in (node is ObjectLiteralExpressionNode literal ? literal.Properties : ((JsxAttributesNode)node).Properties)!)
         {
             cancellation.ThrowIfCancellationRequested();
             if (member is INamedNode { Name: { } name } && name is not ComputedPropertyNameNode

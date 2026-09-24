@@ -37,6 +37,15 @@ internal interface ICallResolutionHost
     void DeferExpression(SyntaxNode node);
 
     ValueTask ReportCallErrorsAsync(CallResolution.State state, IReadOnlyList<Signature> original, CancellationToken cancellation);
+
+    ValueTask<bool> JsxApplicableAsync(
+        SyntaxNode node,
+        Signature signature,
+        RelationKind relation,
+        CheckMode mode,
+        bool report,
+        int headCode,
+        CancellationToken cancellation);
 }
 
 internal sealed partial class CallResolution(TypeContext context, CheckerLinks links, TypeResolutionStack resolutions,
@@ -232,6 +241,10 @@ internal sealed partial class CallResolution(TypeContext context, CheckerLinks l
                 await host.CheckedFunctionTypeAsync(type, cancellation).ConfigureAwait(false);
         if (node is TaggedTemplateExpressionNode tagged)
             await host.CheckExpressionAsync(tagged.Template!, 0, cancellation).ConfigureAwait(false);
+        else if (node is JsxOpeningElementNode opening)
+            await host.CheckExpressionAsync(opening.Attributes!, 0, cancellation).ConfigureAwait(false);
+        else if (node is JsxSelfClosingElementNode self)
+            await host.CheckExpressionAsync(self.Attributes!, 0, cancellation).ConfigureAwait(false);
         else
             foreach (var argument in CallArguments.List(node) ?? (IEnumerable<SyntaxNode>)[])
                 await host.CheckExpressionAsync(argument, 0, cancellation).ConfigureAwait(false);
@@ -430,6 +443,8 @@ internal sealed partial class CallResolution(TypeContext context, CheckerLinks l
     internal async ValueTask<bool> ApplicableAsync(SyntaxNode node, IReadOnlyList<SyntaxNode> args, Signature signature,
         RelationKind relation, CheckMode mode, bool report = false, int headCode = 2345, CancellationToken cancellation = default)
     {
+        if (node is JsxOpeningElementNode or JsxSelfClosingElementNode or JsxOpeningFragmentNode)
+            return await host.JsxApplicableAsync(node, signature, relation, mode, report, headCode, cancellation).ConfigureAwait(false);
         var receiver = await parameters.ThisAsync(signature, cancellation).ConfigureAwait(false);
         var target = CallArguments.Target(node);
         bool superProperty = target is PropertyAccessExpressionNode { Expression.Kind: SyntaxKind.SuperKeyword }

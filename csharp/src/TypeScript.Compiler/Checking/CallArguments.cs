@@ -26,6 +26,13 @@ internal interface ICallArgumentHost
     ValueTask<Type> SpreadElementAsync(Type type, SyntaxNode node, CancellationToken cancellation);
 
     ValueTask<IReadOnlyList<SyntaxNode>> SpecialArgumentsAsync(SyntaxNode node, CancellationToken cancellation);
+
+    ValueTask<IReadOnlyList<Type>> InferJsxAsync(
+        SyntaxNode node,
+        Signature signature,
+        CheckMode mode,
+        InferenceContext inference,
+        CancellationToken cancellation);
 }
 
 internal sealed class CallArguments(TypeContext context, TypeAlgebra algebra, ExpressionContexts expressions,
@@ -40,6 +47,8 @@ internal sealed class CallArguments(TypeContext context, TypeAlgebra algebra, Ex
         CallExpressionNode call => call.TypeArguments,
         NewExpressionNode call => call.TypeArguments,
         TaggedTemplateExpressionNode tag => tag.TypeArguments,
+        JsxOpeningElementNode opening => opening.TypeArguments,
+        JsxSelfClosingElementNode self => self.TypeArguments,
         _ => null
     };
 
@@ -53,6 +62,14 @@ internal sealed class CallArguments(TypeContext context, TypeAlgebra algebra, Ex
     };
 
     internal static bool Spread(SyntaxNode node) => node is SpreadElementNode or SyntheticExpressionNode { IsSpread: true };
+
+    internal ValueTask<IReadOnlyList<Type>> InferJsxAsync(
+        SyntaxNode node,
+        Signature signature,
+        CheckMode mode,
+        InferenceContext inference,
+        CancellationToken cancellation)
+        => host.InferJsxAsync(node, signature, mode, inference, cancellation);
 
     internal static int SpreadIndex(IReadOnlyList<SyntaxNode> arguments)
     {

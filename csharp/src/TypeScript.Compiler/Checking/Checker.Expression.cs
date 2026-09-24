@@ -60,6 +60,8 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
 
     public async ValueTask<Type> OtherExpressionAsync(SyntaxNode node, CheckMode mode, CancellationToken cancellation)
     {
+        if (node is JsxElementNode or JsxSelfClosingElementNode or JsxFragmentNode or JsxExpressionNode or JsxAttributesNode)
+            return await CheckJsxAsync(node, mode, cancellation);
         if (node is CallExpressionNode importCall && IsImportCall(importCall))
             return await CheckImportCallAsync(importCall, cancellation);
         if (node.Kind == SyntaxKind.MissingDeclaration)

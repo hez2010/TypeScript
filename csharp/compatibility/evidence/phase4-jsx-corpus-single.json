@@ -1,0 +1,38 @@
+{
+    "timestamp": "2026-09-24T17:46:28.426Z",
+    "mode": "single",
+    "configuration": "Release",
+    "selectedConfigurations": 504,
+    "previousMatches": 16,
+    "graphAndCodeMatches": 447,
+    "recoveredConfigurations": 431,
+    "regressions": [],
+    "parts": [
+        {
+            "kind": "retainedCompletedNonJsxCases",
+            "path": "built/csharp/jsx-retained-single.jsonl",
+            "configurations": 15,
+            "candidateSha256": "dbfeae0e6e1105d2a53c8160ab6db167588ec2f8e122251d63fe6ceda8585887",
+            "compilerSha256": "fd5a7d9d524ad55776d4a87d08d32670ae8d1af88c551476780b420af489cac2",
+            "outputSha256": "ba1ddcbab1911c69fd648f9266e62c6dc8432987ed6d6bab1e404898f2b5b1c5"
+        },
+        {
+            "directory": "built/csharp/semantic-corpus-jsx-recursion/single",
+            "configurations": 1,
+            "candidateSha256": "9b5de528a9a05f63a28d8efb376a462767de6a0c6b18d360292bab57a07b5d2f",
+            "compilerSha256": "641444e110db428d4421d411e359c4e8eec6f8811c26eaaa01bc094060601b02",
+            "outputSha256": "c29aed0deb9da5991e305098204f0ac22719658dd94272845ca821bb291b9361",
+            "selectionSha256": "d0ec8ac40db3102149a7afc92564ec96fa4aeebea9553753953934219b293387"
+        },
+        {
+            "directory": "built/csharp/semantic-corpus-jsx-resume/single",
+            "configurations": 488,
+            "candidateSha256": "9b5de528a9a05f63a28d8efb376a462767de6a0c6b18d360292bab57a07b5d2f",
+            "compilerSha256": "641444e110db428d4421d411e359c4e8eec6f8811c26eaaa01bc094060601b02",
+            "outputSha256": "a38ea9d61967eacf9a80b73a5ce75a3d45ec7958468b18ac9add5242659ba9ff",
+            "selectionSha256": "c0354699879cfa9e8db33a17dc6d237e9f0f20ec29fb2297f346e67ce401a279"
+        }
+    ],
+    "scope": "JSX namespaces, intrinsic and component calls, contextual attributes and children, managed props, grammar, diagnostics and shared export lookup; full phase 4 remains incomplete.",
+    "nativeAotVerification": "Deferred until final completion per user instruction"
+}

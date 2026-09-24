@@ -47,6 +47,8 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
 
     public async ValueTask<Type?> OtherContextAsync(SyntaxNode node, ContextFlags flags, CancellationToken cancellation)
     {
+        if (node is JsxAttributesNode || node.Parent is JsxExpressionNode or JsxAttributeNode or JsxSpreadAttributeNode or JsxElementNode)
+            return await JsxContextAsync(node, flags, cancellation);
         while (node.Parent is ParenthesizedExpressionNode or NonNullExpressionNode)
             node = node.Parent;
         if (node.Parent is ImportAttributeNode attribute)
@@ -223,7 +225,10 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
         {
             if (await ExcessProperties.UnknownPropertyAsync(source, target, kind, Relations, cancellation) is { } excess)
             {
-                Error((excess.ValueDeclaration as INamedNode)?.Name ?? node, relationDiagnosticHead ?? 2353);
+                if ((source.ObjectFlags & ObjectFlags.JsxAttributes) != 0)
+                    Error(node, relationDiagnosticHead ?? headCode ?? 2322);
+                else
+                    Error((excess.ValueDeclaration as INamedNode)?.Name ?? node, relationDiagnosticHead ?? 2353);
                 return false;
             }
             int code = headCode ?? (context.ExactOptionalPropertyTypes
@@ -243,7 +248,7 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
         Type target,
         RelationKind kind,
         CancellationToken cancellation)
-            => node is JsxAttributesNode ? throw new InvalidOperationException("Checker requires JSX error elaboration")
+            => node is JsxAttributesNode attributes ? ElaborateJsxAsync(attributes, source, target, kind, cancellation)
                 : LiteralElaboration.CheckAsync(node, source, target, kind, cancellation);
 
 }

@@ -123,8 +123,93 @@ internal static class CheckerExpressionTests
         checks += await LiteralSafety();
         checks += await OrdinarySafety();
         checks += await ConditionSafety();
+        checks += await JsxSafety();
         Console.WriteLine(
             $"{checks} expression/literal/context/enum/cache/cancellation assertions; 20000-level expression, constant and context traversal");
+    }
+
+    private static async Task<int> JsxSafety()
+    {
+        const string library = """
+            interface Array<T> { length: number; [n: number]: T; }
+            interface ReadonlyArray<T> { readonly length: number; readonly [n: number]: T; }
+            type Partial<T> = { [P in keyof T]?: T[P] };
+            declare namespace JSX {
+                interface Element { value: unknown; }
+                interface IntrinsicElements { box: { kind: 'number'; onValue?: (value: number) => void; children?: string }; }
+                interface ElementAttributesProperty { props: {}; }
+                interface ElementChildrenAttribute { children: {}; }
+                type LibraryManagedAttributes<C, P> = C extends { defaults: true } ? Partial<P> : P;
+            }
+            declare module 'custom/jsx-runtime' {
+                export namespace JSX {
+                    interface Element { runtime: true; }
+                    interface IntrinsicElements { span: { label: string }; }
+                }
+            }
+            """;
+        const string source = """
+            declare function Choice(props: { kind: 'number'; onValue: (value: number) => void } | { kind: 'string'; onValue: (value: string) => void }): JSX.Element;
+            declare function List<T>(props: { values: T[]; onValue: (value: T) => void }): JSX.Element;
+            declare function Variant(props: { kind: 'number' } | { kind: 'string' }): JSX.Element;
+            function renderVariant<K extends 'number' | 'string'>(kind: K) { return <Variant kind={kind} />; }
+            declare class Component { static defaults: true; props: { required: number }; }
+            <box kind='number' onValue={value => { const intrinsicValue: number = value; }}>text</box>;
+            <Choice kind='number' onValue={value => { const chosen: number = value; }} />;
+            <List values={[1]} onValue={value => { const inferred: number = value; }} />;
+            <Component />;
+            <box kind='other' />;
+            <box kind='number' extra />;
+            <box kind='number'>one{'two'}</box>;
+            """;
+        int checks = 0;
+        foreach (bool automatic in new[] { false, true })
+        {
+            var options = new CompilerOptions();
+            options.SetRaw("noLib", "true");
+            options.SetRaw("strict", "true");
+            options.SetRaw("target", "\"esnext\"");
+            options.SetRaw("module", "\"preserve\"");
+            options.SetRaw("jsx", automatic ? "\"react-jsx\"" : "\"preserve\"");
+            if (automatic)
+                options.SetRaw("jsxImportSource", "\"custom\"");
+            var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+            {
+                ["/project/main.tsx"] = Wtf8.Encode(automatic ? "<span label='text' />;" : source),
+                ["/project/globals.d.ts"] = Wtf8.Encode(library)
+            }), "/project", new("/project/tsconfig.json", options, ["/project/main.tsx", "/project/globals.d.ts"], [], [], []));
+            var checker = await program.CreateCheckerAsync();
+            var file = program.GetFile("/project/main.tsx")!.Syntax;
+            var nodes = file.DescendantsAndSelf().ToArray();
+            var parents = nodes.Select(n => n.Parent).ToArray();
+            await checker.CheckSourceFileAsync(file);
+            var codes = checker.DiagnosticCodesForFile(file);
+            int[] expected = automatic ? [] : [2322, 2322, 2746];
+            if (!codes.SequenceEqual(expected))
+                throw new InvalidOperationException($"JSX diagnostics: {string.Join(',', codes)}");
+            if (!nodes.Select(n => n.Parent).SequenceEqual(parents))
+                throw new InvalidOperationException("JSX checking changed source parents");
+            checks += 2;
+            if (automatic)
+            {
+                var type = await checker.GetExpressionTypeAsync(nodes.OfType<JsxSelfClosingElementNode>().Single());
+                if (await checker.Properties.PropertyAsync(type, "runtime") is null)
+                    throw new InvalidOperationException("JSX runtime namespace was not selected");
+                checks++;
+            }
+            else
+                foreach (var variable in nodes.OfType<VariableDeclarationNode>().Where(
+                    v => v.Name is IdentifierNode { Text: "intrinsicValue" or "chosen" or "inferred" }))
+                {
+                    if (await checker.GetExpressionTypeAsync(variable.Initializer!) != checker.Context.NumberType)
+                        throw new InvalidOperationException("JSX callback parameter was not inferred as number");
+                    checks++;
+                }
+        }
+        if (Parser.ParseIsolatedEntityName("Element.createElement=") is not null
+            || Parser.ParseIsolatedEntityName("React.createElement") is not QualifiedNameNode)
+            throw new InvalidOperationException("JSX factory name parser accepted invalid syntax");
+        return checks + 1;
     }
 
     private static async Task<int> ConditionSafety()

@@ -14,6 +14,54 @@ internal sealed class TypeDiscrimination(TypeContext context, TypeAlgebra algebr
     ExpressionContexts contexts, ITypeDiscriminationHost host)
 {
     private readonly Dictionary<(ObjectLiteralExpressionNode, UnionType), Type> objects = [];
+    private readonly Dictionary<(JsxAttributesNode, UnionType), Type> jsxAttributes = [];
+
+    internal async ValueTask<Type> JsxAsync(
+        JsxAttributesNode node,
+        UnionType target,
+        string? childrenName,
+        bool hasChildren,
+        CancellationToken cancellation)
+    {
+        if (jsxAttributes.TryGetValue((node, target), out var cached))
+            return cached;
+        var names = new List<string>();
+        var sources = new List<(SyntaxNode? Expression, Type Fixed)>();
+        foreach (var attribute in node.Properties!.OfType<JsxAttributeNode>())
+        {
+            var symbol = symbols.Declaration(attribute);
+            if (symbol is not null && (attribute.Initializer is null || Possible(attribute.Initializer))
+                && await discriminants.PropertyAsync(target, symbol.Name, cancellation))
+            {
+                names.Add(symbol.Name);
+                sources.Add((attribute.Initializer, context.TrueType));
+            }
+        }
+        var sourceSymbol = symbols.Declaration(node);
+        if (sourceSymbol is not null)
+            foreach (var property in await properties.GetAsync(target, cancellation))
+                if ((property.Flags & SymbolFlags.Optional) != 0 && !(hasChildren && property.Name == childrenName)
+                    && !sourceSymbol.Members.ContainsKey(property.Name) && await discriminants.PropertyAsync(
+                        target,
+                        property.Name,
+                        cancellation))
+                {
+                    names.Add(property.Name);
+                    sources.Add((null, context.UndefinedType));
+                }
+        var result = await SelectAsync(target, names, async (index, type) =>
+        {
+            var source = sources[index].Expression is { } expression
+                ? await contexts.ContextFreeAsync(expression, cancellation)
+                : sources[index].Fixed;
+            foreach (var part in source is UnionType union ? union.Types : [source])
+                if (await relations.RelatedAsync(part, type, RelationKind.Assignable, cancellation))
+                    return true;
+            return false;
+        }, cancellation);
+        cancellation.ThrowIfCancellationRequested();
+        return jsxAttributes[(node, target)] = result;
+    }
 
     internal async ValueTask<Type> ObjectAsync(ObjectLiteralExpressionNode node, UnionType target, CancellationToken cancellation = default)
     {

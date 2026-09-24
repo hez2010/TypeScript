@@ -18,6 +18,8 @@ internal interface IExpressionContextHost
 
     ValueTask<Type?> OtherContextAsync(SyntaxNode node, ContextFlags flags, CancellationToken cancellation);
 
+    ValueTask<Type> DiscriminateJsxContextAsync(JsxAttributesNode node, UnionType type, CancellationToken cancellation);
+
     ValueTask<Type?> StaticPropertyContextAsync(PropertyDeclarationNode node, ContextFlags flags, CancellationToken cancellation);
 
     ValueTask<Type?> ContextualPropertyAsync(Type type, string name, CancellationToken cancellation);
@@ -47,6 +49,14 @@ internal sealed class ExpressionContexts(TypeContext context, TypeAlgebra algebr
     private readonly Dictionary<SyntaxNode, Type> contextFree = [];
     internal int ContextDepth => contexts.Count;
     internal int InferenceDepth => inferences.Count;
+
+    internal Type? AppliedContext(SyntaxNode node, ContextFlags flags)
+    {
+        for (int i = contexts.Count - 1; i >= 0; i--)
+            if (contexts[i].Node == node && (flags == 0 || !contexts[i].Cache))
+                return contexts[i].Type;
+        return null;
+    }
 
     internal async ValueTask<T> WithAsync<T>(
         SyntaxNode node,
@@ -281,8 +291,14 @@ internal sealed class ExpressionContexts(TypeContext context, TypeAlgebra algebr
             return null;
         var apparent = await algebra.MapAsync(instantiated, async part => part is MappedType ? part
             : await views.ApparentAsync(part, cancellation).ConfigureAwait(false), true, cancellation).ConfigureAwait(false);
-        return apparent is UnionType union && node is ObjectLiteralExpressionNode literal
-            ? await host.DiscriminateObjectContextAsync(literal, union, cancellation).ConfigureAwait(false) : apparent;
+        if (apparent is UnionType union)
+        {
+            if (node is ObjectLiteralExpressionNode literal)
+                return await host.DiscriminateObjectContextAsync(literal, union, cancellation).ConfigureAwait(false);
+            if (node is JsxAttributesNode attributes)
+                return await host.DiscriminateJsxContextAsync(attributes, union, cancellation).ConfigureAwait(false);
+        }
+        return apparent;
     }
 
     internal async ValueTask<Type?> ElementAsync(Type? type, int index, int length = -1, int firstSpread = -1, int lastSpread = -1,

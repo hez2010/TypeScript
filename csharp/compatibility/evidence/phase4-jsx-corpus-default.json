@@ -1,0 +1,22 @@
+{
+    "timestamp": "2026-09-24T17:46:28.837Z",
+    "mode": "default",
+    "configuration": "Release",
+    "selectedConfigurations": 504,
+    "previousMatches": 16,
+    "graphAndCodeMatches": 447,
+    "recoveredConfigurations": 431,
+    "regressions": [],
+    "parts": [
+        {
+            "directory": "built/csharp/semantic-corpus-jsx-default/default",
+            "configurations": 504,
+            "candidateSha256": "9b5de528a9a05f63a28d8efb376a462767de6a0c6b18d360292bab57a07b5d2f",
+            "compilerSha256": "641444e110db428d4421d411e359c4e8eec6f8811c26eaaa01bc094060601b02",
+            "outputSha256": "700f02b3b3a2be1e73942e22f0e40fc9c17a4b68149570ea7a3ca98040b79d89",
+            "selectionSha256": "981083edaf5e2eafeb10b5e3c133a9e49b588874fab9287541c3d60584be0679"
+        }
+    ],
+    "scope": "JSX namespaces, intrinsic and component calls, contextual attributes and children, managed props, grammar, diagnostics and shared export lookup; full phase 4 remains incomplete.",
+    "nativeAotVerification": "Deferred until final completion per user instruction"
+}

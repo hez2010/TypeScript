@@ -133,7 +133,7 @@ internal sealed class LiteralElaboration(TypeContext context, CheckerSymbols sym
         return false;
     }
 
-    private async ValueTask<bool> ElementAsync(Type source, Type target, RelationKind kind, SyntaxNode property, SyntaxNode? next,
+    internal async ValueTask<bool> ElementAsync(Type source, Type target, RelationKind kind, SyntaxNode property, SyntaxNode? next,
         Type key, int? code, CancellationToken cancellation)
     {
         var targetType = await indexed.TryGetAsync(target, key, cancellation: cancellation).ConfigureAwait(false);

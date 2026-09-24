@@ -1,0 +1,102 @@
+{
+    "timestamp": "2026-09-24T17:49:58.3264450+00:00",
+    "configuration": "Release",
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "managed": true,
+    "scope": "JSX namespaces, intrinsic/component calls, managed props, contextual attributes and children, inference, grammar, diagnostics and shared export lookup; full phase 4 remains incomplete",
+    "finalBuildCandidateSha256": "9b5de528a9a05f63a28d8efb376a462767de6a0c6b18d360292bab57a07b5d2f",
+    "finalBuildCompilerSha256": "641444e110db428d4421d411e359c4e8eec6f8811c26eaaa01bc094060601b02",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-jsx-build.log",
+        "sha256": "21a3ce79ed30d9960589c7eed163997f9e75ec32e2a5567947c9d388ba9b55be"
+    },
+    "queries": {
+        "aliases": {
+            "record": "phase4-jsx-aliases.json",
+            "cases": 124,
+            "exact": 124,
+            "candidateSha256": "dbfeae0e6e1105d2a53c8160ab6db167588ec2f8e122251d63fe6ceda8585887",
+            "compilerSha256": "fd5a7d9d524ad55776d4a87d08d32670ae8d1af88c551476780b420af489cac2"
+        },
+        "calls": {
+            "record": "phase4-jsx-calls.json",
+            "cases": 180,
+            "exact": 180,
+            "candidateSha256": "dbfeae0e6e1105d2a53c8160ab6db167588ec2f8e122251d63fe6ceda8585887",
+            "compilerSha256": "fd5a7d9d524ad55776d4a87d08d32670ae8d1af88c551476780b420af489cac2"
+        }
+    },
+    "safety": {
+        "expressionAssertions": 73,
+        "newAssertions": 9,
+        "referenceInputSha256": "eca685a280c157e5b26a3b613e1c5641c681c27562129b3fff9f05c75ce47b19",
+        "referenceOutputSha256": "96b4dbb0799e710a938740c3fd8aa273cb9c383d57f3c01e099159b421985e1f",
+        "referenceOracleSha256": "5b8272c8e770339152f2286fce26baeb0189cc17b0eb57ffe16adbb331f4170f",
+        "referenceAdaptation": "Temporary copy of the pinned checker-program probe selects /project/main.tsx instead of the hard-coded /project/main.ts for semantic diagnostics. No Go checker code changed.",
+        "log": "logs/csharp-phase4-jsx-expression-safety.log"
+    },
+    "corpus": {
+        "single": "phase4-jsx-corpus-single.json",
+        "referenceDefault": "phase4-jsx-corpus-default.json",
+        "parity": "phase4-jsx-mode-parity.json",
+        "selectedConfigurationsPerMode": 504,
+        "previousMatches": 16,
+        "graphAndCodeMatches": 447,
+        "recoveredConfigurations": 431,
+        "regressions": [],
+        "retainedCompletedNonJsx": 15,
+        "retainedIsolatedCase": 1,
+        "resumedSingleConfigurations": 488
+    },
+    "regression": {
+        "case": "compiler/discriminatedUnionJsxElement.tsx",
+        "before": "Nonterminating contextual-type discrimination; captured worker stack repeatedly cycles through JsxContextAsync, ContextFreeAsync and TypeDiscrimination.JsxAsync.",
+        "fix": "JSX inner-expression contextual lookup now calls Contexts.GetAsync on the JSX expression wrapper, honoring the temporary context override.",
+        "stackLog": "logs/csharp-phase4-jsx-hang-stack.log",
+        "stackSha256": "a76197ecde3e40d52a3e4bf4e5c74675f7b788fb1e22c2444a6ff2531b7662a8",
+        "isolatedRecord": "built/csharp/semantic-corpus-jsx-recursion/single/summary.json",
+        "passedAfterFix": true,
+        "arbitraryRecursionLimitAdded": false
+    },
+    "formatting": {
+        "csharpFiles": 21,
+        "tokenCommentSyntaxIdentical": true,
+        "libraryConfigurations": 2,
+        "dotnetWhitespaceExitCode": 0,
+        "diffCheckExitCode": 0,
+        "proofLog": "logs/csharp-phase4-jsx-format.log",
+        "proofSha256": "a930f9d30c2f3a2ae2c8a454e201d134e6e2ab0bf405a4a050d8732f81381121"
+    },
+    "reusedValidation": {
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "repositoryCommand": "npx hereby validate --all",
+        "repositoryExitCode": 0,
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            "csharp/tools",
+            ".github/copilot-instructions.md"
+        ],
+        "reason": "User directed reuse of unchanged validation results. Go product code, repository tooling and generators are unchanged. Alias/call queries were retained after the JSX-only context correction; completed non-JSX corpus cases were retained. The saved full import baseline supplies unaffected cases.",
+        "fullBaseline": "phase4-import-corpus-single.json"
+    },
+    "currentOverallStatus": {
+        "activeConfigurations": 13446,
+        "matchingSourceGraphsAndDiagnosticCodes": 11895,
+        "unmatched": 1551,
+        "candidateFailures": 353,
+        "completedDiagnosticMismatches": 1197,
+        "graphMismatches": 20,
+        "graphMismatchesOverlapOtherCategories": true,
+        "thisIsNotAPhaseCompletionPercentage": true
+    },
+    "nativeAotVerification": "Deferred until final completion per user instruction; no NativeAOT build or execution",
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "phase4Complete": false
+}

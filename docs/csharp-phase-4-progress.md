@@ -4,11 +4,11 @@
 
 ## Current overall status
 
-After import integration, a complete Release replay in both reference modes plus a targeted check of the final import-context correction records **11,464 matches out of 13,446 active compiler configurations**, up from 11,125 before this batch and 9,365 at the original Release baseline. **1,982 configurations still do not match**: 822 stop in unsupported paths and 1,159 complete with diagnostic-code differences. There are also 20 source-graph differences, overlapping those categories. The largest remaining stop groups are JSX (432 configurations), late index binding (93), late exported members (44), and merge-diagnostic attribution (44).
+The complete Release import baseline plus the affected JSX/export results record **11,895 matches out of 13,446 active compiler configurations**, up from 11,464 before JSX integration and 9,365 at the original Release baseline. **1,551 configurations still do not match**: 353 stop in unsupported paths and 1,197 complete with diagnostic-code differences. There are also 20 source-graph differences, overlapping those categories. The largest remaining stop groups are late index binding (93), merge-diagnostic attribution (44), parameter declaration-name checks (37), `with` statements (26), and computed property name types (25).
 
-These comparisons cover source graphs and diagnostic codes. **85.3% matching on this measure is not a Phase-4 completion percentage.** Complete diagnostic text, locations and related information; full type/symbol comparison; type display, node builders, accessibility and emit-resolver APIs; parallel checker validation; and the final memory/performance gates remain unfinished. Phase 4 is not nearly complete, and the evidence does not yet support a reliable completion estimate.
+These comparisons cover source graphs and diagnostic codes. **88.5% matching on this measure is not a Phase-4 completion percentage.** Complete diagnostic text, locations and related information; full type/symbol comparison; type display, node builders, accessibility and emit-resolver APIs; parallel checker validation; and the final memory/performance gates remain unfinished. Phase 4 is not nearly complete, and the evidence does not yet support a reliable completion estimate.
 
-The next implementation priorities are JSX, late binding, remaining import edge cases and diagnostics. The sections below are historical implementation checkpoints; their individual passing counts do not represent whole-phase completion.
+The next implementation priorities are late binding, remaining declaration/expression checks and diagnostics. The sections below are historical implementation checkpoints; their individual passing counts do not represent whole-phase completion.
 
 **Validation policy, updated 2026-09-24.** At the user's request, all further execution and validation use the normal Release build. NativeAOT publishing is deferred until the final completion check, when it must finish without warnings or errors. NativeAOT binaries are no longer executed for validation. Earlier NativeAOT results below remain historical evidence.
 
@@ -725,6 +725,16 @@ Because initialization is shared by every program, this batch replayed **all 13,
 
 Evidence: [full single-threaded corpus and final correction](../csharp/compatibility/evidence/phase4-import-corpus-single.json), [reference-default corpus](../csharp/compatibility/evidence/phase4-import-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-import-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-import-validation.json). The overall status above includes all retained failures and unfinished phase-4 gates.
 
+## JSX integration
+
+JSX now resolves global, factory-local and automatic-runtime namespaces; intrinsic elements; function/class component signatures; managed props; contextual attributes and children; spreads; and generic inference. Checking includes fragment factories, element bounds, grammar, child arity/type errors and excess attributes. The shared export lookup now uses the existing late-member resolver. Isolated factory-name parsing reuses the parser's entity-name grammar.
+
+Targeted Release validation covers **504 JSX/export configurations per reference mode**. Graph/code matches increased from **16 to 447**, recovering **431 configurations**, with **no regressions**. Alias/call queries pass **304 configurations**, and expression safety passes **73 assertions**, including nine new JSX checks. Two focused diagnostic fixtures agree with a pinned Go probe adapted only to select the `.tsx` input file.
+
+The regression run exposed nontermination in `discriminatedUnionJsxElement.tsx`. A captured stack showed generic discriminant checking re-entering contextual discrimination because JSX inner-expression lookup bypassed an active context override. Routing that lookup through the shared context service fixes the cycle. The original case and an added generic safety fixture pass. The interrupted run's 15 completed non-JSX results and isolated-case result were retained; the remaining JSX cases were rechecked after the fix. No arbitrary recursion cutoff was added.
+
+Evidence: [single-mode affected corpus](../csharp/compatibility/evidence/phase4-jsx-corpus-single.json), [reference-default corpus](../csharp/compatibility/evidence/phase4-jsx-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-jsx-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-jsx-validation.json). JSX diagnostic edge cases remain in the retained failures. Full semantic fidelity and the final workload gates remain open; NativeAOT verification stays deferred until final completion.
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
@@ -733,7 +743,7 @@ The following phase-4 requirements remain open:
 2. Complete relation diagnostics and remaining type-node dependencies; connect the implemented declaration/type-node, algebra, scope, inference, instantiation and tuple algorithms to complete checker services.
 3. Remaining expression forms and special call forms, full declaration checking, JavaScript and JSDoc semantics, and completion of contextual/inference integration across those services.
 4. Complete property/declaration flow integration, constructor-identity narrowing, initialization/reference services, and iterator/generator diagnostic and emit integration.
-5. Remaining indexed/member diagnostic and declaration services, JSX, decorator edge cases and grammar checks.
+5. Remaining indexed/member diagnostic and declaration services, JSX/decorator edge cases and grammar checks.
 6. Type display, node builders, symbol accessibility and emit-resolver APIs.
 7. All active checker/compiler type/symbol/diagnostic comparisons at single and reference-default concurrency; audits of intentional differences; complete semantic workload memory/performance measurements.
 

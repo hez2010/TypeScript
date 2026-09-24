@@ -7,7 +7,7 @@ namespace TypeScript.Compiler.Checking;
 internal sealed partial class Checker
 {
     internal async ValueTask<Symbol?> ResolveImportModuleAsync(SyntaxNode location, SyntaxNode? specifier, Type? attributes,
-        CancellationToken cancellation)
+        CancellationToken cancellation, bool implicitImport = false, int missingModuleCode = 2307)
     {
         cancellation.ThrowIfCancellationRequested();
         string? name = specifier switch
@@ -21,11 +21,13 @@ internal sealed partial class Checker
         if (name.StartsWith("@types/", StringComparison.Ordinal))
             Error(specifier!, 6137);
         var file = program.Symbols.Binding(location)!.SourceFile;
-        var reference = program.Symbols.Program.GetFile(file.FileName)!.Resolutions.FirstOrDefault(r => r.Node == specifier);
+        var reference = program.Symbols.Program.GetFile(file.FileName)!.Resolutions.FirstOrDefault(
+            r => implicitImport ? r.Node is null && r.Specifier == name : r.Node == specifier);
         var module = program.Symbols.Globals.GetValueOrDefault('"' + name + '"');
         if (module is null && reference?.Resolution.IsResolved == true)
         {
-            CheckResolvedImport(location, specifier!, name, file, reference);
+            if (!implicitImport)
+                CheckResolvedImport(location, specifier!, name, file, reference);
             module = program.Symbols.Program.GetFile(reference.Resolution.FileName)?.Binding.Symbol;
         }
         attributes ??= context.EmptyObjectType;
@@ -67,7 +69,9 @@ internal sealed partial class Checker
             }
         }
         if (module is null)
-            program.AliasDiagnostic(reference?.Resolution.IsResolved == true ? 2306 : 2307, specifier!);
+            program.AliasDiagnostic(
+                reference?.Resolution.IsResolved == true ? 2306 : missingModuleCode,
+                implicitImport ? location : specifier!);
         return program.Symbols.Merger.GetMergedSymbol(module);
     }
 
@@ -75,6 +79,8 @@ internal sealed partial class Checker
         Programs.ModuleReference reference)
     {
         var options = program.Symbols.Program.Configuration.Options;
+        if (JsxMode == 0 && reference.Resolution.Extension is ".tsx" or ".jsx")
+            Error(specifier, 6142);
         var import = DeclarationOrder.Ancestor(
             location,
             n => n is ImportDeclarationNode or ExportDeclarationNode or ImportEqualsDeclarationNode or ImportTypeNode

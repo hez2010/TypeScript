@@ -42,6 +42,12 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
         int index = arguments.ToList().IndexOf(argument);
         if (index < 0)
             return null;
+        if (JsxOpening(call))
+        {
+            var resolved = links.Signatures.Get(call).ResolvedSignature == CallSignatures.Resolving ? CallSignatures.Resolving
+                : await CallResolution.GetAsync(call, cancellation: cancellation);
+            return index == 0 ? await JsxPropsAsync(resolved, call, cancellation) : context.AnyType;
+        }
         if (call is CallExpressionNode import && IsImportCall(import))
             return index == 0 ? context.StringType : index == 1
                 ? importCallOptionsType ?? await program.Globals.GetAsync("ImportCallOptions", 0, false, cancellation) : context.AnyType;
@@ -60,6 +66,10 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
 
     public async ValueTask<IReadOnlyList<SyntaxNode>> SpecialArgumentsAsync(SyntaxNode node, CancellationToken cancellation)
     {
+        if (node is JsxOpeningFragmentNode)
+            return [Checking.CallArguments.Synthetic(node, JsxObject(null, [], fresh: true))];
+        if (JsxAttributes(node) is { } attributes)
+            return [attributes];
         if (node is DecoratorNode decorator && await DecoratorSignatureAsync(decorator, cancellation) is { } signature)
         {
             var arguments = new List<SyntaxNode>();
@@ -86,6 +96,8 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
         Signature signature,
         CancellationToken cancellation)
     {
+        if (JsxOpening(node))
+            return true;
         if (node is not DecoratorNode decorator)
             throw new InvalidOperationException("Checker requires JSX arity rules");
         int count = await DecoratorArgumentCountAsync(decorator, signature, cancellation);
@@ -110,6 +122,8 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
         CheckMode mode,
         CancellationToken cancellation)
     {
+        if (JsxOpening(node))
+            return await ResolveJsxAsync(node, candidates, mode, cancellation);
         if (node is CallExpressionNode importCall && IsImportCall(importCall))
             return await CallResolution.UntypedAsync(node, false, cancellation);
         if (node is DecoratorNode decorator)
