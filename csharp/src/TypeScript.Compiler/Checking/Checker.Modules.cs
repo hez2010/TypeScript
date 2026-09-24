@@ -77,7 +77,8 @@ internal sealed partial class Checker
             return;
         foreach (var modifier in modifiers)
             if (modifier.Kind is not (SyntaxKind.ExportKeyword or SyntaxKind.DefaultKeyword or SyntaxKind.DeclareKeyword
-                or SyntaxKind.AsyncKeyword or SyntaxKind.AbstractKeyword))
+                or SyntaxKind.AsyncKeyword or SyntaxKind.AbstractKeyword) && !(node is EnumDeclarationNode
+                    && modifier.Kind == SyntaxKind.ConstKeyword))
                 throw new InvalidOperationException("Checker requires declaration modifier validation");
         if (value && node.Parent is SourceFileNode && (node.Flags & NodeFlags.Ambient) == 0
             && program.Symbols.Program.Configuration.Options.Boolean("verbatimModuleSyntax") == true && EmitModuleKind(node) == 1

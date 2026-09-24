@@ -25,10 +25,13 @@ internal static class CheckerProgramTests
                 throw new InvalidOperationException($"Checker program assertion {checks + 1}");
             checks++;
         }
-        static async ValueTask<CompilerProgram> Build(Dictionary<string, string> sources, CompilerProgram? previous = null)
+        static async ValueTask<CompilerProgram> Build(
+            Dictionary<string, string> sources,
+            CompilerProgram? previous = null,
+            CompilerOptions? configuredOptions = null)
         {
             var files = sources.ToDictionary(p => p.Key, p => Wtf8.Encode(p.Value));
-            var options = new CompilerOptions();
+            var options = configuredOptions ?? new CompilerOptions();
             options.SetRaw("noLib", "true");
             return await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
                 new("/project/tsconfig.json", options, sources.Keys.ToArray(), [], [], []), previous, concurrency: 4);
@@ -296,6 +299,30 @@ internal static class CheckerProgramTests
         await independentModuleChecker.CheckProgramAsync();
         Check(independentModuleChecker.DiagnosticCodesForFile(mainFile).SequenceEqual(moduleDiagnostics)
             && independentModuleChecker.DiagnosticCodesForFile(depFile).SequenceEqual([2304]));
+        var finalOptions = new CompilerOptions();
+        finalOptions.SetRaw("strict", "true");
+        finalOptions.SetRaw("noUnusedLocals", "true");
+        finalOptions.SetRaw("noUnusedParameters", "true");
+        var finalProgram = await Build(new()
+        {
+            ["/project/dep.ts"] = "export const bad={}.absent;",
+            ["/project/main.ts"] = "import {bad} from './dep';export function f<T>(unused:number){const value={};value.missing;let orphan=1;return bad;}"
+        }, configuredOptions: finalOptions);
+        var finalChecker = await finalProgram.CreateCheckerAsync();
+        var finalMain = finalProgram.GetFile("/project/main.ts")!.Syntax;
+        var finalDep = finalProgram.GetFile("/project/dep.ts")!.Syntax;
+        await finalChecker.CheckSourceFileAsync(finalMain);
+        Check(finalChecker.DiagnosticCodesForFile(finalMain).SequenceEqual([2339, 6133, 6133, 6196]));
+        Check(finalChecker.DeferredMissingProperties.Count == 1 && finalChecker.DiagnosticCodesForFile(finalDep).Count == 0);
+        await finalChecker.CheckSourceFileAsync(finalDep);
+        Check(finalChecker.DiagnosticCodesForFile(finalDep).SequenceEqual([2339]));
+        Check(finalChecker.DeferredMissingProperties.Count == 0 && finalChecker.CheckedFileCount == 2);
+        await finalChecker.CheckProgramAsync();
+        Check(finalChecker.DiagnosticCodesForFile(finalMain).SequenceEqual([2339, 6133, 6133, 6196]));
+        var finalIndependent = await finalProgram.CreateCheckerAsync();
+        await finalIndependent.CheckProgramAsync();
+        Check(finalIndependent.DiagnosticCodesForFile(finalMain).SequenceEqual(finalChecker.DiagnosticCodesForFile(finalMain))
+            && finalIndependent.DiagnosticCodesForFile(finalDep).SequenceEqual([2339]));
         Console.WriteLine($"{checks} program/checker ownership assertions; interface and scope depth 20000");
     }
 

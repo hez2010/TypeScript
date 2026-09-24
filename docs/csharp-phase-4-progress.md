@@ -625,7 +625,19 @@ Diagnostic codes now retain their defining source file. An error discovered whil
 
 Windows x64 NativeAOT passes **422 semantic diagnostic-code configurations**, **4,294 query configurations**, and **680 safety assertions**. The added coverage comprises 184 semantic configurations, 20 imported-type graph configurations and six cross-file diagnostic/completion assertions. Cases include merged exports, missing imports, export assignments, synthetic defaults, callable namespace imports, type-only exports and package-format combinations under CommonJS, ESNext, Node16, NodeNext and preserve modes.
 
-Evidence: [module semantic comparisons](../csharp/compatibility/evidence/phase4-module-semantic.json), [imported type and query comparisons](../csharp/compatibility/evidence/phase4-module-identifiers.json), [alias regressions](../csharp/compatibility/evidence/phase4-module-aliases.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-module-validation.json). Import attributes, remaining augmentation/CommonJS/JSON edge cases, unused-declaration checks and complete diagnostics remain open.
+Evidence: [module semantic comparisons](../csharp/compatibility/evidence/phase4-module-semantic.json), [imported type and query comparisons](../csharp/compatibility/evidence/phase4-module-identifiers.json), [alias regressions](../csharp/compatibility/evidence/phase4-module-aliases.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-module-validation.json). Import attributes, remaining augmentation/CommonJS/JSON edge cases and complete diagnostics remain open.
+
+## Unused declarations, enums and deferred property diagnostics
+
+Source-file finalization now checks unused locals, parameters, imports, private members and type parameters, including grouped imports/variables/destructuring, underscore exemptions, object-rest exclusions, merged type parameters and syntax/ambient suppression. Reference tracking distinguishes a read from a write. Unused items become errors under the corresponding compiler options and suggestions otherwise. Renamed bindings in signatures receive their dedicated diagnostic independently of those options.
+
+Enum declarations now check merged export spaces, const consistency, initial numbering across merged declarations, private names, erasable syntax and verbatim exports. Their members use the existing constant evaluator and computed-initializer checks. Function-type signatures now run declaration checks, and bodyless functions/methods report missing return annotations.
+
+Missing-property diagnostics are finalized once per source node, with spelling/accessibility, static-member, promise, library-version and empty-DOM-type decisions. Library feature names are generated from the reference's constant table with a source hash and freshness check. Deferred property errors discovered in imported initializers remain queued for their defining file. Complete diagnostic messages, spans and related information remain unfinished.
+
+Windows x64 NativeAOT passes **678 semantic diagnostic-code configurations**, **4,294 query configurations**, and **686 safety assertions**. This adds 256 semantic configurations and six cross-file finalization assertions. The latter check deferred-file ownership, completion caching, independent checkers and duplicate prevention. Existing deep-input and cancellation assertions remain enabled.
+
+Evidence: [semantic finalization comparisons](../csharp/compatibility/evidence/phase4-finalization-semantic.json), [query regressions](../csharp/compatibility/evidence/phase4-finalization-identifiers.json), [signature regressions](../csharp/compatibility/evidence/phase4-finalization-signatures.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-finalization-validation.json).
 
 ## Remaining completion work
 

@@ -29,7 +29,7 @@ internal interface IFunctionDeclarationHost
 
     ValueTask ParameterEnvironmentAsync(ParameterDeclarationNode node, CancellationToken cancellation);
 
-    ValueTask BindingEnvironmentAsync(BindingElementNode node, CancellationToken cancellation);
+    ValueTask<bool> BindingEnvironmentAsync(BindingElementNode node, CancellationToken cancellation);
 
     ValueTask NonNullBindingAsync(Type type, SyntaxNode node, CancellationToken cancellation);
 
@@ -202,7 +202,8 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
                 cancellation).ConfigureAwait(false);
         else if (host.NoImplicitAny && node is ConstructSignatureDeclarationNode or CallSignatureDeclarationNode)
             host.ExpressionError(node, node is ConstructSignatureDeclarationNode ? 7013 : 7020);
-        host.RegisterUnused(node);
+        if (node is not IndexSignatureDeclarationNode)
+            host.RegisterUnused(node);
     }
 
     internal async ValueTask TypeParameterAsync(TypeParameterDeclarationNode node, CancellationToken cancellation)
@@ -249,7 +250,8 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
             await host.CheckedFunctionTypeAsync(annotation, cancellation).ConfigureAwait(false);
         if (node is BindingElementNode element)
         {
-            await host.BindingEnvironmentAsync(element, cancellation).ConfigureAwait(false);
+            if (await host.BindingEnvironmentAsync(element, cancellation).ConfigureAwait(false))
+                return;
             var parent = node.Parent!.Parent!;
             var parentType = await bindings.ParentAsync(
                 parent,

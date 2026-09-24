@@ -1246,6 +1246,62 @@ for (const noImplicitOverride of [false, true]) add(`semantic:classOverrideOptio
 for (const useDefineForClassFields of [false, true]) add(`semantic:classDefineOption:${useDefineForClassFields}`, { "globals.d.ts": library, "main.ts": "class Base{value=1;} class C extends Base{value:number;} class D{static name=1;static length=2;}" }, { strict: true, skipLibCheck: true, useDefineForClassFields }, false, true);
 for (const input of cases.filter(c => c.name.startsWith("semantic:"))) input.semantic = true;
 
+for (const strict of [false, true]) {
+    for (
+        const [name, source] of Object.entries({
+            enumValues: "enum E{A,B=3,C,D='text',F} const value:E=E.C;",
+            enumMerged: "enum E{A} enum E{B} enum F{A=1} enum F{B}",
+            enumConstMismatch: "const enum E{A=1} enum E{B=2}",
+            enumInvalid: "enum E{1=2,['key']=3,[Math.random()]=4} declare const Math:{random():number};",
+            enumPrivate: "enum E{#value=1}",
+            enumComputed: "declare function f():string;enum E{A=f(),B}",
+            enumConst: "const enum E{A=1/0,B=0/0,C=absent}",
+            enumAmbient: "declare function f():number;declare enum E{A=f()}",
+            missingProperty: "const value={length:1};value.absent;value.lenght;",
+            missingStatic: "class C{static value=1;}const value=new C();value.value;",
+            missingUnion: "declare const value:{a:number}|{b:string};value.missing;",
+            missingLibrary: "declare const array:number[];array.includes(1);'value'.repeat(2);",
+            missingDom: "interface HTMLElement{}declare const element:HTMLElement;element.innerHTML;",
+            missingPrivateSuggestion: "class C{private value=1;}declare const value:C;value.vaule;",
+            missingRepeated: "declare const value:{a:number};function f(){return value.missing;}f();f();",
+            missingPromise: "interface Promise<T>{then(callback:(value:T)=>unknown):Promise<unknown>}declare const value:Promise<{length:number}>;value.length;",
+        })
+    ) add(`semantic:final${name}:${strict}`, { "globals.d.ts": library, "main.ts": source }, { strict, skipLibCheck: true }, false, true);
+}
+for (const noUnusedLocals of [false, true]) {
+    for (const noUnusedParameters of [false, true]) {
+        for (
+            const [name, source] of Object.entries({
+                variables: "export {};const first=1,second=2;let only=3;only=4;",
+                exports: "export const first=1;const second=2;export {second};",
+                parameters: "export function f(used:number,unused:number,_skip:number){return used;}",
+                overload: "export function f(unused:string):void;export function f(unused:number):void;export function f(value:unknown){}",
+                nested: "export function f(){let local=1;{const inner=2;}for(let i=0;i<1;i++){const value=1;}for(const item of [1]){}}",
+                destructuring: "export {};const {a,b}={a:1,b:2};const [c,d]=[1,2];",
+                rest: "export {};const {a,...rest}={a:1,b:2};const {b:_b}={b:1};const [_first]=[1];const {_name}={_name:1};",
+                bindingParameters: "export function f({a,b}:{a:number;b:number},[_skip,value]:number[]){}",
+                imports: "import d,{value,other} from './dep';export {};",
+                importsPartial: "import d,{value,other as _other} from './dep';export const x=value;",
+                types: "export {};interface I{}type Alias=number;class C{}namespace N{export interface I{}}",
+                typeParameters: "export interface I<T,U>{}export type A<T,_U>=number;export function f<T,U>():void{}",
+                usedTypeParameters: "export interface I<T>{value:T}export type A<T>=T;export function f<T>(value:T):T{return value;}",
+                infer: "export type A<T>=T extends [infer U,infer _V]?true:false;",
+                privateMembers: "export class C{private unused=1;private used=2;#hidden=3;method(){return this.used;}private f(){}constructor(private parameter:number){}}",
+                accessor: "export class C{private get value(){return 1;}private set value(value:number){}}",
+                script: "const local=1;function f(unused:number){}",
+                namespace: "namespace N{const local=1;export const value=2;}",
+                closure: "export function f(used:number,unused:number){const value=1;return ()=>used+value;}",
+                switch: "export function f(value:number){switch(value){case 0:const first=1;break;default:const second=2;}}",
+                catch: "export function f(){try{}catch(error){const unused=1;}}",
+                malformed: "export function f(unused:number {}",
+                renamedSignature: "export type F=({a:number,b:string})=>void;",
+            })
+        ) add(`semantic:finalUnused${name}:${noUnusedLocals}:${noUnusedParameters}`, { "globals.d.ts": library, "dep.ts": "export default 1;export const value=1,other=2;", "main.ts": source }, { strict: true, skipLibCheck: true, noUnusedLocals, noUnusedParameters, module: "esnext", moduleResolution: "bundler" }, false, true);
+    }
+}
+for (const erasableSyntaxOnly of [false, true]) for (const verbatimModuleSyntax of [false, true]) add(`semantic:finalEnumOptions:${erasableSyntaxOnly}:${verbatimModuleSyntax}`, { "globals.d.ts": library, "main.ts": "export enum E{A=1} export const enum C{A=1} declare enum Ambient{A=1}" }, { strict: true, skipLibCheck: true, module: "commonjs", erasableSyntaxOnly, verbatimModuleSyntax }, false, true);
+for (const input of cases.filter(c => c.name.startsWith("semantic:"))) input.semantic = true;
+
 let selected = process.argv.includes("--semantic") ? cases.filter(c => c.semantic) :
     process.argv.includes("--access") ? cases.filter(c => c.access) : process.argv.includes("--identifiers") ? cases.filter(c => c.identifiers) : process.argv.includes("--flow") ? cases.filter(c => c.flow) : process.argv.includes("--references") ? cases.filter(c => c.references) : process.argv.includes("--awaited") ? cases.filter(c => c.awaited) : process.argv.includes("--binary") ? cases.filter(c => c.name.startsWith("binary:")) : process.argv.includes("--initializers") ? cases.filter(c => c.name.startsWith("initializers:")) : process.argv.includes("--expressions") ? cases.filter(c => c.expressions && !c.name.startsWith("binary:") && !c.name.startsWith("awaited:")) : process.argv.includes("--constants") ? cases.filter(c => c.name.startsWith("constants:")) : process.argv.includes("--inference") ? cases.filter(c => c.typeNodes && c.name.startsWith("inference:")) : process.argv.includes("--conditional") ? cases.filter(c => c.typeNodes && c.name.startsWith("conditional:")) :
     process.argv.includes("--generic-relations") ? cases.filter(c => c.genericRelations) :

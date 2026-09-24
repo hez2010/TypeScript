@@ -40,6 +40,14 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
                     await TypeReferenceChecks.CheckAsync(reference, cancellation);
                 else if (item.Node is TypeLiteralNode literal)
                     await IndexDeclarationChecks.TypeLiteralAsync(literal, cancellation);
+                if (item.Node is InferTypeNode)
+                    RegisterUnused(item.Node);
+                else if (item.Node is FunctionTypeNode or ConstructorTypeNode or MethodSignatureDeclarationNode
+                    or CallSignatureDeclarationNode or ConstructSignatureDeclarationNode)
+                {
+                    await FunctionDeclarations.GrammarAsync(item.Node, cancellation).ConfigureAwait(false);
+                    await FunctionDeclarations.CheckAsync(item.Node, cancellation).ConfigureAwait(false);
+                }
             }
             else
             {
@@ -290,18 +298,23 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
         return ValueTask.CompletedTask;
     }
 
-    public async ValueTask BindingEnvironmentAsync(BindingElementNode node, CancellationToken cancellation)
+    public async ValueTask<bool> BindingEnvironmentAsync(BindingElementNode node, CancellationToken cancellation)
     {
         if (node.PropertyName is PrivateIdentifierNode && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
             Error(node.PropertyName, 18017);
         if (node.PropertyName is not null && node.Name is IdentifierNode
+            && SemanticSyntax.RootDeclaration(node) is ParameterDeclarationNode
             && SemanticSyntax.Body(SemanticSyntax.RootDeclaration(node).Parent!) is null)
+        {
             RenamedBindingElements.Add(node);
+            return true;
+        }
         if (node.DotDotDotToken is not null && node.Parent!.Kind == SyntaxKind.ObjectBindingPattern && TargetYear < 2018
             && program.Symbols.Program.Configuration.Options.Boolean("importHelpers") == true)
             throw new InvalidOperationException("Checker requires object-rest emit helpers");
         if (node.PropertyName is ComputedPropertyNameNode computed)
             await ObjectLiterals.ComputedAsync(computed, cancellation);
+        return false;
     }
 
     public async ValueTask NonNullBindingAsync(Type type, SyntaxNode node, CancellationToken cancellation)

@@ -62,6 +62,10 @@ internal sealed partial class Checker
             Error(node.Name, 1368);
         await CheckSourceElementAsync(node.Body, cancellation).ConfigureAwait(false);
         await CheckFunctionPathsAsync(node, cancellation).ConfigureAwait(false);
+        if (node.Type is null && (node.Body is null || node.Body.Pos == node.Body.End)
+            && !((node.Flags & NodeFlags.Ambient) != 0
+                && (SemanticSyntax.HasModifier(node, SyntaxKind.PrivateKeyword) || node.Name is PrivateIdentifierNode)))
+            await ReportImplicitAnyAsync(node, context.AnyType, cancellation).ConfigureAwait(false);
         if (SemanticSyntax.HasModifier(node, SyntaxKind.AbstractKeyword) && node.Body is not null)
             Error(node, 1245);
         if (node.Type is null && node.Body is not null && SemanticSyntax.Generator(node))

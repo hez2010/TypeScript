@@ -43,13 +43,13 @@ internal sealed partial class Checker
                     await CheckDeferredSourceAsync(deferred[i], cancellation).ConfigureAwait(false);
             foreach (var diagnostic in DeferredIterationDiagnostics.Where(d => SemanticSyntax.Source(d.Node) == file).ToArray())
                 await Iteration.NotIterableAsync(diagnostic.Node, diagnostic.Type, diagnostic.Async, cancellation).ConfigureAwait(false);
-            if (DeferredMissingProperties.Any(d => SemanticSyntax.Source(d.Node) == file))
-                throw new InvalidOperationException("Checker requires deferred property diagnostic attribution");
+            await CheckMissingPropertiesAsync(file, cancellation).ConfigureAwait(false);
             if (program.Symbols.Binding(file)?.IsModule == true)
+            {
                 await CheckExternalExportsAsync(file, cancellation).ConfigureAwait(false);
-            if (program.Symbols.Program.Configuration.Options.Boolean("noUnusedLocals") == true
-                || program.Symbols.Program.Configuration.Options.Boolean("noUnusedParameters") == true)
-                throw new InvalidOperationException("Checker requires unused declaration diagnostics");
+                RegisterUnused(file);
+            }
+            CheckUnusedSource(file, cancellation);
             cancellation.ThrowIfCancellationRequested();
             checkedFiles.Add(file);
             if (deferred is not null)
@@ -96,6 +96,7 @@ internal sealed partial class Checker
             switch (node)
             {
                 case BlockNode block:
+                    RegisterUnused(block);
                     AmbientStatement(block);
                     bool disabled = FlowTypes.AnalysisDisabled;
                     try
@@ -139,6 +140,8 @@ internal sealed partial class Checker
                     await CheckFunctionOverloadsAsync(function, cancellation).ConfigureAwait(false);
                     await CheckSourceElementAsync(function.Body, cancellation).ConfigureAwait(false);
                     await CheckFunctionPathsAsync(function, cancellation).ConfigureAwait(false);
+                    if (function.Type is null && (function.Body is null || function.Body.Pos == function.Body.End))
+                        await ReportImplicitAnyAsync(function, context.AnyType, cancellation).ConfigureAwait(false);
                     if (function.Type is null && SemanticSyntax.Generator(function) && function.Body is not null)
                         await Signatures.ReturnAsync(
                             await Signatures.FromDeclarationAsync(function, cancellation).ConfigureAwait(false),
@@ -191,6 +194,7 @@ internal sealed partial class Checker
                     await CheckConditionAsync(loop.Expression!, cancellation).ConfigureAwait(false);
                     break;
                 case ForStatementNode loop:
+                    RegisterUnused(loop);
                     AmbientStatement(loop);
                     if (loop.Initializer is VariableDeclarationListNode)
                         await CheckSourceElementAsync(loop.Initializer, cancellation).ConfigureAwait(false);
@@ -203,6 +207,7 @@ internal sealed partial class Checker
                     await CheckSourceElementAsync(loop.Statement, cancellation).ConfigureAwait(false);
                     break;
                 case ForInOrOfStatementNode loop when loop.Kind == SyntaxKind.ForOfStatement:
+                    RegisterUnused(loop);
                     ForEachGrammar(loop);
                     if (loop.Initializer is VariableDeclarationListNode)
                         await CheckSourceElementAsync(loop.Initializer, cancellation).ConfigureAwait(false);
@@ -221,9 +226,11 @@ internal sealed partial class Checker
                     await CheckSourceElementAsync(loop.Statement, cancellation).ConfigureAwait(false);
                     break;
                 case ForInOrOfStatementNode loop:
+                    RegisterUnused(loop);
                     await CheckForInSourceAsync(loop, cancellation).ConfigureAwait(false);
                     break;
                 case SwitchStatementNode statement:
+                    RegisterUnused(statement.CaseBlock!);
                     await CheckSwitchSourceAsync(statement, cancellation).ConfigureAwait(false);
                     break;
                 case ThrowStatementNode statement:
@@ -257,6 +264,7 @@ internal sealed partial class Checker
                         JumpGrammar(node);
                     break;
                 case TypeAliasDeclarationNode alias:
+                    RegisterUnused(alias);
                     ExportedDeclaration(alias, false);
                     await CheckMergedExportsAsync(alias, cancellation).ConfigureAwait(false);
                     if (ReservedTypeName(alias.Name!.Text))
@@ -284,7 +292,15 @@ internal sealed partial class Checker
                     {
                         FlowTypes.AnalysisDisabled = previousAnalysis;
                     }
-                    RegisterUnused(block);
+                    break;
+                case EnumDeclarationNode declaration:
+                    await CheckEnumSourceAsync(declaration, cancellation).ConfigureAwait(false);
+                    break;
+                case EnumMemberNode member:
+                    if (member.Name is PrivateIdentifierNode)
+                        Error(member, 18024);
+                    if (member.Initializer is not null)
+                        await Expressions.CheckAsync(member.Initializer, cancellation: cancellation).ConfigureAwait(false);
                     break;
                 case ImportDeclarationNode import:
                     await CheckImportSourceAsync(import, cancellation).ConfigureAwait(false);
