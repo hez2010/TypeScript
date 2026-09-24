@@ -111,7 +111,7 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
         if (node.Parent is BinaryExpressionNode binary)
         {
             if (BinaryExpressions.Assignment(binary.OperatorToken!.Kind) && binary.Right == node)
-                return await ExpressionAsync(binary.Left!, cancellation);
+                return await AssignmentContextAsync(binary, cancellation).ConfigureAwait(false);
             if (binary.OperatorToken.Kind is SyntaxKind.BarBarToken or SyntaxKind.AmpersandAmpersandToken
                 or SyntaxKind.QuestionQuestionToken)
                 throw new InvalidOperationException("Checker requires logical expression contextual types");

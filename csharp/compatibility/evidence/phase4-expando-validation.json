@@ -1,0 +1,79 @@
+{
+    "timestamp": "2026-09-24T15:05:14.9475178+00:00",
+    "configuration": "Release",
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "managed": true,
+    "scope": "JavaScript class and assignment-declared property checking, constructor flow, contextual assignments, descriptors, CommonJS and JSON values; full phase 4 remains incomplete",
+    "candidateSha256": "b3e7bfa71df9eb0c50ff8d978756702ebf9913e57d6c98fb06077132d801b229",
+    "compilerSha256": "0c9416aad62cd1d27ca6bdf63b0a82442520dc16dbb417d568a6c1983119d80f",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-expando-build.log",
+        "sha256": "7a1c054416a4bed67d43c46d8a43ea70da874de6382e00432a56982829b1b630"
+    },
+    "queries": {
+        "values": {
+            "record": "phase4-expando-values.json",
+            "cases": 136,
+            "exact": 136
+        },
+        "access": {
+            "record": "phase4-expando-access.json",
+            "cases": 412,
+            "exact": 412
+        }
+    },
+    "safety": {
+        "accessAndClassAssertions": 53,
+        "newAssertions": 9,
+        "log": "logs/csharp-phase4-expando-access-safety.log",
+        "sha256": "c3859e02ba7c44e687dccb9b928ae22b2d1a9e4a03e23274375d41e6dba05755"
+    },
+    "corpus": {
+        "single": "phase4-expando-corpus-single.json",
+        "referenceDefault": "phase4-expando-corpus-default.json",
+        "parity": "phase4-expando-mode-parity.json",
+        "selectedConfigurationsPerMode": 6210,
+        "previousMatches": 3919,
+        "graphAndCodeMatches": 4362,
+        "recoveredConfigurations": 443,
+        "regressions": []
+    },
+    "formatting": {
+        "csharpFiles": 10,
+        "tokenCommentSyntaxIdentical": true,
+        "libraryConfigurations": 2,
+        "dotnetWhitespaceExitCode": 0,
+        "diffCheckExitCode": 0,
+        "proofLog": "logs/csharp-phase4-expando-format.log",
+        "proofSha256": "12c1075045ddb9d69085056412ae0f6c0dae350d79e60f916bd94c892d13ea32"
+    },
+    "reusedValidation": {
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "repositoryCommand": "npx hereby validate --all",
+        "repositoryExitCode": 0,
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            "csharp/tools",
+            ".github/copilot-instructions.md"
+        ],
+        "reason": "User directed reuse of unchanged validation results. Go product code, repository tooling and checker generators are unchanged; only affected C# query, safety and corpus checks were rerun.",
+        "fullCorpusBaseline": [
+            "phase4-corpus-release-single.json",
+            "phase4-corpus-release-default.json"
+        ],
+        "previousAffectedCorpus": [
+            "phase4-jsdoc-corpus-single.json",
+            "phase4-jsdoc-corpus-default.json"
+        ]
+    },
+    "nativeAotVerification": "Deferred until final completion per user instruction; no NativeAOT build or execution",
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "phase4Complete": false
+}

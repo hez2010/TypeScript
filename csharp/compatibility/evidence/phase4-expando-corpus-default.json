@@ -1,0 +1,22 @@
+{
+    "timestamp": "2026-09-24T15:03:11.525Z",
+    "mode": "default",
+    "configuration": "Release",
+    "selectedConfigurations": 6210,
+    "previousMatches": 3919,
+    "graphAndCodeMatches": 4362,
+    "recoveredConfigurations": 443,
+    "regressions": [],
+    "parts": [
+        {
+            "directory": "built/csharp/semantic-corpus-expando-default/default",
+            "configurations": 6210,
+            "candidateSha256": "b3e7bfa71df9eb0c50ff8d978756702ebf9913e57d6c98fb06077132d801b229",
+            "compilerSha256": "0c9416aad62cd1d27ca6bdf63b0a82442520dc16dbb417d568a6c1983119d80f",
+            "outputSha256": "9e6ba39640549b051179914d94a8cc2c92738406a6ebc7682ce8181ba79c14a0",
+            "selectionSha256": "b90f5572556be0ec4eafbf10cc12f6f0477d6a8f5cb63e39da740f436be50cd9"
+        }
+    ],
+    "scope": "JavaScript classes, assignment-declared property types, descriptors, CommonJS/JSON values and contextual assignment cases; full phase 4 remains incomplete.",
+    "nativeAotVerification": "Deferred until final completion per user instruction"
+}

@@ -667,6 +667,16 @@ The affected type-node and signature suites pass **408 query configurations**. S
 
 Evidence: [single-threaded affected corpus](../csharp/compatibility/evidence/phase4-jsdoc-corpus-single.json), [reference-default affected corpus](../csharp/compatibility/evidence/phase4-jsdoc-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-jsdoc-mode-parity.json), and [Release/repository validation](../csharp/compatibility/evidence/phase4-jsdoc-validation.json). JavaScript classes and expandos, import types, JSX and other remaining callbacks still block cases; the full phase-4 gate remains incomplete.
 
+## JavaScript classes and assignment-declared properties
+
+JavaScript classes now use the class declaration checks, including JSDoc `@extends` validation. Assignment-declared properties infer types from annotations, constructor flow, method assignments, inherited properties and `Object.defineProperty` descriptors. CommonJS export assignments retain literal types and ignore an initial `undefined` export when later assignments provide its type. JSON module values use the parsed JSON expression; destructured `require` bindings resolve module members.
+
+Assignment declarations now receive contextual types only where the reference permits them, avoiding circular reads of the property being inferred. Class-instance expando classification, property-descriptor readonly checks and duplicate CommonJS export exceptions use the corresponding reference rules. Constructor inference continues to use synthetic references without changing original syntax parents.
+
+Release comparisons cover **6,210 affected and regression configurations per mode**. Graph/code matches increased from **3,919 to 4,362**, recovering **443 configurations**, with no regressions. Failure classifications, graphs and diagnostic codes agree across both modes. The focused value/access query suites pass **548 configurations**, and access/class safety passes **53 assertions**, including nine new JavaScript property checks.
+
+Evidence: [single-threaded affected corpus](../csharp/compatibility/evidence/phase4-expando-corpus-single.json), [reference-default affected corpus](../csharp/compatibility/evidence/phase4-expando-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-expando-mode-parity.json), and [validation and reused results](../csharp/compatibility/evidence/phase4-expando-validation.json). Unchanged Go/tooling validation and unaffected component results are reused. NativeAOT verification remains deferred until final completion; import types, condition analysis, remaining diagnostics and other phase-4 services are still open.
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:

@@ -39,6 +39,7 @@ internal sealed partial class Checker
             if (bases.Count != 0)
             {
                 var baseType = bases[0];
+                await CheckDocumentationBaseAsync(node, baseNode, baseType, cancellation).ConfigureAwait(false);
                 var constructor = await ClassBases.ConstructorAsync(type, cancellation).ConfigureAwait(false);
                 var staticBase = await Views.ApparentAsync(constructor, cancellation).ConfigureAwait(false);
                 var constructors = await SignaturesAsync(staticBase, true, cancellation).ConfigureAwait(false);
@@ -212,8 +213,6 @@ internal sealed partial class Checker
                     or SyntaxKind.DefaultKeyword))
                     Error(modifier, 1042);
             }
-        if ((node.Flags & NodeFlags.JavaScriptFile) != 0)
-            throw new InvalidOperationException("Checker requires JavaScript class declarations");
     }
 
     private static bool ParameterProperty(SyntaxNode node) => node is ParameterDeclarationNode

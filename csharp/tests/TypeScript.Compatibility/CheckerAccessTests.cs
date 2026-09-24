@@ -193,7 +193,83 @@ internal static class CheckerAccessTests
         deletion.SetParents();
         Check(AccessExpressions.DeleteTarget(current));
         checks += await ClassSafety();
+        checks += await JavaScriptPropertySafety();
         Console.WriteLine($"{checks} access/optional/member/class/cancellation/spelling assertions; 20,000-level traversal.");
+    }
+
+    private static async Task<int> JavaScriptPropertySafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"JavaScript property assertion {checks + 1}");
+            checks++;
+        }
+        const string source = """
+            class C {
+                /** @param {boolean} flag */
+                constructor(flag) { this.value = 1; if (flag) this.partial = 'text'; }
+                method() { this.methodOnly = true; }
+            }
+            const object = {};
+            Object.defineProperty(object, 'fixed', { value: 1, writable: false });
+            Object.defineProperty(object, 'accessed', { get() { return 'text'; } });
+            const callback = () => {};
+            callback.value = 1;
+            """;
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        options.SetRaw("allowJs", "true");
+        options.SetRaw("checkJs", "true");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        {
+            ["/project/main.js"] = Wtf8.Encode(source)
+        }), "/project", new("/project/tsconfig.json", options, ["/project/main.js"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var file = program.SourceFiles[0].Syntax;
+        var nodes = file.DescendantsAndSelf().ToArray();
+        var parents = nodes.Select(n => n.Parent).ToArray();
+        var declaration = nodes.OfType<ClassDeclarationNode>().Single();
+        var type = await checker.Declared.GetAsync(checker.Symbols.Declaration(declaration)!);
+        var value = (await checker.Properties.PropertyAsync(type, "value"))!;
+        checker.BeforeFlowExpression = _ => throw new OperationCanceledException();
+        try
+        {
+            await checker.Values.GetAsync(value);
+            throw new InvalidOperationException("JavaScript constructor inference cancellation ignored");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        checker.BeforeFlowExpression = null;
+        Check(
+            checker.Links.Values.Get(value).ResolvedType is null
+                && checker.Instantiation.Resolutions.Count == 0
+                && checker.FlowTypes.ActiveLoopCount == 0);
+        Check(await checker.Values.GetAsync(value) == checker.Context.NumberType);
+        var partial = await checker.Values.GetAsync((await checker.Properties.PropertyAsync(type, "partial"))!);
+        Check(
+            partial is UnionType partialUnion
+                && partialUnion.Types.Contains(checker.Context.StringType)
+                && partialUnion.Types.Contains(checker.Context.UndefinedType));
+        var methodOnly = await checker.Values.GetAsync((await checker.Properties.PropertyAsync(type, "methodOnly"))!);
+        Check(
+            checker.Predicates.Maybe(methodOnly, TypeFlags.BooleanLike, default)
+                && checker.Predicates.Maybe(methodOnly, TypeFlags.Undefined, default));
+        var definitions = nodes.OfType<CallExpressionNode>().Where(
+            c => c.Expression is PropertyAccessExpressionNode { Name: IdentifierNode { Text: "defineProperty" } }).ToArray();
+        var fixedProperty = checker.Symbols.Declaration(definitions[0])!;
+        Check(await checker.Values.GetAsync(fixedProperty) == checker.Context.NumberType && checker.IsReadonly(fixedProperty));
+        var accessed = checker.Symbols.Declaration(definitions[1])!;
+        Check(await checker.Values.GetAsync(accessed) == checker.Context.StringType && checker.IsReadonly(accessed));
+        var callback = nodes.OfType<BinaryExpressionNode>().Single(
+            n => n.Left is PropertyAccessExpressionNode { Expression: IdentifierNode { Text: "callback" } });
+        Check(await checker.Values.GetAsync(checker.Symbols.Declaration(callback)!) == checker.Context.NumberType);
+        Check(nodes.Select(n => n.Parent).SequenceEqual(parents));
+        return checks;
     }
 
     private static async Task<int> ClassSafety()

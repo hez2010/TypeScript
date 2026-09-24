@@ -1,0 +1,30 @@
+{
+    "timestamp": "2026-09-24T15:03:10.528Z",
+    "mode": "single",
+    "configuration": "Release",
+    "selectedConfigurations": 6210,
+    "previousMatches": 3919,
+    "graphAndCodeMatches": 4362,
+    "recoveredConfigurations": 443,
+    "regressions": [],
+    "parts": [
+        {
+            "directory": "built/csharp/semantic-corpus-expando/single",
+            "configurations": 533,
+            "candidateSha256": "c3f827581c6739e3bfa30e6c30251f1db5b0b53d2d5c76a86b31a6022267e63d",
+            "compilerSha256": "796aaa590bc9cdecb5dec8a573cd9fdf857c27756b0d04306a4397b59da796ac",
+            "outputSha256": "6c7b46f40361e8a3ecae665f736348f2805180f3210a73b444b068c8a1d95189",
+            "selectionSha256": "eaaf275b0fcddd5951d0b2d8265cfa265cee367a0a604af5d0cfb8a5d071b24f"
+        },
+        {
+            "directory": "built/csharp/semantic-corpus-expando-regression/single",
+            "configurations": 5677,
+            "candidateSha256": "1b9a3bb53f562d65e60ad4a1f169bc48a5bacebe46bcaf5c0a0e52e972eb01f2",
+            "compilerSha256": "796aaa590bc9cdecb5dec8a573cd9fdf857c27756b0d04306a4397b59da796ac",
+            "outputSha256": "58708607a809d189c028c00ef08d3e87c9f3d8bbf2634645f956b232d946fe57",
+            "selectionSha256": "f398ccce1ef54457ee955e534620516fd7ed84959d96efac3dfba3fdb986f910"
+        }
+    ],
+    "scope": "JavaScript classes, assignment-declared property types, descriptors, CommonJS/JSON values and contextual assignment cases; full phase 4 remains incomplete.",
+    "nativeAotVerification": "Deferred until final completion per user instruction"
+}

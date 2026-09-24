@@ -40,7 +40,7 @@ internal sealed class PropertyInitialization(TypeContext context, Checker checke
             : null;
     }
 
-    private async ValueTask<Type?> InferInAsync(Symbol property, SyntaxNode container, CancellationToken cancellation)
+    internal async ValueTask<Type?> InferInAsync(Symbol property, SyntaxNode container, CancellationToken cancellation)
     {
         SyntaxNode name = property.Name.StartsWith(Symbol.InternalPrefix + "#", StringComparison.Ordinal)
             ? new PrivateIdentifierNode { Text = property.Name[(property.Name.IndexOf('@') + 1)..] } : new IdentifierNode { Text = property.Name };
@@ -82,11 +82,11 @@ internal sealed class PropertyInitialization(TypeContext context, Checker checke
 
     internal async ValueTask<Type?> BaseAsync(Symbol property, CancellationToken cancellation = default)
     {
-        var declaring = property.ValueDeclaration?.Parent;
-        if (!SemanticSyntax.ClassLike(declaring))
+        var declaring = checker.Symbols.Parent(property);
+        if (declaring is null || (declaring.Flags & SymbolFlags.Class) == 0)
             return null;
         var type = (InterfaceType)await checker.Declared.GetAsync(
-            checker.Symbols.Declaration(declaring!)!,
+            declaring,
             cancellation).ConfigureAwait(false);
         var bases = await checker.Bases.GetAsync(type, cancellation).ConfigureAwait(false);
         return bases.Count != 0

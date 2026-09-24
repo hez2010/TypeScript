@@ -138,6 +138,32 @@ internal sealed partial class Checker : ISignatureHost, IStructuredMemberHost, I
         cancellation.ThrowIfCancellationRequested();
         if (VariableBody is not null)
             return await VariableBody(symbol, reportErrors, cancellation);
+        if (symbol.ValueDeclaration is SourceFileNode { ScriptKind: ScriptKind.JSON } json)
+        {
+            if (json.Statements is not { Count: > 0 })
+                return context.EmptyObjectType;
+            var expression = ((ExpressionStatementNode)json.Statements[0]).Expression!;
+            return await Widening.GetAsync(
+                await Widening.LiteralAsync(
+                    await Expressions.CheckAsync(expression, cancellation: cancellation).ConfigureAwait(false),
+                    cancellation).ConfigureAwait(false),
+                cancellation).ConfigureAwait(false);
+        }
+        if ((symbol.Flags & SymbolFlags.ModuleExports) != 0)
+        {
+            if (symbol.Name == "exports")
+            {
+                var module = program.Symbols.Declaration(symbol.ValueDeclaration!)!;
+                var target = await program.AliasTargets.ExternalModuleAsync(module, false, cancellation).ConfigureAwait(false);
+                return target is null ? context.AnyType : await Values.GetAsync(target, cancellation).ConfigureAwait(false);
+            }
+            var moduleType = context.NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved, symbol);
+            moduleType.Members = symbol.Members;
+            moduleType.Properties = symbol.Members.Values.ToArray();
+            return moduleType;
+        }
+        if (symbol.ValueDeclaration is BinaryExpressionNode or CallExpressionNode)
+            return await AssignmentDeclarationTypeAsync(symbol, cancellation).ConfigureAwait(false);
         if (symbol.ValueDeclaration is VariableDeclarationNode or ParameterDeclarationNode or PropertyDeclarationNode
             or PropertySignatureDeclarationNode or BindingElementNode)
             return await Variables.GetAsync(symbol.ValueDeclaration, reportErrors, cancellation);

@@ -135,11 +135,25 @@ internal sealed partial class Checker : IAccessExpressionHost, IIndexedAccessVal
         => FunctionThis.GetAsync(node, cancellation);
 
     public bool ClassInstanceProperty(SyntaxNode declaration)
-            => (declaration.Flags & NodeFlags.JavaScriptFile) != 0 && declaration is BinaryExpressionNode
-                ? throw new InvalidOperationException("Checker requires JavaScript expando property classification")
-                : SemanticSyntax.ClassLike(declaration.Parent)
-                    && declaration is PropertyDeclarationNode
-                    && !SemanticSyntax.HasModifier(declaration, SyntaxKind.AccessorKeyword);
+    {
+        if ((declaration.Flags & NodeFlags.JavaScriptFile) != 0 && declaration is BinaryExpressionNode binary)
+        {
+            var left = binary.Left!;
+            var receiver = FlowReferences.Receiver(left);
+            var name = receiver switch
+            {
+                PropertyAccessExpressionNode property => property.Name,
+                ElementAccessExpressionNode element => element.ArgumentExpression,
+                _ => null
+            };
+            bool access = left is PropertyAccessExpressionNode or ElementAccessExpressionNode && BindableStaticName(left, false);
+            bool prototype = receiver is PropertyAccessExpressionNode or ElementAccessExpressionNode
+                && BindableStaticName(receiver, false) && SyntaxNameText.Get(name) == "prototype";
+            return (!access || !prototype) && !BindableStaticName(left, true);
+        }
+        return SemanticSyntax.ClassLike(declaration.Parent) && declaration is PropertyDeclarationNode
+            && !SemanticSyntax.HasModifier(declaration, SyntaxKind.AccessorKeyword);
+    }
 
     public ValueTask<bool> ReadonlyAssignmentAsync(SyntaxNode node, Symbol property, int assignment, CancellationToken cancellation)
             => ValueTask.FromResult(MemberAccess.ReadonlyAssignment(node, property, assignment, cancellation));
@@ -149,25 +163,8 @@ internal sealed partial class Checker : IAccessExpressionHost, IIndexedAccessVal
 
     public ValueTask<SyntaxNode?> ConstructorPropertyAsync(Symbol symbol, CancellationToken cancellation)
     {
-        if (symbol.ValueDeclaration is not BinaryExpressionNode)
-            return ValueTask.FromResult<SyntaxNode?>(null);
-        SyntaxNode? constructor = null;
-        foreach (var declaration in symbol.Declarations)
-        {
-            cancellation.ThrowIfCancellationRequested();
-            if (declaration is not BinaryExpressionNode { Type: null, OperatorToken.Kind: SyntaxKind.EqualsToken } binary
-                || (declaration.Flags & NodeFlags.JavaScriptFile) == 0
-                || !(binary.Left is PropertyAccessExpressionNode { Expression.Kind: SyntaxKind.ThisKeyword }
-                    || binary.Left is ElementAccessExpressionNode
-                    {
-                        Expression.Kind: SyntaxKind.ThisKeyword, ArgumentExpression: StringLiteralNode
-                        or NumericLiteralNode or NoSubstitutionTemplateLiteralNode
-                    }))
-                return ValueTask.FromResult<SyntaxNode?>(null);
-            if (constructor is null && MissingNamePrefixes.ThisContainer(declaration, false, false) is ConstructorDeclarationNode found)
-                constructor = found;
-        }
-        return ValueTask.FromResult(constructor);
+        var (kind, location) = ThisAssignment(symbol, cancellation);
+        return ValueTask.FromResult(kind == ThisAssignmentKind.Constructor ? location : null);
     }
 
     public ValueTask<Type> AutoPropertyFlowAsync(SyntaxNode node, Symbol? property, CancellationToken cancellation)

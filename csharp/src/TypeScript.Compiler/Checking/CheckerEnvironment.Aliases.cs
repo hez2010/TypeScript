@@ -118,7 +118,8 @@ internal sealed partial class CheckerEnvironment
         bool dontResolveAlias,
         CancellationToken cancellation)
     {
-        var moduleSpecifier = AliasTargets.Specifier(importOrExport);
+        var moduleSpecifier = importOrExport is VariableDeclarationNode { Initializer: CallExpressionNode call }
+            && SemanticSyntax.RequireCall(call) ? call.Arguments![0] : AliasTargets.Specifier(importOrExport);
         var module = await ExternalModuleAsync(
             importOrExport,
             moduleSpecifier,
@@ -135,7 +136,9 @@ internal sealed partial class CheckerEnvironment
         {
             ImportSpecifierNode import => import.PropertyName ?? import.Name,
             ExportSpecifierNode export => export.PropertyName ?? export.Name,
-            _ => throw new InvalidOperationException("Checker requires CommonJS destructuring")
+            BindingElementNode binding => binding.PropertyName ?? binding.Name,
+            PropertyAccessExpressionNode property => property.Name,
+            _ => throw new InvalidOperationException("Expected an external module member name")
         };
         var name = AliasTargets.Text(nameNode);
         if (name is null)

@@ -454,7 +454,7 @@ internal sealed partial class Checker
                     && d is not GetAccessorDeclarationNode and not SetAccessorDeclarationNode and not InterfaceDeclarationNode);
             if ((exported.Flags & SymbolFlags.TypeAlias) != 0 && count <= 2)
                 continue;
-            if (count > 1)
+            if (count > 1 && !exported.Declarations.All(d => d is BinaryExpressionNode binary && ExportsPropertyAssignment(binary.Left!)))
                 foreach (var declaration in exported.Declarations.Where(NotOverload))
                     Error(declaration, 2323);
         }

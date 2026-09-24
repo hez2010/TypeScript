@@ -85,8 +85,6 @@ internal sealed partial class Checker : ITypePropertyHost, ITypeViewHost, ICompo
 
     public bool IsReadonly(Symbol symbol)
     {
-        if (symbol.Declarations.Any(n => n is CallExpressionNode))
-            throw new InvalidOperationException("Checker requires assignment readonly analysis");
         return (symbol.CheckFlags & CheckFlags.Readonly) != 0
             || (symbol.Flags & SymbolFlags.Property) != 0
                 && symbol.ValueDeclaration is { } declaration
@@ -94,7 +92,8 @@ internal sealed partial class Checker : ITypePropertyHost, ITypeViewHost, ICompo
             || (symbol.Flags & SymbolFlags.Variable) != 0
                 && AssignmentMarks.Constant(symbol)
             || (symbol.Flags & SymbolFlags.Accessor) != 0
-                && (symbol.Flags & SymbolFlags.SetAccessor) == 0 || (symbol.Flags & SymbolFlags.EnumMember) != 0;
+                && (symbol.Flags & SymbolFlags.SetAccessor) == 0 || (symbol.Flags & SymbolFlags.EnumMember) != 0
+            || symbol.Declarations.OfType<CallExpressionNode>().Any(d => ReadonlyDescriptorAsync(d).GetAwaiter().GetResult());
     }
 
     public CheckFlags AccessFlags(Symbol symbol, bool write)
