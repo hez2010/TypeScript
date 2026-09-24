@@ -341,25 +341,10 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
             Error(node, 2532);
     }
 
-    public ValueTask FunctionModifiersAsync(SyntaxNode node, CancellationToken cancellation)
+    public ValueTask<bool> FunctionModifiersAsync(SyntaxNode node, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
-        DecoratorGrammar(node);
-        if (SemanticSyntax.ClassLike(node.Parent) || node is ConstructorDeclarationNode)
-        {
-            ClassMemberModifiers(node);
-            return ValueTask.CompletedTask;
-        }
-        if (node is ConstructorTypeNode { Modifiers: { Count: 1 } constructorModifiers }
-            && constructorModifiers[0].Kind == SyntaxKind.AbstractKeyword)
-            return ValueTask.CompletedTask;
-        if (node is IModifiedNode { Modifiers: { } modifiers }
-            && modifiers.Any(
-                m => m is not DecoratorNode && m.Kind is not (SyntaxKind.AsyncKeyword or SyntaxKind.ExportKeyword
-                    or SyntaxKind.DefaultKeyword
-                    or SyntaxKind.DeclareKeyword)))
-            throw new InvalidOperationException("Checker requires function modifier grammar");
-        return ValueTask.CompletedTask;
+        return ValueTask.FromResult(DeclarationModifiers(node));
     }
 
     public ValueTask TypeParameterModifiersAsync(TypeParameterDeclarationNode node, CancellationToken cancellation)

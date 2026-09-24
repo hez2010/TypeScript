@@ -47,6 +47,7 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
     internal Action? BeforeResolveType { get; set; }
     internal Action? BeforeValueResolution { get; set; }
     internal Func<SyntaxNode, string, ValueTask<bool>>? MissingPrefixCheck { get; set; }
+    internal Func<SyntaxNode, ValueTask<bool>>? ExtendingInterfaceCheck { get; set; }
     internal Func<Symbol, Symbol>? LateMemberSymbol { get; set; }
     internal Func<Symbol, CancellationToken, ValueTask<Signature?>>? CallSignature { get; set; }
     internal Func<PropertyDeclarationNode, SyntaxNode, SyntaxNode, CancellationToken, ValueTask<bool>>? StaticInitialization { get; set; }
@@ -194,6 +195,8 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
     public void FailedResolution(SyntaxNode? location, string name, SymbolFlags meaning, DiagnosticMessage message)
     {
         if (location is not null && MissingPrefixCheck is not null && MissingPrefixCheck(location, name).GetAwaiter().GetResult())
+            return;
+        if (location is not null && ExtendingInterfaceCheck is not null && ExtendingInterfaceCheck(location).GetAwaiter().GetResult())
             return;
         if (location is not null && (meaning & SymbolFlags.Value) != 0)
         {

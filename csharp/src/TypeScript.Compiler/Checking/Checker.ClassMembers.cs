@@ -6,53 +6,13 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
-    private void ClassMemberModifiers(SyntaxNode node)
-    {
-        if (DecoratorGrammar(node))
-            return;
-        if (node is not IModifiedNode { Modifiers: { } modifiers })
-            return;
-        var seen = new HashSet<SyntaxKind>();
-        bool accessibility = false;
-        foreach (var modifier in modifiers)
-        {
-            if (modifier is DecoratorNode)
-                continue;
-            if (modifier.Kind is SyntaxKind.InKeyword or SyntaxKind.OutKeyword)
-            {
-                if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
-                    Error(modifier, 1274);
-                return;
-            }
-            bool access = modifier.Kind is SyntaxKind.PublicKeyword or SyntaxKind.PrivateKeyword or SyntaxKind.ProtectedKeyword;
-            if (!seen.Add(modifier.Kind))
-                Error(modifier, 1030);
-            else if (access && accessibility)
-                Error(modifier, 1028);
-            accessibility |= access;
-            if (access && SemanticSyntax.Name(node) is PrivateIdentifierNode)
-                Error(modifier, 18010);
-            if (modifier.Kind == SyntaxKind.ReadonlyKeyword
-                && node is not PropertyDeclarationNode and not PropertySignatureDeclarationNode and not IndexSignatureDeclarationNode
-                    and not ParameterDeclarationNode)
-                Error(modifier, 1024);
-            if (node is ConstructorDeclarationNode && !access)
-                Error(modifier, 1089);
-            if (modifier.Kind is not (SyntaxKind.PublicKeyword or SyntaxKind.PrivateKeyword or SyntaxKind.ProtectedKeyword
-                or SyntaxKind.StaticKeyword
-                or SyntaxKind.AbstractKeyword or SyntaxKind.AsyncKeyword or SyntaxKind.ReadonlyKeyword or SyntaxKind.OverrideKeyword or SyntaxKind.DeclareKeyword or SyntaxKind.AccessorKeyword))
-                Error(modifier, 1042);
-        }
-        if (seen.Contains(SyntaxKind.AbstractKeyword)
-            && (seen.Contains(SyntaxKind.PrivateKeyword) || seen.Contains(SyntaxKind.StaticKeyword)))
-            Error(node, 1243);
-    }
+    private bool ClassMemberModifiers(SyntaxNode node) => DeclarationModifiers(node);
 
     private async ValueTask CheckPropertySourceAsync(PropertyDeclarationNode node, CancellationToken cancellation)
     {
-        ClassMemberModifiers(node);
+        bool modifierError = ClassMemberModifiers(node);
         await CheckDecoratorsAsync(node, cancellation).ConfigureAwait(false);
-        if (!DecoratorGrammar(node))
+        if (!modifierError)
             await PropertyGrammarAsync(node, cancellation).ConfigureAwait(false);
         if (node.Name is ComputedPropertyNameNode computed)
             await ComputedNameAsync(computed, cancellation).ConfigureAwait(false);

@@ -341,6 +341,7 @@ internal sealed partial class Checker
                     // Namespace-export declarations are handled by the binder and alias resolver.
                     break;
                 case PropertySignatureDeclarationNode property:
+                    DeclarationModifiers(property);
                     if (property.Name is PrivateIdentifierNode)
                         Error(property, 18016);
                     if (property.Name is ComputedPropertyNameNode computed)

@@ -194,7 +194,35 @@ internal static class CheckerAccessTests
         Check(AccessExpressions.DeleteTarget(current));
         checks += await ClassSafety();
         checks += await JavaScriptPropertySafety();
+        checks += await DeclarationGrammarSafety();
         Console.WriteLine($"{checks} access/optional/member/class/cancellation/spelling assertions; 20,000-level traversal.");
+    }
+
+    private static async Task<int> DeclarationGrammarSafety()
+    {
+        const string source = """
+            namespace Ns { export interface Base {} }
+            class Derived extends Ns.Base {}
+            private function top() {}
+            interface T { private f(): void; }
+            const value = { public f() {} };
+            async enum E {}
+            accessor interface I {}
+            function nested() { export const x = 1; }
+            declare namespace Outer { declare const v: number; }
+            """;
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
+            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var file = program.SourceFiles[0].Syntax;
+        await checker.CheckSourceFileAsync(file);
+        var codes = checker.DiagnosticCodesForFile(file);
+        if (!codes.SequenceEqual([1038, 1042, 1042, 1044, 1070, 1184, 1184, 1275, 2689]))
+            throw new InvalidOperationException($"Declaration/heritage diagnostics: {string.Join(',', codes)}");
+        return 1;
     }
 
     private static async Task<int> JavaScriptPropertySafety()

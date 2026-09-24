@@ -1,0 +1,150 @@
+{
+    "timestamp": "2026-09-24T18:48:09.689Z",
+    "mode": "default",
+    "configuration": "Release",
+    "selectedConfigurations": 8617,
+    "replayedConfigurations": 8617,
+    "retainedConfigurations": 0,
+    "previousMatches": 7701,
+    "graphAndCodeMatches": 7830,
+    "recoveredConfigurations": 129,
+    "regressions": [],
+    "scope": "Enum relations, heritage interface diagnostics and shared declaration modifier grammar; full phase 4 remains incomplete",
+    "parts": [
+        {
+            "directory": "built/csharp/semantic-corpus-relations-affected/default",
+            "summary": {
+                "timestamp": "2026-09-24T18:47:41.287Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "mode": "default",
+                "filter": "",
+                "managed": true,
+                "reuseSyntax": true,
+                "referenceJobs": 4,
+                "scope": "Original compiler test program graphs and semantic diagnostic codes; full diagnostic/type/symbol fidelity and parallel candidate checker scheduling remain incomplete",
+                "referenceExitCode": 0,
+                "exportedConfigurations": 15208,
+                "readyConfigurations": 8617,
+                "availableConfigurations": 13446,
+                "selectionSha256": "4ce76b6a558046ba76c5f55947998d49bac564e33dbc8af0592167fc189046e9",
+                "referenceInventoryFiles": 12730,
+                "plannedConfigurations": 15208,
+                "referenceMissingFiles": [],
+                "referenceMissingConfigurations": [],
+                "referenceSkipped": 1762,
+                "referenceFailed": 0,
+                "candidateFailures": 25,
+                "graphMismatches": 14,
+                "diagnosticMismatches": 762,
+                "graphAndCodeMatches": 7830,
+                "errorGroups": [
+                    {
+                        "error": "create-program: Corpus adapter requires the reference test content-mapper host",
+                        "count": 10
+                    },
+                    {
+                        "error": "check-program: Unable to cast object of type 'TypeScript.Compiler.Checking.IntrinsicType' to type 'TypeScript.Compiler.Checking.TypeParameter'.",
+                        "count": 4
+                    },
+                    {
+                        "error": "check-program: Unable to cast object of type 'TypeScript.Compiler.Checking.ObjectType' to type 'TypeScript.Compiler.Checking.InterfaceType'.",
+                        "count": 2
+                    },
+                    {
+                        "error": "check-program: Checker requires constructor identity narrowing",
+                        "count": 2
+                    },
+                    {
+                        "error": "check-program: Checker requires explicit annotation related information",
+                        "count": 2
+                    },
+                    {
+                        "error": "check-program: position ('1133') must be less than or equal to '1124'. (Parameter 'position')\r\nActual value was 1133.",
+                        "count": 1
+                    },
+                    {
+                        "error": "check-program: Checker requires import/tagged-template/decorator/JSX/instanceof call resolution",
+                        "count": 1
+                    },
+                    {
+                        "error": "check-program: Unable to cast object of type 'TypeScript.Compiler.Ast.PropertyAccessExpressionNode' to type 'TypeScript.Compiler.Ast.CallExpressionNode'.",
+                        "count": 1
+                    },
+                    {
+                        "error": "check-program: Unable to cast object of type 'TypeScript.Compiler.Ast.IdentifierNode' to type 'TypeScript.Compiler.Ast.CallExpressionNode'.",
+                        "count": 1
+                    },
+                    {
+                        "error": "check-program: Object reference not set to an instance of an object.",
+                        "count": 1
+                    }
+                ],
+                "inputSha256": "1021223d26cfedad8b1989a152ffb776bc54750978c457480fc0a0bb8f8bb3bf",
+                "oracleSha256": "072ce20500e1dfa626e6029e8ba98ed84b925a304216116200dd33d97f54654a",
+                "candidateSha256": "1ae07fad329d95c12d7a0c3fb40d152298f0e4cd3462e504359ff2f85ee9fdec",
+                "compilerSha256": "56954d9a458e57328ae01a24092c90b71f72a374a3d90e913201e3f909eccf62",
+                "candidateOutputSha256": "8d0ecc58e2b8f31f5755b58ce0f4dabcfe2f929bee2547ae911e110fc4704610",
+                "fullSemanticCorpusGateComplete": false
+            },
+            "outputSha256": "8d0ecc58e2b8f31f5755b58ce0f4dabcfe2f929bee2547ae911e110fc4704610"
+        }
+    ],
+    "cumulative": {
+        "activeConfigurations": 13446,
+        "matches": 12294,
+        "remaining": 1152,
+        "failed": 47,
+        "diagnosticMismatches": 1104,
+        "graphMismatches": 20,
+        "topStops": [
+            [
+                "Corpus adapter requires the reference test content-mapper host",
+                15
+            ],
+            [
+                "Checker requires constructor identity narrowing",
+                5
+            ],
+            [
+                "Unable to cast object of type 'TypeScript.Compiler.Checking.IntrinsicType' to type 'TypeScript.Compiler.Checking.TypeParameter'.",
+                4
+            ],
+            [
+                "Checker requires expression checking for JsxElement",
+                4
+            ],
+            [
+                "Unable to cast object of type 'TypeScript.Compiler.Checking.ObjectType' to type 'TypeScript.Compiler.Checking.InterfaceType'.",
+                2
+            ],
+            [
+                "Checker requires expression checking for JsxFragment",
+                2
+            ],
+            [
+                "Checker requires explicit annotation related information",
+                2
+            ],
+            [
+                "Checker requires expression checking for ComputedPropertyName",
+                2
+            ],
+            [
+                "position ('1930') must be less than or equal to '1902'. (Parameter 'position')\r\nActual value was 1930.",
+                2
+            ],
+            [
+                "position ('1133') must be less than or equal to '1124'. (Parameter 'position')\r\nActual value was 1133.",
+                1
+            ],
+            [
+                "Checker requires expression checking for JsxSelfClosingElement",
+                1
+            ],
+            [
+                "Checker requires import/tagged-template/decorator/JSX/instanceof call resolution",
+                1
+            ]
+        ]
+    }
+}

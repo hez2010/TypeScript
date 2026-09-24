@@ -218,16 +218,7 @@ internal sealed partial class Checker
 
     private void CheckClassModifiers(SyntaxNode node)
     {
-        DecoratorGrammar(node);
-        if (node is IModifiedNode { Modifiers: { } modifiers })
-            foreach (var modifier in modifiers)
-            {
-                if (modifier is DecoratorNode)
-                    continue;
-                if (modifier.Kind is not (SyntaxKind.AbstractKeyword or SyntaxKind.DeclareKeyword or SyntaxKind.ExportKeyword
-                    or SyntaxKind.DefaultKeyword))
-                    Error(modifier, 1042);
-            }
+        DeclarationModifiers(node);
     }
 
     private static bool ParameterProperty(SyntaxNode node) => node is ParameterDeclarationNode

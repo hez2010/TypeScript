@@ -89,9 +89,23 @@ internal sealed partial class Checker : IAccessExpressionHost, IIndexedAccessVal
         return false;
     }
 
-    public ValueTask<bool> ExtendingInterfaceAsync(SyntaxNode node, CancellationToken cancellation)
-            => DeclarationOrder.Ancestor(node, n => n is HeritageClauseNode) is null ? ValueTask.FromResult(false)
-                : throw new InvalidOperationException("Checker requires heritage property diagnostics");
+    public async ValueTask<bool> ExtendingInterfaceAsync(SyntaxNode node, CancellationToken cancellation)
+    {
+        var current = node;
+        while (current is IdentifierNode or QualifiedNameNode or PropertyAccessExpressionNode)
+            current = current.Parent;
+        var expression = current switch
+        {
+            TypeReferenceNode reference => reference.TypeName,
+            ExpressionWithTypeArgumentsNode reference when TypeScript.Compiler.Semantics.ConstantEvaluator.EntityName(reference.Expression!) => reference.Expression,
+            _ => null
+        };
+        if (expression is null
+            || await program.EntityNames.ResolveAsync(expression, SymbolFlags.Interface, true, cancellation: cancellation) is null)
+            return false;
+        Error(node, 2689);
+        return true;
+    }
 
     public void MissingProperty(SyntaxNode node, Type type, bool suggestion) => DeferredMissingProperties.Add((node, type, suggestion));
 

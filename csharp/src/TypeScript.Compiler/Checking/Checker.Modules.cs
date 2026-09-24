@@ -73,15 +73,10 @@ internal sealed partial class Checker
 
     private void ExportedDeclaration(SyntaxNode node, bool value)
     {
-        DecoratorGrammar(node);
+        if (DeclarationModifiers(node))
+            return;
         if (node is not IModifiedNode { Modifiers: { } modifiers })
             return;
-        foreach (var modifier in modifiers)
-            if (modifier is not DecoratorNode && modifier.Kind is not (SyntaxKind.ExportKeyword or SyntaxKind.DefaultKeyword
-                or SyntaxKind.DeclareKeyword
-                or SyntaxKind.AsyncKeyword or SyntaxKind.AbstractKeyword) && !(node is EnumDeclarationNode
-                    && modifier.Kind == SyntaxKind.ConstKeyword))
-                throw new InvalidOperationException("Checker requires declaration modifier validation");
         if (value && node.Parent is SourceFileNode && (node.Flags & NodeFlags.Ambient) == 0
             && program.Symbols.Program.Configuration.Options.Boolean("verbatimModuleSyntax") == true && EmitModuleKind(node) == 1
             && modifiers.FirstOrDefault(m => m.Kind == SyntaxKind.ExportKeyword) is { } export)
@@ -201,7 +196,7 @@ internal sealed partial class Checker
     {
         if (!ModuleContext(node, (node.Flags & NodeFlags.JavaScriptFile) != 0 ? 1473 : 1232))
             return;
-        if (node.Modifiers is { Count: > 0 })
+        if (!DeclarationModifiers(node) && node.Modifiers is { Count: > 0 })
             Error(node, 1191);
         if (!ExternalModuleSyntax(node, node.ModuleSpecifier))
             return;
@@ -319,7 +314,7 @@ internal sealed partial class Checker
     {
         if (!ModuleContext(node, (node.Flags & NodeFlags.JavaScriptFile) != 0 ? 1474 : 1233))
             return;
-        if (node.Modifiers is { Count: > 0 })
+        if (!DeclarationModifiers(node) && node.Modifiers is { Count: > 0 })
             Error(node, 1193);
         await CheckImportAttributesAsync(node, node.Attributes, cancellation).ConfigureAwait(false);
         if (node.ModuleSpecifier is not null && !ExternalModuleSyntax(node, node.ModuleSpecifier))
@@ -379,7 +374,7 @@ internal sealed partial class Checker
         }
         if (node.IsExportEquals && ErasableSyntaxOnly && (node.Flags & NodeFlags.Ambient) == 0)
             Error(node, 1294);
-        if (node.Modifiers is { Count: > 0 })
+        if (!DeclarationModifiers(node) && node.Modifiers is { Count: > 0 })
             Error(node, 1120);
         bool verbatim = program.Symbols.Program.Configuration.Options.Boolean("verbatimModuleSyntax") == true;
         bool illegalDefault = !node.IsExportEquals && (node.Flags & NodeFlags.Ambient) == 0 && verbatim && EmitModuleKind(node) == 1;

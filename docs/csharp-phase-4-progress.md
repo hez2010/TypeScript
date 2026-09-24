@@ -4,9 +4,9 @@
 
 ## Current overall status
 
-The complete Release import baseline plus subsequent affected-case results record **12,165 matches out of 13,446 active compiler configurations**, up from 12,096 before statement/template/variance integration and 9,365 at the original Release baseline. **1,281 configurations still do not match**: 84 stop in unsupported paths and 1,196 complete with diagnostic-code differences. There are also 20 source-graph differences, overlapping those categories. The largest remaining stop groups are content-mapper replay (15), enum relations (11), heritage property diagnostics (9), declaration modifiers (9), function modifier grammar (6), and constructor-identity narrowing (5).
+The complete Release import baseline plus subsequent affected-case results record **12,294 matches out of 13,446 active compiler configurations**, up from 12,165 before enum/heritage/modifier integration and 9,365 at the original Release baseline. **1,152 configurations still do not match**: 47 stop in unsupported paths and 1,104 complete with diagnostic-code differences. There are also 20 source-graph differences, overlapping those categories. The largest remaining stop groups are content-mapper replay (15), constructor-identity narrowing (5), invalid type-parameter casts (4), and JSX expressions reached through unsupported checking paths (7 across three node kinds).
 
-These comparisons cover source graphs and diagnostic codes. **90.5% matching on this measure is not a Phase-4 completion percentage.** Complete diagnostic text, locations and related information; full type/symbol comparison; type display, node builders, accessibility and emit-resolver APIs; parallel checker validation; and the final memory/performance gates remain unfinished. Phase 4 is not nearly complete, and the evidence does not yet support a reliable completion estimate.
+These comparisons cover source graphs and diagnostic codes. **91.4% matching on this measure is not a Phase-4 completion percentage.** Complete diagnostic text, locations and related information; full type/symbol comparison; type display, node builders, accessibility and emit-resolver APIs; parallel checker validation; and the final memory/performance gates remain unfinished. Phase 4 is not nearly complete, and the evidence does not yet support a reliable completion estimate.
 
 The next implementation priorities are remaining declaration/expression checks and diagnostic fidelity. The sections below are historical implementation checkpoints; their individual passing counts do not represent whole-phase completion.
 
@@ -762,6 +762,16 @@ Type parameters now validate `const`, `in` and `out` placement, duplicates and o
 Release validation covers **1,501 configurations in each reference mode**, increasing graph/code matches from **1,259 to 1,328**, with **69 recovered configurations and no regressions**. Forty-seven unaffected single-mode results were retained from the initial run. Both modes agree on all classifications, source graphs and diagnostic codes. Expression/signature queries pass **256 configurations**; the corresponding safety suites pass **190 assertions**, including five new assertions backed by two pinned-Go fixtures. The Release build has zero warnings and errors. Unchanged reference and repository checks were reused; NativeAOT remains deferred until final phase-4 completion.
 
 Evidence: [single-mode corpus](../csharp/compatibility/evidence/phase4-grammar-corpus-single.json), [reference-default corpus](../csharp/compatibility/evidence/phase4-grammar-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-grammar-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-grammar-validation.json).
+
+## Enum relations, heritage errors and shared modifiers
+
+Enum relations now compare enum identity, names, regular/const kind, member presence and values. Opaque numeric values remain compatible with numeric values, while differing known values and string/unknown-numeric combinations are rejected. Comparisons are directional, cached by symbol pair and cancellation-aware. Enum-member symbols resolve through their parent enums.
+
+Heritage diagnostics recognize attempts to extend interfaces through both missing-property and failed-name resolution. Declaration, class-member, function-signature, import and export grammar share modifier validation for placement, ordering, duplicates and invalid combinations. Function and property grammar stop after a modifier error instead of producing cascading errors.
+
+Release validation covers **8,617 configurations in each reference mode**, increasing graph/code matches from **7,701 to 7,830**, with **129 recovered configurations and no regressions**. Two unaffected enum-only single-mode results were retained from the initial run. Access/assignability queries pass **744 configurations**; relation/access safety passes **102 assertions**, including 13 new checks. The declaration/heritage fixture matches the pinned Go checker. The Release build has zero warnings and errors; formatting preserved tokens, comments and syntax in all 14 changed C# files. Reference and unchanged repository results were reused. NativeAOT remains deferred until final phase-4 completion.
+
+Evidence: [single-mode corpus](../csharp/compatibility/evidence/phase4-relations-corpus-single.json), [reference-default corpus](../csharp/compatibility/evidence/phase4-relations-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-relations-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-enum-modifiers-validation.json).
 
 ## Remaining completion work
 

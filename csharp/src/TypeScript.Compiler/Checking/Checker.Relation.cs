@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 
 namespace TypeScript.Compiler.Checking;
@@ -33,8 +34,42 @@ internal sealed partial class Checker : ITypeNormalizationHost, ITypeRelationHos
         CancellationToken cancellation)
             => Structural.RelatedAsync(operation, source, target, recursion, intersection, cancellation);
 
-    public ValueTask<bool> EnumRelatedAsync(Symbol source, Symbol target, CancellationToken cancellation)
-            => source == target ? ValueTask.FromResult(true) : throw new InvalidOperationException("Checker requires enum relations");
+    private readonly Dictionary<(Symbol Source, Symbol Target), bool> enumRelations = [];
+
+    public async ValueTask<bool> EnumRelatedAsync(Symbol source, Symbol target, CancellationToken cancellation)
+    {
+        cancellation.ThrowIfCancellationRequested();
+        source = (source.Flags & SymbolFlags.EnumMember) != 0 ? program.Symbols.Parent(source)! : source;
+        target = (target.Flags & SymbolFlags.EnumMember) != 0 ? program.Symbols.Parent(target)! : target;
+        if (source == target)
+            return true;
+        if (source.Name != target.Name || (source.Flags & SymbolFlags.RegularEnum) == 0 || (target.Flags & SymbolFlags.RegularEnum) == 0)
+            return false;
+        var key = (source, target);
+        if (enumRelations.TryGetValue(key, out bool cached))
+            return cached;
+        var targetType = await Values.GetAsync(target, cancellation).ConfigureAwait(false);
+        foreach (var member in await Properties.GetAsync(
+            await Values.GetAsync(source, cancellation).ConfigureAwait(false),
+            cancellation).ConfigureAwait(false))
+        {
+            if ((member.Flags & SymbolFlags.EnumMember) == 0)
+                continue;
+            var other = await Properties.PropertyAsync(targetType, member.Name, cancellation: cancellation).ConfigureAwait(false);
+            if (other is null || (other.Flags & SymbolFlags.EnumMember) == 0)
+                return enumRelations[key] = false;
+            var value = (await EnumValues.GetAsync(
+                member.Declarations.OfType<EnumMemberNode>().First(),
+                cancellation).ConfigureAwait(false)).Value;
+            var otherValue = (await EnumValues.GetAsync(
+                other.Declarations.OfType<EnumMemberNode>().First(),
+                cancellation).ConfigureAwait(false)).Value;
+            bool equal = value is double number && otherValue is double otherNumber ? number == otherNumber : Equals(value, otherValue);
+            if (!equal && (value is not null && otherValue is not null || value is string || otherValue is string))
+                return enumRelations[key] = false;
+        }
+        return enumRelations[key] = true;
+    }
 
     public void ComplexityOverflow(Type source, Type target)
     {

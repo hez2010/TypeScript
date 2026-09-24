@@ -1,0 +1,150 @@
+{
+    "timestamp": "2026-09-24T18:48:11.8813530+00:00",
+    "configuration": "Release",
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "managed": true,
+    "scope": "Enum relations, heritage interface diagnostics and shared declaration modifier grammar; phase 4 remains incomplete",
+    "candidateSha256": "1ae07fad329d95c12d7a0c3fb40d152298f0e4cd3462e504359ff2f85ee9fdec",
+    "compilerSha256": "56954d9a458e57328ae01a24092c90b71f72a374a3d90e913201e3f909eccf62",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-relations-final-build.log",
+        "sha256": "73751e515b9d37112593c91aecdda3ab989d68373746634c9c80354f29d6084a"
+    },
+    "queries": {
+        "access": {
+            "record": "phase4-relations-access.json",
+            "cases": 412,
+            "exact": 412,
+            "candidateSha256": "1ae07fad329d95c12d7a0c3fb40d152298f0e4cd3462e504359ff2f85ee9fdec",
+            "compilerSha256": "56954d9a458e57328ae01a24092c90b71f72a374a3d90e913201e3f909eccf62"
+        },
+        "assignability": {
+            "record": "phase4-relations-assignability.json",
+            "cases": 332,
+            "exact": 332,
+            "candidateSha256": "1ae07fad329d95c12d7a0c3fb40d152298f0e4cd3462e504359ff2f85ee9fdec",
+            "compilerSha256": "56954d9a458e57328ae01a24092c90b71f72a374a3d90e913201e3f909eccf62"
+        }
+    },
+    "safety": {
+        "assertions": 102,
+        "newAssertions": 13,
+        "relationAssertions": 48,
+        "accessAssertions": 54,
+        "checks": [
+            "enum name, kind, member, value and subset compatibility",
+            "opaque numeric and string enum distinctions",
+            "enum member parent identity",
+            "cancellation before cached enum result",
+            "heritage interface diagnostics from qualified property and failed-name paths",
+            "shared modifier diagnostics and suppression of cascading grammar errors"
+        ],
+        "relationLog": "logs/csharp-phase4-relations-safety.log",
+        "relationSha256": "4671beb952ffa41ce68057030acd0da2bf6ad5f2dbe0582b53292dbb545d0ca5",
+        "accessLog": "logs/csharp-phase4-relations-access-safety.log",
+        "accessSha256": "f14546b075c1224c99f08a5d951f348c61e73e60d7f54410becd198a8f51f6a2",
+        "referenceFixture": "built/csharp/relations-safety-reference.jsonl",
+        "referenceFixtureSha256": "d207681fbbb4a9e4ee43ac43bf003ac7fdf92b733520aa48ffc3c7c73c8cfe6d",
+        "runBeforeWhitespaceFormatting": true,
+        "retainedRelationSafety": "Executed before the failed-name heritage callback was connected. Enum implementation and fixture inputs were unchanged by that follow-up."
+    },
+    "corpus": {
+        "single": "phase4-relations-corpus-single.json",
+        "referenceDefault": "phase4-relations-corpus-default.json",
+        "parity": "phase4-relations-mode-parity.json",
+        "selectedConfigurationsPerMode": 8617,
+        "previousMatches": 7701,
+        "graphAndCodeMatches": 7830,
+        "recoveredConfigurations": 129,
+        "regressions": [],
+        "cumulative": {
+            "activeConfigurations": 13446,
+            "matches": 12294,
+            "remaining": 1152,
+            "failed": 47,
+            "diagnosticMismatches": 1104,
+            "graphMismatches": 20,
+            "topStops": [
+                [
+                    "Corpus adapter requires the reference test content-mapper host",
+                    15
+                ],
+                [
+                    "Checker requires constructor identity narrowing",
+                    5
+                ],
+                [
+                    "Unable to cast object of type 'TypeScript.Compiler.Checking.IntrinsicType' to type 'TypeScript.Compiler.Checking.TypeParameter'.",
+                    4
+                ],
+                [
+                    "Checker requires expression checking for JsxElement",
+                    4
+                ],
+                [
+                    "Unable to cast object of type 'TypeScript.Compiler.Checking.ObjectType' to type 'TypeScript.Compiler.Checking.InterfaceType'.",
+                    2
+                ],
+                [
+                    "Checker requires expression checking for JsxFragment",
+                    2
+                ],
+                [
+                    "Checker requires explicit annotation related information",
+                    2
+                ],
+                [
+                    "Checker requires expression checking for ComputedPropertyName",
+                    2
+                ],
+                [
+                    "position ('1930') must be less than or equal to '1902'. (Parameter 'position')\r\nActual value was 1930.",
+                    2
+                ],
+                [
+                    "position ('1133') must be less than or equal to '1124'. (Parameter 'position')\r\nActual value was 1133.",
+                    1
+                ],
+                [
+                    "Checker requires expression checking for JsxSelfClosingElement",
+                    1
+                ],
+                [
+                    "Checker requires import/tagged-template/decorator/JSX/instanceof call resolution",
+                    1
+                ]
+            ]
+        }
+    },
+    "formatting": {
+        "csharpFiles": 14,
+        "tokenCommentSyntaxIdentical": true,
+        "libraryConfigurations": 2,
+        "dotnetWhitespaceExitCode": 0,
+        "diffCheckExitCode": 0,
+        "proofLog": "logs/csharp-phase4-relations-format-final.log",
+        "proofSha256": "332b8ab5f881bd9e252ba7765e4be9fbebdd28219fe09d644919b6be206d4621"
+    },
+    "reusedValidation": {
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "repositoryCommand": "npx hereby validate --all",
+        "repositoryExitCode": 0,
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            "csharp/tools",
+            ".github/copilot-instructions.md"
+        ],
+        "retainedInitialSingleModeCases": 2,
+        "reason": "User directed reuse of unchanged results. Reference corpus and Go repository validation were reused. Two enum-only cases avoid the class, function, signature, import and inheritance paths changed after the initial run. Safety results were retained after token/comment/syntax-preserving formatting."
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "phase4Complete": false
+}

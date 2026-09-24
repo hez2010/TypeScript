@@ -297,8 +297,50 @@ internal static class CheckerRelationTests
         {
             checks++;
         }
+        checks += await EnumSafety();
         Console.WriteLine(
             $"{checks} relation key/cache/normalization/cancellation assertions; exact 100-level comparison cutoff; key and base chains depth 20000");
+    }
+
+    private static async Task<int> EnumSafety()
+    {
+        const string source = """
+            namespace A { export enum E { First = 0, Second = 1 } }
+            namespace B { export enum E { First = 0, Second = 1 } }
+            namespace C { export enum E { First = 0, Second = 2 } }
+            namespace D { export enum E { First = 0 } }
+            namespace Opaque { export declare enum E { First, Second } }
+            namespace Text { export enum E { First = 'first', Second = 'second' } }
+            namespace Constant { export const enum E { First = 0, Second = 1 } }
+            """;
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
+            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var enums = program.SourceFiles[0].Syntax.DescendantsAndSelf().OfType<EnumDeclarationNode>()
+            .ToDictionary(n => ((IdentifierNode)((ModuleDeclarationNode)n.Parent!.Parent!).Name!).Text,
+                n => checker.Environment.Symbols.Declaration(n)!);
+        var cases = new (string Source, string Target, bool Expected)[]
+        {
+            ("A", "A", true), ("A", "B", true), ("A", "C", false), ("A", "D", false), ("D", "A", true),
+            ("A", "Opaque", true), ("Opaque", "A", true), ("Text", "Opaque", false), ("Opaque", "Text", false), ("A", "Constant", false)
+        };
+        foreach (var item in cases)
+            if (await checker.EnumRelatedAsync(enums[item.Source], enums[item.Target], default) != item.Expected)
+                throw new InvalidOperationException($"Enum relation {item.Source} -> {item.Target}");
+        if (!await checker.EnumRelatedAsync(enums["A"].Exports["First"], enums["B"].Exports["First"], default))
+            throw new InvalidOperationException("Enum member relation lost parent identity");
+        using var cancelled = new CancellationTokenSource();
+        cancelled.Cancel();
+        try
+        {
+            await checker.EnumRelatedAsync(enums["A"], enums["B"], cancelled.Token);
+            throw new InvalidOperationException("Cached enum relation ignored cancellation");
+        }
+        catch (OperationCanceledException) { }
+        return cases.Length + 2;
     }
 
     internal static async Task WriteAsync(Utf8JsonWriter writer, SyntaxNode[] nodes, CheckerSymbols symbols, Checker host,

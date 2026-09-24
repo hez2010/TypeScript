@@ -35,7 +35,7 @@ internal interface IFunctionDeclarationHost
 
     ValueTask<Type> BindingIterationAsync(Type type, SyntaxNode? node, bool outOfBounds, CancellationToken cancellation);
 
-    ValueTask FunctionModifiersAsync(SyntaxNode node, CancellationToken cancellation);
+    ValueTask<bool> FunctionModifiersAsync(SyntaxNode node, CancellationToken cancellation);
 
     ValueTask TypeParameterModifiersAsync(TypeParameterDeclarationNode node, CancellationToken cancellation);
 
@@ -53,7 +53,8 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
 {
     internal async ValueTask GrammarAsync(SyntaxNode node, CancellationToken cancellation = default)
     {
-        await host.FunctionModifiersAsync(node, cancellation).ConfigureAwait(false);
+        if (await host.FunctionModifiersAsync(node, cancellation).ConfigureAwait(false))
+            return;
         var signature = (IFunctionSignature)node;
         bool grammar = SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0;
         void Error(SyntaxNode at, int code)

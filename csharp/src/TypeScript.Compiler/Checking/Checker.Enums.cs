@@ -11,10 +11,6 @@ internal sealed partial class Checker
     private async ValueTask CheckEnumSourceAsync(EnumDeclarationNode node, CancellationToken cancellation)
     {
         CheckDeclarationName(node);
-        if (node.Modifiers?.Any(
-            m => m is not DecoratorNode
-                && m.Kind is not (SyntaxKind.ExportKeyword or SyntaxKind.DeclareKeyword or SyntaxKind.ConstKeyword)) == true)
-            throw new InvalidOperationException("Checker requires enum modifier grammar");
         ExportedDeclaration(node, true);
         await CheckMergedExportsAsync(node, cancellation).ConfigureAwait(false);
         foreach (var member in node.Members!)

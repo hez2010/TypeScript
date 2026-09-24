@@ -169,6 +169,7 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
         ExplicitValues = new(links, program.Symbols, program.ReferenceSymbols, program.Aliases, Values, Properties, this);
         MissingNames = new(program.Symbols, Values, Declared, Properties, (node, code, symbol) => Error(node, code));
         program.MissingPrefixCheck = (node, name) => MissingNames.CheckAsync(node, name);
+        program.ExtendingInterfaceCheck = node => ExtendingInterfaceAsync(node, default);
         AliasReferences = new(program.Symbols, links, program.ReferenceSymbols, program.Aliases);
         ReferenceNarrowing = new(context, Algebra, Instantiation.Constraints, Predicates, Instantiation.Mapped, this);
         SymbolNarrowing = new(context, links, Values, Algebra, Instantiation.Constraints, Instantiation.Engine, Views, FlowTypes, this);
