@@ -299,7 +299,17 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
             this);
         Calls = new(context, CallResolution, CallSignatures, Signatures, this);
         Assertions = new(context, Algebra, Widening, ObjectLiterals, Relations, RelationDiagnostics, this);
-        TypeDisplay = new(context, Members, Instantiation.Constraints, References, Values, Signatures, Parameters, Nodes);
+        TypeDisplay = new(
+            context,
+            Members,
+            Instantiation.Constraints,
+            References,
+            Values,
+            Signatures,
+            Parameters,
+            Nodes,
+            Instantiation.Mapped,
+            InferredConstraints, Relations, links, program.Symbols.Program.Configuration.Options.Boolean("noErrorTruncation") == true);
         ValueExpressions = new(context, links, program.Symbols, Values, Facts, this);
         InstantiationExpressions = new(context, Algebra, Instantiation.Constraints, Members, CallSignatures, SignatureInstantiation, this);
         ConstructorAccess = new(program.Symbols, Declared, Bases, Composites, this);

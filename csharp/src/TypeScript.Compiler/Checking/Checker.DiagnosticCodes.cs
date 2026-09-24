@@ -29,6 +29,15 @@ internal sealed partial class Checker
                 Messages.X_0_is_declared_here,
                 suggestion.Name)]
             };
+        if (diagnostic.Code == 2741 && RequiredPropertyDeclarations.TryGetValue(node, out var missing)
+            && missing[0].Declarations.FirstOrDefault() is { } declaration)
+            return diagnostic with
+            {
+                RelatedInformation = [CheckerDiagnostic.Create(
+                declaration,
+                Messages.X_0_is_declared_here,
+                TypeDisplay.SymbolName(missing[0]))]
+            };
         if (program.MergeRelatedDeclarations.TryGetValue((node, diagnostic.Code), out var declarations))
             return diagnostic with
             {

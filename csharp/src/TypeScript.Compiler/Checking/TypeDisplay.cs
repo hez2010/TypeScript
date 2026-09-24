@@ -11,27 +11,60 @@ namespace TypeScript.Compiler.Checking;
 
 // Structural diagnostic displays. Declaration emit and accessibility-aware node
 // building require the separate node-builder service.
-internal sealed class TypeDisplay(TypeContext context, StructuredMembers members, TypeConstraints constraints,
-    TypeReferences references, SymbolTypes values, Signatures signatures, SignatureParameters parameters, TypeNodes nodes)
+internal sealed class TypeDisplay(
+    TypeContext context,
+    StructuredMembers members,
+    TypeConstraints constraints,
+    TypeReferences references,
+    SymbolTypes values,
+    Signatures signatures,
+    SignatureParameters parameters,
+    TypeNodes nodes,
+    MappedTypes mapped,
+    InferredConstraints inferredConstraints,
+    TypeRelations relations,
+    CheckerLinks links,
+    bool noTruncation)
 {
-    internal ValueTask<string> GetAsync(Type type, CancellationToken cancellation = default) => WriteAsync(type, [], cancellation);
+    private sealed class DisplayState
+    {
+        internal HashSet<Type> Active { get; } = [];
+        internal IReadOnlyList<TypeParameter>? InferParameters { get; set; }
+        internal List<Symbol> ReverseMapped { get; } = [];
+    }
 
-    private async ValueTask<string> WriteAsync(Type type, HashSet<Type> active, CancellationToken cancellation)
+    private int serializationLevel;
+
+    internal async ValueTask<string> GetAsync(Type type, CancellationToken cancellation = default)
+    {
+        // Match the reference's guard for diagnostics raised during lazy type serialization.
+        if (serializationLevel >= 2)
+            return "?";
+        serializationLevel++;
+        try
+        {
+            return await WriteAsync(type, new(), cancellation).ConfigureAwait(false);
+        }
+        finally
+        {
+            serializationLevel--;
+        }
+    }
+
+    private async ValueTask<string> WriteAsync(Type type, DisplayState active, CancellationToken cancellation)
     {
         await Task.CompletedTask.ConfigureAwait(
             RuntimeHelpers.TryEnsureSufficientExecutionStack() ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
         cancellation.ThrowIfCancellationRequested();
         context.RequireOwned(type);
-        if (type.Alias is { } alias)
-            return await NamedAsync(alias.Symbol.Name, alias.TypeArguments, active, cancellation).ConfigureAwait(false);
         if (type is IntrinsicType intrinsic)
             return intrinsic.IntrinsicName is "error" or "auto" or "wildcard" ? "any" : intrinsic.IntrinsicName;
         if ((type.Flags & TypeFlags.Boolean) != 0)
             return "boolean";
+        if ((type.Flags & TypeFlags.EnumLike) != 0 && type.Symbol is { } enumSymbol)
+            return (enumSymbol.Flags & SymbolFlags.EnumMember) != 0 ? enumSymbol.Parent!.Name + "." + enumSymbol.Name : enumSymbol.Name;
         if (type is LiteralType literal)
         {
-            if ((literal.Flags & TypeFlags.EnumLiteral) != 0 && literal.Symbol is { } enumMember)
-                return enumMember.Parent!.Name + "." + enumMember.Name;
             return literal.Value switch
             {
                 string text => Quote(text),
@@ -42,13 +75,71 @@ internal sealed class TypeDisplay(TypeContext context, StructuredMembers members
             };
         }
         if (type is TypeParameter parameter)
-            return parameter.IsThisType ? "this" : parameter.Symbol?.Name ?? "T";
+        {
+            string name = parameter.IsThisType ? "this" : parameter.Symbol?.Name ?? "?";
+            if (active.InferParameters?.Contains(parameter) != true)
+                return name;
+            if (await constraints.ConstraintAsync(parameter, cancellation).ConfigureAwait(false) is { } constraint)
+            {
+                var inferred = await inferredConstraints.GetAsync(parameter, omitReferences: true, cancellation).ConfigureAwait(false);
+                if (inferred is null
+                    || !await relations.RelatedAsync(constraint, inferred, RelationKind.Identity, cancellation).ConfigureAwait(false))
+                    name += " extends " + await WriteAsync(constraint, active, cancellation).ConfigureAwait(false);
+            }
+            return "infer " + name;
+        }
         if (type is UniqueSymbolType unique)
-            return "typeof " + unique.Symbol!.Name;
-        if (!active.Add(type))
-            return type.Symbol is { Name: var name } && !name.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal) ? name : "...";
+            return "unique symbol";
+        if (!active.Active.Add(type))
+            return type.Symbol is { Name: var name } && !name.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal) ? name : Elision;
         try
         {
+            if (type.Alias is { } alias)
+                return await NamedAsync(alias.Symbol.Name, alias.TypeArguments, active, cancellation).ConfigureAwait(false);
+            if (type is SubstitutionType substitution)
+            {
+                string text = await WriteAsync(substitution.BaseType, active, cancellation).ConfigureAwait(false);
+                return substitution.Constraint == context.UnknownType ? "NoInfer<" + text + ">" : text;
+            }
+            if (type is TemplateLiteralType template)
+            {
+                static string Escape(string text) => Quote(text, template: true)[1..^1];
+                var text = new StringBuilder("`").Append(Escape(template.Texts[0]));
+                for (int i = 0; i < template.Types.Count; i++)
+                    text.Append("${").Append(await WriteAsync(template.Types[i], active, cancellation).ConfigureAwait(false))
+                        .Append('}').Append(Escape(template.Texts[i + 1]));
+                return text.Append('`').ToString();
+            }
+            if (type is StringMappingType mapping)
+                return await NamedAsync(mapping.Symbol!.Name, [mapping.Target], active, cancellation).ConfigureAwait(false);
+            if (type is ConditionalType conditional)
+            {
+                string check = await WriteAsync(conditional.CheckType, active, cancellation).ConfigureAwait(false);
+                if (conditional.CheckType is ConditionalType)
+                    check = "(" + check + ")";
+                var previous = active.InferParameters;
+                string extends;
+                try
+                {
+                    active.InferParameters = conditional.Root.InferTypeParameters;
+                    extends = await WriteAsync(conditional.ExtendsType, active, cancellation).ConfigureAwait(false);
+                }
+                finally
+                {
+                    active.InferParameters = previous;
+                }
+                if (conditional.ExtendsType is ConditionalType)
+                    extends = "(" + extends + ")";
+                return check + " extends " + extends + " ? "
+                    + await WriteAsync(
+                        await constraints.ConditionalTrueAsync(conditional, cancellation: cancellation).ConfigureAwait(false),
+                        active,
+                        cancellation).ConfigureAwait(false)
+                    + " : " + await WriteAsync(
+                        await constraints.ConditionalFalseAsync(conditional, cancellation).ConfigureAwait(false),
+                        active,
+                        cancellation).ConfigureAwait(false);
+            }
             if (type is UnionOrIntersectionType composite)
             {
                 var parts = new List<string>();
@@ -70,10 +161,13 @@ internal sealed class TypeDisplay(TypeContext context, StructuredMembers members
                 if (reference.Target is TupleType tuple)
                 {
                     var items = new List<string>();
-                    for (int i = 0; i < arguments.Count; i++)
+                    for (int i = 0; i < tuple.ElementInfos.Count; i++)
                     {
                         var info = tuple.ElementInfos[i];
-                        string item = await WriteAsync(arguments[i], active, cancellation).ConfigureAwait(false);
+                        string item = await WriteAsync(
+                            values.NonMissing(arguments[i], (info.Flags & ElementFlags.Optional) != 0),
+                            active,
+                            cancellation).ConfigureAwait(false);
                         bool rest = (info.Flags & (ElementFlags.Rest | ElementFlags.Variadic)) != 0;
                         if ((info.Flags & ElementFlags.Rest) != 0)
                             item += "[]";
@@ -89,7 +183,7 @@ internal sealed class TypeDisplay(TypeContext context, StructuredMembers members
                     }
                     return (tuple.IsReadonly ? "readonly " : "") + "[" + string.Join(", ", items) + "]";
                 }
-                if (reference.Target?.Symbol?.Name is "Array" or "ReadonlyArray" && arguments.Count == 1)
+                if (reference.Target?.Symbol?.Name is "Array" or "ReadonlyArray" && arguments.Count >= 1)
                 {
                     string element = await WriteAsync(arguments[0], active, cancellation).ConfigureAwait(false);
                     if (arguments[0] is UnionOrIntersectionType || element.Contains("=>", StringComparison.Ordinal))
@@ -98,22 +192,62 @@ internal sealed class TypeDisplay(TypeContext context, StructuredMembers members
                 }
                 return await NamedAsync(
                     reference.Target?.Symbol?.Name ?? throw new InvalidOperationException("Unnamed diagnostic reference"),
-                    arguments,
+                    arguments.Take(
+                        ((InterfaceType)reference.Target).AllTypeParameters.Count - (((InterfaceType)reference.Target).ThisType is null
+                            ? 0
+                            : 1)).ToArray(),
                     active,
                     cancellation).ConfigureAwait(false);
             }
             if (type is IndexType index)
-                return "keyof " + await WriteAsync(index.Target, active, cancellation).ConfigureAwait(false);
+            {
+                string target = await WriteAsync(index.Target, active, cancellation).ConfigureAwait(false);
+                return "keyof " + (index.Target is UnionOrIntersectionType or ConditionalType ? "(" + target + ")" : target);
+            }
             if (type is IndexedAccessType indexed)
-                return await WriteAsync(
-                    indexed.ObjectType,
-                    active,
-                    cancellation).ConfigureAwait(false) + "[" + await WriteAsync(
+            {
+                string objectText = await WriteAsync(indexed.ObjectType, active, cancellation).ConfigureAwait(false);
+                if (indexed.ObjectType is UnionOrIntersectionType or ConditionalType or IndexType)
+                    objectText = "(" + objectText + ")";
+                return objectText + "[" + await WriteAsync(
                         indexed.IndexType,
                         active,
                         cancellation).ConfigureAwait(false) + "]";
+            }
             if (type is not ObjectType objectType)
                 throw new InvalidOperationException($"Diagnostic display requires node building for {type.GetType().Name}");
+            if ((type.ObjectFlags & ObjectFlags.ClassOrInterface) != 0 && type.Symbol is { } symbol)
+                return symbol.Name;
+            if (type is MappedType mappedType && await mapped.IsGenericAsync(mappedType, cancellation).ConfigureAwait(false))
+            {
+                var declaration = mappedType.Declaration!;
+                string modifier = declaration.ReadonlyToken?.Kind switch
+                {
+                    SyntaxKind.MinusToken => "-readonly ",
+                    SyntaxKind.PlusToken => "+readonly ",
+                    SyntaxKind.ReadonlyKeyword => "readonly ",
+                    _ => ""
+                };
+                string optional = declaration.QuestionToken?.Kind switch
+                {
+                    SyntaxKind.MinusToken => "-?",
+                    SyntaxKind.PlusToken => "+?",
+                    SyntaxKind.QuestionToken => "?",
+                    _ => ""
+                };
+                var key = await mapped.ParameterAsync(mappedType, cancellation).ConfigureAwait(false);
+                string constraint = await WriteAsync(
+                    await mapped.ConstraintAsync(mappedType, cancellation).ConfigureAwait(false),
+                    active,
+                    cancellation).ConfigureAwait(false);
+                string name = await mapped.NameAsync(mappedType, cancellation).ConfigureAwait(false) is { } nameType
+                    ? " as " + await WriteAsync(nameType, active, cancellation).ConfigureAwait(false) : "";
+                string value = await WriteAsync(
+                    await mapped.TemplateAsync(mappedType, cancellation).ConfigureAwait(false),
+                    active,
+                    cancellation).ConfigureAwait(false);
+                return "{ " + modifier + "[" + key.Symbol!.Name + " in " + constraint + name + "]" + optional + ": " + value + "; }";
+            }
             var resolved = await members.ResolveAsync(objectType, cancellation).ConfigureAwait(false);
             bool emptyMembers = (resolved.Properties?.Count ?? 0) == 0 && resolved.IndexInfos.Count == 0;
             if (emptyMembers && resolved.CallSignatures.Count == 1 && resolved.ConstructSignatures.Count == 0)
@@ -132,33 +266,118 @@ internal sealed class TypeDisplay(TypeContext context, StructuredMembers members
                         : "") + "[x: " + await WriteAsync(
                             indexInfo.KeyType,
                             active,
-                            cancellation).ConfigureAwait(false) + "]: " + await WriteAsync(
+                            cancellation).ConfigureAwait(false) + "]: " + (type is ReverseMappedType ? Elision : await WriteAsync(
                                 indexInfo.ValueType,
                                 active,
-                                cancellation).ConfigureAwait(false) + ";");
+                                cancellation).ConfigureAwait(false)) + ";");
             foreach (var property in resolved.Properties ?? [])
+            {
+                string propertyType;
+                if (ElideReverseMappedProperty(property, active.ReverseMapped))
+                    propertyType = Elision;
+                else
+                {
+                    var value = await values.GetAsync(property, cancellation).ConfigureAwait(false);
+                    bool reverse = (property.CheckFlags & CheckFlags.ReverseMapped) != 0;
+                    if (reverse)
+                        active.ReverseMapped.Add(property);
+                    try
+                    {
+                        propertyType = await WriteAsync(value, active, cancellation).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        if (reverse)
+                            active.ReverseMapped.RemoveAt(active.ReverseMapped.Count - 1);
+                    }
+                }
                 fields.Add(
                     ((property.CheckFlags & CheckFlags.Readonly) != 0
                         || property.Declarations.Any(d => SemanticSyntax.HasModifier(d, SyntaxKind.ReadonlyKeyword))
                         ? "readonly "
                         : "")
-                    + property.Name + ((property.Flags & SymbolFlags.Optional) != 0 ? "?" : "") + ": "
-                    + await WriteAsync(
-                        await values.GetAsync(property, cancellation).ConfigureAwait(false),
-                        active,
-                        cancellation).ConfigureAwait(false) + ";");
+                    + PropertyName(property) + ((property.Flags & SymbolFlags.Optional) != 0 ? "?" : "") + ": "
+                    + propertyType + ";");
+            }
             return fields.Count == 0 ? "{}" : "{ " + string.Join(" ", fields) + " }";
         }
         finally
         {
-            active.Remove(type);
+            active.Active.Remove(type);
         }
+    }
+
+    private string Elision => noTruncation ? "any" : "...";
+
+    internal string SymbolName(Symbol symbol)
+    {
+        var name = SemanticSyntax.Name(symbol.ValueDeclaration ?? symbol.Declarations.FirstOrDefault());
+        if (name is StringLiteralNode && SemanticSyntax.Source(name) is { } file)
+        {
+            var (start, _) = CheckerDiagnostic.TokenRange(file, name.Pos);
+            return file.Source.Text[file.Source.ToUtf16Position(start)..file.Source.ToUtf16Position(name.End)];
+        }
+        return PropertyName(symbol, quote: false);
+    }
+
+    private string PropertyName(Symbol symbol, bool quote = true)
+    {
+        var name = SemanticSyntax.Name(symbol.ValueDeclaration ?? symbol.Declarations.FirstOrDefault());
+        if (name is ComputedPropertyNameNode computed)
+        {
+            static string? EntityName(SyntaxNode? expression)
+            {
+                var parts = new Stack<string>();
+                while (expression is PropertyAccessExpressionNode access)
+                {
+                    if (access.Name is not IdentifierNode member)
+                        return null;
+                    parts.Push(member.Text);
+                    expression = access.Expression;
+                }
+                if (expression is not IdentifierNode identifier)
+                    return null;
+                parts.Push(identifier.Text);
+                return string.Join(".", parts);
+            }
+            if (EntityName(computed.Expression) is { } entity)
+                return "[" + entity + "]";
+        }
+        if (links.Values.TryGet(symbol)?.NameType is UniqueSymbolType unique)
+            return "[" + unique.Symbol!.Name + "]";
+        if (name is PrivateIdentifierNode privateName)
+            return privateName.Text;
+        if (name is NumericLiteralNode)
+            return symbol.Name;
+        bool identifierName = symbol.Name.Length != 0;
+        int index = 0;
+        foreach (var rune in symbol.Name.EnumerateRunes())
+            identifierName &= index++ == 0 ? TokenFacts.IsIdentifierStart(rune.Value) : TokenFacts.IsIdentifierPart(rune.Value);
+        return quote && !identifierName ? Quote(symbol.Name) : symbol.Name;
+    }
+
+    private bool ElideReverseMappedProperty(Symbol property, IReadOnlyList<Symbol> stack)
+    {
+        if ((property.CheckFlags & CheckFlags.ReverseMapped) == 0)
+            return false;
+        if (stack.Contains(property))
+            return true;
+        if (stack.Count != 0 && links.ReverseMappedSymbols.TryGet(stack[^1])?.PropertyType is { } parent
+            && (parent.ObjectFlags & ObjectFlags.Anonymous) == 0)
+            return true;
+        // The reference inspects four preceding symbols after at least three nested mappings.
+        if (stack.Count < 3 || links.ReverseMappedSymbols.TryGet(property)?.MappedType?.Symbol is not { } mappedSymbol)
+            return false;
+        for (int i = 0; i < stack.Count && i <= 3; i++)
+            if (links.ReverseMappedSymbols.TryGet(stack[stack.Count - 1 - i])?.MappedType?.Symbol == mappedSymbol)
+                return true;
+        return false;
     }
 
     private async ValueTask<string> NamedAsync(
         string name,
         IReadOnlyList<Type> arguments,
-        HashSet<Type> active,
+        DisplayState active,
         CancellationToken cancellation)
     {
         if (arguments.Count == 0)
@@ -169,9 +388,9 @@ internal sealed class TypeDisplay(TypeContext context, StructuredMembers members
         return name + "<" + string.Join(", ", parts) + ">";
     }
 
-    private static string Quote(string value)
+    private static string Quote(string value, bool template = false)
     {
-        var result = new StringBuilder("\"");
+        var result = new StringBuilder(template ? "`" : "\"");
         for (int i = 0; i < value.Length; i++)
         {
             char ch = value[i];
@@ -183,11 +402,13 @@ internal sealed class TypeDisplay(TypeContext context, StructuredMembers members
             result.Append(ch switch
             {
                 '\0' => i + 1 < value.Length && char.IsAsciiDigit(value[i + 1]) ? "\\x00" : "\\0",
-                '"' => "\\\"",
+                '"' => template ? "\"" : "\\\"",
+                '`' when template => "\\`",
+                '$' when template && i + 1 < value.Length && value[i + 1] == '{' => "\\$",
                 '\\' => "\\\\",
                 '\b' => "\\b",
                 '\t' => "\\t",
-                '\n' => "\\n",
+                '\n' => template ? "\n" : "\\n",
                 '\v' => "\\v",
                 '\f' => "\\f",
                 '\r' => "\\r",
@@ -197,14 +418,14 @@ internal sealed class TypeDisplay(TypeContext context, StructuredMembers members
                 _ => ch.ToString()
             });
         }
-        return result.Append('"').ToString();
+        return result.Append(template ? '`' : '"').ToString();
     }
 
     private async ValueTask<string> SignatureAsync(
         Signature signature,
         bool construct,
         bool arrow,
-        HashSet<Type> active,
+        DisplayState active,
         CancellationToken cancellation)
     {
         var typeParameters = new List<string>();

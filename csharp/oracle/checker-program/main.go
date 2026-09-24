@@ -9,7 +9,9 @@ import (
 	"math"
 	"os"
 	"slices"
+	"strings"
 
+	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/checker"
 	"github.com/microsoft/TypeScript/tsc/internal/compiler"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
@@ -47,6 +49,7 @@ func main() {
 			Calls         bool
 			Assertions    bool
 			Semantic      bool
+			TypeDisplays  bool
 			NumberStrings []string
 		}
 		if err := json.Unmarshal(lines.Bytes(), &input); err != nil {
@@ -74,6 +77,26 @@ func main() {
 		}
 		program := compiler.NewProgram(options)
 		c, _ := checker.NewChecker(program, nil)
+		if input.TypeDisplays {
+			rows := [][]string{}
+			pending := []*ast.Node{program.GetSourceFile("/project/main.ts").AsNode()}
+			for len(pending) != 0 {
+				node := pending[len(pending)-1]
+				pending = pending[:len(pending)-1]
+				if ast.IsVariableDeclaration(node) && ast.IsIdentifier(node.Name()) && strings.HasPrefix(node.Name().Text(), "show") && node.Type() != nil {
+					rows = append(rows, []string{node.Name().Text(), c.TypeToString(c.GetTypeFromTypeNode(node.Type()))})
+				}
+				children := []*ast.Node{}
+				node.ForEachChild(func(child *ast.Node) bool { children = append(children, child); return false })
+				for i := len(children) - 1; i >= 0; i-- {
+					pending = append(pending, children[i])
+				}
+			}
+			if err := output.Encode(map[string]any{"typeDisplays": rows}); err != nil {
+				panic(err)
+			}
+			continue
+		}
 		if input.Semantic {
 			codes := []int{}
 			for _, diagnostic := range c.GetDiagnostics(context.Background(), program.GetSourceFile("/project/main.ts")) {

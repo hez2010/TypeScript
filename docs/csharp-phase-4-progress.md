@@ -12,7 +12,7 @@ These comparisons cover source graphs and diagnostic codes. **94.8% matching on 
 | --- | --- |
 | Execute active corpus and match source graphs | Complete: 13,446 configurations |
 | Match semantic diagnostic codes | 12,750 match; 696 differ |
-| Match diagnostic text, locations and related information | Incomplete: detailed records match in 787 of 1,331 selected configurations, including 171 with nonempty semantic diagnostics; the remaining corpus has not been compared at this level |
+| Match diagnostic text, locations and related information | Incomplete: detailed records match in 1,156 of 2,652 selected configurations, including 540 with nonempty semantic diagnostics; the remaining corpus has not been compared at this level |
 | Complete type/symbol comparisons, type display, node builders, accessibility and emit-resolver APIs | Incomplete |
 | Validate actual parallel checker scheduling | Incomplete; reference-mode corpus agreement is a narrower check |
 | Meet complete semantic workload memory/performance budgets | Incomplete |
@@ -866,6 +866,18 @@ Release validation covers **1,331 configurations per reference mode**. Graph/cod
 Program safety passes **90 assertions**, including six new diagnostic checks; expression safety passes **81 assertions**, retaining the existing regex range/related-information checks. Seventeen comparison assertions reject changes to fields, nested ordering and multiplicity. The Release build has zero warnings and errors. Formatting preserves tokens, comments and syntax in ten C# files. Unchanged repository validation was reused. NativeAOT remains deferred until final phase-4 completion.
 
 Evidence: [single-mode corpus](../csharp/compatibility/evidence/phase4-diagnostic-details-corpus-single.json), [reference-default corpus](../csharp/compatibility/evidence/phase4-diagnostic-details-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-diagnostic-details-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-diagnostic-details-validation.json).
+
+## Assignment type text and reverse-mapped displays
+
+Assignment, constraint, conversion and missing-property diagnostics now retain their source/target type text and property arguments. Literal generalization follows the target's singleton constraints, while `never` targets preserve the original source literal. Missing-property errors retain the related declaration. Computed property names use their symbolic spelling, such as `[Symbol.dispose]`, instead of exposing process-local IDs; quoted names preserve their diagnostic spelling.
+
+Type display now covers templates, string mappings, substitution/`NoInfer` types, conditionals with inferred parameters, generic mapped types, named interfaces/classes, and additional precedence cases. Tuple and generic-reference displays omit the internal `this` argument. Reverse-mapped properties and indexes use the reference's elision rules, including `noErrorTruncation`'s `any` representation. This prevents unbounded expansion of a reverse-mapped `XMLHttpRequest` in `mappedTypeRecursiveInference.ts`. Computed enum types also render without throwing. Complete display flags, truncation, qualification, node building and nested relation-message chains remain incomplete.
+
+Release validation covers **1,541 configurations per reference mode**. Graph/code matches remain **1,411**, with **no regressions and no checker failures**. Detailed diagnostic records match in **369 configurations**, all with semantic diagnostics; **1,172 still differ**. Within the 220 affected configurations that had already been checked for detailed fidelity, matches increased from **zero to 32**. Both modes agree on every final record. The cumulative detailed comparison now covers **2,652 configurations**, with **1,156 matches**, including **540 with semantic diagnostics** and 616 with empty semantic diagnostics. The cumulative graph/code result remains **12,750/13,446**.
+
+The display fixture contains **32 exact queries against the pinned reference**, retained as regression expectations, plus two cancellation/retry checks. Program safety passes **124 assertions**, and expression safety passes **81**. The Release build has zero warnings and errors. Follow-up runs retain unaffected results: the last property-name fix replayed 522 configurations per mode and retained 1,019. Earlier enum, reverse-mapping and tuple fixes similarly replayed their affected cases; interrupted runs retain only completed results. Cached reference outputs and unchanged repository validation were reused. Formatting preserves tokens, comments and syntax in seven C# files. NativeAOT remains deferred until final phase-4 completion.
+
+Evidence: [single-mode corpus](../csharp/compatibility/evidence/phase4-relation-details-corpus-single.json), [reference-default corpus](../csharp/compatibility/evidence/phase4-relation-details-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-relation-details-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-relation-details-validation.json).
 
 ## Remaining completion work
 

@@ -1,0 +1,101 @@
+{
+    "timestamp": "2026-09-24T22:47:08.6239030+00:00",
+    "configuration": "Release",
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "managed": true,
+    "scope": "Diagnostic type display and relation-message arguments; nested relation chains and complete phase 4 remain unfinished",
+    "candidateSha256": "bc544a3d858682267c642a5b10c4c7117897aceb1d0497e9d0c8e0e2ed873a7f",
+    "compilerSha256": "fb9bc87490333c5cab48adb6ca4481722e896a7d03aabd946f21c10ca1c50ae3",
+    "build": {
+        "warnings": 0,
+        "exitCode": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-relation-details-build.log",
+        "sha256": "b33b795daadf671070569ac2947f3a18d495877201b3f019f469a7e803753b33"
+    },
+    "typeDisplays": {
+        "inputSha256": "0121e96cbd18214fd249f38c2845591db412102a71e9391c6ea72be33e8dc51a",
+        "referenceMode": "Pinned checker TypeToString with strict mode off/on",
+        "input": "built/csharp/relation-displays-input.jsonl",
+        "queries": 32,
+        "referenceSha256": "fd1979a81bd290de8839ebb6ae8b502bb8d66b426605d70247c92efcc1d1a420",
+        "reference": "built/csharp/relation-displays-reference.jsonl",
+        "exact": 32,
+        "oracleSha256": "583ad5f7696403e3445e555c7a6d93df356183de6e940046f85d4387f646e33a",
+        "retainedAsAssertions": "csharp/tests/TypeScript.Compatibility/CheckerDisplayTests.cs"
+    },
+    "safety": {
+        "logs": [
+            "logs/csharp-phase4-relation-details-safety.log",
+            "logs/csharp-phase4-relation-details-expressions-safety.log"
+        ],
+        "expressionAssertions": 81,
+        "programAssertions": 124,
+        "reuseAfterFinalPropertyNameFix": "The display fixture uses unchanged ordinary identifier names; existing safety code/ownership/range assertions are unchanged by symbolic property spelling. Final property-name paths are covered by the 522-case corpus replay in each mode.",
+        "newDisplayAssertions": 34
+    },
+    "corpus": {
+        "regressions": [],
+        "previousGraphAndCodeMatches": 1411,
+        "detailedDiagnosticMatches": 369,
+        "single": "phase4-relation-details-corpus-single.json",
+        "selectedConfigurationsPerMode": 1541,
+        "finalReplayedConfigurationsPerMode": 522,
+        "previousDetailedMatches": 0,
+        "currentMatchesWithinPreviousDetailedCoverage": 32,
+        "finalRetainedConfigurationsPerMode": 1019,
+        "referenceDefault": "phase4-relation-details-corpus-default.json",
+        "detailedDiagnosticDifferences": 1172,
+        "previousDetailedCoverage": 220,
+        "nonemptySemanticDiagnosticMatches": 369,
+        "cumulative": {
+            "activeConfigurations": 13446,
+            "matches": 12750,
+            "remaining": 696,
+            "failed": 0,
+            "diagnosticMismatches": 696,
+            "graphMismatches": 0,
+            "detailedConfigurations": 2652,
+            "detailedMatches": 1156,
+            "nonemptyDetailedMatches": 540,
+            "detailedDifferences": 1496
+        },
+        "graphAndCodeMatches": 1411,
+        "candidateFailures": [],
+        "parity": "phase4-relation-details-mode-parity.json"
+    },
+    "diagnosedFailures": {
+        "reverseMapping": "Apply pinned shouldUsePlaceholderForProperty rules before evaluating reverse-mapped properties; reverse-mapped indexes elide their value type",
+        "tupleArity": "Exclude internal this argument and remove missing optional tuple types",
+        "intermediateInterruptedRun": "536 completed configurations were preserved; pending work was not counted. Actual test processes were inspected and stopped to fix the formatter.",
+        "computedEnum": "Render EnumLike symbols before ordinary literal payloads",
+        "temporaryTracingRemoved": true,
+        "symbolicNames": "Render AST/unique-symbol names instead of internal identity-bearing names"
+    },
+    "formatting": {
+        "proofSha256": "676c6dfcf007a7423ec9a60d2102d11008061e50294ea7f07b5fc33cc703eb65",
+        "csharpFiles": 7,
+        "proofLog": "logs/csharp-phase4-relation-details-final-format.log",
+        "tokenCommentSyntaxIdentical": true,
+        "dotnetWhitespaceExitCode": 0,
+        "libraryConfigurations": 2
+    },
+    "reusedValidation": {
+        "repositoryCommand": "npx hereby validate --all",
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "validatedCommit": "00d370e5b0",
+        "repositoryExitCode": 0,
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "reason": "Cached corpus references and unchanged validation results were reused. Follow-up replays targeted changed enum/reverse-mapping, tuple/reference-arity and property-name paths."
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "parallelCheckerGateComplete": false,
+    "phase4Complete": false
+}

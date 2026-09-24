@@ -384,6 +384,7 @@ internal static class CheckerProgramTests
         checks += await ImportPathSafety();
         checks += await ContextGrammarSafety();
         checks += await DiagnosticDetailsSafety();
+        checks += await CheckerDisplayTests.Safety();
         Console.WriteLine($"{checks} program/checker ownership assertions; interface and scope depth 20000");
     }
 
@@ -760,6 +761,25 @@ internal static class CheckerProgramTests
         var links = typeHost?.Links ?? new CheckerLinks();
         var host = typeHost?.Environment ?? new CheckerEnvironment(context, links);
         var environment = typeHost?.Symbols ?? await CheckerSymbols.CreateAsync(program, links, host);
+        if (input.TryGetProperty("typeDisplays", out var displayOption) && displayOption.GetBoolean())
+        {
+            writer.WriteStartObject();
+            writer.WriteStartArray("typeDisplays");
+            foreach (var declaration in program.GetFile("/project/main.ts")!.Syntax.DescendantsAndSelf().OfType<VariableDeclarationNode>())
+                if (declaration.Name is IdentifierNode name
+                    && name.Text.StartsWith("show", StringComparison.Ordinal)
+                    && declaration.Type is not null)
+                {
+                    writer.WriteStartArray();
+                    writer.WriteStringValue(name.Text);
+                    writer.WriteStringValue(
+                        await typeHost!.TypeDisplay.GetAsync(await typeHost.GetTypeFromTypeNodeAsync(declaration.Type)));
+                    writer.WriteEndArray();
+                }
+            writer.WriteEndArray();
+            writer.WriteEndObject();
+            return;
+        }
         if (input.TryGetProperty("semantic", out var semanticOption) && semanticOption.GetBoolean())
         {
             await typeHost!.CheckSourceFileAsync(program.GetFile("/project/main.ts")!.Syntax);

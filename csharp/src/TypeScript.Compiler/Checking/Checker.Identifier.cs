@@ -229,7 +229,13 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
             if (await ExcessProperties.UnknownPropertyAsync(source, target, kind, Relations, cancellation) is { } excess)
             {
                 if ((source.ObjectFlags & ObjectFlags.JsxAttributes) != 0)
-                    Error(node, relationDiagnosticHead ?? headCode ?? 2322);
+                    await ReportRelationMessageAsync(node, relationDiagnosticHead ?? headCode ?? 2322, source, target, cancellation);
+                else if (relationDiagnosticHead is null)
+                    Error(
+                        (excess.ValueDeclaration as INamedNode)?.Name ?? node,
+                        2353,
+                        TypeDisplay.SymbolName(excess),
+                        await TypeDisplay.GetAsync(target, cancellation));
                 else
                     Error((excess.ValueDeclaration as INamedNode)?.Name ?? node, relationDiagnosticHead ?? 2353);
                 return false;
@@ -240,7 +246,7 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
                 && (await RelationDiagnostics.ExactOptionalPropertiesAsync(source, target, cancellation)).Count != 0
                 ? 2375
                 : 2322);
-            Error(node, relationDiagnosticHead ?? code);
+            await ReportRelationMessageAsync(node, relationDiagnosticHead ?? code, source, target, cancellation);
         }
         return related;
     }
