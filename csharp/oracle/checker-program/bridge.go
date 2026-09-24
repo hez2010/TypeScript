@@ -11,7 +11,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/jsnum"
 )
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -135,7 +135,13 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	declarations := []any{}
 	for _, node := range nodes {
 		if node.Symbol() != nil {
-			declarations = append(declarations, []any{nodeIDs[node], sid(c.getSymbolOfDeclaration(node))})
+			symbol := node.Symbol()
+			if referenceQueries {
+				symbol = c.getMergedSymbol(symbol)
+			} else {
+				symbol = c.getSymbolOfDeclaration(node)
+			}
+			declarations = append(declarations, []any{nodeIDs[node], sid(symbol)})
 		}
 	}
 	classes := []any{}
@@ -186,6 +192,46 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 			}
 			if result != nil {
 				typeQueries = append(typeQueries, []any{nodeIDs[node], tid(result)})
+			}
+		}
+	}
+	referenceRows, referenceSyntax, declarationOrder := []any{}, []any{}, []any{}
+	if referenceQueries {
+		for _, node := range nodes {
+			if ast.IsCallExpression(node) && ast.IsIdentifier(node.Expression()) && node.Expression().Text() == "__order" {
+				for _, argument := range node.Arguments() {
+					if ast.IsPropertyAccessExpression(argument) {
+						owner := ast.GetContainingClass(argument)
+						var declaration *ast.Node
+						for _, candidate := range nodes {
+							if (ast.IsPropertyDeclaration(candidate) || ast.IsMethodDeclaration(candidate) || ast.IsParameterPropertyDeclaration(candidate, candidate.Parent)) && ast.GetContainingClass(candidate) == owner && candidate.Name().Text() == argument.Name().Text() {
+								declaration = candidate
+								break
+							}
+						}
+						declarationOrder = append(declarationOrder, []any{nodeIDs[argument], nodeIDs[declaration], c.isBlockScopedNameDeclaredBeforeUse(declaration, argument.Name())})
+					}
+				}
+			}
+			access := 0
+			if ast.IsWriteOnlyAccess(node) {
+				access = 1
+			} else if ast.IsWriteAccess(node) {
+				access = 2
+			}
+			var target *ast.Node
+			assignment := AssignmentKindNone
+			if node.Parent != nil {
+				target = ast.GetAssignmentTarget(node)
+				assignment = getAssignmentTargetKind(node)
+			}
+			referenceSyntax = append(referenceSyntax, []any{nodeIDs[node], ast.IsExpressionNode(node), ast.IsValidTypeOnlyAliasUseSite(node), access, nodeIDs[target], int(assignment)})
+			if ast.IsCallExpression(node) && ast.IsIdentifier(node.Expression()) && node.Expression().Text() == "__use" {
+				for _, argument := range node.Arguments() {
+					if ast.IsIdentifier(argument) {
+						referenceRows = append(referenceRows, []any{nodeIDs[argument], sid(c.getResolvedSymbol(argument))})
+					}
+				}
 			}
 		}
 	}
@@ -704,6 +750,17 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	}
 	if constantQueries {
 		result["constantQueries"] = constantRows
+	}
+	if referenceQueries {
+		result["referenceQueries"] = referenceRows
+		result["referenceSyntax"] = referenceSyntax
+		result["declarationOrder"] = declarationOrder
+		suggestions := []int{}
+		for _, d := range c.suggestionDiagnostics.GetDiagnostics() {
+			suggestions = append(suggestions, int(d.Code()))
+		}
+		slices.Sort(suggestions)
+		result["referenceSuggestions"] = suggestions
 	}
 	if awaitedQueries {
 		result["awaitedQueries"] = awaitedRows

@@ -616,12 +616,54 @@ for (const strict of [false, true]) {
         ) add(`conditional:relations-${name}:${strict}:${exactOptionalPropertyTypes}`, { "globals.d.ts": library, "main.ts": source }, { strict, exactOptionalPropertyTypes }, false, true, false, false, false, false, true, true);
     }
 }
-let selected = process.argv.includes("--awaited") ? cases.filter(c => c.awaited) : process.argv.includes("--binary") ? cases.filter(c => c.name.startsWith("binary:")) : process.argv.includes("--initializers") ? cases.filter(c => c.name.startsWith("initializers:")) : process.argv.includes("--expressions") ? cases.filter(c => c.expressions && !c.name.startsWith("binary:") && !c.name.startsWith("awaited:")) : process.argv.includes("--constants") ? cases.filter(c => c.name.startsWith("constants:")) : process.argv.includes("--inference") ? cases.filter(c => c.typeNodes && c.name.startsWith("inference:")) : process.argv.includes("--conditional") ? cases.filter(c => c.typeNodes && c.name.startsWith("conditional:")) :
+for (const target of ["es2015", "es2022"]) {
+    for (
+        const [name, source] of Object.entries({
+            before: "__use(x); let x = 1; __use(x);",
+            self: "let x = __use(x); var y = __use(y); const z = __use(z);",
+            destructuring: "let [a = __use(b), b = __use(b), c = __use(a)] = []; let [d] = __use(d);",
+            nestedBinding: "let [{a = __use(b), b = 1}, c = __use(a)] = [];",
+            loops: "for (let x of __use(x)) {} for (let y in __use(y)) {} for (let z = __use(z);;) {}",
+            deferred: "function f() { __use(x); } let x = 1; const arrow = () => __use(y); let y = 1;",
+            immediate: "(() => __use(x))(); let x = 1; (function() { __use(y); })(); let y = 1;",
+            asyncImmediate: "let x = (async () => __use(x))(); let y = (function*() { __use(y); })();",
+            parameter: "function f(a = __use(a), b = __use(c), c = __use(a)) {}",
+            parameterDeferred: "function f(a = () => __use(a), b = () => __use(c), c = 1) {}",
+            parameterBinding: "function f([a = __use(b), b = __use(a)] = []) {}",
+            ambient: "__use(x); declare let x: number; __use(C); declare class C {}",
+            classes: "__use(C); class C { [__use(C)]() {} static x = __use(C); } __use(C);",
+            classDeferred: "class C { x = __use(D); static y = __use(D); method() { __use(D); } } class D {}",
+            staticBlocks: "class C { static { __use(D); } } class D {} class E { static { __use(D); } }",
+            enums: "__use(E); enum E { A } __use(E); __use(F); const enum F { A }",
+            enumIsolated: "__use(E); const enum E { A }",
+            shadowed: "let x = 1; { __use(x); let x = 2; } __use(x);",
+            exports: "__use(x); export let x = 1; __use(x);",
+            missing: "__use(missing); __use(console); __use(document); __use(Buffer); __use(test); __use($); __use(Bun);",
+            assignments: "let a, b, rest; a = 1; a += 2; a ||= 3; a ??= 4; a++; --b; [a, ...rest] = []; ({a, b: a, ...rest} = {}); for (a of []) {} for (b in {}) {} (a!) = 1;",
+            expressionContexts: "let x: string; x as string; x satisfies string; typeof x; void x; if(x) x; while(x) x; do { x; } while(x); switch(x) { case x: break; default: x; } for(x; x; x) x; try { throw x; } catch (e) {} const t = `${x}`; const o = {x, [x]:x}; type Q = typeof x;",
+            typeContexts: "interface I { [x]: number; p: typeof x; } type T = { [x]: number }; declare const x: unique symbol; abstract class C implements I { abstract [x]: number; p: typeof x; }",
+            decorators: "@dec(__use(C)) class C { @dec(__use(C)) x; @dec(() => __use(C)) y; @dec((() => __use(C))()) z; @dec(__use(C)) method(@dec(__use(C)) x) {} }",
+            properties: "class C { a = __order(this.a); b = __order(this.c); c = 1; d = __order(this.c); e = () => __order(this.e); f = __order(this.g); g; h = __order(this.i); i!; }",
+            staticProperties: "class C { static a = __order(C.b); static b = 1; static c = __order(C.b); static d = __order(C.method); static method() {} }",
+            parameterProperties: "class C { a = __order(this.p); constructor(public p: number, readonly q = __order(this.p)) {} b = __order(this.q); }",
+            constructorScope: "let x = 1; class C { p = __use(x); constructor() { let x = 2; } }",
+        })
+    ) add(`references:${name}:${target}`, { "globals.d.ts": library, "main.ts": source }, { target, isolatedModules: name === "enumIsolated" });
+    add(`references:type-import:${target}`, { "globals.d.ts": library, "a.ts": "export class C {}", "b.ts": "import type { C } from './a'; __use(C);" }, { target, module: "esnext" });
+    add(`references:type-export:${target}`, { "globals.d.ts": library, "a.ts": "export class C {}", "b.ts": "export type { C } from './a';", "c.ts": "import { C } from './b'; __use(C);" }, { target, module: "esnext" });
+    for (const allowUmdGlobalAccess of [false, true]) add(`references:umd:${target}:${allowUmdGlobalAccess}`, { "globals.d.ts": library, "umd.d.ts": "export as namespace U; export const value: number;", "main.ts": "export {}; __use(U);" }, { target, allowUmdGlobalAccess, module: "esnext" });
+    add(`references:isolated-global:${target}`, { "globals.d.ts": library + " declare const Collision: number;", "a.ts": "export interface Collision {}", "b.ts": "import { Collision } from './a'; __use(Collision);" }, { target, isolatedModules: true, module: "esnext" });
+    add(`references:legacy-decorators:${target}`, { "globals.d.ts": library, "main.ts": "@dec(__use(C)) class C { @dec(__use(C)) x; @dec(__use(C)) method(@dec(__use(C)) x) {} }" }, { target, experimentalDecorators: true });
+    add(`references:cross-file:${target}`, { "globals.d.ts": library, "a.ts": "__use(x);", "b.ts": "let x = 1;" }, { target });
+}
+for (const input of cases.filter(c => c.name.startsWith("references:"))) input.references = true;
+
+let selected = process.argv.includes("--references") ? cases.filter(c => c.references) : process.argv.includes("--awaited") ? cases.filter(c => c.awaited) : process.argv.includes("--binary") ? cases.filter(c => c.name.startsWith("binary:")) : process.argv.includes("--initializers") ? cases.filter(c => c.name.startsWith("initializers:")) : process.argv.includes("--expressions") ? cases.filter(c => c.expressions && !c.name.startsWith("binary:") && !c.name.startsWith("awaited:")) : process.argv.includes("--constants") ? cases.filter(c => c.name.startsWith("constants:")) : process.argv.includes("--inference") ? cases.filter(c => c.typeNodes && c.name.startsWith("inference:")) : process.argv.includes("--conditional") ? cases.filter(c => c.typeNodes && c.name.startsWith("conditional:")) :
     process.argv.includes("--generic-relations") ? cases.filter(c => c.genericRelations) :
     process.argv.includes("--indexing") ? cases.filter(c => c.name.startsWith("indexing:")) :
     process.argv.includes("--assignability") ? cases.filter(c => c.assignability && !c.genericRelations && !c.name.startsWith("conditional:") && !c.name.startsWith("inference:") && !c.name.startsWith("constants:") && !c.name.startsWith("expressions:") && !c.name.startsWith("binary:") && !c.name.startsWith("awaited:")) :
     process.argv.includes("--identity") ? cases.filter(c => c.identity && !c.assignability) : process.argv.includes("--signatures") ? cases.filter(c => c.signatures) : process.argv.includes("--properties") ? cases.filter(c => c.properties) : process.argv.includes("--values") ? cases.filter(c => c.values && !c.name.startsWith("initializers:")) : process.argv.includes("--members") ? cases.filter(c => c.members && !c.values && !c.signatures) : process.argv.includes("--type-nodes") ? cases.filter(c => c.typeNodes && !c.members && !c.properties && !c.identity && !c.name.startsWith("indexing:") && !c.name.startsWith("conditional:") && !c.name.startsWith("inference:") && !c.name.startsWith("constants:") && !c.name.startsWith("expressions:") && !c.name.startsWith("binary:") && !c.name.startsWith("awaited:"))
-    : cases.filter(c => !c.typeNodes && Boolean(c.aliases) === process.argv.includes("--aliases"));
+    : cases.filter(c => !c.references && !c.typeNodes && Boolean(c.aliases) === process.argv.includes("--aliases"));
 if (option("--filter")) selected = selected.filter(c => c.name.includes(option("--filter")));
 async function probe(command, args) {
     return new Promise((resolve, reject) => {
@@ -654,7 +696,7 @@ for (let i = 0; i < selected.length; i++) {
 await json(path.join(output, "checker-program-failures.json"), failures);
 const summary = {
     timestamp: new Date().toISOString(),
-    scope: process.argv.includes("--binary") ? "Binary expression result types, operator diagnostics and nullish semantics with required assignment/access services" : process.argv.includes("--awaited") ? "Promise and thenable fulfillment, awaited types, recursion and generic wrappers; classification queries make lazy generic metadata deterministic" : process.argv.includes("--expressions") ? "Primitive expression types, template evaluation, diagnostics and grammar checks with required advanced expression services" :
+    scope: process.argv.includes("--references") ? "Value-name resolution, declaration order, parameter initialization and type-only alias diagnostics" : process.argv.includes("--binary") ? "Binary expression result types, operator diagnostics and nullish semantics with required assignment/access services" : process.argv.includes("--awaited") ? "Promise and thenable fulfillment, awaited types, recursion and generic wrappers; classification queries make lazy generic metadata deterministic" : process.argv.includes("--expressions") ? "Primitive expression types, template evaluation, diagnostics and grammar checks with required advanced expression services" :
         process.argv.includes("--constants") ? "Constant and enum evaluation with provenance, forward references and numeric boundaries" : process.argv.includes("--initializers") ? "Variable, parameter and property initializer types with required flow, binding-pattern and contextual services" : process.argv.includes("--inference") ? "Type inference, constraints, reverse mapped types, widening and contextual signatures; expression inference and full checker integration remain incomplete" : process.argv.includes("--conditional") ? "Conditional evaluation, distribution, tail recursion, constraints and relations with required inference services; full checker integration remains incomplete" : process.argv.includes("--generic-relations") ? "Generic key/indexed/mapped relations, optionality, variance and cache graphs; conditional and full diagnostic services remain incomplete" :
         process.argv.includes("--indexing") ? "Key enumeration, indexed access, read/write simplification and generic cache identity; expression checking and full checker integration remain incomplete" : process.argv.includes("--assignability") ? "Structural relation decisions, signature variance, discriminants and generic variance caches with required advanced semantic services; full checker integration remains incomplete" : process.argv.includes("--identity") ? "Structural identity, primitive relation predicates, normalization and recursive caches with required advanced relation services; full checker integration remains incomplete" : process.argv.includes("--signatures") ? "Signature matching, composition, tuple rest parameters and array member fallback with explicit type relation dependencies; full checker integration remains incomplete" :
         process.argv.includes("--properties") ? "Composite properties, apparent types and intersection reduction with explicit relation and signature dependencies; full checker integration remains incomplete" : process.argv.includes("--values") ? "Source symbol read/write types, accessors, value aliases and declaration value objects with explicit inference dependencies; full checker integration remains incomplete" : process.argv.includes("--members") ? "Source structured members, interface bases, signatures and index signatures with annotated value dependencies; full checker integration remains incomplete" : process.argv.includes("--type-nodes") ? "Source type-node evaluation, declared aliases and references with explicit semantic dependencies; full checker integration remains incomplete" : process.argv.includes("--aliases")
@@ -664,6 +706,9 @@ const summary = {
     managed,
     runtime: managed ? "managed development run" : await run(candidate, ["--native-check"]),
     cases: selected.length,
+    declarationOrderQueries: actual.reduce((count, c) => count + (c.declarationOrder?.length ?? 0), 0),
+    referenceSyntaxQueries: actual.reduce((count, c) => count + (c.referenceSyntax?.length ?? 0), 0),
+    referenceQueries: actual.reduce((count, c) => count + (c.referenceQueries?.length ?? 0), 0),
     awaitedQueries: actual.reduce((count, c) => count + (c.awaitedQueries?.length ?? 0), 0),
     expressionQueries: actual.reduce((count, c) => count + (c.expressionQueries?.length ?? 0), 0),
     constantQueries: actual.reduce((count, c) => count + (c.constantQueries?.length ?? 0), 0),

@@ -414,6 +414,21 @@ node csharp/tools/checker-program.mjs --awaited --record phase4-binary-awaited-r
 & ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-binary-safety
 ```
 
+## Value references and declaration ordering
+
+`ReferenceSymbols.cs` resolves and caches value identifiers, preserves read/write reference marking, and selects missing-name diagnostics. `ValueUseChecks.cs` adds block-scoped use-before-declaration checks, parameter initializer restrictions, UMD access, type-only alias use and isolated-module import conflicts. `DeclarationOrder.cs` handles binding patterns, immediate/deferred execution, class fields, parameter properties and decorators. Constant evaluation now uses this shared ordering implementation. Static-block initialization flow, missing-prefix suggestions and full diagnostic related-information formatting remain required services.
+
+`ReferenceSyntax.cs` classifies expression contexts, valid type-only alias uses, read/write accesses and assignment targets. Parent traversal is iterative, including the distinct treatment of non-null assertions by assignment and read/write classification.
+
+NativeAOT passes **140 exact source-program comparisons**, with **280 value resolutions**, **48 class-member ordering queries** and **12,092 syntax-classification queries**, at single and reference-default concurrency. The reference mode serializes merged binding declarations without triggering unrelated computed-member evaluation; resolution results, syntax classifications, ordering results, symbol graphs and diagnostic/suggestion codes are compared. Twenty-three native safety assertions cover cancellation, cached failures, checker isolation, read/write marking and **20,000-level** traversal.
+
+The same artifact passes all **2,700** earlier source-program comparisons, **2,904** type/state cases and **669** earlier safety assertions. These tests do not establish complete identifier expression types or control-flow narrowing. Evidence: [references](../csharp/compatibility/evidence/phase4-references.json), [constants](../csharp/compatibility/evidence/phase4-references-constants-regression.json), [aliases](../csharp/compatibility/evidence/phase4-references-aliases-regression.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-references-validation.json).
+
+```powershell
+node csharp/tools/checker-program.mjs --references --record phase4-references
+& ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-references-safety
+```
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
@@ -426,4 +441,4 @@ The following phase-4 requirements remain open:
 6. Type display, node builders, symbol accessibility and emit-resolver APIs.
 7. All active checker/compiler type/symbol/diagnostic comparisons at single and reference-default concurrency; audits of intentional differences; complete semantic workload memory/performance measurements.
 
-The next integration step is expression/contextual checking and call-site inference/overload selection, followed by complete flow analysis, diagnostics and module type adaptation over the program-backed symbol environment. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.
+The next integration step is identifier/access expression checking with control-flow narrowing, followed by contextual checking, call-site inference/overload selection, diagnostics and module type adaptation over the program-backed symbol environment. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.

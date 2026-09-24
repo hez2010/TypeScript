@@ -10,8 +10,12 @@ namespace TypeScript.Compatibility;
 // Real program/binding inputs with declared ES module dependencies. Unsupported
 // expression, interop, computed-name and relation queries fail explicitly.
 internal sealed partial class ProgramScopeHost(TypeContext context, CheckerLinks links) : ICheckerSymbolHost, ITypeParameterScopeHost,
-    IAliasResolverHost, IEntityNameHost, IAliasTargetHost, IModuleExportHost
+    IAliasResolverHost, IEntityNameHost, IAliasTargetHost, IModuleExportHost, IValueUseHost, IDeclarationOrderHost
 {
+    internal DeclarationOrder DeclarationOrder { get; private set; } = null!;
+    internal ReferenceSymbols ReferenceSymbols { get; private set; } = null!;
+    internal ValueUseChecks ValueUses { get; private set; } = null!;
+    internal List<int> ValueSuggestions { get; } = [];
     internal CheckerSymbols Symbols { get; private set; } = null!;
     internal TypeParameterScopes Scopes { get; private set; } = null!;
     internal GlobalTypes Globals { get; private set; } = null!;
@@ -33,6 +37,9 @@ internal sealed partial class ProgramScopeHost(TypeContext context, CheckerLinks
         AliasResolutions = new(links);
         Aliases = new(symbols, links, AliasResolutions, this);
         EntityNames = new(symbols, Aliases, this);
+        DeclarationOrder = new(symbols.Program.Configuration.Options, this);
+        ValueUses = new(symbols, Aliases, DeclarationOrder, this);
+        ReferenceSymbols = new(symbols, links);
         AliasTargets = new(symbols, Aliases, EntityNames, this);
         ModuleTypes = new(context, links, Aliases, new(symbols.Program.SourceFiles.Select(f => f.Syntax).ToArray()));
         ModuleExports = new(links, Aliases, AliasTargets, this);
@@ -117,7 +124,7 @@ internal sealed partial class ProgramScopeHost(TypeContext context, CheckerLinks
         => ExportsAsync(symbol, cancellation);
 
     public bool InvalidInitializer(SyntaxNode? location, string name, SyntaxNode declaration, Symbol? result)
-        => throw new InvalidOperationException("Probe requires initializer checking");
+        => ValueUses.InvalidInitializer(location, name, declaration, result);
 
     public void FailedResolution(SyntaxNode? location, string name, SymbolFlags meaning, DiagnosticMessage message)
         => Error(location, message, name);
@@ -129,12 +136,23 @@ internal sealed partial class ProgramScopeHost(TypeContext context, CheckerLinks
         SyntaxNode? last,
         SyntaxNode? declaration,
         bool deferred)
-    {
-        if (location is not null && meaning == SymbolFlags.Value
-            && !(declaration is null && (symbol.Flags & SymbolFlags.EnumMember) != 0
-                && (symbol.Flags & ~(SymbolFlags.EnumMember | SymbolFlags.Transient)) == 0))
-            throw new InvalidOperationException("Probe requires value-use checking");
-    }
+        => ValueUses.ResolvedAsync(location, symbol, meaning, last, declaration, deferred).GetAwaiter().GetResult();
+
+    public void ValueUseError(SyntaxNode? node, DiagnosticMessage message, params string[] arguments) => Error(node, message, arguments);
+
+    public void ValueUseSuggestion(SyntaxNode node, DiagnosticMessage message, string name) => ValueSuggestions.Add(message.Code);
+
+    public void DeclarationRelatedInfo(SyntaxNode declaration, bool typeOnly, string name) { }
+
+    public bool ValidTypeOnlyUse(SyntaxNode node) => ReferenceSyntax.ValidTypeOnlyUse(node);
+
+    public bool MissingPrefix(SyntaxNode node, string name) =>
+        throw new InvalidOperationException("Probe requires missing-prefix diagnostics");
+
+    public ValueTask<bool> InitializedInStaticBlocksAsync(PropertyDeclarationNode declaration, SyntaxNode usage,
+        SyntaxNode initializer, CancellationToken cancellation)
+        => declaration.Parent!.DescendantsAndSelf().OfType<ClassStaticBlockDeclarationNode>().Any()
+            ? throw new InvalidOperationException("Probe requires static property initialization flow") : ValueTask.FromResult(false);
 
     public bool IsContextSensitive(SyntaxNode declaration)
     {

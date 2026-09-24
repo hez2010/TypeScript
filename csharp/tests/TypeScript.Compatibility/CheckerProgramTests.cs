@@ -319,7 +319,10 @@ internal static class CheckerProgramTests
             {
                 writer.WriteStartArray();
                 writer.WriteNumberValue(Node(node));
-                writer.WriteNumberValue(SymbolId(environment.Declaration(node)));
+                writer.WriteNumberValue(
+                    SymbolId(
+                    input.TryGetProperty("references", out var referenceDeclarations) && referenceDeclarations.GetBoolean()
+                    ? environment.Merger.GetMergedSymbol(environment.Binding(node)!.Get(node)!.Symbol) : environment.Declaration(node)));
                 writer.WriteEndArray();
             }
         writer.WriteEndArray();
@@ -386,6 +389,54 @@ internal static class CheckerProgramTests
                 writer.WriteNumberValue(TypeId(result));
                 writer.WriteEndArray();
             }
+            writer.WriteEndArray();
+        }
+        if (input.TryGetProperty("references", out var referenceOption) && referenceOption.GetBoolean())
+        {
+            writer.WriteStartArray("declarationOrder");
+            foreach (var call in nodes.OfType<CallExpressionNode>())
+                if (call.Expression is IdentifierNode { Text: "__order" })
+                    foreach (var access in call.Arguments!.OfType<PropertyAccessExpressionNode>())
+                    {
+                        var owner = DeclarationOrder.ContainingClass(access)!;
+                        var declaration = owner.DescendantsAndSelf().First(n =>
+                            (n is PropertyDeclarationNode or MethodDeclarationNode || DeclarationOrder.ParameterProperty(n))
+                            && SemanticSyntax.Name(n) is IdentifierNode name && name.Text == ((IdentifierNode)access.Name!).Text);
+                        writer.WriteStartArray();
+                        writer.WriteNumberValue(Node(access));
+                        writer.WriteNumberValue(Node(declaration));
+                        writer.WriteBooleanValue(await host.DeclarationOrder.BeforeUseAsync(declaration, access.Name!));
+                        writer.WriteEndArray();
+                    }
+            writer.WriteEndArray();
+            writer.WriteStartArray("referenceSyntax");
+            foreach (var node in nodes)
+            {
+                writer.WriteStartArray();
+                writer.WriteNumberValue(Node(node));
+                writer.WriteBooleanValue(ReferenceSyntax.IsExpression(node));
+                writer.WriteBooleanValue(ReferenceSyntax.ValidTypeOnlyUse(node));
+                writer.WriteNumberValue(ReferenceSyntax.AccessKind(node));
+                writer.WriteNumberValue(Node(ReferenceSyntax.AssignmentTarget(node)));
+                writer.WriteNumberValue(ReferenceSyntax.AssignmentKind(node));
+                writer.WriteEndArray();
+            }
+            writer.WriteEndArray();
+            writer.WriteStartArray("referenceQueries");
+            foreach (var call in nodes.OfType<CallExpressionNode>())
+                if (call.Expression is IdentifierNode { Text: "__use" })
+                    foreach (var argument in call.Arguments!.OfType<IdentifierNode>())
+                    {
+                        var symbol = host.ReferenceSymbols.Resolve(argument);
+                        writer.WriteStartArray();
+                        writer.WriteNumberValue(Node(argument));
+                        writer.WriteNumberValue(SymbolId(symbol));
+                        writer.WriteEndArray();
+                    }
+            writer.WriteEndArray();
+            writer.WriteStartArray("referenceSuggestions");
+            foreach (int code in host.ValueSuggestions.Order())
+                writer.WriteNumberValue(code);
             writer.WriteEndArray();
         }
         if (input.TryGetProperty("awaited", out var awaitedOption) && awaitedOption.GetBoolean())

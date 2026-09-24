@@ -18,27 +18,7 @@ internal sealed partial class ProgramTypeHost : IEnumValueHost
     {
         cancellation.ThrowIfCancellationRequested();
         BeforeConstantReference?.Invoke(declaration);
-        if (declaration is not (EnumMemberNode or VariableDeclarationNode))
-            throw new InvalidOperationException("Constant probe requires enum or constant declarations");
-        if (SemanticSyntax.Source(declaration) != SemanticSyntax.Source(use))
-            return ValueTask.FromResult(true);
-        for (var parent = use; parent is not null; parent = parent.Parent)
-            if ((parent.Flags & (NodeFlags.JSDoc | NodeFlags.Ambient)) != 0 || SemanticSyntax.TypeNode(parent))
-                return ValueTask.FromResult(true);
-        if (declaration.Pos <= use.Pos)
-            return ValueTask.FromResult(true);
-        for (var current = use; current is not null; current = current.Parent)
-        {
-            if (current is ClassStaticBlockDeclarationNode)
-                return ValueTask.FromResult(false);
-            if (SemanticSyntax.FunctionDeclarationLike(current) && !SemanticSyntax.ImmediatelyInvoked(current))
-                return ValueTask.FromResult(true);
-            if (current.Parent is PropertyDeclarationNode property && property.Initializer == current && !SemanticSyntax.IsStatic(property))
-                return ValueTask.FromResult(true);
-            if (declaration.Parent?.Parent == current || declaration.Parent == current)
-                break;
-        }
-        return ValueTask.FromResult(false);
+        return program.DeclarationOrder.BeforeUseAsync(declaration, use, cancellation);
     }
 
     public async ValueTask CheckComputedEnumAsync(EnumMemberNode member, CancellationToken cancellation)
