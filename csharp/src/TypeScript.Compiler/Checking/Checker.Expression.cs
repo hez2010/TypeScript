@@ -60,6 +60,8 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
 
     public async ValueTask<Type> OtherExpressionAsync(SyntaxNode node, CheckMode mode, CancellationToken cancellation)
     {
+        if (node.Kind == SyntaxKind.MissingDeclaration)
+            return context.ErrorType;
         if (node is PrivateIdentifierNode)
         {
             var symbol = ResolveReference(node, cancellation);

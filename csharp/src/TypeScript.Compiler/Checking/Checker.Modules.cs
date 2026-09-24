@@ -73,10 +73,12 @@ internal sealed partial class Checker
 
     private void ExportedDeclaration(SyntaxNode node, bool value)
     {
+        DecoratorGrammar(node);
         if (node is not IModifiedNode { Modifiers: { } modifiers })
             return;
         foreach (var modifier in modifiers)
-            if (modifier.Kind is not (SyntaxKind.ExportKeyword or SyntaxKind.DefaultKeyword or SyntaxKind.DeclareKeyword
+            if (modifier is not DecoratorNode && modifier.Kind is not (SyntaxKind.ExportKeyword or SyntaxKind.DefaultKeyword
+                or SyntaxKind.DeclareKeyword
                 or SyntaxKind.AsyncKeyword or SyntaxKind.AbstractKeyword) && !(node is EnumDeclarationNode
                     && modifier.Kind == SyntaxKind.ConstKeyword))
                 throw new InvalidOperationException("Checker requires declaration modifier validation");
@@ -93,6 +95,7 @@ internal sealed partial class Checker
 
     private async ValueTask CheckNamespaceSourceAsync(ModuleDeclarationNode node, CancellationToken cancellation)
     {
+        DecoratorGrammar(node);
         if (node.Body is not null)
             await CheckSourceElementAsync(node.Body, cancellation).ConfigureAwait(false);
         bool global = node.Keyword == SyntaxKind.GlobalKeyword, ambient = (node.Flags & NodeFlags.Ambient) != 0;

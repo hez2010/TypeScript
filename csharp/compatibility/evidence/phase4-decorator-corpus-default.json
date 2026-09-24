@@ -1,0 +1,30 @@
+{
+    "timestamp": "2026-09-24T16:21:23.960Z",
+    "mode": "default",
+    "configuration": "Release",
+    "selectedConfigurations": 566,
+    "previousMatches": 48,
+    "graphAndCodeMatches": 522,
+    "recoveredConfigurations": 474,
+    "regressions": [],
+    "parts": [
+        {
+            "directory": "built/csharp/semantic-corpus-decorator-affected/default",
+            "configurations": 566,
+            "candidateSha256": "57cfb742b32ed1d2647ff295ac005393f80010c13ca50e14b7a74163ee2225f8",
+            "compilerSha256": "adf0b8b2ba4d495cd338e6632d3f60a5bfcdc9945d6c229e2467c4ff1d74b7f4",
+            "outputSha256": "5e0b698b1553995cc3b106daa44a230d91cf6e845b32942aad4cf4b0916f138c",
+            "selectionSha256": "da47a92b30328202c5d0de3923b85525efb4354051d82c9db0e7bb193f421f23"
+        },
+        {
+            "directory": "built/csharp/semantic-corpus-decorator-final/default",
+            "configurations": 13,
+            "candidateSha256": "57cfb742b32ed1d2647ff295ac005393f80010c13ca50e14b7a74163ee2225f8",
+            "compilerSha256": "2a230f20319908f96c7e8d9a0f814cbf3c409e7a2c3ceb67037fab7cc9e248cf",
+            "outputSha256": "57e4eefb35180b7f0a7cc9aa60cb186e1055a72fb51f7ea899ce03d2aaef7fd5",
+            "selectionSha256": "ca197cc99a1cc546f576219d7e2c559696672295f2d745deb1fa3b32a51e9006"
+        }
+    ],
+    "scope": "Standard and legacy decorator signatures, contextual types, receiver semantics, metadata references, grammar and helper checks; full phase 4 remains incomplete.",
+    "nativeAotVerification": "Deferred until final completion per user instruction"
+}

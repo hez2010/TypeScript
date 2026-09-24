@@ -1,0 +1,97 @@
+{
+    "timestamp": "2026-09-24T16:22:44.0791241+00:00",
+    "configuration": "Release",
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "managed": true,
+    "scope": "Standard and legacy decorator signatures, contextual types, receiver semantics, metadata references, grammar and helper checks; full phase 4 remains incomplete",
+    "finalBuildCandidateSha256": "57cfb742b32ed1d2647ff295ac005393f80010c13ca50e14b7a74163ee2225f8",
+    "finalBuildCompilerSha256": "2a230f20319908f96c7e8d9a0f814cbf3c409e7a2c3ceb67037fab7cc9e248cf",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-decorator-build.log",
+        "sha256": "c7e95f89e754f8233ba62a35c8575b6ca23985a4c3d4179f502ca6ed9fd620c8"
+    },
+    "queries": {
+        "calls": {
+            "record": "phase4-decorator-calls.json",
+            "cases": 180,
+            "exact": 180,
+            "candidateSha256": "57cfb742b32ed1d2647ff295ac005393f80010c13ca50e14b7a74163ee2225f8",
+            "compilerSha256": "adf0b8b2ba4d495cd338e6632d3f60a5bfcdc9945d6c229e2467c4ff1d74b7f4"
+        }
+    },
+    "safety": {
+        "signatureAssertions": 112,
+        "newAssertions": 7,
+        "referenceInputSha256": "e7d2e6395f271e9e8a9fb8612f8dc1a8b0afc8f0e78e7609d4fcda29384c8cf9",
+        "referenceOutputSha256": "8129cdf87982bfdd9c1a522ec23f87865887057502f21a95381a4e41cb3df9c8",
+        "referenceCodes": [
+            [
+                1240,
+                1270
+            ],
+            [],
+            [
+                1272
+            ]
+        ],
+        "log": "logs/csharp-phase4-decorator-signature-safety.log",
+        "reuse": "The successful safety run preceded whitespace formatting and final missing-global/recovery-node corrections. Its fixtures resolve their decorator globals and do not contain recovery nodes or the final illegal targets. Those changed paths were validated by the affected corpus instead of repeating unchanged safety cases."
+    },
+    "corpus": {
+        "single": "phase4-decorator-corpus-single.json",
+        "referenceDefault": "phase4-decorator-corpus-default.json",
+        "parity": "phase4-decorator-mode-parity.json",
+        "selectedConfigurationsPerMode": 566,
+        "previousMatches": 48,
+        "graphAndCodeMatches": 522,
+        "recoveredConfigurations": 474,
+        "regressions": [],
+        "finalChangedCasesReplayed": 13
+    },
+    "formatting": {
+        "csharpFiles": 16,
+        "tokenCommentSyntaxIdentical": true,
+        "libraryConfigurations": 2,
+        "dotnetWhitespaceExitCode": 0,
+        "diffCheckExitCode": 0,
+        "proofLog": "logs/csharp-phase4-decorator-format.log",
+        "proofSha256": "4cdf4c073d2ca167b52b4e0a403dd198363193eed4a325fc3b0c77fb7df8725e"
+    },
+    "reusedValidation": {
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "repositoryCommand": "npx hereby validate --all",
+        "repositoryExitCode": 0,
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            "csharp/tools",
+            ".github/copilot-instructions.md"
+        ],
+        "reason": "User directed reuse of unchanged validation results. Go product code, repository tooling and checker generators are unchanged. Decorator branches were checked against the affected corpus; shared call receiver changes were checked against the call query suite. Unrelated semantic and component suites were retained.",
+        "fullCorpusBaseline": [
+            "phase4-corpus-release-single.json",
+            "phase4-corpus-release-default.json"
+        ],
+        "previousAffectedCorpus": [
+            "phase4-jsdoc-corpus-single.json",
+            "phase4-jsdoc-corpus-default.json",
+            "phase4-expando-corpus-single.json",
+            "phase4-expando-corpus-default.json",
+            "phase4-condition-corpus-single.json",
+            "phase4-condition-corpus-default.json",
+            "phase4-destructuring-corpus-single.json",
+            "phase4-destructuring-corpus-default.json",
+            "phase4-disposable-corpus-single.json",
+            "phase4-disposable-corpus-default.json"
+        ]
+    },
+    "nativeAotVerification": "Deferred until final completion per user instruction; no NativeAOT build or execution",
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "phase4Complete": false
+}

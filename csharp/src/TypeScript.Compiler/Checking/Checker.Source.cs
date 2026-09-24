@@ -168,6 +168,7 @@ internal sealed partial class Checker
                     await CheckAccessorSourceAsync(node, cancellation).ConfigureAwait(false);
                     break;
                 case ClassStaticBlockDeclarationNode block:
+                    DecoratorGrammar(block);
                     await CheckSourceElementAsync(block.Body, cancellation).ConfigureAwait(false);
                     break;
                 case { Kind: SyntaxKind.SemicolonClassElement }:
@@ -343,6 +344,8 @@ internal sealed partial class Checker
                     break;
                 case { Kind: SyntaxKind.EmptyStatement or SyntaxKind.DebuggerStatement }:
                     AmbientStatement(node);
+                    break;
+                case { Kind: SyntaxKind.MissingDeclaration }:
                     break;
                 default:
                     throw new InvalidOperationException($"Checker requires source-element checking for {node.Kind}");
@@ -567,7 +570,7 @@ internal sealed partial class Checker
                         }
                     }
                     break;
-                case CallExpressionNode or NewExpressionNode or TaggedTemplateExpressionNode or BinaryExpressionNode:
+                case CallExpressionNode or NewExpressionNode or TaggedTemplateExpressionNode or BinaryExpressionNode or DecoratorNode:
                     await CallResolution.UntypedAsync(node, false, cancellation).ConfigureAwait(false);
                     break;
                 case TypeParameterDeclarationNode parameter:

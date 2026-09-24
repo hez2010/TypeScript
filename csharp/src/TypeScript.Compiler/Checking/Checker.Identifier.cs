@@ -49,6 +49,10 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
     {
         while (node.Parent is ParenthesizedExpressionNode or NonNullExpressionNode)
             node = node.Parent;
+        if (node.Parent is DecoratorNode decorator)
+            return await DecoratorSignatureAsync(decorator, cancellation) is { } decoratorSignature
+                ? DecoratorFunction(decoratorSignature)
+                : null;
         if (node.Parent is IInitializedNode initialized && initialized.Initializer == node
             && node.Parent is VariableDeclarationNode or ParameterDeclarationNode or PropertyDeclarationNode)
         {

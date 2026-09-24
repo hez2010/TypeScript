@@ -701,6 +701,14 @@ Targeted Release corpus validation covers **1,801 affected configurations per re
 
 Evidence: [single-threaded affected corpus](../csharp/compatibility/evidence/phase4-disposable-corpus-single.json), [reference-default affected corpus](../csharp/compatibility/evidence/phase4-disposable-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-disposable-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-disposable-validation.json). Decorators, complete diagnostic fidelity, remaining semantic/emit integration and the final workload gates remain open.
 
+## Standard and legacy decorators
+
+Decorator calls now use synthetic signatures for classes, methods, accessors, fields and legacy parameters. Standard decorator contexts retain member names and private/static flags; legacy calls use property keys and typed descriptors. These signatures participate in contextual typing, generic inference, overload resolution and return-type validation. Standard decorators preserve property-call receivers. Legacy metadata retains value imports and checks isolated-module restrictions. Grammar, helper requests, invalid targets and deferred calls are also connected.
+
+Targeted Release corpus validation covers **566 affected configurations per reference mode**. Graph/code matches increased from **48 to 522**, recovering **474 configurations**, with **no previously matching case regressing**. Only 13 cases affected by the final recovery-node and illegal-target corrections were rerun. The existing call suite passes **180 query configurations**. Signature safety passes **112 assertions**, including seven new checks for standard/legacy calls, metadata imports and source-parent preservation; the three new diagnostic fixtures agree with the Go oracle. Unchanged validation results are reused, and NativeAOT verification remains deferred until final completion.
+
+Evidence: [single-threaded affected corpus](../csharp/compatibility/evidence/phase4-decorator-corpus-single.json), [reference-default affected corpus](../csharp/compatibility/evidence/phase4-decorator-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-decorator-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-decorator-validation.json). Remaining diagnostic/grammar differences, JSX, import services, full semantic fidelity and the final workload gates remain open.
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
@@ -709,7 +717,7 @@ The following phase-4 requirements remain open:
 2. Complete relation diagnostics and remaining type-node dependencies; connect the implemented declaration/type-node, algebra, scope, inference, instantiation and tuple algorithms to complete checker services.
 3. Remaining expression forms and special call forms, full declaration checking, JavaScript and JSDoc semantics, and completion of contextual/inference integration across those services.
 4. Complete property/declaration flow integration, constructor-identity narrowing, initialization/reference services, and iterator/generator diagnostic and emit integration.
-5. Remaining indexed/member diagnostic and declaration services, JSX, decorators and grammar checks.
+5. Remaining indexed/member diagnostic and declaration services, JSX, decorator edge cases and grammar checks.
 6. Type display, node builders, symbol accessibility and emit-resolver APIs.
 7. All active checker/compiler type/symbol/diagnostic comparisons at single and reference-default concurrency; audits of intentional differences; complete semantic workload memory/performance measurements.
 

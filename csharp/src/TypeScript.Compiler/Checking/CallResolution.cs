@@ -436,7 +436,7 @@ internal sealed partial class CallResolution(TypeContext context, CheckerLinks l
             or ElementAccessExpressionNode { Expression.Kind: SyntaxKind.SuperKeyword };
         if (receiver is not null && receiver != context.VoidType && node is not NewExpressionNode && !superProperty)
         {
-            var receiverNode = CallArguments.ThisNode(node);
+            var receiverNode = arguments.ThisNode(node);
             if (!await host.ArgumentRelatedAsync(
                 await arguments.ThisTypeAsync(receiverNode, cancellation).ConfigureAwait(false),
                 receiver,

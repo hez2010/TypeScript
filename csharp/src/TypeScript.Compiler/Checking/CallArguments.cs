@@ -7,6 +7,8 @@ namespace TypeScript.Compiler.Checking;
 
 internal interface ICallArgumentHost
 {
+    bool LegacyDecorators { get; }
+
     ValueTask<Type> CheckExpressionAsync(SyntaxNode node, CheckMode mode, CancellationToken cancellation);
 
     ValueTask<Type> CachedExpressionAsync(SyntaxNode node, CheckMode mode, CancellationToken cancellation);
@@ -207,11 +209,13 @@ internal sealed class CallArguments(TypeContext context, TypeAlgebra algebra, Ex
         return await tuples.CreateAsync([type], [new(ElementFlags.Variadic)], false, cancellation).ConfigureAwait(false);
     }
 
-    internal static SyntaxNode? ThisNode(SyntaxNode node)
+    internal SyntaxNode? ThisNode(SyntaxNode node)
     {
         if (node is BinaryExpressionNode binary)
             return binary.Right;
-        var target = node is CallExpressionNode or TaggedTemplateExpressionNode ? Target(node) : null;
+        var target = node is CallExpressionNode or TaggedTemplateExpressionNode || node is DecoratorNode && !host.LegacyDecorators
+            ? Target(node)
+            : null;
         while (true)
             switch (target)
             {
@@ -229,6 +233,9 @@ internal sealed class CallArguments(TypeContext context, TypeAlgebra algebra, Ex
                     break;
                 case SatisfiesExpressionNode satisfies:
                     target = satisfies.Expression;
+                    break;
+                case ExpressionWithTypeArgumentsNode instantiated:
+                    target = instantiated.Expression;
                     break;
                 case PropertyAccessExpressionNode property:
                     return property.Expression;

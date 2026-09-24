@@ -14,6 +14,7 @@ internal sealed partial class Checker
             Error(node, 1211);
         CheckClassModifiers(node);
         ExportedDeclaration(node, true);
+        await CheckDecoratorsAsync(node, cancellation).ConfigureAwait(false);
         if (!expression)
             await CheckMergedExportsAsync(node, cancellation).ConfigureAwait(false);
         if (SemanticSyntax.Name(node) is IdentifierNode name && ReservedTypeName(name.Text))
@@ -204,11 +205,12 @@ internal sealed partial class Checker
 
     private void CheckClassModifiers(SyntaxNode node)
     {
+        DecoratorGrammar(node);
         if (node is IModifiedNode { Modifiers: { } modifiers })
             foreach (var modifier in modifiers)
             {
                 if (modifier is DecoratorNode)
-                    throw new InvalidOperationException("Checker requires class decorator validation");
+                    continue;
                 if (modifier.Kind is not (SyntaxKind.AbstractKeyword or SyntaxKind.DeclareKeyword or SyntaxKind.ExportKeyword
                     or SyntaxKind.DefaultKeyword))
                     Error(modifier, 1042);

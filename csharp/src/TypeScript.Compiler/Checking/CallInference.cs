@@ -86,7 +86,7 @@ internal sealed class CallInference(TypeInference inference, TypeConstraints con
         if (receiver is not null && await variables.CouldContainAsync(receiver, cancellation).ConfigureAwait(false))
             await inference.InferAsync(
                 target,
-                await arguments.ThisTypeAsync(CallArguments.ThisNode(node), cancellation).ConfigureAwait(false),
+                await arguments.ThisTypeAsync(arguments.ThisNode(node), cancellation).ConfigureAwait(false),
                 receiver,
                 cancellation: cancellation).ConfigureAwait(false);
         for (int i = 0; i < count; i++)

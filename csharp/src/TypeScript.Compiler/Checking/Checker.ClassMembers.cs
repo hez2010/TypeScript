@@ -8,6 +8,8 @@ internal sealed partial class Checker
 {
     private void ClassMemberModifiers(SyntaxNode node)
     {
+        if (DecoratorGrammar(node))
+            return;
         if (node is not IModifiedNode { Modifiers: { } modifiers })
             return;
         var seen = new HashSet<SyntaxKind>();
@@ -15,7 +17,7 @@ internal sealed partial class Checker
         foreach (var modifier in modifiers)
         {
             if (modifier is DecoratorNode)
-                throw new InvalidOperationException("Checker requires member decorator validation");
+                continue;
             bool access = modifier.Kind is SyntaxKind.PublicKeyword or SyntaxKind.PrivateKeyword or SyntaxKind.ProtectedKeyword;
             if (!seen.Add(modifier.Kind))
                 Error(modifier, 1030);
@@ -43,7 +45,9 @@ internal sealed partial class Checker
     private async ValueTask CheckPropertySourceAsync(PropertyDeclarationNode node, CancellationToken cancellation)
     {
         ClassMemberModifiers(node);
-        await PropertyGrammarAsync(node, cancellation).ConfigureAwait(false);
+        await CheckDecoratorsAsync(node, cancellation).ConfigureAwait(false);
+        if (!DecoratorGrammar(node))
+            await PropertyGrammarAsync(node, cancellation).ConfigureAwait(false);
         if (node.Name is ComputedPropertyNameNode computed)
             await ComputedNameAsync(computed, cancellation).ConfigureAwait(false);
         await FunctionDeclarations.VariableAsync(node, cancellation).ConfigureAwait(false);
@@ -53,6 +57,7 @@ internal sealed partial class Checker
 
     private async ValueTask CheckMethodSourceAsync(MethodDeclarationNode node, CancellationToken cancellation)
     {
+        await CheckDecoratorsAsync(node, cancellation).ConfigureAwait(false);
         await FunctionDeclarations.GrammarAsync(node, cancellation).ConfigureAwait(false);
         await CheckFunctionDeclarationAsync(node, cancellation).ConfigureAwait(false);
         await CheckFunctionOverloadsAsync(node, cancellation).ConfigureAwait(false);
@@ -77,6 +82,7 @@ internal sealed partial class Checker
 
     private async ValueTask CheckAccessorSourceAsync(SyntaxNode node, CancellationToken cancellation)
     {
+        await CheckDecoratorsAsync(node, cancellation).ConfigureAwait(false);
         await FunctionDeclarations.GrammarAsync(node, cancellation).ConfigureAwait(false);
         AccessorGrammar(node);
         await CheckFunctionDeclarationAsync(node, cancellation).ConfigureAwait(false);

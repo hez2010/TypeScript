@@ -57,6 +57,13 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
 
     public async ValueTask<IReadOnlyList<SyntaxNode>> SpecialArgumentsAsync(SyntaxNode node, CancellationToken cancellation)
     {
+        if (node is DecoratorNode decorator && await DecoratorSignatureAsync(decorator, cancellation) is { } signature)
+        {
+            var arguments = new List<SyntaxNode>();
+            foreach (var parameter in signature.Parameters)
+                arguments.Add(Checking.CallArguments.Synthetic(decorator.Expression!, await Values.GetAsync(parameter, cancellation)));
+            return arguments;
+        }
         if (node is TaggedTemplateExpressionNode tagged)
         {
             var type = await program.Globals.GetAsync("TemplateStringsArray", 0, true, cancellation);
@@ -70,12 +77,26 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
         throw new InvalidOperationException("Checker requires JSX/decorator effective arguments");
     }
 
-    public ValueTask<bool> SpecialArityAsync(
+    public async ValueTask<bool> SpecialArityAsync(
         SyntaxNode node,
         IReadOnlyList<SyntaxNode> arguments,
         Signature signature,
-        CancellationToken cancellation) =>
-        throw new InvalidOperationException("Checker requires JSX/decorator arity rules");
+        CancellationToken cancellation)
+    {
+        if (node is not DecoratorNode decorator)
+            throw new InvalidOperationException("Checker requires JSX arity rules");
+        int count = await DecoratorArgumentCountAsync(decorator, signature, cancellation);
+        if (!await Parameters.HasRestAsync(signature, cancellation) && count > await Parameters.CountAsync(signature, cancellation))
+            return false;
+        int minimum = await Parameters.MinimumAsync(signature, cancellation: cancellation);
+        for (int i = count; i < minimum; i++)
+        {
+            var type = await Parameters.AtAsync(signature, i, cancellation);
+            if (!(type is UnionType union ? union.Types : [type]).Any(t => (t.Flags & TypeFlags.Void) != 0))
+                return false;
+        }
+        return true;
+    }
 
     public ValueTask<bool> ConstructorAccessibleAsync(SyntaxNode node, IReadOnlyList<Signature> signatures, CancellationToken cancellation)
         => ConstructorAccess.CheckAsync(node, signatures, cancellation);
@@ -86,6 +107,8 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
         CheckMode mode,
         CancellationToken cancellation)
     {
+        if (node is DecoratorNode decorator)
+            return await ResolveDecoratorAsync(decorator, candidates, mode, cancellation);
         if (node is BinaryExpressionNode binary)
         {
             var type = await Expressions.CheckAsync(binary.Right!, cancellation: cancellation);
@@ -189,7 +212,7 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
         if (errorNode is null)
             return await Relations.RelatedAsync(source, target, relation, cancellation);
         int? previous = relationDiagnosticHead;
-        if (code is 2769 or 2860)
+        if (code is 2769 or 2860 or >= 1238 and <= 1241)
             relationDiagnosticHead = code;
         try
         {
@@ -294,6 +317,24 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
     {
         BeforeCallDiagnostics?.Invoke(state.Node);
         cancellation.ThrowIfCancellationRequested();
+        if (state.Node is DecoratorNode decorator)
+        {
+            int? previous = relationDiagnosticHead;
+            relationDiagnosticHead = DecoratorHead(decorator);
+            try
+            {
+                if (state.ArgumentErrors.Count != 0)
+                    await CallResolution.ApplicableAsync(state.Node, state.Arguments, state.ArgumentErrors[^1], RelationKind.Assignable, 0,
+                        true, DecoratorHead(decorator), cancellation);
+                else
+                    Error(decorator, DecoratorHead(decorator));
+            }
+            finally
+            {
+                relationDiagnosticHead = previous;
+            }
+            return;
+        }
         if (state.ArgumentErrors.Count != 0)
         {
             await CallResolution.ApplicableAsync(state.Node, state.Arguments, state.ArgumentErrors[^1], RelationKind.Assignable, 0,

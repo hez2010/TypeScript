@@ -216,8 +216,85 @@ internal static class CheckerSignatureTests
         checks += await CallSafety();
         checks += await IterationSafety();
         checks += await DocumentationSafety();
+        checks += await DecoratorSafety();
         Console.WriteLine(
             $"{checks} signature/function/call/iteration/inference/context/cancellation assertions; binding and return traversal depth 20000");
+    }
+
+    private static async Task<int> DecoratorSafety()
+    {
+        const string library = """
+            interface Array<T> { length: number; [n: number]: T; }
+            interface ReadonlyArray<T> { readonly length: number; readonly [n: number]: T; }
+            interface TypedPropertyDescriptor<T> { value?: T; get?: () => T; set?: (value: T) => void; }
+            interface ClassDecoratorContext<T> { kind: 'class'; name: string | undefined; }
+            interface ClassMethodDecoratorContext<This, Value> { kind: 'method'; name: string | symbol; static: boolean; private: boolean; }
+            interface ClassFieldDecoratorContext<This, Value> { kind: 'field'; name: string | symbol; static: boolean; private: boolean; value: Value; }
+            """;
+        const string standard = """
+            declare function classDecorator<T extends new (...args: any[]) => any>(value: T, context: ClassDecoratorContext<T>): T;
+            declare const provider: { tag: true; decorate<T>(this: { tag: true }, value: T, context: any): T; };
+            declare function staticOnly(value: undefined, context: ClassFieldDecoratorContext<any, number> & { name: 'count'; static: true; private: false }): void;
+            declare function wrong(value: undefined, context: ClassFieldDecoratorContext<any, string>): void;
+            declare function replacement(value: any, context: any): string;
+            @classDecorator class C {
+                @provider.decorate method() { return 1; }
+                @staticOnly static count = 1;
+                @wrong value = 1;
+                @replacement replaced() { return 1; }
+            }
+            """;
+        const string legacy = """
+            declare function methodDecorator(target: object, key: string, descriptor: TypedPropertyDescriptor<() => number>): void;
+            declare function parameterDecorator(target: object, key: string | undefined, index: 0): void;
+            class C {
+                constructor(@parameterDecorator value: number) { }
+                @methodDecorator method() { return 1; }
+            }
+            """;
+        const string metadata = """
+            import { C, I } from './types';
+            declare function decorator(...args: any[]): void;
+            class D { @decorator classValue!: C; @decorator interfaceValue!: I; }
+            """;
+        int checks = 0;
+        foreach (var (source, old, emit, expected) in new (string, bool, bool, int[])[]
+            { (standard, false, false, [1240, 1270]), (legacy, true, false, []), (metadata, true, true, [1272]) })
+        {
+            var options = new CompilerOptions();
+            options.SetRaw("noLib", "true");
+            options.SetRaw("strict", "true");
+            options.SetRaw("target", "\"es2022\"");
+            options.SetRaw("module", "\"esnext\"");
+            options.SetRaw("isolatedModules", "true");
+            options.SetRaw("experimentalDecorators", old ? "true" : "false");
+            options.SetRaw("emitDecoratorMetadata", emit ? "true" : "false");
+            var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+            {
+                ["/project/main.ts"] = Wtf8.Encode(source),
+                ["/project/globals.d.ts"] = Wtf8.Encode(library),
+                ["/project/types.ts"] = Wtf8.Encode("export class C { value = 1; } export interface I { value: number; }")
+            }), "/project", new("/project/tsconfig.json", options, ["/project/main.ts", "/project/globals.d.ts"], [], [], []));
+            var checker = await program.CreateCheckerAsync();
+            var file = program.GetFile("/project/main.ts")!.Syntax;
+            var nodes = file.DescendantsAndSelf().ToArray();
+            var parents = nodes.Select(n => n.Parent).ToArray();
+            await checker.CheckSourceFileAsync(file);
+            var codes = checker.DiagnosticCodesForFile(file);
+            if (!codes.SequenceEqual(expected))
+                throw new InvalidOperationException($"Decorator diagnostics: {string.Join(',', codes)}");
+            if (!nodes.Select(n => n.Parent).SequenceEqual(parents))
+                throw new InvalidOperationException("Decorator checking changed source parents");
+            checks += 2;
+            if (emit)
+            {
+                var import = nodes.OfType<ImportSpecifierNode>().Single(n => n.Name!.Text == "C");
+                if (!checker.Links.Aliases.Get(checker.Symbols.Declaration(import)!).Referenced)
+                    throw new InvalidOperationException("Decorator metadata did not retain the value import");
+                checks++;
+            }
+        }
+        return checks;
     }
 
     private static async Task<int> DocumentationSafety()
