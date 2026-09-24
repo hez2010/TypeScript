@@ -1,0 +1,23 @@
+{
+    "timestamp": "2026-09-24T00:16:53.431Z",
+    "scope": "Source structured members, interface bases, signatures and index signatures with annotated value dependencies; full checker integration remains incomplete",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "managed": false,
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "cases": 176,
+    "awaitedQueries": 0,
+    "expressionQueries": 0,
+    "constantQueries": 0,
+    "keyQueries": 0,
+    "indexQueries": 0,
+    "numericStringConversions": 0,
+    "relationPairs": 0,
+    "relationKeyQueries": 0,
+    "exact": 176,
+    "failed": 0,
+    "inputSha256": "e8036ed127a796ac03b72170af3c87445ff4a92e63c83dcf9cdcd1fffc29b32f",
+    "referenceOutputSha256": "5959483e338fbaff22c53d09af64c713c83c4d6ec65616bbbdb8daaaaea68dc8",
+    "outputSha256": "c35a5b1bbbd3b14be4777bccd81853afc9dafef8621e105be50ea5067ddd14f7",
+    "candidateSha256": "cea2793693e4551ae6cf487219cb0e8f10dcaaa909c8f08b8bb9f92fcf328a51",
+    "oracleSha256": "d149845cdfb82ad12c088113da4bc19ad1e3982dbb9db69c06071a091edc0fe0"
+}

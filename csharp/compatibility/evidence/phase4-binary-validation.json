@@ -1,0 +1,108 @@
+{
+    "timestamp": "2026-09-24T00:21:52.6805782Z",
+    "scope": "Binary expression result checking, operator diagnostics, syntactic nullishness and awaited types; required assignment, access and complete diagnostic services remain open",
+    "candidateSha256": "cea2793693e4551ae6cf487219cb0e8f10dcaaa909c8f08b8bb9f92fcf328a51",
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "languageVersion": "15.0",
+    "runtimeAsync": true,
+    "optimizationPreference": "Speed",
+    "instructionSet": "native",
+    "publish": {
+        "exitCode": 0,
+        "sha256": "03933be2dc34223ee88005d844f6919fd7786869077fd93acbb392005d81ccfb",
+        "log": "logs/csharp-phase4-binary-publish.log"
+    },
+    "state": {
+        "exitCode": 0,
+        "assertions": 28,
+        "output": "28 binary/awaited/recursion/cancellation assertions; 20000-level binary expressions"
+    },
+    "regression": {
+        "typeState": 2904,
+        "typeStateOperations": 1333980,
+        "sourceTypes": 192,
+        "assignability": 332,
+        "properties": 192,
+        "sourceProgramCases": 2316,
+        "values": 136,
+        "failed": 0,
+        "safetyAssertions": 641,
+        "genericRelations": 128,
+        "conditionals": 152,
+        "initializers": 48,
+        "identity": 160,
+        "inference": 176,
+        "members": 176,
+        "indexing": 320,
+        "constants": 48,
+        "expressions": 40,
+        "signatures": 216,
+        "safetyOutputs": [
+            "25 expression/enum/cache/cancellation assertions; 20000-level expression and constant traversal",
+            "35 inference/priority/fixing/cancellation/widening/reverse-map assertions; 20000-level traversal",
+            "24 conditional/cache/cancellation assertions; exact 1000 tail and 10 relation nesting limits",
+            "22 generic relation/optionality/key variance/cancellation assertions",
+            "Checker indexed type safety: 24 assertions; 20,000-level simplification and key traversal",
+            "33 structural relation/variance/facts/cancellation assertions",
+            "36 relation key/cache/normalization/cancellation assertions; exact 100-level comparison cutoff; key and base chains depth 20000",
+            "39 signature matching/arity/composition/cancellation assertions; binding label depth 20000",
+            "49 property/view/index/cache/cancellation assertions; reduction chain depth 20000",
+            "32 symbol read/write/cache/cancellation assertions; instantiated symbol chain depth 20000",
+            "31 structured member/signature assertions; base and signature chains depth 20000",
+            "25 source-type/cache/cancellation assertions; array and alias ancestry depth 20000",
+            "30 mapped member assertions; key validity, lower-bound and modifier chains at depth 20000",
+            "37 mapped type assertions; actual-variable, generic-flag, kind and unary-tuple analysis depth 20000",
+            "40 object instantiation assertions; reference, parent and entity-name depth 20000",
+            "26 instantiation/signature/tuple assertions; exact 100-depth, 5,000,000-work and 10,000-tuple limits",
+            "21 constraint/default/recursion state assertions; default and indexed identity depth 20000",
+            "15 algebra ownership/limit/cancellation assertions; template, intersection and origin depth 20000",
+            "25 program/checker ownership assertions; interface and scope depth 20000",
+            "31 alias/cycle/cancellation/module-export assertions; alias chain depth 20000",
+            "41 checker ownership/state assertions; mapper and type-order depth 50000; 16 independent contexts"
+        ]
+    },
+    "repository": {
+        "extensionTests": 12,
+        "apiTests": 813,
+        "node": "24.20.0",
+        "exitCode": 0,
+        "benchmarkScope": "Required smoke runs only; no performance claim",
+        "goTestResults": 163380,
+        "goSkips": 2152,
+        "command": "npx --no-install hereby validate --all",
+        "log": "logs/csharp-phase4-binary-validation.log",
+        "sha256": "e8173cd661295bb6657ebba992ec58b21ad5a08cf95bb8f3df65e9a04e0473b9",
+        "lintIssues": 0,
+        "toolTests": 17,
+        "go": "1.27.1"
+    },
+    "formatting": "Nine C# files verified with identical tokens, comments and syntax under both library configurations; single-line auto-properties retained. Final dotnet format whitespace verification, constant-generator freshness and applicable dprint checks passed.",
+    "dependenciesAdded": false,
+    "expressions": {
+        "queries": 352,
+        "failed": 0,
+        "exact": 56,
+        "sourceConfigurations": 28,
+        "cases": 56
+    },
+    "concurrency": {
+        "candidate": [
+            1,
+            4
+        ],
+        "reference": [
+            "singleThreaded",
+            "default"
+        ]
+    },
+    "awaited": {
+        "exact": 24,
+        "queries": 116,
+        "scope": "Promised, awaited and wrapped types, thenability, generic classification, constraints and serialized type graphs",
+        "sourceConfigurations": 12,
+        "failed": 0,
+        "cases": 24
+    },
+    "classificationAudit": "csharp/compatibility/evidence/phase4-binary-awaited-classification-audit.json"
+}

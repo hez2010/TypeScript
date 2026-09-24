@@ -51,6 +51,8 @@ internal sealed partial class ProgramTypeHost : IExpressionTypeHost, IExpression
 
     public async ValueTask<Type> OtherExpressionAsync(SyntaxNode node, CheckMode mode, CancellationToken cancellation)
     {
+        if (node is BinaryExpressionNode binary)
+            return await Binary.CheckAsync(binary, mode, cancellation);
         if (node is IdentifierNode or PropertyAccessExpressionNode)
         {
             var symbol = await program.EntityNames.ResolveAsync(node, SymbolFlags.Value, true, cancellation: cancellation);

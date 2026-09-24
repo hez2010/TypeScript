@@ -388,6 +388,26 @@ internal static class CheckerProgramTests
             }
             writer.WriteEndArray();
         }
+        if (input.TryGetProperty("awaited", out var awaitedOption) && awaitedOption.GetBoolean())
+        {
+            writer.WriteStartArray("awaitedQueries");
+            foreach (var node in nodes)
+                if (node is TypeAliasDeclarationNode or InterfaceDeclarationNode && node is INamedNode { Name: IdentifierNode name }
+                    && name.Text.Length > 1 && name.Text[0] == 'A' && char.IsAsciiDigit(name.Text[1]))
+                {
+                    var type = await typeHost!.Declared.GetAsync(environment.Declaration(node)!);
+                    writer.WriteStartArray();
+                    writer.WriteNumberValue(Node(node));
+                    writer.WriteNumberValue(TypeId(type));
+                    writer.WriteNumberValue(TypeId((await typeHost.Awaited.PromisedAsync(type)).Type));
+                    writer.WriteNumberValue(TypeId(await typeHost.Awaited.NoAliasAsync(type)));
+                    writer.WriteNumberValue(TypeId(await typeHost.Awaited.GetAsync(type)));
+                    writer.WriteBooleanValue(await typeHost.Awaited.NeededAsync(type));
+                    writer.WriteBooleanValue(await typeHost.Awaited.ThenableAsync(type));
+                    writer.WriteEndArray();
+                }
+            writer.WriteEndArray();
+        }
         if (input.TryGetProperty("expressions", out var expressionOption) && expressionOption.GetBoolean())
         {
             writer.WriteStartArray("expressionQueries");
@@ -444,6 +464,10 @@ internal static class CheckerProgramTests
         if (input.TryGetProperty("identity", out var identityOption) && identityOption.GetBoolean())
             await CheckerRelationTests.WriteAsync(writer, nodes, environment, typeHost!, TypeId, Node,
                 input.TryGetProperty("assignability", out var assignabilityOption) && assignabilityOption.GetBoolean());
+        var variableQueries = typeHost is not null
+            && input.TryGetProperty("awaited", out var classifyVariables)
+            && classifyVariables.GetBoolean()
+            ? new TypeVariables(typeHost.References.TypeArgumentsAsync) : null;
         writer.WriteStartArray("types");
         for (int i = 0; i < types.Count; i++)
         {
@@ -452,6 +476,7 @@ internal static class CheckerProgramTests
             var intf = type as InterfaceType;
             if (typeHost is not null && type is TypeReference lazy && (type.ObjectFlags & ObjectFlags.Reference) != 0)
                 await typeHost.References.TypeArgumentsAsync(lazy);
+            bool containsVariables = variableQueries is not null && await variableQueries.CouldContainAsync(type);
             writer.WriteStartArray();
             writer.WriteNumberValue((uint)type.Flags);
             writer.WriteNumberValue((uint)type.ObjectFlags);
@@ -467,6 +492,8 @@ internal static class CheckerProgramTests
             if (typeHost is not null)
             {
                 writer.WriteStartObject();
+                if (variableQueries is not null)
+                    writer.WriteBoolean("couldContainTypeVariables", containsVariables);
                 if (type.Alias is { } typeAlias)
                 {
                     writer.WriteStartArray("alias");

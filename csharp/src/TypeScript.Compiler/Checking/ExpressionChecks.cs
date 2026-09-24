@@ -3,6 +3,7 @@ using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Semantics;
 using TypeScript.Compiler.Syntax;
 using TypeScript.Compiler.Text;
+using System.Runtime.CompilerServices;
 
 namespace TypeScript.Compiler.Checking;
 
@@ -101,6 +102,71 @@ internal sealed class ExpressionChecks(TypeContext context, TypeFactQueries fact
             if (next is null)
                 return node;
             node = next;
+        }
+    }
+
+    internal async ValueTask NullishOperandsAsync(SyntaxNode left, SyntaxNode right, CancellationToken cancellation = default)
+    {
+        SyntaxNode? invalid = null;
+        if (left.Parent?.Parent is BinaryExpressionNode parent)
+        {
+            if (parent.Left is BinaryExpressionNode && parent.OperatorToken?.Kind == SyntaxKind.BarBarToken)
+                invalid = parent.Left;
+        }
+        else if (left is BinaryExpressionNode leftBinary)
+        {
+            if (leftBinary.OperatorToken?.Kind is SyntaxKind.BarBarToken or SyntaxKind.AmpersandAmpersandToken)
+                invalid = left;
+        }
+        else if (right is BinaryExpressionNode { OperatorToken.Kind: SyntaxKind.AmpersandAmpersandToken })
+            invalid = right;
+        if (invalid is not null && SemanticSyntax.Source(invalid)?.ParseDiagnostics.Count == 0)
+            host.ExpressionError(invalid, 5076);
+        var target = SkipOuter(left);
+        int semantics = await NullishnessAsync(target, cancellation).ConfigureAwait(false);
+        if (semantics != 3)
+            host.ExpressionError(target, semantics == 1 ? 2871 : 2869);
+    }
+
+    internal async ValueTask<int> NullishnessAsync(SyntaxNode node, CancellationToken cancellation = default)
+    {
+        await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
+            ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
+        cancellation.ThrowIfCancellationRequested();
+        node = SkipOuter(node);
+        switch (node.Kind)
+        {
+            case SyntaxKind.AwaitExpression or SyntaxKind.CallExpression or SyntaxKind.TaggedTemplateExpression
+                or SyntaxKind.ElementAccessExpression
+                or SyntaxKind.MetaProperty or SyntaxKind.NewExpression or SyntaxKind.PropertyAccessExpression or SyntaxKind.YieldExpression or SyntaxKind.ThisKeyword:
+                return 3;
+            case SyntaxKind.BinaryExpression:
+                var binary = (BinaryExpressionNode)node;
+                switch (binary.OperatorToken!.Kind)
+                {
+                    case SyntaxKind.BarBarToken or SyntaxKind.BarBarEqualsToken or SyntaxKind.AmpersandAmpersandToken
+                        or SyntaxKind.AmpersandAmpersandEqualsToken:
+                        return 3;
+                    case SyntaxKind.CommaToken or SyntaxKind.EqualsToken:
+                        return await NullishnessAsync(binary.Right!, cancellation).ConfigureAwait(false);
+                    case SyntaxKind.QuestionQuestionToken or SyntaxKind.QuestionQuestionEqualsToken:
+                        int left = await NullishnessAsync(binary.Left!, cancellation).ConfigureAwait(false);
+                        return (left & 2) | ((left & 1) != 0
+                            ? await NullishnessAsync(binary.Right!, cancellation).ConfigureAwait(false)
+                            : 0);
+                    default:
+                        return 2;
+                }
+            case SyntaxKind.ConditionalExpression:
+                var conditional = (ConditionalExpressionNode)node;
+                return await NullishnessAsync(conditional.WhenTrue!, cancellation).ConfigureAwait(false)
+                    | await NullishnessAsync(conditional.WhenFalse!, cancellation).ConfigureAwait(false);
+            case SyntaxKind.NullKeyword:
+                return 1;
+            case SyntaxKind.Identifier:
+                return await host.UndefinedIdentifierAsync((IdentifierNode)node, cancellation).ConfigureAwait(false) ? 1 : 3;
+            default:
+                return 2;
         }
     }
 

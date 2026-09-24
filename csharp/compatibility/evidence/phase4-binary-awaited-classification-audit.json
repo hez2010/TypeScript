@@ -1,0 +1,34 @@
+{
+    "timestamp": "2026-09-24T00:16:01.5178430Z",
+    "scope": "Explicit generic-variable classification queries in the awaited-type probe",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "cause": "Unordered inferred-parameter traversal can leave different CouldContainTypeVariables lazy flags populated after equivalent awaited queries",
+    "before": {
+        "names": [
+            "awaited:generic:false:1",
+            "awaited:generic:false:4",
+            "awaited:generic:true:1",
+            "awaited:generic:true:4"
+        ],
+        "differentCases": 4,
+        "outputHashes": [
+            "e72a26719ab984c0c30fb0e944e6b45213ece1fd695dea6d37c6da458d980fe3",
+            "0e59948c70135d15880879cddc0128dd2355d103f13485e9d19b55c253e0fcee",
+            "88048b212b04ef7421c5a03ee4ad668e27e9f501f1b09475771b8086537d8379"
+        ],
+        "repeats": 3,
+        "cases": 24
+    },
+    "query": "For awaited-mode serialization only, invoke couldContainTypeVariables on every serialized type and compare both its returned Boolean and resulting flags. Inference order and semantic algorithms remain unchanged; no type result, constraint, or relation cache comparison is removed.",
+    "after": {
+        "cases": 24,
+        "repeats": 3,
+        "identical": true,
+        "hashes": [
+            "77fa99a89a653757e0d53fe2ba78d1cf6a6976635b969234ec15457be9c150c8",
+            "77fa99a89a653757e0d53fe2ba78d1cf6a6976635b969234ec15457be9c150c8",
+            "77fa99a89a653757e0d53fe2ba78d1cf6a6976635b969234ec15457be9c150c8"
+        ]
+    },
+    "productionGoChanges": false
+}

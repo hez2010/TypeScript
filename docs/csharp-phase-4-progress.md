@@ -381,7 +381,7 @@ node csharp/tools/checker-program.mjs --inference --record phase4-inference
 
 `Semantics/ConstantEvaluator.cs` evaluates numeric/string operations and templates with entity callbacks, outer-expression skip modes, and cross-file/external-reference provenance. `EnumValues.cs` adds constant/computed enum values, automatic numbering, forward-reference checks, ambient/const enum rules and cancellation recovery. Declaration ordering and computed initializer checking retain required host services.
 
-`ExpressionTypes.cs`, `ExpressionChecks.cs` and `TypePredicates.cs` implement primitive literals, unary results, `typeof`/`void`, non-null assertions, conditional/template result types, null/truthiness checks and expression-state restoration. `VariableTypes.cs` implements annotation/initializer selection, optionality, automatic variable types, setter parameters, catch variables and widening. Binding patterns, property-initialization flow and context-sensitive parameters remain required services. General binary/access/call/object/array/function expression checking is still incomplete.
+`ExpressionTypes.cs`, `ExpressionChecks.cs` and `TypePredicates.cs` implement primitive literals, unary results, `typeof`/`void`, non-null assertions, conditional/template result types, null/truthiness checks and expression-state restoration. `VariableTypes.cs` implements annotation/initializer selection, optionality, automatic variable types, setter parameters, catch variables and widening. Binding patterns, property-initialization flow and context-sensitive parameters remain required services. General access/call/object/array/function expression checking is still incomplete.
 
 The numeric helpers now retain the reference's explicit NaN payload and remainder special cases. Integer exponentiation follows its exact-integer path and 256-bit intermediate rounding, including the pinned implementation's int64 conversion boundary. Existing implementation-approximated floating-power policy is unchanged.
 
@@ -394,6 +394,24 @@ node csharp/tools/checker-program.mjs --expressions --record phase4-expressions
 node csharp/tools/checker-program.mjs --constants --record phase4-expressions-constants-regression
 node csharp/tools/checker-program.mjs --initializers --record phase4-expressions-initializers-regression
 & ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-expressions-safety
+```
+
+## Binary operators and awaited types
+
+`BinaryExpressions.cs` implements arithmetic, comparison, logical/coalescing and comma result types, preserving operand order and the reference's nullable/BigInt rules. `ExpressionChecks.cs` now checks syntactic nullishness and mixed coalescing/logical grammar. Assignment references, destructuring, `in`/`instanceof`, and complete diagnostic elaboration remain required host services.
+
+`AwaitedTypes.cs` resolves promises and thenables, validates fulfillment callbacks and `this` receivers, detects recursive fulfillment, distributes unions, and preserves generic `Awaited<T>` wrappers. Failed or canceled recursive evaluation unwinds the awaited stack.
+
+NativeAOT passes **56 exact binary-expression programs** (352 expression queries) and **24 exact awaited-type programs** (116 query groups) at single and reference-default concurrency. Twenty-eight native safety assertions cover diagnostics, recursive promises, cancellation/retry, and **20,000-level** binary traversal. The same artifact passes 2,316 earlier source-program comparisons, 2,904 type/state cases and 641 earlier safety assertions.
+
+Repeated reference runs revealed that unordered inferred-parameter traversal can populate different lazy generic-variable flags. The awaited probe now explicitly queries `couldContainTypeVariables` for every serialized type and compares its Boolean result and resulting flags. This does not reorder inference or remove semantic/cache comparisons. Three repeated reference runs then produced identical output; the [classification audit](../csharp/compatibility/evidence/phase4-binary-awaited-classification-audit.json) records the query change.
+
+Evidence: [binary expressions](../csharp/compatibility/evidence/phase4-binary.json), [awaited types](../csharp/compatibility/evidence/phase4-binary-awaited-regression.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-binary-validation.json).
+
+```powershell
+node csharp/tools/checker-program.mjs --binary --record phase4-binary
+node csharp/tools/checker-program.mjs --awaited --record phase4-binary-awaited-regression
+& ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-binary-safety
 ```
 
 ## Remaining completion work

@@ -11,7 +11,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/jsnum"
 )
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -186,6 +186,21 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 			}
 			if result != nil {
 				typeQueries = append(typeQueries, []any{nodeIDs[node], tid(result)})
+			}
+		}
+	}
+	awaitedRows := []any{}
+	if awaitedQueries {
+		for _, node := range nodes {
+			if (ast.IsTypeAliasDeclaration(node) || ast.IsInterfaceDeclaration(node)) && len(node.Name().Text()) > 1 && node.Name().Text()[0] == 'A' && node.Name().Text()[1] >= '0' && node.Name().Text()[1] <= '9' {
+				t := c.getDeclaredTypeOfSymbol(c.getSymbolOfDeclaration(node))
+				id := tid(t)
+				promised := tid(c.getPromisedTypeOfPromiseEx(t, nil, nil))
+				plain := tid(c.getAwaitedTypeNoAlias(t))
+				wrapped := tid(c.getAwaitedType(t))
+				needed := c.isAwaitedTypeNeeded(t)
+				thenable := c.isThenableType(t)
+				awaitedRows = append(awaitedRows, []any{nodeIDs[node], id, promised, plain, wrapped, needed, thenable})
 			}
 		}
 	}
@@ -532,10 +547,17 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 		if t.flags&TypeFlagsIntrinsic != 0 {
 			intrinsic = t.AsIntrinsicType().intrinsicName
 		}
+		containsVariables := false
+		if awaitedQueries {
+			containsVariables = c.couldContainTypeVariables(t)
+		}
 		targetID, argIDs, paramIDs := tid(target), tids(args), tids(params)
 		row := []any{t.flags, t.objectFlags, symbol, targetID, argIDs, paramIDs, outer, tid(this), isThis, tid(constraint), intrinsic}
 		if typeNodes {
 			shape := map[string]any{}
+			if awaitedQueries {
+				shape["couldContainTypeVariables"] = containsVariables
+			}
 			if t.alias != nil {
 				args := tids(t.alias.typeArguments)
 				if args == nil {
@@ -682,6 +704,9 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	}
 	if constantQueries {
 		result["constantQueries"] = constantRows
+	}
+	if awaitedQueries {
+		result["awaitedQueries"] = awaitedRows
 	}
 	if expressionQueries {
 		result["expressionQueries"] = expressionRows

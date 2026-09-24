@@ -156,6 +156,9 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
         ExpressionChecks = new(context, Facts, this);
         Expressions = new(context, Algebra, Facts, Relations, Instantiation.Engine, EnumValues.Evaluator, this);
         Variables = new(context, Algebra, Widening, program.Symbols, Signatures, this);
+        Awaited = new(context, Algebra, Instantiation.Constraints, Properties, Values, Parameters, Relations,
+            Instantiation.Mapped, Predicates, Views, Facts, this);
+        Binary = new(context, Algebra, Predicates, Facts, Widening, Relations, ExpressionChecks, EnumValues.Evaluator, this);
         relations.EmptyAnonymousSource = Views.EmptyAnonymousAsync;
         relations.EmptyObjectSource = Views.EmptyObjectAsync;
         relations.PropertiesSource = Properties.GetAsync;
