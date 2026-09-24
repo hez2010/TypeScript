@@ -95,6 +95,7 @@ internal sealed partial class Checker
 
     private async ValueTask CheckNamespaceSourceAsync(ModuleDeclarationNode node, CancellationToken cancellation)
     {
+        CheckDeclarationName(node);
         DecoratorGrammar(node);
         if (node.Body is not null)
             await CheckSourceElementAsync(node.Body, cancellation).ConfigureAwait(false);
@@ -251,6 +252,7 @@ internal sealed partial class Checker
 
     private async ValueTask CheckAliasSourceAsync(SyntaxNode node, CancellationToken cancellation)
     {
+        CheckDeclarationName(node);
         var symbol = program.Symbols.Declaration(node)!;
         var target = await program.Aliases.ResolveAsync(symbol, cancellation).ConfigureAwait(false);
         if (target == program.Symbols.UnknownSymbol)

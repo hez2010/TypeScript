@@ -81,8 +81,47 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
 
     public SymbolFlags GetSymbolFlags(Symbol symbol) => Aliases.FlagsAsync(symbol).GetAwaiter().GetResult();
 
+    internal Dictionary<(SyntaxNode Node, int Code), List<SyntaxNode>> MergeRelatedDeclarations { get; } = [];
+
     public void MergeConflict(Symbol target, Symbol source, bool namespaceConflict)
-        => throw new InvalidOperationException("Checker requires checker merge diagnostic attribution");
+    {
+        static SyntaxNode? Location(SyntaxNode? declaration) => declaration is null ? null : LateMembers.Name(declaration) ?? declaration;
+        if (namespaceConflict)
+        {
+            Error(
+                Location(source.Declarations.FirstOrDefault()),
+                Messages.Cannot_augment_module_0_with_value_exports_because_it_resolves_to_a_non_module_entity,
+                target.Name);
+            return;
+        }
+        var flags = target.Flags | source.Flags;
+        var message = (flags & SymbolFlags.Enum) != 0 ? Messages.Enum_declarations_can_only_merge_with_namespace_or_other_enum_declarations
+            : (flags & SymbolFlags.BlockScopedVariable) != 0
+                ? Messages.Cannot_redeclare_block_scoped_variable_0
+                : Messages.Duplicate_identifier_0;
+        Report(source, target);
+        Report(target, source);
+        void Report(Symbol symbol, Symbol other)
+        {
+            var file = SemanticSyntax.Source(symbol.Declarations.FirstOrDefault());
+            if (file is { ScriptKind: ScriptKind.JS or ScriptKind.JSX, CheckJsDirective: null }
+                && Symbols.Program.Configuration.Options.Boolean("checkJs") is null)
+                return;
+            foreach (var declaration in symbol.Declarations)
+            {
+                var node = Location(declaration)!;
+                Error(node, message, source.Name);
+                if (!MergeRelatedDeclarations.TryGetValue((node, message.Code), out var related))
+                    MergeRelatedDeclarations[(node, message.Code)] = related = [];
+                foreach (var otherDeclaration in other.Declarations)
+                {
+                    var otherNode = Location(otherDeclaration)!;
+                    if (otherNode != node && related.Count < 5 && !related.Contains(otherNode))
+                        related.Add(otherNode);
+                }
+            }
+        }
+    }
 
     public void Error(SyntaxNode? node, DiagnosticMessage message, params string[] arguments)
     {

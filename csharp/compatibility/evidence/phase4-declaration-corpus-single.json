@@ -1,0 +1,127 @@
+{
+    "timestamp": "2026-09-24T18:17:55.584Z",
+    "mode": "single",
+    "configuration": "Release",
+    "selectedConfigurations": 1835,
+    "replayedConfigurations": 1761,
+    "retainedConfigurations": 74,
+    "previousMatches": 1548,
+    "graphAndCodeMatches": 1638,
+    "recoveredConfigurations": 90,
+    "regressions": [],
+    "scope": "Merge diagnostic attribution and declaration name collisions; full phase 4 remains incomplete",
+    "parts": [
+        {
+            "directory": "built/csharp/semantic-corpus-declaration-affected/single",
+            "summary": {
+                "timestamp": "2026-09-24T18:17:29.685Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "mode": "single",
+                "filter": "",
+                "managed": true,
+                "reuseSyntax": true,
+                "referenceJobs": 4,
+                "scope": "Original compiler test program graphs and semantic diagnostic codes; full diagnostic/type/symbol fidelity and parallel candidate checker scheduling remain incomplete",
+                "referenceExitCode": 0,
+                "exportedConfigurations": 15208,
+                "readyConfigurations": 1761,
+                "availableConfigurations": 13446,
+                "selectionSha256": "e7232734d77b881a09e66c65a965efa0a0d280efd1a9a0d3139c80314a1a4008",
+                "referenceInventoryFiles": 12730,
+                "plannedConfigurations": 15208,
+                "referenceMissingFiles": [],
+                "referenceMissingConfigurations": [],
+                "referenceSkipped": 1762,
+                "referenceFailed": 0,
+                "candidateFailures": 7,
+                "graphMismatches": 5,
+                "diagnosticMismatches": 181,
+                "graphAndCodeMatches": 1572,
+                "errorGroups": [
+                    {
+                        "error": "check-program: Checker requires type-parameter modifier grammar",
+                        "count": 3
+                    },
+                    {
+                        "error": "check-program: Checker requires enum relations",
+                        "count": 3
+                    },
+                    {
+                        "error": "check-program: Checker requires contextual reference typing in TemplateSpan",
+                        "count": 1
+                    }
+                ],
+                "inputSha256": "63befffd43c6e1a36331426b4dd2f3b01e4002f3d7f124c3da66f30a33a5c180",
+                "oracleSha256": "072ce20500e1dfa626e6029e8ba98ed84b925a304216116200dd33d97f54654a",
+                "candidateSha256": "f76b3ebcda2c6327ea904907848c509d150552120c60564a04e1908d16650306",
+                "compilerSha256": "090fac89d40a03c5dae4e0144432ab638d59e49058b3c92a0d5f7c3aa4d2543c",
+                "candidateOutputSha256": "cd91853c12aaa25331cea84bb491a2028e32d6686de3f2b917abbd4ee7cf298f",
+                "fullSemanticCorpusGateComplete": false
+            },
+            "outputSha256": "cd91853c12aaa25331cea84bb491a2028e32d6686de3f2b917abbd4ee7cf298f"
+        },
+        {
+            "retainedFrom": "built/csharp/semantic-corpus-declaration/single/candidate.jsonl",
+            "retainedOutputSha256": "5e00e6c387839a7b7e32c44ef8cfc59ffb9a35ef2a3448b8e076a7d88d60ceb2",
+            "reason": "Merge and parameter paths without the collision names are unchanged after the first Release run"
+        }
+    ],
+    "cumulative": {
+        "activeConfigurations": 13446,
+        "matches": 12096,
+        "remaining": 1350,
+        "failed": 150,
+        "diagnosticMismatches": 1199,
+        "graphMismatches": 20,
+        "topStops": [
+            [
+                "Checker requires source-element checking for WithStatement",
+                26
+            ],
+            [
+                "Checker requires contextual reference typing in TemplateSpan",
+                16
+            ],
+            [
+                "Corpus adapter requires the reference test content-mapper host",
+                15
+            ],
+            [
+                "Checker requires type-parameter modifier grammar",
+                15
+            ],
+            [
+                "Checker requires enum relations",
+                11
+            ],
+            [
+                "Checker requires heritage property diagnostics",
+                9
+            ],
+            [
+                "Unknown entity name kind",
+                9
+            ],
+            [
+                "Checker requires declaration modifier validation",
+                9
+            ],
+            [
+                "Checker requires function modifier grammar",
+                6
+            ],
+            [
+                "Checker requires constructor identity narrowing",
+                5
+            ],
+            [
+                "Unable to cast object of type 'TypeScript.Compiler.Checking.IntrinsicType' to type 'TypeScript.Compiler.Checking.TypeParameter'.",
+                4
+            ],
+            [
+                "Checker requires expression checking for JsxElement",
+                4
+            ]
+        ]
+    }
+}

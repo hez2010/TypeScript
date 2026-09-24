@@ -48,6 +48,7 @@ internal sealed partial class Checker
             foreach (var diagnostic in DeferredIterationDiagnostics.Where(d => SemanticSyntax.Source(d.Node) == file).ToArray())
                 await Iteration.NotIterableAsync(diagnostic.Node, diagnostic.Type, diagnostic.Async, cancellation).ConfigureAwait(false);
             await CheckMissingPropertiesAsync(file, cancellation).ConfigureAwait(false);
+            CheckDeferredDeclarationNames(file, cancellation);
             if (program.Symbols.Binding(file)?.IsModule == true)
             {
                 await CheckExternalExportsAsync(file, cancellation).ConfigureAwait(false);
@@ -125,11 +126,13 @@ internal sealed partial class Checker
                     break;
                 case VariableDeclarationNode declaration:
                     VariableGrammar(declaration);
+                    CheckDeclarationName(declaration);
                     await FunctionDeclarations.VariableAsync(declaration, cancellation).ConfigureAwait(false);
                     await CheckDisposableInitializerAsync(declaration, cancellation).ConfigureAwait(false);
                     await CheckMergedExportsAsync(declaration, cancellation).ConfigureAwait(false);
                     break;
                 case BindingElementNode element:
+                    CheckDeclarationName(element);
                     await FunctionDeclarations.VariableAsync(element, cancellation).ConfigureAwait(false);
                     await CheckMergedExportsAsync(element, cancellation).ConfigureAwait(false);
                     break;
@@ -138,6 +141,7 @@ internal sealed partial class Checker
                     await Expressions.CheckAsync(expression.Expression!, cancellation: cancellation).ConfigureAwait(false);
                     break;
                 case FunctionDeclarationNode function:
+                    CheckDeclarationName(function);
                     ExportedDeclaration(function, true);
                     await FunctionDeclarations.GrammarAsync(function, cancellation).ConfigureAwait(false);
                     await CheckFunctionDeclarationAsync(function, cancellation).ConfigureAwait(false);

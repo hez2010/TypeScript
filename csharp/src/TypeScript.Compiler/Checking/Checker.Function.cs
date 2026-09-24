@@ -242,12 +242,7 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
     public ValueTask FunctionNameAsync(SyntaxNode node, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
-        if ((node as INamedNode)?.Name is IdentifierNode
-            {
-                Text: "require" or "exports" or "Promise" or "WeakMap" or "WeakSet"
-            or "Reflect" or "globalThis"
-            })
-            throw new InvalidOperationException("Checker requires generated-name collision checks");
+        CheckDeclarationName(node);
         return ValueTask.CompletedTask;
     }
 
@@ -303,8 +298,7 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
                     Error(node, 1317);
             }
         }
-        if (node.Name is IdentifierNode { Text: "eval" or "arguments" or "require" or "exports" or "globalThis" })
-            throw new InvalidOperationException("Checker requires parameter declaration-name checks");
+        CheckDeclarationName(node);
         return CheckDecoratorsAsync(node, cancellation);
     }
 

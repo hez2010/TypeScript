@@ -4,11 +4,11 @@
 
 ## Current overall status
 
-The complete Release import baseline plus subsequent affected-case results record **12,006 matches out of 13,446 active compiler configurations**, up from 11,895 before late-index integration and 9,365 at the original Release baseline. **1,440 configurations still do not match**: 235 stop in unsupported paths and 1,204 complete with diagnostic-code differences. There are also 20 source-graph differences, overlapping those categories. The largest remaining stop groups are merge-diagnostic attribution (44), parameter declaration-name checks (37), `with` statements (26), template-span contextual typing (16), content-mapper replay (15), and type-parameter modifier grammar (15).
+The complete Release import baseline plus subsequent affected-case results record **12,096 matches out of 13,446 active compiler configurations**, up from 12,006 before merge/declaration-name checking and 9,365 at the original Release baseline. **1,350 configurations still do not match**: 150 stop in unsupported paths and 1,199 complete with diagnostic-code differences. There are also 20 source-graph differences, overlapping those categories. The largest remaining stop groups are `with` statements (26), template-span contextual typing (16), content-mapper replay (15), type-parameter modifier grammar (15), enum relations (11), and heritage property diagnostics (9).
 
-These comparisons cover source graphs and diagnostic codes. **89.3% matching on this measure is not a Phase-4 completion percentage.** Complete diagnostic text, locations and related information; full type/symbol comparison; type display, node builders, accessibility and emit-resolver APIs; parallel checker validation; and the final memory/performance gates remain unfinished. Phase 4 is not nearly complete, and the evidence does not yet support a reliable completion estimate.
+These comparisons cover source graphs and diagnostic codes. **90.0% matching on this measure is not a Phase-4 completion percentage.** Complete diagnostic text, locations and related information; full type/symbol comparison; type display, node builders, accessibility and emit-resolver APIs; parallel checker validation; and the final memory/performance gates remain unfinished. Phase 4 is not nearly complete, and the evidence does not yet support a reliable completion estimate.
 
-The next implementation priorities are merge diagnostics, remaining declaration/expression checks and diagnostic fidelity. The sections below are historical implementation checkpoints; their individual passing counts do not represent whole-phase completion.
+The next implementation priorities are remaining declaration/expression checks and diagnostic fidelity. The sections below are historical implementation checkpoints; their individual passing counts do not represent whole-phase completion.
 
 **Validation policy, updated 2026-09-24.** At the user's request, all further execution and validation use the normal Release build. NativeAOT publishing is deferred until the final completion check, when it must finish without warnings or errors. NativeAOT binaries are no longer executed for validation. Earlier NativeAOT results below remain historical evidence.
 
@@ -742,6 +742,16 @@ Computed class members and assignments now produce string, number and symbol ind
 Targeted Release validation covers **4,117 affected and regression configurations per reference mode**. Graph/code matches increased from **3,547 to 3,658**, recovering **111 configurations**, with **no regressions**. Index/member queries pass **496 configurations**, and index safety passes **31 assertions**, including seven new checks covering key domains, sibling aggregation, readonly indexes, cancellation rollback, grammar acceptance and source-parent preservation. Unchanged results are retained; NativeAOT verification remains deferred until final completion.
 
 Evidence: [single-mode affected corpus](../csharp/compatibility/evidence/phase4-late-index-corpus-single.json), [reference-default corpus](../csharp/compatibility/evidence/phase4-late-index-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-late-index-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-late-index-validation.json). Remaining differences stay in the overall counts above.
+
+## Merge diagnostics and declaration names
+
+Conflicting declarations now report duplicate, block-scoped, enum and namespace-augmentation diagnostics on the appropriate declarations. Related declaration locations are retained with deduplication and the reference's five-location limit. Plain JavaScript suppression applies separately to each side of a conflict. Full diagnostic formatting remains open.
+
+Declaration checks now distinguish module-level emitted names from valid parameters, members, ambient declarations and type-only imports. Function declarations and destructured bindings receive the same checks. Private-field and static-super helper collisions are finalized after source analysis; code-generation-only errors respect `noEmit`.
+
+Release validation covers **1,835 configurations in each reference mode**, increasing graph/code matches from **1,548 to 1,638**, with **90 recovered configurations and no regressions**. The initial single-mode run's 74 unaffected results were retained; 1,761 name-sensitive configurations were replayed after the follow-up fixes. Program/checker safety passes **80 assertions**, including six new checks for file attribution, related declarations, JavaScript suppression, runtime-name exclusions, deferred helper collisions and `noEmit`. The build has zero warnings and errors. Unchanged reference, query and repository validation results were reused; NativeAOT remains deferred until phase 4 is complete.
+
+Evidence: [single-mode corpus](../csharp/compatibility/evidence/phase4-declaration-corpus-single.json), [reference-default corpus](../csharp/compatibility/evidence/phase4-declaration-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-declaration-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-declaration-validation.json).
 
 ## Remaining completion work
 

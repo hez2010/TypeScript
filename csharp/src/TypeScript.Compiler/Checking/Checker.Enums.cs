@@ -10,6 +10,7 @@ internal sealed partial class Checker
 
     private async ValueTask CheckEnumSourceAsync(EnumDeclarationNode node, CancellationToken cancellation)
     {
+        CheckDeclarationName(node);
         if (node.Modifiers?.Any(
             m => m is not DecoratorNode
                 && m.Kind is not (SyntaxKind.ExportKeyword or SyntaxKind.DeclareKeyword or SyntaxKind.ConstKeyword)) == true)

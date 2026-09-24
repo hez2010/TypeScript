@@ -1,0 +1,127 @@
+{
+    "timestamp": "2026-09-24T18:20:02.4048625+00:00",
+    "configuration": "Release",
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "managed": true,
+    "scope": "Merge diagnostic attribution and declaration name collisions; phase 4 remains incomplete",
+    "candidateSha256": "f76b3ebcda2c6327ea904907848c509d150552120c60564a04e1908d16650306",
+    "compilerSha256": "090fac89d40a03c5dae4e0144432ab638d59e49058b3c92a0d5f7c3aa4d2543c",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-declaration-final-build.log",
+        "sha256": "bfcfe8a5d97f7a047a15f73cc556da1125bae2e344fa135fe55bf101b98b9486"
+    },
+    "safety": {
+        "assertions": 80,
+        "newAssertions": 6,
+        "checks": [
+            "cross-file duplicate, block-scoped and enum diagnostic attribution",
+            "related declaration preservation",
+            "plain JavaScript side suppression",
+            "module names and parameter exclusions",
+            "deferred Reflect and private-name helper collisions",
+            "noEmit exclusion"
+        ],
+        "log": "logs/csharp-phase4-declaration-program-safety.log",
+        "sha256": "a90ffaa2c3c04c5d85119e35a6ba032608f25be15af8142577ff8c0e586aa9b9",
+        "runBeforeWhitespaceFormatting": true
+    },
+    "corpus": {
+        "single": "phase4-declaration-corpus-single.json",
+        "referenceDefault": "phase4-declaration-corpus-default.json",
+        "parity": "phase4-declaration-mode-parity.json",
+        "selectedConfigurationsPerMode": 1835,
+        "previousMatches": 1548,
+        "graphAndCodeMatches": 1638,
+        "recoveredConfigurations": 90,
+        "regressions": [],
+        "cumulative": {
+            "activeConfigurations": 13446,
+            "matches": 12096,
+            "remaining": 1350,
+            "failed": 150,
+            "diagnosticMismatches": 1199,
+            "graphMismatches": 20,
+            "topStops": [
+                [
+                    "Checker requires source-element checking for WithStatement",
+                    26
+                ],
+                [
+                    "Checker requires contextual reference typing in TemplateSpan",
+                    16
+                ],
+                [
+                    "Corpus adapter requires the reference test content-mapper host",
+                    15
+                ],
+                [
+                    "Checker requires type-parameter modifier grammar",
+                    15
+                ],
+                [
+                    "Checker requires enum relations",
+                    11
+                ],
+                [
+                    "Checker requires heritage property diagnostics",
+                    9
+                ],
+                [
+                    "Unknown entity name kind",
+                    9
+                ],
+                [
+                    "Checker requires declaration modifier validation",
+                    9
+                ],
+                [
+                    "Checker requires function modifier grammar",
+                    6
+                ],
+                [
+                    "Checker requires constructor identity narrowing",
+                    5
+                ],
+                [
+                    "Unable to cast object of type 'TypeScript.Compiler.Checking.IntrinsicType' to type 'TypeScript.Compiler.Checking.TypeParameter'.",
+                    4
+                ],
+                [
+                    "Checker requires expression checking for JsxElement",
+                    4
+                ]
+            ]
+        }
+    },
+    "formatting": {
+        "csharpFiles": 8,
+        "tokenCommentSyntaxIdentical": true,
+        "libraryConfigurations": 2,
+        "dotnetWhitespaceExitCode": 0,
+        "diffCheckExitCode": 0,
+        "proofLog": "logs/csharp-phase4-declaration-format.log",
+        "proofSha256": "960749b3423728aa6ced5718c2e01891b9b688919268451c31f0e5762d3a5caf"
+    },
+    "reusedValidation": {
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "repositoryCommand": "npx hereby validate --all",
+        "repositoryExitCode": 0,
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            "csharp/tools",
+            ".github/copilot-instructions.md"
+        ],
+        "retainedInitialSingleModeCases": 74,
+        "reason": "User directed reuse of unchanged results. The reference corpus, unaffected query suites and Go repository validation were reused. Seventy-four merge and parameter cases without collision names were retained after the initial run; only name-sensitive cases needed another single-mode replay. Safety results were retained after token/comment/syntax-preserving whitespace formatting."
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "phase4Complete": false
+}

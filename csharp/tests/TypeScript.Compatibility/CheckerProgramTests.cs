@@ -379,7 +379,68 @@ internal static class CheckerProgramTests
         Check(loopChecker.FlowTypes.ActiveLoopCount == 0);
         checks += await DisposableSafety();
         checks += await ImportSafety();
+        checks += await DeclarationSafety();
         Console.WriteLine($"{checks} program/checker ownership assertions; interface and scope depth 20000");
+    }
+
+    private static async Task<int> DeclarationSafety()
+    {
+        static async ValueTask<CompilerProgram> Build(Dictionary<string, string> files, bool noEmit = false)
+        {
+            var options = new CompilerOptions();
+            options.SetRaw("noLib", "true");
+            options.SetRaw("target", "\"es2015\"");
+            options.SetRaw("module", "\"commonjs\"");
+            options.SetRaw("noEmit", noEmit ? "true" : "false");
+            options.SetRaw("allowJs", "true");
+            return await CompilerProgram.CreateAsync(new MemoryFileSystem(files.ToDictionary(p => p.Key, p => Wtf8.Encode(p.Value))),
+                "/project", new("/project/tsconfig.json", options, files.Keys.ToArray(), [], [], []));
+        }
+        var duplicates = await Build(new()
+        {
+            ["/project/a.ts"] = "class Duplicate {} let repeated: number; enum Choice {}",
+            ["/project/b.ts"] = "class Duplicate {} let repeated: number; interface Choice {}"
+        });
+        var duplicateChecker = await duplicates.CreateCheckerAsync();
+        foreach (var file in duplicates.SourceFiles)
+            if (!duplicateChecker.DiagnosticCodesForFile(file.Syntax).SequenceEqual([2300, 2451, 2567]))
+                throw new InvalidOperationException("Merge diagnostics lost declaration file attribution");
+        var related = duplicateChecker.Environment.MergeRelatedDeclarations;
+        if (related.Count != 6 || related.Any(p => p.Value.Count != 1
+            || SemanticSyntax.Source(p.Key.Node) == SemanticSyntax.Source(p.Value[0])))
+            throw new InvalidOperationException("Merge diagnostics lost related declarations");
+        var plainJs = await Build(new()
+        {
+            ["/project/a.js"] = "class Duplicate {}",
+            ["/project/b.ts"] = "class Duplicate {}"
+        });
+        var jsChecker = await plainJs.CreateCheckerAsync();
+        if (jsChecker.DiagnosticCodesForFile(plainJs.GetFile("/project/a.js")!.Syntax).Count != 0
+            || !jsChecker.DiagnosticCodesForFile(plainJs.GetFile("/project/b.ts")!.Syntax).SequenceEqual([2300]))
+            throw new InvalidOperationException("Plain JavaScript merge suppression affected the TypeScript declaration");
+        const string source = """
+            export {};
+            const require = 0;
+            const { exports } = { exports: 0 };
+            function parameters(require: number, exports: number) { return require + exports; }
+            function Reflect() {}
+            declare class Base { static value(): number; }
+            class Derived extends Base { static result = super.value(); }
+            const WeakMap = 0;
+            class Private { #value = 0; }
+            """;
+        foreach (bool noEmit in new[] { false, true })
+        {
+            var names = await Build(new() { ["/project/main.ts"] = source }, noEmit);
+            var checker = await names.CreateCheckerAsync();
+            var file = names.GetFile("/project/main.ts")!.Syntax;
+            await checker.CheckSourceFileAsync(file);
+            int[] expected = noEmit ? [] : [2441, 2441, 2818, 18027];
+            var codes = checker.DiagnosticCodesForFile(file);
+            if (!codes.SequenceEqual(expected))
+                throw new InvalidOperationException($"Declaration collision diagnostics (noEmit={noEmit}): {string.Join(',', codes)}");
+        }
+        return 6;
     }
 
     private static async Task<int> ImportSafety()

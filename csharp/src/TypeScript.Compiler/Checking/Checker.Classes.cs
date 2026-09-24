@@ -13,6 +13,8 @@ internal sealed partial class Checker
         if (!expression && SemanticSyntax.Name(node) is null && !SemanticSyntax.HasModifier(node, SyntaxKind.DefaultKeyword))
             Error(node, 1211);
         CheckClassModifiers(node);
+        CheckDeclarationName(node);
+        MarkPrivateIdentifierScopes(node);
         ExportedDeclaration(node, true);
         await CheckDecoratorsAsync(node, cancellation).ConfigureAwait(false);
         if (!expression)
