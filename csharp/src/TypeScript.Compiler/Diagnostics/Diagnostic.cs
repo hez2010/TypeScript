@@ -27,9 +27,26 @@ public sealed record Diagnostic(DiagnosticMessage Message, int Start, int Length
     public int Code => Message.Code;
     public string? FileName { get; init; }
     public string? Source { get; init; }
+    public IReadOnlyList<Diagnostic> MessageChain { get; init; } = [];
     public IReadOnlyList<Diagnostic> RelatedInformation { get; init; } = [];
 
-    public string Format(string? locale = null) => Message.Format(locale, Arguments);
+    public string Format(string? locale = null)
+    {
+        string text = Message.Format(locale, Arguments);
+        if (MessageChain.Count == 0)
+            return text;
+        var result = new StringBuilder(text);
+        var pending = new Stack<(Diagnostic Diagnostic, int Depth)>();
+        for (int i = MessageChain.Count - 1; i >= 0; i--)
+            pending.Push((MessageChain[i], 1));
+        while (pending.TryPop(out var entry))
+        {
+            result.Append('\n').Append(' ', entry.Depth * 2).Append(entry.Diagnostic.Message.Format(locale, entry.Diagnostic.Arguments));
+            for (int i = entry.Diagnostic.MessageChain.Count - 1; i >= 0; i--)
+                pending.Push((entry.Diagnostic.MessageChain[i], entry.Depth + 1));
+        }
+        return result.ToString();
+    }
 }
 
 public static class DiagnosticLocalization

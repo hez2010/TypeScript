@@ -146,7 +146,7 @@ internal sealed partial class Checker
             }
             if (node.Parent is TypeLiteralNode or InterfaceDeclarationNode)
             {
-                Error(body, 1183);
+                ErrorOnFirstToken(body, 1183);
                 return;
             }
         }

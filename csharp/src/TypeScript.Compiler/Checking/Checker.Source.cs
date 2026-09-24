@@ -288,7 +288,7 @@ internal sealed partial class Checker
                                     foreach (string name in binding.Get(clause)?.Locals.Keys ?? [])
                                         if (locals?.GetValueOrDefault(name) is { ValueDeclaration: { } declaration } symbol
                                             && (symbol.Flags & SymbolFlags.BlockScopedVariable) != 0)
-                                            Error(declaration, 2492);
+                                            Error(declaration, 2492, name);
                                 }
                             }
                         }
@@ -405,7 +405,7 @@ internal sealed partial class Checker
             : node.Parent is BlockNode or ModuleBlockNode or SourceFileNode ? node.Parent : null;
         if (owner is null || links.Nodes.Get(owner).HasReportedStatementInAmbientContext)
             return false;
-        Error(node, owner == node ? 1183 : 1036);
+        ErrorOnFirstToken(node, owner == node ? 1183 : 1036);
         links.Nodes.Get(owner).HasReportedStatementInAmbientContext = true;
         return true;
     }
@@ -429,7 +429,12 @@ internal sealed partial class Checker
                 if (node.Name is BindingPatternNode && node.Parent is not BindingPatternNode)
                     Error(node, 1182);
                 else if ((flags & NodeFlags.BlockScoped) is NodeFlags.Const or NodeFlags.Using or NodeFlags.AwaitUsing)
-                    Error(node, 1155);
+                    Error(node, 1155, (flags & NodeFlags.BlockScoped) switch
+                    {
+                        NodeFlags.Const => "const",
+                        NodeFlags.Using => "using",
+                        _ => "await using"
+                    });
             }
         }
         if (node.ExclamationToken is not null

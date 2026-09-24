@@ -6,6 +6,7 @@ using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Checking;
 using TypeScript.Compiler.Configuration;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.Programs;
 using TypeScript.Compiler.Syntax;
@@ -382,7 +383,70 @@ internal static class CheckerProgramTests
         checks += await DeclarationSafety();
         checks += await ImportPathSafety();
         checks += await ContextGrammarSafety();
+        checks += await DiagnosticDetailsSafety();
         Console.WriteLine($"{checks} program/checker ownership assertions; interface and scope depth 20000");
+    }
+
+    private static async Task<int> DiagnosticDetailsSafety()
+    {
+        const string source = """
+            // 多字节 😀
+            const value = absent;
+            // @ts-ignore
+            absent;
+            // @ts-expect-error
+            const valid = 1;
+            const named = (x: number) => {
+                return x;
+            };
+            class C { protected constructor() {} }
+            const missing = class {};
+            const empty = () => {};
+            const satisfied = value satisfies number;
+            switch (value) { case 1: break; default: break; }
+            """;
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
+            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var file = program.GetFile("/project/main.ts")!.Syntax;
+        await checker.CheckProgramAsync();
+        var diagnostics = checker.DetailedDiagnosticsForProgramFile(file);
+        var missing = diagnostics.Single(d => d.Code == 2304);
+        if (missing.Arguments is not ["absent"] || missing.FileName != file.FileName
+            || missing.Start != file.Source.ToBytePosition(source.IndexOf("absent", StringComparison.Ordinal))
+            || missing.Length != 6 || missing.Format() != "Cannot find name 'absent'.")
+            throw new InvalidOperationException("Complete missing-name diagnostic");
+        if (diagnostics.Count != 2 || diagnostics.Single(d => d.Code == 2578).Format() != "Unused '@ts-expect-error' directive.")
+            throw new InvalidOperationException("Diagnostic directive filtering");
+        var repeat = checker.DetailedDiagnosticsForProgramFile(file);
+        if (!repeat.SequenceEqual(diagnostics))
+            throw new InvalidOperationException("Detailed diagnostics changed on repeated read");
+        var nodes = file.DescendantsAndSelf().ToArray();
+        string Span(SyntaxNode node)
+        {
+            var (start, end) = CheckerDiagnostic.ErrorRange(file, node);
+            return file.Source.Text[file.Source.ToUtf16Position(start)..file.Source.ToUtf16Position(end)];
+        }
+        if (Span(nodes.OfType<VariableDeclarationNode>().First()) != "value"
+            || Span(nodes.OfType<ReturnStatementNode>().Single()) != "return"
+            || Span(nodes.OfType<ArrowFunctionNode>().First()) != "(x: number) => {"
+            || Span(nodes.OfType<ConstructorDeclarationNode>().Single()) != "protected constructor"
+            || Span(nodes.OfType<ClassExpressionNode>().Single()) != "class"
+            || Span(nodes.OfType<SatisfiesExpressionNode>().Single()) != "satisfies"
+            || Span(nodes.OfType<CaseOrDefaultClauseNode>().First()) != "case 1:")
+            throw new InvalidOperationException("Checker error ranges");
+        string[] arguments = ["original"];
+        var owned = CheckerDiagnostic.Create(nodes.OfType<VariableDeclarationNode>().First(), Messages.Cannot_find_name_0, arguments);
+        arguments[0] = "changed";
+        if (owned.Arguments is not ["original"])
+            throw new InvalidOperationException("Diagnostic did not retain its arguments");
+        var chain = owned with { MessageChain = [owned with { MessageChain = [owned] }] };
+        if (chain.Format() != "Cannot find name 'original'.\n  Cannot find name 'original'.\n    Cannot find name 'original'.")
+            throw new InvalidOperationException("Diagnostic message-chain formatting");
+        return 6;
     }
 
     private static async Task<int> ContextGrammarSafety()

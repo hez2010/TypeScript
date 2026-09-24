@@ -1,0 +1,77 @@
+{
+    "timestamp": "2026-09-24T21:59:55.881Z",
+    "mode": "single",
+    "configuration": "Release",
+    "scope": "Retained diagnostic arguments, reference error ranges and complete diagnostic-record comparisons; phase 4 remains incomplete",
+    "selectedConfigurations": 1331,
+    "retainedConfigurations": 57,
+    "detailedDiagnosticMatches": 787,
+    "nonemptyDetailedDiagnosticMatches": 171,
+    "previousMatches": 1233,
+    "graphAndCodeMatches": 1233,
+    "recoveredConfigurations": 0,
+    "regressions": [],
+    "parts": [
+        {
+            "directory": "built/csharp/semantic-corpus-diagnostic-details-final/single",
+            "summary": {
+                "timestamp": "2026-09-24T21:57:04.059Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "mode": "single",
+                "filter": "",
+                "managed": true,
+                "reuseSyntax": true,
+                "referenceJobs": 4,
+                "scope": "Original compiler test program graphs and semantic diagnostic codes; full diagnostic/type/symbol fidelity and parallel candidate checker scheduling remain incomplete",
+                "referenceExitCode": 0,
+                "exportedConfigurations": 15208,
+                "readyConfigurations": 1274,
+                "availableConfigurations": 13446,
+                "selectionSha256": "e153b41a1f2c8a79421e100fa0fb2dbeb509807c6cd88e9c2a85bf737e77cd74",
+                "referenceInventoryFiles": 12730,
+                "plannedConfigurations": 15208,
+                "referenceMissingFiles": [],
+                "referenceMissingConfigurations": [],
+                "referenceSkipped": 1762,
+                "referenceFailed": 0,
+                "candidateFailures": 0,
+                "graphMismatches": 0,
+                "diagnosticMismatches": 82,
+                "graphAndCodeMatches": 1192,
+                "detailedDiagnosticMatches": 763,
+                "detailedDiagnosticMismatches": 511,
+                "detailedComparison": "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized",
+                "errorGroups": [],
+                "inputSha256": "63befffd43c6e1a36331426b4dd2f3b01e4002f3d7f124c3da66f30a33a5c180",
+                "referenceInputCorrectionsSha256": "ea569831effe01a55e210da50442c429251d933793905bf1d27a289264a86061",
+                "oracleSha256": "072ce20500e1dfa626e6029e8ba98ed84b925a304216116200dd33d97f54654a",
+                "candidateSha256": "4781612ef9cca82f816c7145e78aa7c76ee45485e9ce2f4b72466278376b808d",
+                "compilerSha256": "9d700cfc497cd0ce04963384c18871429e25daa9481a10b3fafa761920c6eb6f",
+                "mapperFixture": {
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+                    "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+                    "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+                },
+                "candidateOutputSha256": "314cdd12b9b124fb9c68c69dab04ef03e6f7a82011db712f16dadee8038c4ce6",
+                "fullSemanticCorpusGateComplete": false
+            },
+            "outputSha256": "314cdd12b9b124fb9c68c69dab04ef03e6f7a82011db712f16dadee8038c4ce6"
+        },
+        {
+            "retainedFrom": "built/csharp/semantic-corpus-diagnostic-details/single",
+            "retainedOutputSha256": "9f909e1aec20bc3bdbb02497e07958ebf6598276ea126d5822da8d37677da15a",
+            "retainedConfigurations": 57,
+            "reason": "None of these cases contains the ambient-body, ambient-statement, catch-redeclaration, spelling-suggestion or merge diagnostics changed after the initial run."
+        }
+    ],
+    "validationReuse": "57 initial single-mode results were retained; only 9 affected initial cases and 1265 additional cases were run after the follow-up fixes. All reference results were reused. Reference-default inputs were executed once.",
+    "cumulative": {
+        "activeConfigurations": 13446,
+        "matches": 12750,
+        "remaining": 696,
+        "failed": 0,
+        "diagnosticMismatches": 696,
+        "graphMismatches": 0
+    }
+}

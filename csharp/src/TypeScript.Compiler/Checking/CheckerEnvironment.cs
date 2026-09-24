@@ -35,13 +35,16 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
     internal Checker? SemanticChecker { get; set; }
     private readonly HashSet<(SyntaxNode? Node, int Code, string Arguments)> reported = [];
     internal List<int> Diagnostics { get; } = [];
-    internal List<(SyntaxNode? Node, int Code)> DiagnosticFiles { get; } = [];
+    internal List<(SyntaxNode? Node, Diagnostic Diagnostic)> DiagnosticFiles { get; } = [];
+
+    private void AddDiagnostic(SyntaxNode? node, DiagnosticMessage message, string[] arguments)
+    {
+        Diagnostics.Add(message.Code);
+        DiagnosticFiles.Add((node, CheckerDiagnostic.Create(node, message, arguments)));
+    }
 
     private void AddDiagnostic(SyntaxNode? node, int code)
-    {
-        Diagnostics.Add(code);
-        DiagnosticFiles.Add((node, code));
-    }
+        => AddDiagnostic(node, DiagnosticLocalization.GetMessage(code), []);
 
     internal Action? BeforeGlobalTypes { get; set; }
     internal Action? BeforeResolveType { get; set; }
@@ -128,7 +131,7 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
     {
         string key = string.Concat(arguments.Select(s => s.Length + ":" + s));
         if (reported.Add((node, message.Code, key)))
-            AddDiagnostic(node, message.Code);
+            AddDiagnostic(node, message, arguments);
     }
 
     public async ValueTask InitializeGlobalTypesAsync(CheckerSymbols symbols, CancellationToken cancellation)
@@ -175,7 +178,7 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
             }
         }
         if (result is null && reportNotFound)
-            AddDiagnostic(moduleName, 2664);
+            AddDiagnostic(moduleName, Messages.Invalid_module_name_in_augmentation_module_0_cannot_be_found, [name]);
         return ValueTask.FromResult(Symbols.Merger.GetMergedSymbol(result));
     }
 

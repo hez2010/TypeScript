@@ -406,12 +406,12 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
 
     public void CircularArguments(SyntaxNode? node, InterfaceType target) => Error(node!, target.Symbol is null ? 4110 : 4109);
 
-    private void Error(SyntaxNode node, int code)
+    private void Error(SyntaxNode node, int code, params string[] arguments)
     {
         if (reported.Add((node, code)))
         {
             Diagnostics.Add(code);
-            TrackDiagnostic(node, code);
+            TrackDiagnostic(node, code, arguments);
         }
     }
 

@@ -16,6 +16,7 @@ import {
     run,
     sha256,
 } from "./common.mjs";
+import { sameDiagnostics } from "./compare-checker-diagnostics.mjs";
 
 const option = (key, fallback) => process.argv.includes(key) ? process.argv[process.argv.indexOf(key) + 1] : fallback;
 const tag = option("--tag", "current");
@@ -23,6 +24,7 @@ if (!/^[a-z0-9-]+$/.test(tag)) throw Error("Invalid corpus tag");
 const go = option("--go", "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe");
 const dotnet = option("--dotnet", "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe");
 const managed = !process.argv.includes("--native");
+const includeDiagnosticDetails = process.argv.includes("--diagnostics");
 const reference = JSON.parse(await readFile(path.join(output, "reference.json"), "utf8"));
 const source = path.join(output, reference.sourceRelativePath, "tsc");
 const oracle = path.join(output, "semantic-corpus-oracle.exe");
@@ -150,6 +152,7 @@ for (const mode of modes) {
     }
     if (ready.some(c => c.contentMappers)) await prepareMapperFixture();
     let candidateFailures = 0, graphMismatches = 0, diagnosticMismatches = 0, codeMatches = 0, processed = 0;
+    let detailedDiagnosticMatches = 0;
     const errors = new Map();
     const results = createWriteStream(path.join(modeDirectory, "candidate.jsonl"));
     const differences = createWriteStream(path.join(modeDirectory, "differences.jsonl"));
@@ -160,6 +163,10 @@ for (const mode of modes) {
         const graph = same(actual.sources, expected.sources ?? []);
         const expectedCodes = expected.semanticDiagnostics.map(d => [d.file, d.code]).sort(compareCodes);
         const codes = same(actual.semanticCodes, expectedCodes) && same(actual.globalCodes, expected.globalDiagnostics.map(d => d.code).sort((a, b) => a - b));
+        const details = includeDiagnosticDetails && actual.status === "checked"
+            && sameDiagnostics(actual.semanticDiagnostics, expected.semanticDiagnostics)
+            && sameDiagnostics(actual.globalDiagnostics, expected.globalDiagnostics);
+        if (details) detailedDiagnosticMatches++;
         if (!graph) graphMismatches++;
         if (actual.status !== "checked") {
             candidateFailures++;
@@ -168,7 +175,7 @@ for (const mode of modes) {
         }
         else if (!codes) diagnosticMismatches++;
         if (graph && codes && actual.status === "checked") codeMatches++;
-        else differences.write(JSON.stringify({ name: expected.name, graph, codes, actual, expectedSources: expected.sources, expectedCodes, expectedGlobalCodes: expected.globalDiagnostics.map(d => d.code) }) + "\n");
+        if (!graph || !codes || actual.status !== "checked" || includeDiagnosticDetails && !details) differences.write(JSON.stringify({ name: expected.name, graph, codes, actual, expectedSources: expected.sources, expectedCodes, expectedGlobalCodes: expected.globalDiagnostics.map(d => d.code), ...includeDiagnosticDetails ? { details, expectedDiagnostics: expected.semanticDiagnostics, expectedGlobalDiagnostics: expected.globalDiagnostics } : {} }) + "\n");
         if (processed % 100 === 0 || processed === ready.length) console.log(`${mode}: ${processed}/${ready.length}; ${codeMatches} graph/code matches; ${candidateFailures} candidate failures`);
     }
     while (processed < ready.length) {
@@ -187,7 +194,7 @@ for (const mode of modes) {
             lines.on("line", line => {
                 try {
                     accept(JSON.parse(line));
-                    if (processed < ready.length) child.stdin.write(JSON.stringify(ready[processed]) + "\n");
+                    if (processed < ready.length) child.stdin.write(JSON.stringify({ ...ready[processed], includeDiagnosticDetails }) + "\n");
                     else {
                         closing = true;
                         child.stdin.end();
@@ -207,7 +214,7 @@ for (const mode of modes) {
                 }
                 resolve();
             });
-            child.stdin.write(JSON.stringify(ready[processed]) + "\n");
+            child.stdin.write(JSON.stringify({ ...ready[processed], includeDiagnosticDetails }) + "\n");
         });
     }
     await Promise.all([new Promise(resolve => results.end(resolve)), new Promise(resolve => differences.end(resolve))]);
@@ -235,6 +242,7 @@ for (const mode of modes) {
         graphMismatches,
         diagnosticMismatches,
         graphAndCodeMatches: codeMatches,
+        ...includeDiagnosticDetails ? { detailedDiagnosticMatches, detailedDiagnosticMismatches: ready.length - detailedDiagnosticMatches, detailedComparison: "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized" } : {},
         errorGroups: [...errors].sort((a, b) => b[1] - a[1]).map(([error, count]) => ({ error, count })),
         inputSha256: sha256(Buffer.from(inputText)),
         ...referenceInputCorrectionsSha256 ? { referenceInputCorrectionsSha256 } : {},
@@ -249,5 +257,6 @@ for (const mode of modes) {
     if (option("--record")) await json(path.join(root, `csharp/compatibility/evidence/${option("--record")}-${mode}.json`), summary);
     console.log(JSON.stringify(summary, null, 2));
     failed ||= referenceRun.exitCode !== 0 || summary.referenceFailed > 0 || missingFiles.length > 0 || missingConfigurations.length > 0 || codeMatches !== ready.length;
+    failed ||= includeDiagnosticDetails && detailedDiagnosticMatches !== ready.length;
 }
 if (failed) process.exitCode = 1;

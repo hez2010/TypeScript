@@ -12,7 +12,7 @@ These comparisons cover source graphs and diagnostic codes. **94.8% matching on 
 | --- | --- |
 | Execute active corpus and match source graphs | Complete: 13,446 configurations |
 | Match semantic diagnostic codes | 12,750 match; 696 differ |
-| Match diagnostic text, locations and related information | Incomplete |
+| Match diagnostic text, locations and related information | Incomplete: detailed records match in 787 of 1,331 selected configurations, including 171 with nonempty semantic diagnostics; the remaining corpus has not been compared at this level |
 | Complete type/symbol comparisons, type display, node builders, accessibility and emit-resolver APIs | Incomplete |
 | Validate actual parallel checker scheduling | Incomplete; reference-mode corpus agreement is a narrower check |
 | Meet complete semantic workload memory/performance budgets | Incomplete |
@@ -20,7 +20,7 @@ These comparisons cover source graphs and diagnostic codes. **94.8% matching on 
 
 Phase 4 is not nearly complete, and the evidence does not yet support a reliable completion estimate. Completed results are retained: each implementation checkpoint replays affected inputs against cached oracle results. A failed check is repeated after a relevant fix; unchanged checks are reused.
 
-The next implementation priorities are remaining declaration/expression checks and diagnostic fidelity. The sections below are historical implementation checkpoints; their individual passing counts do not represent whole-phase completion.
+The next implementation priorities are missing diagnostic arguments and relation chains, remaining declaration/expression checks, and the unfinished checker APIs. The sections below are historical implementation checkpoints; their individual passing counts do not represent whole-phase completion.
 
 **Validation policy, updated 2026-09-24.** At the user's request, all further execution and validation use the normal Release build. NativeAOT publishing is deferred until the final completion check, when it must finish without warnings or errors. NativeAOT binaries are no longer executed for validation. Earlier NativeAOT results below remain historical evidence.
 
@@ -854,6 +854,18 @@ Catch bindings now follow catch-specific checks instead of ordinary variable-dec
 Release validation covers **2,320 configurations per reference mode**, increasing matches from **2,169 to 2,190**, with **21 recovered configurations and no regressions**. Both modes agree. The initial 66 single-mode results were retained; the second run checked only the other 2,254 cases. All oracle results were reused. Program safety passes **84 assertions**, including a new fixture checked against the pinned reference. The Release build has zero warnings and errors. Formatting preserved tokens, comments and syntax in seven C# files. Unchanged repository validation was reused. Malformed import-attribute parser recovery remains unresolved. NativeAOT remains deferred until final phase-4 completion.
 
 Evidence: [single-mode corpus](../csharp/compatibility/evidence/phase4-context-grammar-corpus-single.json), [reference-default corpus](../csharp/compatibility/evidence/phase4-context-grammar-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-context-grammar-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-context-grammar-validation.json).
+
+## Diagnostic records and error ranges
+
+Checker diagnostics now retain supplied message arguments and source ranges instead of discarding them into code-only lists. Error ranges follow the reference's declaration-name, first-token, multiline-arrow, constructor, switch-clause and `satisfies` rules, including byte positions for Unicode source. Ambient statement/body errors use their first token. Catch redeclarations, uninitialized const/using declarations, circular aliases and unresolved augmentations retain their available message arguments. Spelling suggestions and merged declarations now expose their retained related declarations. Diagnostics preserve message chains, and formatting traverses those chains without recursive calls. Program-level filtering retains the records through JavaScript checks, comment directives and content-mapper directives.
+
+The corpus runner's `--diagnostics` option compares every exported diagnostic field: file, byte range, code, category, message key, arguments, message chains and related information. Top-level collection order is normalized; nested ordering and duplicate counts remain significant. Missing details fail the comparison. Existing callers that omit arguments and relation chains remain visible as mismatches; this does not complete diagnostic fidelity.
+
+Release validation covers **1,331 configurations per reference mode**. Graph/code matches remain **1,233**, with **no regressions**; the cumulative code result remains **12,750/13,446**. Detailed records match in **787 configurations**, comprising **171 with semantic diagnostics and 616 with empty semantic diagnostics**. **544 selected configurations still differ in detailed records.** Both reference modes produce identical candidate records. The initial run's **57 unaffected results were retained**; only nine affected initial cases were replayed alongside 1,265 additional configurations. Cached reference outputs were reused throughout.
+
+Program safety passes **90 assertions**, including six new diagnostic checks; expression safety passes **81 assertions**, retaining the existing regex range/related-information checks. Seventeen comparison assertions reject changes to fields, nested ordering and multiplicity. The Release build has zero warnings and errors. Formatting preserves tokens, comments and syntax in ten C# files. Unchanged repository validation was reused. NativeAOT remains deferred until final phase-4 completion.
+
+Evidence: [single-mode corpus](../csharp/compatibility/evidence/phase4-diagnostic-details-corpus-single.json), [reference-default corpus](../csharp/compatibility/evidence/phase4-diagnostic-details-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-diagnostic-details-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-diagnostic-details-validation.json).
 
 ## Remaining completion work
 

@@ -8,45 +8,69 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
-    private readonly List<(SyntaxNode? Node, int Code)> diagnosticFiles = [];
+    private readonly List<(SyntaxNode? Node, Diagnostic Diagnostic)> diagnosticFiles = [];
     private readonly List<(SourceFileNode File, Diagnostic Diagnostic)> sourceDiagnostics = [];
 
-    internal IReadOnlyList<Diagnostic> DetailedDiagnosticsForFile(SourceFileNode file)
-        => sourceDiagnostics.Where(d => d.File == file).Select(d => d.Diagnostic).ToArray();
+    internal IReadOnlyList<Diagnostic> DetailedDiagnosticsForFile(SourceFileNode? file)
+        => diagnosticFiles.Concat(program.DiagnosticFiles)
+            .Where(d => SemanticSyntax.Source(d.Node) == file)
+            .Select(d => WithRelatedInformation(d.Node, d.Diagnostic))
+            .Concat(sourceDiagnostics.Where(d => d.File == file).Select(d => d.Diagnostic)).ToArray();
 
-    internal void TrackDiagnostic(SyntaxNode? node, int code) => diagnosticFiles.Add((node, code));
+    private Diagnostic WithRelatedInformation(SyntaxNode? node, Diagnostic diagnostic)
+    {
+        if (node is null)
+            return diagnostic;
+        if (diagnostic.Code is 2552 or 2833 && SuggestedNameDeclarations.TryGetValue(node, out var suggestion))
+            return diagnostic with
+            {
+                RelatedInformation = [CheckerDiagnostic.Create(
+                suggestion.ValueDeclaration,
+                Messages.X_0_is_declared_here,
+                suggestion.Name)]
+            };
+        if (program.MergeRelatedDeclarations.TryGetValue((node, diagnostic.Code), out var declarations))
+            return diagnostic with
+            {
+                RelatedInformation = declarations.Select((declaration, i) => i == 0
+                    ? CheckerDiagnostic.Create(declaration, Messages.X_0_was_also_declared_here, diagnostic.Arguments)
+                    : CheckerDiagnostic.Create(declaration, Messages.X_and_here)).ToArray()
+            };
+        return diagnostic;
+    }
+
+    internal void TrackDiagnostic(SyntaxNode? node, int code, params string[] arguments)
+        => diagnosticFiles.Add((node, CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), arguments)));
+
+    private void ErrorOnFirstToken(SyntaxNode node, int code)
+    {
+        if (!reported.Add((node, code)))
+            return;
+        var file = SemanticSyntax.Source(node)!;
+        var (start, end) = CheckerDiagnostic.TokenRange(file, node.Pos);
+        Diagnostics.Add(code);
+        diagnosticFiles.Add((node, new(DiagnosticLocalization.GetMessage(code), start, end - start, []) { FileName = file.FileName }));
+    }
 
     internal SyntaxNode? DiagnosticNode => Expressions.CurrentNode ?? CurrentSourceNode;
 
-    // File attribution is retained independently of the compatibility code lists.
-    // Full message arguments, spans and related information remain separate work.
-    internal IReadOnlyList<int> DiagnosticCodesForFile(SourceFileNode? file) => diagnosticFiles.Concat(program.DiagnosticFiles)
-        .Where(d => SemanticSyntax.Source(d.Node) == file).Select(d => d.Code)
-        .Concat(sourceDiagnostics.Where(d => d.File == file).Select(d => d.Diagnostic.Code)).Order().ToArray();
+    internal IReadOnlyList<int> DiagnosticCodesForFile(SourceFileNode? file)
+        => DetailedDiagnosticsForFile(file).Select(d => d.Code).Order().ToArray();
 
     internal IReadOnlyList<int> DiagnosticCodesForProgramFile(SourceFileNode file)
+        => DetailedDiagnosticsForProgramFile(file).Select(d => d.Code).Order().ToArray();
+
+    internal IReadOnlyList<Diagnostic> DetailedDiagnosticsForProgramFile(SourceFileNode file)
     {
         if (SkipProgramFile(file))
             return [];
-        var diagnostics = new List<(int Position, int End, int Code)>();
-        foreach (var (node, code) in diagnosticFiles.Concat(program.DiagnosticFiles))
-            if (SemanticSyntax.Source(node) == file)
-            {
-                var scanner = new Scanner(file.Source);
-                scanner.ResetPosition(file.Source.ToUtf16Position(Math.Max(0, node!.Pos)));
-                scanner.Scan();
-                int start = file.Source.ToBytePosition(scanner.TokenStart);
-                diagnostics.Add((start, Math.Max(start, node.End), code));
-            }
+        var diagnostics = new List<Diagnostic>(DetailedDiagnosticsForFile(file));
         foreach (var diagnostic in program.Symbols.Binding(file)!.Diagnostics)
-            diagnostics.Add((diagnostic.Start, diagnostic.Start + diagnostic.Length, diagnostic.Code));
-        foreach (var (source, diagnostic) in sourceDiagnostics)
-            if (source == file)
-                diagnostics.Add((diagnostic.Start, diagnostic.Start + diagnostic.Length, diagnostic.Code));
+            diagnostics.Add(diagnostic with { FileName = file.FileName });
         if ((file.Flags & NodeFlags.JavaScriptFile) != 0
             && (file.CheckJsDirective?.Enabled ?? program.Symbols.Program.Configuration.Options.Boolean("checkJs") ?? false))
             foreach (var diagnostic in file.JSDocDiagnostics)
-                diagnostics.Add((diagnostic.Start, diagnostic.Start + diagnostic.Length, diagnostic.Code));
+                diagnostics.Add(diagnostic with { FileName = file.FileName });
         bool plainJavaScript = (file.Flags & NodeFlags.JavaScriptFile) != 0 && file.CheckJsDirective?.Enabled != true
             && program.Symbols.Program.Configuration.Options.Boolean("checkJs") != true;
         if (plainJavaScript)
@@ -56,11 +80,11 @@ internal sealed partial class Checker
             var directives = new Dictionary<int, CommentDirective>();
             foreach (var directive in file.CommentDirectives)
                 directives[file.Source.GetLineAndCharacter(directive.Start).Line] = directive;
-            var filtered = new List<(int Position, int End, int Code)>();
+            var filtered = new List<Diagnostic>();
             foreach (var diagnostic in diagnostics)
             {
                 bool ignored = false;
-                for (int line = file.Source.GetLineAndCharacter(diagnostic.Position).Line - 1; line >= 0; line--)
+                for (int line = file.Source.GetLineAndCharacter(diagnostic.Start).Line - 1; line >= 0; line--)
                 {
                     if (directives.TryGetValue(line, out var directive))
                     {
@@ -82,18 +106,17 @@ internal sealed partial class Checker
             }
             foreach (var directive in directives.Values)
                 if (directive.ExpectError)
-                    filtered.Add((directive.Start, directive.End, 2578));
+                    filtered.Add(new(DiagnosticLocalization.GetMessage(2578), directive.Start, directive.End - directive.Start, [])
+                    { FileName = file.FileName });
             diagnostics = filtered;
         }
         if (program.Symbols.Program.GetFile(file.FileName)?.Mapping is not { } mapping)
-            return diagnostics.Select(d => d.Code).Order().ToArray();
-        IEnumerable<Diagnostic> mapped = diagnostics.Select(d => new Diagnostic(
-            DiagnosticLocalization.GetMessage(d.Code), d.Position, d.End - d.Position, [])
-        { FileName = file.FileName });
+            return diagnostics;
+        IEnumerable<Diagnostic> mapped = diagnostics;
         if (!plainJavaScript)
             mapped = mapping.ApplyDiagnosticDirectives(mapped);
         return mapped.Where(d => !d.Message.ReportsUnnecessary || d.Source is not null
             || mapping.Map.VirtualToOriginalSpan(d.Start, d.Start + d.Length).Fidelity != MappingFidelity.None)
-            .Select(d => d.Code).Order().ToArray();
+            .ToArray();
     }
 }

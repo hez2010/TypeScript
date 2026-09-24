@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using TypeScript.Compiler.Configuration;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.Programs;
 
@@ -31,6 +32,9 @@ internal static class CheckerCorpusTests
         CompilerProgram? program = null;
         List<(string File, IReadOnlyList<int> Codes)> diagnostics = [];
         IReadOnlyList<int> globals = [];
+        bool includeDetails = input.TryGetProperty("includeDiagnosticDetails", out var details) && details.GetBoolean();
+        var semanticDetails = new List<Diagnostic>();
+        IReadOnlyList<Diagnostic> globalDetails = [];
         Exception? failure = null;
         string stage = "read-input";
         try
@@ -88,8 +92,14 @@ internal static class CheckerCorpusTests
                 await checker.CheckProgramAsync();
                 stage = "diagnostics";
                 foreach (var file in program.SourceFiles)
+                {
                     diagnostics.Add((file.Syntax.FileName, checker.DiagnosticCodesForProgramFile(file.Syntax)));
+                    if (includeDetails)
+                        semanticDetails.AddRange(checker.DetailedDiagnosticsForProgramFile(file.Syntax));
+                }
                 globals = checker.DiagnosticCodesForFile(null);
+                if (includeDetails)
+                    globalDetails = checker.DetailedDiagnosticsForFile(null);
             }
         }
         catch (Exception exception)
@@ -131,7 +141,39 @@ internal static class CheckerCorpusTests
         foreach (int code in globals)
             writer.WriteNumberValue(code);
         writer.WriteEndArray();
+        if (includeDetails)
+        {
+            writer.WritePropertyName("semanticDiagnostics");
+            WriteDiagnostics(writer, semanticDetails);
+            writer.WritePropertyName("globalDiagnostics");
+            WriteDiagnostics(writer, globalDetails);
+        }
         writer.WriteEndObject();
         return program;
+    }
+
+    private static void WriteDiagnostics(Utf8JsonWriter writer, IEnumerable<Diagnostic> diagnostics)
+    {
+        writer.WriteStartArray();
+        foreach (var diagnostic in diagnostics)
+        {
+            writer.WriteStartObject();
+            writer.WriteString("file", diagnostic.FileName ?? "");
+            writer.WriteNumber("start", diagnostic.Start);
+            writer.WriteNumber("length", diagnostic.Length);
+            writer.WriteNumber("code", diagnostic.Code);
+            writer.WriteNumber("category", (int)diagnostic.Message.Category);
+            writer.WriteString("key", diagnostic.Message.Key);
+            writer.WriteStartArray("arguments");
+            foreach (string argument in diagnostic.Arguments)
+                writer.WriteStringValue(argument);
+            writer.WriteEndArray();
+            writer.WritePropertyName("chain");
+            WriteDiagnostics(writer, diagnostic.MessageChain);
+            writer.WritePropertyName("related");
+            WriteDiagnostics(writer, diagnostic.RelatedInformation);
+            writer.WriteEndObject();
+        }
+        writer.WriteEndArray();
     }
 }

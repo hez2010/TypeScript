@@ -1,0 +1,98 @@
+{
+    "timestamp": "2026-09-24T22:02:06.5500372+00:00",
+    "configuration": "Release",
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "managed": true,
+    "scope": "Diagnostic argument retention, reference error ranges, related information and detailed-record differential comparisons; phase 4 remains incomplete",
+    "candidateSha256": "4781612ef9cca82f816c7145e78aa7c76ee45485e9ce2f4b72466278376b808d",
+    "compilerSha256": "9d700cfc497cd0ce04963384c18871429e25daa9481a10b3fafa761920c6eb6f",
+    "build": {
+        "warnings": 0,
+        "sha256": "a45ca9d741b5772ca4ad7fc9ad5b02ce6c7495ac5a0f4085e20890cac2407c87",
+        "errors": 0,
+        "exitCode": 0,
+        "log": "logs/csharp-phase4-diagnostic-details-build.log"
+    },
+    "safety": {
+        "checks": [
+            "UTF-8 diagnostic positions and message arguments",
+            "comment directive filtering and unused expectation",
+            "repeated detailed reads",
+            "declaration/arrow/constructor/return/satisfies/case error ranges",
+            "argument ownership",
+            "iterative nested message-chain formatting"
+        ],
+        "comparisonAssertions": 17,
+        "expressionsAssertions": 81,
+        "comparisonCommand": "node csharp/tools/compare-checker-diagnostics.test.mjs",
+        "newProgramAssertions": 6,
+        "programAssertions": 90,
+        "logs": [
+            "logs/csharp-phase4-diagnostic-details-safety.log",
+            "logs/csharp-phase4-diagnostic-details-expressions-safety.log"
+        ]
+    },
+    "corpus": {
+        "emptySemanticDiagnosticMatches": 616,
+        "nonemptySemanticDiagnosticMatches": 171,
+        "replayedInitialSingleResults": 9,
+        "referenceDefault": "phase4-diagnostic-details-corpus-default.json",
+        "regressions": [],
+        "fields": [
+            "file",
+            "start",
+            "length",
+            "code",
+            "category",
+            "key",
+            "arguments",
+            "chain",
+            "related"
+        ],
+        "cumulative": {
+            "activeConfigurations": 13446,
+            "matches": 12750,
+            "remaining": 696,
+            "failed": 0,
+            "diagnosticMismatches": 696,
+            "graphMismatches": 0
+        },
+        "retainedSingleResults": 57,
+        "detailedDiagnosticMatches": 787,
+        "topLevelDiagnosticOrderNormalized": true,
+        "graphAndCodeMatches": 1233,
+        "detailedDiagnosticMismatches": 544,
+        "nestedOrderingAndDuplicatesSignificant": true,
+        "selectedConfigurationsPerMode": 1331,
+        "additionalSingleResults": 1265,
+        "previousGraphAndCodeMatches": 1233,
+        "single": "phase4-diagnostic-details-corpus-single.json",
+        "parity": "phase4-diagnostic-details-mode-parity.json"
+    },
+    "formatting": {
+        "csharpFiles": 10,
+        "libraryConfigurations": 2,
+        "proofSha256": "ab36041a1e550f79fc87ad21540c1d7cefc1794497711ffcc7db43cbe9215bbd",
+        "dotnetWhitespaceExitCode": 0,
+        "tokenCommentSyntaxIdentical": true,
+        "proofLog": "logs/csharp-phase4-diagnostic-details-format.log"
+    },
+    "reusedValidation": {
+        "repositoryCommand": "npx hereby validate --all",
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "repositoryExitCode": 0,
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "reason": "Cached reference results and unchanged repository validation were reused. Only initial cases affected by follow-up diagnostic changes were replayed. Whitespace-only formatting preserved tokens, comments and syntax."
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "parallelCheckerGateComplete": false,
+    "phase4Complete": false
+}
