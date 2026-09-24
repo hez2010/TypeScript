@@ -1,5 +1,7 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
+using TypeScript.Compiler.Mapping;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -21,58 +23,69 @@ internal sealed partial class Checker
     {
         if (SkipProgramFile(file))
             return [];
-        var diagnostics = new List<(int Position, int Code)>();
+        var diagnostics = new List<(int Position, int End, int Code)>();
         foreach (var (node, code) in diagnosticFiles.Concat(program.DiagnosticFiles))
             if (SemanticSyntax.Source(node) == file)
             {
                 var scanner = new Scanner(file.Source);
                 scanner.ResetPosition(file.Source.ToUtf16Position(Math.Max(0, node!.Pos)));
                 scanner.Scan();
-                diagnostics.Add((file.Source.ToBytePosition(scanner.TokenStart), code));
+                int start = file.Source.ToBytePosition(scanner.TokenStart);
+                diagnostics.Add((start, Math.Max(start, node.End), code));
             }
         foreach (var diagnostic in program.Symbols.Binding(file)!.Diagnostics)
-            diagnostics.Add((diagnostic.Start, diagnostic.Code));
+            diagnostics.Add((diagnostic.Start, diagnostic.Start + diagnostic.Length, diagnostic.Code));
         if ((file.Flags & NodeFlags.JavaScriptFile) != 0
             && (file.CheckJsDirective?.Enabled ?? program.Symbols.Program.Configuration.Options.Boolean("checkJs") ?? false))
             foreach (var diagnostic in file.JSDocDiagnostics)
-                diagnostics.Add((diagnostic.Start, diagnostic.Code));
+                diagnostics.Add((diagnostic.Start, diagnostic.Start + diagnostic.Length, diagnostic.Code));
         bool plainJavaScript = (file.Flags & NodeFlags.JavaScriptFile) != 0 && file.CheckJsDirective?.Enabled != true
             && program.Symbols.Program.Configuration.Options.Boolean("checkJs") != true;
         if (plainJavaScript)
-            return diagnostics.Where(d => JavaScriptDiagnostics.IsPlainError(d.Code)).Select(d => d.Code).Order().ToArray();
-        if (file.CommentDirectives.Count == 0)
-            return diagnostics.Select(d => d.Code).Order().ToArray();
-        var directives = new Dictionary<int, bool>();
-        foreach (var directive in file.CommentDirectives)
-            directives[file.Source.GetLineAndCharacter(directive.Start).Line] = directive.ExpectError;
-        var codes = new List<int>();
-        foreach (var (position, code) in diagnostics)
+            diagnostics.RemoveAll(d => !JavaScriptDiagnostics.IsPlainError(d.Code));
+        else if (file.CommentDirectives.Count != 0)
         {
-            bool ignored = false;
-            for (int line = file.Source.GetLineAndCharacter(position).Line - 1; line >= 0; line--)
+            var directives = new Dictionary<int, CommentDirective>();
+            foreach (var directive in file.CommentDirectives)
+                directives[file.Source.GetLineAndCharacter(directive.Start).Line] = directive;
+            var filtered = new List<(int Position, int End, int Code)>();
+            foreach (var diagnostic in diagnostics)
             {
-                if (directives.ContainsKey(line))
+                bool ignored = false;
+                for (int line = file.Source.GetLineAndCharacter(diagnostic.Position).Line - 1; line >= 0; line--)
                 {
-                    directives[line] = false;
-                    ignored = true;
-                    break;
+                    if (directives.TryGetValue(line, out var directive))
+                    {
+                        directives[line] = directive with { ExpectError = false };
+                        ignored = true;
+                        break;
+                    }
+                    int offset = file.Source.LineStarts[line];
+                    var text = file.Source.Text;
+                    while (offset < text.Length && text[offset] is ' ' or '\t')
+                        offset++;
+                    if (!(offset == text.Length
+                        || text[offset] is '\r' or '\n'
+                        || offset + 1 < text.Length && text[offset] == '/' && text[offset + 1] == '/'))
+                        break;
                 }
-                int offset = file.Source.LineStarts[line];
-                var text = file.Source.Text;
-                while (offset < text.Length && text[offset] is ' ' or '\t')
-                    offset++;
-                if (!(offset == text.Length
-                    || text[offset] is '\r' or '\n'
-                    || offset + 1 < text.Length && text[offset] == '/' && text[offset + 1] == '/'))
-                    break;
+                if (!ignored)
+                    filtered.Add(diagnostic);
             }
-            if (!ignored)
-                codes.Add(code);
+            foreach (var directive in directives.Values)
+                if (directive.ExpectError)
+                    filtered.Add((directive.Start, directive.End, 2578));
+            diagnostics = filtered;
         }
-        foreach (bool unused in directives.Values)
-            if (unused)
-                codes.Add(2578);
-        codes.Sort();
-        return codes;
+        if (program.Symbols.Program.GetFile(file.FileName)?.Mapping is not { } mapping)
+            return diagnostics.Select(d => d.Code).Order().ToArray();
+        IEnumerable<Diagnostic> mapped = diagnostics.Select(d => new Diagnostic(
+            DiagnosticLocalization.GetMessage(d.Code), d.Position, d.End - d.Position, [])
+        { FileName = file.FileName });
+        if (!plainJavaScript)
+            mapped = mapping.ApplyDiagnosticDirectives(mapped);
+        return mapped.Where(d => !d.Message.ReportsUnnecessary || d.Source is not null
+            || mapping.Map.VirtualToOriginalSpan(d.Start, d.Start + d.Length).Fidelity != MappingFidelity.None)
+            .Select(d => d.Code).Order().ToArray();
     }
 }

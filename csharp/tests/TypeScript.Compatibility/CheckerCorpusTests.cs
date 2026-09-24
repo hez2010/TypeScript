@@ -57,7 +57,26 @@ internal static class CheckerCorpusTests
             var config = new ParsedConfig(input.GetProperty("configFileName").GetString()!, options, roots, [], [], []);
             stage = "create-program";
             if (input.GetProperty("contentMappers").GetInt32() != 0)
-                throw new NotSupportedException("Corpus adapter requires the reference test content-mapper host");
+            {
+                string fixture = Environment.GetEnvironmentVariable("CSHARP_CONTENT_MAPPER_FIXTURE")
+                    ?? throw new InvalidOperationException("Missing content-mapper fixture executable");
+                if (!Path.IsPathFullyQualified(fixture) || !File.Exists(fixture))
+                    throw new InvalidOperationException("Invalid content-mapper fixture executable");
+                var configured = new ConfigParser(fs, cwd).Parse(config.FileName, options);
+                if (configured.ContentMappers.Length != input.GetProperty("contentMappers").GetInt32())
+                    throw new InvalidDataException("Content-mapper configuration count differs from the reference input");
+                config = configured with
+                {
+                    Options = options,
+                    FileNames = roots,
+                    ContentMappers = configured.ContentMappers.Select(mapper => mapper with
+                    {
+                        // Test package directories exist in the virtual filesystem only.
+                        PackageDirectory = Path.GetDirectoryName(fixture)!,
+                        Exec = [fixture, .. mapper.Exec]
+                    }).ToArray()
+                };
+            }
             program = await CompilerProgram.CreateAsync(fs, cwd, config, previous,
                 concurrency: input.GetProperty("singleThreaded").GetBoolean() ? 1 : Environment.ProcessorCount,
                 defaultLibraryDirectory: input.GetProperty("libraryDirectory").GetString());

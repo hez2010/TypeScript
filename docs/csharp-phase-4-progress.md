@@ -4,9 +4,9 @@
 
 ## Current overall status
 
-The complete Release import baseline plus subsequent affected-case results record **12,489 matches out of 13,446 active compiler configurations**, up from 12,457 before the remaining checker-stop fixes and 9,365 at the original Release baseline. **957 configurations still do not match**: 15 stop in the content-mapper test-host adapter and 941 complete with diagnostic-code differences. There are also 20 source-graph differences, overlapping those categories. All currently observed checker crashes and unsupported-path stops in this corpus have been resolved; the 15 remaining stops occur before checking mapped programs.
+The complete Release import baseline plus subsequent affected-case results record **12,504 matches out of 13,446 active compiler configurations**, up from 12,489 before mapped-program integration and 9,365 at the original Release baseline. **All 13,446 configurations now finish execution.** **942 configurations still do not match**: 941 have diagnostic-code differences and five have source-graph differences, with four overlapping those categories. There are no remaining recorded checker or test-host execution stops in this corpus.
 
-These comparisons cover source graphs and diagnostic codes. **92.9% matching on this measure is not a Phase-4 completion percentage.** Complete diagnostic text, locations and related information; full type/symbol comparison; type display, node builders, accessibility and emit-resolver APIs; parallel checker validation; and the final memory/performance gates remain unfinished. Phase 4 is not nearly complete, and the evidence does not yet support a reliable completion estimate.
+These comparisons cover source graphs and diagnostic codes. **93.0% matching on this measure is not a Phase-4 completion percentage.** Complete diagnostic text, locations and related information; full type/symbol comparison; type display, node builders, accessibility and emit-resolver APIs; parallel checker validation; and the final memory/performance gates remain unfinished. Phase 4 is not nearly complete, and the evidence does not yet support a reliable completion estimate.
 
 The next implementation priorities are remaining declaration/expression checks and diagnostic fidelity. The sections below are historical implementation checkpoints; their individual passing counts do not represent whole-phase completion.
 
@@ -788,6 +788,16 @@ Constructor-identity comparisons now narrow by class identity or subtype compati
 All 25 previously recorded checker crashes or unsupported paths now finish checking. Release validation covers **1,564 configurations per reference mode**, increasing graph/code matches from **1,378 to 1,410**, with **32 recovered configurations and no regressions**. Nineteen unaffected initial results were retained. A selection review added 32 previously unrun object/literal-predicate cases without replaying completed cases. Both modes agree. Flow/inference/call queries pass **568 configurations**; four safety suites pass **282 assertions**, including 10 new checks backed by four pinned-Go fixtures. The final Release build has zero warnings and errors. Formatting preserved tokens, comments and syntax in 14 C# files. Unchanged repository and generator validation was reused; NativeAOT remains deferred until final phase-4 completion.
 
 Evidence: [single-mode corpus](../csharp/compatibility/evidence/phase4-checker-stops-corpus-single.json), [reference-default corpus](../csharp/compatibility/evidence/phase4-checker-stops-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-checker-stops-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-checker-stops-validation.json).
+
+## Mapped programs and diagnostic integration
+
+The corpus adapter now reconstructs mapper configuration from the test filesystem and drives the production C# mapper host. A small development-only bridge exposes the pinned reference suite's external mapper fixtures through their normal protocol. Those fixtures supply transformation output; the C# host, parser, mapping decoder, binder and checker process it. Fixture source, revision, executable and toolchain identity are recorded, and unchanged fixture binaries are reused.
+
+Mapper project opening now receives the full project options, while transform identity still depends only on options declared by the mapper. Semantic diagnostics apply mapped directives after ordinary comment directives and suppress unnecessary diagnostics whose spans are entirely synthesized. Mapper-authored diagnostics retain their distinct source and coordinates.
+
+All **15 mapped configurations match source graphs and diagnostic codes in both reference modes**, closing the final corpus execution stops. The Release build has zero warnings and errors. Mapper-host safety passes **44 assertions**, including the added full-options/declared-identity check; program/checker safety passes **80 assertions**. Formatting preserved tokens, comments and syntax in four C# files. The original reference corpus and unchanged Go/main repository validation were reused. These checks cover semantic processing, not phase-5 declaration emission. NativeAOT remains deferred until final phase-4 completion.
+
+Evidence: [single-mode corpus](../csharp/compatibility/evidence/phase4-mapped-corpus-single.json), [reference-default corpus](../csharp/compatibility/evidence/phase4-mapped-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-mapped-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-mapped-programs-validation.json).
 
 ## Remaining completion work
 

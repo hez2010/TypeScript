@@ -88,7 +88,9 @@ internal static class ContentMapperTests
             Check(left.GetProperty("compilerOptions").GetProperty("target").ValueKind == JsonValueKind.Number
                 && left.GetProperty("compilerOptions").GetProperty("strict").GetBoolean(),
                 "Declared compiler options retain wire enum values");
-            Check(!left.GetProperty("compilerOptions").TryGetProperty("noLib", out _), "Undeclared options are absent");
+            Check(left.GetProperty("compilerOptions").GetProperty("noLib").GetBoolean(), "Project opening includes undeclared options");
+            using var declaredOptions = JsonDocument.Parse(ContentMapperHost.DeclaredOptions(mapper, options));
+            Check(!declaredOptions.RootElement.TryGetProperty("noLib", out _), "Transform identity includes only declared options");
             await first.DisposeAsync();
             Check(
                 State(await second.TransformAsync(mapper, "/project/b.view", new SourceText("y"))).GetProperty("openCount").GetInt32() == 1,

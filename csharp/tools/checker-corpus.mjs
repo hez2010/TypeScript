@@ -26,6 +26,33 @@ const managed = !process.argv.includes("--native");
 const reference = JSON.parse(await readFile(path.join(output, "reference.json"), "utf8"));
 const source = path.join(output, reference.sourceRelativePath, "tsc");
 const oracle = path.join(output, "semantic-corpus-oracle.exe");
+const mapperFixture = path.join(output, "content-mapper-fixture.exe");
+let mapperFixtureInfo;
+async function prepareMapperFixture() {
+    if (mapperFixtureInfo) return;
+    const fixtureSource = path.join(root, "csharp/oracle/content-mapper-fixture/main.go");
+    const sourceSha256 = sha256(await readFile(fixtureSource));
+    const manifest = path.join(output, "content-mapper-fixture.json");
+    try {
+        const cached = JSON.parse(await readFile(manifest, "utf8"));
+        if (
+            cached.referenceRevision === referenceRevision && cached.sourceSha256 === sourceSha256 && cached.go === go
+            && cached.executableSha256 === sha256(await readFile(mapperFixture))
+        ) {
+            mapperFixtureInfo = cached;
+            return;
+        }
+    }
+    catch (error) {
+        if (error.code !== "ENOENT") throw error;
+    }
+    const fixtureDirectory = path.join(source, "cmd/csharp-content-mapper-fixture");
+    await mkdir(fixtureDirectory, { recursive: true });
+    await copyFile(fixtureSource, path.join(fixtureDirectory, "main.go"));
+    await run(go, ["-C", source, "build", "-o", mapperFixture, "./cmd/csharp-content-mapper-fixture"], { env: { ...process.env, GOWORK: "off", GOTOOLCHAIN: "local" } });
+    mapperFixtureInfo = { referenceRevision, sourceSha256, go, executableSha256: sha256(await readFile(mapperFixture)) };
+    await json(manifest, mapperFixtureInfo);
+}
 const native = option("--candidate", path.join(output, "phase4-native/TypeScript.Compatibility.exe"));
 const managedDirectory = option("--managed-directory", path.join(root, "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0"));
 const dll = path.join(managedDirectory, "TypeScript.Compatibility.dll");
@@ -101,6 +128,7 @@ for (const mode of modes) {
         ready = ready.filter(c => names.has(c.name));
         selectionSha256 = sha256(Buffer.from(selectionText));
     }
+    if (ready.some(c => c.contentMappers)) await prepareMapperFixture();
     let candidateFailures = 0, graphMismatches = 0, diagnosticMismatches = 0, codeMatches = 0, processed = 0;
     const errors = new Map();
     const results = createWriteStream(path.join(modeDirectory, "candidate.jsonl"));
@@ -126,7 +154,10 @@ for (const mode of modes) {
     while (processed < ready.length) {
         await new Promise((resolve, reject) => {
             let stderr = "", closing = false;
-            const child = spawn(candidate, [...candidateArgs, "--checker-corpus-lines", path.join(inputDirectory, "blobs"), ...reuseSyntax ? ["--reuse-syntax"] : []], { windowsHide: true });
+            const child = spawn(candidate, [...candidateArgs, "--checker-corpus-lines", path.join(inputDirectory, "blobs"), ...reuseSyntax ? ["--reuse-syntax"] : []], {
+                windowsHide: true,
+                env: { ...process.env, CSHARP_CONTENT_MAPPER_FIXTURE: mapperFixtureInfo ? mapperFixture : "" },
+            });
             child.stderr.on("data", bytes => {
                 stderr = (stderr + bytes.toString()).slice(-65536);
             });
@@ -189,6 +220,7 @@ for (const mode of modes) {
         oracleSha256: referenceRun.oracleSha256 ?? sha256(await readFile(oracle)),
         candidateSha256: sha256(await readFile(managed ? dll : native)),
         ...managed ? { compilerSha256: sha256(await readFile(compilerDll)) } : {},
+        ...mapperFixtureInfo ? { mapperFixture: mapperFixtureInfo } : {},
         candidateOutputSha256: sha256(await readFile(path.join(modeDirectory, "candidate.jsonl"))),
         fullSemanticCorpusGateComplete: false,
     };

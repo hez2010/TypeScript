@@ -98,6 +98,10 @@ public sealed class ContentMapperHost : IAsyncDisposable
     public static string Identity(ContentMapper mapper) => mapper.Name + (mapper.Version.Length == 0 ? "" : "@" + mapper.Version);
 
     internal static byte[] DeclaredOptions(ContentMapper mapper, CompilerOptions options)
+        => SerializeOptions(options, mapper.CompilerOptions is { ValueKind: JsonValueKind.Array } names
+            ? names.EnumerateArray().Select(JsonStrings.GetString) : [], true);
+
+    private static byte[] SerializeOptions(CompilerOptions options, IEnumerable<string> names, bool declaredOnly)
     {
         using var stream = new MemoryStream();
         var namePatches = new List<(int Start, int End, string Name)>();
@@ -105,42 +109,40 @@ public sealed class ContentMapperHost : IAsyncDisposable
         {
             writer.WriteStartObject();
             var seen = new HashSet<string>(StringComparer.Ordinal);
-            if (mapper.CompilerOptions is { ValueKind: JsonValueKind.Array } names)
-                foreach (var name in names.EnumerateArray())
+            foreach (string key in names)
+            {
+                if (!seen.Add(key))
+                    continue;
+                if (options.Get(key) is not { } value || value.ValueKind == JsonValueKind.Null)
+                    continue;
+                var definition = OptionDefinitions.All.FirstOrDefault(d => d.Group == OptionGroup.Compiler && d.Name == key);
+                if (definition is null && declaredOnly)
+                    continue;
+                if (value.ValueKind == JsonValueKind.Number && value.GetDouble() == 0 && definition?.Kind != OptionKind.Number)
+                    continue;
+                if (value.ValueKind == JsonValueKind.String && JsonStrings.GetString(value).Length == 0)
+                    continue;
+                writer.WritePropertyName(key);
+                if (definition?.Kind == OptionKind.Enum && value.ValueKind == JsonValueKind.String)
+                    writer.WriteRawValue(
+                        OptionDefinitions.EnumValueJson(definition.ValueIdentity(JsonStrings.GetString(value)) ?? value.GetRawText()));
+                else if (definition?.ElementKind == OptionKind.Enum && value.ValueKind == JsonValueKind.Array)
                 {
-                    string key = JsonStrings.GetString(name);
-                    if (!seen.Add(key))
-                        continue;
-                    if (options.Get(key) is not { } value || value.ValueKind == JsonValueKind.Null)
-                        continue;
-                    var definition = OptionDefinitions.All.FirstOrDefault(d => d.Group == OptionGroup.Compiler && d.Name == key);
-                    if (definition is null)
-                        continue;
-                    if (value.ValueKind == JsonValueKind.Number && value.GetDouble() == 0 && definition.Kind != OptionKind.Number)
-                        continue;
-                    if (value.ValueKind == JsonValueKind.String && JsonStrings.GetString(value).Length == 0)
-                        continue;
-                    writer.WritePropertyName(key);
-                    if (definition.Kind == OptionKind.Enum && value.ValueKind == JsonValueKind.String)
-                        writer.WriteRawValue(
-                            OptionDefinitions.EnumValueJson(definition.ValueIdentity(JsonStrings.GetString(value)) ?? value.GetRawText()));
-                    else if (definition.ElementKind == OptionKind.Enum && value.ValueKind == JsonValueKind.Array)
+                    writer.WriteStartArray();
+                    foreach (var element in value.EnumerateArray())
                     {
-                        writer.WriteStartArray();
-                        foreach (var element in value.EnumerateArray())
-                        {
-                            string text = JsonStrings.GetString(element);
-                            int index = Array.FindIndex(definition.Values, v => v.Equals(text, StringComparison.OrdinalIgnoreCase));
-                            if (index < 0)
-                                WriteCanonical(writer, element, namePatches);
-                            else
-                                writer.WriteRawValue(OptionDefinitions.EnumValueJson(definition.ValueIdentities[index]));
-                        }
-                        writer.WriteEndArray();
+                        string text = JsonStrings.GetString(element);
+                        int index = Array.FindIndex(definition.Values, v => v.Equals(text, StringComparison.OrdinalIgnoreCase));
+                        if (index < 0)
+                            WriteCanonical(writer, element, namePatches);
+                        else
+                            writer.WriteRawValue(OptionDefinitions.EnumValueJson(definition.ValueIdentities[index]));
                     }
-                    else
-                        WriteCanonical(writer, value, namePatches);
+                    writer.WriteEndArray();
                 }
+                else
+                    WriteCanonical(writer, value, namePatches);
+            }
             writer.WriteEndObject();
         }
         if (namePatches.Count == 0)
@@ -349,7 +351,7 @@ public sealed class ContentMapperHost : IAsyncDisposable
                                 JsonStrings.WriteValue(writer, options);
                             }
                             writer.WritePropertyName("compilerOptions");
-                            writer.WriteRawValue(DeclaredOptions(entry.Mapper, entry.Options));
+                            writer.WriteRawValue(SerializeOptions(entry.Options, entry.Options.Values.Keys, false));
                         }, lifetime.Token).ConfigureAwait(false);
                         string identity = result.TryGetProperty("configIdentity", out var rawIdentity)
                             ? JsonStrings.GetString(rawIdentity)

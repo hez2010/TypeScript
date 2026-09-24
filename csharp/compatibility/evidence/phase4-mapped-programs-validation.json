@@ -1,0 +1,91 @@
+{
+    "timestamp": "2026-09-24T19:33:44.0158083+00:00",
+    "configuration": "Release",
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "managed": true,
+    "scope": "Content-mapper corpus adapter, project options, mapped diagnostic directives and synthesized unnecessary-diagnostic filtering; phase 4 remains incomplete",
+    "candidateSha256": "53e09af7a34268f7863d759f4119ec8e9731aa158ebb2fd2b2bd231fbafdb21e",
+    "compilerSha256": "3dba571089699bbaef7c1512c31b5bf633ac6c713efde718f81f122987fe6ce9",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-mapper-corpus-final-build.log",
+        "sha256": "452f2065397ffed9b87c98ecf9911422e28b616f466534dbd8d3f6eaf173b0e1"
+    },
+    "fixture": {
+        "metadata": {
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+            "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+            "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+        },
+        "wrapper": "csharp/oracle/content-mapper-fixture/main.go",
+        "role": "Pinned external test mapper fixtures serve transform output over their normal protocol. The C# host, parser, mapping decoder, binder and checker process it. No Go compiler/checker fallback is used.",
+        "cache": "Fixture source, pinned revision, toolchain path and executable hash are checked before reuse",
+        "gofmtExitCode": 0,
+        "buildExitCode": 0
+    },
+    "safety": {
+        "assertions": 124,
+        "mapperHostAssertions": 44,
+        "programCheckerAssertions": 80,
+        "newAssertions": 1,
+        "checks": [
+            "all project options reach openProject",
+            "static transform identity remains limited to declared options",
+            "mapper lifecycle, cancellation, protocol, projections and graph behavior",
+            "ordinary comment directives and program/checker ownership"
+        ],
+        "hostLog": "logs/csharp-phase4-mapped-host-safety.log",
+        "hostSha256": "fcd706baef4ef39228efd4daa22c7bf8a6681b7a22cf3b77b416980e91be928d",
+        "programLog": "logs/csharp-phase4-mapped-program-safety.log",
+        "programSha256": "a90ffaa2c3c04c5d85119e35a6ba032608f25be15af8142577ff8c0e586aa9b9",
+        "runBeforeWhitespaceFormatting": true
+    },
+    "corpus": {
+        "single": "phase4-mapped-corpus-single.json",
+        "referenceDefault": "phase4-mapped-corpus-default.json",
+        "parity": "phase4-mapped-mode-parity.json",
+        "selectedConfigurationsPerMode": 15,
+        "graphAndCodeMatches": 15,
+        "recoveredConfigurations": 15,
+        "regressions": [],
+        "cumulative": {
+            "activeConfigurations": 13446,
+            "matches": 12504,
+            "remaining": 942,
+            "failed": 0,
+            "diagnosticMismatches": 941,
+            "graphMismatches": 5,
+            "topStops": []
+        }
+    },
+    "formatting": {
+        "csharpFiles": 4,
+        "tokenCommentSyntaxIdentical": true,
+        "libraryConfigurations": 2,
+        "dotnetWhitespaceExitCode": 0,
+        "diffCheckExitCode": 0,
+        "proofLog": "logs/csharp-phase4-mapped-format.log",
+        "proofSha256": "264325fda1656819651d9396c8e86f9e86eec4c56c2b8032913a07775d4004cc",
+        "driverFormatExitCode": 0
+    },
+    "reusedValidation": {
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "repositoryCommand": "npx hereby validate --all",
+        "repositoryExitCode": 0,
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "reason": "User directed reuse of unchanged results. The pinned reference corpus and Go/main repository validation were reused. The changed C# driver and external fixture bridge were compiled/executed on all mapper cases; host and program safety cover the changed mapping and diagnostic paths."
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "phase4Complete": false
+}
