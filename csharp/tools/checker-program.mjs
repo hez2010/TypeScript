@@ -1374,6 +1374,7 @@ const summary = {
     referenceOutputSha256: sha256(JSON.stringify(expected)),
     outputSha256: sha256(JSON.stringify(actual)),
     candidateSha256: sha256(await readFile(managed ? dll : candidate)),
+    ...managed ? { compilerSha256: sha256(await readFile(path.join(root, "csharp/src/TypeScript.Compiler/bin/Release/net11.0/TypeScript.Compiler.dll"))) } : {},
     oracleSha256: sha256(await readFile(oracle)),
 };
 await json(path.join(output, "checker-program-summary.json"), summary);

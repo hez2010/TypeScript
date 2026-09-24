@@ -126,8 +126,20 @@ internal sealed partial class Checker : IFlowTypeHost, IFlowReferenceHost, IFlow
     public ValueTask<Type?> DottedTypeAsync(SyntaxNode node, CancellationToken cancellation) =>
         ExplicitValues.DottedAsync(node, cancellation: cancellation);
 
-    public ValueTask<Type?> ExplicitThisAsync(SyntaxNode node, CancellationToken cancellation) =>
-        throw new InvalidOperationException("Checker requires explicit this type");
+    public async ValueTask<Type?> ExplicitThisAsync(SyntaxNode node, CancellationToken cancellation)
+    {
+        var container = MissingNamePrefixes.ThisContainer(node, false, false);
+        if (container is IFunctionSignature
+            && (await Signatures.FromDeclarationAsync(container, cancellation).ConfigureAwait(false)).ThisParameter is { } parameter)
+            return await ExplicitValues.SymbolAsync(parameter, cancellation: cancellation).ConfigureAwait(false);
+        if (SemanticSyntax.ClassLike(container.Parent))
+        {
+            var symbol = program.Symbols.Declaration(container.Parent!)!;
+            return SemanticSyntax.IsStatic(container) ? await Values.GetAsync(symbol, cancellation).ConfigureAwait(false)
+                : ((InterfaceType)await Declared.GetAsync(symbol, cancellation).ConfigureAwait(false)).ThisType;
+        }
+        return null;
+    }
 
     public ValueTask<Type> SuperAsync(SyntaxNode node, CancellationToken cancellation) => ThisExpressions.SuperAsync(node, cancellation);
 

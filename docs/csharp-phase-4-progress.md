@@ -2,6 +2,8 @@
 
 **Phase 4 is incomplete.** Production checker creation, internal queries and an initial source-file semantic traversal now use the implemented type system, scope, instantiation, inference, flow and expression services. This does not satisfy the complete semantic-checker gate in the [rewrite plan](csharp-rewrite-plan.md). Complete semantic coverage and diagnostic formatting, full type/symbol queries and the emit resolver remain unavailable in the C# backend.
 
+**Validation policy, updated 2026-09-24.** At the user's request, all further execution and validation use the normal Release build. NativeAOT publishing is deferred until the final completion check, when it must finish without warnings or errors. NativeAOT binaries are no longer executed for validation. Earlier NativeAOT results below remain historical evidence.
+
 ## Implemented checkpoint
 
 `csharp/src/TypeScript.Compiler/Checking/` contains manually ported algorithms and generated flag declarations from the pinned Go checker:
@@ -638,6 +640,20 @@ Missing-property diagnostics are finalized once per source node, with spelling/a
 Windows x64 NativeAOT passes **678 semantic diagnostic-code configurations**, **4,294 query configurations**, and **686 safety assertions**. This adds 256 semantic configurations and six cross-file finalization assertions. The latter check deferred-file ownership, completion caching, independent checkers and duplicate prevention. Existing deep-input and cancellation assertions remain enabled.
 
 Evidence: [semantic finalization comparisons](../csharp/compatibility/evidence/phase4-finalization-semantic.json), [query regressions](../csharp/compatibility/evidence/phase4-finalization-identifiers.json), [signature regressions](../csharp/compatibility/evidence/phase4-finalization-signatures.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-finalization-validation.json).
+
+## Original compiler corpus baseline
+
+`checker-corpus.mjs` now exports programs through the pinned reference's compiler-test runner, retaining its option variations, roots, symlinks, library defaults and skip rules. Input content is stored in hashed blobs. An inventory and configuration plan detect missing exports. The Release candidate replays complete programs with embedded libraries and records exceptions or process failures without counting them as matches. Reference diagnostics retain positions, arguments, chains and related information; candidate comparison currently covers ordered source graphs/content hashes and diagnostic codes.
+
+Both reference modes cover **12,730 test files**, expanded into **15,208 configurations**. The original runner skips **1,762**, leaving **13,446 active configurations** per mode. No reference files or configurations are missing, and the reference reports no failures. Each Release run records **9,365 graph/code matches**, **3,015 candidate failures**, and **1,066 completed diagnostic mismatches**. There are **20 graph mismatches**, overlapping those failure categories; 15 are explicit unsupported content-mapper adapter cases. Candidate results are identical across modes apart from exception stacks. Fresh and reused syntax also produce identical results on the 151-configuration unused-declaration sample; every replay creates a fresh checker.
+
+These counts are a baseline, not a completed gate. Full diagnostic, type and symbol comparison, the content-mapper replay adapter, parallel candidate checker scheduling and the memory/performance gates remain open. The largest stop groups are JSDoc signatures, JSX expressions, decorators, JavaScript classes, disposable declarations and callable/awaitable condition analysis. The reports retain all failure groups and strict mismatches.
+
+The corpus exposed nontermination in `constAssertionInLoop.ts`: the assertion checker checked the `const` marker as an ordinary annotation, re-entered its operand and reset active flow-loop state. The port now follows the reference's early return for const assertions. The original case passes in Release under both reference modes. A bounded regression guard uses an independent thread because timer cancellation did not reliably interrupt the pre-fix runaway. The same work connects explicit `this` types for flow queries, handles binder-owned UMD namespace declarations, includes bind diagnostics in program-level code reporting, and applies diagnostic directives and `noCheck` policy.
+
+The normal Release component suite passes **4,294 query configurations**, **678 semantic diagnostic-code configurations**, and **694 safety assertions**. NativeAOT execution was stopped when the user changed validation policy; its partial corpus run is not a completed result. NativeAOT publishing is deferred until final completion.
+
+Evidence: [single-threaded corpus](../csharp/compatibility/evidence/phase4-corpus-release-single.json), [reference-default corpus](../csharp/compatibility/evidence/phase4-corpus-release-default.json), [loop reproduction](../csharp/compatibility/evidence/phase4-corpus-const-loop-single.json), and [Release/repository validation](../csharp/compatibility/evidence/phase4-corpus-validation.json).
 
 ## Remaining completion work
 

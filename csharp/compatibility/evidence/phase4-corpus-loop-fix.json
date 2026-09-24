@@ -1,0 +1,20 @@
+{
+    "case": "tsc/testdata/tests/cases/compiler/constAssertionInLoop.ts",
+    "before": {
+        "mode": "normal Release",
+        "outcome": "nonterminating runaway stopped after observation",
+        "userCpu100ns": 965781250,
+        "workingSetBytes": 41605746688,
+        "countedAsPassing": false
+    },
+    "fix": "Check const assertions before checking their annotation; the const marker must not re-enter the operand through cached type-reference evaluation",
+    "after": {
+        "mode": "normal Release",
+        "single": "phase4-corpus-const-loop-single.json",
+        "referenceDefault": "phase4-corpus-const-loop-default.json",
+        "programSafetyAssertions": 66
+    },
+    "fullCorpusModesAgreeExceptExceptionStacks": true,
+    "activeConfigurationsPerMode": 13446,
+    "nativeAotPolicy": "No further native execution; publish verification deferred until final completion"
+}

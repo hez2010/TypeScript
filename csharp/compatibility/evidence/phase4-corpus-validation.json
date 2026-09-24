@@ -1,0 +1,254 @@
+{
+    "timestamp": "2026-09-24T13:42:41.9784815+00:00",
+    "scope": "Original compiler corpus graph/code baseline, const-assertion loop fix, explicit this types, program diagnostic directives and check policy; full phase 4 remains incomplete",
+    "candidateSha256": "9e1817044934e31b2f7ef8bc763ecc71040c20846645bb63c0cb23b9ab4fca08",
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "languageVersion": "15.0",
+    "runtimeAsync": true,
+    "sourceComparisons": {
+        "semantic": {
+            "cases": 678,
+            "exact": 678,
+            "failed": 0,
+            "record": "phase4-corpus-integration-semantic.json"
+        },
+        "program": {
+            "cases": 180,
+            "exact": 180,
+            "failed": 0,
+            "record": "phase4-corpus-integration-program.json"
+        },
+        "aliases": {
+            "cases": 124,
+            "exact": 124,
+            "failed": 0,
+            "record": "phase4-corpus-integration-aliases.json"
+        },
+        "type-nodes": {
+            "cases": 192,
+            "exact": 192,
+            "failed": 0,
+            "record": "phase4-corpus-integration-type-nodes.json"
+        },
+        "members": {
+            "cases": 176,
+            "exact": 176,
+            "failed": 0,
+            "record": "phase4-corpus-integration-members.json"
+        },
+        "values": {
+            "cases": 136,
+            "exact": 136,
+            "failed": 0,
+            "record": "phase4-corpus-integration-values.json"
+        },
+        "properties": {
+            "cases": 192,
+            "exact": 192,
+            "failed": 0,
+            "record": "phase4-corpus-integration-properties.json"
+        },
+        "signatures": {
+            "cases": 216,
+            "exact": 216,
+            "failed": 0,
+            "record": "phase4-corpus-integration-signatures.json"
+        },
+        "identity": {
+            "cases": 160,
+            "exact": 160,
+            "failed": 0,
+            "record": "phase4-corpus-integration-identity.json"
+        },
+        "assignability": {
+            "cases": 332,
+            "exact": 332,
+            "failed": 0,
+            "record": "phase4-corpus-integration-assignability.json"
+        },
+        "indexing": {
+            "cases": 320,
+            "exact": 320,
+            "failed": 0,
+            "record": "phase4-corpus-integration-indexing.json"
+        },
+        "generic-relations": {
+            "cases": 128,
+            "exact": 128,
+            "failed": 0,
+            "record": "phase4-corpus-integration-generic-relations.json"
+        },
+        "conditional": {
+            "cases": 152,
+            "exact": 152,
+            "failed": 0,
+            "record": "phase4-corpus-integration-conditional.json"
+        },
+        "inference": {
+            "cases": 176,
+            "exact": 176,
+            "failed": 0,
+            "record": "phase4-corpus-integration-inference.json"
+        },
+        "expressions": {
+            "cases": 40,
+            "exact": 40,
+            "failed": 0,
+            "record": "phase4-corpus-integration-expressions.json"
+        },
+        "constants": {
+            "cases": 48,
+            "exact": 48,
+            "failed": 0,
+            "record": "phase4-corpus-integration-constants.json"
+        },
+        "initializers": {
+            "cases": 48,
+            "exact": 48,
+            "failed": 0,
+            "record": "phase4-corpus-integration-initializers.json"
+        },
+        "binary": {
+            "cases": 56,
+            "exact": 56,
+            "failed": 0,
+            "record": "phase4-corpus-integration-binary.json"
+        },
+        "awaited": {
+            "cases": 24,
+            "exact": 24,
+            "failed": 0,
+            "record": "phase4-corpus-integration-awaited.json"
+        },
+        "references": {
+            "cases": 140,
+            "exact": 140,
+            "failed": 0,
+            "record": "phase4-corpus-integration-references.json"
+        },
+        "flow": {
+            "cases": 212,
+            "exact": 212,
+            "failed": 0,
+            "record": "phase4-corpus-integration-flow.json"
+        },
+        "identifiers": {
+            "cases": 830,
+            "exact": 830,
+            "failed": 0,
+            "record": "phase4-corpus-integration-identifiers.json"
+        },
+        "access": {
+            "cases": 412,
+            "exact": 412,
+            "failed": 0,
+            "record": "phase4-corpus-integration-access.json"
+        }
+    },
+    "queryConfigurations": 4294,
+    "semanticDiagnosticCodeConfigurations": 678,
+    "newQueryConfigurations": 0,
+    "newSemanticConfigurations": 0,
+    "totalComparedConfigurations": 4972,
+    "comparisonPolicyChanges": [],
+    "referenceLimitations": [
+        {
+            "record": "phase4-class-reference-static-block-crash.json",
+            "nonStrictReferenceResult": "Assertion failure",
+            "strictVariantExactConfigurations": 2,
+            "countedAsPassing": false,
+            "referenceCheckerUnchanged": true,
+            "referenceCheckerSha256": "f6dbbfd2d0816458155609717ebb0325e6b7751654df69a426a98d682e6cdd17"
+        }
+    ],
+    "safety": {
+        "assertions": 694,
+        "newAssertions": 8,
+        "log": "logs/csharp-phase4-corpus-integration-safety.log",
+        "sha256": "1b59d33ca65765526d8f74527fd460f2fb6494db615682629953ade679fb3bad"
+    },
+    "formatting": {
+        "csharpFiles": 8,
+        "tokenCommentSyntaxIdentical": true,
+        "libraryConfigurations": 2,
+        "dotnetWhitespaceExitCode": 0,
+        "checkerGenerationExitCode": 0,
+        "diffCheckExitCode": 0
+    },
+    "repositoryValidation": {
+        "command": "npx hereby validate --all",
+        "exitCode": 0,
+        "isolatedCheckout": "D:/source/repos/TypeScript-phase4-corpus-validation",
+        "snapshotFiles": 41,
+        "snapshotHashesVerifiedBeforeAndAfter": false,
+        "snapshotManifestSha256": "83729394bef093ff2c878a33edcd886509bfde09f6186bd2278bd763170050a1",
+        "log": "logs/csharp-phase4-corpus-validation.log",
+        "sha256": "68b44d6df4f52f3a168cca2467f896a17af2e4c3e9af3977c99c20b9b89ce68a",
+        "goTests": 163380,
+        "goSkipped": 2152,
+        "apiTests": 813,
+        "extensionTests": 12,
+        "toolsTests": 17,
+        "lintIssues": 0,
+        "elapsed": "7m 21.3s",
+        "productGoJavaScriptUnchanged": true,
+        "snapshotHashesVerifiedBeforeValidation": true,
+        "finalSnapshotHashesVerifiedAfterFormatting": true,
+        "originalSnapshotManifestSha256": "eaf271478e2ab560f853956f2da2d27f826c2ec8c312bd850a302cdf1e5e4b24",
+        "formatNormalization": {
+            "file": "csharp/oracle/semantic-corpus/bridge_test.go",
+            "beforeSha256": "2b185f8365433260e483b0fb9aa8926f34efb837dae6855d2e8c74b7ad8213e7",
+            "afterSha256": "8a0877a12618465e051b302160cece8aeefa150f5f20bd686ff83a9cda27661d",
+            "changes": [
+                "0755 to 0o755 once",
+                "0644 to 0o644 twice"
+            ],
+            "numericValuesUnchanged": true,
+            "entireFileComparedAfterExactReplacement": true
+        }
+    },
+    "wholeProgramSemanticPassComplete": false,
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "phase4Complete": false,
+    "configuration": "Release",
+    "managed": true,
+    "compilerSha256": "e5557a11e53181297c2ca4e1da29f6dd8a7a862de6c4cac02dc4f9e790944d4a",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-corpus-build.log",
+        "sha256": "a535a8f1e458a2eaee41f038c841bf8413f21505602eafcaeafd53190019c6a7"
+    },
+    "nativeAotVerification": {
+        "status": "deferred",
+        "reason": "User requires NativeAOT build verification only at final completion, with no warnings or errors; no further NativeAOT execution"
+    },
+    "corpus": {
+        "single": {
+            "record": "phase4-corpus-release-single.json",
+            "activeConfigurations": 13446,
+            "graphAndCodeMatches": 9365,
+            "candidateFailures": 3015,
+            "diagnosticMismatches": 1066,
+            "graphMismatches": 20,
+            "candidateSha256": "30b35243d4a7780ed7dfc1edea191359d92a87f3ef5e7bedfca207156904596b",
+            "compilerSha256": "92cb5fe887c9884b5e0c1fb3abe0557bb40104c90df093e24d68720a4468532c"
+        },
+        "default": {
+            "record": "phase4-corpus-release-default.json",
+            "activeConfigurations": 13446,
+            "graphAndCodeMatches": 9365,
+            "candidateFailures": 3015,
+            "diagnosticMismatches": 1066,
+            "graphMismatches": 20,
+            "candidateSha256": "30b35243d4a7780ed7dfc1edea191359d92a87f3ef5e7bedfca207156904596b",
+            "compilerSha256": "92cb5fe887c9884b5e0c1fb3abe0557bb40104c90df093e24d68720a4468532c"
+        },
+        "modeResultsIdenticalExceptExceptionStacks": true,
+        "rawResultsDirectory": "built/csharp/semantic-corpus-release",
+        "referenceInputsDirectory": "built/csharp/semantic-corpus-baseline"
+    }
+}

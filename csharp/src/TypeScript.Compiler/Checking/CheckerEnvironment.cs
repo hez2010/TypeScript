@@ -35,12 +35,12 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
     internal Checker? SemanticChecker { get; set; }
     private readonly HashSet<(SyntaxNode? Node, int Code, string Arguments)> reported = [];
     internal List<int> Diagnostics { get; } = [];
-    internal List<(SourceFileNode? File, int Code)> DiagnosticFiles { get; } = [];
+    internal List<(SyntaxNode? Node, int Code)> DiagnosticFiles { get; } = [];
 
     private void AddDiagnostic(SyntaxNode? node, int code)
     {
         Diagnostics.Add(code);
-        DiagnosticFiles.Add((SemanticSyntax.Source(node), code));
+        DiagnosticFiles.Add((node, code));
     }
 
     internal Action? BeforeGlobalTypes { get; set; }

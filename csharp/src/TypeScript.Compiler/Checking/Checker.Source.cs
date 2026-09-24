@@ -20,12 +20,16 @@ internal sealed partial class Checker
         RequireUsable();
         foreach (var file in program.Symbols.Program.SourceFiles)
         {
-            if (file.Syntax.IsDeclarationFile && program.Symbols.Program.Configuration.Options.Boolean("skipLibCheck") == true
-                || file.Library && program.Symbols.Program.Configuration.Options.Boolean("skipDefaultLibCheck") == true)
+            if (SkipProgramFile(file.Syntax))
                 continue;
             await CheckSourceFileAsync(file.Syntax, cancellation).ConfigureAwait(false);
         }
     }
+
+    private bool SkipProgramFile(SourceFileNode file) => NoCheck || file.CheckJsDirective?.Enabled == false
+        || file.IsDeclarationFile && program.Symbols.Program.Configuration.Options.Boolean("skipLibCheck") == true
+        || program.Symbols.Program.GetFile(file.FileName)!.Library
+            && program.Symbols.Program.Configuration.Options.Boolean("skipDefaultLibCheck") == true;
 
     internal async ValueTask CheckSourceFileAsync(SourceFileNode file, CancellationToken cancellation = default)
     {
@@ -313,6 +317,9 @@ internal sealed partial class Checker
                     break;
                 case ExportAssignmentNode export:
                     await CheckExportAssignmentSourceAsync(export, cancellation).ConfigureAwait(false);
+                    break;
+                case NamespaceExportDeclarationNode:
+                    // Namespace-export declarations are handled by the binder and alias resolver.
                     break;
                 case PropertySignatureDeclarationNode property:
                     if (property.Name is PrivateIdentifierNode)

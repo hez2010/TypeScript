@@ -41,13 +41,13 @@ internal sealed class TypeAssertions(TypeContext context, TypeAlgebra algebra, T
         if (node is TypeAssertionNode && host.ErasableSyntaxOnly && (node.Flags & NodeFlags.JavaScriptFile) == 0)
             host.ExpressionError(node, 1294);
         var type = await host.CheckExpressionAsync(expression, mode, cancellation).ConfigureAwait(false);
-        await host.CheckedFunctionTypeAsync(annotation, cancellation).ConfigureAwait(false);
         if (SemanticSyntax.ConstAssertion(node))
         {
             if (!await host.ConstArgumentAsync(expression, cancellation).ConfigureAwait(false))
                 host.ExpressionError(expression, 1355);
             return await algebra.RegularTypeAsync(type, cancellation).ConfigureAwait(false);
         }
+        await host.CheckedFunctionTypeAsync(annotation, cancellation).ConfigureAwait(false);
         var target = await host.TypeFromNodeAsync(annotation, cancellation).ConfigureAwait(false);
         cancellation.ThrowIfCancellationRequested();
         operands[node] = type;

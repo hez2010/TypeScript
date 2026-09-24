@@ -1,0 +1,319 @@
+{
+    "timestamp": "2026-09-24T13:25:55.429Z",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "mode": "default",
+    "filter": "",
+    "managed": true,
+    "reuseSyntax": true,
+    "referenceJobs": 4,
+    "scope": "Original compiler test program graphs and semantic diagnostic codes; full diagnostic/type/symbol fidelity and parallel candidate checker scheduling remain incomplete",
+    "referenceExitCode": 0,
+    "exportedConfigurations": 15208,
+    "readyConfigurations": 13446,
+    "referenceInventoryFiles": 12730,
+    "plannedConfigurations": 15208,
+    "referenceMissingFiles": [],
+    "referenceMissingConfigurations": [],
+    "referenceSkipped": 1762,
+    "referenceFailed": 0,
+    "candidateFailures": 3015,
+    "graphMismatches": 20,
+    "diagnosticMismatches": 1066,
+    "graphAndCodeMatches": 9365,
+    "errorGroups": [
+        {
+            "error": "check-program: Checker requires JSDoc signature declarations",
+            "count": 258
+        },
+        {
+            "error": "check-program: Checker requires expression checking for JsxElement",
+            "count": 215
+        },
+        {
+            "error": "check-program: Checker requires class decorator validation",
+            "count": 214
+        },
+        {
+            "error": "check-program: Checker requires JavaScript class declarations",
+            "count": 210
+        },
+        {
+            "error": "check-program: Checker requires member decorator validation",
+            "count": 200
+        },
+        {
+            "error": "check-program: Checker requires expression checking for JsxSelfClosingElement",
+            "count": 169
+        },
+        {
+            "error": "check-program: Checker requires disposable declaration checks",
+            "count": 152
+        },
+        {
+            "error": "check-program: Checker requires callable/awaitable condition analysis",
+            "count": 146
+        },
+        {
+            "error": "check-program: Checker requires destructuring assignment checking",
+            "count": 120
+        },
+        {
+            "error": "check-program: Checker requires in/instanceof checking",
+            "count": 110
+        },
+        {
+            "error": "check-program: Checker requires import/tagged-template/decorator/JSX/instanceof call resolution",
+            "count": 99
+        },
+        {
+            "error": "check-program: Checker requires JSDoc type interpretation",
+            "count": 94
+        },
+        {
+            "error": "check-program: Checker requires late index binding",
+            "count": 92
+        },
+        {
+            "error": "check-program: Checker requires JSDoc signatures",
+            "count": 80
+        },
+        {
+            "error": "check-program: Checker requires import-type evaluation",
+            "count": 72
+        },
+        {
+            "error": "check-program: Checker requires import attribute validation",
+            "count": 71
+        },
+        {
+            "error": "check-program: Checker requires value inference for module",
+            "count": 64
+        },
+        {
+            "error": "check-program: Checker requires assignment readonly analysis",
+            "count": 62
+        },
+        {
+            "error": "check-program: Checker requires CommonJS call adaptation",
+            "count": 61
+        },
+        {
+            "error": "check-program: Checker requires late-bound exported members",
+            "count": 42
+        },
+        {
+            "error": "create-checker: Checker requires checker merge diagnostic attribution",
+            "count": 39
+        },
+        {
+            "error": "check-program: Checker requires value inference for exports",
+            "count": 38
+        },
+        {
+            "error": "check-program: Checker requires expression checking for JsxFragment",
+            "count": 38
+        },
+        {
+            "error": "check-program: Checker requires value inference for export=",
+            "count": 30
+        },
+        {
+            "error": "check-program: Checker requires CommonJS assignment classification",
+            "count": 29
+        },
+        {
+            "error": "check-program: Checker requires parameter declaration-name checks",
+            "count": 27
+        },
+        {
+            "error": "check-program: Checker requires computed property name types",
+            "count": 25
+        },
+        {
+            "error": "check-program: Checker requires source-element checking for WithStatement",
+            "count": 24
+        },
+        {
+            "error": "check-program: Checker requires function modifier grammar",
+            "count": 19
+        },
+        {
+            "error": "check-program: Checker requires contextual reference typing in TemplateSpan",
+            "count": 16
+        },
+        {
+            "error": "create-program: Corpus adapter requires the reference test content-mapper host",
+            "count": 15
+        },
+        {
+            "error": "check-program: Checker requires type-parameter modifier grammar",
+            "count": 14
+        },
+        {
+            "error": "create-checker: Checker requires import attribute type resolution",
+            "count": 14
+        },
+        {
+            "error": "check-program: Checker requires JavaScript suggestion policy",
+            "count": 14
+        },
+        {
+            "error": "check-program: Checker requires declaration modifier validation",
+            "count": 14
+        },
+        {
+            "error": "check-program: Checker requires expression checking for PrivateIdentifier",
+            "count": 12
+        },
+        {
+            "error": "check-program: Checker requires enum relations",
+            "count": 11
+        },
+        {
+            "error": "check-program: Checker requires export attribute validation",
+            "count": 10
+        },
+        {
+            "error": "check-program: Checker requires heritage property diagnostics",
+            "count": 9
+        },
+        {
+            "error": "check-program: Unknown entity name kind",
+            "count": 9
+        },
+        {
+            "error": "check-program: Checker requires source-element checking for MissingDeclaration",
+            "count": 6
+        },
+        {
+            "error": "check-program: Checker requires readonly or binding-pattern reference analysis",
+            "count": 5
+        },
+        {
+            "error": "check-program: Checker requires async emit helpers",
+            "count": 5
+        },
+        {
+            "error": "check-program: Checker requires constructor identity narrowing",
+            "count": 5
+        },
+        {
+            "error": "check-program: Checker requires destructuring assignment defaults",
+            "count": 4
+        },
+        {
+            "error": "check-program: Unable to cast object of type 'TypeScript.Compiler.Checking.IntrinsicType' to type 'TypeScript.Compiler.Checking.TypeParameter'.",
+            "count": 4
+        },
+        {
+            "error": "check-program: Checker requires enum modifier grammar",
+            "count": 4
+        },
+        {
+            "error": "check-program: Checker requires generated-name collision checks",
+            "count": 4
+        },
+        {
+            "error": "create-checker: Checker requires ES module wrapper/type evaluation",
+            "count": 3
+        },
+        {
+            "error": "check-program: Checker requires checker merge diagnostic attribution",
+            "count": 3
+        },
+        {
+            "error": "check-program: Checker requires object-rest emit helpers",
+            "count": 3
+        },
+        {
+            "error": "check-program: Checker requires expression checking for MissingDeclaration",
+            "count": 3
+        },
+        {
+            "error": "check-program: Checker requires external private-field emit helpers",
+            "count": 3
+        },
+        {
+            "error": "check-program: Checker requires in/instanceof narrowing",
+            "count": 2
+        },
+        {
+            "error": "check-program: Unable to cast object of type 'TypeScript.Compiler.Checking.ObjectType' to type 'TypeScript.Compiler.Checking.InterfaceType'.",
+            "count": 2
+        },
+        {
+            "error": "check-program: Checker requires assigned/destructured value types",
+            "count": 2
+        },
+        {
+            "error": "check-program: Checker requires JavaScript constructor property classification",
+            "count": 2
+        },
+        {
+            "error": "check-program: Checker requires expression checking for ComputedPropertyName",
+            "count": 2
+        },
+        {
+            "error": "check-program: position ('1930') must be less than or equal to '1902'. (Parameter 'position')\r\nActual value was 1930.",
+            "count": 2
+        },
+        {
+            "error": "check-program: Checker requires value inference for defaultProps",
+            "count": 1
+        },
+        {
+            "error": "check-program: Checker requires value inference for ﷐@mySymbol@1727",
+            "count": 1
+        },
+        {
+            "error": "check-program: Checker requires value inference for items",
+            "count": 1
+        },
+        {
+            "error": "check-program: Checker requires module import-attribute checking",
+            "count": 1
+        },
+        {
+            "error": "create-checker: Checker requires export-assignment member types",
+            "count": 1
+        },
+        {
+            "error": "check-program: position ('419') must be less than or equal to '333'. (Parameter 'position')\r\nActual value was 419.",
+            "count": 1
+        },
+        {
+            "error": "check-program: Unable to cast object of type 'TypeScript.Compiler.Ast.PropertyAccessExpressionNode' to type 'TypeScript.Compiler.Ast.CallExpressionNode'.",
+            "count": 1
+        },
+        {
+            "error": "check-program: Unable to cast object of type 'TypeScript.Compiler.Ast.IdentifierNode' to type 'TypeScript.Compiler.Ast.CallExpressionNode'.",
+            "count": 1
+        },
+        {
+            "error": "check-program: Checker requires expression checking for ImportKeyword",
+            "count": 1
+        },
+        {
+            "error": "check-program: Object reference not set to an instance of an object.",
+            "count": 1
+        },
+        {
+            "error": "check-program: position ('169') must be less than or equal to '82'. (Parameter 'position')\r\nActual value was 169.",
+            "count": 1
+        },
+        {
+            "error": "check-program: Checker requires value inference for num",
+            "count": 1
+        },
+        {
+            "error": "check-program: Checker requires value inference for p",
+            "count": 1
+        }
+    ],
+    "inputSha256": "1021223d26cfedad8b1989a152ffb776bc54750978c457480fc0a0bb8f8bb3bf",
+    "oracleSha256": "072ce20500e1dfa626e6029e8ba98ed84b925a304216116200dd33d97f54654a",
+    "candidateSha256": "30b35243d4a7780ed7dfc1edea191359d92a87f3ef5e7bedfca207156904596b",
+    "compilerSha256": "92cb5fe887c9884b5e0c1fb3abe0557bb40104c90df093e24d68720a4468532c",
+    "candidateOutputSha256": "319f10a6b4dd59c39ccd851450e092d7f7832dc6a53072a8c7b1adb96909eae7",
+    "fullSemanticCorpusGateComplete": false
+}

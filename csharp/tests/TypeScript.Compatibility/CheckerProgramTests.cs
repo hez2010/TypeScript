@@ -323,6 +323,60 @@ internal static class CheckerProgramTests
         await finalIndependent.CheckProgramAsync();
         Check(finalIndependent.DiagnosticCodesForFile(finalMain).SequenceEqual(finalChecker.DiagnosticCodesForFile(finalMain))
             && finalIndependent.DiagnosticCodesForFile(finalDep).SequenceEqual([2339]));
+        var directiveProgram = await Build(new()
+        {
+            ["/project/directives.ts"] = "// 日本語 😀\n// @ts-ignore\nlet first:number='bad';\n// @ts-expect-error\n\n// comment\nlet second:number='bad';\n// @ts-expect-error\nlet unused=1;\n// @ts-ignore\n/* barrier */\nlet barrier:number='bad';"
+        });
+        var directiveChecker = await directiveProgram.CreateCheckerAsync();
+        await directiveChecker.CheckProgramAsync();
+        var directiveFile = directiveProgram.SourceFiles[0].Syntax;
+        Check(directiveChecker.DiagnosticCodesForFile(directiveFile).SequenceEqual([2322, 2322, 2322]));
+        Check(directiveChecker.DiagnosticCodesForProgramFile(directiveFile).SequenceEqual([2322, 2578]));
+        Check(directiveFile.CommentDirectives.Count(d => d.ExpectError) == 2);
+        var duplicateProgram = await Build(new() { ["/project/duplicate.ts"] = "const duplicate=1;const duplicate=2;" });
+        var duplicateChecker = await duplicateProgram.CreateCheckerAsync();
+        await duplicateChecker.CheckProgramAsync();
+        Check(duplicateChecker.DiagnosticCodesForProgramFile(duplicateProgram.SourceFiles[0].Syntax).SequenceEqual([2451, 2451]));
+        var noCheckOptions = new CompilerOptions();
+        noCheckOptions.SetRaw("noCheck", "true");
+        var noCheckProgram = await Build(new() { ["/project/unchecked.ts"] = "absent;" }, configuredOptions: noCheckOptions);
+        var noCheckChecker = await noCheckProgram.CreateCheckerAsync();
+        await noCheckChecker.CheckProgramAsync();
+        Check(
+            noCheckChecker.CheckedFileCount == 0
+                && noCheckChecker.DiagnosticCodesForProgramFile(noCheckProgram.SourceFiles[0].Syntax).Count == 0);
+        var noCheckDirectiveProgram = await Build(new() { ["/project/unchecked.ts"] = "// @ts-nocheck\nabsent;" });
+        var noCheckDirectiveChecker = await noCheckDirectiveProgram.CreateCheckerAsync();
+        await noCheckDirectiveChecker.CheckProgramAsync();
+        Check(
+            noCheckDirectiveChecker.CheckedFileCount == 0
+                && noCheckDirectiveChecker.DiagnosticCodesForProgramFile(noCheckDirectiveProgram.SourceFiles[0].Syntax).Count == 0);
+        var loopProgram = await Build(new()
+        {
+            ["/project/loop.ts"] = "type Candidate={mode:'a';output:unknown}|{mode:'b'};export function run():never{let lastCandidate:Candidate|null=null;while(true){const candidate:Candidate={mode:'a',output:lastCandidate} as const;lastCandidate=candidate;}}"
+        });
+        var loopChecker = await loopProgram.CreateCheckerAsync();
+        // Guard the corpus reproduction that previously recursed without terminating.
+        using var loopCancellation = new CancellationTokenSource();
+        using var loopFinished = new ManualResetEventSlim();
+        var loopGuard = new Thread(() =>
+        {
+            if (!loopFinished.Wait(TimeSpan.FromSeconds(10)))
+                loopCancellation.Cancel();
+        })
+        { IsBackground = true };
+        loopGuard.Start();
+        try
+        {
+            await loopChecker.CheckProgramAsync(loopCancellation.Token);
+        }
+        finally
+        {
+            loopFinished.Set();
+            loopGuard.Join();
+        }
+        Check(loopChecker.CheckedFileCount == 1 && loopChecker.DiagnosticCodesForFile(loopProgram.SourceFiles[0].Syntax).Count == 0);
+        Check(loopChecker.FlowTypes.ActiveLoopCount == 0);
         Console.WriteLine($"{checks} program/checker ownership assertions; interface and scope depth 20000");
     }
 

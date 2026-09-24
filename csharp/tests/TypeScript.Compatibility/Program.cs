@@ -13,6 +13,16 @@ internal static class Program
     {
         try
         {
+            if (args is ["--checker-corpus-lines", var reusedBlobDirectory, "--reuse-syntax"])
+            {
+                CheckerCorpusTests.Lines(reusedBlobDirectory, true);
+                return 0;
+            }
+            if (args is ["--checker-corpus-lines", var blobDirectory])
+            {
+                CheckerCorpusTests.Lines(blobDirectory);
+                return 0;
+            }
             if (args is ["--checker-access-safety"])
             {
                 CheckerAccessTests.Safety().GetAwaiter().GetResult();
