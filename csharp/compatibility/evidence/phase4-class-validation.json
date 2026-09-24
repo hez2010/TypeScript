@@ -1,0 +1,208 @@
+{
+    "timestamp": "2026-09-24T11:14:30.0800813+00:00",
+    "scope": "Class declaration/expression checking, constructor/static-block property inference and initialization, constructors/accessors, inheritance/override/overload checks and index declaration dispatch; complete semantic coverage remains open",
+    "candidateSha256": "f2b30d7a8237721db77d04161686eb65e925ae376a0ffbd8a6c94d7078298794",
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "languageVersion": "15.0",
+    "runtimeAsync": true,
+    "optimizationPreference": "Speed",
+    "instructionSet": "native",
+    "publish": {
+        "exitCode": 0,
+        "log": "logs/csharp-phase4-class-publish.log",
+        "sha256": "03933be2dc34223ee88005d844f6919fd7786869077fd93acbb392005d81ccfb"
+    },
+    "sourceComparisons": {
+        "semantic": {
+            "cases": 238,
+            "exact": 238,
+            "failed": 0,
+            "record": "phase4-class-semantic.json"
+        },
+        "program": {
+            "cases": 180,
+            "exact": 180,
+            "failed": 0,
+            "record": "phase4-class-program.json"
+        },
+        "aliases": {
+            "cases": 124,
+            "exact": 124,
+            "failed": 0,
+            "record": "phase4-class-aliases.json"
+        },
+        "type-nodes": {
+            "cases": 192,
+            "exact": 192,
+            "failed": 0,
+            "record": "phase4-class-type-nodes.json"
+        },
+        "members": {
+            "cases": 176,
+            "exact": 176,
+            "failed": 0,
+            "record": "phase4-class-members.json"
+        },
+        "values": {
+            "cases": 136,
+            "exact": 136,
+            "failed": 0,
+            "record": "phase4-class-values.json"
+        },
+        "properties": {
+            "cases": 192,
+            "exact": 192,
+            "failed": 0,
+            "record": "phase4-class-properties.json"
+        },
+        "signatures": {
+            "cases": 216,
+            "exact": 216,
+            "failed": 0,
+            "record": "phase4-class-signatures.json"
+        },
+        "identity": {
+            "cases": 160,
+            "exact": 160,
+            "failed": 0,
+            "record": "phase4-class-identity.json"
+        },
+        "assignability": {
+            "cases": 332,
+            "exact": 332,
+            "failed": 0,
+            "record": "phase4-class-assignability.json"
+        },
+        "indexing": {
+            "cases": 320,
+            "exact": 320,
+            "failed": 0,
+            "record": "phase4-class-indexing.json"
+        },
+        "generic-relations": {
+            "cases": 128,
+            "exact": 128,
+            "failed": 0,
+            "record": "phase4-class-generic-relations.json"
+        },
+        "conditional": {
+            "cases": 152,
+            "exact": 152,
+            "failed": 0,
+            "record": "phase4-class-conditional.json"
+        },
+        "inference": {
+            "cases": 176,
+            "exact": 176,
+            "failed": 0,
+            "record": "phase4-class-inference.json"
+        },
+        "expressions": {
+            "cases": 40,
+            "exact": 40,
+            "failed": 0,
+            "record": "phase4-class-expressions.json"
+        },
+        "constants": {
+            "cases": 48,
+            "exact": 48,
+            "failed": 0,
+            "record": "phase4-class-constants.json"
+        },
+        "initializers": {
+            "cases": 48,
+            "exact": 48,
+            "failed": 0,
+            "record": "phase4-class-initializers.json"
+        },
+        "binary": {
+            "cases": 56,
+            "exact": 56,
+            "failed": 0,
+            "record": "phase4-class-binary.json"
+        },
+        "awaited": {
+            "cases": 24,
+            "exact": 24,
+            "failed": 0,
+            "record": "phase4-class-awaited.json"
+        },
+        "references": {
+            "cases": 140,
+            "exact": 140,
+            "failed": 0,
+            "record": "phase4-class-references.json"
+        },
+        "flow": {
+            "cases": 212,
+            "exact": 212,
+            "failed": 0,
+            "record": "phase4-class-flow.json"
+        },
+        "identifiers": {
+            "cases": 810,
+            "exact": 810,
+            "failed": 0,
+            "record": "phase4-class-identifiers.json"
+        },
+        "access": {
+            "cases": 412,
+            "exact": 412,
+            "failed": 0,
+            "record": "phase4-class-access.json"
+        }
+    },
+    "queryConfigurations": 4274,
+    "semanticDiagnosticCodeConfigurations": 238,
+    "newQueryConfigurations": 20,
+    "newSemanticConfigurations": 130,
+    "totalComparedConfigurations": 4512,
+    "comparisonPolicyChanges": [],
+    "referenceLimitations": [
+        {
+            "record": "phase4-class-reference-static-block-crash.json",
+            "nonStrictReferenceResult": "Assertion failure",
+            "strictVariantExactConfigurations": 2,
+            "countedAsPassing": false,
+            "referenceCheckerUnchanged": true,
+            "referenceCheckerSha256": "f6dbbfd2d0816458155609717ebb0325e6b7751654df69a426a98d682e6cdd17"
+        }
+    ],
+    "safety": {
+        "assertions": 674,
+        "newClassFlowAssertions": 10,
+        "log": "logs/csharp-phase4-class-safety.log",
+        "sha256": "de3bf057fe229e9892449b2b85b81f9347996b84ec376b4e55fd8bb6ddaa8ecd"
+    },
+    "formatting": {
+        "csharpFiles": 16,
+        "tokenCommentSyntaxIdentical": true,
+        "libraryConfigurations": 2,
+        "dotnetWhitespaceExitCode": 0,
+        "checkerGenerationExitCode": 0,
+        "diffCheckExitCode": 0
+    },
+    "repositoryValidation": {
+        "command": "npx hereby validate --all",
+        "exitCode": 0,
+        "isolatedCheckout": "D:/source/repos/TypeScript-phase4-class-validation",
+        "snapshotFiles": 43,
+        "snapshotHashesVerifiedBeforeAndAfter": true,
+        "snapshotManifestSha256": "19e67ba19bbdb65e748068b5634e977e96da085a22c75a95dcc8f979e56ec6f8",
+        "log": "logs/csharp-phase4-class-validation.log",
+        "sha256": "cbbe3805854ff20692b447612b239f1f72952639cee5b9cf87ae9d1ee3b041f4",
+        "goTests": 163380,
+        "goSkipped": 2152,
+        "apiTests": 813,
+        "extensionTests": 12,
+        "toolsTests": 17,
+        "lintIssues": 0,
+        "elapsed": "8m 34.2s",
+        "productGoJavaScriptUnchanged": true
+    },
+    "wholeProgramSemanticPassComplete": false,
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "phase4Complete": false
+}

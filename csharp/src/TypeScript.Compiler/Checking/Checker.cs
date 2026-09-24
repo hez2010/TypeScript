@@ -215,6 +215,8 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
             Instantiation.Engine, new TypeVariables(References.TypeArgumentsAsync), this);
         AccessFlow = new(context, Algebra, Values, Widening, ReferenceNarrowing, FlowTypes, this);
         MemberAccess = new(program.Symbols, links, program.ReferenceSymbols, Declared, Properties, Bases, program.DeclarationOrder, this);
+        PropertyInitializers = new(context, this);
+        program.StaticInitialization = PropertyInitializers.BeforeStaticUseAsync;
         IndexValidation = new(
             context,
             Keys,

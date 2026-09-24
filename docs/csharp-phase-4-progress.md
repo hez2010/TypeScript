@@ -601,9 +601,21 @@ Deferred nodes retain insertion order, including nodes discovered while checking
 
 The new `--semantic` probe invokes the reference's `GetDiagnostics` for the complete main source file. Windows x64 NativeAOT passes **108 exact semantic diagnostic-code configurations**, alongside **4,254 exact query configurations** and **664 safety assertions**. Semantic cases cover initializer/assignment failures, deferred errors, return paths, narrowing through statements, destructuring, `for…in`/`for…of`/`for await`, switch and jump errors, unreachable code, interfaces and declaration merging. Eight new safety assertions cover completion caching, deferred-body checking, cancellation invalidation/recovery and a 20,000-level statement traversal.
 
-This new probe compares diagnostic codes, not complete diagnostic text, ranges or related information. Class and module source dispatch, export/unused checks, some deferred diagnostics and other semantic forms remain unfinished. Passing these cases does not establish the complete corpus or memory/performance gate.
+This new probe compares diagnostic codes, not complete diagnostic text, ranges or related information. Module source dispatch, export/unused checks, some deferred diagnostics and other semantic forms remain unfinished. Passing these cases does not establish the complete corpus or memory/performance gate.
 
 Evidence: [source-file semantic comparisons](../csharp/compatibility/evidence/phase4-source-semantic.json), [query regressions](../csharp/compatibility/evidence/phase4-source-identifiers.json), [signature regressions](../csharp/compatibility/evidence/phase4-source-signatures.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-source-validation.json).
+
+## Class checking and property initialization
+
+Class declarations and expressions now participate in source checking. The class path checks instance/static base compatibility, implemented types, generic base arguments, abstract-member fulfillment, member-kind overrides, override annotations, duplicate members, constructor `super` requirements, accessors and property grammar. Function/method/constructor overload checks now report duplicate or missing implementations, inconsistent declaration flags and incompatible implementation signatures. Index signatures have a dedicated declaration path rather than being cast to a function-only AST interface.
+
+`PropertyInitialization` uses the existing bound constructor/static-block return flow for property inference and definite-assignment checks. Synthetic references preserve the original syntax parents. Private-name flow resolution, reads of inferred properties and static-block initialization-before-use are connected to the same services.
+
+Windows x64 NativeAOT passes **238 semantic diagnostic-code configurations**, **4,274 query configurations**, and **674 safety assertions**. This adds 130 semantic and 20 query configurations for classes, constructors, accessors, private/readonly fields, abstract members, overloads, override/class-field options and inferred instance/static properties. Ten additional safety assertions cover constructor inference cancellation/recovery, private/static inferred types, definite assignment and immutable syntax parents.
+
+The pinned Go reference asserts in `getOptionalType` for a non-strict static-block initialization-before-use case. Its source and assertion are unchanged. The strict variant is compared; the failing non-strict reproduction is retained in [reference crash evidence](../csharp/compatibility/evidence/phase4-class-reference-static-block-crash.json) and is not counted as a passing comparison. The candidate retains the strict-null precondition on definite property assignment.
+
+Evidence: [class semantic comparisons](../csharp/compatibility/evidence/phase4-class-semantic.json), [property inference and query comparisons](../csharp/compatibility/evidence/phase4-class-identifiers.json), [signature regressions](../csharp/compatibility/evidence/phase4-class-signatures.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-class-validation.json). Decorators, JavaScript-specific class behavior, remaining grammar/emit hooks and complete diagnostic attribution remain open.
 
 ## Remaining completion work
 
@@ -617,4 +629,4 @@ The following phase-4 requirements remain open:
 6. Type display, node builders, symbol accessibility and emit-resolver APIs.
 7. All active checker/compiler type/symbol/diagnostic comparisons at single and reference-default concurrency; audits of intentional differences; complete semantic workload memory/performance measurements.
 
-The next integration work is class/module checking and semantic finalization, remaining expression/declaration services, complete diagnostic attribution and module type adaptation. Production source traversal does not yet supply complete program checking. Component comparison counts and validation of the existing Go backend do not measure full C# checker completion. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.
+The next integration work is module checking and semantic finalization, remaining expression/declaration services, complete diagnostic attribution and module type adaptation. Production source traversal does not yet supply complete program checking. Component comparison counts and validation of the existing Go backend do not measure full C# checker completion. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.

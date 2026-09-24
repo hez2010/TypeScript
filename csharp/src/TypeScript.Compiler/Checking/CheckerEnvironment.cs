@@ -40,6 +40,7 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
     internal Func<SyntaxNode, string, ValueTask<bool>>? MissingPrefixCheck { get; set; }
     internal Func<Symbol, Symbol>? LateMemberSymbol { get; set; }
     internal Func<Symbol, CancellationToken, ValueTask<Signature?>>? CallSignature { get; set; }
+    internal Func<PropertyDeclarationNode, SyntaxNode, SyntaxNode, CancellationToken, ValueTask<bool>>? StaticInitialization { get; set; }
     internal Dictionary<SyntaxNode, Signature> ContextualSignatures { get; } = [];
 
     public void Bind(CheckerSymbols symbols)
@@ -171,7 +172,8 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
 
     public ValueTask<bool> InitializedInStaticBlocksAsync(PropertyDeclarationNode declaration, SyntaxNode usage,
         SyntaxNode initializer, CancellationToken cancellation)
-        => declaration.Parent!.DescendantsAndSelf().OfType<ClassStaticBlockDeclarationNode>().Any()
+        => StaticInitialization is { } check ? check(declaration, usage, initializer, cancellation)
+            : declaration.Parent!.DescendantsAndSelf().OfType<ClassStaticBlockDeclarationNode>().Any()
             ? throw new InvalidOperationException("Checker requires static property initialization flow") : ValueTask.FromResult(false);
 
     public bool IsContextSensitive(SyntaxNode declaration)

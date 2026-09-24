@@ -18,10 +18,22 @@ internal sealed partial class Checker : IFlowTypeHost, IFlowReferenceHost, IFlow
 
     public Symbol UnknownSymbol => program.Symbols.UnknownSymbol;
 
-    public Symbol ResolveReference(SyntaxNode node, CancellationToken cancellation) => node is IdentifierNode identifier
-            ? program.ReferenceSymbols.Resolve(
-                identifier,
-                cancellation) : throw new InvalidOperationException("Checker requires private reference resolution");
+    public Symbol ResolveReference(SyntaxNode node, CancellationToken cancellation)
+    {
+        if (node is IdentifierNode identifier)
+            return program.ReferenceSymbols.Resolve(identifier, cancellation);
+        if (node is not PrivateIdentifierNode name)
+            throw new ArgumentException("Expected a reference name", nameof(node));
+        for (var owner = PrivateAccess.ContainingClass(node); owner is not null; owner = PrivateAccess.ContainingClass(owner))
+        {
+            cancellation.ThrowIfCancellationRequested();
+            var symbol = program.Symbols.Declaration(owner)!;
+            string key = TypeScript.Compiler.Checking.PrivateAccess.Name(symbol, name.Text);
+            if ((symbol.Members.GetValueOrDefault(key) ?? symbol.Exports.GetValueOrDefault(key)) is { } found)
+                return found;
+        }
+        return program.Symbols.UnknownSymbol;
+    }
 
     public Symbol? DeclarationSymbol(SyntaxNode node) => program.Symbols.Declaration(node);
 

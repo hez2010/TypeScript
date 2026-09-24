@@ -137,7 +137,7 @@ internal sealed partial class Checker : IAccessExpressionHost, IIndexedAccessVal
                 : throw new InvalidOperationException("Checker requires JavaScript constructor property classification");
 
     public ValueTask<Type> AutoPropertyFlowAsync(SyntaxNode node, Symbol? property, CancellationToken cancellation)
-            => throw new InvalidOperationException("Checker requires auto-property flow initialization");
+            => PropertyInitializers.FlowAsync(node, property, cancellation: cancellation);
 
     public async ValueTask<bool> NumericForInAsync(SyntaxNode index, CancellationToken cancellation)
     {

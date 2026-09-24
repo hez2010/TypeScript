@@ -273,7 +273,18 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
     {
         cancellation.ThrowIfCancellationRequested();
         if (node.Modifiers is { Count: > 0 })
-            throw new InvalidOperationException("Checker requires parameter modifiers/decorators");
+        {
+            ClassMemberModifiers(node);
+            if (ParameterProperty(node))
+            {
+                if (node.Parent is not ConstructorDeclarationNode { Body: not null })
+                    Error(node, 2369);
+                if (node.Name is BindingPatternNode)
+                    Error(node, 1187);
+                if (node.DotDotDotToken is not null)
+                    Error(node, 1317);
+            }
+        }
         if (node.Name is IdentifierNode { Text: "eval" or "arguments" or "require" or "exports" or "globalThis" })
             throw new InvalidOperationException("Checker requires parameter declaration-name checks");
         return ValueTask.CompletedTask;
@@ -303,6 +314,11 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
     public ValueTask FunctionModifiersAsync(SyntaxNode node, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
+        if (SemanticSyntax.ClassLike(node.Parent) || node is ConstructorDeclarationNode)
+        {
+            ClassMemberModifiers(node);
+            return ValueTask.CompletedTask;
+        }
         if (node is IModifiedNode { Modifiers: { } modifiers } && modifiers.Any(m => m.Kind != SyntaxKind.AsyncKeyword))
             throw new InvalidOperationException("Checker requires function modifier grammar");
         return ValueTask.CompletedTask;

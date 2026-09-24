@@ -994,6 +994,23 @@ for (const input of cases.filter(c => c.name.startsWith("identifiers:composition
     input.values = true;
     input.signatures = true;
 }
+for (const strict of [false, true]) {
+    for (
+        const [name, source] of Object.entries({
+            constructor: "class C{value;constructor(){this.value=1;}} declare const value:C; __expr(value.value);",
+            static: "class C{static value;static{this.value='text';}} __expr(C.value);",
+            expression: "const C=class{value=1;method(){return this.value;}}; const value=new C(); __expr(value.value); __expr(value.method());",
+            conditional: "class C{value;constructor(flag:boolean){if(flag)this.value=1;else this.value='text';}} declare const value:C; __expr(value.value);",
+            private: "class C{#value;constructor(){this.#value=1;} method(){__expr(this.#value);}}",
+        })
+    ) add(`identifiers:classQuery${name}:${strict}`, { "globals.d.ts": library + " declare function __expr(value:unknown):void;", "main.ts": source }, { strict }, false, true);
+}
+for (const input of cases.filter(c => c.name.startsWith("identifiers:classQuery"))) {
+    input.functionBodies = true;
+    input.members = true;
+    input.values = true;
+    input.signatures = true;
+}
 for (const input of cases.filter(c => c.name.startsWith("identifiers:ordinary"))) {
     input.assertions = true;
     input.functionBodies = true;
@@ -1108,14 +1125,49 @@ for (const strict of [false, true]) {
             interfaceConflict: "interface A{value:number} interface B{value:string} interface C extends A,B{}",
             interfaceMerge: "interface Box<T>{value:T} interface Box<U>{other:U}",
             interfaceConstraint: "interface Box<T extends number>{value:T} interface Bad extends Box<string>{}",
+            classes: "class C{value:number='bad'; method(value:number):number{return 'bad';}} const value=new C(); value.method('bad');",
+            classInitialization: "class C{missing:number;assigned:number;asserted!:number;optional?:number;constructor(flag:boolean){if(flag)this.assigned=1;}}",
+            classConstructor: "class Base{} class Missing extends Base{constructor(){}} class Good extends Base{constructor(){super();}}",
+            classInference: "class C{value;constructor(){this.value=1;} method(){const text:string=this.value;}}",
+            classStatic: "class C{static value:number;static {this.value='bad';} static method():number{return 'bad';}}",
+            classAccessors: "class C{get value():number{return 'bad';} set value(value:number){return 1;}}",
+            classExtends: "class Base{value:number=1;} class Bad extends Base{value:string='bad';}",
+            classImplements: "interface I{value:number} class C implements I{value:string='bad';}",
+            classExpression: "const C=class{value:number='bad';method(){return this.value;}}; const value=new C();",
+            parameterProperties: "class C{constructor(public value:number,private label:string){const text:string=this.value;}} new C('bad','ok');",
+            classReadonly: "class C{readonly value:number;constructor(){this.value=1;} method(){this.value=2;}}",
+            classPrivate: "class C{#value:number;constructor(){this.#value=1;} method(){const text:string=this.#value;}}",
+            classAbstract: "abstract class Base{abstract value:number;abstract method():void;} class Missing extends Base{} class Good extends Base{value=1;method(){}}",
+            classOverrideKind: "class Base{value=1;method():void{}} class Bad extends Base{get value(){return 1;} get method(){return ()=>{};}}",
+            classPrivateCtor: "class Base{private constructor(){}} class Bad extends Base{}",
+            classSuperOrder: "class Base{} class First extends Base{value=1;constructor(flag:boolean){if(flag)super();}} class Second extends Base{value=1;constructor(){this.value=2;super();}}",
+            classAutoMissing: "class C{value;constructor(){}}",
+            classStaticFlow: "class C{static value;static{this.value=1;} static method(){const text:string=this.value;}}",
+            classStaticBefore: "class C{static{this.value=1;} static value:number;static after=C.value;}",
+            classGetterMissing: "class C{get value(){}}",
+            classAccessorVisibility: "class C{private get value(){return 1;} public set value(value:number){}}",
+            classExtendsNull: "class C extends null{constructor(){super();}}",
+            classModifiers: "class C{readonly method(){} private #value=1; public private value=1;}",
+            classAbstractBody: "abstract class C{abstract value=1;abstract method(){return 1;}}",
+            classOverrideMissing: "class Base{value=1;} class C extends Base{override missing=1;override vaule=2;} class Alone{override value=1;}",
+            classAccessorGrammar: "class C{get a(value:number){return 1;}set b(value?:number){}set c(value=1){}set d(...value:number[]){} }",
+            classPropertyGrammar: "class C{value!:number=1;other!;}",
+            classOverloads: "class C{constructor(value:string);constructor(value:number){} method(value:string):string;method(value:number):number{return value;}}",
+            classDuplicateBodies: "class C{constructor(){}constructor(){} method(){}method(){}}",
+            classMissingBodies: "class C{constructor(value:number);method(value:number):number;}",
             forGrammar: "for(const value:number of [1]){} for(let key:string in {value:1}){}",
             asyncLoop: "async function f(){for await(const value of [1,2]){const text:string=value;}}",
         })
     ) add(`semantic:${name}:${strict}`, { "globals.d.ts": library, "main.ts": source }, { strict, skipLibCheck: true }, false, true);
 }
+// The non-strict variant asserts in the pinned reference's getOptionalType.
+// Keep that reproduction in phase4-class-reference-static-block-crash.json.
+add("semantic:classStaticEarlier:strict", { "globals.d.ts": library, "main.ts": "class C{static{this.value=1;} static read=C.value;static value:number;}" }, { strict: true, skipLibCheck: true }, false, true);
 for (const input of cases.filter(c => c.name.startsWith("semantic:"))) input.semantic = true;
 for (const allowUnreachableCode of [false, true]) add(`semantic:unreachable:${allowUnreachableCode}`, { "globals.d.ts": library, "main.ts": "function f(){return 1; const value:number='bad'; absent;}" }, { strict: true, skipLibCheck: true, allowUnreachableCode }, false, true);
 for (const noImplicitReturns of [false, true]) add(`semantic:implicitReturns:${noImplicitReturns}`, { "globals.d.ts": library, "main.ts": "function f(flag:boolean){if(flag)return 1;}" }, { strict: true, skipLibCheck: true, noImplicitReturns }, false, true);
+for (const noImplicitOverride of [false, true]) add(`semantic:classOverrideOption:${noImplicitOverride}`, { "globals.d.ts": library, "main.ts": "class Base{value=1;method(){}} class C extends Base{override value=2;method(){}} class D extends Base{constructor(public value:number){super();}}" }, { strict: true, skipLibCheck: true, noImplicitOverride }, false, true);
+for (const useDefineForClassFields of [false, true]) add(`semantic:classDefineOption:${useDefineForClassFields}`, { "globals.d.ts": library, "main.ts": "class Base{value=1;} class C extends Base{value:number;} class D{static name=1;static length=2;}" }, { strict: true, skipLibCheck: true, useDefineForClassFields }, false, true);
 for (const input of cases.filter(c => c.name.startsWith("semantic:"))) input.semantic = true;
 
 let selected = process.argv.includes("--semantic") ? cases.filter(c => c.semantic) :

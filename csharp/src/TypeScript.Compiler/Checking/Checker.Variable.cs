@@ -8,6 +8,7 @@ internal sealed partial class Checker : IVariableTypeHost
 {
     internal VariableTypes Variables { get; }
     internal WideningDiagnostics WideningDiagnostics { get; }
+    internal PropertyInitialization PropertyInitializers { get; }
     internal Action<SyntaxNode>? BeforeInitializer { get; set; }
     public Type AutoArray => program.Globals.AutoArrayType!;
     public bool UseUnknownInCatchVariables => program.Symbols.Program.Configuration.Options.StrictOption("useUnknownInCatchVariables");
@@ -60,16 +61,8 @@ internal sealed partial class Checker : IVariableTypeHost
     public ValueTask<Type?> ContextualParameterAsync(ParameterDeclarationNode parameter, CancellationToken cancellation)
         => FunctionContexts.ParameterAsync(parameter, cancellation);
 
-    public ValueTask<Type?> PropertyInitializationAsync(PropertyDeclarationNode property, CancellationToken cancellation)
-    {
-        var members = ((ClassDeclarationNode)property.Parent!).Members!;
-        if (!SemanticSyntax.IsStatic(property) && members.Any(n => n is ConstructorDeclarationNode)
-            || SemanticSyntax.IsStatic(property) && members.Any(n => n is ClassStaticBlockDeclarationNode))
-            throw new InvalidOperationException("Checker requires property initialization flow");
-        if ((property.Flags & NodeFlags.Ambient) != 0 && ((ClassDeclarationNode)property.Parent!).HeritageClauses is { Count: > 0 })
-            throw new InvalidOperationException("Checker requires inherited property inference");
-        return ValueTask.FromResult<Type?>(null);
-    }
+    public ValueTask<Type?> PropertyInitializationAsync(PropertyDeclarationNode property, CancellationToken cancellation) =>
+        PropertyInitializers.InferAsync(property, cancellation);
 
     public ValueTask<Type?> BindingElementAsync(BindingElementNode element, CancellationToken cancellation)
         => Bindings.GetAsync(element, cancellation);

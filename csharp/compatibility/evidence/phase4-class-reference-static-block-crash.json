@@ -1,0 +1,15 @@
+{
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "source": "class C{static{this.value=1;} static read=C.value;static value:number;}",
+    "options": {
+        "strict": false,
+        "noLib": true,
+        "skipLibCheck": true
+    },
+    "result": "Reference checker assertion failure in getOptionalType called by isPropertyInitializedInStaticBlocks",
+    "log": "logs/csharp-phase4-class-static-before.log",
+    "logSha256": "648688898d602fb04f7edcc669e076ee8be9a0a8d3ef093b8897a48dcfe54a06",
+    "referenceModified": false,
+    "includedInPassingComparisons": false,
+    "strictConfigurationCompared": true
+}

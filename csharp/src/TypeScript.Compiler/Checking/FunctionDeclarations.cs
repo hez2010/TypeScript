@@ -148,9 +148,10 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
     internal async ValueTask CheckAsync(SyntaxNode node, CancellationToken cancellation = default)
     {
         await host.SignatureEnvironmentAsync(node, cancellation).ConfigureAwait(false);
-        var declaration = (IFunctionSignature)node;
+        var declaration = node as IFunctionSignature;
+        var declaredParameters = node is IndexSignatureDeclarationNode index ? index.Parameters! : declaration!.Parameters!;
         bool sawDefault = false;
-        var typeParameters = declaration.TypeParameters;
+        var typeParameters = declaration?.TypeParameters;
         for (int i = 0; i < (typeParameters?.Count ?? 0); i++)
         {
             var parameter = (TypeParameterDeclarationNode)typeParameters![i];
@@ -170,7 +171,7 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
                 if (symbols.Binding(typeParameters[j])?.Get(typeParameters[j])?.Symbol == symbols.Binding(parameter)?.Get(parameter)?.Symbol)
                     host.ExpressionError(parameter.Name!, 2300);
         }
-        foreach (ParameterDeclarationNode parameter in declaration.Parameters!)
+        foreach (ParameterDeclarationNode parameter in declaredParameters)
         {
             await host.ParameterEnvironmentAsync(parameter, cancellation).ConfigureAwait(false);
             await VariableAsync(parameter, cancellation).ConfigureAwait(false);
@@ -179,7 +180,7 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
                 host.ExpressionError(parameter, 2463);
             if (parameter.Name is IdentifierNode { Text: "this" or "new" })
             {
-                if (declaration.Parameters[0] != parameter)
+                if (declaredParameters[0] != parameter)
                     host.ExpressionError(parameter, 2680);
                 if (node is ConstructorDeclarationNode or ConstructSignatureDeclarationNode or ConstructorTypeNode)
                     host.ExpressionError(parameter, 2681);
@@ -193,7 +194,7 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
                     host.AnyReadonlyArray, RelationKind.Assignable, cancellation).ConfigureAwait(false))
                 host.ExpressionError(parameter, 2370);
         }
-        if (declaration.Type is { } annotation)
+        if (node is ITypedNode { Type: { } annotation })
             await host.CheckFunctionReturnAsync(
                 node,
                 annotation,

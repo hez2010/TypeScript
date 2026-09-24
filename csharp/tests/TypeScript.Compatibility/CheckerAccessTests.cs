@@ -192,6 +192,56 @@ internal static class CheckerAccessTests
         var deletion = new DeleteExpressionNode { Expression = wrapped };
         deletion.SetParents();
         Check(AccessExpressions.DeleteTarget(current));
+        checks += await ClassSafety();
         Console.WriteLine($"{checks} access/optional/member/class/cancellation/spelling assertions; 20,000-level traversal.");
+    }
+
+    private static async Task<int> ClassSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Class assertion {checks + 1}");
+            checks++;
+        }
+        const string source = "interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T}class C{value;#text;partial:number;constructor(flag:boolean){this.value=1;this.#text='text';if(flag)this.partial=1;}static value;static{this.value=true;}}";
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        var program = await CompilerProgram.CreateAsync(
+            new MemoryFileSystem(new Dictionary<string, byte[]> { ["/project/main.ts"] = Wtf8.Encode(source) }),
+            "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var nodes = program.SourceFiles[0].Syntax.DescendantsAndSelf().ToArray();
+        var parents = nodes.Select(n => n.Parent).ToArray();
+        var properties = nodes.OfType<PropertyDeclarationNode>().ToArray();
+        var constructor = nodes.OfType<ConstructorDeclarationNode>().Single();
+        var symbol = checker.Symbols.Declaration(properties[0])!;
+        checker.BeforeFlowExpression = _ => throw new OperationCanceledException();
+        try
+        {
+            await checker.Values.GetAsync(symbol);
+            throw new InvalidOperationException("Constructor inference cancellation ignored");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        checker.BeforeFlowExpression = null;
+        Check(
+            checker.Links.Values.Get(symbol).ResolvedType is null
+                && checker.Instantiation.Resolutions.Count == 0
+                && checker.FlowTypes.ActiveLoopCount == 0);
+        Check(await checker.Values.GetAsync(symbol) == checker.Context.NumberType);
+        Check(await checker.Values.GetAsync(checker.Symbols.Declaration(properties[1])!) == checker.Context.StringType);
+        Check(await checker.Values.GetAsync(checker.Symbols.Declaration(properties[3])!) == checker.Context.BooleanType);
+        Check(await checker.PropertyInitializers.AssignedAsync(properties[0].Name!, checker.Context.NumberType, constructor));
+        Check(!await checker.PropertyInitializers.AssignedAsync(properties[2].Name!, checker.Context.NumberType, constructor));
+        await checker.CheckSourceFileAsync(program.SourceFiles[0].Syntax);
+        Check(checker.Diagnostics.Contains(2564) && !checker.Diagnostics.Contains(7008));
+        Check(nodes.Select(n => n.Parent).SequenceEqual(parents));
+        Check(checker.CheckedFileCount == 1 && checker.CurrentSourceNode is null && checker.Instantiation.Resolutions.Count == 0);
+        return checks;
     }
 }

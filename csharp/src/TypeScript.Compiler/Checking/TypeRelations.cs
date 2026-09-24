@@ -25,6 +25,32 @@ internal sealed class TypeRelations(TypeContext context, TypeNormalization norma
 
     internal Relation Cache(RelationKind kind) => relations[kind];
 
+    internal async ValueTask<bool> SignatureAsync(Signature source, Signature target, SignatureAssignability signatures,
+        SignatureInstantiation instantiation, bool ignoreReturn, CancellationToken cancellation = default)
+    {
+        cancellation.ThrowIfCancellationRequested();
+        var sourceType = instantiation.FromSignature(source);
+        var targetType = instantiation.FromSignature(target);
+        var session = new RelationSession(context, relations[RelationKind.Assignable], keys, recursion, State);
+        var operation = new RelationOperation(context, this, session, normalization, host, RelationKind.Assignable);
+        try
+        {
+            var result = await signatures.CompareAsync(
+                operation,
+                source,
+                target,
+                ignoreReturn ? SignatureCheckMode.IgnoreReturnTypes : 0,
+                cancellation: cancellation).ConfigureAwait(false);
+            await session.CompleteAsync(sourceType, targetType, host.ComplexityOverflow, cancellation).ConfigureAwait(false);
+            return result != Ternary.False;
+        }
+        catch
+        {
+            session.Abort();
+            throw;
+        }
+    }
+
     internal async ValueTask<bool> RelatedAsync(Type source, Type target, RelationKind kind, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();

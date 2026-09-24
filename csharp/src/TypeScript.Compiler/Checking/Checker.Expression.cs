@@ -75,6 +75,11 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
                 cancellation);
         if (node is FunctionExpressionNode or ArrowFunctionNode)
             return await Functions.CheckAsync(node, mode, cancellation);
+        if (node is ClassExpressionNode)
+        {
+            await CheckClassSourceAsync(node, true, cancellation).ConfigureAwait(false);
+            return await Values.GetAsync(program.Symbols.Declaration(node)!, cancellation);
+        }
         if (node is AwaitExpressionNode awaitExpression)
             return await AwaitExpressions.CheckAsync(awaitExpression, cancellation);
         if (node is AsExpressionNode or TypeAssertionNode)

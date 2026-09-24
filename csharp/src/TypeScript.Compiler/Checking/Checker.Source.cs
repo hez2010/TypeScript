@@ -134,12 +134,33 @@ internal sealed partial class Checker
                 case FunctionDeclarationNode function:
                     await FunctionDeclarations.GrammarAsync(function, cancellation).ConfigureAwait(false);
                     await CheckFunctionDeclarationAsync(function, cancellation).ConfigureAwait(false);
+                    await CheckFunctionOverloadsAsync(function, cancellation).ConfigureAwait(false);
                     await CheckSourceElementAsync(function.Body, cancellation).ConfigureAwait(false);
                     await CheckFunctionPathsAsync(function, cancellation).ConfigureAwait(false);
                     if (function.Type is null && SemanticSyntax.Generator(function) && function.Body is not null)
                         await Signatures.ReturnAsync(
                             await Signatures.FromDeclarationAsync(function, cancellation).ConfigureAwait(false),
                             cancellation).ConfigureAwait(false);
+                    break;
+                case ClassDeclarationNode:
+                    await CheckClassSourceAsync(node, false, cancellation).ConfigureAwait(false);
+                    break;
+                case ConstructorDeclarationNode constructor:
+                    await CheckConstructorSourceAsync(constructor, cancellation).ConfigureAwait(false);
+                    break;
+                case PropertyDeclarationNode property:
+                    await CheckPropertySourceAsync(property, cancellation).ConfigureAwait(false);
+                    break;
+                case MethodDeclarationNode method:
+                    await CheckMethodSourceAsync(method, cancellation).ConfigureAwait(false);
+                    break;
+                case GetAccessorDeclarationNode or SetAccessorDeclarationNode:
+                    await CheckAccessorSourceAsync(node, cancellation).ConfigureAwait(false);
+                    break;
+                case ClassStaticBlockDeclarationNode block:
+                    await CheckSourceElementAsync(block.Body, cancellation).ConfigureAwait(false);
+                    break;
+                case { Kind: SyntaxKind.SemicolonClassElement }:
                     break;
                 case ReturnStatementNode statement:
                     await CheckReturnSourceAsync(statement, cancellation).ConfigureAwait(false);
@@ -252,10 +273,12 @@ internal sealed partial class Checker
                         await ComputedNameAsync(computed, cancellation).ConfigureAwait(false);
                     await FunctionDeclarations.VariableAsync(property, cancellation).ConfigureAwait(false);
                     break;
-                case MethodSignatureDeclarationNode or CallSignatureDeclarationNode or ConstructSignatureDeclarationNode
-                    or IndexSignatureDeclarationNode:
+                case MethodSignatureDeclarationNode or CallSignatureDeclarationNode or ConstructSignatureDeclarationNode:
                     await FunctionDeclarations.GrammarAsync(node, cancellation).ConfigureAwait(false);
                     await FunctionDeclarations.CheckAsync(node, cancellation).ConfigureAwait(false);
+                    break;
+                case IndexSignatureDeclarationNode index:
+                    await CheckIndexSignatureSourceAsync(index, cancellation).ConfigureAwait(false);
                     break;
                 case { Kind: SyntaxKind.EmptyStatement or SyntaxKind.DebuggerStatement }:
                     AmbientStatement(node);
@@ -487,6 +510,13 @@ internal sealed partial class Checker
                     break;
                 case ObjectLiteralExpressionNode:
                     await ContextualDeprecationsAsync(node, cancellation).ConfigureAwait(false);
+                    break;
+                case ClassExpressionNode expression:
+                    foreach (var member in expression.Members!)
+                        await CheckSourceElementAsync(member, cancellation).ConfigureAwait(false);
+                    break;
+                case GetAccessorDeclarationNode or SetAccessorDeclarationNode:
+                    await CheckAccessorSourceAsync(node, cancellation).ConfigureAwait(false);
                     break;
                 default:
                     throw new InvalidOperationException($"Checker requires deferred source checking for {node.Kind}");
