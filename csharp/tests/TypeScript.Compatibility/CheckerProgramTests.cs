@@ -213,11 +213,23 @@ internal static class CheckerProgramTests
             }
             return id;
         }
-        void Name(string text) => writer.WriteBase64StringValue(Wtf8.Encode(Symbol.EscapeName(text)));
+        var privateOwners = new Dictionary<string, int>(StringComparer.Ordinal);
+        foreach (var node in nodes.Where(SemanticSyntax.ClassLike))
+            if (environment.Binding(node)?.Get(node)?.Symbol is { } owner)
+                foreach (string key in owner.Members.Keys.Concat(owner.Exports.Keys))
+                    if (key.StartsWith(Symbol.InternalPrefix + "#", StringComparison.Ordinal) && key.IndexOf('@') is > 0 and var end)
+                        privateOwners[key[..end]] = Node(node);
+        string CanonicalName(string name)
+        {
+            int end = name.IndexOf('@');
+            return end > 0 && privateOwners.TryGetValue(name[..end], out int owner)
+                ? Symbol.InternalPrefix + "#node" + owner.ToString(CultureInfo.InvariantCulture) + name[end..] : name;
+        }
+        void Name(string text) => writer.WriteBase64StringValue(Wtf8.Encode(Symbol.EscapeName(CanonicalName(text))));
         void Table(IReadOnlyDictionary<string, Symbol> table)
         {
             writer.WriteStartArray();
-            foreach (var (name, symbol) in table.OrderBy(p => p.Key, Comparer<string>.Create(TypeOrder.CompareSymbolNames)))
+            foreach (var (name, symbol) in table.OrderBy(p => CanonicalName(p.Key), Comparer<string>.Create(TypeOrder.CompareSymbolNames)))
             {
                 writer.WriteStartArray();
                 Name(name);
@@ -390,6 +402,34 @@ internal static class CheckerProgramTests
                 writer.WriteEndArray();
             }
             writer.WriteEndArray();
+        }
+        if (input.TryGetProperty("access", out var accessOption) && accessOption.GetBoolean())
+        {
+            writer.WriteStartArray("accessQueries");
+            foreach (var call in nodes.OfType<CallExpressionNode>())
+                if (call.Expression is IdentifierNode { Text: "__access" })
+                    foreach (var argument in call.Arguments!)
+                    {
+                        writer.WriteStartArray();
+                        writer.WriteNumberValue(Node(argument));
+                        writer.WriteNumberValue(TypeId(await typeHost!.Expressions.CheckAsync(argument)));
+                        writer.WriteEndArray();
+                    }
+            writer.WriteEndArray();
+            writer.WriteStartArray("accessSymbols");
+            foreach (var node in nodes.Where(n => n is PropertyAccessExpressionNode or ElementAccessExpressionNode or QualifiedNameNode))
+            {
+                writer.WriteStartArray();
+                writer.WriteNumberValue(Node(node));
+                writer.WriteNumberValue(SymbolId(links.SymbolNodes.Get(node).ResolvedSymbol));
+                writer.WriteEndArray();
+            }
+            writer.WriteEndArray();
+            writer.WriteStartArray("accessSuggestions");
+            foreach (int code in host.ValueSuggestions.Concat(typeHost!.Suggestions).Order())
+                writer.WriteNumberValue(code);
+            writer.WriteEndArray();
+            writer.WriteNumber("deferredAccessDiagnostics", typeHost.DeferredMissingProperties.Count);
         }
         if (input.TryGetProperty("identifiers", out var identifierOption) && identifierOption.GetBoolean())
         {
@@ -743,6 +783,23 @@ internal static class CheckerProgramTests
             writer.WriteEndArray();
         }
         writer.WriteEndArray();
+        if (input.TryGetProperty("access", out var accessState) && accessState.GetBoolean())
+        {
+            writer.WriteStartArray("privateReferences");
+            for (int i = 0; i < symbols.Count; i++)
+            {
+                var symbol = symbols[i];
+                if (symbol.ValueDeclaration is not { } declaration
+                    || !(SemanticSyntax.HasModifier(declaration, SyntaxKind.PrivateKeyword)
+                        || SemanticSyntax.Name(declaration) is PrivateIdentifierNode))
+                    continue;
+                writer.WriteStartArray();
+                writer.WriteNumberValue(i + 1);
+                writer.WriteNumberValue((uint)environment.ReferenceKinds(symbol));
+                writer.WriteEndArray();
+            }
+            writer.WriteEndArray();
+        }
         writer.WriteStartArray("symbols");
         for (int i = 0; i < symbols.Count; i++)
         {

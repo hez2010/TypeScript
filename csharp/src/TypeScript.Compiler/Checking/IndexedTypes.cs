@@ -15,8 +15,13 @@ internal interface IIndexedTypeHost
 
     ValueTask<Type?> ContextualPropertyAsync(Type type, string name, CancellationToken cancellation);
 
-    ValueTask<Type?> ElementAccessAsync(Type original, Type apparent, Type index, Type fullIndex,
-            ElementAccessExpressionNode node, AccessFlags flags, CancellationToken cancellation);
+    ValueTask<Type?> ElementPropertyAsync(Symbol property, Type objectType, ElementAccessExpressionNode node,
+        AccessFlags flags, CancellationToken cancellation);
+
+    void ReadonlyIndex(IndexInfo? index, Type objectType, ElementAccessExpressionNode? node);
+
+    ValueTask<Type?> MissingElementAsync(Type original, Type objectType, Type index, Type fullIndex,
+        ElementAccessExpressionNode node, string? propertyName, AccessFlags flags, CancellationToken cancellation);
 
     ValueTask DeprecatedPropertyAsync(Symbol property, SyntaxNode node, CancellationToken cancellation);
 
@@ -125,15 +130,7 @@ internal sealed class IndexedTypes(TypeContext context, TypeAlgebra algebra, Typ
     private async ValueTask<Type?> PropertyAsync(Type original, Type objectType, Type indexType, Type fullIndexType,
         SyntaxNode? node, AccessFlags flags, CancellationToken cancellation)
     {
-        if (node is ElementAccessExpressionNode element)
-            return await host.ElementAccessAsync(
-                original,
-                objectType,
-                indexType,
-                fullIndexType,
-                element,
-                flags,
-                cancellation).ConfigureAwait(false);
+        var element = node as ElementAccessExpressionNode;
         string? name = node is PrivateIdentifierNode ? null : PropertyName(indexType, node);
         if (name is not null)
         {
@@ -144,6 +141,8 @@ internal sealed class IndexedTypes(TypeContext context, TypeAlgebra algebra, Typ
             {
                 if ((flags & AccessFlags.ReportDeprecated) != 0 && node is not null && property.Declarations.Count != 0)
                     await host.DeprecatedPropertyAsync(property, node, cancellation).ConfigureAwait(false);
+                if (element is not null)
+                    return await host.ElementPropertyAsync(property, objectType, element, flags, cancellation).ConfigureAwait(false);
                 var value = (flags & AccessFlags.Writing) != 0 ? await symbols.WriteAsync(property, cancellation).ConfigureAwait(false)
                     : await symbols.GetAsync(property, cancellation).ConfigureAwait(false);
                 return node is IndexedAccessTypeNode && ContainsMissing(value)
@@ -168,11 +167,19 @@ internal sealed class IndexedTypes(TypeContext context, TypeAlgebra algebra, Typ
                         host.InvalidIndex(IndexNode(node), objectType, indexType, 2339);
                 }
                 if (position >= 0)
+                {
+                    host.ReadonlyIndex(
+                        (await host.IndexesAsync(
+                            objectType,
+                            cancellation).ConfigureAwait(false)).FirstOrDefault(i => i.KeyType == context.NumberType),
+                        objectType,
+                        element);
                     return await TupleRestAsync(
                         objectType,
                         position,
                         (flags & AccessFlags.IncludeUndefined) != 0,
                         cancellation).ConfigureAwait(false);
+                }
             }
         }
         if ((indexType.Flags & TypeFlags.Nullable) == 0 && await KeyKindAsync(indexType, true, cancellation).ConfigureAwait(false))
@@ -185,7 +192,11 @@ internal sealed class IndexedTypes(TypeContext context, TypeAlgebra algebra, Typ
             if (index is not null)
             {
                 if ((flags & AccessFlags.NoIndexSignatures) != 0 && index.KeyType != context.NumberType)
+                {
+                    if (element is not null)
+                        host.InvalidIndex(element, original, indexType, (flags & AccessFlags.Writing) != 0 ? 2862 : 2536);
                     return null;
+                }
                 if (node is not null
                     && index.KeyType == context.StringType
                     && !await KeyKindAsync(indexType, false, cancellation).ConfigureAwait(false))
@@ -193,6 +204,7 @@ internal sealed class IndexedTypes(TypeContext context, TypeAlgebra algebra, Typ
                     host.InvalidIndex(IndexNode(node), objectType, indexType, 2538);
                     return await IncludeMissingAsync(index.ValueType, flags, cancellation).ConfigureAwait(false);
                 }
+                host.ReadonlyIndex(index, objectType, element);
                 bool enumMember = objectType.Symbol is { } symbol && (symbol.Flags & SymbolFlags.Enum) != 0
                     && (indexType.Flags & TypeFlags.EnumLiteral) != 0 && indexType.Symbol?.Parent == symbol;
                 return await IncludeMissingAsync(index.ValueType, enumMember ? 0 : flags, cancellation).ConfigureAwait(false);
@@ -201,6 +213,16 @@ internal sealed class IndexedTypes(TypeContext context, TypeAlgebra algebra, Typ
                 return context.NeverType;
             if (await JsLiteralAsync(objectType, cancellation).ConfigureAwait(false))
                 return context.AnyType;
+            if (element is not null && !AccessExpressions.ConstEnum(objectType))
+                return await host.MissingElementAsync(
+                    original,
+                    objectType,
+                    indexType,
+                    fullIndexType,
+                    element,
+                    name,
+                    flags,
+                    cancellation).ConfigureAwait(false);
         }
         if ((flags & AccessFlags.AllowMissing) != 0 && (objectType.ObjectFlags & ObjectFlags.ObjectLiteral) != 0)
             return context.UndefinedType;
@@ -428,6 +450,7 @@ internal sealed class IndexedTypes(TypeContext context, TypeAlgebra algebra, Typ
     private static SyntaxNode IndexNode(SyntaxNode node) => node switch
     {
         IndexedAccessTypeNode indexed => indexed.IndexType!,
+        ElementAccessExpressionNode element => element.ArgumentExpression!,
         ComputedPropertyNameNode computed => computed.Expression!,
         _ => node
     };

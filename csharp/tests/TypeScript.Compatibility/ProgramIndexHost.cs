@@ -28,16 +28,9 @@ internal sealed partial class ProgramTypeHost : ITypeKeyHost, IIndexedTypeHost
     public ValueTask<Type?> ContextualPropertyAsync(Type type, string name, CancellationToken cancellation)
             => throw new InvalidOperationException("Probe requires contextual property checking");
 
-    public ValueTask<Type?> ElementAccessAsync(Type original, Type apparent, Type index, Type fullIndex,
-            ElementAccessExpressionNode node, AccessFlags flags, CancellationToken cancellation)
-            => throw new InvalidOperationException("Probe requires element access expression checking");
-
     public ValueTask DeprecatedPropertyAsync(Symbol property, SyntaxNode node, CancellationToken cancellation)
-    {
-        if (property.Declarations.Any(d => (d.Flags & TypeScript.Compiler.Syntax.NodeFlags.HasJSDoc) != 0))
-            throw new InvalidOperationException("Probe requires deprecation suggestions");
-        return ValueTask.CompletedTask;
-    }
+        => PropertyDeprecatedAsync(property, node, node is ElementAccessExpressionNode element ? element.ArgumentExpression!
+            : node is IndexedAccessTypeNode indexed ? indexed.IndexType! : node, cancellation);
 
     public void InvalidIndex(SyntaxNode node, Type objectType, Type indexType, int code)
     {

@@ -463,6 +463,26 @@ node csharp/tools/checker-program.mjs --identifiers --record phase4-identifiers
 & ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-identifiers-safety
 ```
 
+## Property and element access
+
+`AccessExpressions.cs`, `AccessFlow.cs`, `OptionalExpressions.cs` and `IndexedAccessValidation.cs` connect member/index reads and writes to widening, index signatures, optional-chain markers and flow typing. `IndexedTypes.cs` now uses the same property/index algorithms for expression access, including readonly indexes, tuple bounds, generic writes and unchecked-access optionality. `AccessNames.cs` resolves constant keys and destructuring names.
+
+`MemberAccessRules.cs`, `MemberAccessibility.cs` and `PrivateAccess.cs` implement readonly-constructor exceptions, declaration ordering, private/protected access, private-name scope/shadowing and reference tracking. `ClassBases.cs` resolves class bases and inherited/default constructors. `ThisExpressions.cs` handles `this`/`super` types and their initialization restrictions. Contextual object-literal/JavaScript `this`, auto-property initialization, imported emit helpers and some declaration services remain required dependencies.
+
+`ElementAccessErrors.cs` and `SymbolSuggestions.cs` add indexed-access diagnostics and spelling suggestions. `Semantics/SpellingSuggestions.cs` uses generated **Go Unicode 17.0.0** simple lowercase/fold tables, preserving the reference's UTF-8/rune length rules and invalid-byte handling. The program probe also compares deprecation suggestions and queued property-diagnostic counts; full deferred diagnostic reporting and diagnostic text/related information remain open. Exact-optional assignment diagnostics now enumerate target properties as the reference does.
+
+NativeAOT passes **412 exact source-program comparisons**, covering **1,100 access queries**, resolved member symbols, private-member usage and deferred/suggestion state at single and reference-default concurrency. Cases include nullable chains, tuples, generic indexes, readonly writes, accessors, private shadowing, protected inheritance, constructors, `this`/`super`, constant keys, numeric `for-in` indexing and spelling suggestions. Thirty-four native safety assertions cover cancellation/retry, optional markers, base-constructor caches, readonly rules, Unicode spelling and **20,000-level** traversal.
+
+The first private-name comparisons differed only in 32 fields containing allocator IDs across 16 cases. Both probes now replace those IDs with the declaring class's AST node ID **only when serializing names and sorting serialized symbol tables**. Internal names and lookup/type algorithms are unchanged. The [private-name audit](../csharp/compatibility/evidence/phase4-access-private-name-audit.json) records the boundary; shadowing, declarations, cached symbols, references and diagnostics remain compared.
+
+The same artifact passes **3,216** earlier source-program comparisons, **2,904** type/state cases, **613** constraint cases and **766** earlier safety assertions. Evidence: [access](../csharp/compatibility/evidence/phase4-access.json), [identifier regressions](../csharp/compatibility/evidence/phase4-access-identifiers-regression.json), [indexed-type regressions](../csharp/compatibility/evidence/phase4-access-indexing-regression.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-access-validation.json).
+
+```powershell
+node csharp/tools/checker-program.mjs --access --record phase4-access
+& ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-access-safety
+node csharp/tools/generate-go-casing.mjs --check
+```
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
@@ -471,8 +491,8 @@ The following phase-4 requirements remain open:
 2. Complete relation diagnostics and remaining type-node dependencies; connect the implemented declaration/type-node, algebra, scope, inference, instantiation and tuple algorithms to complete checker services.
 3. Remaining expression forms, call-site inference, context-sensitive expression typing, overload selection, full declaration checking, JavaScript and JSDoc semantics.
 4. Complete binding/contextual dependencies of identifier checking and property/declaration flow integration; complete constructor/`in`/`instanceof` narrowing, initialization/reference services and semantic diagnostics.
-5. Indexed expression checking, JSX, decorators and grammar checks.
+5. Remaining indexed/member diagnostic and declaration services, JSX, decorators and grammar checks.
 6. Type display, node builders, symbol accessibility and emit-resolver APIs.
 7. All active checker/compiler type/symbol/diagnostic comparisons at single and reference-default concurrency; audits of intentional differences; complete semantic workload memory/performance measurements.
 
-The next integration step is property/element access and binding type inference, followed by contextual checking, call-site inference/overload selection, diagnostics and module type adaptation over the program-backed symbol environment. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.
+The next integration step is binding and object/array expression inference, followed by contextual checking, call-site inference/overload selection, diagnostics and module type adaptation over the program-backed symbol environment. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.

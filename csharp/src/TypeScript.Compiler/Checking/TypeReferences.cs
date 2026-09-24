@@ -134,7 +134,7 @@ internal sealed class TypeReferences(TypeContext context, CheckerLinks links, Ch
             ? await algebra.RegularTypeAsync(result, cancellation).ConfigureAwait(false) : context.ErrorType;
     }
 
-    private async ValueTask<Type> ClassReferenceAsync(SyntaxNode node, Symbol symbol, CancellationToken cancellation)
+    internal async ValueTask<Type> ClassReferenceAsync(SyntaxNode node, Symbol symbol, CancellationToken cancellation)
     {
         var type = await scopes.ClassOrInterfaceAsync(symbols.Merger.GetMergedSymbol(symbol)!, cancellation).ConfigureAwait(false);
         var parameters = type.AllTypeParameters.Skip(type.OuterTypeParameterCount)

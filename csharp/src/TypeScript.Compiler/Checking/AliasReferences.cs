@@ -13,13 +13,41 @@ internal sealed class AliasReferences(CheckerSymbols symbols, CheckerLinks links
             || (location.Flags & NodeFlags.Ambient) != 0
             || FlowReferences.ThisInQuery(location))
             return;
+        await MarkAsync(references.Resolve(location, cancellation), location, cancellation).ConfigureAwait(false);
+    }
+
+    internal async ValueTask PropertyAsync(SyntaxNode location, Symbol? property, Type parentType, CancellationToken cancellation = default)
+    {
+        cancellation.ThrowIfCancellationRequested();
+        var options = symbols.Program.Configuration.Options;
+        if (options.Boolean("verbatimModuleSyntax") == true || (location.Flags & NodeFlags.Ambient) != 0)
+            return;
+        for (var current = location; current.Parent is not null; current = current.Parent)
+            if (current.Parent is ImportEqualsDeclarationNode import && import.ModuleReference == current)
+                return;
+        var left = location is QualifiedNameNode qualified ? qualified.Left : FlowReferences.Receiver(location);
+        if (left is not IdentifierNode identifier || identifier.Text == "this")
+            return;
+        var parent = references.Resolve(identifier, cancellation);
+        if (parent == symbols.UnknownSymbol)
+            return;
+        bool isolated = options.Boolean("isolatedModules") == true || options.Boolean("verbatimModuleSyntax") == true;
+        if (isolated || (options.Boolean("preserveConstEnums") == true || isolated) && ExportExpression(location)
+            || (parentType.Flags & TypeFlags.Any) != 0 || parentType == parentType.Context.SilentNeverType
+            || !(property is not null && ((property.Flags & (SymbolFlags.ConstEnum | SymbolFlags.ConstEnumOnlyModule)) != 0
+                || (property.Flags & SymbolFlags.EnumMember) != 0 && location.Parent is EnumMemberNode)))
+            await MarkAsync(parent, location, cancellation).ConfigureAwait(false);
+    }
+
+    private async ValueTask MarkAsync(Symbol symbol, SyntaxNode location, CancellationToken cancellation)
+    {
+        var options = symbols.Program.Configuration.Options;
         List<AliasSymbolLinks> owned = [];
         try
         {
             while (true)
             {
                 cancellation.ThrowIfCancellationRequested();
-                var symbol = references.Resolve(location, cancellation);
                 if (symbol == symbols.ArgumentsSymbol || symbol == symbols.UnknownSymbol
                     || !AliasResolver.NonLocal(symbol, SymbolFlags.Value) || DeclarationOrder.InTypeQuery(location))
                     return;
@@ -49,6 +77,7 @@ internal sealed class AliasReferences(CheckerSymbols symbols, CheckerLinks links
                 location = (IdentifierNode)first!;
                 if (FlowReferences.ThisInQuery(location))
                     return;
+                symbol = references.Resolve((IdentifierNode)location, cancellation);
             }
         }
         catch

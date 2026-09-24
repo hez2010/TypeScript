@@ -779,11 +779,72 @@ for (const strict of [false, true]) {
 }
 for (const input of cases.filter(c => c.name.startsWith("identifiers:"))) input.identifiers = true;
 
-let selected = process.argv.includes("--identifiers") ? cases.filter(c => c.identifiers) : process.argv.includes("--flow") ? cases.filter(c => c.flow) : process.argv.includes("--references") ? cases.filter(c => c.references) : process.argv.includes("--awaited") ? cases.filter(c => c.awaited) : process.argv.includes("--binary") ? cases.filter(c => c.name.startsWith("binary:")) : process.argv.includes("--initializers") ? cases.filter(c => c.name.startsWith("initializers:")) : process.argv.includes("--expressions") ? cases.filter(c => c.expressions && !c.name.startsWith("binary:") && !c.name.startsWith("awaited:")) : process.argv.includes("--constants") ? cases.filter(c => c.name.startsWith("constants:")) : process.argv.includes("--inference") ? cases.filter(c => c.typeNodes && c.name.startsWith("inference:")) : process.argv.includes("--conditional") ? cases.filter(c => c.typeNodes && c.name.startsWith("conditional:")) :
+for (const strict of [false, true]) {
+    for (const exactOptionalPropertyTypes of [false, true]) {
+        for (const noUncheckedIndexedAccess of [false, true]) {
+            for (
+                const [name, source] of Object.entries({
+                    properties: "function f(x: {a:string,b?:number}) { __access(x.a); __access(x.b); }",
+                    elements: "function f(x: {a:string,b?:number}) { __access(x['a']); __access(x['b']); }",
+                    writes: "function f(x: {a:string,b?:number}) { __access(x.a = 'a'); __access(x['a'] = 'b'); __access(x.b = undefined); }",
+                    readonly: "function f(x: {readonly a:number}) { __access(x.a); __access(x.a = 1); __access(x['a'] = 1); __access(x.a++); }",
+                    compound: "function f(x: {a:number,b:string}) { __access(x.a += 1); __access(x['b'] += 'a'); }",
+                    indexes: "function f(x: {[key:string]:number}) { __access(x.a); __access(x['a']); __access(x[0]); __access(x.a = 1); }",
+                    readonlyIndex: "function f(x: {readonly [key:string]:number}) { __access(x.a = 1); __access(x['a'] = 1); }",
+                    arrays: "function f(x: number[], y: readonly string[]) { __access(x[0]); __access(x[0] = 1); __access(y[0]); __access(y[0] = 'a'); }",
+                    tuples: "function f(x: [string,number?]) { __access(x[0]); __access(x[1]); __access(x[2]); __access(x[-1]); }",
+                    optional: "function f(x: {a: {b: number}} | undefined) { __access(x?.a); __access(x?.a.b); __access((x?.a).b); }",
+                    optionalNested: "function f(x: {a?: {b:number}} | undefined) { __access(x?.a?.b); __access(x?.a!.b); __access(x?.['a']?.['b']); }",
+                    nullable: "function f(x: {a:number} | null | undefined) { __access(x.a); __access(x['a']); }",
+                    unknown: "function f(x: unknown, y:any, z:never) { __access(x.a); __access(y.a); __access(y[0]); __access(z.a); }",
+                    missing: "function f(x: {a:number}) { __access(x.missing); __access(x['missing']); }",
+                    unionIndex: "function f(x:{a:string,b:number}, key:'a'|'b') { __access(x[key]); __access(x[key] = 1); }",
+                    generic: "function f<T,K extends keyof T>(x:T,key:K) { __access(x[key]); __access(x[key] = x[key]); }",
+                    indexGeneric: "function f<T extends {[key:string]:unknown}>(x:T) { __access(x.a); __access(x.a = 1); __access(x['a'] = 1); }",
+                    flow: "function f(x:{a:string|number}, c:boolean) { x.a = 1; __access(x.a); if(c) x.a = 'a'; __access(x.a); if(typeof x.a === 'string') __access(x.a); }",
+                    discriminant: "function f(x:{kind:'a',a:number}|{kind:'b',b:string}) { if(x.kind === 'a') __access(x.a); else __access(x.b); }",
+                    accessor: "interface I { get value(): number; set value(v:number|string); } function f(x:I) { __access(x.value); __access(x.value = 'a'); __access(x.value += 1); }",
+                })
+            ) add(`access:${name}:${strict}:${exactOptionalPropertyTypes}:${noUncheckedIndexedAccess}`, { "globals.d.ts": library + " declare function __access(value: unknown): void;", "main.ts": source }, { strict, exactOptionalPropertyTypes, noUncheckedIndexedAccess }, false, true);
+        }
+    }
+}
+for (const strict of [false, true]) {
+    for (
+        const [name, source] of Object.entries({
+            spelling: "function f(x:{foobar:number,FooBar:string,İxx:boolean}) { __access(x['fooba']); __access(x['FOOBAR']); __access(x['ixx']); }",
+            indexMethod: "interface MapLike { get(key:string):number; set(key:string,value:number):void } function f(x:MapLike,k:string) { __access(x[k]); __access(x[k]=1); }",
+            noPropertyIndex: "function f(x:{[key:string]:number}) { __access(x.foo); __access(x.foo=1); }",
+            constantKeys: "const key = 'a'; function f(x:{a:number}) { __access(x[key]); __access(x[key] = 1); __access(x.a); }",
+            numericForIn: "function f(x:number[]) { let key:string; for(key in x) { __access(x[key]); } }",
+            optionalAssignments: "function f(x:{a:number}|undefined) { __access(x?.a = 1); __access(x?.a++); }",
+            thisFields: "class C { value:number; constructor(){ __access(this.value); __access(this.value = 1); __access(this.value); } method():void { __access(this.value); } }",
+            readonlyConstructor: "class C { readonly value:number; constructor(){__access(this.value = 1);} method():void{__access(this.value = 2);} }",
+            parameterProperty: "class C { constructor(readonly value:number){ __access(this.value); __access(this.value = 1); } }",
+            superAccess: "class B { value:number; method():number{return 1;} static count:number; } class C extends B { method():number { __access(super.method); __access(super.value); return 1; } static run():void { __access(super.count); } }",
+            beforeSuper: "class B { method():void{} } class C extends B { value:number; constructor(){ __access(this.value); __access(super.method); super(); __access(this.value); } }",
+            thisFunctions: "function f(this:{value:number}) { __access(this.value); } function g(){__access(this.value);} const arrow=()=>{__access(this);};",
+            privateMember: "class C { private p: number; method(x:C): void { __access(x.p); } } function f(x:C) { __access(x.p); __access(x['p']); }",
+            protectedMember: "class B { protected p: number; } class C extends B { method(x:C,y:B):void { __access(x.p); __access(y.p); } } function f(x:B) { __access(x.p); }",
+            protectedThis: "class C { protected p: number; } function f(this:C,x:C) { __access(x.p); }",
+            privateShadow: "class Outer { #p:number; method(x:Outer):void { class Inner { #p:string; method(y:Outer):void { __access(y.#p); } } } }",
+            genericBase: "class B<T=number> { p:T; } class C extends B<string> {} function f(x:C) { __access(x.p); }",
+            constructorBase: "declare const Factory: new()=>{p:number}; class C extends Factory {} function f(x:C) { __access(x.p); }",
+            privateField: "class C { #p: number; method(x:C):void { __access(x.#p); __access(x.#p = 1); } } function f(x:C) { __access(x.#p); }",
+            privateMethod: "class C { #m():void {} method(x:C):void { __access(x.#m); __access(x.#m = x.#m); } }",
+            privateAny: "class C { #p: number; method(x:any):void { __access(x.#p); } } function f(x:any) { __access(x.#p); }",
+            privateSetter: "class C { set #p(value:number) {} method(x:C):void { __access(x.#p); __access(x.#p = 1); } }",
+            deprecatedMember: "interface I { /** @deprecated */ old: number; current: string } function f(x:I) { __access(x.old); __access(x['old']); }",
+        })
+    ) add(`access:${name}:${strict}`, { "globals.d.ts": library + " declare function __access(value: unknown): void;", "main.ts": source }, { strict, noPropertyAccessFromIndexSignature: name === "noPropertyIndex" }, false, true);
+}
+for (const input of cases.filter(c => c.name.startsWith("access:"))) input.access = true;
+
+let selected = process.argv.includes("--access") ? cases.filter(c => c.access) : process.argv.includes("--identifiers") ? cases.filter(c => c.identifiers) : process.argv.includes("--flow") ? cases.filter(c => c.flow) : process.argv.includes("--references") ? cases.filter(c => c.references) : process.argv.includes("--awaited") ? cases.filter(c => c.awaited) : process.argv.includes("--binary") ? cases.filter(c => c.name.startsWith("binary:")) : process.argv.includes("--initializers") ? cases.filter(c => c.name.startsWith("initializers:")) : process.argv.includes("--expressions") ? cases.filter(c => c.expressions && !c.name.startsWith("binary:") && !c.name.startsWith("awaited:")) : process.argv.includes("--constants") ? cases.filter(c => c.name.startsWith("constants:")) : process.argv.includes("--inference") ? cases.filter(c => c.typeNodes && c.name.startsWith("inference:")) : process.argv.includes("--conditional") ? cases.filter(c => c.typeNodes && c.name.startsWith("conditional:")) :
     process.argv.includes("--generic-relations") ? cases.filter(c => c.genericRelations) :
     process.argv.includes("--indexing") ? cases.filter(c => c.name.startsWith("indexing:")) :
     process.argv.includes("--assignability") ? cases.filter(c => c.assignability && !c.genericRelations && !c.name.startsWith("conditional:") && !c.name.startsWith("inference:") && !c.name.startsWith("constants:") && !c.name.startsWith("expressions:") && !c.name.startsWith("binary:") && !c.name.startsWith("awaited:")) :
-    process.argv.includes("--identity") ? cases.filter(c => c.identity && !c.assignability) : process.argv.includes("--signatures") ? cases.filter(c => c.signatures) : process.argv.includes("--properties") ? cases.filter(c => c.properties) : process.argv.includes("--values") ? cases.filter(c => c.values && !c.name.startsWith("initializers:")) : process.argv.includes("--members") ? cases.filter(c => c.members && !c.values && !c.signatures) : process.argv.includes("--type-nodes") ? cases.filter(c => c.typeNodes && !c.identifiers && !c.flow && !c.members && !c.properties && !c.identity && !c.name.startsWith("indexing:") && !c.name.startsWith("conditional:") && !c.name.startsWith("inference:") && !c.name.startsWith("constants:") && !c.name.startsWith("expressions:") && !c.name.startsWith("binary:") && !c.name.startsWith("awaited:"))
+    process.argv.includes("--identity") ? cases.filter(c => c.identity && !c.assignability) : process.argv.includes("--signatures") ? cases.filter(c => c.signatures) : process.argv.includes("--properties") ? cases.filter(c => c.properties) : process.argv.includes("--values") ? cases.filter(c => c.values && !c.name.startsWith("initializers:")) : process.argv.includes("--members") ? cases.filter(c => c.members && !c.values && !c.signatures) : process.argv.includes("--type-nodes") ? cases.filter(c => c.typeNodes && !c.access && !c.identifiers && !c.flow && !c.members && !c.properties && !c.identity && !c.name.startsWith("indexing:") && !c.name.startsWith("conditional:") && !c.name.startsWith("inference:") && !c.name.startsWith("constants:") && !c.name.startsWith("expressions:") && !c.name.startsWith("binary:") && !c.name.startsWith("awaited:"))
     : cases.filter(c => !c.references && !c.typeNodes && Boolean(c.aliases) === process.argv.includes("--aliases"));
 if (option("--filter")) selected = selected.filter(c => c.name.includes(option("--filter")));
 async function probe(command, args) {
@@ -817,7 +878,7 @@ for (let i = 0; i < selected.length; i++) {
 await json(path.join(output, "checker-program-failures.json"), failures);
 const summary = {
     timestamp: new Date().toISOString(),
-    scope: process.argv.includes("--identifiers") ? "Identifier expression types, definite assignment, captured flow, parameter defaults and generic reference constraints; full checker integration remains incomplete" :
+    scope: process.argv.includes("--access") ? "Property and element expression types, optional chains, assignments, flow and indexed-access validation; full checker integration remains incomplete" : process.argv.includes("--identifiers") ? "Identifier expression types, definite assignment, captured flow, parameter defaults and generic reference constraints; full checker integration remains incomplete" :
         process.argv.includes("--flow") ? "Control-flow types, assignment reduction, branch and loop joins and narrowing; full checker integration remains incomplete" : process.argv.includes("--references") ? "Value-name resolution, declaration order, parameter initialization and type-only alias diagnostics" : process.argv.includes("--binary") ? "Binary expression result types, operator diagnostics and nullish semantics with required assignment/access services" : process.argv.includes("--awaited") ? "Promise and thenable fulfillment, awaited types, recursion and generic wrappers; classification queries make lazy generic metadata deterministic" : process.argv.includes("--expressions") ? "Primitive expression types, template evaluation, diagnostics and grammar checks with required advanced expression services" :
         process.argv.includes("--constants") ? "Constant and enum evaluation with provenance, forward references and numeric boundaries" : process.argv.includes("--initializers") ? "Variable, parameter and property initializer types with required flow, binding-pattern and contextual services" : process.argv.includes("--inference") ? "Type inference, constraints, reverse mapped types, widening and contextual signatures; expression inference and full checker integration remain incomplete" : process.argv.includes("--conditional") ? "Conditional evaluation, distribution, tail recursion, constraints and relations with required inference services; full checker integration remains incomplete" : process.argv.includes("--generic-relations") ? "Generic key/indexed/mapped relations, optionality, variance and cache graphs; conditional and full diagnostic services remain incomplete" :
         process.argv.includes("--indexing") ? "Key enumeration, indexed access, read/write simplification and generic cache identity; expression checking and full checker integration remain incomplete" : process.argv.includes("--assignability") ? "Structural relation decisions, signature variance, discriminants and generic variance caches with required advanced semantic services; full checker integration remains incomplete" : process.argv.includes("--identity") ? "Structural identity, primitive relation predicates, normalization and recursive caches with required advanced relation services; full checker integration remains incomplete" : process.argv.includes("--signatures") ? "Signature matching, composition, tuple rest parameters and array member fallback with explicit type relation dependencies; full checker integration remains incomplete" :
@@ -828,6 +889,7 @@ const summary = {
     managed,
     runtime: managed ? "managed development run" : await run(candidate, ["--native-check"]),
     cases: selected.length,
+    accessQueries: actual.reduce((count, c) => count + (c.accessQueries?.length ?? 0), 0),
     identifierQueries: actual.reduce((count, c) => count + (c.identifierQueries?.length ?? 0), 0),
     assignmentQueries: actual.reduce((count, c) => count + (c.assignmentMarks?.length ?? 0), 0),
     flowQueries: actual.reduce((count, c) => count + (c.flowQueries?.length ?? 0), 0),

@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"math"
 	"slices"
+	"strconv"
+	"strings"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/jsnum"
 )
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -92,13 +94,39 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 		}
 		return result
 	}
-	name := func(s string) string { return base64.StdEncoding.EncodeToString([]byte(ast.EscapeSymbolName(s))) }
+	// Private member names contain process-global allocator IDs. Only serialization
+	// replaces them with the declaring class's stable AST node ID.
+	privateOwners := map[string]int{}
+	for _, node := range nodes {
+		if ast.IsClassLike(node) && node.Symbol() != nil {
+			for _, members := range []ast.SymbolTable{node.Symbol().Members, node.Symbol().Exports} {
+				for key := range members {
+					if strings.HasPrefix(key, ast.InternalSymbolNamePrefix+"#") {
+						if end := strings.IndexByte(key, '@'); end > 0 {
+							privateOwners[key[:end]] = nodeIDs[node]
+						}
+					}
+				}
+			}
+		}
+	}
+	canonicalName := func(s string) string {
+		if end := strings.IndexByte(s, '@'); end > 0 {
+			if owner, ok := privateOwners[s[:end]]; ok {
+				return ast.InternalSymbolNamePrefix + "#node" + strconv.Itoa(owner) + s[end:]
+			}
+		}
+		return s
+	}
+	name := func(s string) string {
+		return base64.StdEncoding.EncodeToString([]byte(ast.EscapeSymbolName(canonicalName(s))))
+	}
 	table := func(source ast.SymbolTable) []any {
 		keys := []string{}
 		for key := range source {
 			keys = append(keys, key)
 		}
-		slices.Sort(keys)
+		slices.SortFunc(keys, func(a, b string) int { return strings.Compare(canonicalName(a), canonicalName(b)) })
 		rows := []any{}
 		for _, key := range keys {
 			rows = append(rows, []any{name(key), sid(source[key])})
@@ -192,6 +220,23 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 			}
 			if result != nil {
 				typeQueries = append(typeQueries, []any{nodeIDs[node], tid(result)})
+			}
+		}
+	}
+	accessRows, accessSymbols := []any{}, []any{}
+	if accessQueries {
+		for _, node := range nodes {
+			if ast.IsCallExpression(node) && ast.IsIdentifier(node.Expression()) && node.Expression().Text() == "__access" {
+				for _, argument := range node.Arguments() {
+					accessRows = append(accessRows, []any{nodeIDs[argument], tid(c.checkExpression(argument))})
+				}
+			}
+		}
+	}
+	if accessQueries {
+		for _, node := range nodes {
+			if ast.IsAccessExpression(node) || ast.IsQualifiedName(node) {
+				accessSymbols = append(accessSymbols, []any{nodeIDs[node], sid(c.getResolvedSymbolOrNil(node))})
 			}
 		}
 	}
@@ -742,6 +787,15 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 		}
 		typeRows = append(typeRows, row)
 	}
+	privateReferences := []any{}
+	if accessQueries {
+		for i, symbol := range symbols {
+			declaration := symbol.ValueDeclaration
+			if declaration != nil && (ast.HasModifier(declaration, ast.ModifierFlagsPrivate) || declaration.Name() != nil && ast.IsPrivateIdentifier(declaration.Name())) {
+				privateReferences = append(privateReferences, []any{i + 1, uint32(c.symbolReferenceLinks.Get(symbol).referenceKinds)})
+			}
+		}
+	}
 	symbolRows := []any{}
 	for i := 0; i < len(symbols); i++ {
 		symbol := symbols[i]
@@ -796,6 +850,18 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	}
 	if constantQueries {
 		result["constantQueries"] = constantRows
+	}
+	if accessQueries {
+		result["accessQueries"] = accessRows
+		result["accessSymbols"] = accessSymbols
+		result["privateReferences"] = privateReferences
+		result["deferredAccessDiagnostics"] = len(c.deferredDiagnosticCallbacks)
+		suggestions := []int{}
+		for _, d := range c.suggestionDiagnostics.GetDiagnostics() {
+			suggestions = append(suggestions, int(d.Code()))
+		}
+		slices.Sort(suggestions)
+		result["accessSuggestions"] = suggestions
 	}
 	if identifierQueries {
 		result["identifierQueries"] = identifierRows

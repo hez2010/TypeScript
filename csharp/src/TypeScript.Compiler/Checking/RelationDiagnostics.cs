@@ -24,8 +24,32 @@ internal interface IRelationDiagnosticHost
     ValueTask<bool> ElaborateComplexAsync(SyntaxNode node, Type source, Type target, RelationKind kind, CancellationToken cancellation);
 }
 
-internal sealed class RelationDiagnostics(TypeRelations relations, Signatures signatures, IRelationDiagnosticHost host)
+internal sealed class RelationDiagnostics(TypeContext context, TypeRelations relations, Signatures signatures,
+    TypeProperties properties, SymbolTypes values, TypePredicates predicates, IRelationDiagnosticHost host)
 {
+    internal async ValueTask<IReadOnlyList<Symbol>> ExactOptionalPropertiesAsync(
+        Type source,
+        Type target,
+        CancellationToken cancellation = default)
+    {
+        cancellation.ThrowIfCancellationRequested();
+        context.RequireOwned(source);
+        context.RequireOwned(target);
+        if (source is TypeReference { Target: TupleType } && target is TypeReference { Target: TupleType })
+            return [];
+        List<Symbol> result = [];
+        foreach (var property in await properties.GetAsync(target, cancellation).ConfigureAwait(false))
+        {
+            var sourceProperty = await properties.PropertyAsync(source, property.Name, cancellation: cancellation).ConfigureAwait(false);
+            var sourceType = sourceProperty is null ? null : await values.GetAsync(sourceProperty, cancellation).ConfigureAwait(false);
+            var targetType = await values.GetAsync(property, cancellation).ConfigureAwait(false);
+            if (sourceType is not null && predicates.Maybe(sourceType, TypeFlags.Undefined, cancellation)
+                && (targetType == context.MissingType || targetType is UnionType union && union.Types.Contains(context.MissingType)))
+                result.Add(property);
+        }
+        return result;
+    }
+
     internal async ValueTask<bool> CheckAsync(Type source, Type target, RelationKind kind, SyntaxNode? errorNode,
         SyntaxNode? expression, int? headCode = null, CancellationToken cancellation = default)
     {

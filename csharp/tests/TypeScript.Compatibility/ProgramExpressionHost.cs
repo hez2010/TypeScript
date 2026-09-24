@@ -53,18 +53,22 @@ internal sealed partial class ProgramTypeHost : IExpressionTypeHost, IExpression
 
     public async ValueTask<Type> OtherExpressionAsync(SyntaxNode node, CheckMode mode, CancellationToken cancellation)
     {
+        if (node.Kind == SyntaxKind.ThisKeyword)
+            return await ThisExpressions.ThisAsync(node, cancellation);
+        if (node.Kind == SyntaxKind.SuperKeyword)
+            return await ThisExpressions.SuperAsync(node, cancellation);
         if (node is BinaryExpressionNode binary)
             return await Binary.CheckAsync(binary, mode, cancellation);
         if (node is IdentifierNode identifier)
             return await Identifiers.CheckAsync(identifier, mode, cancellation);
-        if (node is PropertyAccessExpressionNode)
-        {
-            var symbol = await program.EntityNames.ResolveAsync(node, SymbolFlags.Value, true, cancellation: cancellation);
-            if (symbol == program.Symbols.UndefinedSymbol)
-                return context.UndefinedWideningType;
-            if (symbol is not null && (symbol.Flags & SymbolFlags.EnumMember) != 0)
-                return await Values.GetAsync(symbol, cancellation);
-        }
+        if (node is PropertyAccessExpressionNode property)
+            return await Access.PropertyAsync(property, mode, cancellation: cancellation);
+        if (node is ElementAccessExpressionNode element)
+            return await Access.ElementAsync(element, mode, cancellation);
+        if (node is QualifiedNameNode qualified)
+            return await Access.QualifiedAsync(qualified, mode, cancellation);
+        if (node is NonNullExpressionNode nonNull)
+            return await Access.NonNullChainAsync(nonNull, Facts, cancellation);
         throw new InvalidOperationException($"Probe requires expression checking for {node.Kind}");
     }
 

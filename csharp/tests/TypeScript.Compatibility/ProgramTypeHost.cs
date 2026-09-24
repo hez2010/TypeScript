@@ -183,7 +183,69 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
         ReferenceNarrowing = new(context, Algebra, Instantiation.Constraints, Predicates, Instantiation.Mapped, this);
         SymbolNarrowing = new(context, links, Values, Algebra, Instantiation.Constraints, Instantiation.Engine, Views, FlowTypes, this);
         AssignmentChecks = new(context, links, Predicates, this);
-        RelationDiagnostics = new(Relations, Signatures, this);
+        RelationDiagnostics = new(context, Relations, Signatures, Properties, Values, Predicates, this);
+        Optional = new(context, Algebra, Facts);
+        AccessNames = new(program.EntityNames, program.DeclarationOrder, this);
+        AccessFlow = new(context, Algebra, Values, Widening, ReferenceNarrowing, FlowTypes, this);
+        MemberAccess = new(program.Symbols, links, program.ReferenceSymbols, Declared, Properties, Bases, program.DeclarationOrder, this);
+        IndexValidation = new(
+            context,
+            Keys,
+            Instantiation.Mapped,
+            Instantiation.Members,
+            IndexSignatures,
+            Relations,
+            Views,
+            Properties,
+            this);
+        ElementErrors = new(context, Algebra, program.Symbols, Properties, Values, this);
+        MemberAccessibility = new(program.Symbols, links, Declared, Bases, Instantiation.Constraints, Properties, this);
+        PrivateAccess = new(context, program.Symbols, Properties, this);
+        SymbolSuggestions = new(program.Aliases, new(program.Symbols.Program.SourceFiles.Select(f => f.Syntax)));
+        ClassBases = new(
+            context,
+            Declared,
+            References,
+            Bases,
+            Views,
+            Instantiation.Constraints,
+            Instantiation.Engine,
+            SignatureInstantiation,
+            Signatures,
+            Parameters,
+            Members,
+            Instantiation.Resolutions,
+            Relations,
+            this);
+        ThisExpressions = new(
+            context,
+            links,
+            program.Symbols,
+            Values,
+            Declared,
+            Signatures,
+            Parameters,
+            ClassBases,
+            Bases,
+            FlowTypes,
+            this);
+        Access = new(
+            context,
+            links,
+            program.Symbols,
+            program.Aliases,
+            Algebra,
+            Widening,
+            Views,
+            Properties,
+            Values,
+            IndexSignatures,
+            Indexed,
+            Instantiation.Mapped,
+            Optional,
+            AccessFlow,
+            FlowTypes,
+            this);
         Identifiers = new(context, links, program.Symbols, program.ReferenceSymbols, program.Aliases, Values, Algebra, Widening, Facts,
             Instantiation.Resolutions, Assignments, FlowTypes, this);
         relations.EmptyAnonymousSource = Views.EmptyAnonymousAsync;

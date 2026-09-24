@@ -1,0 +1,98 @@
+using System.Globalization;
+using TypeScript.Compiler.Ast;
+using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Syntax;
+
+namespace TypeScript.Compiler.Checking;
+
+internal interface IPrivateAccessHost
+{
+    int TargetYear { get; }
+    bool UseDefineForClassFields { get; }
+
+    bool PlainJavaScript(SourceFileNode file);
+
+    ValueTask PrivateEmitHelpersAsync(SyntaxNode node, bool read, bool write, CancellationToken cancellation);
+
+    void AccessError(SyntaxNode node, int code, Type? type = null, Symbol? symbol = null);
+}
+
+internal sealed class PrivateAccess(TypeContext context, CheckerSymbols symbols, TypeProperties properties, IPrivateAccessHost host)
+{
+    internal async ValueTask<(Symbol? Property, Type? Result)> ResolveAsync(SyntaxNode node, Type left, Type apparent,
+        PrivateIdentifierNode name, bool anyLike, int assignment, CancellationToken cancellation = default)
+    {
+        cancellation.ThrowIfCancellationRequested();
+        if (host.TargetYear < int.MaxValue || !host.UseDefineForClassFields)
+            await host.PrivateEmitHelpersAsync(node, assignment != 1, assignment != 0, cancellation).ConfigureAwait(false);
+        Symbol? lexical = null;
+        for (var container = ContainingClass(name); container is not null; container = DeclarationOrder.ContainingClass(container))
+        {
+            var owner = symbols.Binding(container)!.Get(container)!.Symbol!;
+            string key = Name(owner, name.Text);
+            lexical = owner.Members.GetValueOrDefault(key) ?? owner.Exports.GetValueOrDefault(key);
+            if (lexical is not null)
+                break;
+        }
+        if (assignment != 0 && lexical?.ValueDeclaration is MethodDeclarationNode)
+            host.AccessError(name, 2803, symbol: lexical);
+        if (anyLike)
+        {
+            if (lexical is not null)
+                return (null, apparent == context.ErrorType || (apparent.Flags & TypeFlags.Any) != 0 && apparent.Alias is not null
+                    ? context.ErrorType
+                    : apparent);
+            if (ContainingClass(name) is null)
+            {
+                host.AccessError(name, 18016);
+                return (null, context.AnyType);
+            }
+        }
+        var property = lexical is null
+            ? null
+            : await properties.PropertyAsync(left, lexical.Name, cancellation: cancellation).ConfigureAwait(false);
+        if (property is null)
+        {
+            if (await ReportScopeAsync(left, name, lexical, cancellation).ConfigureAwait(false))
+                return (null, context.ErrorType);
+            if (ContainingClass(name) is { } container && SemanticSyntax.Source(container) is { } file && host.PlainJavaScript(file))
+                host.AccessError(name, 1111);
+        }
+        else if ((property.Flags & (SymbolFlags.SetAccessor | SymbolFlags.GetAccessor)) == SymbolFlags.SetAccessor && assignment != 1)
+            host.AccessError(node, 2806, symbol: property);
+        return (property, null);
+    }
+
+    private async ValueTask<bool> ReportScopeAsync(Type type, PrivateIdentifierNode name, Symbol? lexical, CancellationToken cancellation)
+    {
+        foreach (var property in await properties.GetAsync(type, cancellation).ConfigureAwait(false))
+        {
+            if (property.ValueDeclaration is not { } declaration
+                || SemanticSyntax.Name(declaration) is not PrivateIdentifierNode privateName
+                || privateName.Text != name.Text)
+                continue;
+            var owner = DeclarationOrder.ContainingClass(declaration);
+            if (lexical?.ValueDeclaration is { } lexicalDeclaration
+                && DeclarationOrder.ContainingClass(lexicalDeclaration) is { } lexicalClass
+                && DeclarationOrder.Ancestor(lexicalClass, n => n == owner) is not null)
+                host.AccessError(name, 18014, type, lexical);
+            else
+                host.AccessError(name, 18013, type, property);
+            return true;
+        }
+        return false;
+    }
+
+    internal static string Name(Symbol owner, string description) =>
+        Symbol.InternalPrefix + "#" + owner.Id.ToString(CultureInfo.InvariantCulture) + "@" + description;
+
+    internal static SyntaxNode? ContainingClass(SyntaxNode node)
+    {
+        for (var current = node.Parent; current is not null && !SemanticSyntax.ClassLike(current); current = current.Parent)
+            if (current is DecoratorNode)
+                return SemanticSyntax.ClassLike(current.Parent)
+                    ? DeclarationOrder.ContainingClass(current.Parent!)
+                    : DeclarationOrder.ContainingClass(current);
+        return DeclarationOrder.ContainingClass(node);
+    }
+}

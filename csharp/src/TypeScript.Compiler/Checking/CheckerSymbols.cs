@@ -129,6 +129,8 @@ internal sealed class CheckerSymbols
 
     internal S ReferenceKinds(Symbol symbol) => references.GetValueOrDefault(symbol);
 
+    internal void MarkReferenced(Symbol symbol, S meaning) => references[symbol] = references.GetValueOrDefault(symbol) | meaning;
+
     internal NameResolver NameResolver(CancellationToken cancellation = default) => new(program.Configuration.Options, Binding)
     {
         Globals = Globals,
@@ -137,7 +139,7 @@ internal sealed class CheckerSymbols
         GetSymbolOfDeclaration = Declaration,
         Lookup = Lookup,
         Error = (node, message, arguments) => host.Error(node, message, arguments),
-        SymbolReferenced = (symbol, meaning) => references[symbol] = references.GetValueOrDefault(symbol) | meaning,
+        SymbolReferenced = MarkReferenced,
         GetRequiresScopeChangeCache = node => links.Nodes.Get(node).DeclarationRequiresScopeChange,
         SetRequiresScopeChangeCache = (node, value) => links.Nodes.Get(node).DeclarationRequiresScopeChange = value,
         OnPropertyWithInvalidInitializer = host.InvalidInitializer,

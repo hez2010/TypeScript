@@ -22,7 +22,7 @@ internal sealed partial class ProgramTypeHost : IIdentifierTypeHost, IReferenceT
     public bool ContextualBindingPattern(SyntaxNode pattern) => ContextualBindingPatterns.Contains(pattern);
 
     public ValueTask<Type> ThisExpressionAsync(SyntaxNode node, CancellationToken cancellation) =>
-        throw new InvalidOperationException("Probe requires this-expression checking");
+        ThisExpressions.ThisAsync(node, cancellation);
 
     public ValueTask MarkIdentifierAsync(IdentifierNode node, CancellationToken cancellation) =>
         AliasReferences.IdentifierAsync(node, cancellation);
@@ -45,8 +45,8 @@ internal sealed partial class ProgramTypeHost : IIdentifierTypeHost, IReferenceT
 
     public async ValueTask<Type?> ContextualReferenceAsync(SyntaxNode node, bool skipBindingPatterns, CancellationToken cancellation)
     {
-        while (node.Parent is ParenthesizedExpressionNode parentheses)
-            node = parentheses;
+        while (node.Parent is ParenthesizedExpressionNode or NonNullExpressionNode)
+            node = node.Parent;
         if (node.Parent is IInitializedNode initialized && initialized.Initializer == node
             && node.Parent is VariableDeclarationNode or ParameterDeclarationNode or PropertyDeclarationNode)
         {
@@ -84,6 +84,8 @@ internal sealed partial class ProgramTypeHost : IIdentifierTypeHost, IReferenceT
             return await Nodes.FromNodeAsync(assertion.Type!, cancellation);
         if (node.Parent is TypeAssertionNode typeAssertion)
             return await Nodes.FromNodeAsync(typeAssertion.Type!, cancellation);
+        if (node.Parent is PropertyAccessExpressionNode or ElementAccessExpressionNode or QualifiedNameNode)
+            return null;
         if (node.Parent is TypeOfExpressionNode or VoidExpressionNode or PrefixUnaryExpressionNode or PostfixUnaryExpressionNode
             or NonNullExpressionNode or IfStatementNode or WhileStatementNode or DoStatementNode or SwitchStatementNode
             or ExpressionStatementNode or ExportSpecifierNode or TypeQueryNode)
@@ -120,10 +122,15 @@ internal sealed partial class ProgramTypeHost : IIdentifierTypeHost, IReferenceT
                     : throw new InvalidOperationException("Probe requires CommonJS assignment classification");
 
     public ValueTask<Type> PropertyWriteAsync(PropertyAccessExpressionNode left, CancellationToken cancellation)
-            => throw new InvalidOperationException("Probe requires writable property access checking");
+            => Access.PropertyAsync(left, writeOnly: true, cancellation: cancellation);
 
-    public ValueTask<Type?> AssignedPropertyTypeAsync(PropertyAccessExpressionNode left, CancellationToken cancellation)
-            => throw new InvalidOperationException("Probe requires assignment receiver types");
+    public async ValueTask<Type?> AssignedPropertyTypeAsync(PropertyAccessExpressionNode left, CancellationToken cancellation)
+        =>
+            await FlowPropertyTypeAsync(
+                await ExpressionAsync(left.Expression!, cancellation),
+                SyntaxNameText.Get(left.Name),
+                false,
+                cancellation);
 
     public async ValueTask CheckAssignableAsync(
         Type source,
@@ -161,7 +168,11 @@ internal sealed partial class ProgramTypeHost : IIdentifierTypeHost, IReferenceT
                 : (IReadOnlyList<Type>)[target]).Any(
                     t => (t.Flags & (TypeFlags.Primitive | TypeFlags.Never | TypeFlags.TypeVariable)) == 0))
                 throw new InvalidOperationException("Probe requires structural relation diagnostic elaboration");
-            Error(node, headCode ?? 2322);
+            int code = headCode ?? (context.ExactOptionalPropertyTypes
+                && (await RelationDiagnostics.ExactOptionalPropertiesAsync(source, target, cancellation)).Count != 0
+                ? 2375
+                : 2322);
+            Error(node, code);
         }
         return related;
     }

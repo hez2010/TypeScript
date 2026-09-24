@@ -1,0 +1,16 @@
+{
+    "failedCases": 16,
+    "privateNameDifferences": 32,
+    "allOtherValuesEqual": true,
+    "timestamp": "2026-09-24T04:11:37.263004+00:00",
+    "scope": "Development probe serialization only",
+    "normalization": "Replace the allocator ID embedded in each private member name with its declaring class AST node ID; sort serialized symbol tables by that canonical name.",
+    "preserved": [
+        "Internal private names and lookup behavior",
+        "Declaring class identity and shadowing",
+        "Symbol/declaration graph links",
+        "Resolved access symbols",
+        "Private reference flags",
+        "Types, caches and diagnostics"
+    ]
+}

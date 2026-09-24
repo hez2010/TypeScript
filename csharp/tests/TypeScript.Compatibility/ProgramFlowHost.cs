@@ -125,14 +125,12 @@ internal sealed partial class ProgramTypeHost : IFlowTypeHost, IFlowReferenceHos
     public ValueTask<Type?> ExplicitThisAsync(SyntaxNode node, CancellationToken cancellation) =>
         throw new InvalidOperationException("Probe requires explicit this type");
 
-    public ValueTask<Type> SuperAsync(SyntaxNode node, CancellationToken cancellation) =>
-        throw new InvalidOperationException("Probe requires super type");
+    public ValueTask<Type> SuperAsync(SyntaxNode node, CancellationToken cancellation) => ThisExpressions.SuperAsync(node, cancellation);
 
     public ValueTask<Type?> IteratedTypeAsync(ForInOrOfStatementNode node, Type expression, CancellationToken cancellation) =>
         throw new InvalidOperationException("Probe requires iteration type");
 
-    public string PrivatePropertyName(Symbol symbol, PrivateIdentifierNode name) =>
-        throw new InvalidOperationException("Probe requires private property names");
+    public string PrivatePropertyName(Symbol symbol, PrivateIdentifierNode name) => PrivateAccess.Name(symbol, name.Text);
 
     public void MissingExplicitAnnotation(Symbol symbol, SyntaxNode declaration) =>
         throw new InvalidOperationException("Probe requires explicit annotation related information");
@@ -180,20 +178,7 @@ internal sealed partial class ProgramTypeHost : IFlowTypeHost, IFlowReferenceHos
         return null;
     }
 
-    public ValueTask<string?> AccessNameAsync(SyntaxNode node, CancellationToken cancellation)
-    {
-        if (node is PropertyAccessExpressionNode property)
-            return ValueTask.FromResult<string?>(SyntaxNameText.Get(property.Name));
-        if (node is ElementAccessExpressionNode element)
-            return element.ArgumentExpression switch
-            {
-                StringLiteralNode literal => ValueTask.FromResult<string?>(literal.Text),
-                NumericLiteralNode literal => ValueTask.FromResult<string?>(literal.Text),
-                NoSubstitutionTemplateLiteralNode literal => ValueTask.FromResult<string?>(literal.Text),
-                _ => throw new InvalidOperationException("Probe requires entity-name element access keys")
-            };
-        throw new InvalidOperationException("Probe requires destructured property names");
-    }
+    public ValueTask<string?> AccessNameAsync(SyntaxNode node, CancellationToken cancellation) => AccessNames.GetAsync(node, cancellation);
 
     public async ValueTask<Type?> FlowPropertyTypeAsync(Type type, string name, bool includeIndex, CancellationToken cancellation)
     {

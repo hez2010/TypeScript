@@ -8,10 +8,11 @@ namespace TypeScript.Compatibility;
 
 // Source-backed member algorithms with explicitly annotated value dependencies.
 // Body inference, computed names, class bases and composite members are not fixtures.
-internal sealed partial class ProgramTypeHost : ISignatureHost, IStructuredMemberHost, IBaseTypeHost, IIndexSignatureHost, ISymbolTypeHost
+internal sealed partial class ProgramTypeHost : ISignatureHost, IStructuredMemberHost, IBaseTypeHost, IIndexSignatureHost, ISymbolTypeHost, IClassBaseHost
 {
     internal Signatures Signatures { get; }
     internal BaseTypes Bases { get; }
+    internal ClassBases ClassBases { get; }
     internal StructuredMembers Members { get; }
     internal IndexSignatures IndexSignatures { get; }
     internal SymbolTypes Values { get; }
@@ -80,30 +81,11 @@ internal sealed partial class ProgramTypeHost : ISignatureHost, IStructuredMembe
         return type is StructuredType structured ? (await Members.ResolveAsync(structured, cancellation)).IndexInfos : [];
     }
 
-    public ValueTask<Type> BaseConstructorAsync(InterfaceType type, CancellationToken cancellation)
-    {
-        if (type.Symbol!.Declarations.OfType<ClassDeclarationNode>().Any(c => c.HeritageClauses is { Count: > 0 }))
-            throw new InvalidOperationException("Probe requires class base constructor checking");
-        return ValueTask.FromResult(type.ResolvedBaseConstructorType ??= context.UndefinedType);
-    }
+    public ValueTask<Type> BaseConstructorAsync(InterfaceType type, CancellationToken cancellation) =>
+        ClassBases.ConstructorAsync(type, cancellation);
 
-    public async ValueTask<IReadOnlyList<Signature>> DefaultConstructorsAsync(InterfaceType type, CancellationToken cancellation)
-    {
-        if (await BaseConstructorAsync(type, cancellation) != context.UndefinedType)
-            throw new InvalidOperationException("Probe requires inherited constructors");
-        var declaration = type.Symbol!.Declarations.OfType<ClassDeclarationNode>().FirstOrDefault();
-        var flags = SignatureFlags.Construct | (declaration is not null
-            && SemanticSyntax.HasModifier(declaration, SyntaxKind.AbstractKeyword)
-            ? SignatureFlags.Abstract
-            : 0);
-        return [context.NewSignature(flags, null, type.AllTypeParameters.Skip(type.OuterTypeParameterCount)
-            .Take(type.AllTypeParameters.Count - type.OuterTypeParameterCount - 1).Cast<TypeParameter>().ToArray(),
-            null,
-            [],
-            type,
-            null,
-            0)];
-    }
+    public ValueTask<IReadOnlyList<Signature>> DefaultConstructorsAsync(InterfaceType type, CancellationToken cancellation) =>
+        ClassBases.DefaultsAsync(type, cancellation);
 
     public ValueTask<Type> DeclaredTypeAsync(Symbol symbol, CancellationToken cancellation) => Declared.GetAsync(symbol, cancellation);
 
@@ -120,8 +102,9 @@ internal sealed partial class ProgramTypeHost : ISignatureHost, IStructuredMembe
     public ValueTask<Type> ApparentAsync(Type type, CancellationToken cancellation) => Views.ApparentAsync(type, cancellation);
 
     public ValueTask<IReadOnlyList<Type>> ClassBasesAsync(InterfaceType type, CancellationToken cancellation) =>
-            type.Symbol!.Declarations.OfType<ClassDeclarationNode>().Any(c => c.HeritageClauses is { Count: > 0 })
-                ? throw new InvalidOperationException("Probe requires class bases") : ValueTask.FromResult<IReadOnlyList<Type>>([]);
+        ClassBases.GetAsync(type, cancellation);
+
+    public void ClassBaseError(SyntaxNode node, int code, Type type) => Error(node, code);
 
     public ValueTask<Type> IndexedAccessAsync(Type objectType, Type indexType, CancellationToken cancellation) =>
             Instantiation.IndexedAccessAsync(objectType, indexType, 0, null, cancellation);
