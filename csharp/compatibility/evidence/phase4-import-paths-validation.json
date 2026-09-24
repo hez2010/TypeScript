@@ -1,0 +1,107 @@
+{
+    "timestamp": "2026-09-24T19:56:12.7957208+00:00",
+    "configuration": "Release",
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "managed": true,
+    "scope": "Import extension, JSON, Node builtin and untyped JavaScript module diagnostics; phase 4 remains incomplete",
+    "candidateSha256": "c244753ee338cb7de1a21a18d211139ff01abdd6e29dbf246332a66882c089e9",
+    "compilerSha256": "e08945bc827d2d7030c355ab3ae042410bb949e035805d28e4ad231afe1db159",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-import-paths-final-build.log",
+        "sha256": "09ae8f10daa3dabc2491f6479873a4da6d63d25a04abdd3fb8691167236602da"
+    },
+    "queries": {
+        "aliases": {
+            "record": "phase4-import-paths-aliases.json",
+            "cases": 124,
+            "exact": 124,
+            "candidateSha256": "c244753ee338cb7de1a21a18d211139ff01abdd6e29dbf246332a66882c089e9",
+            "compilerSha256": "e08945bc827d2d7030c355ab3ae042410bb949e035805d28e4ad231afe1db159"
+        },
+        "type-nodes": {
+            "record": "phase4-import-paths-type-nodes.json",
+            "cases": 192,
+            "exact": 192,
+            "candidateSha256": "c244753ee338cb7de1a21a18d211139ff01abdd6e29dbf246332a66882c089e9",
+            "compilerSha256": "e08945bc827d2d7030c355ab3ae042410bb949e035805d28e4ad231afe1db159"
+        }
+    },
+    "safety": {
+        "assertions": 83,
+        "newAssertions": 3,
+        "checks": [
+            "ESM missing extensions and file-system suggestions",
+            "JSON option diagnostic",
+            "side-effect scripts and wildcard ambient modules",
+            "Node builtin and untyped JavaScript diagnostics",
+            "MTS extension priority",
+            "preserved JSX extension"
+        ],
+        "log": "logs/csharp-phase4-import-paths-safety.log",
+        "sha256": "8b56f24f014848844a0baa15e62327d3a34390741d52419ad7e82be82ac084f9",
+        "referenceFixture": "built/csharp/import-paths-safety-reference.jsonl",
+        "referenceFixtureSha256": "8b030ede35d4179102ffdf7840baab003c3566a8aade704e9e3a74dcf70a3488",
+        "referenceProbe": "Temporary pinned Go program probe selects /project/main.mts; product Go sources are unchanged",
+        "runBeforeWhitespaceFormatting": true
+    },
+    "corpus": {
+        "single": "phase4-import-paths-corpus-single.json",
+        "referenceDefault": "phase4-import-paths-corpus-default.json",
+        "parity": "phase4-import-paths-mode-parity.json",
+        "selectedConfigurationsPerMode": 562,
+        "previousMatches": 475,
+        "graphAndCodeMatches": 523,
+        "recoveredConfigurations": 48,
+        "regressions": [],
+        "cumulative": {
+            "activeConfigurations": 13446,
+            "matches": 12552,
+            "remaining": 894,
+            "failed": 0,
+            "diagnosticMismatches": 893,
+            "graphMismatches": 5,
+            "topStops": []
+        }
+    },
+    "generation": {
+        "generator": "csharp/tools/generate-checker.mjs",
+        "generatorSha256": "e3d363a9230c44d0c74c961d1f1290ac997108a01dbf6834dbef4e2edd61d369",
+        "generated": "csharp/src/TypeScript.Compiler/Checking/NodeCoreModules.generated.cs",
+        "generatedSha256": "852975ae67fdb0cda5f32be30544acfb4cc047a85fb8c66378259d7f04f2a3d4",
+        "source": "tsc/internal/core/nodemodules.go",
+        "sourceSha256": "48f2b6c2cade9277da82ea9cb8153cd5a7a6b42cc819500029106d9430739879",
+        "regenerationExitCode": 0,
+        "freshnessExitCode": 0,
+        "generatorFormatExitCode": 0
+    },
+    "formatting": {
+        "csharpFiles": 5,
+        "tokenCommentSyntaxIdentical": true,
+        "libraryConfigurations": 2,
+        "dotnetWhitespaceExitCode": 0,
+        "diffCheckExitCode": 0,
+        "proofLog": "logs/csharp-phase4-import-paths-format.log",
+        "proofSha256": "d2da1dc7e59c151d8aebc8e4f7176c76fbf9ca0242c136e966aa5f44c6e3bac9"
+    },
+    "reusedValidation": {
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "repositoryCommand": "npx hereby validate --all",
+        "repositoryExitCode": 0,
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "retainedInitialSingleModeCases": 518,
+        "reason": "User directed reuse of unchanged results. The reference corpus and Go/main repository validation were reused. The changed C# generator was executed, freshness checked and its output compiled. Only 44 cases affected by the Node builtin and resolved-module follow-up needed another single-mode replay."
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "phase4Complete": false
+}

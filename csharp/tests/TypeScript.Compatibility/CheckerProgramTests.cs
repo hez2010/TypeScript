@@ -380,7 +380,53 @@ internal static class CheckerProgramTests
         checks += await DisposableSafety();
         checks += await ImportSafety();
         checks += await DeclarationSafety();
+        checks += await ImportPathSafety();
         Console.WriteLine($"{checks} program/checker ownership assertions; interface and scope depth 20000");
+    }
+
+    private static async Task<int> ImportPathSafety()
+    {
+        const string source = """
+            import { value } from './dep';
+            import { view } from './view';
+            import './absent';
+            import './data.json';
+            import './dep.ts';
+            import './script.js';
+            import './theme.asset';
+            import fs = require('fs');
+            import 'fs';
+            import untyped from 'untyped';
+            """;
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("module", "\"node16\"");
+        options.SetRaw("jsx", "\"preserve\"");
+        options.SetRaw("strict", "true");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        {
+            ["/project/main.mts"] = Wtf8.Encode(source),
+            ["/project/globals.d.ts"] = Wtf8.Encode("declare module '*.asset' {}"),
+            ["/project/dep.ts"] = Wtf8.Encode("export const value = 1;"),
+            ["/project/dep.mts"] = Wtf8.Encode("export const value = 1;"),
+            ["/project/view.tsx"] = Wtf8.Encode("export const view = 1;"),
+            ["/project/script.ts"] = Wtf8.Encode("const value = 1;"),
+            ["/project/node_modules/untyped/index.js"] = Wtf8.Encode("exports.value = 1;"),
+            ["/project/node_modules/untyped/package.json"] = Wtf8.Encode(
+                "{\"name\":\"untyped\",\"version\":\"1.0.0\",\"main\":\"index.js\"}"),
+            ["/project/data.json"] = Wtf8.Encode("{}")
+        }), "/project", new("/project/tsconfig.json", options, ["/project/main.mts", "/project/globals.d.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var file = program.GetFile("/project/main.mts")!.Syntax;
+        await checker.CheckSourceFileAsync(file);
+        var codes = checker.DiagnosticCodesForFile(file);
+        if (!codes.SequenceEqual([2591, 2732, 2834, 2835, 2835, 2882, 7016]))
+            throw new InvalidOperationException($"Import path diagnostics: {string.Join(',', codes)}");
+        if (checker.SuggestedImportExtension("/project/dep") != ".mjs")
+            throw new InvalidOperationException("Import extension priority changed");
+        if (checker.SuggestedImportExtension("/project/view") != ".jsx")
+            throw new InvalidOperationException("Preserved JSX extension changed");
+        return 3;
     }
 
     private static async Task<int> DeclarationSafety()

@@ -1,5 +1,7 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
+using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -69,10 +71,95 @@ internal sealed partial class Checker
             }
         }
         if (module is null)
-            program.AliasDiagnostic(
-                reference?.Resolution.IsResolved == true ? 2306 : missingModuleCode,
-                implicitImport ? location : specifier!);
+            ReportUnresolvedImport(implicitImport ? location : specifier!, name, file, reference, missingModuleCode);
         return program.Symbols.Merger.GetMergedSymbol(module);
+    }
+
+    private void ReportUnresolvedImport(SyntaxNode node, string name, SourceFileNode file,
+        Programs.ModuleReference? reference, int missingModuleCode)
+    {
+        bool sideEffect = node.Parent is ImportDeclarationNode { ImportClause: null };
+        var compiler = program.Symbols.Program;
+        if (reference?.Resolution.IsResolved == true)
+        {
+            var resolved = reference.Resolution;
+            if (compiler.GetFile(resolved.FileName) is not null)
+            {
+                if (!sideEffect)
+                    program.Error(node, Messages.File_0_is_not_a_module, resolved.FileName);
+                return;
+            }
+            if (JsxMode == 0 && resolved.Extension is ".jsx" or ".tsx")
+                return;
+            if (resolved.Extension is ".js" or ".jsx" or ".mjs" or ".cjs")
+            {
+                if (missingModuleCode == 2664)
+                    program.Error(
+                        node,
+                        Messages.Invalid_module_name_in_augmentation_Module_0_resolves_to_an_untyped_module_at_1_which_cannot_be_augmented,
+                        name,
+                        resolved.FileName);
+                else if (!sideEffect)
+                {
+                    if (NoImplicitAny)
+                        program.Error(
+                            node,
+                            Messages.Could_not_find_a_declaration_file_for_module_0_1_implicitly_has_an_any_type,
+                            name,
+                            resolved.FileName);
+                    else
+                        program.Suggestion(node, 7016, name);
+                }
+                return;
+            }
+        }
+        bool resolveJson = compiler.Configuration.Options.Boolean("resolveJsonModule")
+            ?? (compiler.ModuleResolutionKind == "bundler" || ModuleKind is 102 or 199);
+        if (!resolveJson && name.EndsWith(".json", StringComparison.Ordinal))
+        {
+            program.Error(node, Messages.Cannot_find_module_0_Consider_using_resolveJsonModule_to_import_module_with_json_extension, name);
+            return;
+        }
+        string normalized = CompilerPath.NormalizeSlashes(name);
+        bool relative = normalized is "." or ".." || normalized.StartsWith("./", StringComparison.Ordinal)
+            || normalized.StartsWith("../", StringComparison.Ordinal);
+        if (reference?.Mode == ReferenceResolutionMode.Import && compiler.ModuleResolutionKind is "node16" or "nodenext"
+            && relative && CompilerPath.Extension(normalized).Length == 0)
+        {
+            string path = CompilerPath.Resolve(CompilerPath.DirectoryName(file.FileName), name);
+            if (SuggestedImportExtension(path) is { Length: > 0 } extension)
+            {
+                program.Error(
+                    node,
+                    Messages.Relative_import_paths_need_explicit_file_extensions_in_ECMAScript_imports_when_moduleResolution_is_node16_or_nodenext_Did_you_mean_0,
+                    name + extension);
+                return;
+            }
+            program.Error(
+                node,
+                Messages.Relative_import_paths_need_explicit_file_extensions_in_ECMAScript_imports_when_moduleResolution_is_node16_or_nodenext_Consider_adding_an_extension_to_the_import_path);
+            return;
+        }
+        if (!sideEffect && missingModuleCode == 2307 && node is StringLiteralNode && NodeCoreModules.Contains(name))
+            missingModuleCode = compiler.Configuration.Options.Strings("types")?.Contains("*", StringComparer.Ordinal) == true
+                ? 2580
+                : 2591;
+        program.Error(node, DiagnosticLocalization.GetMessage(sideEffect && missingModuleCode == 2307 ? 2882 : missingModuleCode), name);
+    }
+
+    internal string SuggestedImportExtension(string path)
+    {
+        foreach (var extension in new[] { ".mts", ".ts", ".cts", ".mjs", ".js", ".cjs", ".tsx", ".jsx", ".json" })
+            if (program.Symbols.Program.FileExists(path + extension))
+                return extension switch
+                {
+                    ".mts" => ".mjs",
+                    ".cts" => ".cjs",
+                    ".ts" => ".js",
+                    ".tsx" => JsxMode == 1 ? ".jsx" : ".js",
+                    _ => extension
+                };
+        return "";
     }
 
     private void CheckResolvedImport(SyntaxNode location, SyntaxNode specifier, string name, SourceFileNode source,

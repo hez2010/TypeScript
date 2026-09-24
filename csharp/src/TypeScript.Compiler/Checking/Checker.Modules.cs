@@ -237,11 +237,7 @@ internal sealed partial class Checker
         }
         else if (program.Symbols.Program.Configuration.Options.Boolean("noUncheckedSideEffectImports") != false)
         {
-            var file = program.Symbols.Program.GetFile(SemanticSyntax.Source(node)!.FileName)!;
-            var reference = file.Resolutions.FirstOrDefault(r => r.Node == node.ModuleSpecifier);
-            string name = ((StringLiteralNode)node.ModuleSpecifier!).Text;
-            if (reference?.Resolution.IsResolved != true && !program.Symbols.Globals.ContainsKey('"' + name + '"'))
-                Error(node.ModuleSpecifier, 2882);
+            await program.ExternalModuleAsync(node, node.ModuleSpecifier, node.Attributes, cancellation).ConfigureAwait(false);
         }
     }
 

@@ -1,0 +1,65 @@
+{
+    "timestamp": "2026-09-24T19:54:06.444Z",
+    "mode": "single",
+    "configuration": "Release",
+    "selectedConfigurations": 562,
+    "replayedConfigurations": 44,
+    "retainedConfigurations": 518,
+    "previousMatches": 475,
+    "graphAndCodeMatches": 523,
+    "recoveredConfigurations": 48,
+    "regressions": [],
+    "scope": "Import extension, JSON, Node builtin and untyped JavaScript module diagnostics; full phase 4 remains incomplete",
+    "parts": [
+        {
+            "directory": "built/csharp/semantic-corpus-import-paths-followup/single",
+            "summary": {
+                "timestamp": "2026-09-24T19:53:03.512Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "mode": "single",
+                "filter": "",
+                "managed": true,
+                "reuseSyntax": true,
+                "referenceJobs": 4,
+                "scope": "Original compiler test program graphs and semantic diagnostic codes; full diagnostic/type/symbol fidelity and parallel candidate checker scheduling remain incomplete",
+                "referenceExitCode": 0,
+                "exportedConfigurations": 15208,
+                "readyConfigurations": 44,
+                "availableConfigurations": 13446,
+                "selectionSha256": "03c22c72bbdb17a7acf9e22ee761e9447931dff4b6daa29422b70e4e941962c6",
+                "referenceInventoryFiles": 12730,
+                "plannedConfigurations": 15208,
+                "referenceMissingFiles": [],
+                "referenceMissingConfigurations": [],
+                "referenceSkipped": 1762,
+                "referenceFailed": 0,
+                "candidateFailures": 0,
+                "graphMismatches": 0,
+                "diagnosticMismatches": 4,
+                "graphAndCodeMatches": 40,
+                "errorGroups": [],
+                "inputSha256": "63befffd43c6e1a36331426b4dd2f3b01e4002f3d7f124c3da66f30a33a5c180",
+                "oracleSha256": "072ce20500e1dfa626e6029e8ba98ed84b925a304216116200dd33d97f54654a",
+                "candidateSha256": "c244753ee338cb7de1a21a18d211139ff01abdd6e29dbf246332a66882c089e9",
+                "compilerSha256": "e08945bc827d2d7030c355ab3ae042410bb949e035805d28e4ad231afe1db159",
+                "candidateOutputSha256": "9b82198d406060359222c49488a1727a7fc6bae8f8ac66a14413231eb47ee145",
+                "fullSemanticCorpusGateComplete": false
+            },
+            "outputSha256": "9b82198d406060359222c49488a1727a7fc6bae8f8ac66a14413231eb47ee145"
+        },
+        {
+            "retainedFrom": "built/csharp/semantic-corpus-import-paths/single/candidate.jsonl",
+            "retainedOutputSha256": "e1e526bbbe33519308be1c7ab34d943e671787e8c5ea53e1f4b3f942d094537f",
+            "reason": "These 518 cases do not have the resolved-file or missing Node-type diagnostics affected by the follow-up fixes"
+        }
+    ],
+    "cumulative": {
+        "activeConfigurations": 13446,
+        "matches": 12552,
+        "remaining": 894,
+        "failed": 0,
+        "diagnosticMismatches": 893,
+        "graphMismatches": 5,
+        "topStops": []
+    }
+}

@@ -42,6 +42,8 @@ public sealed record ProgramFile(SourceFileNode Syntax, BoundSourceFile Binding,
 public sealed partial class CompilerProgram
 {
     private readonly Dictionary<string, ProgramFile> files;
+    private readonly IFileSystem fileSystem;
+    internal string ModuleResolutionKind { get; }
     public IReadOnlyList<ProgramFile> SourceFiles { get; }
     public IReadOnlyList<string> RootFileNames { get; }
     public IReadOnlyList<Diagnostic> Diagnostics { get; }
@@ -56,6 +58,8 @@ public sealed partial class CompilerProgram
     private CompilerProgram(Builder builder, ProgramFile[] ordered)
     {
         files = builder.files;
+        fileSystem = builder.fs;
+        ModuleResolutionKind = builder.ResolutionKind;
         SourceFiles = Array.AsReadOnly(ordered);
         Configuration = builder.config;
         RootFileNames = Array.AsReadOnly(builder.config.FileNames.ToArray());
@@ -85,6 +89,8 @@ public sealed partial class CompilerProgram
         }
         return files.GetValueOrDefault(path);
     }
+
+    internal bool FileExists(string path) => fileSystem.FileExists(path);
 
     public static ValueTask<CompilerProgram> CreateAsync(IFileSystem fileSystem, string currentDirectory, ParsedConfig config,
         CompilerProgram? previous = null, bool useProjectReferenceSources = false, int concurrency = 4,
@@ -168,6 +174,8 @@ public sealed partial class CompilerProgram
             diagnostics.AddRange(config.Diagnostics);
             diagnostics.AddRange(references.Diagnostics);
         }
+
+        internal string ResolutionKind => Resolver(config).ResolutionKind;
 
         private ModuleResolver Resolver(ParsedConfig project)
         {

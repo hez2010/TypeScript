@@ -4,9 +4,9 @@
 
 ## Current overall status
 
-The complete Release import baseline plus subsequent affected-case results record **12,504 matches out of 13,446 active compiler configurations**, up from 12,489 before mapped-program integration and 9,365 at the original Release baseline. **All 13,446 configurations now finish execution.** **942 configurations still do not match**: 941 have diagnostic-code differences and five have source-graph differences, with four overlapping those categories. There are no remaining recorded checker or test-host execution stops in this corpus.
+The complete Release import baseline plus subsequent affected-case results record **12,552 matches out of 13,446 active compiler configurations**, up from 12,504 before import-path diagnostics and 9,365 at the original Release baseline. **All 13,446 configurations now finish execution.** **894 configurations still do not match**: 893 have diagnostic-code differences and five have source-graph differences, with four overlapping those categories. There are no remaining recorded checker or test-host execution stops in this corpus.
 
-These comparisons cover source graphs and diagnostic codes. **93.0% matching on this measure is not a Phase-4 completion percentage.** Complete diagnostic text, locations and related information; full type/symbol comparison; type display, node builders, accessibility and emit-resolver APIs; parallel checker validation; and the final memory/performance gates remain unfinished. Phase 4 is not nearly complete, and the evidence does not yet support a reliable completion estimate.
+These comparisons cover source graphs and diagnostic codes. **93.4% matching on this measure is not a Phase-4 completion percentage.** Complete diagnostic text, locations and related information; full type/symbol comparison; type display, node builders, accessibility and emit-resolver APIs; parallel checker validation; and the final memory/performance gates remain unfinished. Phase 4 is not nearly complete, and the evidence does not yet support a reliable completion estimate.
 
 The next implementation priorities are remaining declaration/expression checks and diagnostic fidelity. The sections below are historical implementation checkpoints; their individual passing counts do not represent whole-phase completion.
 
@@ -798,6 +798,14 @@ Mapper project opening now receives the full project options, while transform id
 All **15 mapped configurations match source graphs and diagnostic codes in both reference modes**, closing the final corpus execution stops. The Release build has zero warnings and errors. Mapper-host safety passes **44 assertions**, including the added full-options/declared-identity check; program/checker safety passes **80 assertions**. Formatting preserved tokens, comments and syntax in four C# files. The original reference corpus and unchanged Go/main repository validation were reused. These checks cover semantic processing, not phase-5 declaration emission. NativeAOT remains deferred until final phase-4 completion.
 
 Evidence: [single-mode corpus](../csharp/compatibility/evidence/phase4-mapped-corpus-single.json), [reference-default corpus](../csharp/compatibility/evidence/phase4-mapped-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-mapped-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-mapped-programs-validation.json).
+
+## Import paths and unresolved modules
+
+Missing relative ESM imports under Node16/NodeNext resolution now receive extension diagnostics, using the resolved usage mode and the reference's ordered file probes. Suggestions preserve `.mjs`, `.cjs` and JSX output extensions. JSON imports report the missing option when appropriate. Side-effect imports use the same resolution path, recognize ambient wildcard modules and permit resolved script targets. Untyped JavaScript modules produce implicit-any diagnostics or suggestions instead of a false "not a module" error. Missing Node built-ins use the Node type-definition message; the built-in name set is generated from the pinned source.
+
+Release validation covers **562 configurations per reference mode**, increasing graph/code matches from **475 to 523**, with **48 recovered configurations and no regressions**. After the Node/untyped-module follow-up, 518 unaffected single-mode results were retained and 44 were replayed. Both modes agree. Alias/type-node queries pass **316 configurations**, and program/checker safety passes **83 assertions**, including three new checks backed by a pinned-Go `.mts` fixture. The final Release build has zero warnings and errors. Generated data freshness and formatting pass. Unchanged reference and repository validation was reused; NativeAOT remains deferred until final phase-4 completion.
+
+Evidence: [single-mode corpus](../csharp/compatibility/evidence/phase4-import-paths-corpus-single.json), [reference-default corpus](../csharp/compatibility/evidence/phase4-import-paths-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-import-paths-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-import-paths-validation.json).
 
 ## Remaining completion work
 

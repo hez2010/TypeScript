@@ -1,0 +1,60 @@
+{
+    "timestamp": "2026-09-24T19:54:07.957Z",
+    "mode": "default",
+    "configuration": "Release",
+    "selectedConfigurations": 562,
+    "replayedConfigurations": 562,
+    "retainedConfigurations": 0,
+    "previousMatches": 475,
+    "graphAndCodeMatches": 523,
+    "recoveredConfigurations": 48,
+    "regressions": [],
+    "scope": "Import extension, JSON, Node builtin and untyped JavaScript module diagnostics; full phase 4 remains incomplete",
+    "parts": [
+        {
+            "directory": "built/csharp/semantic-corpus-import-paths/default",
+            "summary": {
+                "timestamp": "2026-09-24T19:53:15.823Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "mode": "default",
+                "filter": "",
+                "managed": true,
+                "reuseSyntax": true,
+                "referenceJobs": 4,
+                "scope": "Original compiler test program graphs and semantic diagnostic codes; full diagnostic/type/symbol fidelity and parallel candidate checker scheduling remain incomplete",
+                "referenceExitCode": 0,
+                "exportedConfigurations": 15208,
+                "readyConfigurations": 562,
+                "availableConfigurations": 13446,
+                "selectionSha256": "c1e4283386e05b62ddf75df68d52c66133fe31fe607fecd128049a61e86cd99c",
+                "referenceInventoryFiles": 12730,
+                "plannedConfigurations": 15208,
+                "referenceMissingFiles": [],
+                "referenceMissingConfigurations": [],
+                "referenceSkipped": 1762,
+                "referenceFailed": 0,
+                "candidateFailures": 0,
+                "graphMismatches": 1,
+                "diagnosticMismatches": 39,
+                "graphAndCodeMatches": 523,
+                "errorGroups": [],
+                "inputSha256": "1021223d26cfedad8b1989a152ffb776bc54750978c457480fc0a0bb8f8bb3bf",
+                "oracleSha256": "072ce20500e1dfa626e6029e8ba98ed84b925a304216116200dd33d97f54654a",
+                "candidateSha256": "c244753ee338cb7de1a21a18d211139ff01abdd6e29dbf246332a66882c089e9",
+                "compilerSha256": "e08945bc827d2d7030c355ab3ae042410bb949e035805d28e4ad231afe1db159",
+                "candidateOutputSha256": "5f33ebc32f499e44c9e372f3b97db655082fb286b5592be71f34237f07419b55",
+                "fullSemanticCorpusGateComplete": false
+            },
+            "outputSha256": "5f33ebc32f499e44c9e372f3b97db655082fb286b5592be71f34237f07419b55"
+        }
+    ],
+    "cumulative": {
+        "activeConfigurations": 13446,
+        "matches": 12552,
+        "remaining": 894,
+        "failed": 0,
+        "diagnosticMismatches": 893,
+        "graphMismatches": 5,
+        "topStops": []
+    }
+}
