@@ -1,0 +1,85 @@
+{
+    "timestamp": "2026-09-24T18:04:02.8323127+00:00",
+    "configuration": "Release",
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "managed": true,
+    "scope": "Late computed index signatures, property-name types, dynamic class index constraints and type-literal index grammar; full phase 4 remains incomplete",
+    "finalBuildCandidateSha256": "7a6f800776fbd78c507e83f25e9ff2062e1ba77089453bacd985aef6121d67c0",
+    "finalBuildCompilerSha256": "4e11bd977651304a76776a7b1289e5415f9eec2cadc9ac2c95917d09fdc90b63",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-late-index-build.log",
+        "sha256": "924886a8724d86e521471b022758577d8dbf8abdc2d73e81a713f5dac2dd89a8"
+    },
+    "queries": {
+        "indexing": {
+            "record": "phase4-late-index-indexing.json",
+            "cases": 320,
+            "exact": 320,
+            "candidateSha256": "7a6f800776fbd78c507e83f25e9ff2062e1ba77089453bacd985aef6121d67c0",
+            "compilerSha256": "4e11bd977651304a76776a7b1289e5415f9eec2cadc9ac2c95917d09fdc90b63"
+        },
+        "members": {
+            "record": "phase4-late-index-members.json",
+            "cases": 176,
+            "exact": 176,
+            "candidateSha256": "7a6f800776fbd78c507e83f25e9ff2062e1ba77089453bacd985aef6121d67c0",
+            "compilerSha256": "4e11bd977651304a76776a7b1289e5415f9eec2cadc9ac2c95917d09fdc90b63"
+        }
+    },
+    "safety": {
+        "indexAssertions": 31,
+        "newAssertions": 7,
+        "checks": [
+            "computed string/number/symbol index key and value types",
+            "sibling property inclusion/exclusion",
+            "readonly number index",
+            "cancellation and rollback",
+            "late-name grammar acceptance",
+            "source-parent preservation"
+        ],
+        "log": "logs/csharp-phase4-late-index-safety.log",
+        "runBeforeWhitespaceFormatting": true
+    },
+    "corpus": {
+        "single": "phase4-late-index-corpus-single.json",
+        "referenceDefault": "phase4-late-index-corpus-default.json",
+        "parity": "phase4-late-index-mode-parity.json",
+        "selectedConfigurationsPerMode": 4117,
+        "previousMatches": 3547,
+        "graphAndCodeMatches": 3658,
+        "recoveredConfigurations": 111,
+        "regressions": []
+    },
+    "formatting": {
+        "csharpFiles": 7,
+        "tokenCommentSyntaxIdentical": true,
+        "libraryConfigurations": 2,
+        "dotnetWhitespaceExitCode": 0,
+        "diffCheckExitCode": 0,
+        "proofLog": "logs/csharp-phase4-late-index-format.log",
+        "proofSha256": "dd15fe3a07eacde7304b0a78164d1fff764fec9df0fa38c75f26c1736d746737"
+    },
+    "reusedValidation": {
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "repositoryCommand": "npx hereby validate --all",
+        "repositoryExitCode": 0,
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            "csharp/tools",
+            ".github/copilot-instructions.md"
+        ],
+        "reason": "User directed reuse of unchanged validation results. Go product code, repository tooling and checker generators are unchanged. Only affected computed/indexed/member/compiler cases were replayed. The successful safety result was retained after whitespace-only formatting.",
+        "fullBaseline": "phase4-import-corpus-single.json",
+        "previousAffectedBaseline": "phase4-jsx-corpus-single.json"
+    },
+    "nativeAotVerification": "Deferred until final completion per user instruction; no NativeAOT build or execution",
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "phase4Complete": false
+}

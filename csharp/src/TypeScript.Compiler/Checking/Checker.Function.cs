@@ -48,6 +48,8 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
                 }
                 else if (item.Node is TypeLiteralNode literal)
                     await IndexDeclarationChecks.TypeLiteralAsync(literal, cancellation);
+                else if (item.Node is IndexSignatureDeclarationNode index)
+                    await CheckIndexSignatureSourceAsync(index, cancellation);
                 if (item.Node is InferTypeNode)
                     RegisterUnused(item.Node);
                 else if (item.Node is FunctionTypeNode or ConstructorTypeNode or MethodSignatureDeclarationNode

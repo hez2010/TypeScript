@@ -116,20 +116,28 @@ internal sealed partial class Checker : ISignatureHost, IStructuredMemberHost, I
 
     public void InvalidInterfaceBase(SyntaxNode declaration) => Error(declaration, 2312);
 
-    public ValueTask<bool> LateIndexAsync(SyntaxNode declaration, CancellationToken cancellation) =>
-            throw new InvalidOperationException("Checker requires late index binding");
+    public async ValueTask<bool> LateIndexAsync(SyntaxNode declaration, CancellationToken cancellation) =>
+        LateMembers.Name(declaration) is { } name && LateMembers.LateSyntax(name)
+            && await LateIndexTypeAsync(await ComputedKeyAsync(declaration, cancellation), cancellation);
 
     public ValueTask<Type> ComputedKeyAsync(SyntaxNode declaration, CancellationToken cancellation) =>
-            throw new InvalidOperationException("Checker requires computed keys");
+        LateMembers.Name(declaration) is ElementAccessExpressionNode element ? CachedExpressionAsync(
+            element.ArgumentExpression!,
+            0,
+            cancellation)
+            : ComputedNameAsync((ComputedPropertyNameNode)LateMembers.Name(declaration)!, cancellation);
 
     public ValueTask<bool> AssignableAsync(Type source, Type target, CancellationToken cancellation) =>
         Relations.RelatedAsync(source, target, RelationKind.Assignable, cancellation);
 
-    public ValueTask<bool> SymbolNameAsync(Symbol symbol, CancellationToken cancellation) =>
-            throw new InvalidOperationException("Checker requires symbol name evaluation");
+    public async ValueTask<bool> SymbolNameAsync(Symbol symbol, CancellationToken cancellation) =>
+        symbol.Name.StartsWith(Symbol.InternalPrefix + "@", StringComparison.Ordinal)
+            || symbol.Declarations.FirstOrDefault() is INamedNode { Name: ComputedPropertyNameNode name }
+                && await AssignableKindAsync(await ComputedNameAsync(name, cancellation), TypeFlags.ESSymbol, cancellation);
 
-    public ValueTask<bool> NumericNameAsync(Symbol symbol, CancellationToken cancellation) =>
-            throw new InvalidOperationException("Checker requires numeric name evaluation");
+    public async ValueTask<bool> NumericNameAsync(Symbol symbol, CancellationToken cancellation) =>
+        IndexSignatures.NumericName(symbol.Name) || symbol.Declarations.FirstOrDefault() is INamedNode { Name: ComputedPropertyNameNode name }
+            && await AssignableKindAsync(await ComputedNameAsync(name, cancellation), TypeFlags.Number, cancellation);
 
     public ValueTask<Type> SymbolTypeAsync(Symbol symbol, CancellationToken cancellation) => Values.GetAsync(symbol, cancellation);
 

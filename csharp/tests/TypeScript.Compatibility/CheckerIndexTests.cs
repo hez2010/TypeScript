@@ -115,7 +115,65 @@ internal static class CheckerIndexTests
             deepKeys = context.NewIntersectionType([deepKeys]);
         Check(TypeKeys.KeyIncluded(deepKeys, TypeFlags.String));
         Check(!TypeKeys.KeyIncluded(deepKeys, TypeFlags.Number));
+        checks += await ComputedIndexSafety();
         Console.WriteLine($"Checker indexed type safety: {checks} assertions; 20,000-level simplification and key traversal");
+    }
+
+    private static async Task<int> ComputedIndexSafety()
+    {
+        const string source = """
+            interface Array<T> { length: number; [n: number]: T; }
+            declare const textKey: string, numberKey: number, symbolKey: symbol;
+            class Strings { [textKey] = 1; named = 'text'; }
+            class Numbers { readonly [numberKey] = 1; 1 = 'text'; other = true; }
+            class Symbols { [symbolKey] = true; other = 1; }
+            """;
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        options.SetRaw("target", "\"esnext\"");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        { ["/project/main.ts"] = Wtf8.Encode(source) }),
+            "/project",
+            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var file = program.SourceFiles[0].Syntax;
+        var nodes = file.DescendantsAndSelf().ToArray();
+        var parents = nodes.Select(n => n.Parent).ToArray();
+        var stringType = await checker.Declared.GetAsync(checker.Symbols.Globals["Strings"]);
+        int tables = checker.LateMembers.CachedTableCount;
+        checker.BeforeExpressionFinish = () => throw new OperationCanceledException();
+        try
+        {
+            await checker.IndexesAsync(stringType, default);
+            throw new InvalidOperationException("Computed key cancellation ignored");
+        }
+        catch (OperationCanceledException) { }
+        checker.BeforeExpressionFinish = null;
+        if (checker.LateMembers.CachedTableCount != tables || checker.Instantiation.Resolutions.Count != 0)
+            throw new InvalidOperationException("Computed index cancellation left partial state");
+        var strings = (await checker.IndexesAsync(stringType, default)).Single();
+        if (strings.KeyType != checker.Context.StringType || strings.IsReadonly
+            || !checker.Predicates.Maybe(strings.ValueType, TypeFlags.NumberLike, default)
+            || !checker.Predicates.Maybe(strings.ValueType, TypeFlags.StringLike, default))
+            throw new InvalidOperationException("Computed string index lost sibling property types");
+        var numbers = (await checker.IndexesAsync(await checker.Declared.GetAsync(checker.Symbols.Globals["Numbers"]), default)).Single();
+        if (numbers.KeyType != checker.Context.NumberType || !numbers.IsReadonly
+            || !checker.Predicates.Maybe(numbers.ValueType, TypeFlags.NumberLike, default)
+            || !checker.Predicates.Maybe(numbers.ValueType, TypeFlags.StringLike, default)
+            || checker.Predicates.Maybe(numbers.ValueType, TypeFlags.BooleanLike, default))
+            throw new InvalidOperationException("Computed number index classification or readonly flag changed");
+        var symbols = (await checker.IndexesAsync(await checker.Declared.GetAsync(checker.Symbols.Globals["Symbols"]), default)).Single();
+        if (symbols.KeyType != checker.Context.ESSymbolType || symbols.IsReadonly
+            || !checker.Predicates.Maybe(symbols.ValueType, TypeFlags.BooleanLike, default)
+            || checker.Predicates.Maybe(symbols.ValueType, TypeFlags.NumberLike, default))
+            throw new InvalidOperationException("Computed symbol index included a string-named property");
+        await checker.CheckSourceFileAsync(file);
+        if (checker.DiagnosticCodesForFile(file).Count != 0)
+            throw new InvalidOperationException("Computed key grammar rejected late-bound names");
+        if (!nodes.Select(n => n.Parent).SequenceEqual(parents))
+            throw new InvalidOperationException("Computed index checking changed source parents");
+        return 7;
     }
 
     internal static async Task WriteAsync(Utf8JsonWriter writer, IReadOnlyList<SyntaxNode> nodes, Checker host,

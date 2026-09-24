@@ -1,0 +1,22 @@
+{
+    "timestamp": "2026-09-24T18:04:01.340Z",
+    "mode": "default",
+    "configuration": "Release",
+    "selectedConfigurations": 4117,
+    "previousMatches": 3547,
+    "graphAndCodeMatches": 3658,
+    "recoveredConfigurations": 111,
+    "regressions": [],
+    "parts": [
+        {
+            "directory": "built/csharp/semantic-corpus-late-index-affected/default",
+            "configurations": 4117,
+            "candidateSha256": "7a6f800776fbd78c507e83f25e9ff2062e1ba77089453bacd985aef6121d67c0",
+            "compilerSha256": "4e11bd977651304a76776a7b1289e5415f9eec2cadc9ac2c95917d09fdc90b63",
+            "outputSha256": "b01ff1d50e02e1ee4b4a9f016b3f64260aecc169f0d2e2bc19b31bfa74f1a11d",
+            "selectionSha256": "32e7cb2dc248b69c068b8222a1294e0a7af654aa3a377501eed2deb784ab4a72"
+        }
+    ],
+    "scope": "Late computed index signatures, property-name types, dynamic class index constraints and type-literal index grammar; full phase 4 remains incomplete.",
+    "nativeAotVerification": "Deferred until final completion per user instruction"
+}

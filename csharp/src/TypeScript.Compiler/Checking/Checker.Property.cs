@@ -52,19 +52,28 @@ internal sealed partial class Checker : ITypePropertyHost, ITypeViewHost, ICompo
 
     public async ValueTask<Type> PropertyNameTypeAsync(Symbol symbol, CancellationToken cancellation)
     {
+        symbol = await LateMembers.SymbolAsync(symbol, cancellation);
         if (links.Values.Get(symbol).NameType is { } cached)
             return (cached.Flags & TypeFlags.StringOrNumberLiteralOrUnique) != 0 ? cached : context.NeverType;
-        var name = (symbol.ValueDeclaration as INamedNode)?.Name;
-        return name switch
+        var name = symbol.ValueDeclaration is { } declaration ? LateMembers.Name(declaration) : null;
+        var type = name switch
         {
             NumericLiteralNode numeric => ((LiteralType)await LiteralExpressionAsync(numeric, cancellation)).RegularType!,
             PrivateIdentifierNode => context.NeverType,
             StringLiteralNode text => context.GetStringLiteralType(text.Text),
             IdentifierNode identifier => context.GetStringLiteralType(identifier.Text),
             JsxNamespacedNameNode namespaced => context.GetStringLiteralType(JsxName(namespaced)),
+            NoSubstitutionTemplateLiteralNode template => context.GetStringLiteralType(template.Text),
+            ComputedPropertyNameNode computed => await Algebra.RegularTypeAsync(
+                await ComputedNameAsync(computed, cancellation),
+                cancellation),
+            ElementAccessExpressionNode or PropertyAccessExpressionNode or BigIntLiteralNode => await Algebra.RegularTypeAsync(
+                await Expressions.CheckAsync(name, cancellation: cancellation),
+                cancellation),
             null when !symbol.Name.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal) => context.GetStringLiteralType(symbol.Name),
-            _ => throw new InvalidOperationException("Checker requires computed property name types")
+            _ => context.NeverType
         };
+        return (type.Flags & TypeFlags.StringOrNumberLiteralOrUnique) != 0 ? type : context.NeverType;
     }
 
     public ValueTask<Type> ParameterTypeAsync(Symbol parameter, CancellationToken cancellation) =>

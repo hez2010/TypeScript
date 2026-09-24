@@ -135,7 +135,7 @@ internal sealed partial class Checker
         }
         if (node.Name is ComputedPropertyNameNode computed
             && (await ComputedNameAsync(computed, cancellation).ConfigureAwait(false)).Flags is var flags
-            && (flags & TypeFlags.StringOrNumberLiteralOrUnique) == 0)
+            && (flags & TypeFlags.StringOrNumberLiteralOrUnique) == 0 && !LateMembers.LateSyntax(computed))
         {
             Error(node.Name, 1166);
             return;

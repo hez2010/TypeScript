@@ -213,9 +213,9 @@ internal sealed class LateMembers(CheckerSymbols symbols, CheckerLinks links, IL
 
     private Symbol? Raw(SyntaxNode node) => symbols.Binding(node)?.Get(node)?.Symbol;
 
-    private static SyntaxNode? Name(SyntaxNode node) => node is BinaryExpressionNode binary ? binary.Left : (node as INamedNode)?.Name;
+    internal static SyntaxNode? Name(SyntaxNode node) => node is BinaryExpressionNode binary ? binary.Left : (node as INamedNode)?.Name;
 
-    private static bool LateSyntax(SyntaxNode name) => name switch
+    internal static bool LateSyntax(SyntaxNode name) => name switch
     {
         ComputedPropertyNameNode computed => ConstantEvaluator.EntityName(computed.Expression!),
         ElementAccessExpressionNode element => ConstantEvaluator.EntityName(element.ArgumentExpression!),
