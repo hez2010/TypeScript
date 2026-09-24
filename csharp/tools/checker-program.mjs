@@ -1011,6 +1011,23 @@ for (const input of cases.filter(c => c.name.startsWith("identifiers:classQuery"
     input.values = true;
     input.signatures = true;
 }
+for (const strict of [false, true]) {
+    for (
+        const [name, pair] of Object.entries({
+            defaultObject: ["const value={n:1};export=value;", "import value from './dep'; __expr(value); __expr(value.n);"],
+            namedObject: ["const value={n:1};export=value;", "import {n} from './dep'; __expr(n);"],
+            namespaceFunction: ["function f(value:number){return value;}export=f;", "import * as ns from './dep'; __expr(ns); __expr(ns.default);"],
+            namespaceDefault: ["export default {n:1};export const value='text';", "import * as ns from './dep'; __expr(ns); __expr(ns.default); __expr(ns.value);"],
+            defaultFunction: ["function f(value:number){return value;}export=f;", "import f from './dep'; __expr(f); __expr(f(1));"],
+        })
+    ) add(`identifiers:moduleQuery${name}:${strict}`, { "globals.d.ts": library + " declare function __expr(value:unknown):void;", "dep.ts": pair[0], "main.ts": pair[1] }, { strict, module: "commonjs", moduleResolution: "bundler" }, false, true);
+}
+for (const input of cases.filter(c => c.name.startsWith("identifiers:moduleQuery"))) {
+    input.functionBodies = true;
+    input.members = true;
+    input.values = true;
+    input.signatures = true;
+}
 for (const input of cases.filter(c => c.name.startsWith("identifiers:ordinary"))) {
     input.assertions = true;
     input.functionBodies = true;
@@ -1163,7 +1180,66 @@ for (const strict of [false, true]) {
 // The non-strict variant asserts in the pinned reference's getOptionalType.
 // Keep that reproduction in phase4-class-reference-static-block-crash.json.
 add("semantic:classStaticEarlier:strict", { "globals.d.ts": library, "main.ts": "class C{static{this.value=1;} static read=C.value;static value:number;}" }, { strict: true, skipLibCheck: true }, false, true);
+for (const strict of [false, true]) {
+    for (
+        const [name, source] of Object.entries({
+            import: "import {value} from './dep'; const text:string=value;",
+            missing: "import {missing} from './dep'; missing;",
+            default: "import fn from './dep'; const text:string=fn();",
+            export: "const value=1; export {value}; export {missing};",
+            star: "export * from './dep';",
+            namespace: "namespace N{export const value:number='bad'; export function f():number{return 'bad';}} const value:number=N.value;",
+            assignment: "const value=1; export = value;",
+            defaultValue: "export default {value:1};",
+            isolatedDiagnostic: "import {bad} from './dep'; bad;",
+            mergedExport: "namespace N{export interface I{value:number;} interface I{other:string;}}",
+            mergedFunction: "namespace N{export function f():void; function f(){}}",
+            mergedDefault: "export default class C{} export interface C{value:number}",
+            ambientMerge: "declare namespace N{interface I{a:number} export interface I{b:string}}",
+            localExport: "export {absent};",
+            nestedImport: "function f(){import {value} from './dep';}",
+            namespaceAssignment: "namespace N{const value=1; export=value;}",
+            exportConflict: "export const other=1; const value=1;export=value;",
+            duplicateExport: "export const value=1;export {value};",
+            missingModule: "import {value} from './absent';value;",
+            namespaceDuplicate: "namespace N{export const value=1;export const value=2;}",
+            shadowedNamespace: "namespace N{export interface I{a:number}} namespace value{export interface I{b:string}} export=value; export {N};",
+        })
+    ) add(`semantic:module${name}:${strict}`, { "globals.d.ts": library, "dep.ts": "export const value=1; export default function f(){return 1;} export const bad=absent;", "main.ts": source }, { strict, skipLibCheck: true, module: "esnext", moduleResolution: "bundler" }, false, true);
+}
+for (const module of ["commonjs", "esnext"]) {
+    for (
+        const [name, pair] of Object.entries({
+            defaultObject: ["const value={n:1};export=value;", "import value from './dep';const text:string=value.n;"],
+            namedObject: ["const value={n:1};export=value;", "import {n} from './dep';const text:string=n;"],
+            namespaceFunction: ["function f(value:number){return value;}export=f;", "import * as ns from './dep'; ns(1);"],
+            importEquals: ["const value={n:1};export=value;", "import value=require('./dep');const text:string=value.n;"],
+            defaultExpression: ["export default {n:1};", "import value from './dep';const text:string=value.n;"],
+            namedDefault: ["const value={n:1};export=value;", "import {default as value} from './dep';const text:string=value.n;"],
+        })
+    ) add(`semantic:interop${name}:${module}`, { "globals.d.ts": library, "dep.ts": pair[0], "main.ts": pair[1] }, { strict: true, skipLibCheck: true, module, moduleResolution: "bundler" }, false, true);
+}
+for (const module of ["commonjs", "esnext"]) {
+    for (const verbatimModuleSyntax of [false, true]) {
+        for (
+            const [name, source] of Object.entries({
+                importType: "import {I} from './dep'; let value:I;",
+                exportType: "import {I} from './dep'; export {I};",
+                explicitType: "import type {I} from './dep'; export type {I};",
+                defaultType: "import {I} from './dep';export default I;",
+                assignmentType: "import {I} from './dep';export=I;",
+                localType: "interface I{a:number} export=I;",
+                exportedValue: "export const value=1;",
+            })
+        ) add(`semantic:moduleType${name}:${module}:${verbatimModuleSyntax}`, { "globals.d.ts": library, "dep.ts": "export interface I{value:number}", "main.ts": source }, { strict: true, skipLibCheck: true, isolatedModules: true, module, moduleResolution: "bundler", verbatimModuleSyntax }, false, true);
+    }
+}
 for (const input of cases.filter(c => c.name.startsWith("semantic:"))) input.semantic = true;
+for (const module of ["commonjs", "esnext", "node16", "nodenext", "preserve"]) {
+    for (const type of ["commonjs", "module"]) {
+        add(`semantic:moduleFormat:${module}:${type}`, { "globals.d.ts": library, "package.json": JSON.stringify({ type }), "dep.cts": "const value={n:1};export=value;", "main.ts": "import value from './dep.cjs';const text:string=value.n;export=value;" }, { strict: true, skipLibCheck: true, module, moduleResolution: "nodenext", verbatimModuleSyntax: true }, false, true);
+    }
+}
 for (const allowUnreachableCode of [false, true]) add(`semantic:unreachable:${allowUnreachableCode}`, { "globals.d.ts": library, "main.ts": "function f(){return 1; const value:number='bad'; absent;}" }, { strict: true, skipLibCheck: true, allowUnreachableCode }, false, true);
 for (const noImplicitReturns of [false, true]) add(`semantic:implicitReturns:${noImplicitReturns}`, { "globals.d.ts": library, "main.ts": "function f(flag:boolean){if(flag)return 1;}" }, { strict: true, skipLibCheck: true, noImplicitReturns }, false, true);
 for (const noImplicitOverride of [false, true]) add(`semantic:classOverrideOption:${noImplicitOverride}`, { "globals.d.ts": library, "main.ts": "class Base{value=1;method(){}} class C extends Base{override value=2;method(){}} class D extends Base{constructor(public value:number){super();}}" }, { strict: true, skipLibCheck: true, noImplicitOverride }, false, true);

@@ -12,8 +12,8 @@ internal sealed partial class Checker
 
     private async ValueTask CheckInterfaceSourceAsync(InterfaceDeclarationNode node, CancellationToken cancellation)
     {
-        if (node.Modifiers is { Count: > 0 })
-            throw new InvalidOperationException("Checker requires interface modifier/export validation");
+        ExportedDeclaration(node, false);
+        await CheckMergedExportsAsync(node, cancellation).ConfigureAwait(false);
         if (node.TypeParameters is not null)
             foreach (TypeParameterDeclarationNode parameter in node.TypeParameters)
                 await FunctionDeclarations.TypeParameterAsync(parameter, cancellation).ConfigureAwait(false);

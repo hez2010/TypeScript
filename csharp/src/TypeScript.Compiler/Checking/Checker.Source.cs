@@ -46,7 +46,7 @@ internal sealed partial class Checker
             if (DeferredMissingProperties.Any(d => SemanticSyntax.Source(d.Node) == file))
                 throw new InvalidOperationException("Checker requires deferred property diagnostic attribution");
             if (program.Symbols.Binding(file)?.IsModule == true)
-                throw new InvalidOperationException("Checker requires external-module export validation");
+                await CheckExternalExportsAsync(file, cancellation).ConfigureAwait(false);
             if (program.Symbols.Program.Configuration.Options.Boolean("noUnusedLocals") == true
                 || program.Symbols.Program.Configuration.Options.Boolean("noUnusedParameters") == true)
                 throw new InvalidOperationException("Checker requires unused declaration diagnostics");
@@ -110,8 +110,7 @@ internal sealed partial class Checker
                     }
                     break;
                 case VariableStatementNode variable:
-                    if (variable.Modifiers?.Any(m => m.Kind != SyntaxKind.DeclareKeyword) == true)
-                        throw new InvalidOperationException("Checker requires variable-statement modifier validation");
+                    ExportedDeclaration(variable, true);
                     await CheckSourceElementAsync(variable.DeclarationList, cancellation).ConfigureAwait(false);
                     break;
                 case VariableDeclarationListNode declarations:
@@ -123,15 +122,18 @@ internal sealed partial class Checker
                 case VariableDeclarationNode declaration:
                     VariableGrammar(declaration);
                     await FunctionDeclarations.VariableAsync(declaration, cancellation).ConfigureAwait(false);
+                    await CheckMergedExportsAsync(declaration, cancellation).ConfigureAwait(false);
                     break;
                 case BindingElementNode element:
                     await FunctionDeclarations.VariableAsync(element, cancellation).ConfigureAwait(false);
+                    await CheckMergedExportsAsync(element, cancellation).ConfigureAwait(false);
                     break;
                 case ExpressionStatementNode expression:
                     AmbientStatement(expression);
                     await Expressions.CheckAsync(expression.Expression!, cancellation: cancellation).ConfigureAwait(false);
                     break;
                 case FunctionDeclarationNode function:
+                    ExportedDeclaration(function, true);
                     await FunctionDeclarations.GrammarAsync(function, cancellation).ConfigureAwait(false);
                     await CheckFunctionDeclarationAsync(function, cancellation).ConfigureAwait(false);
                     await CheckFunctionOverloadsAsync(function, cancellation).ConfigureAwait(false);
@@ -255,6 +257,8 @@ internal sealed partial class Checker
                         JumpGrammar(node);
                     break;
                 case TypeAliasDeclarationNode alias:
+                    ExportedDeclaration(alias, false);
+                    await CheckMergedExportsAsync(alias, cancellation).ConfigureAwait(false);
                     if (ReservedTypeName(alias.Name!.Text))
                         Error(alias.Name, 2457);
                     if (alias.TypeParameters is not null)
@@ -265,6 +269,34 @@ internal sealed partial class Checker
                     break;
                 case InterfaceDeclarationNode declaration:
                     await CheckInterfaceSourceAsync(declaration, cancellation).ConfigureAwait(false);
+                    break;
+                case ModuleDeclarationNode module:
+                    await CheckNamespaceSourceAsync(module, cancellation).ConfigureAwait(false);
+                    break;
+                case ModuleBlockNode block:
+                    bool previousAnalysis = FlowTypes.AnalysisDisabled;
+                    try
+                    {
+                        foreach (var statement in block.Statements!)
+                            await CheckSourceElementAsync(statement, cancellation).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        FlowTypes.AnalysisDisabled = previousAnalysis;
+                    }
+                    RegisterUnused(block);
+                    break;
+                case ImportDeclarationNode import:
+                    await CheckImportSourceAsync(import, cancellation).ConfigureAwait(false);
+                    break;
+                case ImportEqualsDeclarationNode import:
+                    await CheckImportEqualsSourceAsync(import, cancellation).ConfigureAwait(false);
+                    break;
+                case ExportDeclarationNode export:
+                    await CheckExportSourceAsync(export, cancellation).ConfigureAwait(false);
+                    break;
+                case ExportAssignmentNode export:
+                    await CheckExportAssignmentSourceAsync(export, cancellation).ConfigureAwait(false);
                     break;
                 case PropertySignatureDeclarationNode property:
                     if (property.Name is PrivateIdentifierNode)

@@ -168,11 +168,24 @@ internal sealed partial class Checker
 
     private bool Effective(SyntaxNode node, SyntaxKind modifier)
     {
-        bool specified = SemanticSyntax.HasModifier(node, modifier);
+        var root = SemanticSyntax.RootDeclaration(node);
+        var modified = root is VariableDeclarationNode && root.Parent?.Parent is VariableStatementNode statement ? statement : root;
+        bool specified = SemanticSyntax.HasModifier(modified, modifier);
         if (node.Parent is InterfaceDeclarationNode || SemanticSyntax.ClassLike(node.Parent))
             return specified;
         if (modifier == SyntaxKind.DeclareKeyword)
             return specified || (node.Flags & NodeFlags.Ambient) != 0;
+        if (modifier == SyntaxKind.ExportKeyword && (node.Flags & NodeFlags.Ambient) != 0
+            && !SemanticSyntax.HasModifier(modified, SyntaxKind.DeclareKeyword)
+            && node.Parent is not ModuleBlockNode { Parent: ModuleDeclarationNode { Keyword: SyntaxKind.GlobalKeyword } })
+        {
+            var container = SemanticSyntax.DeclarationContainer(node);
+            if (container is ModuleBlockNode)
+                container = container.Parent;
+            if (container is not null
+                && ((container.Flags | (program.Symbols.Binding(container)?.Get(container)?.Flags ?? 0)) & NodeFlags.ExportContext) != 0)
+                return true;
+        }
         return specified;
     }
 

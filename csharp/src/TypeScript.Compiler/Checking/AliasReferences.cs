@@ -39,7 +39,7 @@ internal sealed class AliasReferences(CheckerSymbols symbols, CheckerLinks links
             await MarkAsync(parent, location, cancellation).ConfigureAwait(false);
     }
 
-    private async ValueTask MarkAsync(Symbol symbol, SyntaxNode location, CancellationToken cancellation)
+    internal async ValueTask MarkAsync(Symbol symbol, SyntaxNode location, CancellationToken cancellation)
     {
         var options = symbols.Program.Configuration.Options;
         List<AliasSymbolLinks> owned = [];

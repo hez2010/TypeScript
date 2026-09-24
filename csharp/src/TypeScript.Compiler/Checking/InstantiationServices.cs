@@ -194,13 +194,33 @@ internal sealed class InstantiationServices : ITypeInstantiationHost, ITupleType
         bool isReadonly,
         CancellationToken cancellation) => Tuples.CreateAsync(elements, infos, isReadonly, cancellation);
 
-    public void CircularConstraint(TypeParameter parameter, SyntaxNode declaration) => ConstraintDiagnostics.Add(2313);
+    public void CircularConstraint(TypeParameter parameter, SyntaxNode declaration)
+    {
+        ConstraintDiagnostics.Add(2313);
+        checker.TrackDiagnostic(declaration, 2313);
+    }
 
-    public void CircularProperty(Symbol symbol, MappedType type) => Diagnostics.Add(2615);
+    public void CircularProperty(Symbol symbol, MappedType type)
+    {
+        Diagnostics.Add(2615);
+        checker.TrackDiagnostic(checker.DiagnosticNode, 2615);
+    }
 
-    public void InstantiationLimit(int depth, int count) => Diagnostics.Add(2589);
+    public void InstantiationLimit(int depth, int count)
+    {
+        Diagnostics.Add(2589);
+        checker.TrackDiagnostic(checker.DiagnosticNode, 2589);
+    }
 
-    public void TupleTooLarge() => Diagnostics.Add(2800);
+    public void TupleTooLarge()
+    {
+        Diagnostics.Add(2800);
+        checker.TrackDiagnostic(checker.DiagnosticNode, 2800);
+    }
 
-    public void CrossProductTooLarge(long size) => Diagnostics.Add(2590);
+    public void CrossProductTooLarge(long size)
+    {
+        Diagnostics.Add(2590);
+        checker.TrackDiagnostic(checker.DiagnosticNode, 2590);
+    }
 }

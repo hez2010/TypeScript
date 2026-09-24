@@ -460,6 +460,15 @@ public enum IterationTypeKind : int
     Next = 2,
 }
 
+[Flags]
+public enum DeclarationSpaces : uint
+{
+    None = 0,
+    ExportValue = 1u << 0,
+    ExportType = 1u << 1,
+    ExportNamespace = 1u << 2,
+}
+
 // relater.go SHA256 e191ef007847b5827a87d0310838594ec53bce1fca12bfb736637ea5299e99e3
 [Flags]
 public enum SignatureCheckMode : uint

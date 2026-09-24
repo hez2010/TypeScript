@@ -617,11 +617,21 @@ The pinned Go reference asserts in `getOptionalType` for a non-strict static-blo
 
 Evidence: [class semantic comparisons](../csharp/compatibility/evidence/phase4-class-semantic.json), [property inference and query comparisons](../csharp/compatibility/evidence/phase4-class-identifiers.json), [signature regressions](../csharp/compatibility/evidence/phase4-class-signatures.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-class-validation.json). Decorators, JavaScript-specific class behavior, remaining grammar/emit hooks and complete diagnostic attribution remain open.
 
+## Module checking and diagnostic file attribution
+
+Source traversal now checks imports, import-equals declarations, exports, export assignments and namespace bodies. Module checks cover declaration context, merged export spaces, duplicate exports, type-only aliases, isolated/verbatim module restrictions and export-assignment value/type rules. Module type adaptation handles synthetic defaults, callable namespace imports, export-assignment members and combined value/type symbols. Emit-format decisions distinguish package metadata and file extensions from module-resolution modes.
+
+Diagnostic codes now retain their defining source file. An error discovered while resolving an imported initializer remains attached to the imported file; checking that file later does not duplicate the error. This is file attribution for the existing code-only diagnostics, not complete diagnostic text, ranges or related information.
+
+Windows x64 NativeAOT passes **422 semantic diagnostic-code configurations**, **4,294 query configurations**, and **680 safety assertions**. The added coverage comprises 184 semantic configurations, 20 imported-type graph configurations and six cross-file diagnostic/completion assertions. Cases include merged exports, missing imports, export assignments, synthetic defaults, callable namespace imports, type-only exports and package-format combinations under CommonJS, ESNext, Node16, NodeNext and preserve modes.
+
+Evidence: [module semantic comparisons](../csharp/compatibility/evidence/phase4-module-semantic.json), [imported type and query comparisons](../csharp/compatibility/evidence/phase4-module-identifiers.json), [alias regressions](../csharp/compatibility/evidence/phase4-module-aliases.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-module-validation.json). Import attributes, remaining augmentation/CommonJS/JSON edge cases, unused-declaration checks and complete diagnostics remain open.
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
 
-1. Complete semantic-pass coverage and finalization, module interop/type adaptation, computed exports and remaining type/value symbol resolution. Checker creation, source traversal, program-backed queries, globals, augmentation merging, declaration headers and alias/export algorithms now exist; their remaining semantic callbacks must be connected.
+1. Complete semantic-pass coverage and finalization, remaining module adaptation and import-attribute checks, computed exports and remaining type/value symbol resolution. Checker creation, source traversal, program-backed queries, globals, augmentation merging, declaration headers and alias/export algorithms now exist; their remaining semantic callbacks must be connected.
 2. Complete relation diagnostics and remaining type-node dependencies; connect the implemented declaration/type-node, algebra, scope, inference, instantiation and tuple algorithms to complete checker services.
 3. Remaining expression forms and special call forms, full declaration checking, JavaScript and JSDoc semantics, and completion of contextual/inference integration across those services.
 4. Complete property/declaration flow integration, constructor/`in`/`instanceof` narrowing, initialization/reference services, and iterator/generator diagnostic and emit integration.
@@ -629,4 +639,4 @@ The following phase-4 requirements remain open:
 6. Type display, node builders, symbol accessibility and emit-resolver APIs.
 7. All active checker/compiler type/symbol/diagnostic comparisons at single and reference-default concurrency; audits of intentional differences; complete semantic workload memory/performance measurements.
 
-The next integration work is module checking and semantic finalization, remaining expression/declaration services, complete diagnostic attribution and module type adaptation. Production source traversal does not yet supply complete program checking. Component comparison counts and validation of the existing Go backend do not measure full C# checker completion. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.
+The next integration work is semantic finalization, remaining expression/declaration services, complete diagnostics and the remaining module dependencies. Production source traversal does not yet supply complete program checking. Component comparison counts and validation of the existing Go backend do not measure full C# checker completion. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.

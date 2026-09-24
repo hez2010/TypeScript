@@ -1,0 +1,208 @@
+{
+    "timestamp": "2026-09-24T12:04:11.0498681+00:00",
+    "scope": "Import/export and namespace source checking, merged exports, module type adaptation and diagnostic file attribution; complete module/semantic coverage and full diagnostics remain open",
+    "candidateSha256": "e5887a737e9af67cae78234ae169a0bffe178ea88810dbc067a089591527be50",
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "languageVersion": "15.0",
+    "runtimeAsync": true,
+    "optimizationPreference": "Speed",
+    "instructionSet": "native",
+    "publish": {
+        "exitCode": 0,
+        "log": "logs/csharp-phase4-module-publish.log",
+        "sha256": "03933be2dc34223ee88005d844f6919fd7786869077fd93acbb392005d81ccfb"
+    },
+    "sourceComparisons": {
+        "semantic": {
+            "cases": 422,
+            "exact": 422,
+            "failed": 0,
+            "record": "phase4-module-semantic.json"
+        },
+        "program": {
+            "cases": 180,
+            "exact": 180,
+            "failed": 0,
+            "record": "phase4-module-program.json"
+        },
+        "aliases": {
+            "cases": 124,
+            "exact": 124,
+            "failed": 0,
+            "record": "phase4-module-aliases.json"
+        },
+        "type-nodes": {
+            "cases": 192,
+            "exact": 192,
+            "failed": 0,
+            "record": "phase4-module-type-nodes.json"
+        },
+        "members": {
+            "cases": 176,
+            "exact": 176,
+            "failed": 0,
+            "record": "phase4-module-members.json"
+        },
+        "values": {
+            "cases": 136,
+            "exact": 136,
+            "failed": 0,
+            "record": "phase4-module-values.json"
+        },
+        "properties": {
+            "cases": 192,
+            "exact": 192,
+            "failed": 0,
+            "record": "phase4-module-properties.json"
+        },
+        "signatures": {
+            "cases": 216,
+            "exact": 216,
+            "failed": 0,
+            "record": "phase4-module-signatures.json"
+        },
+        "identity": {
+            "cases": 160,
+            "exact": 160,
+            "failed": 0,
+            "record": "phase4-module-identity.json"
+        },
+        "assignability": {
+            "cases": 332,
+            "exact": 332,
+            "failed": 0,
+            "record": "phase4-module-assignability.json"
+        },
+        "indexing": {
+            "cases": 320,
+            "exact": 320,
+            "failed": 0,
+            "record": "phase4-module-indexing.json"
+        },
+        "generic-relations": {
+            "cases": 128,
+            "exact": 128,
+            "failed": 0,
+            "record": "phase4-module-generic-relations.json"
+        },
+        "conditional": {
+            "cases": 152,
+            "exact": 152,
+            "failed": 0,
+            "record": "phase4-module-conditional.json"
+        },
+        "inference": {
+            "cases": 176,
+            "exact": 176,
+            "failed": 0,
+            "record": "phase4-module-inference.json"
+        },
+        "expressions": {
+            "cases": 40,
+            "exact": 40,
+            "failed": 0,
+            "record": "phase4-module-expressions.json"
+        },
+        "constants": {
+            "cases": 48,
+            "exact": 48,
+            "failed": 0,
+            "record": "phase4-module-constants.json"
+        },
+        "initializers": {
+            "cases": 48,
+            "exact": 48,
+            "failed": 0,
+            "record": "phase4-module-initializers.json"
+        },
+        "binary": {
+            "cases": 56,
+            "exact": 56,
+            "failed": 0,
+            "record": "phase4-module-binary.json"
+        },
+        "awaited": {
+            "cases": 24,
+            "exact": 24,
+            "failed": 0,
+            "record": "phase4-module-awaited.json"
+        },
+        "references": {
+            "cases": 140,
+            "exact": 140,
+            "failed": 0,
+            "record": "phase4-module-references.json"
+        },
+        "flow": {
+            "cases": 212,
+            "exact": 212,
+            "failed": 0,
+            "record": "phase4-module-flow.json"
+        },
+        "identifiers": {
+            "cases": 830,
+            "exact": 830,
+            "failed": 0,
+            "record": "phase4-module-identifiers.json"
+        },
+        "access": {
+            "cases": 412,
+            "exact": 412,
+            "failed": 0,
+            "record": "phase4-module-access.json"
+        }
+    },
+    "queryConfigurations": 4294,
+    "semanticDiagnosticCodeConfigurations": 422,
+    "newQueryConfigurations": 20,
+    "newSemanticConfigurations": 184,
+    "totalComparedConfigurations": 4716,
+    "comparisonPolicyChanges": [],
+    "referenceLimitations": [
+        {
+            "record": "phase4-class-reference-static-block-crash.json",
+            "nonStrictReferenceResult": "Assertion failure",
+            "strictVariantExactConfigurations": 2,
+            "countedAsPassing": false,
+            "referenceCheckerUnchanged": true,
+            "referenceCheckerSha256": "f6dbbfd2d0816458155609717ebb0325e6b7751654df69a426a98d682e6cdd17"
+        }
+    ],
+    "safety": {
+        "assertions": 680,
+        "newModuleAssertions": 6,
+        "log": "logs/csharp-phase4-module-safety.log",
+        "sha256": "0118f9ac3c00c52e0269c983de662e1e661d77b8f2a4bc6323d6cce66f1b9aa5"
+    },
+    "formatting": {
+        "csharpFiles": 23,
+        "tokenCommentSyntaxIdentical": true,
+        "libraryConfigurations": 2,
+        "dotnetWhitespaceExitCode": 0,
+        "checkerGenerationExitCode": 0,
+        "diffCheckExitCode": 0
+    },
+    "repositoryValidation": {
+        "command": "npx hereby validate --all",
+        "exitCode": 0,
+        "isolatedCheckout": "D:/source/repos/TypeScript-phase4-module-validation",
+        "snapshotFiles": 50,
+        "snapshotHashesVerifiedBeforeAndAfter": true,
+        "snapshotManifestSha256": "f035eb574a8f5b7508abc76f1dafecc656fcb36d595532d46c1c86e68ad558aa",
+        "log": "logs/csharp-phase4-module-validation.log",
+        "sha256": "a560aa5f1181d3e247914e0c8859dd4832530ec79007e25d3709f9fe22f41ee0",
+        "goTests": 163380,
+        "goSkipped": 2152,
+        "apiTests": 813,
+        "extensionTests": 12,
+        "toolsTests": 17,
+        "lintIssues": 0,
+        "elapsed": "5m 55.6s",
+        "productGoJavaScriptUnchanged": true
+    },
+    "wholeProgramSemanticPassComplete": false,
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "phase4Complete": false
+}

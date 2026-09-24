@@ -32,8 +32,17 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
     internal TypeResolutionStack AliasResolutions { get; private set; } = null!;
     internal ModuleTypes ModuleTypes { get; private set; } = null!;
     internal ModuleExports ModuleExports { get; private set; } = null!;
+    internal Checker? SemanticChecker { get; set; }
     private readonly HashSet<(SyntaxNode? Node, int Code, string Arguments)> reported = [];
     internal List<int> Diagnostics { get; } = [];
+    internal List<(SourceFileNode? File, int Code)> DiagnosticFiles { get; } = [];
+
+    private void AddDiagnostic(SyntaxNode? node, int code)
+    {
+        Diagnostics.Add(code);
+        DiagnosticFiles.Add((SemanticSyntax.Source(node), code));
+    }
+
     internal Action? BeforeGlobalTypes { get; set; }
     internal Action? BeforeResolveType { get; set; }
     internal Action? BeforeValueResolution { get; set; }
@@ -79,7 +88,7 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
     {
         string key = string.Concat(arguments.Select(s => s.Length + ":" + s));
         if (reported.Add((node, message.Code, key)))
-            Diagnostics.Add(message.Code);
+            AddDiagnostic(node, message.Code);
     }
 
     public async ValueTask InitializeGlobalTypesAsync(CheckerSymbols symbols, CancellationToken cancellation)
@@ -123,7 +132,7 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
             }
         }
         if (result is null && reportNotFound)
-            Diagnostics.Add(2664);
+            AddDiagnostic(moduleName, 2664);
         return ValueTask.FromResult(Symbols.Merger.GetMergedSymbol(result));
     }
 
@@ -144,6 +153,23 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
     {
         if (location is not null && MissingPrefixCheck is not null && MissingPrefixCheck(location, name).GetAwaiter().GetResult())
             return;
+        if (location is not null && (meaning & SymbolFlags.Value) != 0)
+        {
+            var current = location;
+            while (current.Parent is PropertyAccessExpressionNode or QualifiedNameNode)
+                current = current.Parent;
+            if (current.Parent is ExportAssignmentNode export && export.Expression == current)
+            {
+                // Export assignments can name types and uninstantiated namespaces.
+                // Their value/type restrictions are checked by the module pass.
+                var target = Symbols.NameResolver().Resolve(
+                    location,
+                    name,
+                    SymbolFlags.NamespaceModule | (SymbolFlags.Type & ~SymbolFlags.Value));
+                if (Aliases.SymbolAsync(target).GetAwaiter().GetResult() is not null)
+                    return;
+            }
+        }
         Error(location, message, name);
     }
 

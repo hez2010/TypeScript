@@ -36,7 +36,11 @@ internal sealed partial class Checker : ITypeNormalizationHost, ITypeRelationHos
     public ValueTask<bool> EnumRelatedAsync(Symbol source, Symbol target, CancellationToken cancellation)
             => source == target ? ValueTask.FromResult(true) : throw new InvalidOperationException("Checker requires enum relations");
 
-    public void ComplexityOverflow(Type source, Type target) => Diagnostics.Add(2859);
+    public void ComplexityOverflow(Type source, Type target)
+    {
+        Diagnostics.Add(2859);
+        TrackDiagnostic(DiagnosticNode, 2859);
+    }
 
     public ValueTask<Type> ConditionalBranchAsync(ConditionalType type, bool whenTrue, CancellationToken cancellation)
         => whenTrue ? Instantiation.Constraints.ConditionalTrueAsync(type, cancellation: cancellation)

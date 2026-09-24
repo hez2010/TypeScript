@@ -26,7 +26,10 @@ internal sealed partial class Checker : IBinaryExpressionHost, IAwaitedTypeHost
         if (symbol is null || (symbol.Flags & SymbolFlags.TypeAlias) == 0)
         {
             if (reportErrors)
+            {
                 Diagnostics.Add(2318);
+                TrackDiagnostic(null, 2318);
+            }
             return awaitedSymbols[reportErrors] = null;
         }
         await Declared.GetAsync(symbol, cancellation);

@@ -13,6 +13,9 @@ internal sealed partial class Checker
         if (!expression && SemanticSyntax.Name(node) is null && !SemanticSyntax.HasModifier(node, SyntaxKind.DefaultKeyword))
             Error(node, 1211);
         CheckClassModifiers(node);
+        ExportedDeclaration(node, true);
+        if (!expression)
+            await CheckMergedExportsAsync(node, cancellation).ConfigureAwait(false);
         if (SemanticSyntax.Name(node) is IdentifierNode name && ReservedTypeName(name.Text))
             Error(name, 2414);
         var parameters = node is ClassDeclarationNode declaration ? declaration.TypeParameters : ((ClassExpressionNode)node).TypeParameters;

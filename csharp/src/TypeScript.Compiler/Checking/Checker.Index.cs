@@ -33,6 +33,9 @@ internal sealed partial class Checker : ITypeKeyHost, IIndexedTypeHost
     public void InvalidIndex(SyntaxNode node, Type objectType, Type indexType, int code)
     {
         if (indexErrors.Add((node, code == 2514 ? null : objectType, code == 2514 ? null : indexType, code)))
+        {
             Diagnostics.Add(code);
+            TrackDiagnostic(node, code);
+        }
     }
 }

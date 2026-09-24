@@ -745,7 +745,7 @@ public sealed partial class Binder
             Data(node).Flags &= ~NodeFlags.ExportContext;
     }
 
-    private static int ModuleState(ModuleDeclarationNode node)
+    internal static int ModuleState(ModuleDeclarationNode node)
     {
         var states = new Dictionary<SyntaxNode, int>(ReferenceEqualityComparer.Instance);
         var dependencies = new Dictionary<SyntaxNode, SyntaxNode[]>(ReferenceEqualityComparer.Instance);

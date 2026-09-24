@@ -319,7 +319,10 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
             ClassMemberModifiers(node);
             return ValueTask.CompletedTask;
         }
-        if (node is IModifiedNode { Modifiers: { } modifiers } && modifiers.Any(m => m.Kind != SyntaxKind.AsyncKeyword))
+        if (node is IModifiedNode { Modifiers: { } modifiers }
+            && modifiers.Any(
+                m => m.Kind is not (SyntaxKind.AsyncKeyword or SyntaxKind.ExportKeyword or SyntaxKind.DefaultKeyword
+                    or SyntaxKind.DeclareKeyword)))
             throw new InvalidOperationException("Checker requires function modifier grammar");
         return ValueTask.CompletedTask;
     }

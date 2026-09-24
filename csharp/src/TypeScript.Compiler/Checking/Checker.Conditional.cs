@@ -30,7 +30,11 @@ internal sealed partial class Checker : IConditionalTypeHost, IConditionalRelati
         return mapper is null ? inference.Mapper : TypeMapper.CombineAsync(inference.Mapper, mapper, InstantiateInferenceAsync);
     }
 
-    public void ConditionalDepthExceeded() => Diagnostics.Add(2589);
+    public void ConditionalDepthExceeded()
+    {
+        Diagnostics.Add(2589);
+        TrackDiagnostic(DiagnosticNode, 2589);
+    }
 
     public async ValueTask<TypeMapper> InferConditionalRelationAsync(IReadOnlyList<TypeParameter> parameters, Type source, Type target,
             RelationOperation operation, CancellationToken cancellation)

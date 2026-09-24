@@ -46,7 +46,11 @@ internal sealed partial class Checker : ITypeAlgebraHost
                 cancellation)
             : Templates.MemberAsync(literal, pattern, cancellation);
 
-    void ITypeAlgebraHost.ReportComplexity(string operation, long size) => AlgebraDiagnostics.Add(2590);
+    void ITypeAlgebraHost.ReportComplexity(string operation, long size)
+    {
+        AlgebraDiagnostics.Add(2590);
+        TrackDiagnostic(DiagnosticNode, 2590);
+    }
 
     public async ValueTask<bool> DerivedAsync(Type source, Type target, CancellationToken cancellation)
     {

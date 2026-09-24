@@ -275,6 +275,27 @@ internal static class CheckerProgramTests
             statementChecker.CheckedFileCount == 1
                 && statementChecker.Diagnostics.Count == 0
                 && statementChecker.CurrentSourceNode is null);
+        var moduleProgram = await Build(new()
+        {
+            ["/project/dep.ts"] = "export const bad=absent; export const value=1;",
+            ["/project/main.ts"] = "import {bad,value} from './dep';bad;const text:string=value;"
+        });
+        var moduleChecker = await moduleProgram.CreateCheckerAsync();
+        var mainFile = moduleProgram.GetFile("/project/main.ts")!.Syntax;
+        var depFile = moduleProgram.GetFile("/project/dep.ts")!.Syntax;
+        await moduleChecker.CheckSourceFileAsync(mainFile);
+        Check(moduleChecker.DiagnosticCodesForFile(mainFile).SequenceEqual([2322]));
+        Check(moduleChecker.DiagnosticCodesForFile(depFile).SequenceEqual([2304]));
+        await moduleChecker.CheckSourceFileAsync(depFile);
+        Check(moduleChecker.DiagnosticCodesForFile(depFile).SequenceEqual([2304]));
+        Check(moduleChecker.CheckedFileCount == 2);
+        var moduleDiagnostics = moduleChecker.DiagnosticCodesForFile(mainFile).ToArray();
+        await moduleChecker.CheckProgramAsync();
+        Check(moduleChecker.DiagnosticCodesForFile(mainFile).SequenceEqual(moduleDiagnostics));
+        var independentModuleChecker = await moduleProgram.CreateCheckerAsync();
+        await independentModuleChecker.CheckProgramAsync();
+        Check(independentModuleChecker.DiagnosticCodesForFile(mainFile).SequenceEqual(moduleDiagnostics)
+            && independentModuleChecker.DiagnosticCodesForFile(depFile).SequenceEqual([2304]));
         Console.WriteLine($"{checks} program/checker ownership assertions; interface and scope depth 20000");
     }
 
@@ -316,8 +337,7 @@ internal static class CheckerProgramTests
             await typeHost!.CheckSourceFileAsync(program.GetFile("/project/main.ts")!.Syntax);
             writer.WriteStartObject();
             writer.WriteStartArray("semanticDiagnostics");
-            foreach (int code in typeHost!.Diagnostics.Concat(host.Diagnostics).Concat(typeHost.Instantiation.Diagnostics)
-                .Concat(typeHost.Instantiation.ConstraintDiagnostics).Concat(typeHost.AlgebraDiagnostics).Order())
+            foreach (int code in typeHost!.DiagnosticCodesForFile(program.GetFile("/project/main.ts")!.Syntax))
                 writer.WriteNumberValue(code);
             writer.WriteEndArray();
             writer.WriteEndObject();

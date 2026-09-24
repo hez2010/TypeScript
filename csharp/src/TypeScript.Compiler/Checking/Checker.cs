@@ -305,6 +305,7 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
         BestMatchingTypes = new(TypeDiscrimination, Relations, Algebra, Keys, this, this);
         LiteralElaboration = new(context, program.Symbols, Algebra, Relations, RelationDiagnostics, Indexed, Keys,
             Properties, Values, Predicates, BestMatchingTypes, Contexts, ArrayLiterals, GenericExpressions, Signatures, this);
+        program.SemanticChecker = this;
     }
 
     public ValueTask<Type> TypeFromNodeAsync(SyntaxNode node, CancellationToken cancellation)
@@ -410,7 +411,10 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
     private void Error(SyntaxNode node, int code)
     {
         if (reported.Add((node, code)))
+        {
             Diagnostics.Add(code);
+            TrackDiagnostic(node, code);
+        }
     }
 
     public ValueTask<Type> LiteralExpressionAsync(SyntaxNode expression, CancellationToken cancellation)

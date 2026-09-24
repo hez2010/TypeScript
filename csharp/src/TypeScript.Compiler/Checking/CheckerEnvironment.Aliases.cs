@@ -11,7 +11,7 @@ internal sealed partial class CheckerEnvironment
     public ValueTask<Symbol?> TargetAsync(SyntaxNode declaration, CancellationToken cancellation)
         => AliasTargets.TargetAsync(declaration, cancellation);
 
-    public void CircularAlias(Symbol symbol, SyntaxNode declaration) => Diagnostics.Add(2303);
+    public void CircularAlias(Symbol symbol, SyntaxNode declaration) => AddDiagnostic(declaration, 2303);
 
     public bool IsDeprecated(Symbol symbol) => Deprecations.Symbol(symbol);
 
@@ -36,7 +36,7 @@ internal sealed partial class CheckerEnvironment
 
     public ValueTask MissingQualifiedAsync(SyntaxNode name, SyntaxNode right, Symbol parent, S meaning, CancellationToken cancellation)
     {
-        Diagnostics.Add(2694);
+        AddDiagnostic(right, 2694);
         return ValueTask.CompletedTask;
     }
 
@@ -71,6 +71,8 @@ internal sealed partial class CheckerEnvironment
         SyntaxNode specifier,
         CancellationToken cancellation)
     {
+        if (SemanticChecker is { } checker)
+            return await checker.AdjustModuleAsync(module, target, declaration, specifier, cancellation).ConfigureAwait(false);
         if ((target.Flags & S.Module) == 0 || Symbols.Program.Configuration.Options.Boolean("esModuleInterop") == true
             || module.Declarations.OfType<SourceFileNode>().Any(f => f.ScriptKind is ScriptKind.JS or ScriptKind.JSX))
             throw new InvalidOperationException("Checker requires ES module wrapper/type evaluation");
@@ -82,8 +84,8 @@ internal sealed partial class CheckerEnvironment
                     excludeTypeOnly: true,
                     cancellation: cancellation).ConfigureAwait(false) & S.Value) != 0))
         {
-            // This fixture has a declared, non-callable ES namespace. Synthetic
-            // defaults and callable/export-assignment module types are excluded.
+            // Scope-only hosts can resolve declared, non-callable ES namespaces.
+            // The production checker supplies synthetic and callable module types.
             var type = context.NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved, target);
             type.Members = target.Exports;
             return await ModuleTypes.CloneAsync(target, type, specifier.Parent, cancellation).ConfigureAwait(false);
@@ -97,6 +99,8 @@ internal sealed partial class CheckerEnvironment
         bool dontResolveAlias,
         CancellationToken cancellation)
     {
+        if (SemanticChecker is { } checker)
+            return await checker.ModuleDefaultAsync(module, declaration, dontResolveAlias, cancellation).ConfigureAwait(false);
         if (module.Exports.ContainsKey("export=") || Symbols.Program.Configuration.Options.Boolean("allowSyntheticDefaultImports") == true)
             throw new InvalidOperationException("Checker requires synthetic default interop");
         var result = await Aliases.SymbolAsync(
@@ -125,7 +129,7 @@ internal sealed partial class CheckerEnvironment
         var target = await AliasTargets.EsModuleAsync(module, specifier, moduleSpecifier!, cancellation).ConfigureAwait(false);
         if (target is null)
             return null;
-        if (module.Exports.ContainsKey("export="))
+        if (SemanticChecker is null && module.Exports.ContainsKey("export="))
             throw new InvalidOperationException("Checker requires export-assignment member types");
         var nameNode = specifier switch
         {
@@ -136,18 +140,63 @@ internal sealed partial class CheckerEnvironment
         var name = AliasTargets.Text(nameNode);
         if (name is null)
             return null;
+        if (SemanticChecker is { } checker)
+            return await checker.ModuleMemberAsync(
+                module,
+                target,
+                specifier,
+                nameNode!,
+                dontResolveAlias,
+                cancellation).ConfigureAwait(false);
         var result = Symbols.Merger.GetMergedSymbol(
             await ModuleExports.ExportAsync(target, name, specifier, dontResolveAlias, cancellation).ConfigureAwait(false));
         if (result is null)
-            AliasDiagnostic(2305, specifier);
+            await MissingModuleMemberAsync(module, target, specifier, nameNode!, cancellation).ConfigureAwait(false);
         return result;
     }
 
-    public ValueTask<Symbol?> AliasExpressionAsync(SyntaxNode expression, CancellationToken cancellation)
-        => throw new InvalidOperationException("Checker requires expression checking for alias targets");
+    internal async ValueTask MissingModuleMemberAsync(
+        Symbol module,
+        Symbol target,
+        SyntaxNode specifier,
+        SyntaxNode nameNode,
+        CancellationToken cancellation)
+    {
+        if (Symbols.Program.Configuration.Options.Boolean("noCheck") == true)
+            return;
+        string name = SyntaxNameText.Get(nameNode);
+        var suggestion = nameNode is IdentifierNode ? await new SymbolSuggestions(
+            Aliases,
+            new(Symbols.Program.SourceFiles.Select(f => f.Syntax)))
+            .FindAsync(
+                name,
+                (await ModuleExports.ResolveAsync(target, cancellation).ConfigureAwait(false)).Values,
+                S.ModuleMember,
+                cancellation).ConfigureAwait(false) : null;
+        int code = suggestion is not null ? 2724 : module.Exports.ContainsKey("default") ? 2614 : 2305;
+        if (code == 2305 && module.ValueDeclaration is { } declaration
+            && Symbols.Binding(declaration)?.Get(declaration)?.Locals.GetValueOrDefault(name) is { } local)
+        {
+            code = 2459;
+            foreach (var exported in module.Exports.Values)
+                if (await Aliases.SymbolAsync(exported, cancellation: cancellation).ConfigureAwait(false) == local)
+                {
+                    code = 2460;
+                    break;
+                }
+        }
+        AliasDiagnostic(code, nameNode!);
+    }
+
+    public async ValueTask<Symbol?> AliasExpressionAsync(SyntaxNode expression, CancellationToken cancellation)
+    {
+        var checker = SemanticChecker ?? throw new InvalidOperationException("Checker requires expression checking for alias targets");
+        await checker.Expressions.CheckAsync(expression, cancellation: cancellation).ConfigureAwait(false);
+        return expression is ClassExpressionNode ? Symbols.Declaration(expression) : links.SymbolNodes.TryGet(expression)?.ResolvedSymbol;
+    }
 
     public void TypeOnlyImportAlias(ImportEqualsDeclarationNode declaration, SyntaxNode typeOnlyDeclaration, bool exported)
-        => Diagnostics.Add(exported ? 1379 : 1380);
+        => AddDiagnostic(declaration, exported ? 1379 : 1380);
 
     public bool UsesRequireModuleExports => Symbols.Program.Configuration.Options.String("module") is "node20" or "nodenext";
 
@@ -166,6 +215,6 @@ internal sealed partial class CheckerEnvironment
     private void AliasDiagnostic(int code, SyntaxNode node)
     {
         if (reported.Add((node, code, "")))
-            Diagnostics.Add(code);
+            AddDiagnostic(node, code);
     }
 }
