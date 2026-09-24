@@ -443,7 +443,7 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
     private static bool JsLiteral(SyntaxNode node) =>
         (node.Flags & NodeFlags.JavaScriptFile) != 0 && SemanticSyntax.Source(node)?.ScriptKind != ScriptKind.JSON;
 
-    private static bool DefaultValue(SyntaxNode node) => node switch
+    internal static bool DefaultValue(SyntaxNode node) => node switch
     {
         BindingElementNode element => element.Initializer is not null,
         PropertyAssignmentNode property => DefaultValue(property.Initializer!),

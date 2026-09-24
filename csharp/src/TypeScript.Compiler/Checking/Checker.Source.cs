@@ -219,14 +219,19 @@ internal sealed partial class Checker
                     else
                     {
                         var elementType = await ForOfElementAsync(loop, cancellation).ConfigureAwait(false);
-                        var left = await Expressions.CheckAsync(loop.Initializer!, cancellation: cancellation).ConfigureAwait(false);
-                        AssignmentChecks.Reference(loop.Initializer!, 2487, 2781);
-                        await CheckLiteralAssignableAsync(
-                            elementType,
-                            left,
-                            loop.Initializer!,
-                            loop.Expression!,
-                            cancellation).ConfigureAwait(false);
+                        if (loop.Initializer is ObjectLiteralExpressionNode or ArrayLiteralExpressionNode)
+                            await CheckDestructuringAsync(loop.Initializer, elementType, 0, false, cancellation).ConfigureAwait(false);
+                        else
+                        {
+                            var left = await Expressions.CheckAsync(loop.Initializer!, cancellation: cancellation).ConfigureAwait(false);
+                            AssignmentChecks.Reference(loop.Initializer!, 2487, 2781);
+                            await CheckLiteralAssignableAsync(
+                                elementType,
+                                left,
+                                loop.Initializer!,
+                                loop.Expression!,
+                                cancellation).ConfigureAwait(false);
+                        }
                     }
                     await CheckSourceElementAsync(loop.Statement, cancellation).ConfigureAwait(false);
                     break;

@@ -1,0 +1,22 @@
+{
+    "timestamp": "2026-09-24T15:44:02.204Z",
+    "mode": "default",
+    "configuration": "Release",
+    "selectedConfigurations": 4408,
+    "previousMatches": 3185,
+    "graphAndCodeMatches": 3311,
+    "recoveredConfigurations": 126,
+    "regressions": [],
+    "parts": [
+        {
+            "directory": "built/csharp/semantic-corpus-destructuring-affected/default",
+            "configurations": 4408,
+            "candidateSha256": "e1182689084397e80149fba0e080b2c3f8ec02ffeeda827073b426e3c880598a",
+            "compilerSha256": "d2960afaaa4c37191c6a69191905eb3f5126b15ed975121c4c08cf85b00b7cde",
+            "outputSha256": "f281fb5763e61b007a4e2c0c4704c7e990af8b0586ffa860d02432fab98e74cf",
+            "selectionSha256": "6ee188b941aa9751c367b99d0c0b6c039c8f059811e481a07420097b9c833720"
+        }
+    ],
+    "scope": "Object/array destructuring assignments, defaults, rest elements, for-of targets, assigned flow types and binding grammar; full phase 4 remains incomplete.",
+    "nativeAotVerification": "Deferred until final completion per user instruction"
+}

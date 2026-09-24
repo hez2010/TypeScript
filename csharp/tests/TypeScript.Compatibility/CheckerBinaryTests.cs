@@ -110,6 +110,67 @@ internal static class CheckerBinaryTests
         Check(host.Expressions.CurrentNode is null);
         Check(BinaryExpressions.SideEffectFree(deep));
         Check(await host.ExpressionChecks.NullishnessAsync(deep) == 2);
+        checks += await DestructuringSafety();
         Console.WriteLine($"{checks} binary/awaited/recursion/cancellation assertions; 20000-level binary expressions");
+    }
+
+    private static async Task<int> DestructuringSafety()
+    {
+        const string source = """
+            interface Array<T> { length: number; [n: number]: T; }
+            interface ReadonlyArray<T> { readonly length: number; readonly [n: number]: T; }
+            function values(input: { n?: number; label: string }, tuple: [number, string]) {
+                let n: number, label: string, rest: { label: string };
+                ({ n = 1, ...rest } = input);
+                [n, label] = tuple;
+                const number: number = n;
+                const text: string = rest.label;
+                for ([n, label] of [tuple]) { const value: number = n; }
+                let union: string | number;
+                [union] = [1];
+                const narrowed: number = union;
+                [{ n: n = 2 }] = [input];
+            }
+            declare const tuple: [number];
+            let n: number, s: string, array: number[];
+            (() => [n, s] = tuple);
+            [...array, n] = [1];
+            let [...tail, last] = [1];
+            const [...trailing,] = [1];
+            [n] = ['wrong'];
+            """;
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        options.SetRaw("noUncheckedIndexedAccess", "true");
+        options.SetRaw("target", "\"es5\"");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
+            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var file = program.SourceFiles[0].Syntax;
+        var nodes = file.DescendantsAndSelf().ToArray();
+        var parents = nodes.Select(n => n.Parent).ToArray();
+        await checker.CheckSourceFileAsync(file);
+        var codes = checker.DiagnosticCodesForFile(file).Order().ToArray();
+        int[] expected = [1013, 2322, 2322, 2322, 2462, 2462, 2493, 2493, 2493];
+        if (!codes.SequenceEqual(expected))
+            throw new InvalidOperationException($"Destructuring diagnostics: {string.Join(',', codes)}");
+        if (!nodes.Select(n => n.Parent).SequenceEqual(parents))
+            throw new InvalidOperationException("Destructuring changed source parents");
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+        try
+        {
+            await checker.DestructuringAsync(
+                nodes.OfType<ArrayLiteralExpressionNode>().First(),
+                checker.Context.AnyType,
+                0,
+                false,
+                cancellation.Token);
+            throw new InvalidOperationException("Destructuring cancellation ignored");
+        }
+        catch (OperationCanceledException) { }
+        return 3;
     }
 }

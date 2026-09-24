@@ -89,7 +89,7 @@ internal sealed partial class Checker : IBinaryExpressionHost, IAwaitedTypeHost
         CheckMode mode,
         bool rightIsThis,
         CancellationToken cancellation)
-            => throw new InvalidOperationException("Checker requires destructuring assignment checking");
+            => CheckDestructuringAsync(left, source, mode, rightIsThis, cancellation);
 
     public async ValueTask<Type> RelationalKeywordAsync(
         BinaryExpressionNode node,

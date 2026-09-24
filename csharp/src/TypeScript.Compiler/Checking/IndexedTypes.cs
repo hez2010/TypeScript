@@ -452,6 +452,7 @@ internal sealed class IndexedTypes(TypeContext context, TypeAlgebra algebra, Typ
         IndexedAccessTypeNode indexed => indexed.IndexType!,
         ElementAccessExpressionNode element => element.ArgumentExpression!,
         ComputedPropertyNameNode computed => computed.Expression!,
+        SyntheticExpressionNode synthetic => synthetic.Parent!,
         _ => node
     };
 }

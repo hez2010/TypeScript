@@ -108,18 +108,8 @@ internal sealed partial class Checker : IFlowTypeHost, IFlowReferenceHost, IFlow
         }
         else if (node is BindingElementNode binding)
             type = await Bindings.InitialAsync(binding, cancellation);
-        else if (node.Parent is BinaryExpressionNode binary)
-        {
-            if (binary.Parent is ArrayLiteralExpressionNode or PropertyAssignmentNode)
-                throw new InvalidOperationException("Checker requires destructuring assignment defaults");
-            type = await ExpressionAsync(binary.Right!, cancellation);
-        }
-        else if (node.Parent?.Kind == SyntaxKind.ForInStatement)
-            type = context.StringType;
-        else if (node.Parent is DeleteExpressionNode)
-            type = context.UndefinedType;
         else
-            throw new InvalidOperationException("Checker requires assigned/destructured value types");
+            type = await AssignedTypeAsync(node, cancellation);
         return await ReferenceNarrowing.GetAsync(type, reference, 0, cancellation);
     }
 

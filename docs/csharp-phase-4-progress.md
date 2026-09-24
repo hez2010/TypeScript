@@ -685,6 +685,14 @@ Targeted Release corpus validation covers **3,446 affected configurations per re
 
 Evidence: [single-threaded affected corpus](../csharp/compatibility/evidence/phase4-condition-corpus-single.json), [reference-default affected corpus](../csharp/compatibility/evidence/phase4-condition-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-condition-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-condition-validation.json). Complete diagnostic fidelity, remaining semantic services and the final workload gates remain open.
 
+## Destructuring assignments
+
+Object and array assignment patterns now check nested targets, defaults, tuple bounds, object/array rest elements and `for...of` targets. Assigned flow types reuse the binding projection and synthetic-access services. Binding declarations also check rest placement, trailing commas, rest initializers and private property names. Tuple-index diagnostics report on the original target so rechecking a synthetic access does not duplicate an error.
+
+Targeted Release corpus validation covers **4,408 affected configurations per reference mode**. Graph/code matches increased from **3,185 to 3,311**, recovering **126 configurations**, with **no previously matching case regressing**. The affected suites pass **588 query configurations**, **678 semantic diagnostic-code configurations**, and **102 safety assertions**. The new destructuring fixture agrees with the Go oracle and checks source-parent preservation and cancellation. Unchanged validation results are reused; NativeAOT verification remains deferred until final completion.
+
+Evidence: [single-threaded affected corpus](../csharp/compatibility/evidence/phase4-destructuring-corpus-single.json), [reference-default affected corpus](../csharp/compatibility/evidence/phase4-destructuring-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-destructuring-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-destructuring-validation.json). External emit-helper checks and full diagnostic fidelity remain open alongside the other phase-4 requirements.
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:

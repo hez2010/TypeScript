@@ -290,8 +290,22 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
 
     public async ValueTask<bool> BindingEnvironmentAsync(BindingElementNode node, CancellationToken cancellation)
     {
+        if (node.DotDotDotToken is not null && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
+        {
+            var elements = ((BindingPatternNode)node.Parent!).Elements!;
+            if (elements[^1] != node)
+                Error(node, 2462);
+            else
+            {
+                DestructuringTrailingComma(elements, node);
+                if (node.PropertyName is not null)
+                    Error(node.Name!, 2566);
+                else if (node.Initializer is not null)
+                    Error(node.Initializer, 1186);
+            }
+        }
         if (node.PropertyName is PrivateIdentifierNode && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
-            Error(node.PropertyName, 18017);
+            Error(node.PropertyName, 18064);
         if (node.PropertyName is not null && node.Name is IdentifierNode
             && SemanticSyntax.RootDeclaration(node) is ParameterDeclarationNode
             && SemanticSyntax.Body(SemanticSyntax.RootDeclaration(node).Parent!) is null)
