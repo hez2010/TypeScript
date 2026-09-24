@@ -26,7 +26,7 @@ internal sealed partial class ProgramTypeHost : ITypeKeyHost, IIndexedTypeHost
             => Indexed.GetAsync(objectType, indexType, flags, alias: alias, cancellation: cancellation);
 
     public ValueTask<Type?> ContextualPropertyAsync(Type type, string name, CancellationToken cancellation)
-            => throw new InvalidOperationException("Probe requires contextual property checking");
+            => ContextualProperties.GetAsync(type, name, cancellation: cancellation);
 
     public ValueTask DeprecatedPropertyAsync(Symbol property, SyntaxNode node, CancellationToken cancellation)
         => PropertyDeprecatedAsync(property, node, node is ElementAccessExpressionNode element ? element.ArgumentExpression!

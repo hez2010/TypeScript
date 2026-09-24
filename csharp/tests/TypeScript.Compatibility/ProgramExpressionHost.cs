@@ -53,6 +53,18 @@ internal sealed partial class ProgramTypeHost : IExpressionTypeHost, IExpression
 
     public async ValueTask<Type> OtherExpressionAsync(SyntaxNode node, CheckMode mode, CancellationToken cancellation)
     {
+        if (node is AsExpressionNode or TypeAssertionNode && SemanticSyntax.ConstAssertion(node))
+        {
+            var expression = node is AsExpressionNode assertion ? assertion.Expression! : ((TypeAssertionNode)node).Expression!;
+            var type = await Expressions.CheckAsync(expression, mode, cancellation);
+            if (!await ConstArgumentAsync(expression, cancellation))
+                Error(expression, 1355);
+            return await Algebra.RegularTypeAsync(type, cancellation);
+        }
+        if (node is ArrayLiteralExpressionNode array)
+            return await ArrayLiterals.CheckAsync(array, mode, cancellation);
+        if (node is ObjectLiteralExpressionNode literal)
+            return await ObjectLiterals.CheckAsync(literal, mode, cancellation);
         if (node.Kind == SyntaxKind.ThisKeyword)
             return await ThisExpressions.ThisAsync(node, cancellation);
         if (node.Kind == SyntaxKind.SuperKeyword)
@@ -90,19 +102,14 @@ internal sealed partial class ProgramTypeHost : IExpressionTypeHost, IExpression
 
     public async ValueTask<bool> TemplateContextAsync(SyntaxNode node, CancellationToken cancellation)
     {
+        if (await Contexts.ConstAsync(node, cancellation))
+            return true;
         while (node.Parent is ParenthesizedExpressionNode parentheses)
             node = parentheses;
         if (node.Parent is ElementAccessExpressionNode access && access.ArgumentExpression == node)
             return true;
-        if (node.Parent is { } assertion && SemanticSyntax.ConstAssertion(assertion))
-            return true;
-        if (node.Parent is VariableDeclarationNode { Name: IdentifierNode } declaration)
+        if (await Contexts.GetAsync(node, cancellation: cancellation) is { } type)
         {
-            if ((declaration.Flags & (NodeFlags.JavaScriptFile | NodeFlags.HasJSDoc)) != 0)
-                throw new InvalidOperationException("Probe requires JSDoc contextual types");
-            if (declaration.Type is null)
-                return false;
-            var type = await Nodes.FromNodeAsync(declaration.Type, cancellation);
             foreach (var part in type is UnionType union ? union.Types : (IReadOnlyList<Type>)[type])
                 if ((part.Flags & (TypeFlags.StringLiteral | TypeFlags.TemplateLiteral)) != 0
                     || (part.Flags & TypeFlags.InstantiableNonPrimitive) != 0
@@ -113,7 +120,7 @@ internal sealed partial class ProgramTypeHost : IExpressionTypeHost, IExpression
                     return true;
             return false;
         }
-        throw new InvalidOperationException("Probe requires template contextual typing");
+        return false;
     }
 
     public async ValueTask CheckIncrementAsync(SyntaxNode operand, Type type, CancellationToken cancellation)

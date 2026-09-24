@@ -794,6 +794,29 @@ for (const strict of [false, true]) {
             bindingRestNullable: "declare const source:{value:number}|null|undefined; const {...rest}=source; __expr(rest);",
             bindingRestInvalid: "declare const source:number; const {...rest}=source; __expr(rest);",
             bindingRestGenericMissingOmit: "function f<T extends {value:number}>(source:T) { const {value,...rest}=source; __expr(rest); const {value: other,...rest2}=source; __expr(rest2); }",
+            literalArray: "const array=[1,'a',true]; __expr(array); const [first,...rest]=[1,2,3]; __expr(first); __expr(rest);",
+            literalObject: "const object={value:1,label:'a',nested:{enabled:true}}; __expr(object); const {value,label='fallback'}={value:1,label:'a'}; __expr(value); __expr(label);",
+            literalContext: "const object:{value:1|2;label:'a'|'b'}={value:1,label:'a'}; __expr(object); const array:[number,string]=[1,'a']; __expr(array);",
+            literalSpread: "const first={a:1,shared:'a'}; const second={...first,b:true,shared:2}; __expr(second); const array=[0,...[1,2],3]; __expr(array);",
+            literalPattern: "function f({value=1,nested:{label='a'},...rest}) { __expr(value); __expr(label); __expr(rest); } function g([first=1,second]) { __expr(first); __expr(second); }",
+            literalParameterPadding: "function f({value=1, nested:{label='a'}={}}={}) { __expr(value); __expr(label); } function g([first=1,second]=[]) { __expr(first); __expr(second); }",
+            literalUnionContext: "let target:{kind:'a';value:1|2}|{kind:'b';value:'x'|'y'}; __expr(target={kind:'a',value:1}); __expr(target={kind:'b',value:'x'});",
+            literalIntersectionContext: "let target:{value:1|2}&{label:'a'|'b'}; __expr(target={value:1,label:'a'});",
+            literalConst: "const tuple=[1,'a',{value:true}] as const; const object={value:1,nested:{text:'a'}} as const; __expr(tuple); __expr(object);",
+            literalComputed: "declare const key:string; const name='value'; const object={[name]:1,[key]:'a',[1]:true}; __expr(object);",
+            literalSpreadOptional: "declare const source:{value?:number;label?:string}|undefined; const result={value:'a',...source}; __expr(result);",
+            literalSpreadGeneric: "function f<T extends object>(source:T) { const result={...source,value:1,label:'a'}; __expr(result); }",
+            literalSpreadUnion: "declare const source:{a:number}|{b:string}; const result={fixed:true,...source}; __expr(result);",
+            literalGrammar: "const value=1; const duplicate={value:1,value:2}; const shorthand={value=2}; __expr(duplicate); __expr(shorthand);",
+            literalNestedArrays: "const rows=[{a:1},{b:'a'}]; __expr(rows); const [first,[second,...remaining]]=[1,[2,3]]; __expr(first); __expr(second); __expr(remaining);",
+            literalTemplate: "const object={text:`prefix${1}`,nested:[`x${true}`]}; __expr(object); let target:{text:`prefix${number}`}; __expr(target={text:`prefix${1}`});",
+            literalNullish: "const object={value:null,items:[undefined]}; __expr(object); const [value=null]=[]; __expr(value);",
+            literalUnionOptional: "let target:{kind?:'a';value:1|2}|{kind:'b';value:'x'|'y'}; __expr(target={value:1}); __expr(target={kind:'a',value:2});",
+            literalTupleContextSpread: "declare const middle:boolean[]; let target:[number,...boolean[],string]; __expr(target=[1,...middle,'a']);",
+            literalComputedNames: "const key='same'; const object={[key]:1,same:2}; __expr(object); declare const index:number; const dynamic={[index]:'a'}; __expr(dynamic);",
+            literalComputedInterface: "declare const key:'value'; interface Box { [key]:number } declare const source:Box; const object={...source}; __expr(object);",
+            literalReadonlySpread: "const source={value:1,nested:{text:'a'}} as const; const copy={...source}; const frozen={...source} as const; __expr(copy); __expr(frozen);",
+            literalPrimitiveSpreads: "declare const condition:boolean; const object={...(condition && {value:1})}; __expr(object); const invalid={...1}; __expr(invalid);",
         })
     ) add(`identifiers:${name}:${strict}`, { "globals.d.ts": library + " declare function __expr(value: unknown): void;", "main.ts": text }, { strict }, false, true);
 }
@@ -804,6 +827,20 @@ for (const exactOptionalPropertyTypes of [false, true]) {
             {
                 "globals.d.ts": library + " declare function __expr(value: unknown): void;",
                 "main.ts": "declare const tuple:[number?,...string[]]; const [value=1,,third,...rest]=tuple; __expr(value); __expr(third); __expr(rest); declare const source:{value?:number; readonly label?:string}; const {value:other=2,...objectRest}=source; __expr(other); __expr(objectRest); declare const values:number[]; const [first,...remaining]=values; __expr(first); __expr(remaining);",
+            },
+            { strict: true, exactOptionalPropertyTypes, noUncheckedIndexedAccess },
+            false,
+            true,
+        );
+    }
+}
+for (const exactOptionalPropertyTypes of [false, true]) {
+    for (const noUncheckedIndexedAccess of [false, true]) {
+        add(
+            `identifiers:literalOptions:${exactOptionalPropertyTypes}:${noUncheckedIndexedAccess}`,
+            {
+                "globals.d.ts": library + " declare function __expr(value: unknown): void;",
+                "main.ts": "declare const source:{value?:number;label?:string}; const copy={value:'a',...source}; const frozen={...source} as const; const tuple=[,,1] as const; const rows=[{a:1},{b:'a'}]; __expr(copy); __expr(frozen); __expr(tuple); __expr(rows);",
             },
             { strict: true, exactOptionalPropertyTypes, noUncheckedIndexedAccess },
             false,

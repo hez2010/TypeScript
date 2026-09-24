@@ -11,7 +11,7 @@ import {
 
 // Generate constant schemas only. Semantic algorithms are ported and reviewed separately.
 const groups = {
-    "types.go": ["TypeFlags", "ObjectFlags", "SignatureFlags", "ElementFlags", "AccessFlags", "IndexFlags", "VarianceFlags", "NodeCheckFlags", "TypePredicateKind", "SignatureKind", "Ternary"],
+    "types.go": ["TypeFlags", "ObjectFlags", "SignatureFlags", "ElementFlags", "AccessFlags", "IndexFlags", "VarianceFlags", "NodeCheckFlags", "TypePredicateKind", "SignatureKind", "Ternary", "ContextFlags"],
     "checker.go": ["TypeSystemPropertyName", "UnionReduction", "IntersectionFlags", "MappedTypeModifiers", "MappedTypeNameTypeKind", "TypeFacts", "InferenceFlags", "InferencePriority", "CheckMode"],
     "relater.go": ["SignatureCheckMode", "MinArgumentCountFlags", "IntersectionState", "RecursionFlags", "ExpandingFlags", "RelationComparisonResult"],
 };

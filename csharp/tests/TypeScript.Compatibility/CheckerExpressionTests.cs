@@ -120,6 +120,145 @@ internal static class CheckerExpressionTests
         for (int i = 0; i < 20_000; i++)
             deep = new PrefixUnaryExpressionNode { Operator = SyntaxKind.TildeToken, Operand = deep };
         Check((await evaluator.EvaluateAsync(deep)).Value is 1d);
-        Console.WriteLine($"{checks} expression/enum/cache/cancellation assertions; 20000-level expression and constant traversal");
+        checks += await LiteralSafety();
+        Console.WriteLine(
+            $"{checks} expression/literal/context/enum/cache/cancellation assertions; 20000-level expression, constant and context traversal");
+    }
+
+    private static async Task<int> LiteralSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Literal assertion {checks + 1}");
+            checks++;
+        }
+        const string source = "interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T}const left='left';const right='right';const object={[left]:1,[right]:2};const array=[1,2];function f({value=1,nested:{text='a'}}){}";
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        { ["/project/main.ts"] = Wtf8.Encode(source) }),
+            "/project",
+            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var context = new TypeContext(true, true);
+        var links = new CheckerLinks();
+        var scope = new ProgramScopeHost(context, links);
+        var symbols = await CheckerSymbols.CreateAsync(program, links, scope);
+        var host = new ProgramTypeHost(context, links, scope);
+        var nodes = program.SourceFiles[0].Syntax.DescendantsAndSelf().ToArray();
+        var literal = nodes.OfType<ObjectLiteralExpressionNode>().Single();
+        var rawObject = symbols.Binding(literal)!.Get(literal)!.Symbol!;
+        int oldTables = host.LateMembers.CachedTableCount;
+        using (var cancellation = new CancellationTokenSource())
+        {
+            host.BeforeExpressionFinish = () =>
+            {
+                if (host.Expressions.CurrentNode is IdentifierNode { Text: "right" })
+                    cancellation.Cancel();
+            };
+            try
+            {
+                await host.LateMembers.TableAsync(rawObject, cancellation: cancellation.Token);
+                throw new InvalidOperationException("Late member cancellation ignored");
+            }
+            catch (OperationCanceledException)
+            {
+                checks++;
+            }
+        }
+        host.BeforeExpressionFinish = null;
+        Check(host.LateMembers.CachedTableCount == oldTables);
+        Check(literal.Properties!.All(n => links.SymbolNodes.Get(n).ResolvedSymbol is null));
+        Check(nodes.OfType<ComputedPropertyNameNode>().Last() is { } lastName && links.TypeNodes.Get(lastName).ResolvedType is null);
+        var table = await host.LateMembers.TableAsync(rawObject);
+        Check(table.ContainsKey("left") && table.ContainsKey("right"));
+        Check((table["left"].CheckFlags & CheckFlags.Late) != 0 && table["left"].Parent == rawObject);
+        Check(symbols.Binding(literal.Properties![0])!.Get(literal.Properties[0])!.Symbol!.Name == Symbol.InternalPrefix + "computed");
+        Check(symbols.Declaration(literal.Properties[0]) == table["left"]);
+        var array = nodes.OfType<ArrayLiteralExpressionNode>().Single();
+        var inference = host.Inference.Create([context.NewTypeParameter()]);
+        inference.Inferences[0].Candidates.Add(context.NumberType);
+        inference.IntraExpressionSites.Add((array, context.NumberType));
+        host.BeforeExpressionFinish = () =>
+        {
+            inference.Inferences[0].Candidates.Add(context.StringType);
+            throw new InvalidOperationException("context-failure");
+        };
+        try
+        {
+            await host.Contexts.CheckWithAsync(array, host.AnyArray, inference);
+            throw new InvalidOperationException("Context failure ignored");
+        }
+        catch (InvalidOperationException error) when (error.Message == "context-failure")
+        {
+            checks++;
+        }
+        host.BeforeExpressionFinish = null;
+        Check(host.Contexts.ContextDepth == 0 && host.Contexts.InferenceDepth == 0 && host.Expressions.CurrentNode is null);
+        Check(inference.Inferences[0].Candidates.SequenceEqual([context.NumberType]));
+        Check(inference.IntraExpressionSites is [var site] && site.Node == array && site.Type == context.NumberType);
+        Check(await host.Contexts.CheckWithAsync(array, host.AnyArray) is TypeReference);
+        Check(host.Contexts.ContextDepth == 0 && host.Contexts.InferenceDepth == 0);
+        var pattern = nodes.OfType<BindingPatternNode>().First();
+        using (var cancellation = new CancellationTokenSource())
+        {
+            host.BeforeInitializer = _ => cancellation.Cancel();
+            try
+            {
+                await host.BindingPatterns.GetAsync(pattern, true, cancellation: cancellation.Token);
+                throw new InvalidOperationException("Binding pattern cancellation ignored");
+            }
+            catch (OperationCanceledException)
+            {
+                checks++;
+            }
+        }
+        host.BeforeInitializer = null;
+        Check(host.BindingPatterns.ActiveCount == 0 && host.Contexts.ContextDepth == 0);
+        var implied = await host.BindingPatterns.GetAsync(pattern, true);
+        Check(host.InferencePatterns[implied] == pattern && host.BindingPatterns.ActiveCount == 0);
+        var fresh = await host.ObjectLiterals.CheckAsync(literal);
+        var regular = await host.ObjectLiterals.RegularAsync(fresh);
+        Check(
+            fresh != regular
+                && (fresh.ObjectFlags & ObjectFlags.FreshLiteral) != 0
+                && (regular.ObjectFlags & ObjectFlags.FreshLiteral) == 0);
+        Check(await host.ObjectLiterals.RegularAsync(fresh) == regular);
+        using var cancelled = new CancellationTokenSource();
+        cancelled.Cancel();
+        try
+        {
+            await host.ObjectLiterals.ComputedAsync(nodes.OfType<ComputedPropertyNameNode>().First(), cancelled.Token);
+            throw new InvalidOperationException("Cached computed name cancellation ignored");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        try
+        {
+            await host.ObjectLiterals.RegularAsync(new TypeContext(true, true).EmptyObjectType);
+            throw new InvalidOperationException("Foreign object accepted");
+        }
+        catch (ArgumentException)
+        {
+            checks++;
+        }
+        var leaf = new NumericLiteralNode { Text = "1" };
+        SyntaxNode nested = leaf;
+        for (int i = 0; i < 20_000; i++)
+            nested = new ParenthesizedExpressionNode { Expression = nested };
+        var declaration = new VariableDeclarationNode
+        {
+            Name = new IdentifierNode { Text = "deep" },
+            Type = new TokenNode(SyntaxKind.NumberKeyword),
+            Initializer = nested
+        };
+        declaration.SetParents();
+        Check(await host.Contexts.GetAsync(leaf) == context.NumberType);
+        Check(host.Contexts.ContextDepth == 0 && host.Contexts.InferenceDepth == 0 && host.Instantiation.Resolutions.Count == 0);
+        return checks;
     }
 }

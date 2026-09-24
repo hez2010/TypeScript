@@ -241,6 +241,16 @@ public enum Ternary : sbyte
     True = -1,
 }
 
+[Flags]
+public enum ContextFlags : uint
+{
+    None = 0,
+    Signature = 1u << 0,
+    NoConstraints = 1u << 1,
+    IgnoreNodeInferences = 1u << 2,
+    SkipBindingPatterns = 1u << 3,
+}
+
 // checker.go SHA256 f6dbbfd2d0816458155609717ebb0325e6b7751654df69a426a98d682e6cdd17
 public enum TypeSystemPropertyName : int
 {

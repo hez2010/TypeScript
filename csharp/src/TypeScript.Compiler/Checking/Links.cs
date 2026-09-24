@@ -56,6 +56,12 @@ internal sealed class MappedSymbolLinks
     internal Symbol? SyntheticOrigin { get; set; }
 }
 
+internal sealed class SpreadSymbolLinks
+{
+    internal Symbol? Left { get; set; }
+    internal Symbol? Right { get; set; }
+}
+
 internal sealed class ReverseMappedSymbolLinks
 {
     internal Type? PropertyType { get; set; }
@@ -117,6 +123,7 @@ internal sealed class CheckerLinks
     internal LinkStore<Symbol, DeferredSymbolLinks> DeferredSymbols { get; } = new();
     internal LinkStore<Symbol, AliasSymbolLinks> Aliases { get; } = new();
     internal LinkStore<Symbol, MappedSymbolLinks> MappedSymbols { get; } = new();
+    internal LinkStore<Symbol, SpreadSymbolLinks> Spreads { get; } = new();
     internal LinkStore<Symbol, ReverseMappedSymbolLinks> ReverseMappedSymbols { get; } = new();
     internal LinkStore<Symbol, ExportTypeLinks> ExportTypes { get; } = new();
     internal LinkStore<Symbol, ModuleSymbolLinks> Modules { get; } = new();

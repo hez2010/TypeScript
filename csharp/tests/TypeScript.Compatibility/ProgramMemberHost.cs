@@ -28,9 +28,10 @@ internal sealed partial class ProgramTypeHost : ISignatureHost, IStructuredMembe
     public ValueTask<Type?> ContextualTypeAsync(SyntaxNode declaration, CancellationToken cancellation) =>
             throw new InvalidOperationException("Probe requires contextual signatures");
 
-    public ValueTask<bool> BindableNameAsync(SyntaxNode node, CancellationToken cancellation) =>
-            (node as INamedNode)?.Name is ComputedPropertyNameNode
-                ? throw new InvalidOperationException("Probe requires computed names") : ValueTask.FromResult(true);
+    public async ValueTask<bool> BindableNameAsync(SyntaxNode node, CancellationToken cancellation) =>
+        (node as INamedNode)?.Name is not ComputedPropertyNameNode
+            || program.Symbols.Binding(node)?.Get(node)?.Symbol?.Name is { } name && name != Symbol.InternalPrefix + "computed"
+            || await LateMembers.BindableAsync(node, cancellation);
 
     public ValueTask<Type> ReturnFromBodyAsync(SyntaxNode declaration, CancellationToken cancellation) =>
             ReturnBody?.Invoke(declaration, cancellation) ?? throw new InvalidOperationException("Probe requires return inference");
@@ -47,9 +48,7 @@ internal sealed partial class ProgramTypeHost : ISignatureHost, IStructuredMembe
     public void CircularReturn(Signature signature) => Error(signature.Declaration!, 2577);
 
     public ValueTask<IReadOnlyDictionary<string, Symbol>> ExportsAsync(Symbol symbol, CancellationToken cancellation) =>
-        (symbol.Flags & SymbolFlags.Module) != 0
-            ? program.ModuleExports.ResolveAsync(symbol, cancellation)
-            : ValueTask.FromResult(symbol.Exports);
+        LateMembers.TableAsync(symbol, true, cancellation);
 
     public ValueTask<IReadOnlyList<IndexInfo>> IndexInfosAsync(
         Symbol symbol,

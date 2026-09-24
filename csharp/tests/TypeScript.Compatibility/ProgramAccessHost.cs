@@ -240,7 +240,11 @@ internal sealed partial class ProgramTypeHost : IAccessExpressionHost, IIndexedA
             return context.GetStringLiteralType(template.Text);
         if (node is NumericLiteralNode number)
             return await Algebra.RegularTypeAsync(await Expressions.CheckAsync(number, cancellation: cancellation), cancellation);
-        throw new InvalidOperationException("Probe requires computed property-name checking");
+        if (node is ComputedPropertyNameNode computed)
+            return await Algebra.RegularTypeAsync(await ObjectLiterals.ComputedAsync(computed, cancellation), cancellation);
+        if (node is BigIntLiteralNode)
+            return await Algebra.RegularTypeAsync(await Expressions.CheckAsync(node, cancellation: cancellation), cancellation);
+        return context.NeverType;
     }
 
 }

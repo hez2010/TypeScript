@@ -156,6 +156,7 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
         ExpressionChecks = new(context, Facts, this);
         Expressions = new(context, Algebra, Facts, Relations, Instantiation.Engine, EnumValues.Evaluator, this);
         Variables = new(context, Algebra, Widening, program.Symbols, Signatures, this);
+        WideningDiagnostics = new(program.Symbols, Widening, Views, Properties, Values, this, (node, code) => Error(node, code));
         Awaited = new(context, Algebra, Instantiation.Constraints, Properties, Values, Parameters, Relations,
             Instantiation.Mapped, Predicates, Views, Facts, this);
         Binary = new(context, Algebra, Predicates, Facts, Widening, Relations, ExpressionChecks, EnumValues.Evaluator, this);
@@ -189,6 +190,20 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
         Bindings = new(context, links, program.Symbols, Algebra, Facts, Views, Instantiation.Constraints,
             Instantiation.Mapped, Properties, Values, Keys, Relations, Indexed, Instantiation.Tuples, Variables,
             AccessNames, FlowTypes, this);
+        BindingPatterns = new(context, links, Algebra, Widening, Properties, Instantiation.Tuples, InferencePatterns, this);
+        Contexts = new(context, Algebra, Views, Widening, Instantiation.Constraints, Instantiation.Engine, Predicates,
+            Inference, Properties, Values, Instantiation.Tuples, BindingPatterns, InferencePatterns, this);
+        ContextualProperties = new(context, links, Algebra, Properties, Values, Members, Instantiation.Mapped,
+            Instantiation.Members, Indexed, IndexSignatures, Instantiation.Tuples, Instantiation.Constraints,
+            Views, Relations, Instantiation.Resolutions);
+        ArrayLiterals = new(context, Algebra, Contexts, Properties, Values, Instantiation.Mapped, Instantiation.Tuples, Indexed, this);
+        ObjectSpreads = new(context, links, Algebra, Facts, Views, Properties, Values, Instantiation.Mapped, Bindings, this);
+        ObjectLiterals = new(context, links, program.Symbols, Algebra, Views, Properties, Values, Relations, Predicates,
+            Widening, Members, Contexts, Bindings, ObjectSpreads, InferencePatterns, this);
+        TypeDiscrimination = new(context, Algebra, Views, Properties, Values, Relations, Discriminants, program.Symbols, Contexts, this);
+        ExcessProperties = new(context, Algebra, Views, Properties, Values, Predicates, TypeDiscrimination, this);
+        LateMembers = new(program.Symbols, links, this);
+        program.LateMemberSymbol = symbol => LateMembers.SymbolAsync(symbol).GetAwaiter().GetResult();
         AccessFlow = new(context, Algebra, Values, Widening, ReferenceNarrowing, FlowTypes, this);
         MemberAccess = new(program.Symbols, links, program.ReferenceSymbols, Declared, Properties, Bases, program.DeclarationOrder, this);
         IndexValidation = new(
@@ -314,9 +329,7 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
     public ValueTask<IReadOnlyDictionary<string, Symbol>> MembersAsync(Symbol symbol, CancellationToken cancellation)
     {
         BeforeMemberTable?.Invoke(symbol);
-        if (symbol.Members.ContainsKey(Symbol.InternalPrefix + "computed"))
-            throw new InvalidOperationException("Probe requires computed member evaluation");
-        return ValueTask.FromResult(symbol.Members);
+        return LateMembers.TableAsync(symbol, cancellation: cancellation);
     }
 
     public async ValueTask<Type> TypeQueryAsync(TypeQueryNode node, CancellationToken cancellation)
@@ -334,8 +347,16 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
     public ValueTask<Type> ImportTypeAsync(ImportTypeNode node, CancellationToken cancellation) =>
         throw new InvalidOperationException("Probe requires import-type evaluation");
 
-    public ValueTask<Type> ConstAssertionAsync(SyntaxNode node, CancellationToken cancellation) =>
-        throw new InvalidOperationException("Probe requires const assertion checking");
+    public async ValueTask<Type> ConstAssertionAsync(SyntaxNode node, CancellationToken cancellation)
+    {
+        cancellation.ThrowIfCancellationRequested();
+        var data = links.TypeNodes.Get(node);
+        if (data.ResolvedType is { } cached)
+            return cached;
+        var type = await FlowTypes.StableAsync(() => Expressions.CheckAsync(node, cancellation: cancellation), cancellation);
+        cancellation.ThrowIfCancellationRequested();
+        return data.ResolvedType = type;
+    }
 
     public ValueTask<Type?> IntendedJsDocTypeAsync(SyntaxNode node, CancellationToken cancellation)
             =>

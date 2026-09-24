@@ -19,7 +19,8 @@ internal sealed partial class ProgramTypeHost : IIdentifierTypeHost, IReferenceT
     internal MissingNamePrefixes MissingNames { get; }
     internal HashSet<SyntaxNode> ContextualBindingPatterns { get; } = [];
 
-    public bool ContextualBindingPattern(SyntaxNode pattern) => ContextualBindingPatterns.Contains(pattern);
+    public bool ContextualBindingPattern(SyntaxNode pattern) =>
+        ContextualBindingPatterns.Contains(pattern) || BindingPatterns.Contains(pattern);
 
     public ValueTask<Type> ThisExpressionAsync(SyntaxNode node, CancellationToken cancellation) =>
         ThisExpressions.ThisAsync(node, cancellation);
@@ -43,7 +44,10 @@ internal sealed partial class ProgramTypeHost : IIdentifierTypeHost, IReferenceT
 
     public void CircularInitializer(Symbol symbol) => CircularSymbol(symbol);
 
-    public async ValueTask<Type?> ContextualReferenceAsync(SyntaxNode node, bool skipBindingPatterns, CancellationToken cancellation)
+    public ValueTask<Type?> ContextualReferenceAsync(SyntaxNode node, bool skipBindingPatterns, CancellationToken cancellation) =>
+        Contexts.GetAsync(node, skipBindingPatterns ? ContextFlags.SkipBindingPatterns : 0, cancellation);
+
+    public async ValueTask<Type?> OtherContextAsync(SyntaxNode node, ContextFlags flags, CancellationToken cancellation)
     {
         while (node.Parent is ParenthesizedExpressionNode or NonNullExpressionNode)
             node = node.Parent;

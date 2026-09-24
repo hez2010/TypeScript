@@ -40,6 +40,7 @@ internal sealed partial class ProgramScopeHost(TypeContext context, CheckerLinks
     internal Action? BeforeResolveType { get; set; }
     internal Action? BeforeValueResolution { get; set; }
     internal Func<SyntaxNode, string, ValueTask<bool>>? MissingPrefixCheck { get; set; }
+    internal Func<Symbol, Symbol>? LateMemberSymbol { get; set; }
     internal Dictionary<SyntaxNode, Signature> ContextualSignatures { get; } = [];
 
     public void Bind(CheckerSymbols symbols)
@@ -64,7 +65,8 @@ internal sealed partial class ProgramScopeHost(TypeContext context, CheckerLinks
 
     public Symbol LateBoundSymbol(Symbol symbol)
         =>
-            (symbol.Flags & SymbolFlags.ClassMember) == 0 || symbol.Name != Symbol.InternalPrefix + "computed"
+            LateMemberSymbol is { } resolve ? resolve(symbol)
+                : (symbol.Flags & SymbolFlags.ClassMember) == 0 || symbol.Name != Symbol.InternalPrefix + "computed"
                 ? symbol
                 : throw new InvalidOperationException("Probe requires computed member binding");
 

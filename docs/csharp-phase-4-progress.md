@@ -500,6 +500,25 @@ node csharp/tools/checker-program.mjs --identifiers --filter binding
 & ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-identifiers-safety
 ```
 
+## Literal inference and contextual types
+
+`BindingPatterns.cs` implements implied object/tuple binding types and parameter-initializer padding. `ExpressionContexts.cs` supplies contextual lookup, cached and explicit context stacks, context-free checks, contextual literal preservation and inference mapper selection. `ContextualProperties.cs` resolves concrete, indexed, intersected and mapped contextual properties; `TypeDiscrimination.cs` selects union constituents from discriminant properties.
+
+`ArrayLiterals.cs`, `ObjectLiterals.cs` and `ObjectSpreads.cs` connect these services to initializer and identifier checking. They cover nested literals, tuple contexts, holes, rest/spread, `const` contexts, computed names, object grammar, fresh-object regularization and optional/generic spread merging. `ExcessProperties.cs` supplies relation decisions for excess properties; full diagnostic elaboration remains separate. `WideningDiagnostics.cs` reports widening errors inside variable initializer types. `LateMembers.cs` resolves computed members/exports, retains original binding symbols and rolls back its tables and declaration links on cancellation.
+
+The computed-name comparisons first exposed matching result types with different resolved symbols. Correct late binding required creating checker services before the probe's declaration queries. This changes composition order, not comparison policy; all earlier source suites were rerun against the resulting artifact.
+
+Windows x64 NativeAOT passes **3,816 exact source-program configurations**, including **100 new literal/context configurations** and **352 identifier configurations overall**. New cases cover nested object/array inference, pattern defaults and padding, annotated tuples, union/intersection contexts, optional discriminants, computed object/interface members, template contexts, `as const`, tuple spreads, invalid spreads and object grammar. Exact-optional and unchecked-index options are compared. The same artifact passes **572 safety assertions**, including **23 new assertions** for context/inference rollback, cancelled late binding, pattern cleanup, cached-name cancellation, type ownership, regular-object caching and **20,000-level** contextual lookup.
+
+These remain component tests. Function/method body inference, contextual function parameters, call/overload integration, `Symbol.iterator` protocols, general assertion/declaration checking, deferred diagnostics and JavaScript/JSX services remain incomplete. Literal tests use the explicit minimal array library; complete semantic corpus and memory/performance gates remain open.
+
+Evidence: [identifier and literal comparisons](../csharp/compatibility/evidence/phase4-literals-identifiers.json), [relation regressions](../csharp/compatibility/evidence/phase4-literals-assignability.json), [member regressions](../csharp/compatibility/evidence/phase4-literals-members.json), [flow regressions](../csharp/compatibility/evidence/phase4-literals-flow.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-literals-validation.json).
+
+```powershell
+node csharp/tools/checker-program.mjs --identifiers --filter literal
+& ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-expressions-safety
+```
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
@@ -507,9 +526,9 @@ The following phase-4 requirements remain open:
 1. Complete the program/checker entry point, module interop/type adaptation, computed exports and type/value symbol resolution. Program-backed globals, augmentation merging, declaration headers and alias/export algorithms now exist; their remaining semantic callbacks must be connected.
 2. Complete relation diagnostics and remaining type-node dependencies; connect the implemented declaration/type-node, algebra, scope, inference, instantiation and tuple algorithms to complete checker services.
 3. Remaining expression forms, call-site inference, context-sensitive expression typing, overload selection, full declaration checking, JavaScript and JSDoc semantics.
-4. Complete implied binding-pattern/contextual types, iterator services and property/declaration flow integration; complete constructor/`in`/`instanceof` narrowing, initialization/reference services and semantic diagnostics.
+4. Complete contextual function/parameter integration, iterator services and property/declaration flow integration; complete constructor/`in`/`instanceof` narrowing, initialization/reference services and semantic diagnostics.
 5. Remaining indexed/member diagnostic and declaration services, JSX, decorators and grammar checks.
 6. Type display, node builders, symbol accessibility and emit-resolver APIs.
 7. All active checker/compiler type/symbol/diagnostic comparisons at single and reference-default concurrency; audits of intentional differences; complete semantic workload memory/performance measurements.
 
-The next integration step is implied binding-pattern and object/array expression inference, followed by contextual checking, call-site inference/overload selection, diagnostics and module type adaptation over the program-backed symbol environment. There is still no complete production checker entry point. Component comparison counts and validation of the existing Go backend do not measure full C# checker completion. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.
+The next integration step is function/method body inference and contextual parameters, followed by call-site inference/overload selection, declaration checks, diagnostics and module type adaptation over the program-backed symbol environment. There is still no complete production checker entry point. Component comparison counts and validation of the existing Go backend do not measure full C# checker completion. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.

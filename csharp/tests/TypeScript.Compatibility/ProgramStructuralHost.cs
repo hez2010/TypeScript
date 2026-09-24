@@ -150,11 +150,10 @@ internal sealed partial class ProgramTypeHost : IStructuralRelationHost, IObject
         Type target,
         IntersectionState intersection,
         CancellationToken cancellation)
-            => throw new InvalidOperationException("Probe requires fresh-literal excess properties");
+            => ExcessProperties.HasAsync(operation, source, target, cancellation);
 
     public ValueTask<Type> RegularObjectAsync(Type type, CancellationToken cancellation)
-            => (type.ObjectFlags & (ObjectFlags.ObjectLiteral | ObjectFlags.FreshLiteral)) == (ObjectFlags.ObjectLiteral | ObjectFlags.FreshLiteral)
-                ? throw new InvalidOperationException("Probe requires fresh-object regularization") : ValueTask.FromResult(type);
+            => ObjectLiterals.RegularAsync(type, cancellation);
 
     public ValueTask<Type> NonUndefinedAsync(Type type, CancellationToken cancellation)
             => Facts.FilterAsync(type, TypeFacts.NEUndefined, cancellation);

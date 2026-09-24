@@ -77,16 +77,10 @@ internal sealed partial class ProgramTypeHost : IFlowTypeHost, IFlowReferenceHos
     }
 
     public ValueTask<Type> ContextFreeExpressionAsync(SyntaxNode node, CancellationToken cancellation)
-    {
-        if (node is IdentifierNode or NumericLiteralNode or StringLiteralNode or BigIntLiteralNode or NoSubstitutionTemplateLiteralNode
-            || node.Kind is SyntaxKind.TrueKeyword or SyntaxKind.FalseKeyword or SyntaxKind.NullKeyword)
-            return ExpressionAsync(node, cancellation);
-        throw new InvalidOperationException("Probe requires context-free expression typing");
-    }
+        => Contexts.ContextFreeAsync(node, cancellation);
 
     public ValueTask<Type> RegularObjectLiteralAsync(Type type, CancellationToken cancellation)
-        => (type.ObjectFlags & ObjectFlags.FreshLiteral) == 0 ? ValueTask.FromResult(type)
-            : throw new InvalidOperationException("Probe requires regular object-literal types");
+        => ObjectLiterals.RegularAsync(type, cancellation);
 
     public async ValueTask<Type> InitialOrAssignedAsync(SyntaxNode node, SyntaxNode reference, CancellationToken cancellation)
     {
@@ -184,7 +178,7 @@ internal sealed partial class ProgramTypeHost : IFlowTypeHost, IFlowReferenceHos
     {
         if (await Properties.PropertyAsync(type, name, cancellation: cancellation) is { } property)
             return await Values.GetAsync(property, cancellation);
-        if (includeIndex && await ApplicableIndexAsync(type, context.GetStringLiteralType(name), cancellation) is { } index)
+        if (includeIndex && await ApplicableIndexAsync(type, name, cancellation) is { } index)
             return context.StrictNullChecks
                 ? await Algebra.UnionAsync([index.ValueType, context.UndefinedOrMissingType], cancellation: cancellation)
                 : index.ValueType;

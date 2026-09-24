@@ -9,26 +9,43 @@ namespace TypeScript.Compatibility;
 internal sealed partial class ProgramTypeHost : IVariableTypeHost
 {
     internal VariableTypes Variables { get; }
+    internal WideningDiagnostics WideningDiagnostics { get; }
     internal Action<SyntaxNode>? BeforeInitializer { get; set; }
     public Type AutoArray => program.Globals.AutoArrayType!;
     public bool UseUnknownInCatchVariables => program.Symbols.Program.Configuration.Options.StrictOption("useUnknownInCatchVariables");
 
-    public async ValueTask<Type> DeclarationInitializerAsync(SyntaxNode declaration, CheckMode mode, CancellationToken cancellation)
+    public ValueTask<Type> DeclarationInitializerAsync(SyntaxNode declaration, CheckMode mode, CancellationToken cancellation) =>
+        DeclarationInitializerWithContextAsync(declaration, mode, null, cancellation);
+
+    private async ValueTask<Type> DeclarationInitializerWithContextAsync(SyntaxNode declaration, CheckMode mode, Type? contextual,
+        CancellationToken cancellation)
     {
         BeforeInitializer?.Invoke(declaration);
         cancellation.ThrowIfCancellationRequested();
         var node = ((IInitializedNode)declaration).Initializer!;
+        Type type;
         if (node is StringLiteralNode or NumericLiteralNode or BigIntLiteralNode or NoSubstitutionTemplateLiteralNode
             || node.Kind is SyntaxKind.TrueKeyword or SyntaxKind.FalseKeyword)
-            return await Expressions.CheckAsync(node, cancellation: cancellation);
-        if (mode != 0)
-            return await Expressions.CheckAsync(node, mode, cancellation);
-        var data = links.TypeNodes.Get(node);
-        if (data.ResolvedType is { } cached)
-            return cached;
-        var type = await FlowTypes.StableAsync(() => Expressions.CheckAsync(node, cancellation: cancellation), cancellation);
-        cancellation.ThrowIfCancellationRequested();
-        return data.ResolvedType = type;
+            type = await Expressions.CheckAsync(node, cancellation: cancellation);
+        else if (contextual is not null)
+            type = await Contexts.CheckWithAsync(node, contextual, mode: mode, cancellation: cancellation);
+        else if (mode != 0)
+            type = await Expressions.CheckAsync(node, mode, cancellation);
+        else
+        {
+            var data = links.TypeNodes.Get(node);
+            if (data.ResolvedType is { } cached)
+                type = cached;
+            else
+            {
+                type = await FlowTypes.StableAsync(() => Expressions.CheckAsync(node, cancellation: cancellation), cancellation);
+                cancellation.ThrowIfCancellationRequested();
+                data.ResolvedType = type;
+            }
+        }
+        return SemanticSyntax.RootDeclaration(declaration) is ParameterDeclarationNode
+            && declaration is INamedNode { Name: BindingPatternNode pattern }
+                ? await BindingPatterns.PadAsync(type, pattern, cancellation) : type;
     }
 
     public async ValueTask<Type?> FullParameterAsync(ParameterDeclarationNode parameter, CancellationToken cancellation)
@@ -60,7 +77,7 @@ internal sealed partial class ProgramTypeHost : IVariableTypeHost
         => Bindings.GetAsync(element, cancellation);
 
     public ValueTask<Type> BindingPatternAsync(SyntaxNode pattern, CancellationToken cancellation)
-            => throw new InvalidOperationException("Probe requires binding pattern contextual types");
+            => BindingPatterns.GetAsync((BindingPatternNode)pattern, false, true, cancellation);
 
     public ValueTask<Type> IterationVariableAsync(
         VariableDeclarationNode declaration,
@@ -85,15 +102,8 @@ internal sealed partial class ProgramTypeHost : IVariableTypeHost
         return type;
     }
 
-    public async ValueTask ReportWideningAsync(SyntaxNode declaration, Type type, CancellationToken cancellation)
-    {
-        if (!NoImplicitAny || (type.ObjectFlags & ObjectFlags.ContainsWideningType) == 0)
-            return;
-        if ((type.Flags & (TypeFlags.Any | TypeFlags.Nullable)) != 0)
-            await ReportImplicitAnyAsync(declaration, type, cancellation);
-        else
-            throw new InvalidOperationException("Probe requires nested widening diagnostics");
-    }
+    public ValueTask ReportWideningAsync(SyntaxNode declaration, Type type, CancellationToken cancellation) =>
+        WideningDiagnostics.ReportAsync(declaration, type, cancellation);
 
     public async ValueTask ReportImplicitAnyAsync(SyntaxNode declaration, Type type, CancellationToken cancellation)
     {

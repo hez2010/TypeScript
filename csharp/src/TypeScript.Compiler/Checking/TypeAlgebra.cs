@@ -493,7 +493,7 @@ internal sealed partial class TypeAlgebra(TypeContext context, TypeOrder order, 
         return size;
     }
 
-    private bool CheckCrossProduct(IReadOnlyList<Type> types)
+    internal bool CheckCrossProduct(IReadOnlyList<Type> types)
     {
         long count = CrossProductSize(types);
         if (count < 100_000)

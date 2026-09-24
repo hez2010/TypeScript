@@ -185,6 +185,8 @@ internal static class CheckerProgramTests
         var host = new ProgramScopeHost(context, links);
         var environment = await CheckerSymbols.CreateAsync(program, links, host);
         var nodes = program.SourceFiles.SelectMany(file => file.Syntax.DescendantsAndSelf()).ToArray();
+        ProgramTypeHost? typeHost = input.TryGetProperty("typeNodes", out var typeOption) && typeOption.GetBoolean()
+            ? new(context, links, host) : null;
         var nodeIds = nodes.Select((node, i) => (node, i)).ToDictionary(p => p.node, p => p.i + 1);
         int Node(SyntaxNode? node) => node is null ? 0 : nodeIds.GetValueOrDefault(node);
         var symbolIds = new Dictionary<Symbol, int>(ReferenceEqualityComparer.Instance);
@@ -379,10 +381,8 @@ internal static class CheckerProgramTests
             }
             writer.WriteEndArray();
         }
-        ProgramTypeHost? typeHost = null;
-        if (input.TryGetProperty("typeNodes", out var typeOption) && typeOption.GetBoolean())
+        if (typeHost is not null)
         {
-            typeHost = new(context, links, host);
             writer.WriteStartArray("typeQueries");
             foreach (var node in nodes)
             {
