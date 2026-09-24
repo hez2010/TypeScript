@@ -35,6 +35,8 @@ internal interface IStructuralRelationHost
 
     ValueTask<Type?> MatchingConstituentAsync(UnionType target, Type source, CancellationToken cancellation);
 
+    ValueTask<Type?> BestMatchingTypeAsync(Type source, UnionType target, CancellationToken cancellation);
+
     ValueTask<Ternary> DiscriminatedAsync(RelationOperation operation, Type source, UnionType target, CancellationToken cancellation);
 
     ValueTask<bool> ExcessPropertiesAsync(
@@ -310,14 +312,14 @@ internal sealed class StructuralRelations(TypeContext context, TypeAlgebra algeb
                     return Ternary.False;
                 if (source is not IntersectionType)
                 {
-                    var result = await operation.CompareAsync(
+                    var result = await operation.CompareWithoutErrorsAsync(
                         source,
                         target,
                         RecursionFlags.Source,
                         cancellation: cancellation).ConfigureAwait(false);
                     return result != Ternary.False
                         ? result
-                        : await operation.CompareAsync(
+                        : await operation.CompareWithoutErrorsAsync(
                             target,
                             source,
                             RecursionFlags.Source,
@@ -342,14 +344,21 @@ internal sealed class StructuralRelations(TypeContext context, TypeAlgebra algeb
     {
         if (source is UnionType && source.Types.Contains(target))
             return Ternary.True;
-        foreach (var part in source.Types)
+        for (int i = 0; i < source.Types.Count; i++)
         {
-            var result = await operation.CompareAsync(
-                part,
-                target,
-                RecursionFlags.Source,
-                intersection,
-                cancellation).ConfigureAwait(false);
+            var result = source is UnionType && (source.Flags & TypeFlags.Primitive) == 0 && i == source.Types.Count - 1
+                ? await operation.CompareAsync(
+                    source.Types[i],
+                    target,
+                    RecursionFlags.Source,
+                    intersection,
+                    cancellation).ConfigureAwait(false)
+                : await operation.CompareWithoutErrorsAsync(
+                    source.Types[i],
+                    target,
+                    RecursionFlags.Source,
+                    intersection,
+                    cancellation).ConfigureAwait(false);
             if (result != Ternary.False)
                 return result;
         }
@@ -371,7 +380,7 @@ internal sealed class StructuralRelations(TypeContext context, TypeAlgebra algeb
         {
             if (stripped is UnionType union && source.Types.Count >= union.Types.Count && source.Types.Count % union.Types.Count == 0)
             {
-                var quick = await operation.CompareAsync(
+                var quick = await operation.CompareWithoutErrorsAsync(
                     source.Types[i],
                     union.Types[i % union.Types.Count],
                     RecursionFlags.Both,
@@ -383,12 +392,19 @@ internal sealed class StructuralRelations(TypeContext context, TypeAlgebra algeb
                     continue;
                 }
             }
-            var related = await operation.CompareAsync(
-                source.Types[i],
-                target,
-                RecursionFlags.Source,
-                intersection,
-                cancellation).ConfigureAwait(false);
+            var related = (source.Flags & TypeFlags.Primitive) == 0
+                ? await operation.CompareAsync(
+                    source.Types[i],
+                    target,
+                    RecursionFlags.Source,
+                    intersection,
+                    cancellation).ConfigureAwait(false)
+                : await operation.CompareWithoutErrorsAsync(
+                    source.Types[i],
+                    target,
+                    RecursionFlags.Source,
+                    intersection,
+                    cancellation).ConfigureAwait(false);
             if (related == Ternary.False)
                 return related;
             result &= related;
@@ -421,7 +437,7 @@ internal sealed class StructuralRelations(TypeContext context, TypeAlgebra algeb
         }
         if (await host.MatchingConstituentAsync(target, source, cancellation).ConfigureAwait(false) is { } match)
         {
-            var result = await operation.CompareAsync(
+            var result = await operation.CompareWithoutErrorsAsync(
                 source,
                 match,
                 RecursionFlags.Target,
@@ -432,7 +448,7 @@ internal sealed class StructuralRelations(TypeContext context, TypeAlgebra algeb
         }
         foreach (var part in target.Types)
         {
-            var result = await operation.CompareAsync(
+            var result = await operation.CompareWithoutErrorsAsync(
                 source,
                 part,
                 RecursionFlags.Target,
@@ -441,6 +457,9 @@ internal sealed class StructuralRelations(TypeContext context, TypeAlgebra algeb
             if (result != Ternary.False)
                 return result;
         }
+        if (operation.ReportErrors && ((source.Flags | target.Flags) & TypeFlags.Primitive) == 0
+            && await host.BestMatchingTypeAsync(source, target, cancellation).ConfigureAwait(false) is { } best)
+            await operation.CompareAsync(source, best, RecursionFlags.Target, intersection, cancellation).ConfigureAwait(false);
         return Ternary.False;
     }
 }

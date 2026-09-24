@@ -788,6 +788,13 @@ internal static class CheckerProgramTests
             foreach (int code in typeHost!.DiagnosticCodesForFile(program.GetFile("/project/main.ts")!.Syntax))
                 writer.WriteNumberValue(code);
             writer.WriteEndArray();
+            if (input.TryGetProperty("semanticDetails", out var detailsOption) && detailsOption.GetBoolean())
+            {
+                writer.WritePropertyName("semanticDiagnosticDetails");
+                CheckerCorpusTests.WriteDiagnostics(
+                    writer,
+                    typeHost.DetailedDiagnosticsForFile(program.GetFile("/project/main.ts")!.Syntax));
+            }
             writer.WriteEndObject();
             return;
         }

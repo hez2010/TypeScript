@@ -152,7 +152,7 @@ internal static class CheckerCorpusTests
         return program;
     }
 
-    private static void WriteDiagnostics(Utf8JsonWriter writer, IEnumerable<Diagnostic> diagnostics)
+    internal static void WriteDiagnostics(Utf8JsonWriter writer, IEnumerable<Diagnostic> diagnostics)
     {
         writer.WriteStartArray();
         foreach (var diagnostic in diagnostics)

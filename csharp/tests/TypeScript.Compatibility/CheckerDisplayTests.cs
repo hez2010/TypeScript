@@ -77,6 +77,27 @@ internal static class CheckerDisplayTests
                 throw new InvalidOperationException("Type display did not recover from cancellation");
             checks++;
         }
+        foreach (bool noTruncation in new[] { false, true })
+        {
+            var options = new CompilerOptions();
+            options.SetRaw("noLib", "true");
+            options.SetRaw("noErrorTruncation", noTruncation ? "true" : "false");
+            var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+            { ["/project/main.ts"] = [] }), "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+            var checker = await program.CreateCheckerAsync();
+            int limit = noTruncation ? 2_000_000 : 320;
+            string text = await checker.TypeDisplay.GetAsync(checker.Context.GetStringLiteralType(new string('a', limit + 10)));
+            if (text != "\"" + new string('a', limit - 4) + "...")
+                throw new InvalidOperationException("Diagnostic display byte limit");
+            checks++;
+            if (!noTruncation)
+            {
+                text = await checker.TypeDisplay.GetAsync(checker.Context.GetStringLiteralType(string.Concat(Enumerable.Repeat("日", 150))));
+                if (text != "\"" + string.Concat(Enumerable.Repeat("日", 105)) + "\ufffd...")
+                    throw new InvalidOperationException("Diagnostic display UTF-8 truncation");
+                checks++;
+            }
+        }
         return checks;
     }
 }

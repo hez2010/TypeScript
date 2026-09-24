@@ -12,7 +12,7 @@ internal sealed class TemplateMatching(TypeContext context, TypeAlgebra algebra,
         TemplateLiteralType target,
         RelationOperation operation,
         CancellationToken cancellation = default)
-        => MatchesAsync(source, target, (s, t, token) => operation.CompareAsync(s, t, cancellation: token), cancellation);
+        => MatchesAsync(source, target, (s, t, token) => operation.CompareWithoutErrorsAsync(s, t, cancellation: token), cancellation);
 
     internal async ValueTask<bool> MatchesAsync(Type source, TemplateLiteralType target,
         Func<Type, Type, CancellationToken, ValueTask<Ternary>> compare, CancellationToken cancellation = default)
@@ -33,7 +33,7 @@ internal sealed class TemplateMatching(TypeContext context, TypeAlgebra algebra,
         TemplateLiteralType target,
         RelationOperation operation,
         CancellationToken cancellation = default)
-        => InferAsync(source, target, (s, t, token) => operation.CompareAsync(s, t, cancellation: token), cancellation);
+        => InferAsync(source, target, (s, t, token) => operation.CompareWithoutErrorsAsync(s, t, cancellation: token), cancellation);
 
     internal async ValueTask<IReadOnlyList<Type>?> InferAsync(Type source, TemplateLiteralType target,
         Func<Type, Type, CancellationToken, ValueTask<Ternary>> compare, CancellationToken cancellation = default)

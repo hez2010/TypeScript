@@ -219,7 +219,10 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
                 cancellation: cancellation).ConfigureAwait(false);
         }
         if (related == Ternary.False)
+        {
+            operation.Explain(2326, property: source);
             return related;
+        }
         return !(skipOptional ?? operation.Kind == RelationKind.Comparable)
             && (source.Flags & SymbolFlags.Optional) != 0
             && (target.Flags & SymbolFlags.ClassMember) != 0
@@ -332,17 +335,24 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
                     intersection: intersection,
                     cancellation: cancellation).ConfigureAwait(false);
             else if (await host.ApplicableIndexAsync(source, index.KeyType, cancellation).ConfigureAwait(false) is { } sourceIndex)
+            {
                 related = await operation.CompareAsync(
                     sourceIndex.ValueType,
                     index.ValueType,
                     intersection: intersection,
                     cancellation: cancellation).ConfigureAwait(false);
+                if (related == Ternary.False)
+                    operation.Explain(sourceIndex.KeyType == index.KeyType ? 2634 : 2330, sourceIndex.KeyType, index.KeyType);
+            }
             else if ((intersection & IntersectionState.Source) == 0
                 && (operation.Kind != RelationKind.StrictSubtype || (source.ObjectFlags & ObjectFlags.FreshLiteral) != 0)
                 && await InferableIndexAsync(source, cancellation).ConfigureAwait(false))
                 related = await MembersToIndexAsync(operation, source, index, intersection, cancellation).ConfigureAwait(false);
             else
+            {
                 related = Ternary.False;
+                operation.Explain(2329, index.KeyType, source);
+            }
             if (related == Ternary.False)
                 return related;
             result &= related;
@@ -404,7 +414,10 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
                 intersection: intersection,
                 cancellation: cancellation).ConfigureAwait(false);
             if (related == Ternary.False)
+            {
+                operation.Explain(2530, property: property);
                 return related;
+            }
             result &= related;
         }
         foreach (var info in await host.IndexesAsync(source, cancellation).ConfigureAwait(false))
@@ -416,7 +429,10 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
                     intersection: intersection,
                     cancellation: cancellation).ConfigureAwait(false);
                 if (related == Ternary.False)
+                {
+                    operation.Explain(info.KeyType == target.KeyType ? 2634 : 2330, info.KeyType, target.KeyType);
                     return related;
+                }
                 result &= related;
             }
         return result;

@@ -25,6 +25,23 @@ internal sealed class TypeRelations(TypeContext context, TypeNormalization norma
 
     internal Relation Cache(RelationKind kind) => relations[kind];
 
+    internal async ValueTask<RelationExplanation?> ExplainAsync(Type source, Type target, RelationKind kind, CancellationToken cancellation)
+    {
+        var session = new RelationSession(context, relations[kind], keys, recursion, State);
+        var operation = new RelationOperation(context, this, session, normalization, host, kind, reportErrors: true);
+        try
+        {
+            var result = await operation.CompareAsync(source, target, cancellation: cancellation).ConfigureAwait(false);
+            await session.CompleteAsync(source, target, host.ComplexityOverflow, cancellation).ConfigureAwait(false);
+            return result == Ternary.False ? operation.Explanation : null;
+        }
+        catch
+        {
+            session.Abort();
+            throw;
+        }
+    }
+
     internal async ValueTask<bool> SignatureAsync(Signature source, Signature target, SignatureAssignability signatures,
         SignatureInstantiation instantiation, bool ignoreReturn, CancellationToken cancellation = default)
     {
@@ -182,26 +199,77 @@ internal sealed class TypeRelations(TypeContext context, TypeNormalization norma
     private static bool LiteralEqual(object? left, object? right) => left is double a && right is double b ? a == b : Equals(left, right);
 }
 
+internal sealed record RelationExplanation(int Code, Type? Source = null, Type? Target = null, Symbol? Property = null,
+    RelationExplanation? Next = null);
+
 internal sealed class RelationOperation(
     TypeContext context,
     TypeRelations relations,
     RelationSession session,
     TypeNormalization normalization,
     ITypeRelationHost host,
-    RelationKind kind)
+    RelationKind kind,
+    bool reportErrors = false)
 {
     internal RelationKind Kind => kind;
     internal RelationSession Session => session;
+    internal RelationExplanation? Explanation { get; private set; }
+    private int suppressed;
+    internal bool ReportErrors => reportErrors && suppressed == 0;
+
+    internal void RestoreExplanation(RelationExplanation? explanation) => Explanation = explanation;
+
+    internal void Explain(int code, Type? source = null, Type? target = null, Symbol? property = null)
+    {
+        if (ReportErrors)
+            Explanation = new(code, source, target, property, Explanation);
+    }
+
+    internal async ValueTask<Ternary> CompareWithoutErrorsAsync(Type source, Type target, RecursionFlags recursion = RecursionFlags.Both,
+        IntersectionState intersection = 0, CancellationToken cancellation = default)
+    {
+        suppressed++;
+        try
+        {
+            return await CompareAsync(source, target, recursion, intersection, cancellation).ConfigureAwait(false);
+        }
+        finally
+        {
+            suppressed--;
+        }
+    }
 
     internal ValueTask<bool> SimpleAsync(Type source, Type target, CancellationToken cancellation = default)
         => relations.SimpleAsync(source, target, kind, cancellation);
 
     internal ValueTask<Ternary> RecursiveAsync(Type source, Type target, RecursionFlags recursion, IntersectionState intersection,
         Func<ValueTask<Ternary>> compare, CancellationToken cancellation = default)
-        => session.RecursiveAsync(source, target, intersection, recursion, false, compare, host.ComplexityOverflow, cancellation);
+        => session.RecursiveAsync(source, target, intersection, recursion, ReportErrors, compare, host.ComplexityOverflow, cancellation);
 
     internal async ValueTask<Ternary> CompareAsync(Type source, Type target, RecursionFlags recursion = RecursionFlags.Both,
             IntersectionState intersection = 0, CancellationToken cancellation = default)
+    {
+        if (!ReportErrors)
+            return await CompareCoreAsync(source, target, recursion, intersection, cancellation).ConfigureAwait(false);
+        var previous = Explanation;
+        Explanation = null;
+        try
+        {
+            var result = await CompareCoreAsync(source, target, recursion, intersection, cancellation).ConfigureAwait(false);
+            Explanation = result == Ternary.False
+                ? new(kind == RelationKind.Comparable ? 2678 : 2322, source, target, Next: Explanation)
+                : previous;
+            return result;
+        }
+        catch
+        {
+            Explanation = previous;
+            throw;
+        }
+    }
+
+    private async ValueTask<Ternary> CompareCoreAsync(Type source, Type target, RecursionFlags recursion,
+            IntersectionState intersection, CancellationToken cancellation)
     {
         await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
             ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);

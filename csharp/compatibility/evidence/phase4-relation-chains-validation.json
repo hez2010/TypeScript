@@ -1,0 +1,133 @@
+{
+    "timestamp": "2026-09-24T23:29:46.5074087+00:00",
+    "configuration": "Release",
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "managed": true,
+    "scope": "Property/index/generic-constraint explanation chains and diagnostic display limits; phase 4 remains incomplete",
+    "candidateSha256": "819bffd42c9ddc8023d71639e21e5f5f111a6f896ea364c1e00e36b6d7109c4d",
+    "compilerSha256": "121d867efb85be1730768478e3029d6459d4957d06cda4d017e41748789400da",
+    "build": {
+        "sha256": "84b7ab949eba46c7aba1cab9a40352cc0ac935957abf9f62c20c6c70fdb29f65",
+        "log": "logs/csharp-phase4-relation-chains-build.log",
+        "errors": 0,
+        "warnings": 0,
+        "exitCode": 0
+    },
+    "fixtures": {
+        "completeDiagnosticRecords": 6,
+        "displayLimitReferenceSha256": "22afca537523d296e035a7992273b72c023147b85edb742f2c64207d86530576",
+        "referenceOracleSha256": "f5c03c77e3074463e10144d9a9028daf58b2f4f93c9b5c5278dd7d13bc5a1a7a",
+        "reference": "built/csharp/relation-chain-fixture-reference.jsonl",
+        "retainedAssertions": "csharp/tests/TypeScript.Compatibility/CheckerAssignabilityTests.cs",
+        "displayLimitProbes": 3,
+        "input": "built/csharp/relation-chain-fixture-input.jsonl",
+        "inputSha256": "1af1473d40c26b7ba60bdfd676519ed3bfa84f0e56288858124885a8e203339c",
+        "referenceSha256": "95464e3be3f20cae1dab609cd4cc64c4cdab23419548bcb4e52db88ec9cff5ef",
+        "displayLimitCandidateSha256": "73a7fe69e5c2ffdff1aa860385a3cf2e62b1ad7f06dbfc2cb4f85cea80e4f617",
+        "displayLimitResults": [
+            {
+                "referenceBytes": 320,
+                "candidateBytes": 320,
+                "exact": true,
+                "name": "normal"
+            },
+            {
+                "referenceBytes": 322,
+                "candidateBytes": 322,
+                "exact": true,
+                "name": "unicode"
+            },
+            {
+                "referenceBytes": 2000000,
+                "candidateBytes": 2000000,
+                "exact": true,
+                "name": "expanded"
+            }
+        ],
+        "displayLimitInputSha256": "51244709872705f03f09f610d6cb35755b7be00141ae95f9845a95fbd863faeb"
+    },
+    "safety": {
+        "expressionAssertions": 81,
+        "relationAssertions": 39,
+        "checks": [
+            "six complete diagnostic records match the pinned reference",
+            "diagnostic pass preserves cached relation decision",
+            "cancelled explanation preserves relation cache and reliability",
+            "retry replays a cached negative explanation",
+            "normal/expanded/UTF-8 display boundaries"
+        ],
+        "newLimitAssertions": 3,
+        "logs": [
+            "logs/csharp-phase4-relation-chains-safety.log",
+            "logs/csharp-phase4-relation-chains-program-safety.log",
+            "logs/csharp-phase4-relation-chains-expressions-safety.log"
+        ],
+        "newRelationAssertions": 4,
+        "programAssertions": 127
+    },
+    "corpus": {
+        "selectedConfigurationsPerMode": 1541,
+        "parity": "phase4-relation-chains-mode-parity.json",
+        "detailedDiagnosticMatches": 527,
+        "nonemptyDetailedMatches": 527,
+        "previousDetailedMatches": 369,
+        "candidateFailures": [],
+        "regressions": [],
+        "retainedSingleResults": 680,
+        "remainingDetailedDifferences": 1014,
+        "recoveredDetailedConfigurations": 158,
+        "finalSingleReplay": 861,
+        "cumulative": {
+            "activeConfigurations": 13446,
+            "matches": 12750,
+            "remaining": 696,
+            "failed": 0,
+            "diagnosticMismatches": 696,
+            "graphMismatches": 0,
+            "detailedConfigurations": 2652,
+            "detailedMatches": 1314,
+            "nonemptyDetailedMatches": 698,
+            "detailedDifferences": 1338
+        },
+        "single": "phase4-relation-chains-corpus-single.json",
+        "previousGraphAndCodeMatches": 1411,
+        "referenceDefault": "phase4-relation-chains-corpus-default.json",
+        "graphAndCodeMatches": 1411
+    },
+    "diagnosedIssues": {
+        "recursiveCaseSemanticDifferencesRemain": true,
+        "recursiveCase": "compiler/recursiveIndexedAccessSimplification.ts",
+        "recursiveCaseNowCompletes": true,
+        "largeTypes": "Reference printer absolute UTF-8 limits enforced during recursive text composition",
+        "speculativeComparisons": "Suppress union/template/key and bivariant trials; restore previous explanation for structural variance fallback"
+    },
+    "formatting": {
+        "rawStringProofLog": "logs/csharp-phase4-relation-chains-raw-literal-proof.log",
+        "libraryConfigurations": 2,
+        "rawStringProofSha256": "31a70a9202572b2718b93254fdb9cb760e7bcf6adaab7aa358802e7dc33762b3",
+        "proofLog": "logs/csharp-phase4-relation-chains-format.log",
+        "proofSha256": "9200b4fd96d98684345c173acdc7e444082ec0a2cbf030216ef347527d22fd16",
+        "dotnetWhitespaceExitCode": 0,
+        "rawStringWhitespace": "Removed indentation from two blank raw-string lines; decoded values and other tokens/comments verified identical",
+        "initialCsharpFiles": 15,
+        "initialTokensCommentsAndSyntaxIdentical": true
+    },
+    "reusedValidation": {
+        "repositoryExitCode": 0,
+        "validatedCommit": "00d370e5b0",
+        "reason": "Cached oracle outputs, completed unaffected candidate results and unchanged repository validation were reused. Formatting preserved executable behavior.",
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "repositoryCommand": "npx hereby validate --all",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ]
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "parallelCheckerGateComplete": false,
+    "phase4Complete": false
+}

@@ -172,6 +172,9 @@ internal sealed partial class Checker : IStructuralRelationHost, IObjectRelation
     public ValueTask<Type?> MatchingConstituentAsync(UnionType target, Type source, CancellationToken cancellation)
             => Discriminants.MatchAsync(target, source, cancellation);
 
+    public ValueTask<Type?> BestMatchingTypeAsync(Type source, UnionType target, CancellationToken cancellation)
+        => BestMatchingTypes.GetAsync(source, target, cancellation);
+
     public ValueTask<Ternary> DiscriminatedAsync(RelationOperation operation, Type source, UnionType target, CancellationToken cancellation)
             => Discriminants.RelatedAsync(operation, source, target, cancellation);
 

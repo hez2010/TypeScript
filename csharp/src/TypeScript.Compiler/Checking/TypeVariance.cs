@@ -288,6 +288,7 @@ internal sealed class TypeVariance(
         }
         else
             return null;
+        var previousExplanation = operation.Explanation;
         var result = await ArgumentsAsync(
             operation,
             sourceArguments,
@@ -298,7 +299,10 @@ internal sealed class TypeVariance(
         if (result != Ternary.False)
             return result;
         if (variances.Any(v => (v & VarianceFlags.AllowsStructuralFallback) != 0))
+        {
+            operation.RestoreExplanation(previousExplanation);
             return null;
+        }
         for (int i = 0; i < variances.Count; i++)
             if ((variances[i] & VarianceFlags.VarianceMask) == VarianceFlags.Covariant && (targetArguments[i].Flags & TypeFlags.Void) != 0)
                 return null;
@@ -344,7 +348,7 @@ internal sealed class TypeVariance(
                         cancellation: cancellation).ConfigureAwait(false);
                 else if (variance == VarianceFlags.Bivariant)
                 {
-                    related = await operation.CompareAsync(t, s, cancellation: cancellation).ConfigureAwait(false);
+                    related = await operation.CompareWithoutErrorsAsync(t, s, cancellation: cancellation).ConfigureAwait(false);
                     if (related == Ternary.False)
                         related = await operation.CompareAsync(
                             s,

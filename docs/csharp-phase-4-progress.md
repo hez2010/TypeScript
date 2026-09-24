@@ -12,7 +12,7 @@ These comparisons cover source graphs and diagnostic codes. **94.8% matching on 
 | --- | --- |
 | Execute active corpus and match source graphs | Complete: 13,446 configurations |
 | Match semantic diagnostic codes | 12,750 match; 696 differ |
-| Match diagnostic text, locations and related information | Incomplete: detailed records match in 1,156 of 2,652 selected configurations, including 540 with nonempty semantic diagnostics; the remaining corpus has not been compared at this level |
+| Match diagnostic text, locations and related information | Incomplete: detailed records match in 1,314 of 2,652 selected configurations, including 698 with nonempty semantic diagnostics; the remaining corpus has not been compared at this level |
 | Complete type/symbol comparisons, type display, node builders, accessibility and emit-resolver APIs | Incomplete |
 | Validate actual parallel checker scheduling | Incomplete; reference-mode corpus agreement is a narrower check |
 | Meet complete semantic workload memory/performance budgets | Incomplete |
@@ -878,6 +878,20 @@ Release validation covers **1,541 configurations per reference mode**. Graph/cod
 The display fixture contains **32 exact queries against the pinned reference**, retained as regression expectations, plus two cancellation/retry checks. Program safety passes **124 assertions**, and expression safety passes **81**. The Release build has zero warnings and errors. Follow-up runs retain unaffected results: the last property-name fix replayed 522 configurations per mode and retained 1,019. Earlier enum, reverse-mapping and tuple fixes similarly replayed their affected cases; interrupted runs retain only completed results. Cached reference outputs and unchanged repository validation were reused. Formatting preserves tokens, comments and syntax in seven C# files. NativeAOT remains deferred until final phase-4 completion.
 
 Evidence: [single-mode corpus](../csharp/compatibility/evidence/phase4-relation-details-corpus-single.json), [reference-default corpus](../csharp/compatibility/evidence/phase4-relation-details-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-relation-details-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-relation-details-validation.json).
+
+## Property, index and constraint explanation chains
+
+Failed relations now support an explanation pass through the existing relation cache. Property and index incompatibilities retain their nested type mismatch; nested property paths collapse using the reference's dotted-name rule. Generic-target errors include the arbitrary-instantiation, constrained-subtype or distributed-parameter explanation. Trial union, template-placeholder and key comparisons suppress explanations, and variance fallback restores the previous explanation state. The negative-relation cache and cancellation behavior are preserved.
+
+Type display also preserves index-signature parameter names and enforces the reference printer's absolute byte limits before invalid-byte replacement: **320 bytes normally and 2,000,000 with `noErrorTruncation`**. Rendering observes these limits before constructing unbounded intermediate strings. UTF-8 truncation uses the reference's per-byte replacement behavior. This resolves the excessive string expansion exposed by `recursiveIndexedAccessSimplification.ts`; that case's pre-existing semantic differences remain unresolved. The soft node-builder truncation rules and complete type display remain unfinished.
+
+Release validation covers the same **1,541 configurations per reference mode** as the preceding checkpoint. Detailed matches increase from **369 to 527**, recovering **158 configurations with no regressions**. Every recovered case contains semantic diagnostics. Graph/code matches remain **1,411**, with no checker failures; both reference modes agree on every final record. Cumulative detailed matches increase to **1,314/2,652**, including **698 with semantic diagnostics** and 616 with empty semantic diagnostics. The cumulative graph/code result remains **12,750/13,446**.
+
+Six focused diagnostics match the complete pinned-reference records, including property paths, index signatures and generic constraints. Safety passes **39 relation assertions**, **127 program assertions** and **81 expression assertions**. Three display-limit probes match the reference, including a truncated multibyte character and the expanded limit. New checks cover diagnostic replay from a cached failure and cancellation/retry without cache changes. The Release build has zero warnings and errors. The final single-mode replay covers 861 generic/template cases and retains 680 unaffected results; all oracle outputs are reused. Formatting checks preserve code/comments and raw-string values. Unchanged repository validation was reused. NativeAOT remains deferred until final phase-4 completion.
+
+Remaining relation work includes signature/overload explanations, missing and inaccessible nested properties, readonly/tuple-specific errors, related declarations and complete error-selection behavior. This checkpoint does not complete diagnostic parity.
+
+Evidence: [single-mode corpus](../csharp/compatibility/evidence/phase4-relation-chains-corpus-single.json), [reference-default corpus](../csharp/compatibility/evidence/phase4-relation-chains-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-relation-chains-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-relation-chains-validation.json).
 
 ## Remaining completion work
 

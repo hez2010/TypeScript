@@ -26,31 +26,32 @@ func main() {
 	output := json.NewEncoder(os.Stdout)
 	for lines.Scan() {
 		var input struct {
-			Files         map[string]string
-			Roots         []string
-			Options       map[string]any
-			Concurrency   int
-			Aliases       bool
-			TypeNodes     bool
-			Members       bool
-			Values        bool
-			Properties    bool
-			Signatures    bool
-			Identity      bool
-			Assignability bool
-			Indexing      bool
-			Constants     bool
-			Expressions   bool
-			Awaited       bool
-			References    bool
-			Flow          bool
-			Identifiers   bool
-			Access        bool
-			Calls         bool
-			Assertions    bool
-			Semantic      bool
-			TypeDisplays  bool
-			NumberStrings []string
+			Files           map[string]string
+			Roots           []string
+			Options         map[string]any
+			Concurrency     int
+			Aliases         bool
+			TypeNodes       bool
+			Members         bool
+			Values          bool
+			Properties      bool
+			Signatures      bool
+			Identity        bool
+			Assignability   bool
+			Indexing        bool
+			Constants       bool
+			Expressions     bool
+			Awaited         bool
+			References      bool
+			Flow            bool
+			Identifiers     bool
+			Access          bool
+			Calls           bool
+			Assertions      bool
+			Semantic        bool
+			SemanticDetails bool
+			TypeDisplays    bool
+			NumberStrings   []string
 		}
 		if err := json.Unmarshal(lines.Bytes(), &input); err != nil {
 			panic(err)
@@ -99,11 +100,16 @@ func main() {
 		}
 		if input.Semantic {
 			codes := []int{}
-			for _, diagnostic := range c.GetDiagnostics(context.Background(), program.GetSourceFile("/project/main.ts")) {
+			diagnostics := c.GetDiagnostics(context.Background(), program.GetSourceFile("/project/main.ts"))
+			for _, diagnostic := range diagnostics {
 				codes = append(codes, int(diagnostic.Code()))
 			}
 			slices.Sort(codes)
-			if err := output.Encode(map[string]any{"semanticDiagnostics": codes}); err != nil {
+			result := map[string]any{"semanticDiagnostics": codes}
+			if input.SemanticDetails {
+				result["semanticDiagnosticDetails"] = diagnosticRecords(diagnostics)
+			}
+			if err := output.Encode(result); err != nil {
 				panic(err)
 			}
 			continue
@@ -132,4 +138,20 @@ func main() {
 	if err := lines.Err(); err != nil {
 		panic(err)
 	}
+}
+
+func diagnosticRecords(diagnostics []*ast.Diagnostic) []map[string]any {
+	result := make([]map[string]any, 0, len(diagnostics))
+	for _, diagnostic := range diagnostics {
+		file := ""
+		if diagnostic.File() != nil {
+			file = diagnostic.File().FileName()
+		}
+		result = append(result, map[string]any{
+			"file": file, "start": diagnostic.Pos(), "length": diagnostic.End() - diagnostic.Pos(), "code": diagnostic.Code(),
+			"category": diagnostic.Category(), "key": diagnostic.MessageKey(), "arguments": append([]string{}, diagnostic.MessageArgs()...),
+			"chain": diagnosticRecords(diagnostic.MessageChain()), "related": diagnosticRecords(diagnostic.RelatedInformation()),
+		})
+	}
+	return result
 }

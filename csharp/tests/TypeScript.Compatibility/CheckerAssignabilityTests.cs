@@ -140,7 +140,71 @@ internal static class CheckerAssignabilityTests
         }
         Check(!host.Variances.Measuring && host.Instantiation.Resolutions.Count == 0);
         checks += await MissingPropertySafety();
+        checks += await DiagnosticChainSafety();
         Console.WriteLine($"{checks} structural relation/variance/facts/cancellation assertions");
+    }
+
+    private static async Task<int> DiagnosticChainSafety()
+    {
+        string source = """
+
+            interface Box<T> { value: T; }
+            declare const numberBox: Box<number>;
+            const stringBox: Box<string> = numberBox;
+            declare const nestedSource: { outer: { leaf: number } };
+            const nestedTarget: { outer: { leaf: string } } = nestedSource;
+            declare const numberIndex: { [key: string]: number };
+            const stringIndex: { [key: string]: string } = numberIndex;
+            declare const objectSource: { value: number };
+            const objectIndex: { [key: string]: string } = objectSource;
+            function unconstrained<T>() { const invalid: T = 123; }
+            function constrained<T extends string>() { const invalid: T = 'x'; }
+
+            """.Replace("\r\n", "\n", StringComparison.Ordinal);
+        // Complete diagnostic records captured from the pinned checker.
+        const string reference = """
+            [{"arguments":["Box<number>","Box<string>"],"category":1,"chain":[{"arguments":["number","string"],"category":1,"chain":[],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":9,"related":[],"start":76}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":9,"related":[],"start":76},{"arguments":["{ outer: { leaf: number; }; }","{ outer: { leaf: string; }; }"],"category":1,"chain":[{"arguments":["outer.leaf"],"category":1,"chain":[{"arguments":["number","string"],"category":1,"chain":[],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":12,"related":[],"start":175}],"code":2200,"file":"/project/main.ts","key":"The_types_of_0_are_incompatible_between_these_types_2200","length":12,"related":[],"start":175}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":12,"related":[],"start":175},{"arguments":["{ [key: string]: number; }","{ [key: string]: string; }"],"category":1,"chain":[{"arguments":["string"],"category":1,"chain":[{"arguments":["number","string"],"category":1,"chain":[],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":11,"related":[],"start":293}],"code":2634,"file":"/project/main.ts","key":"_0_index_signatures_are_incompatible_2634","length":11,"related":[],"start":293}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":11,"related":[],"start":293},{"arguments":["{ value: number; }","{ [key: string]: string; }"],"category":1,"chain":[{"arguments":["value"],"category":1,"chain":[{"arguments":["number","string"],"category":1,"chain":[],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":11,"related":[],"start":400}],"code":2530,"file":"/project/main.ts","key":"Property_0_is_incompatible_with_index_signature_2530","length":11,"related":[],"start":400}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":11,"related":[],"start":400},{"arguments":["number","T"],"category":1,"chain":[{"arguments":["T","number"],"category":1,"chain":[],"code":5082,"file":"/project/main.ts","key":"_0_could_be_instantiated_with_an_arbitrary_type_which_could_be_unrelated_to_1_5082","length":7,"related":[],"start":491}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":7,"related":[],"start":491},{"arguments":["string","T"],"category":1,"chain":[{"arguments":["string","T","string"],"category":1,"chain":[],"code":5075,"file":"/project/main.ts","key":"_0_is_assignable_to_the_constraint_of_type_1_but_1_could_be_instantiated_with_a_different_subtype_of_5075","length":7,"related":[],"start":560}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":7,"related":[],"start":560}]
+            """;
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        options.SetRaw("noErrorTruncation", "true");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
+            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        await checker.CheckProgramAsync();
+        var file = program.GetFile("/project/main.ts")!.Syntax;
+        using var stream = new MemoryStream();
+        using (var writer = new System.Text.Json.Utf8JsonWriter(stream))
+            CheckerCorpusTests.WriteDiagnostics(writer, checker.DetailedDiagnosticsForFile(file).OrderBy(d => d.Start));
+        using var actual = System.Text.Json.JsonDocument.Parse(stream.ToArray());
+        using var expected = System.Text.Json.JsonDocument.Parse(reference);
+        if (!System.Text.Json.JsonElement.DeepEquals(actual.RootElement, expected.RootElement))
+            throw new InvalidOperationException("Relation diagnostic records: " + actual.RootElement.GetRawText());
+        var declarations = file.DescendantsAndSelf().OfType<VariableDeclarationNode>().Take(2).ToArray();
+        var sourceType = await checker.GetTypeFromTypeNodeAsync(declarations[0].Type!);
+        var targetType = await checker.GetTypeFromTypeNodeAsync(declarations[1].Type!);
+        if (await checker.Relations.RelatedAsync(sourceType, targetType, RelationKind.Assignable))
+            throw new InvalidOperationException("Diagnostic elaboration changed relation result");
+        int cacheCount = checker.Relations.Cache(RelationKind.Assignable).Count;
+        var reliability = checker.Relations.State.Reliability;
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+        try
+        {
+            await checker.Relations.ExplainAsync(sourceType, targetType, RelationKind.Assignable, cancellation.Token);
+            throw new InvalidOperationException("Cancelled relation elaboration succeeded");
+        }
+        catch (OperationCanceledException) { }
+        if (checker.Relations.Cache(RelationKind.Assignable).Count != cacheCount || checker.Relations.State.Reliability != reliability)
+            throw new InvalidOperationException("Cancelled relation elaboration changed cache state");
+        var explanation = await checker.Relations.ExplainAsync(sourceType, targetType, RelationKind.Assignable, default);
+        if (explanation?.Next is not { Code: 2322 } detail
+            || detail.Source != checker.Context.NumberType
+            || detail.Target != checker.Context.StringType)
+            throw new InvalidOperationException("Cached negative relation lost its explanation");
+        return 4;
     }
 
     private static async Task<int> MissingPropertySafety()

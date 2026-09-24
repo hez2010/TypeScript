@@ -6,6 +6,7 @@ using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Semantics;
 using TypeScript.Compiler.Syntax;
+using TypeScript.Compiler.Text;
 
 namespace TypeScript.Compiler.Checking;
 
@@ -31,9 +32,12 @@ internal sealed class TypeDisplay(
         internal HashSet<Type> Active { get; } = [];
         internal IReadOnlyList<TypeParameter>? InferParameters { get; set; }
         internal List<Symbol> ReverseMapped { get; } = [];
+        internal long WrittenBytes { get; set; }
     }
 
     private int serializationLevel;
+    // The reference printer's absolute limits are twice its normal/no-truncation budgets.
+    private int MaximumLength => noTruncation ? 2_000_000 : 320;
 
     internal async ValueTask<string> GetAsync(Type type, CancellationToken cancellation = default)
     {
@@ -43,7 +47,8 @@ internal sealed class TypeDisplay(
         serializationLevel++;
         try
         {
-            return await WriteAsync(type, new(), cancellation).ConfigureAwait(false);
+            string text = await WriteAsync(type, new(), cancellation).ConfigureAwait(false);
+            return Encoding.UTF8.GetByteCount(text) >= MaximumLength ? Prefix(text, MaximumLength - 3) + "..." : text;
         }
         finally
         {
@@ -52,6 +57,21 @@ internal sealed class TypeDisplay(
     }
 
     private async ValueTask<string> WriteAsync(Type type, DisplayState active, CancellationToken cancellation)
+    {
+        cancellation.ThrowIfCancellationRequested();
+        if (active.WrittenBytes >= MaximumLength)
+            return Elision;
+        long before = active.WrittenBytes;
+        string text = await WriteCoreAsync(type, active, cancellation).ConfigureAwait(false);
+        int length = Encoding.UTF8.GetByteCount(text);
+        // Child text is already counted. Count only the syntax added by this node.
+        active.WrittenBytes += Math.Max(0, length - (active.WrittenBytes - before));
+        return length > MaximumLength ? Prefix(text, MaximumLength) : text;
+    }
+
+    private static string Prefix(string text, int bytes) => Wtf8.DecodeString(Wtf8.Encode(text).AsSpan(0, bytes));
+
+    private async ValueTask<string> WriteCoreAsync(Type type, DisplayState active, CancellationToken cancellation)
     {
         await Task.CompletedTask.ConfigureAwait(
             RuntimeHelpers.TryEnsureSufficientExecutionStack() ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
@@ -260,16 +280,20 @@ internal sealed class TypeDisplay(
             foreach (var signature in resolved.ConstructSignatures)
                 fields.Add(await SignatureAsync(signature, true, false, active, cancellation).ConfigureAwait(false) + ";");
             foreach (var indexInfo in resolved.IndexInfos)
+            {
+                string name = indexInfo.Declaration is IndexSignatureDeclarationNode { Parameters: { Count: > 0 } indexParameters }
+                    && SemanticSyntax.Name(indexParameters[0]) is IdentifierNode identifier ? identifier.Text : "x";
                 fields.Add(
                     (indexInfo.IsReadonly
                         ? "readonly "
-                        : "") + "[x: " + await WriteAsync(
+                        : "") + "[" + name + ": " + await WriteAsync(
                             indexInfo.KeyType,
                             active,
                             cancellation).ConfigureAwait(false) + "]: " + (type is ReverseMappedType ? Elision : await WriteAsync(
                                 indexInfo.ValueType,
                                 active,
                                 cancellation).ConfigureAwait(false)) + ";");
+            }
             foreach (var property in resolved.Properties ?? [])
             {
                 string propertyType;

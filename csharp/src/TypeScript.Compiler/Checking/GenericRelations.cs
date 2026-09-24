@@ -77,7 +77,7 @@ internal sealed class GenericRelations(TypeContext context, TypeAlgebra algebra,
         {
             if (source is IndexType sourceIndex)
             {
-                var result = await operation.CompareAsync(
+                var result = await operation.CompareWithoutErrorsAsync(
                     targetIndex.Target,
                     sourceIndex.Target,
                     cancellation: cancellation).ConfigureAwait(false);

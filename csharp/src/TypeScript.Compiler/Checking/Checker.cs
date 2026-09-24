@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -422,6 +423,15 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
         {
             Diagnostics.Add(code);
             TrackDiagnostic(node, code, arguments);
+        }
+    }
+
+    private void Error(SyntaxNode node, Diagnostic diagnostic)
+    {
+        if (reported.Add((node, diagnostic.Code)))
+        {
+            Diagnostics.Add(diagnostic.Code);
+            diagnosticFiles.Add((node, diagnostic));
         }
     }
 
