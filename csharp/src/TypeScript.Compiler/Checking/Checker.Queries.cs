@@ -29,6 +29,7 @@ internal sealed partial class Checker
         try
         {
             RequireNode(node);
+            RequireUsable();
             return await Expressions.CheckAsync(node, cancellation: cancellation).ConfigureAwait(false);
         }
         finally
@@ -43,6 +44,7 @@ internal sealed partial class Checker
         try
         {
             RequireNode(node);
+            RequireUsable();
             return await Nodes.FromNodeAsync(node, cancellation).ConfigureAwait(false);
         }
         finally

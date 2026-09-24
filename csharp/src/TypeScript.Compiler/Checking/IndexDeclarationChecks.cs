@@ -13,8 +13,13 @@ internal sealed class IndexDeclarationChecks(CheckerSymbols symbols, TypeNodes n
         var type = (ObjectType)await nodes.FromNodeAsync(node, cancellation).ConfigureAwait(false);
         await CheckAsync(type, false, cancellation).ConfigureAwait(false);
         await DuplicateIndexesAsync(node, cancellation).ConfigureAwait(false);
+        DuplicateProperties(node.Members!, cancellation);
+    }
+
+    internal void DuplicateProperties(NodeList members, CancellationToken cancellation = default)
+    {
         var names = new Dictionary<string, int>(StringComparer.Ordinal);
-        foreach (var member in node.Members!)
+        foreach (var member in members)
         {
             cancellation.ThrowIfCancellationRequested();
             if (symbols.Declaration(member) is not { Declarations.Count: > 1 } symbol)
@@ -29,7 +34,7 @@ internal sealed class IndexDeclarationChecks(CheckerSymbols symbols, TypeNodes n
                 names[symbol.Name] = kind;
             else if (state == 1 || state == 2 && kind != 2)
             {
-                foreach (var duplicate in node.Members)
+                foreach (var duplicate in members)
                     if (symbols.Declaration(duplicate)?.Name == symbol.Name && duplicate is INamedNode { Name: { } name })
                         error(name, 2300);
                 names[symbol.Name] = 3;

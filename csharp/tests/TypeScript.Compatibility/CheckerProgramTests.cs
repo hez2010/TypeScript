@@ -226,6 +226,55 @@ internal static class CheckerProgramTests
         Check(mappedType is TypeReference reference && reference.Target == libraryChecker.ArrayTarget(false)
             && (await libraryChecker.TypeArgumentsAsync(reference, default)).Single() == libraryChecker.Context.NumberType);
         Check(libraryChecker.Diagnostics.Count == 0 && libraryChecker.Environment.Diagnostics.Count == 0);
+        var semanticProgram = await Build(new()
+        {
+            ["/project/check.ts"] = "const f=()=>{void absent;return 1;}; let value:number='bad';"
+        });
+        var semanticChecker = await semanticProgram.CreateCheckerAsync();
+        await semanticChecker.CheckProgramAsync();
+        Check(
+            semanticChecker.CheckedFileCount == 1
+                && semanticChecker.Diagnostics.Contains(2322)
+                && semanticChecker.Environment.Diagnostics.Contains(2304));
+        Check(semanticChecker.CurrentSourceNode is null && semanticChecker.Instantiation.Engine.Depth == 0);
+        int diagnosticCount = semanticChecker.Diagnostics.Count + semanticChecker.Environment.Diagnostics.Count;
+        semanticChecker.BeforeSourceElement = _ => throw new InvalidOperationException("Completed source was checked again");
+        await semanticChecker.CheckProgramAsync();
+        Check(semanticChecker.Diagnostics.Count + semanticChecker.Environment.Diagnostics.Count == diagnosticCount);
+        var cancelledChecker = await semanticProgram.CreateCheckerAsync();
+        using var sourceCancellation = new CancellationTokenSource();
+        cancelledChecker.BeforeSourceElement = _ => sourceCancellation.Cancel();
+        try
+        {
+            await cancelledChecker.CheckProgramAsync(sourceCancellation.Token);
+            throw new InvalidOperationException("Source cancellation ignored");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        Check(cancelledChecker.CheckedFileCount == 0 && cancelledChecker.CurrentSourceNode is null);
+        bool invalidated = false;
+        try
+        {
+            await cancelledChecker.GetExpressionTypeAsync(
+                semanticProgram.SourceFiles[0].Syntax.DescendantsAndSelf().OfType<NumericLiteralNode>().Single());
+        }
+        catch (InvalidOperationException)
+        {
+            invalidated = true;
+        }
+        Check(invalidated);
+        var recoveredChecker = await semanticProgram.CreateCheckerAsync();
+        await recoveredChecker.CheckProgramAsync();
+        Check(recoveredChecker.CheckedFileCount == 1 && recoveredChecker.Diagnostics.SequenceEqual(semanticChecker.Diagnostics));
+        var deepStatements = await Build(new() { ["/project/statements.ts"] = new string('{', depth) + "1;" + new string('}', depth) });
+        var statementChecker = await deepStatements.CreateCheckerAsync();
+        await statementChecker.CheckProgramAsync();
+        Check(
+            statementChecker.CheckedFileCount == 1
+                && statementChecker.Diagnostics.Count == 0
+                && statementChecker.CurrentSourceNode is null);
         Console.WriteLine($"{checks} program/checker ownership assertions; interface and scope depth 20000");
     }
 
@@ -262,6 +311,18 @@ internal static class CheckerProgramTests
         var links = typeHost?.Links ?? new CheckerLinks();
         var host = typeHost?.Environment ?? new CheckerEnvironment(context, links);
         var environment = typeHost?.Symbols ?? await CheckerSymbols.CreateAsync(program, links, host);
+        if (input.TryGetProperty("semantic", out var semanticOption) && semanticOption.GetBoolean())
+        {
+            await typeHost!.CheckSourceFileAsync(program.GetFile("/project/main.ts")!.Syntax);
+            writer.WriteStartObject();
+            writer.WriteStartArray("semanticDiagnostics");
+            foreach (int code in typeHost!.Diagnostics.Concat(host.Diagnostics).Concat(typeHost.Instantiation.Diagnostics)
+                .Concat(typeHost.Instantiation.ConstraintDiagnostics).Concat(typeHost.AlgebraDiagnostics).Order())
+                writer.WriteNumberValue(code);
+            writer.WriteEndArray();
+            writer.WriteEndObject();
+            return;
+        }
         var nodes = program.SourceFiles.SelectMany(file => file.Syntax.DescendantsAndSelf()).ToArray();
         var nodeIds = nodes.Select((node, i) => (node, i)).ToDictionary(p => p.node, p => p.i + 1);
         int Node(SyntaxNode? node) => node is null ? 0 : nodeIds.GetValueOrDefault(node);

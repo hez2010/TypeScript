@@ -2,11 +2,13 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"math"
 	"os"
+	"slices"
 
 	"github.com/microsoft/TypeScript/tsc/internal/checker"
 	"github.com/microsoft/TypeScript/tsc/internal/compiler"
@@ -44,6 +46,7 @@ func main() {
 			Access        bool
 			Calls         bool
 			Assertions    bool
+			Semantic      bool
 			NumberStrings []string
 		}
 		if err := json.Unmarshal(lines.Bytes(), &input); err != nil {
@@ -71,6 +74,17 @@ func main() {
 		}
 		program := compiler.NewProgram(options)
 		c, _ := checker.NewChecker(program, nil)
+		if input.Semantic {
+			codes := []int{}
+			for _, diagnostic := range c.GetDiagnostics(context.Background(), program.GetSourceFile("/project/main.ts")) {
+				codes = append(codes, int(diagnostic.Code()))
+			}
+			slices.Sort(codes)
+			if err := output.Encode(map[string]any{"semanticDiagnostics": codes}); err != nil {
+				panic(err)
+			}
+			continue
+		}
 		result := c.CSharpProgramScopeProbe(input.Aliases, input.TypeNodes, input.Members, input.Values, input.Properties, input.Signatures, input.Identity, input.Assignability, input.Indexing, input.Constants, input.Expressions, input.Awaited, input.References, input.Flow, input.Identifiers, input.Access, input.Calls, input.Assertions).(map[string]any)
 		if input.NumberStrings != nil {
 			rows := []string{}

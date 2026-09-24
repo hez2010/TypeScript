@@ -182,6 +182,15 @@ internal sealed class TypeIdentity(TypeContext context, CheckerLinks links, Stru
         Symbol source,
         Symbol target,
         CancellationToken cancellation)
+        =>
+            await PropertyAsync(
+                source,
+                target,
+                (s, t, token) => operation.CompareAsync(s, t, cancellation: token),
+                cancellation).ConfigureAwait(false);
+
+    internal async ValueTask<Ternary> PropertyAsync(Symbol source, Symbol target,
+        Func<Type, Type, CancellationToken, ValueTask<Ternary>> compare, CancellationToken cancellation = default)
     {
         if (source == target)
             return Ternary.True;
@@ -198,7 +207,7 @@ internal sealed class TypeIdentity(TypeContext context, CheckerLinks links, Stru
         var targetType = values.NonMissing(
             await values.GetAsync(target, cancellation).ConfigureAwait(false),
             (target.Flags & SymbolFlags.Optional) != 0);
-        return await operation.CompareAsync(sourceType, targetType, cancellation: cancellation).ConfigureAwait(false);
+        return await compare(sourceType, targetType, cancellation).ConfigureAwait(false);
     }
 
     private Symbol? Target(Symbol symbol) => (symbol.CheckFlags & CheckFlags.Instantiated) != 0 ? links.Values.Get(symbol).Target : symbol;

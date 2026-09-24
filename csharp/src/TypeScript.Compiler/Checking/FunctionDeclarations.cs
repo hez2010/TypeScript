@@ -10,6 +10,8 @@ internal interface IFunctionDeclarationHost
     bool NoImplicitAny { get; }
     int TargetYear { get; }
     Type AnyReadonlyArray { get; }
+    Type AutoArray { get; }
+    Type AnyArray { get; }
 
     ValueTask<Type> TypeFromNodeAsync(SyntaxNode node, CancellationToken cancellation);
 
@@ -202,7 +204,7 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
         host.RegisterUnused(node);
     }
 
-    private async ValueTask TypeParameterAsync(TypeParameterDeclarationNode node, CancellationToken cancellation)
+    internal async ValueTask TypeParameterAsync(TypeParameterDeclarationNode node, CancellationToken cancellation)
     {
         await host.TypeParameterModifiersAsync(node, cancellation).ConfigureAwait(false);
         if (node.Expression is not null && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
@@ -233,7 +235,7 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
         host.DeferExpression(node);
     }
 
-    private async ValueTask VariableAsync(SyntaxNode node, CancellationToken cancellation)
+    internal async ValueTask VariableAsync(SyntaxNode node, CancellationToken cancellation)
     {
         await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
             ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
@@ -273,14 +275,15 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
                 await VariableAsync(child, cancellation).ConfigureAwait(false);
         var root = SemanticSyntax.RootDeclaration(node);
         var function = root.Parent!;
-        if (initializer is not null && SemanticSyntax.Body(function) is null)
+        bool parameterDeclaration = root is ParameterDeclarationNode;
+        if (initializer is not null && parameterDeclaration && SemanticSyntax.Body(function) is null)
         {
             host.ExpressionError(node, 2371);
             return;
         }
         if (name is BindingPatternNode binding)
         {
-            if ((node.Flags & NodeFlags.Ambient) != 0 || SemanticSyntax.Body(function) is null)
+            if ((node.Flags & NodeFlags.Ambient) != 0 || parameterDeclaration && SemanticSyntax.Body(function) is null)
                 return;
             bool empty = !binding.Elements!.OfType<BindingElementNode>().Any(e => e.Name is not null);
             if (initializer is not null || empty)
@@ -313,7 +316,21 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
         var type = await values.GetAsync(symbol, cancellation).ConfigureAwait(false);
         if (type == context.AutoType)
             type = context.AnyType;
-        if (initializer is not null)
+        else if (type == host.AutoArray)
+            type = host.AnyArray;
+        if (node != symbol.ValueDeclaration)
+        {
+            var declarationType = await variables.GetAsync(node, false, cancellation).ConfigureAwait(false);
+            if (declarationType == context.AutoType)
+                declarationType = context.AnyType;
+            else if (declarationType == host.AutoArray)
+                declarationType = host.AnyArray;
+            if (type != context.ErrorType && declarationType != context.ErrorType && (symbol.Flags & SymbolFlags.Assignment) == 0
+                && !await relations.RelatedAsync(type, declarationType, RelationKind.Identity, cancellation).ConfigureAwait(false))
+                host.ExpressionError(name, node is PropertyDeclarationNode or PropertySignatureDeclarationNode ? 2717 : 2403);
+            type = declarationType;
+        }
+        if (initializer is not null && node.Parent?.Parent?.Kind != SyntaxKind.ForInStatement)
             await host.CheckLiteralAssignableAsync(
                 await host.CachedExpressionAsync(initializer, 0, cancellation).ConfigureAwait(false),
                 type,

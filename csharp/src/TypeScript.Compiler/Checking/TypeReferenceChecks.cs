@@ -7,12 +7,13 @@ internal sealed class TypeReferenceChecks(TypeContext context, CheckerLinks link
     DeclaredTypes declared, TypeParameterScopes scopes, TypeConstraints constraints, TypeInstantiation instantiation,
     TypeRelations relations, Action<SyntaxNode, int> error)
 {
-    internal async ValueTask CheckAsync(TypeReferenceNode node, CancellationToken cancellation = default)
+    internal async ValueTask CheckAsync(SyntaxNode node, CancellationToken cancellation = default)
     {
+        var typeArguments = TypeReferences.Arguments(node);
         var type = await references.FromNodeAsync(node, cancellation).ConfigureAwait(false);
         if (type == context.ErrorType
             || (type.Flags & TypeFlags.Any) != 0 && type.Alias is not null
-            || node.TypeArguments is not { Count: > 0 })
+            || typeArguments is not { Count: > 0 })
             return;
         var symbol = await references.SymbolAsync(node, cancellation).ConfigureAwait(false);
         IReadOnlyList<TypeParameter> parameters;
@@ -48,8 +49,8 @@ internal sealed class TypeReferenceChecks(TypeContext context, CheckerLinks link
             if (success && !await relations.RelatedAsync(arguments[i], (await instantiation.InstantiateAsync(constraint, mapper,
                 cancellation: cancellation).ConfigureAwait(false))!, RelationKind.Assignable, cancellation).ConfigureAwait(false))
             {
-                if (i < node.TypeArguments.Count)
-                    error(node.TypeArguments[i], 2344);
+                if (i < typeArguments.Count)
+                    error(typeArguments[i], 2344);
                 success = false;
             }
         }

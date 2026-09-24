@@ -52,13 +52,16 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
     }
 
     public void TopLevelAwait(SyntaxNode node)
+        => TopLevelAwait(node, 1375, 1378);
+
+    private void TopLevelAwait(SyntaxNode node, int moduleRequired, int invalidMode)
     {
         var file = SemanticSyntax.Source(node)!;
         var options = program.Symbols.Program.Configuration.Options;
         if (program.Symbols.Binding(file)?.IsModule != true
             && options.String("moduleDetection") != "force"
             && options.Number("moduleDetection") != 3)
-            Error(node, 1375);
+            Error(node, moduleRequired);
         var module = options.String("module") ?? options.Number("module") switch
         {
             4 => "system",
@@ -78,7 +81,7 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
         if (nodeModule && program.Symbols.Program.SourceFiles.First(f => f.Syntax == file).ImpliedFormat == ReferenceResolutionMode.Require)
             Error(node, 1309);
         else if (TargetYear < 2017 || !nodeModule && module is not ("es2022" or "esnext" or "preserve" or "system"))
-            Error(node, 1378);
+            Error(node, invalidMode);
     }
 
     internal HashSet<SyntaxNode> UnusedIdentifierScopes { get; } = [];

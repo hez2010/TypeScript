@@ -369,7 +369,7 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
         return Array.AsReadOnly(result);
     }
 
-    private async ValueTask<bool> NamedAsync(string name, Symbol symbol, CancellationToken cancellation)
+    internal async ValueTask<bool> NamedAsync(string name, Symbol symbol, CancellationToken cancellation)
     {
         if (name.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal)
             && !name.StartsWith(Symbol.InternalPrefix + Symbol.InternalPrefix, StringComparison.Ordinal)

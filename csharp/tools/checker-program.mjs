@@ -1082,12 +1082,50 @@ for (const strict of [false, true]) {
 }
 for (const input of cases.filter(c => c.name.startsWith("access:"))) input.access = true;
 
-let selected = process.argv.includes("--access") ? cases.filter(c => c.access) : process.argv.includes("--identifiers") ? cases.filter(c => c.identifiers) : process.argv.includes("--flow") ? cases.filter(c => c.flow) : process.argv.includes("--references") ? cases.filter(c => c.references) : process.argv.includes("--awaited") ? cases.filter(c => c.awaited) : process.argv.includes("--binary") ? cases.filter(c => c.name.startsWith("binary:")) : process.argv.includes("--initializers") ? cases.filter(c => c.name.startsWith("initializers:")) : process.argv.includes("--expressions") ? cases.filter(c => c.expressions && !c.name.startsWith("binary:") && !c.name.startsWith("awaited:")) : process.argv.includes("--constants") ? cases.filter(c => c.name.startsWith("constants:")) : process.argv.includes("--inference") ? cases.filter(c => c.typeNodes && c.name.startsWith("inference:")) : process.argv.includes("--conditional") ? cases.filter(c => c.typeNodes && c.name.startsWith("conditional:")) :
+for (const strict of [false, true]) {
+    for (
+        const [name, source] of Object.entries({
+            variables: "let value:number='bad'; const text:string=1; let good:number=2; good='wrong';",
+            inferred: "const value=1; let text='a'; text=2; const values=[1,2]; values[0]='bad';",
+            functionReturn: "function f(value:number):number{return 'bad';} f('bad'); function g():number{return 1;}",
+            arrowReturn: "const f=(value:number):number=>'bad'; const g=(value:number)=>value+1; g('bad');",
+            deferredVoid: "void absent; const value=1 as string;",
+            branches: "function f(value:string|number){if(typeof value==='string'){const n:number=value;}else{const n:number=value;}}",
+            loops: "let value:number=0; for(let i=0;i<3;i++){value='bad';} while(value){value++;break;} do{value++;}while(false);",
+            returnPlacement: "return absent;",
+            tryCatch: "try {throw 1;} catch(error){const value:number=error;} finally {const value:number='bad';}",
+            destructuring: "const {value}:{value:number}={value:'bad'}; const [first]:[number]=['bad'];",
+            aliases: "type Box<T>={value:T}; let box:Box<number>={value:'bad'};",
+            forOf: "for(const value of [1,2]){const text:string=value;}",
+            forIn: "declare const values:{value:number}; for(const key in values){const value:number=key;}",
+            switch: "declare const value:number; switch(value){case 'a':break;case 1:break;default:break;default:break;}",
+            returnPaths: "function missing():number{} function partial(flag:boolean):number{if(flag)return 1;} function impossible():never{}",
+            redeclarations: "var value:number; var value:string='bad';",
+            breaks: "break; continue; label:{continue label;} for(;;){break absent;}",
+            deferredOrder: "const f=()=>g(); const g=():number=>'bad'; f();",
+            interfaces: "interface Box<T>{value:T; method(value:T):T;} const box:Box<number>={value:'bad',method:value=>value};",
+            interfaceExtends: "interface Base{value:number} interface Derived extends Base{value:string}",
+            interfaceConflict: "interface A{value:number} interface B{value:string} interface C extends A,B{}",
+            interfaceMerge: "interface Box<T>{value:T} interface Box<U>{other:U}",
+            interfaceConstraint: "interface Box<T extends number>{value:T} interface Bad extends Box<string>{}",
+            forGrammar: "for(const value:number of [1]){} for(let key:string in {value:1}){}",
+            asyncLoop: "async function f(){for await(const value of [1,2]){const text:string=value;}}",
+        })
+    ) add(`semantic:${name}:${strict}`, { "globals.d.ts": library, "main.ts": source }, { strict, skipLibCheck: true }, false, true);
+}
+for (const input of cases.filter(c => c.name.startsWith("semantic:"))) input.semantic = true;
+for (const allowUnreachableCode of [false, true]) add(`semantic:unreachable:${allowUnreachableCode}`, { "globals.d.ts": library, "main.ts": "function f(){return 1; const value:number='bad'; absent;}" }, { strict: true, skipLibCheck: true, allowUnreachableCode }, false, true);
+for (const noImplicitReturns of [false, true]) add(`semantic:implicitReturns:${noImplicitReturns}`, { "globals.d.ts": library, "main.ts": "function f(flag:boolean){if(flag)return 1;}" }, { strict: true, skipLibCheck: true, noImplicitReturns }, false, true);
+for (const input of cases.filter(c => c.name.startsWith("semantic:"))) input.semantic = true;
+
+let selected = process.argv.includes("--semantic") ? cases.filter(c => c.semantic) :
+    process.argv.includes("--access") ? cases.filter(c => c.access) : process.argv.includes("--identifiers") ? cases.filter(c => c.identifiers) : process.argv.includes("--flow") ? cases.filter(c => c.flow) : process.argv.includes("--references") ? cases.filter(c => c.references) : process.argv.includes("--awaited") ? cases.filter(c => c.awaited) : process.argv.includes("--binary") ? cases.filter(c => c.name.startsWith("binary:")) : process.argv.includes("--initializers") ? cases.filter(c => c.name.startsWith("initializers:")) : process.argv.includes("--expressions") ? cases.filter(c => c.expressions && !c.name.startsWith("binary:") && !c.name.startsWith("awaited:")) : process.argv.includes("--constants") ? cases.filter(c => c.name.startsWith("constants:")) : process.argv.includes("--inference") ? cases.filter(c => c.typeNodes && c.name.startsWith("inference:")) : process.argv.includes("--conditional") ? cases.filter(c => c.typeNodes && c.name.startsWith("conditional:")) :
     process.argv.includes("--generic-relations") ? cases.filter(c => c.genericRelations) :
     process.argv.includes("--indexing") ? cases.filter(c => c.name.startsWith("indexing:")) :
     process.argv.includes("--assignability") ? cases.filter(c => c.assignability && !c.genericRelations && !c.name.startsWith("conditional:") && !c.name.startsWith("inference:") && !c.name.startsWith("constants:") && !c.name.startsWith("expressions:") && !c.name.startsWith("binary:") && !c.name.startsWith("awaited:")) :
     process.argv.includes("--identity") ? cases.filter(c => c.identity && !c.assignability) : process.argv.includes("--signatures") ? cases.filter(c => c.signatures && !c.functionBodies && !c.calls) : process.argv.includes("--properties") ? cases.filter(c => c.properties) : process.argv.includes("--values") ? cases.filter(c => c.values && !c.functionBodies && !c.calls && !c.name.startsWith("initializers:")) : process.argv.includes("--members") ? cases.filter(c => c.members && !c.values && !c.signatures) : process.argv.includes("--type-nodes") ? cases.filter(c => c.typeNodes && !c.access && !c.identifiers && !c.flow && !c.members && !c.properties && !c.identity && !c.name.startsWith("indexing:") && !c.name.startsWith("conditional:") && !c.name.startsWith("inference:") && !c.name.startsWith("constants:") && !c.name.startsWith("expressions:") && !c.name.startsWith("binary:") && !c.name.startsWith("awaited:"))
     : cases.filter(c => !c.references && !c.typeNodes && Boolean(c.aliases) === process.argv.includes("--aliases"));
+if (!process.argv.includes("--semantic")) selected = selected.filter(c => !c.semantic);
 if (option("--filter")) selected = selected.filter(c => c.name.includes(option("--filter")));
 async function probe(command, args) {
     return new Promise((resolve, reject) => {
@@ -1120,7 +1158,7 @@ for (let i = 0; i < selected.length; i++) {
 await json(path.join(output, "checker-program-failures.json"), failures);
 const summary = {
     timestamp: new Date().toISOString(),
-    scope: process.argv.includes("--access") ? "Property and element expression types, optional chains, assignments, flow and indexed-access validation; full checker integration remains incomplete" : process.argv.includes("--identifiers") ? "Identifier expression types, definite assignment, captured flow, parameter defaults and generic reference constraints; full checker integration remains incomplete" :
+    scope: process.argv.includes("--semantic") ? "Source-file semantic traversal and diagnostic codes; complete diagnostics and semantic coverage remain unfinished" : process.argv.includes("--access") ? "Property and element expression types, optional chains, assignments, flow and indexed-access validation; full checker integration remains incomplete" : process.argv.includes("--identifiers") ? "Identifier expression types, definite assignment, captured flow, parameter defaults and generic reference constraints; full checker integration remains incomplete" :
         process.argv.includes("--flow") ? "Control-flow types, assignment reduction, branch and loop joins and narrowing; full checker integration remains incomplete" : process.argv.includes("--references") ? "Value-name resolution, declaration order, parameter initialization and type-only alias diagnostics" : process.argv.includes("--binary") ? "Binary expression result types, operator diagnostics and nullish semantics with required assignment/access services" : process.argv.includes("--awaited") ? "Promise and thenable fulfillment, awaited types, recursion and generic wrappers; classification queries make lazy generic metadata deterministic" : process.argv.includes("--expressions") ? "Primitive expression types, template evaluation, diagnostics and grammar checks with required advanced expression services" :
         process.argv.includes("--constants") ? "Constant and enum evaluation with provenance, forward references and numeric boundaries" : process.argv.includes("--initializers") ? "Variable, parameter and property initializer types with required flow, binding-pattern and contextual services" : process.argv.includes("--inference") ? "Type inference, constraints, reverse mapped types, widening and contextual signatures; expression inference and full checker integration remain incomplete" : process.argv.includes("--conditional") ? "Conditional evaluation, distribution, tail recursion, constraints and relations with required inference services; full checker integration remains incomplete" : process.argv.includes("--generic-relations") ? "Generic key/indexed/mapped relations, optionality, variance and cache graphs; conditional and full diagnostic services remain incomplete" :
         process.argv.includes("--indexing") ? "Key enumeration, indexed access, read/write simplification and generic cache identity; expression checking and full checker integration remain incomplete" : process.argv.includes("--assignability") ? "Structural relation decisions, signature variance, discriminants and generic variance caches with required advanced semantic services; full checker integration remains incomplete" : process.argv.includes("--identity") ? "Structural identity, primitive relation predicates, normalization and recursive caches with required advanced relation services; full checker integration remains incomplete" : process.argv.includes("--signatures") ? "Signature matching, composition, tuple rest parameters and array member fallback with explicit type relation dependencies; full checker integration remains incomplete" :

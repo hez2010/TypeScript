@@ -1,6 +1,6 @@
 # Phase 4: checker port in progress
 
-**Phase 4 is incomplete.** Checker creation and internal expression/type-node queries now run in the production compiler assembly, using the implemented type system, scope, instantiation, inference, flow and expression services. This does not satisfy the complete semantic-checker gate in the [rewrite plan](csharp-rewrite-plan.md). Whole-program semantic diagnostics, full type/symbol queries and the complete emit resolver remain unavailable in the C# backend.
+**Phase 4 is incomplete.** Production checker creation, internal queries and an initial source-file semantic traversal now use the implemented type system, scope, instantiation, inference, flow and expression services. This does not satisfy the complete semantic-checker gate in the [rewrite plan](csharp-rewrite-plan.md). Complete semantic coverage and diagnostic formatting, full type/symbol queries and the emit resolver remain unavailable in the C# backend.
 
 ## Implemented checkpoint
 
@@ -593,11 +593,23 @@ The source-program differential harness now creates the production checker and u
 
 Evidence: [production query comparisons](../csharp/compatibility/evidence/phase4-composition-identifiers.json), [constraint/relation regressions](../csharp/compatibility/evidence/phase4-composition-generic-relations.json), [property regressions](../csharp/compatibility/evidence/phase4-composition-properties.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-composition-validation.json).
 
+## Source traversal and deferred checking
+
+`Checker.CheckSourceFileAsync` and `CheckProgramAsync` now drive source-element checking for variables, function declarations and deferred function bodies, returns, type aliases, interfaces, branches, loops, switches, labels, jumps and exception statements. Return-path analysis handles annotated, inferred and `never` returns; source traversal performs unreachable-code checks and preserves the function flow-analysis boundary. Interface checks include inherited-property identity, base compatibility, merged type-parameter lists and generic heritage constraints. Variable validation now distinguishes parameters from ordinary declarations and checks secondary declaration types.
+
+Deferred nodes retain insertion order, including nodes discovered while checking deferred bodies. Completion is recorded only after deferred checks finish. Completed source files are not checked twice. Cancellation during source checking invalidates that checker, matching the reference's cancellation lifetime; a fresh checker can retry the immutable program. Unsupported source forms and incomplete finalization services still fail explicitly.
+
+The new `--semantic` probe invokes the reference's `GetDiagnostics` for the complete main source file. Windows x64 NativeAOT passes **108 exact semantic diagnostic-code configurations**, alongside **4,254 exact query configurations** and **664 safety assertions**. Semantic cases cover initializer/assignment failures, deferred errors, return paths, narrowing through statements, destructuring, `for…in`/`for…of`/`for await`, switch and jump errors, unreachable code, interfaces and declaration merging. Eight new safety assertions cover completion caching, deferred-body checking, cancellation invalidation/recovery and a 20,000-level statement traversal.
+
+This new probe compares diagnostic codes, not complete diagnostic text, ranges or related information. Class and module source dispatch, export/unused checks, some deferred diagnostics and other semantic forms remain unfinished. Passing these cases does not establish the complete corpus or memory/performance gate.
+
+Evidence: [source-file semantic comparisons](../csharp/compatibility/evidence/phase4-source-semantic.json), [query regressions](../csharp/compatibility/evidence/phase4-source-identifiers.json), [signature regressions](../csharp/compatibility/evidence/phase4-source-signatures.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-source-validation.json).
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
 
-1. Complete the whole-program semantic pass, module interop/type adaptation, computed exports and remaining type/value symbol resolution. Checker creation, program-backed queries, globals, augmentation merging, declaration headers and alias/export algorithms now exist; their remaining semantic callbacks must be connected.
+1. Complete semantic-pass coverage and finalization, module interop/type adaptation, computed exports and remaining type/value symbol resolution. Checker creation, source traversal, program-backed queries, globals, augmentation merging, declaration headers and alias/export algorithms now exist; their remaining semantic callbacks must be connected.
 2. Complete relation diagnostics and remaining type-node dependencies; connect the implemented declaration/type-node, algebra, scope, inference, instantiation and tuple algorithms to complete checker services.
 3. Remaining expression forms and special call forms, full declaration checking, JavaScript and JSDoc semantics, and completion of contextual/inference integration across those services.
 4. Complete property/declaration flow integration, constructor/`in`/`instanceof` narrowing, initialization/reference services, and iterator/generator diagnostic and emit integration.
@@ -605,4 +617,4 @@ The following phase-4 requirements remain open:
 6. Type display, node builders, symbol accessibility and emit-resolver APIs.
 7. All active checker/compiler type/symbol/diagnostic comparisons at single and reference-default concurrency; audits of intentional differences; complete semantic workload memory/performance measurements.
 
-The next integration work is the whole-program semantic pass, remaining expression/declaration services, complete diagnostic attribution and module type adaptation. The production query entry points do not yet supply complete program checking. Component comparison counts and validation of the existing Go backend do not measure full C# checker completion. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.
+The next integration work is class/module checking and semantic finalization, remaining expression/declaration services, complete diagnostic attribution and module type adaptation. Production source traversal does not yet supply complete program checking. Component comparison counts and validation of the existing Go backend do not measure full C# checker completion. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.

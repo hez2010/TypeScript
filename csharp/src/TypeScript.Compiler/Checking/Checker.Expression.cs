@@ -17,7 +17,18 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
 
     public void ExpressionError(SyntaxNode node, int code) => Error(node, code);
 
-    public void DeferExpression(SyntaxNode node) => DeferredExpressions.Add(node);
+    public void DeferExpression(SyntaxNode node)
+    {
+        var file = SemanticSyntax.Source(node);
+        if (file is not null && checkedFiles.Contains(file) || !DeferredExpressions.Add(node))
+            return;
+        if (file is not null)
+        {
+            if (!deferredSourceNodes.TryGetValue(file, out var nodes))
+                deferredSourceNodes.Add(file, nodes = []);
+            nodes.Add(node);
+        }
+    }
 
     public ValueTask<Type> NonNullAsync(Type type, SyntaxNode node, CancellationToken cancellation) =>
         ExpressionChecks.NonNullAsync(type, node, cancellation);
