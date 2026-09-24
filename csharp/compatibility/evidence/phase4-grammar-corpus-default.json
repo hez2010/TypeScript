@@ -1,0 +1,130 @@
+{
+    "timestamp": "2026-09-24T18:30:19.021Z",
+    "mode": "default",
+    "configuration": "Release",
+    "selectedConfigurations": 1501,
+    "replayedConfigurations": 1501,
+    "retainedConfigurations": 0,
+    "previousMatches": 1259,
+    "graphAndCodeMatches": 1328,
+    "recoveredConfigurations": 69,
+    "regressions": [],
+    "scope": "With statements, template contexts, variance annotations and grammar, and computed enum initializers; full phase 4 remains incomplete",
+    "parts": [
+        {
+            "directory": "built/csharp/semantic-corpus-grammar-affected/default",
+            "summary": {
+                "timestamp": "2026-09-24T18:29:19.318Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "mode": "default",
+                "filter": "",
+                "managed": true,
+                "reuseSyntax": true,
+                "referenceJobs": 4,
+                "scope": "Original compiler test program graphs and semantic diagnostic codes; full diagnostic/type/symbol fidelity and parallel candidate checker scheduling remain incomplete",
+                "referenceExitCode": 0,
+                "exportedConfigurations": 15208,
+                "readyConfigurations": 1501,
+                "availableConfigurations": 13446,
+                "selectionSha256": "7f86b97cf736821ad924dfb7163634df9dca1941d4664fbf9eee4a015411d8ee",
+                "referenceInventoryFiles": 12730,
+                "plannedConfigurations": 15208,
+                "referenceMissingFiles": [],
+                "referenceMissingConfigurations": [],
+                "referenceSkipped": 1762,
+                "referenceFailed": 0,
+                "candidateFailures": 19,
+                "graphMismatches": 0,
+                "diagnosticMismatches": 154,
+                "graphAndCodeMatches": 1328,
+                "errorGroups": [
+                    {
+                        "error": "check-program: Checker requires enum relations",
+                        "count": 11
+                    },
+                    {
+                        "error": "check-program: Checker requires declaration modifier validation",
+                        "count": 4
+                    },
+                    {
+                        "error": "check-program: Checker requires enum modifier grammar",
+                        "count": 2
+                    },
+                    {
+                        "error": "check-program: Unable to cast object of type 'TypeScript.Compiler.Checking.IntrinsicType' to type 'TypeScript.Compiler.Checking.TypeParameter'.",
+                        "count": 1
+                    },
+                    {
+                        "error": "check-program: Unable to cast object of type 'TypeScript.Compiler.Ast.PropertyAccessExpressionNode' to type 'TypeScript.Compiler.Ast.CallExpressionNode'.",
+                        "count": 1
+                    }
+                ],
+                "inputSha256": "1021223d26cfedad8b1989a152ffb776bc54750978c457480fc0a0bb8f8bb3bf",
+                "oracleSha256": "072ce20500e1dfa626e6029e8ba98ed84b925a304216116200dd33d97f54654a",
+                "candidateSha256": "8841ae4f14a98ced17bd39957d6b08242ace4748746a98431d1fe906fe99189a",
+                "compilerSha256": "8467bf4f563c82a7ab6e5fc04d756d733973f219045ce3d0a97cc9fe10605ea6",
+                "candidateOutputSha256": "bb0677a1b5ac2593d52f252636f28c16f899731723e58a9c07c932616f4f7974",
+                "fullSemanticCorpusGateComplete": false
+            },
+            "outputSha256": "bb0677a1b5ac2593d52f252636f28c16f899731723e58a9c07c932616f4f7974"
+        }
+    ],
+    "cumulative": {
+        "activeConfigurations": 13446,
+        "matches": 12165,
+        "remaining": 1281,
+        "failed": 84,
+        "diagnosticMismatches": 1196,
+        "graphMismatches": 20,
+        "topStops": [
+            [
+                "Corpus adapter requires the reference test content-mapper host",
+                15
+            ],
+            [
+                "Checker requires enum relations",
+                11
+            ],
+            [
+                "Checker requires heritage property diagnostics",
+                9
+            ],
+            [
+                "Checker requires declaration modifier validation",
+                9
+            ],
+            [
+                "Checker requires function modifier grammar",
+                6
+            ],
+            [
+                "Checker requires constructor identity narrowing",
+                5
+            ],
+            [
+                "Unable to cast object of type 'TypeScript.Compiler.Checking.IntrinsicType' to type 'TypeScript.Compiler.Checking.TypeParameter'.",
+                4
+            ],
+            [
+                "Checker requires expression checking for JsxElement",
+                4
+            ],
+            [
+                "Unable to cast object of type 'TypeScript.Compiler.Checking.ObjectType' to type 'TypeScript.Compiler.Checking.InterfaceType'.",
+                2
+            ],
+            [
+                "Checker requires expression checking for JsxFragment",
+                2
+            ],
+            [
+                "Checker requires explicit annotation related information",
+                2
+            ],
+            [
+                "Checker requires enum modifier grammar",
+                2
+            ]
+        ]
+    }
+}

@@ -203,7 +203,7 @@ internal sealed class TypeVariance(
         }
     }
 
-    private async ValueTask<Type> MarkerAsync(Symbol symbol, Type source, Type target, CancellationToken cancellation)
+    internal async ValueTask<Type> MarkerAsync(Symbol symbol, Type source, Type target, CancellationToken cancellation)
     {
         var mapper = TypeMapper.Create([source], [target]);
         var type = await declared.GetAsync(symbol, cancellation).ConfigureAwait(false);
@@ -227,7 +227,7 @@ internal sealed class TypeVariance(
                 definition,
                 (await instantiation.TypesAsync(parameters, mapper, cancellation).ConfigureAwait(false)).ToArray());
         }
-        if (markers.Add(result))
+        if (markers.Add(result) && active != 0)
             addedMarkers.Add(result);
         return result;
     }

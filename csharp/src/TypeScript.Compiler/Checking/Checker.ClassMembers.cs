@@ -18,6 +18,12 @@ internal sealed partial class Checker
         {
             if (modifier is DecoratorNode)
                 continue;
+            if (modifier.Kind is SyntaxKind.InKeyword or SyntaxKind.OutKeyword)
+            {
+                if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
+                    Error(modifier, 1274);
+                return;
+            }
             bool access = modifier.Kind is SyntaxKind.PublicKeyword or SyntaxKind.PrivateKeyword or SyntaxKind.ProtectedKeyword;
             if (!seen.Add(modifier.Kind))
                 Error(modifier, 1030);

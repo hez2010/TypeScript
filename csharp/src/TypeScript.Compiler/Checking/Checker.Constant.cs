@@ -22,16 +22,6 @@ internal sealed partial class Checker : IEnumValueHost
 
     public async ValueTask CheckComputedEnumAsync(EnumMemberNode member, CancellationToken cancellation)
     {
-        if (member.Initializer is IdentifierNode or PropertyAccessExpressionNode)
-        {
-            var symbol = await program.EntityNames.ResolveAsync(member.Initializer, SymbolFlags.Value, cancellation: cancellation);
-            if (symbol is not null && (symbol.Flags & SymbolFlags.EnumMember) != 0)
-            {
-                if (!await AssignableAsync(await Values.GetAsync(symbol, cancellation), context.NumberType, cancellation))
-                    Error(member.Initializer, 18033);
-                return;
-            }
-        }
         var type = await LiteralExpressionAsync(member.Initializer!, cancellation);
         if (!await AssignableAsync(type, context.NumberType, cancellation))
             Error(member.Initializer!, 18033);

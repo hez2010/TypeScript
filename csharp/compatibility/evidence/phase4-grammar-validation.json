@@ -1,0 +1,146 @@
+{
+    "timestamp": "2026-09-24T18:31:02.8253793+00:00",
+    "configuration": "Release",
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "managed": true,
+    "scope": "With statements, template contexts, variance annotations and grammar, and computed enum initializers; phase 4 remains incomplete",
+    "candidateSha256": "8841ae4f14a98ced17bd39957d6b08242ace4748746a98431d1fe906fe99189a",
+    "compilerSha256": "8467bf4f563c82a7ab6e5fc04d756d733973f219045ce3d0a97cc9fe10605ea6",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-grammar-final-build.log",
+        "sha256": "bfcfe8a5d97f7a047a15f73cc556da1125bae2e344fa135fe55bf101b98b9486"
+    },
+    "queries": {
+        "expressions": {
+            "record": "phase4-grammar-expressions.json",
+            "cases": 40,
+            "exact": 40,
+            "candidateSha256": "8841ae4f14a98ced17bd39957d6b08242ace4748746a98431d1fe906fe99189a",
+            "compilerSha256": "8467bf4f563c82a7ab6e5fc04d756d733973f219045ce3d0a97cc9fe10605ea6"
+        },
+        "signatures": {
+            "record": "phase4-grammar-signatures.json",
+            "cases": 216,
+            "exact": 216,
+            "candidateSha256": "8841ae4f14a98ced17bd39957d6b08242ace4748746a98431d1fe906fe99189a",
+            "compilerSha256": "8467bf4f563c82a7ab6e5fc04d756d733973f219045ce3d0a97cc9fe10605ea6"
+        }
+    },
+    "safety": {
+        "assertions": 190,
+        "newAssertions": 5,
+        "checks": [
+            "with expression diagnostics and unchecked body",
+            "ordinary template substitution type",
+            "non-entity property access in computed enum initializer",
+            "variance grammar and assignability diagnostics",
+            "annotation state restoration"
+        ],
+        "expressionLog": "logs/csharp-phase4-grammar-expression-safety-final.log",
+        "expressionSha256": "6e463e7367f5ea054889b40acee13e81bdca521f3807542b6e0b4f5ce06d1a9d",
+        "signatureLog": "logs/csharp-phase4-grammar-signature-safety-final.log",
+        "signatureSha256": "287356876977077de98f683bc8d7f28d0d2f775396cefc93b5f11a194ebda1d8",
+        "referenceFixture": "built/csharp/grammar-safety-reference.jsonl",
+        "referenceFixtureSha256": "98c154229bb4180b787252188c0bda6aceeb712d30fbcc56f450e23305836dad",
+        "runBeforeWhitespaceFormatting": true
+    },
+    "corpus": {
+        "single": "phase4-grammar-corpus-single.json",
+        "referenceDefault": "phase4-grammar-corpus-default.json",
+        "parity": "phase4-grammar-mode-parity.json",
+        "selectedConfigurationsPerMode": 1501,
+        "previousMatches": 1259,
+        "graphAndCodeMatches": 1328,
+        "recoveredConfigurations": 69,
+        "regressions": [],
+        "cumulative": {
+            "activeConfigurations": 13446,
+            "matches": 12165,
+            "remaining": 1281,
+            "failed": 84,
+            "diagnosticMismatches": 1196,
+            "graphMismatches": 20,
+            "topStops": [
+                [
+                    "Corpus adapter requires the reference test content-mapper host",
+                    15
+                ],
+                [
+                    "Checker requires enum relations",
+                    11
+                ],
+                [
+                    "Checker requires heritage property diagnostics",
+                    9
+                ],
+                [
+                    "Checker requires declaration modifier validation",
+                    9
+                ],
+                [
+                    "Checker requires function modifier grammar",
+                    6
+                ],
+                [
+                    "Checker requires constructor identity narrowing",
+                    5
+                ],
+                [
+                    "Unable to cast object of type 'TypeScript.Compiler.Checking.IntrinsicType' to type 'TypeScript.Compiler.Checking.TypeParameter'.",
+                    4
+                ],
+                [
+                    "Checker requires expression checking for JsxElement",
+                    4
+                ],
+                [
+                    "Unable to cast object of type 'TypeScript.Compiler.Checking.ObjectType' to type 'TypeScript.Compiler.Checking.InterfaceType'.",
+                    2
+                ],
+                [
+                    "Checker requires expression checking for JsxFragment",
+                    2
+                ],
+                [
+                    "Checker requires explicit annotation related information",
+                    2
+                ],
+                [
+                    "Checker requires enum modifier grammar",
+                    2
+                ]
+            ]
+        }
+    },
+    "formatting": {
+        "csharpFiles": 10,
+        "tokenCommentSyntaxIdentical": true,
+        "libraryConfigurations": 2,
+        "dotnetWhitespaceExitCode": 0,
+        "diffCheckExitCode": 0,
+        "proofLog": "logs/csharp-phase4-grammar-format.log",
+        "proofSha256": "12c1075045ddb9d69085056412ae0f6c0dae350d79e60f916bd94c892d13ea32"
+    },
+    "reusedValidation": {
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "repositoryCommand": "npx hereby validate --all",
+        "repositoryExitCode": 0,
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            "csharp/tools",
+            ".github/copilot-instructions.md"
+        ],
+        "retainedInitialSingleModeCases": 47,
+        "reason": "User directed reuse of unchanged results. The reference corpus, unaffected query suites and Go repository validation were reused. Forty-seven cases without enums or invalid class-member variance modifiers were retained after the initial run. Safety results were retained after token/comment/syntax-preserving whitespace formatting."
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "phase4Complete": false
+}

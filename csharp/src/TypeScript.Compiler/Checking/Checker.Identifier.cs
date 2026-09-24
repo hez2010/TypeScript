@@ -77,8 +77,9 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
             return null;
         if (node.Parent is NewExpressionNode construct)
             return await ContextualCallArgumentAsync(construct, node, cancellation);
-        if (node.Parent is TemplateSpanNode { Parent: TemplateExpressionNode { Parent: TaggedTemplateExpressionNode tag } })
-            return await ContextualCallArgumentAsync(tag, node, cancellation);
+        if (node.Parent is TemplateSpanNode span)
+            return span.Parent?.Parent is TaggedTemplateExpressionNode tag
+                ? await ContextualCallArgumentAsync(tag, node, cancellation) : null;
         if (node.Parent is AwaitExpressionNode awaitExpression)
         {
             var contextual = await Contexts.GetAsync(awaitExpression, flags, cancellation);

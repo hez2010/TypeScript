@@ -217,8 +217,41 @@ internal static class CheckerSignatureTests
         checks += await IterationSafety();
         checks += await DocumentationSafety();
         checks += await DecoratorSafety();
+        checks += await VarianceSafety();
         Console.WriteLine(
             $"{checks} signature/function/call/iteration/inference/context/cancellation assertions; binding and return traversal depth 20000");
+    }
+
+    private static async Task<int> VarianceSafety()
+    {
+        const string source = """
+            interface Consumer<out T> { consume: (value: T) => void; }
+            interface Producer<in T> { value: T; }
+            interface Both<in out T> { value: T; consume: (value: T) => void; }
+            type Union<out T> = T | undefined;
+            function invalid<in T>(value: T) { return value; }
+            interface Invalid<const T> { value: T; }
+            type Reordered<out in T> = { value: T; };
+            type Duplicate<in in T> = (value: T) => void;
+            interface ValidConsumer<in T> { consume: (value: T) => void; }
+            interface ValidProducer<out T> { value: T; }
+            class InvalidMember { in value = 0; out other = 0; }
+            """;
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
+            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var file = program.GetFile("/project/main.ts")!.Syntax;
+        await checker.CheckSourceFileAsync(file);
+        var codes = checker.DiagnosticCodesForFile(file);
+        if (!codes.SequenceEqual([1029, 1030, 1274, 1274, 1274, 1277, 2636, 2636, 2637]))
+            throw new InvalidOperationException($"Variance diagnostics: {string.Join(',', codes)}");
+        if (checker.VarianceTypeParameter is not null || checker.Variances.Measuring)
+            throw new InvalidOperationException("Variance annotation checking retained active state");
+        return 2;
     }
 
     private static async Task<int> DecoratorSafety()

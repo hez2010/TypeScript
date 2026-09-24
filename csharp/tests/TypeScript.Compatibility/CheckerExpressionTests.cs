@@ -124,8 +124,34 @@ internal static class CheckerExpressionTests
         checks += await OrdinarySafety();
         checks += await ConditionSafety();
         checks += await JsxSafety();
+        checks += await WithAndTemplateSafety();
         Console.WriteLine(
             $"{checks} expression/literal/context/enum/cache/cancellation assertions; 20000-level expression, constant and context traversal");
+    }
+
+    private static async Task<int> WithAndTemplateSafety()
+    {
+        const string source = """
+            const text = `${(value: number) => value}`;
+            const other = `${text}`;
+            enum Values { value = ({ value: 'text' }).value }
+            with (missing) { unknownInsideWith = 1; }
+            """;
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
+            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var file = program.GetFile("/project/main.ts")!.Syntax;
+        await checker.CheckSourceFileAsync(file);
+        var codes = checker.DiagnosticCodesForFile(file);
+        if (!codes.SequenceEqual([2304, 2410, 18033]))
+            throw new InvalidOperationException($"With/template diagnostics: {string.Join(',', codes)}");
+        foreach (var template in file.DescendantsAndSelf().OfType<TemplateExpressionNode>())
+            if (await checker.GetExpressionTypeAsync(template) != checker.Context.StringType)
+                throw new InvalidOperationException("Template substitution lost string result");
+        return 3;
     }
 
     private static async Task<int> JsxSafety()

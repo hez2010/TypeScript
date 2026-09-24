@@ -126,11 +126,16 @@ public sealed class TypeContext
         MarkerSuper = NewTypeParameter();
         MarkerSub = NewTypeParameter();
         MarkerSub.Constraint = MarkerSuper;
+        VarianceCheckSuper = NewTypeParameter();
+        VarianceCheckSub = NewTypeParameter();
+        VarianceCheckSub.Constraint = VarianceCheckSuper;
         MarkerOther = NewTypeParameter();
     }
 
     internal TypeParameter MarkerSuper { get; }
     internal TypeParameter MarkerSub { get; }
+    internal TypeParameter VarianceCheckSuper { get; }
+    internal TypeParameter VarianceCheckSub { get; }
     internal TypeParameter MarkerOther { get; }
 
     internal uint NextTypeId() => typeCount = checked(typeCount + 1);

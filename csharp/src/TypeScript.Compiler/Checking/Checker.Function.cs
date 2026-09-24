@@ -365,8 +365,7 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
     public ValueTask TypeParameterModifiersAsync(TypeParameterDeclarationNode node, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
-        if (node.Modifiers is { } modifiers && modifiers.Any(m => m.Kind != SyntaxKind.ConstKeyword))
-            throw new InvalidOperationException("Checker requires type-parameter modifier grammar");
+        TypeParameterGrammar(node);
         return ValueTask.CompletedTask;
     }
 }

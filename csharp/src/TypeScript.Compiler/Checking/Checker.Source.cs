@@ -193,6 +193,14 @@ internal sealed partial class Checker
                         Error(condition.ThenStatement, 1313);
                     await CheckSourceElementAsync(condition.ElseStatement, cancellation).ConfigureAwait(false);
                     break;
+                case WithStatementNode statement:
+                    if (!AmbientStatement(statement) && (statement.Flags & NodeFlags.AwaitContext) != 0
+                        && SemanticSyntax.Source(statement)?.ParseDiagnostics.Count == 0)
+                        Error(statement, 1300);
+                    await Expressions.CheckAsync(statement.Expression!, cancellation: cancellation).ConfigureAwait(false);
+                    if (SemanticSyntax.Source(statement)?.ParseDiagnostics.Count == 0)
+                        Error(statement, 2410);
+                    break;
                 case WhileStatementNode loop:
                     AmbientStatement(loop);
                     await CheckConditionAsync(loop.Expression!, cancellation).ConfigureAwait(false);
@@ -579,8 +587,7 @@ internal sealed partial class Checker
                     await CallResolution.UntypedAsync(node, false, cancellation).ConfigureAwait(false);
                     break;
                 case TypeParameterDeclarationNode parameter:
-                    if (parameter.Modifiers?.Any(m => m.Kind is SyntaxKind.InKeyword or SyntaxKind.OutKeyword) == true)
-                        throw new InvalidOperationException("Checker requires variance annotation diagnostics");
+                    await CheckTypeParameterVarianceAsync(parameter, cancellation).ConfigureAwait(false);
                     break;
                 case ObjectLiteralExpressionNode or JsxAttributesNode:
                     await ContextualDeprecationsAsync(node, cancellation).ConfigureAwait(false);
