@@ -177,6 +177,15 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
             this);
         FlowEffects = new(context, Views, Signatures, this);
         ExplicitValues = new(links, program.Symbols, program.ReferenceSymbols, program.Aliases, Values, Properties, this);
+        MissingNames = new(program.Symbols, Values, Declared, Properties, (node, code, symbol) => Error(node, code));
+        program.MissingPrefixCheck = (node, name) => MissingNames.CheckAsync(node, name);
+        AliasReferences = new(program.Symbols, links, program.ReferenceSymbols, program.Aliases);
+        ReferenceNarrowing = new(context, Algebra, Instantiation.Constraints, Predicates, Instantiation.Mapped, this);
+        SymbolNarrowing = new(context, links, Values, Algebra, Instantiation.Constraints, Instantiation.Engine, Views, FlowTypes, this);
+        AssignmentChecks = new(context, links, Predicates, this);
+        RelationDiagnostics = new(Relations, Signatures, this);
+        Identifiers = new(context, links, program.Symbols, program.ReferenceSymbols, program.Aliases, Values, Algebra, Widening, Facts,
+            Instantiation.Resolutions, Assignments, FlowTypes, this);
         relations.EmptyAnonymousSource = Views.EmptyAnonymousAsync;
         relations.SubtypeSource = (source, target, strict, cancellation) =>
             Relations.RelatedAsync(source, target, strict ? RelationKind.StrictSubtype : RelationKind.Subtype, cancellation);
@@ -245,8 +254,14 @@ internal sealed partial class ProgramTypeHost : ITypeNodeHost, IDeclaredTypeHost
         return ValueTask.FromResult(symbol.Members);
     }
 
-    public ValueTask<Type> TypeQueryAsync(TypeQueryNode node, CancellationToken cancellation) =>
-        throw new InvalidOperationException("Probe requires value/type-query checking");
+    public async ValueTask<Type> TypeQueryAsync(TypeQueryNode node, CancellationToken cancellation)
+    {
+        if (node.TypeArguments is not null)
+            throw new InvalidOperationException("Probe requires instantiation-expression checking");
+        return await Algebra.RegularTypeAsync(
+            await Widening.GetAsync(await Expressions.CheckAsync(node.ExprName!, cancellation: cancellation), cancellation),
+            cancellation);
+    }
 
     public ValueTask<Type> ConditionalAsync(ConditionalRoot root, CancellationToken cancellation) =>
         Conditionals.EvaluateAsync(root, cancellation: cancellation);

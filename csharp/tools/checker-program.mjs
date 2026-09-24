@@ -725,11 +725,65 @@ for (const strict of [false, true]) {
 }
 for (const input of cases.filter(c => c.name.startsWith("flow:"))) input.flow = true;
 
-let selected = process.argv.includes("--flow") ? cases.filter(c => c.flow) : process.argv.includes("--references") ? cases.filter(c => c.references) : process.argv.includes("--awaited") ? cases.filter(c => c.awaited) : process.argv.includes("--binary") ? cases.filter(c => c.name.startsWith("binary:")) : process.argv.includes("--initializers") ? cases.filter(c => c.name.startsWith("initializers:")) : process.argv.includes("--expressions") ? cases.filter(c => c.expressions && !c.name.startsWith("binary:") && !c.name.startsWith("awaited:")) : process.argv.includes("--constants") ? cases.filter(c => c.name.startsWith("constants:")) : process.argv.includes("--inference") ? cases.filter(c => c.typeNodes && c.name.startsWith("inference:")) : process.argv.includes("--conditional") ? cases.filter(c => c.typeNodes && c.name.startsWith("conditional:")) :
+for (const strict of [false, true]) {
+    for (
+        const [name, source] of Object.entries({
+            variables: "let x: string | number; __expr(x); x = 1; __expr(x); x = 'a'; __expr(x);",
+            local: "function f(c: boolean) { let x: number; __expr(x); if(c) x = 1; __expr(x); x = 2; __expr(x); }",
+            definite: "function f() { let x!: number; __expr(x); }",
+            literals: "const x = 1; let y = 'a'; __expr(x); __expr(y);",
+            before: "__expr(x); let x = 1; function f(a = a, b = c, c = 1) { __expr(a); __expr(b); }",
+            narrowing: "function f(x: string | number | undefined) { if(typeof x === 'string') __expr(x); else __expr(x); if(x !== undefined) __expr(x); }",
+            branches: "function f(c: boolean) { let x: string | number; if(c) x = 1; else x = 'a'; __expr(x); }",
+            unassignedClosure: "function f() { let x: number; function g() { __expr(x); } }",
+            captured: "function f(x: string | number) { if(typeof x === 'string') { const g = () => { __expr(x); }; } }",
+            mutableCapture: "function f(x: string | number) { x = 1; const g = () => { __expr(x); }; x = 'a'; }",
+            parameterDefault: "function f(x: string | undefined = 'a', y: number | undefined = undefined) { __expr(x); __expr(y); }",
+            automatic: "function f(c: boolean) { let x; __expr(x); x = 1; __expr(x); if(c) x = 'a'; __expr(x); }",
+            nonNullAuto: "function f() { let x; __expr(x!); x = 1; __expr(x!); }",
+            generic: "function f<T extends string | number | undefined>(x: T) { if(typeof x === 'string') __expr(x); else __expr(x); }",
+            arguments: "function f() { __expr(arguments); const g = () => { __expr(arguments); }; }",
+            invalidArguments: "class C { x = __expr(arguments); static { __expr(arguments); } }",
+            unknown: "__expr(missing); __expr(undefined);",
+            typeQuery: "const x = 1; let y: typeof x; __expr(y); declare function f(x: number): string; type F = typeof f; __expr(f);",
+            circularAnnotation: "let x: typeof x; __expr(x); let y: typeof z; let z: typeof y; __expr(y); __expr(z);",
+            assignment: "function f(x: string | number) { __expr(x = 1); __expr(x); __expr(x = 'a'); __expr(x); __expr(x += 'b'); __expr(x); }",
+            invalidAssignment: "let x: number; __expr(x = 'a'); const y = 1; __expr(y = 2); function f(): void {} __expr(f = 1); __expr(undefined = 1);",
+            increments: "function f(x: number, y: bigint, z: string) { __expr(x++); __expr(--y); __expr(z++); } const n = 1; __expr(n++);",
+            compoundLike: "function f(x: 1 | 2) { __expr(x = x + 1); __expr(x); __expr(x *= 2); }",
+            logicalAssignments: "function f(x: string | undefined, y: number | undefined) { __expr(x ??= 'a'); __expr(x); __expr(y ||= 1); __expr(y); }",
+            parameterCycle: "function f(x: string | undefined = x) { __expr(x); }",
+            prefixSuggestion: "class C { value: number; static count: number; method() { __expr(value); __expr(count); } }",
+            deprecated: "/** @deprecated */ const old = 1; __expr(old); /** @deprecated */ function oldFunction(): void {} __expr(oldFunction);",
+        })
+    ) add(`identifiers:${name}:${strict}`, { "globals.d.ts": library + " declare function __expr(value: unknown): void;", "main.ts": source }, { strict }, false, true);
+}
+for (const strict of [false, true]) {
+    for (const verbatimModuleSyntax of [false, true]) {
+        const base = { "globals.d.ts": library + " declare function __expr(value: unknown): void;" };
+        add(`identifiers:imports:${strict}:${verbatimModuleSyntax}`, { ...base, "a.ts": "export const value = 1; export declare function f(): number;", "b.ts": "import {value, f} from './a'; __expr(value); __expr(f); __expr(value = 2);" }, { strict, verbatimModuleSyntax, module: "esnext" }, false, true);
+        add(`identifiers:type-import:${strict}:${verbatimModuleSyntax}`, { ...base, "a.ts": "export const value = 1;", "b.ts": "import type {value} from './a'; __expr(value);" }, { strict, verbatimModuleSyntax, module: "esnext" }, false, true);
+        add(`identifiers:deprecated-import:${strict}:${verbatimModuleSyntax}`, { ...base, "a.ts": "/** @deprecated */ export declare function old(): number;", "b.ts": "import {old} from './a'; __expr(old);" }, { strict, verbatimModuleSyntax, module: "esnext" }, false, true);
+        add(`identifiers:alias-chain:${strict}:${verbatimModuleSyntax}`, { ...base, "main.ts": "namespace N { export class C {} } import A = N; import B = A.C; __expr(B);" }, { strict, verbatimModuleSyntax }, false, true);
+    }
+    for (
+        const [name, text] of Object.entries({
+            callHint: "declare function value(): number; let x: number; __expr(x = value);",
+            constructHint: "interface NumberBox {new(): number} declare const Box: NumberBox; let x: number; __expr(x = Box);",
+            scopeArguments: "function outer() { class C { value = __expr(arguments); static { __expr(arguments); } } }",
+            catchVariable: "function f() { try {} catch(e) { __expr(e); } }",
+            outerNeverInitialized: "function f(c: boolean) { let x: number; const g = () => { __expr(x); }; if(c) { const h = () => { __expr(x); }; } }",
+            genericContext: "function f<T extends string | undefined>(x: T) { if(x) { const y: string = x; __expr(x); } }",
+        })
+    ) add(`identifiers:${name}:${strict}`, { "globals.d.ts": library + " declare function __expr(value: unknown): void;", "main.ts": text }, { strict }, false, true);
+}
+for (const input of cases.filter(c => c.name.startsWith("identifiers:"))) input.identifiers = true;
+
+let selected = process.argv.includes("--identifiers") ? cases.filter(c => c.identifiers) : process.argv.includes("--flow") ? cases.filter(c => c.flow) : process.argv.includes("--references") ? cases.filter(c => c.references) : process.argv.includes("--awaited") ? cases.filter(c => c.awaited) : process.argv.includes("--binary") ? cases.filter(c => c.name.startsWith("binary:")) : process.argv.includes("--initializers") ? cases.filter(c => c.name.startsWith("initializers:")) : process.argv.includes("--expressions") ? cases.filter(c => c.expressions && !c.name.startsWith("binary:") && !c.name.startsWith("awaited:")) : process.argv.includes("--constants") ? cases.filter(c => c.name.startsWith("constants:")) : process.argv.includes("--inference") ? cases.filter(c => c.typeNodes && c.name.startsWith("inference:")) : process.argv.includes("--conditional") ? cases.filter(c => c.typeNodes && c.name.startsWith("conditional:")) :
     process.argv.includes("--generic-relations") ? cases.filter(c => c.genericRelations) :
     process.argv.includes("--indexing") ? cases.filter(c => c.name.startsWith("indexing:")) :
     process.argv.includes("--assignability") ? cases.filter(c => c.assignability && !c.genericRelations && !c.name.startsWith("conditional:") && !c.name.startsWith("inference:") && !c.name.startsWith("constants:") && !c.name.startsWith("expressions:") && !c.name.startsWith("binary:") && !c.name.startsWith("awaited:")) :
-    process.argv.includes("--identity") ? cases.filter(c => c.identity && !c.assignability) : process.argv.includes("--signatures") ? cases.filter(c => c.signatures) : process.argv.includes("--properties") ? cases.filter(c => c.properties) : process.argv.includes("--values") ? cases.filter(c => c.values && !c.name.startsWith("initializers:")) : process.argv.includes("--members") ? cases.filter(c => c.members && !c.values && !c.signatures) : process.argv.includes("--type-nodes") ? cases.filter(c => c.typeNodes && !c.flow && !c.members && !c.properties && !c.identity && !c.name.startsWith("indexing:") && !c.name.startsWith("conditional:") && !c.name.startsWith("inference:") && !c.name.startsWith("constants:") && !c.name.startsWith("expressions:") && !c.name.startsWith("binary:") && !c.name.startsWith("awaited:"))
+    process.argv.includes("--identity") ? cases.filter(c => c.identity && !c.assignability) : process.argv.includes("--signatures") ? cases.filter(c => c.signatures) : process.argv.includes("--properties") ? cases.filter(c => c.properties) : process.argv.includes("--values") ? cases.filter(c => c.values && !c.name.startsWith("initializers:")) : process.argv.includes("--members") ? cases.filter(c => c.members && !c.values && !c.signatures) : process.argv.includes("--type-nodes") ? cases.filter(c => c.typeNodes && !c.identifiers && !c.flow && !c.members && !c.properties && !c.identity && !c.name.startsWith("indexing:") && !c.name.startsWith("conditional:") && !c.name.startsWith("inference:") && !c.name.startsWith("constants:") && !c.name.startsWith("expressions:") && !c.name.startsWith("binary:") && !c.name.startsWith("awaited:"))
     : cases.filter(c => !c.references && !c.typeNodes && Boolean(c.aliases) === process.argv.includes("--aliases"));
 if (option("--filter")) selected = selected.filter(c => c.name.includes(option("--filter")));
 async function probe(command, args) {
@@ -763,7 +817,8 @@ for (let i = 0; i < selected.length; i++) {
 await json(path.join(output, "checker-program-failures.json"), failures);
 const summary = {
     timestamp: new Date().toISOString(),
-    scope: process.argv.includes("--flow") ? "Control-flow types, assignment reduction, branch and loop joins and narrowing; full checker integration remains incomplete" : process.argv.includes("--references") ? "Value-name resolution, declaration order, parameter initialization and type-only alias diagnostics" : process.argv.includes("--binary") ? "Binary expression result types, operator diagnostics and nullish semantics with required assignment/access services" : process.argv.includes("--awaited") ? "Promise and thenable fulfillment, awaited types, recursion and generic wrappers; classification queries make lazy generic metadata deterministic" : process.argv.includes("--expressions") ? "Primitive expression types, template evaluation, diagnostics and grammar checks with required advanced expression services" :
+    scope: process.argv.includes("--identifiers") ? "Identifier expression types, definite assignment, captured flow, parameter defaults and generic reference constraints; full checker integration remains incomplete" :
+        process.argv.includes("--flow") ? "Control-flow types, assignment reduction, branch and loop joins and narrowing; full checker integration remains incomplete" : process.argv.includes("--references") ? "Value-name resolution, declaration order, parameter initialization and type-only alias diagnostics" : process.argv.includes("--binary") ? "Binary expression result types, operator diagnostics and nullish semantics with required assignment/access services" : process.argv.includes("--awaited") ? "Promise and thenable fulfillment, awaited types, recursion and generic wrappers; classification queries make lazy generic metadata deterministic" : process.argv.includes("--expressions") ? "Primitive expression types, template evaluation, diagnostics and grammar checks with required advanced expression services" :
         process.argv.includes("--constants") ? "Constant and enum evaluation with provenance, forward references and numeric boundaries" : process.argv.includes("--initializers") ? "Variable, parameter and property initializer types with required flow, binding-pattern and contextual services" : process.argv.includes("--inference") ? "Type inference, constraints, reverse mapped types, widening and contextual signatures; expression inference and full checker integration remain incomplete" : process.argv.includes("--conditional") ? "Conditional evaluation, distribution, tail recursion, constraints and relations with required inference services; full checker integration remains incomplete" : process.argv.includes("--generic-relations") ? "Generic key/indexed/mapped relations, optionality, variance and cache graphs; conditional and full diagnostic services remain incomplete" :
         process.argv.includes("--indexing") ? "Key enumeration, indexed access, read/write simplification and generic cache identity; expression checking and full checker integration remain incomplete" : process.argv.includes("--assignability") ? "Structural relation decisions, signature variance, discriminants and generic variance caches with required advanced semantic services; full checker integration remains incomplete" : process.argv.includes("--identity") ? "Structural identity, primitive relation predicates, normalization and recursive caches with required advanced relation services; full checker integration remains incomplete" : process.argv.includes("--signatures") ? "Signature matching, composition, tuple rest parameters and array member fallback with explicit type relation dependencies; full checker integration remains incomplete" :
         process.argv.includes("--properties") ? "Composite properties, apparent types and intersection reduction with explicit relation and signature dependencies; full checker integration remains incomplete" : process.argv.includes("--values") ? "Source symbol read/write types, accessors, value aliases and declaration value objects with explicit inference dependencies; full checker integration remains incomplete" : process.argv.includes("--members") ? "Source structured members, interface bases, signatures and index signatures with annotated value dependencies; full checker integration remains incomplete" : process.argv.includes("--type-nodes") ? "Source type-node evaluation, declared aliases and references with explicit semantic dependencies; full checker integration remains incomplete" : process.argv.includes("--aliases")
@@ -773,6 +828,7 @@ const summary = {
     managed,
     runtime: managed ? "managed development run" : await run(candidate, ["--native-check"]),
     cases: selected.length,
+    identifierQueries: actual.reduce((count, c) => count + (c.identifierQueries?.length ?? 0), 0),
     assignmentQueries: actual.reduce((count, c) => count + (c.assignmentMarks?.length ?? 0), 0),
     flowQueries: actual.reduce((count, c) => count + (c.flowQueries?.length ?? 0), 0),
     declarationOrderQueries: actual.reduce((count, c) => count + (c.declarationOrder?.length ?? 0), 0),

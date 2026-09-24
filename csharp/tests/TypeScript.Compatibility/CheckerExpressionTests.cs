@@ -61,14 +61,19 @@ internal static class CheckerExpressionTests
         Check(await host.Values.GetAsync(symbols.Declaration(declarations["e"])!) == context.UndefinedType);
         Check(host.DeferredExpressions.Contains(declarations["e"].Initializer!));
         Check(await host.Values.GetAsync(symbols.Declaration(declarations["f"])!) is LiteralType { Value: "xa" });
+        host.BeforeExpressionFinish = () => throw new InvalidOperationException("Expression finish failure");
         try
         {
-            await host.Expressions.CheckAsync(new IdentifierNode { Text = "unhandled" });
-            throw new InvalidOperationException("Unimplemented expression accepted");
+            await host.Expressions.CheckAsync(new NumericLiteralNode { Text = "1" });
+            throw new InvalidOperationException("Expression failure ignored");
         }
-        catch (InvalidOperationException error) when (error.Message.Contains("requires expression checking", StringComparison.Ordinal))
+        catch (InvalidOperationException error) when (error.Message == "Expression finish failure")
         {
             checks++;
+        }
+        finally
+        {
+            host.BeforeExpressionFinish = null;
         }
         Check(host.Expressions.CurrentNode is null);
         using var cancelled = new CancellationTokenSource();

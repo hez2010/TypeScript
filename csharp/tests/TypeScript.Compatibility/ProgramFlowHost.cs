@@ -63,20 +63,6 @@ internal sealed partial class ProgramTypeHost : IFlowTypeHost, IFlowReferenceHos
     {
         BeforeFlowExpression?.Invoke(node);
         cancellation.ThrowIfCancellationRequested();
-        if (node is IdentifierNode identifier)
-        {
-            var symbol = program.ReferenceSymbols.Resolve(identifier, cancellation);
-            if (symbol == program.Symbols.UndefinedSymbol)
-                return context.UndefinedWideningType;
-            if ((symbol.Flags & (SymbolFlags.Function | SymbolFlags.Method | SymbolFlags.EnumMember)) != 0)
-                return await Values.GetAsync(symbol, cancellation);
-            if (symbol.ValueDeclaration is not ParameterDeclarationNode { Name: IdentifierNode, Initializer: null })
-                throw new InvalidOperationException("Probe requires full identifier expression checking");
-            return await FlowTypes.ExpressionAsync(
-                node,
-                async () => await FlowTypes.GetAsync(node, await Values.GetAsync(symbol, cancellation), cancellation: cancellation),
-                cancellation);
-        }
         return await FlowTypes.ExpressionAsync(node, () => Expressions.CheckAsync(node, CheckMode.TypeOnly, cancellation), cancellation);
     }
 
@@ -130,9 +116,7 @@ internal sealed partial class ProgramTypeHost : IFlowTypeHost, IFlowReferenceHos
             type = context.UndefinedType;
         else
             throw new InvalidOperationException("Probe requires assigned/destructured value types");
-        if (Predicates.Maybe(type, TypeFlags.Instantiable, cancellation))
-            throw new InvalidOperationException("Probe requires narrowable generic reference substitution");
-        return type;
+        return await ReferenceNarrowing.GetAsync(type, reference, 0, cancellation);
     }
 
     public ValueTask<Type?> DottedTypeAsync(SyntaxNode node, CancellationToken cancellation) =>

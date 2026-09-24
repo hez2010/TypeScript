@@ -391,6 +391,39 @@ internal static class CheckerProgramTests
             }
             writer.WriteEndArray();
         }
+        if (input.TryGetProperty("identifiers", out var identifierOption) && identifierOption.GetBoolean())
+        {
+            writer.WriteStartArray("identifierQueries");
+            foreach (var call in nodes.OfType<CallExpressionNode>())
+                if (call.Expression is IdentifierNode { Text: "__expr" })
+                    foreach (var argument in call.Arguments!)
+                    {
+                        writer.WriteStartArray();
+                        writer.WriteNumberValue(Node(argument));
+                        writer.WriteNumberValue(TypeId(await typeHost!.Expressions.CheckAsync(argument)));
+                        writer.WriteEndArray();
+                    }
+            writer.WriteEndArray();
+            writer.WriteStartArray("assignmentHints");
+            foreach (int code in typeHost!.AssignmentHints.Select(h => h.Construct ? 6213 : 6212).Order())
+                writer.WriteNumberValue(code);
+            writer.WriteEndArray();
+            writer.WriteStartArray("identifierSuggestions");
+            foreach (int code in host.ValueSuggestions.Concat(typeHost!.Suggestions).Order())
+                writer.WriteNumberValue(code);
+            writer.WriteEndArray();
+            writer.WriteStartArray("identifierAliasReferences");
+            var seen = new HashSet<Symbol>();
+            foreach (var node in nodes)
+                if (environment.Declaration(node) is { } symbol && (symbol.Flags & SymbolFlags.Alias) != 0 && seen.Add(symbol))
+                {
+                    writer.WriteStartArray();
+                    writer.WriteNumberValue(SymbolId(symbol));
+                    writer.WriteBooleanValue(links.Aliases.Get(symbol).Referenced);
+                    writer.WriteEndArray();
+                }
+            writer.WriteEndArray();
+        }
         if (input.TryGetProperty("flow", out var flowOption) && flowOption.GetBoolean())
         {
             writer.WriteStartArray("flowQueries");

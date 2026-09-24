@@ -80,35 +80,7 @@ internal sealed partial class ProgramTypeHost : IBinaryExpressionHost, IAwaitedT
         Type leftType,
         Type valueType,
         CancellationToken cancellation)
-    {
-        var target = left;
-        while (true)
-        {
-            var inner = target switch
-            {
-                ParenthesizedExpressionNode p => p.Expression,
-                AsExpressionNode a => a.Expression,
-                TypeAssertionNode a => a.Expression,
-                NonNullExpressionNode n => n.Expression,
-                SatisfiesExpressionNode s => s.Expression,
-                _ => null
-            };
-            if (inner is null)
-                break;
-            target = inner;
-        }
-        if (target is not (IdentifierNode or PropertyAccessExpressionNode or ElementAccessExpressionNode))
-        {
-            Error(left, 2364);
-            return ValueTask.CompletedTask;
-        }
-        if ((target.Flags & NodeFlags.OptionalChain) != 0)
-        {
-            Error(left, 2779);
-            return ValueTask.CompletedTask;
-        }
-        throw new InvalidOperationException("Probe requires assignment references and elaboration");
-    }
+        => AssignmentChecks.OperatorAsync(left, op, right, leftType, valueType, cancellation);
 
     public ValueTask<Type> DestructuringAsync(
         SyntaxNode left,

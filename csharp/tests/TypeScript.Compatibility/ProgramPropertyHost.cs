@@ -94,8 +94,7 @@ internal sealed partial class ProgramTypeHost : ITypePropertyHost, ITypeViewHost
                 && symbol.ValueDeclaration is { } declaration
                 && SemanticSyntax.HasModifier(declaration, SyntaxKind.ReadonlyKeyword)
             || (symbol.Flags & SymbolFlags.Variable) != 0
-                && symbol.ValueDeclaration?.Parent is VariableDeclarationListNode list
-                && (list.Flags & NodeFlags.Constant) != 0
+                && AssignmentMarks.Constant(symbol)
             || (symbol.Flags & SymbolFlags.Accessor) != 0
                 && (symbol.Flags & SymbolFlags.SetAccessor) == 0 || (symbol.Flags & SymbolFlags.EnumMember) != 0;
     }

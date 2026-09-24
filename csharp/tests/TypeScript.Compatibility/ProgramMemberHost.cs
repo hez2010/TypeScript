@@ -186,7 +186,19 @@ internal sealed partial class ProgramTypeHost : ISignatureHost, IStructuredMembe
 
     public Type CircularSymbol(Symbol symbol)
     {
-        Error(symbol.ValueDeclaration!, symbol.ValueDeclaration is ITypedNode { Type: not null } ? 2502 : 7022);
+        if (symbol.ValueDeclaration is { } declaration)
+        {
+            if (declaration is ITypedNode { Type: not null })
+            {
+                Error(declaration, 2502);
+                return context.ErrorType;
+            }
+            if (NoImplicitAny
+                && (declaration is not ParameterDeclarationNode || ((ParameterDeclarationNode)declaration).Initializer is not null))
+                Error(declaration, 7022);
+        }
+        else if ((symbol.Flags & SymbolFlags.Alias) != 0 && AliasResolver.Declaration(symbol) is { } alias)
+            Error(alias, 2303);
         return context.AnyType;
     }
 

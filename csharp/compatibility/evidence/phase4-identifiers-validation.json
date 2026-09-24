@@ -1,0 +1,140 @@
+{
+    "timestamp": "2026-09-24T03:10:19.096742+00:00",
+    "scope": "Identifier expression and assignment checking, captured flow, definite assignment, parameter defaults, generic reference narrowing, alias retention, deprecation, type queries and diagnostic dispatch; full checker integration remains incomplete",
+    "candidateSha256": "ed8a60a453bb82f54f492990fe4a10b3699f7d187f337c13e0cc6d83351d796c",
+    "runtime": ".NET 11.0.0-rc.2.26470.103; Vector128=True; Vector256=True; Vector512=False",
+    "sdk": "11.0.100-rc.2.26470.103",
+    "languageVersion": "15.0",
+    "runtimeAsync": true,
+    "optimizationPreference": "Speed",
+    "instructionSet": "native",
+    "publish": {
+        "exitCode": 0,
+        "log": "logs/csharp-phase4-identifiers-publish.log",
+        "sha256": "03933be2dc34223ee88005d844f6919fd7786869077fd93acbb392005d81ccfb"
+    },
+    "identifiers": {
+        "cases": 164,
+        "exact": 164,
+        "failed": 0,
+        "identifierQueries": 340
+    },
+    "comparedState": [
+        "Expression type graphs",
+        "Diagnostic codes",
+        "Alias retention",
+        "Deprecation suggestions",
+        "Call and constructor hint codes"
+    ],
+    "state": {
+        "exitCode": 0,
+        "assertions": 27,
+        "output": "27 identifier/default/alias/cancellation/ownership assertions; 20,000-level reference traversal."
+    },
+    "regression": {
+        "sourceProgramCases": 3052,
+        "sourceModes": {
+            "aliases": 124,
+            "assignability": 332,
+            "awaited": 24,
+            "binary": 56,
+            "conditional": 152,
+            "constants": 48,
+            "expressions": 40,
+            "flow": 212,
+            "generic-relations": 128,
+            "identity": 160,
+            "indexing": 320,
+            "inference": 176,
+            "initializers": 48,
+            "members": 176,
+            "program": 180,
+            "properties": 192,
+            "references": 140,
+            "signatures": 216,
+            "type-nodes": 192,
+            "values": 136
+        },
+        "typeState": 2904,
+        "typeStateOperations": 1333980,
+        "constraints": 613,
+        "constraintOperations": 20154,
+        "safetyAssertions": 739,
+        "safetyOutputs": [
+            "47 flow/cache/reachability/assignment/cancellation assertions; 20,000-node traversal and exact 2,000 recursion limit.",
+            "23 reference safety assertions; 20,000-level syntax traversal.",
+            "28 binary/awaited/recursion/cancellation assertions; 20000-level binary expressions",
+            "25 expression/enum/cache/cancellation assertions; 20000-level expression and constant traversal",
+            "35 inference/priority/fixing/cancellation/widening/reverse-map assertions; 20000-level traversal",
+            "24 conditional/cache/cancellation assertions; exact 1000 tail and 10 relation nesting limits",
+            "22 generic relation/optionality/key variance/cancellation assertions",
+            "Checker indexed type safety: 24 assertions; 20,000-level simplification and key traversal",
+            "33 structural relation/variance/facts/cancellation assertions",
+            "36 relation key/cache/normalization/cancellation assertions; exact 100-level comparison cutoff; key and base chains depth 20000",
+            "39 signature matching/arity/composition/cancellation assertions; binding label depth 20000",
+            "49 property/view/index/cache/cancellation assertions; reduction chain depth 20000",
+            "32 symbol read/write/cache/cancellation assertions; instantiated symbol chain depth 20000",
+            "31 structured member/signature assertions; base and signature chains depth 20000",
+            "25 source-type/cache/cancellation assertions; array and alias ancestry depth 20000",
+            "30 mapped member assertions; key validity, lower-bound and modifier chains at depth 20000",
+            "37 mapped type assertions; actual-variable, generic-flag, kind and unary-tuple analysis depth 20000",
+            "40 object instantiation assertions; reference, parent and entity-name depth 20000",
+            "26 instantiation/signature/tuple assertions; exact 100-depth, 5,000,000-work and 10,000-tuple limits",
+            "21 constraint/default/recursion state assertions; default and indexed identity depth 20000",
+            "15 algebra ownership/limit/cancellation assertions; template, intersection and origin depth 20000",
+            "25 program/checker ownership assertions; interface and scope depth 20000",
+            "31 alias/cycle/cancellation/module-export assertions; alias chain depth 20000",
+            "41 checker ownership/state assertions; mapper and type-order depth 50000; 16 independent contexts"
+        ],
+        "failed": 0
+    },
+    "repository": {
+        "extensionTests": 12,
+        "apiTests": 813,
+        "node": "24.20.0",
+        "exitCode": 0,
+        "benchmarkScope": "Required smoke runs only; no performance claim",
+        "goTestResults": 163380,
+        "goSkips": 2152,
+        "command": "npx --no-install hereby validate --all",
+        "lintIssues": 0,
+        "toolTests": 17,
+        "go": "1.27.1",
+        "log": "logs/csharp-phase4-identifiers-validation.log",
+        "sha256": "872d154edf2e3cef14f1af84198270302e6ab2a327d38e68872021ce22d33f48",
+        "workingDirectory": "D:/source/repos/TypeScript-phase4-identifiers-validation",
+        "lintCache": "D:/source/repos/TypeScript-phase4-identifiers-validation/built/golangci-lint-cache",
+        "inputFiles": 52,
+        "inputManifest": "built/csharp/identifiers-validation-files.json",
+        "inputManifestSha256": "930e6957c1a725c20cc83095fe4e7947b02cbbea13dbe1c7542b38bcb638c73c",
+        "verification": "All changed and new source/probe/evidence/documentation files were byte-identical before and after validation. Shared node_modules was reused through a directory junction; no dependencies were changed. The dedicated cache and isolated checkout avoid the prior Windows mapping and shared-cache-junction failures."
+    },
+    "concurrency": {
+        "candidate": [
+            1,
+            4
+        ],
+        "reference": [
+            "singleThreaded",
+            "default"
+        ]
+    },
+    "formatting": "Twenty-four C# files verified with identical tokens, comments and syntax under both library configurations; single-line auto-properties retained. dotnet format whitespace verification, checker generator freshness, git diff whitespace and applicable dprint checks passed.",
+    "regressionsFixed": [
+        "Circular initializer reporting honors noImplicitAny; typed circularity returns the error type",
+        "Missing-name class-member lookup populates the same member/constraint caches as the reference",
+        "Assignment error elaboration resolves call/construct signatures and retains matching hint codes"
+    ],
+    "safetyMaintenance": [
+        "Expression-state failure cleanup is tested with an injected finish failure instead of relying on unsupported identifier checking",
+        "Typed circularity safety expectation now matches the reference error type"
+    ],
+    "dependenciesAdded": false,
+    "remaining": [
+        "Property/element and this/super expression checking",
+        "Binding extraction and contextual-expression dependencies of symbol/reference narrowing",
+        "Call-site inference, overload resolution, complete relation diagnostics and declaration checking",
+        "Full checker corpus/concurrency and semantic workload performance/memory gates"
+    ],
+    "fullPhase4Complete": false
+}

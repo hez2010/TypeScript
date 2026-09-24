@@ -10,6 +10,7 @@ namespace TypeScript.Compatibility;
 internal sealed partial class ProgramTypeHost : IExpressionTypeHost, IExpressionCheckHost
 {
     internal ExpressionTypes Expressions { get; }
+    internal Action? BeforeExpressionFinish { get; set; }
     internal ExpressionChecks ExpressionChecks { get; }
     internal TypePredicates Predicates { get; }
     internal HashSet<SyntaxNode> DeferredExpressions { get; } = [];
@@ -42,6 +43,7 @@ internal sealed partial class ProgramTypeHost : IExpressionTypeHost, IExpression
 
     public ValueTask<Type> FinishExpressionAsync(SyntaxNode node, Type type, CheckMode mode, CancellationToken cancellation)
     {
+        BeforeExpressionFinish?.Invoke();
         if ((mode & (CheckMode.Inferential | CheckMode.SkipGenericFunctions)) != 0)
             throw new InvalidOperationException("Probe requires contextual expression instantiation");
         if ((type.ObjectFlags & ObjectFlags.Anonymous) != 0 && type.Symbol is { Flags: var flags } && (flags & SymbolFlags.ConstEnum) != 0)
@@ -53,7 +55,9 @@ internal sealed partial class ProgramTypeHost : IExpressionTypeHost, IExpression
     {
         if (node is BinaryExpressionNode binary)
             return await Binary.CheckAsync(binary, mode, cancellation);
-        if (node is IdentifierNode or PropertyAccessExpressionNode)
+        if (node is IdentifierNode identifier)
+            return await Identifiers.CheckAsync(identifier, mode, cancellation);
+        if (node is PropertyAccessExpressionNode)
         {
             var symbol = await program.EntityNames.ResolveAsync(node, SymbolFlags.Value, true, cancellation: cancellation);
             if (symbol == program.Symbols.UndefinedSymbol)
@@ -115,12 +119,7 @@ internal sealed partial class ProgramTypeHost : IExpressionTypeHost, IExpression
             Error(operand, 2356);
             return;
         }
-        if (ExpressionChecks.SkipOuter(operand) is not (IdentifierNode or PropertyAccessExpressionNode or ElementAccessExpressionNode))
-        {
-            Error(operand, 2357);
-            return;
-        }
-        throw new InvalidOperationException("Probe requires assignment target checking");
+        AssignmentChecks.Reference(operand, 2357, 2777);
     }
 
     public void LiteralGrammar(SyntaxNode node)

@@ -446,6 +446,23 @@ node csharp/tools/checker-program.mjs --flow --record phase4-flow
 & ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-flow-safety
 ```
 
+## Identifier expressions and assignment checks
+
+`IdentifierTypes.cs` connects value references to flow typing, definite-assignment diagnostics, captured-variable analysis, parameter defaults, automatic types and readonly assignment checks. `ReferenceTypeNarrowing.cs` substitutes generic constraints in constraint/contextual positions and unwraps `NoInfer`. `SymbolNarrowing.cs` supplies the binding/contextual-parameter narrowing algorithms; their binding extraction and contextual-expression services remain required dependencies.
+
+`AliasReferences.cs` tracks retained aliases, including internal import chains and cancellation rollback. `Deprecations.cs` handles declaration/symbol deprecation and uncalled-function references. `MissingNamePrefixes.cs` checks static and instance member suggestions. `AssignmentChecks.cs` validates assignment references and dispatches assignability checks; `RelationDiagnostics.cs` adds call/constructor hint selection and error-elaboration dispatch. Complete structural diagnostic elaboration, property access and CommonJS assignment services remain open.
+
+NativeAOT passes **164 exact source-program comparisons**, including **340 expression queries**, alias-retention state, deprecation suggestions and call/constructor hint codes, at single and reference-default concurrency. Twenty-seven new safety assertions cover parameter-default cancellation, alias-chain rollback, context ownership, captured flow, readonly targets and **20,000-level** reference traversal. Existing expression-state cleanup coverage now injects a finish-check failure directly instead of depending on identifiers being unsupported.
+
+Type queries without instantiation arguments now use the expression checker and regular/widened types. Integration also corrected typed circularity to return the error type and circular-initializer reporting under `noImplicitAny: false` and connected missing-name class-member lookup and assignment error elaboration so their lazy member caches match the reference. The same artifact passes **3,052** earlier source-program comparisons, **2,904** type/state cases, **613** constraint cases and **739** earlier safety assertions. These probes still do not establish complete semantic checking of arbitrary programs.
+
+Evidence: [identifier expressions](../csharp/compatibility/evidence/phase4-identifiers.json), [flow regressions](../csharp/compatibility/evidence/phase4-identifiers-flow-regression.json), [alias regressions](../csharp/compatibility/evidence/phase4-identifiers-aliases-regression.json), and [native/repository validation](../csharp/compatibility/evidence/phase4-identifiers-validation.json).
+
+```powershell
+node csharp/tools/checker-program.mjs --identifiers --record phase4-identifiers
+& ./built/csharp/phase4-native/TypeScript.Compatibility.exe --checker-identifiers-safety
+```
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:
@@ -453,9 +470,9 @@ The following phase-4 requirements remain open:
 1. Complete the program/checker entry point, module interop/type adaptation, computed exports and type/value symbol resolution. Program-backed globals, augmentation merging, declaration headers and alias/export algorithms now exist; their remaining semantic callbacks must be connected.
 2. Complete relation diagnostics and remaining type-node dependencies; connect the implemented declaration/type-node, algebra, scope, inference, instantiation and tuple algorithms to complete checker services.
 3. Remaining expression forms, call-site inference, context-sensitive expression typing, overload selection, full declaration checking, JavaScript and JSDoc semantics.
-4. Connect flow evaluation/narrowing to full identifier, property and declaration checking; complete constructor/`in`/`instanceof` narrowing, initialization/reference services and semantic diagnostics.
+4. Complete binding/contextual dependencies of identifier checking and property/declaration flow integration; complete constructor/`in`/`instanceof` narrowing, initialization/reference services and semantic diagnostics.
 5. Indexed expression checking, JSX, decorators and grammar checks.
 6. Type display, node builders, symbol accessibility and emit-resolver APIs.
 7. All active checker/compiler type/symbol/diagnostic comparisons at single and reference-default concurrency; audits of intentional differences; complete semantic workload memory/performance measurements.
 
-The next integration step is identifier/access expression checking with control-flow narrowing, followed by contextual checking, call-site inference/overload selection, diagnostics and module type adaptation over the program-backed symbol environment. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.
+The next integration step is property/element access and binding type inference, followed by contextual checking, call-site inference/overload selection, diagnostics and module type adaptation over the program-backed symbol environment. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.

@@ -109,7 +109,7 @@ internal static class CheckerSymbolTypeTests
 
         var variable = symbols.Globals["number"];
         host.VariableBody = (symbol, _, token) => host.Values.GetAsync(symbol, token);
-        Check(await host.Values.GetAsync(variable) == context.AnyType && host.Diagnostics.Contains(2502));
+        Check(await host.Values.GetAsync(variable) == context.ErrorType && host.Diagnostics.Contains(2502));
         Check(host.Instantiation.Resolutions.Count == 0);
         links.Values.Get(variable).ResolvedType = null;
         using var cancellation = new CancellationTokenSource();

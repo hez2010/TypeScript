@@ -36,6 +36,29 @@ internal sealed class AssignmentMarks(CheckerLinks links, CheckerSymbols symbols
         return marks.GetValueOrDefault(symbol);
     }
 
+    internal async ValueTask<bool> SomeAsync(SyntaxNode declaration, CancellationToken cancellation = default)
+    {
+        var pending = new Stack<SyntaxNode>();
+        pending.Push(SemanticSyntax.Name(declaration) ?? throw new InvalidOperationException("Binding declaration has no name"));
+        while (pending.TryPop(out var node))
+        {
+            cancellation.ThrowIfCancellationRequested();
+            if (node is IdentifierNode)
+            {
+                if (await AssignedAsync(symbols.Declaration(node.Parent!)!, cancellation).ConfigureAwait(false))
+                    return true;
+            }
+            else
+            {
+                var elements = ((BindingPatternNode)node).Elements!;
+                for (int i = elements.Count - 1; i >= 0; i--)
+                    if (SemanticSyntax.Name(elements[i]) is { } name)
+                        pending.Push(name);
+            }
+        }
+        return false;
+    }
+
     private async ValueTask EnsureAsync(Symbol symbol, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();

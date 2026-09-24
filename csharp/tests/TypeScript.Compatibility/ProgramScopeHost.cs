@@ -13,9 +13,18 @@ internal sealed partial class ProgramScopeHost(TypeContext context, CheckerLinks
     IAliasResolverHost, IEntityNameHost, IAliasTargetHost, IModuleExportHost, IValueUseHost, IDeclarationOrderHost
 {
     internal DeclarationOrder DeclarationOrder { get; private set; } = null!;
+    internal Deprecations Deprecations { get; private set; } = null!;
     internal ReferenceSymbols ReferenceSymbols { get; private set; } = null!;
     internal ValueUseChecks ValueUses { get; private set; } = null!;
     internal List<int> ValueSuggestions { get; } = [];
+    private readonly HashSet<(SyntaxNode Node, int Code, string Name)> reportedSuggestions = [];
+
+    internal void Suggestion(SyntaxNode node, int code, string name)
+    {
+        if (reportedSuggestions.Add((node, code, name)))
+            ValueSuggestions.Add(code);
+    }
+
     internal CheckerSymbols Symbols { get; private set; } = null!;
     internal TypeParameterScopes Scopes { get; private set; } = null!;
     internal GlobalTypes Globals { get; private set; } = null!;
@@ -30,6 +39,7 @@ internal sealed partial class ProgramScopeHost(TypeContext context, CheckerLinks
     internal Action? BeforeGlobalTypes { get; set; }
     internal Action? BeforeResolveType { get; set; }
     internal Action? BeforeValueResolution { get; set; }
+    internal Func<SyntaxNode, string, ValueTask<bool>>? MissingPrefixCheck { get; set; }
     internal Dictionary<SyntaxNode, Signature> ContextualSignatures { get; } = [];
 
     public void Bind(CheckerSymbols symbols)
@@ -41,6 +51,7 @@ internal sealed partial class ProgramScopeHost(TypeContext context, CheckerLinks
         DeclarationOrder = new(symbols.Program.Configuration.Options, this);
         ValueUses = new(symbols, Aliases, DeclarationOrder, this);
         ReferenceSymbols = new(symbols, links);
+        Deprecations = new(symbols);
         AliasTargets = new(symbols, Aliases, EntityNames, this);
         ModuleTypes = new(context, links, Aliases, new(symbols.Program.SourceFiles.Select(f => f.Syntax).ToArray()));
         ModuleExports = new(links, Aliases, AliasTargets, this);
@@ -128,7 +139,11 @@ internal sealed partial class ProgramScopeHost(TypeContext context, CheckerLinks
         => ValueUses.InvalidInitializer(location, name, declaration, result);
 
     public void FailedResolution(SyntaxNode? location, string name, SymbolFlags meaning, DiagnosticMessage message)
-        => Error(location, message, name);
+    {
+        if (location is not null && MissingPrefixCheck is not null && MissingPrefixCheck(location, name).GetAwaiter().GetResult())
+            return;
+        Error(location, message, name);
+    }
 
     public void SuccessfulResolution(
         SyntaxNode? location,
@@ -144,14 +159,14 @@ internal sealed partial class ProgramScopeHost(TypeContext context, CheckerLinks
 
     public void ValueUseError(SyntaxNode? node, DiagnosticMessage message, params string[] arguments) => Error(node, message, arguments);
 
-    public void ValueUseSuggestion(SyntaxNode node, DiagnosticMessage message, string name) => ValueSuggestions.Add(message.Code);
+    public void ValueUseSuggestion(SyntaxNode node, DiagnosticMessage message, string name) => Suggestion(node, message.Code, name);
 
     public void DeclarationRelatedInfo(SyntaxNode declaration, bool typeOnly, string name) { }
 
     public bool ValidTypeOnlyUse(SyntaxNode node) => ReferenceSyntax.ValidTypeOnlyUse(node);
 
-    public bool MissingPrefix(SyntaxNode node, string name) =>
-        throw new InvalidOperationException("Probe requires missing-prefix diagnostics");
+    public bool MissingPrefix(SyntaxNode node, string name) => MissingPrefixCheck is { } check ? check(node, name).GetAwaiter().GetResult()
+        : throw new InvalidOperationException("Probe requires missing-prefix diagnostics");
 
     public ValueTask<bool> InitializedInStaticBlocksAsync(PropertyDeclarationNode declaration, SyntaxNode usage,
         SyntaxNode initializer, CancellationToken cancellation)

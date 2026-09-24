@@ -14,10 +14,10 @@ internal sealed partial class ProgramScopeHost
 
     public void CircularAlias(Symbol symbol, SyntaxNode declaration) => Diagnostics.Add(2303);
 
-    public bool IsDeprecated(Symbol symbol) => throw new InvalidOperationException("Probe requires deprecation analysis");
+    public bool IsDeprecated(Symbol symbol) => Deprecations.Symbol(symbol);
 
     public void DeprecatedAlias(SyntaxNode location, Symbol symbol) =>
-        throw new InvalidOperationException("Probe requires deprecation suggestions");
+        Suggestion(location, 6385, symbol.Name);
 
     public DiagnosticMessage CannotFindName(IdentifierNode name) => Messages.Cannot_find_name_0;
 

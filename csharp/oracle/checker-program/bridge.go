@@ -11,7 +11,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/jsnum"
 )
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -192,6 +192,26 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 			}
 			if result != nil {
 				typeQueries = append(typeQueries, []any{nodeIDs[node], tid(result)})
+			}
+		}
+	}
+	identifierRows, identifierAliases := []any{}, []any{}
+	if identifierQueries {
+		for _, node := range nodes {
+			if ast.IsCallExpression(node) && ast.IsIdentifier(node.Expression()) && node.Expression().Text() == "__expr" {
+				for _, argument := range node.Arguments() {
+					identifierRows = append(identifierRows, []any{nodeIDs[argument], tid(c.checkExpression(argument))})
+				}
+			}
+		}
+	}
+	if identifierQueries {
+		seen := map[*ast.Symbol]bool{}
+		for _, node := range nodes {
+			symbol := c.getSymbolOfDeclaration(node)
+			if symbol != nil && symbol.Flags&ast.SymbolFlagsAlias != 0 && !seen[symbol] {
+				seen[symbol] = true
+				identifierAliases = append(identifierAliases, []any{sid(symbol), c.aliasSymbolLinks.Get(symbol).referenced})
 			}
 		}
 	}
@@ -776,6 +796,26 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	}
 	if constantQueries {
 		result["constantQueries"] = constantRows
+	}
+	if identifierQueries {
+		result["identifierQueries"] = identifierRows
+		result["identifierAliasReferences"] = identifierAliases
+		hints := []int{}
+		for _, diagnostic := range c.diagnostics.GetDiagnostics() {
+			for _, related := range diagnostic.RelatedInformation() {
+				if related.Code() == 6212 || related.Code() == 6213 {
+					hints = append(hints, int(related.Code()))
+				}
+			}
+		}
+		slices.Sort(hints)
+		result["assignmentHints"] = hints
+		suggestions := []int{}
+		for _, d := range c.suggestionDiagnostics.GetDiagnostics() {
+			suggestions = append(suggestions, int(d.Code()))
+		}
+		slices.Sort(suggestions)
+		result["identifierSuggestions"] = suggestions
 	}
 	if flowQueries {
 		result["flowQueries"] = flowRows

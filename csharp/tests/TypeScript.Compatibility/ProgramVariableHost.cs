@@ -9,11 +9,14 @@ namespace TypeScript.Compatibility;
 internal sealed partial class ProgramTypeHost : IVariableTypeHost
 {
     internal VariableTypes Variables { get; }
+    internal Action<SyntaxNode>? BeforeInitializer { get; set; }
     public Type AutoArray => program.Globals.AutoArrayType!;
     public bool UseUnknownInCatchVariables => program.Symbols.Program.Configuration.Options.StrictOption("useUnknownInCatchVariables");
 
     public async ValueTask<Type> DeclarationInitializerAsync(SyntaxNode declaration, CheckMode mode, CancellationToken cancellation)
     {
+        BeforeInitializer?.Invoke(declaration);
+        cancellation.ThrowIfCancellationRequested();
         var node = ((IInitializedNode)declaration).Initializer!;
         if (node is StringLiteralNode or NumericLiteralNode or BigIntLiteralNode or NoSubstitutionTemplateLiteralNode
             || node.Kind is SyntaxKind.TrueKeyword or SyntaxKind.FalseKeyword)
