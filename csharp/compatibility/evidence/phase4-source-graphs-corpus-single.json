@@ -1,0 +1,67 @@
+{
+    "timestamp": "2026-09-24T20:34:00.567Z",
+    "mode": "single",
+    "configuration": "Release",
+    "selectedConfigurations": 74,
+    "replayedConfigurations": 69,
+    "retainedConfigurations": 5,
+    "previousMatches": 65,
+    "graphAndCodeMatches": 71,
+    "recoveredConfigurations": 6,
+    "regressions": [],
+    "scope": "Source graph ordering, arbitrary-extension inclusion and reference input overwrite order; full phase 4 remains incomplete",
+    "parts": [
+        {
+            "directory": "built/csharp/semantic-corpus-source-graphs-affected/single",
+            "summary": {
+                "timestamp": "2026-09-24T20:11:48.96Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "mode": "single",
+                "filter": "",
+                "managed": true,
+                "reuseSyntax": true,
+                "referenceJobs": 4,
+                "scope": "Original compiler test program graphs and semantic diagnostic codes; full diagnostic/type/symbol fidelity and parallel candidate checker scheduling remain incomplete",
+                "referenceExitCode": 0,
+                "exportedConfigurations": 15208,
+                "readyConfigurations": 69,
+                "availableConfigurations": 13446,
+                "selectionSha256": "ce007e363d3f37e3e87445e0b2cacd00d9aa97fbb0c038448723b857024d97a0",
+                "referenceInventoryFiles": 12730,
+                "plannedConfigurations": 15208,
+                "referenceMissingFiles": [],
+                "referenceMissingConfigurations": [],
+                "referenceSkipped": 1762,
+                "referenceFailed": 0,
+                "candidateFailures": 0,
+                "graphMismatches": 0,
+                "diagnosticMismatches": 3,
+                "graphAndCodeMatches": 66,
+                "errorGroups": [],
+                "inputSha256": "63befffd43c6e1a36331426b4dd2f3b01e4002f3d7f124c3da66f30a33a5c180",
+                "referenceInputCorrectionsSha256": "ea569831effe01a55e210da50442c429251d933793905bf1d27a289264a86061",
+                "oracleSha256": "072ce20500e1dfa626e6029e8ba98ed84b925a304216116200dd33d97f54654a",
+                "candidateSha256": "94a6204f2506a21d1c7eb397077ee7a432ccd42486c21a45b4cb299a1e9bea93",
+                "compilerSha256": "c433f6f233736963f4098ebd90fa8d304df9ef066af5e681c8e78a41f86837d4",
+                "candidateOutputSha256": "d8e48e8ac8b7cbf8ccdab11c5fb75613569ef803fded89fe68cd9829240fb394",
+                "fullSemanticCorpusGateComplete": false,
+                "referenceOracleHashRestoredFrom": "csharp/compatibility/evidence/phase4-corpus-release-single.json"
+            },
+            "outputSha256": "d8e48e8ac8b7cbf8ccdab11c5fb75613569ef803fded89fe68cd9829240fb394"
+        },
+        {
+            "retainedFrom": "built/csharp/semantic-corpus-source-graphs/single/candidate.jsonl",
+            "retainedOutputSha256": "b195f4ec186a039f20c40e1b03f97c485d4f7b6adf0990d00352544b9d29d056",
+            "reason": "The five focused results use the same compiler and were retained while validating the additional affected cases"
+        }
+    ],
+    "cumulative": {
+        "activeConfigurations": 13446,
+        "matches": 12558,
+        "remaining": 888,
+        "failed": 0,
+        "diagnosticMismatches": 888,
+        "graphMismatches": 0,
+        "topStops": []
+    }
+}

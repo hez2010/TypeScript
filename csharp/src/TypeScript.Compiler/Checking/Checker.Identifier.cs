@@ -234,7 +234,9 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
                     Error((excess.ValueDeclaration as INamedNode)?.Name ?? node, relationDiagnosticHead ?? 2353);
                 return false;
             }
-            int code = headCode ?? (context.ExactOptionalPropertyTypes
+            int? missingCode = headCode is not (2420 or 2720 or 2352 or 2787 or 2788 or 2789)
+                ? await MissingRequiredPropertyCodeAsync(source, target, kind, node, cancellation) : null;
+            int code = missingCode ?? headCode ?? (context.ExactOptionalPropertyTypes
                 && (await RelationDiagnostics.ExactOptionalPropertiesAsync(source, target, cancellation)).Count != 0
                 ? 2375
                 : 2322);

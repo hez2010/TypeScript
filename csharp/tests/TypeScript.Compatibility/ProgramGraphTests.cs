@@ -125,6 +125,37 @@ internal static class ProgramGraphTests
         var graph = await CompilerProgram.CreateAsync(new MemoryFileSystem(chain), "/chain", chainConfig);
         Check(graph.SourceFiles.Count == chainLength && graph.SourceFiles[0].Syntax.FileName == "/chain/2999.ts"
             && graph.SourceFiles[^1].Syntax.FileName == "/chain/0.ts", "Deep import graph uses deterministic iterative postorder");
+        var jsOptions = new CompilerOptions();
+        jsOptions.Set("noLib", Json("true"));
+        jsOptions.Set("allowJs", Json("true"));
+        jsOptions.Set("module", Json("\"commonjs\""));
+        var jsRoots = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        {
+            ["/project/main.js"] = Wtf8.Encode("import { a } from 'b'; import { c } from 'c';"),
+            ["/project/node_modules/b.ts"] = Wtf8.Encode("var a = 10;"),
+            ["/project/node_modules/c.js"] = Wtf8.Encode("exports.a = 10;")
+        }), "/project", new("/project/tsconfig.json", jsOptions,
+            ["/project/main.js", "/project/node_modules/b.ts", "/project/node_modules/c.js"], [], [], []));
+        Check(jsRoots.SourceFiles.Select(f => f.Syntax.FileName).SequenceEqual(
+            ["/project/node_modules/b.ts", "/project/node_modules/c.js", "/project/main.js"]),
+            "JavaScript depth elision retains dependency ordering when the target is also a root");
+        foreach (bool allow in new[] { false, true })
+        {
+            var arbitraryOptions = new CompilerOptions();
+            arbitraryOptions.Set("noLib", Json("true"));
+            arbitraryOptions.Set("module", Json("\"nodenext\""));
+            arbitraryOptions.Set("allowArbitraryExtensions", Json(allow ? "true" : "false"));
+            var arbitrary = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+            {
+                ["/project/main.ts"] = Wtf8.Encode("import mod = require('./native.node'); mod.value;"),
+                ["/project/native.d.node.ts"] = Wtf8.Encode("export const value: number;")
+            }), "/project", new("/project/tsconfig.json", arbitraryOptions, ["/project/main.ts"], [], [], []));
+            Check(arbitrary.SourceFiles.Count == (allow ? 2 : 1), "Arbitrary-extension imports respect the graph inclusion option");
+            var checker = await arbitrary.CreateCheckerAsync();
+            await checker.CheckProgramAsync();
+            Check(checker.DiagnosticCodesForProgramFile(arbitrary.GetFile("/project/main.ts")!.Syntax)
+                .SequenceEqual(allow ? [] : new[] { 6263 }), "Disallowed arbitrary-extension imports report the option diagnostic");
+        }
         Console.WriteLine(
             $"Program reuse, invalidation and stack safety: {assertions} assertions; {depth} syntax levels; {chainLength} files");
     }

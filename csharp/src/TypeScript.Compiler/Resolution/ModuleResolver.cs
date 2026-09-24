@@ -19,6 +19,9 @@ public sealed record ResolvedModule(string FileName = "", string Extension = "",
     string OriginalPath = "", bool External = false, bool UsingTsExtension = false, bool UsingExtraExtension = false)
 {
     public bool IsResolved => FileName.Length != 0;
+    internal bool IsArbitraryExtension => IsResolved && !UsingExtraExtension
+        && Extension is not (".ts" or ".tsx" or ".d.ts" or ".mts" or ".d.mts" or ".cts" or ".d.cts"
+            or ".js" or ".jsx" or ".mjs" or ".cjs" or ".json");
     public bool Primary { get; init; }
     public string AlternateResult { get; init; } = "";
     public IReadOnlyList<Diagnostic> Diagnostics { get; init; } = [];

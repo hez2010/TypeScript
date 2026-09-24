@@ -3,9 +3,14 @@ using TypeScript.Compiler.Binding;
 
 namespace TypeScript.Compiler.Checking;
 
+internal interface IConstraintCheckHost
+{
+    ValueTask<bool> CheckConstraintAsync(Type source, Type target, SyntaxNode node, CancellationToken cancellation);
+}
+
 internal sealed class TypeReferenceChecks(TypeContext context, CheckerLinks links, TypeReferences references,
     DeclaredTypes declared, TypeParameterScopes scopes, TypeConstraints constraints, TypeInstantiation instantiation,
-    TypeRelations relations, Action<SyntaxNode, int> error)
+    TypeRelations relations, IConstraintCheckHost host)
 {
     internal async ValueTask CheckAsync(SyntaxNode node, CancellationToken cancellation = default)
     {
@@ -48,11 +53,13 @@ internal sealed class TypeReferenceChecks(TypeContext context, CheckerLinks link
                 arguments = await references.EffectiveArgumentsAsync(node, parameters, cancellation).ConfigureAwait(false);
                 mapper = TypeMapper.Create(parameters.Cast<Type>().ToArray(), arguments.ToArray());
             }
-            if (success && !await relations.RelatedAsync(arguments[i], (await instantiation.InstantiateAsync(constraint, mapper,
-                cancellation: cancellation).ConfigureAwait(false))!, RelationKind.Assignable, cancellation).ConfigureAwait(false))
+            if (!success)
+                continue;
+            var target = (await instantiation.InstantiateAsync(constraint, mapper, cancellation: cancellation).ConfigureAwait(false))!;
+            if (!await relations.RelatedAsync(arguments[i], target, RelationKind.Assignable, cancellation).ConfigureAwait(false))
             {
                 if (i < typeArguments.Count)
-                    error(typeArguments[i], 2344);
+                    await host.CheckConstraintAsync(arguments[i], target, typeArguments[i], cancellation).ConfigureAwait(false);
                 success = false;
             }
         }

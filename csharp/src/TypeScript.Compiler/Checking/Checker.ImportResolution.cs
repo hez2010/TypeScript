@@ -26,7 +26,9 @@ internal sealed partial class Checker
         var reference = program.Symbols.Program.GetFile(file.FileName)!.Resolutions.FirstOrDefault(
             r => implicitImport ? r.Node is null && r.Specifier == name : r.Node == specifier);
         var module = program.Symbols.Globals.GetValueOrDefault('"' + name + '"');
-        if (module is null && reference?.Resolution.IsResolved == true)
+        if (module is null && reference?.Resolution.IsResolved == true
+            && !(reference.Resolution.IsArbitraryExtension && !file.IsDeclarationFile
+                && program.Symbols.Program.Configuration.Options.Boolean("allowArbitraryExtensions") != true))
         {
             if (!implicitImport)
                 CheckResolvedImport(location, specifier!, name, file, reference);
@@ -80,6 +82,16 @@ internal sealed partial class Checker
     {
         bool sideEffect = node.Parent is ImportDeclarationNode { ImportClause: null };
         var compiler = program.Symbols.Program;
+        if (reference?.Resolution.IsArbitraryExtension == true && !file.IsDeclarationFile
+            && compiler.Configuration.Options.Boolean("allowArbitraryExtensions") != true)
+        {
+            program.Error(
+                node,
+                Messages.Module_0_was_resolved_to_1_but_allowArbitraryExtensions_is_not_set,
+                name,
+                reference.Resolution.FileName);
+            return;
+        }
         if (reference?.Resolution.IsResolved == true)
         {
             var resolved = reference.Resolution;

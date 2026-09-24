@@ -129,8 +129,11 @@ func TestCSharpSemanticCorpus(t *testing.T) {
 					harnessutil.SkipUnsupportedCompilerOptions(t, c.options)
 					program := c.result.Program.Program()
 					files := map[string]string{}
-					for _, unit := range payload.testUnitData {
-						files[tspath.GetNormalizedAbsolutePath(unit.name, c.currentDirectory)] = blob(unit.content)
+					// Match the harness filesystem's input-then-other-file overwrite order.
+					for _, group := range [][]*harnessutil.TestFile{c.toBeCompiled, c.otherFiles} {
+						for _, unit := range group {
+							files[tspath.GetNormalizedAbsolutePath(unit.UnitName, c.currentDirectory)] = blob(unit.Content)
+						}
 					}
 					if unit := payload.tsConfigFileUnitData; unit != nil {
 						files[tspath.GetNormalizedAbsolutePath(unit.name, c.currentDirectory)] = blob(unit.content)

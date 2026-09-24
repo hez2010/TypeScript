@@ -5,7 +5,7 @@ using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
 
-internal interface IFunctionDeclarationHost
+internal interface IFunctionDeclarationHost : IConstraintCheckHost
 {
     bool NoImplicitAny { get; }
     int TargetYear { get; }
@@ -229,8 +229,7 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
                 cancellation: cancellation).ConfigureAwait(false))!,
                 defaultType,
                 cancellation: cancellation).ConfigureAwait(false);
-            if (!await relations.RelatedAsync(defaultType, target, RelationKind.Assignable, cancellation).ConfigureAwait(false))
-                host.ExpressionError(node.DefaultType!, 2344);
+            await host.CheckConstraintAsync(defaultType, target, node.DefaultType!, cancellation).ConfigureAwait(false);
         }
         if (node.Name!.Text is "any" or "unknown" or "never" or "number" or "string" or "boolean" or "bigint" or "symbol" or "void"
             or "object" or "undefined")

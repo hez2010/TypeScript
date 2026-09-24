@@ -139,6 +139,44 @@ internal static class CheckerAssignabilityTests
             checks++;
         }
         Check(!host.Variances.Measuring && host.Instantiation.Resolutions.Count == 0);
+        checks += await MissingPropertySafety();
         Console.WriteLine($"{checks} structural relation/variance/facts/cancellation assertions");
+    }
+
+    private static async Task<int> MissingPropertySafety()
+    {
+        const string source = """
+            interface One { value: number; }
+            const one: One = {};
+            const many: { a: number; b: number; optional?: number } = {};
+            const large: { a: number; b: number; c: number; d: number; e: number; f: number } = {};
+            declare function use(value: One): void;
+            use({});
+            type Box<T extends One> = T;
+            type Invalid = Box<{}>;
+            const fn: { value: number } = () => 0;
+            const withCall: { (): void; value: number } = () => {};
+            class Implements implements One {}
+            class A { #p = 1; }
+            class B { #p = 1; }
+            const privateValue: A = new B();
+            const optional: { value?: number } = {};
+            const indexed: { [key: string]: number } = {};
+            """;
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("target", "\"es2015\"");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
+            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        await checker.CheckProgramAsync();
+        var codes = checker.DiagnosticCodesForFile(program.SourceFiles[0].Syntax);
+        if (!codes.SequenceEqual([2322, 2322, 2420, 2739, 2740, 2741, 2741, 2741, 2741]))
+            throw new InvalidOperationException($"Missing property diagnostics: {string.Join(',', codes)}");
+        if (!checker.RequiredPropertyDeclarations.Values.Any(p => p.Count == 6)
+            || !checker.RequiredPropertyDeclarations.Values.Any(p => p.Count == 1 && p[0].Name == "value"))
+            throw new InvalidOperationException("Missing property diagnostics lost required declarations");
+        return 2;
     }
 }

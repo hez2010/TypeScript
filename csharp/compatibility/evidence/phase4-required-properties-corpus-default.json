@@ -1,0 +1,67 @@
+{
+    "timestamp": "2026-09-24T20:34:05.110Z",
+    "mode": "default",
+    "configuration": "Release",
+    "selectedConfigurations": 1439,
+    "replayedConfigurations": 1439,
+    "retainedConfigurations": 0,
+    "previousMatches": 1171,
+    "graphAndCodeMatches": 1312,
+    "recoveredConfigurations": 141,
+    "regressions": [],
+    "scope": "Required-property diagnostics for assignments, arguments and generic constraints; full phase 4 remains incomplete",
+    "parts": [
+        {
+            "directory": "built/csharp/semantic-corpus-missing-required-final/default",
+            "summary": {
+                "timestamp": "2026-09-24T20:32:53.571Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "mode": "default",
+                "filter": "",
+                "managed": true,
+                "reuseSyntax": true,
+                "referenceJobs": 4,
+                "scope": "Original compiler test program graphs and semantic diagnostic codes; full diagnostic/type/symbol fidelity and parallel candidate checker scheduling remain incomplete",
+                "referenceExitCode": 0,
+                "exportedConfigurations": 15208,
+                "readyConfigurations": 1439,
+                "availableConfigurations": 13446,
+                "selectionSha256": "f6928ea53bb82147d6ef951c4522805a2ab32e70b6f0ffe9b80aa46518e9f58f",
+                "referenceInventoryFiles": 12730,
+                "plannedConfigurations": 15208,
+                "referenceMissingFiles": [],
+                "referenceMissingConfigurations": [],
+                "referenceSkipped": 1762,
+                "referenceFailed": 0,
+                "candidateFailures": 0,
+                "graphMismatches": 0,
+                "diagnosticMismatches": 127,
+                "graphAndCodeMatches": 1312,
+                "errorGroups": [],
+                "inputSha256": "1021223d26cfedad8b1989a152ffb776bc54750978c457480fc0a0bb8f8bb3bf",
+                "referenceInputCorrectionsSha256": "4c16c7b555e8df466548ca7d8a484772673d2bb3a67015d60276ca9b7b933718",
+                "oracleSha256": "072ce20500e1dfa626e6029e8ba98ed84b925a304216116200dd33d97f54654a",
+                "candidateSha256": "18c8fd71e51ea5fb9301f32dd3be8f865e383bdacf117a03ea0248a4e3e86919",
+                "compilerSha256": "233536b667a0c2293426b80bee5d8bb791af70bdab4849f9dd9135a7ff864c1d",
+                "mapperFixture": {
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+                    "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+                    "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+                },
+                "candidateOutputSha256": "994de7bb9fd00ebb3371c9fe316563e5c974246eec5cf0518b94e13be9ed7272",
+                "fullSemanticCorpusGateComplete": false
+            },
+            "outputSha256": "994de7bb9fd00ebb3371c9fe316563e5c974246eec5cf0518b94e13be9ed7272"
+        }
+    ],
+    "cumulative": {
+        "activeConfigurations": 13446,
+        "matches": 12699,
+        "remaining": 747,
+        "failed": 0,
+        "diagnosticMismatches": 747,
+        "graphMismatches": 0,
+        "topStops": []
+    }
+}

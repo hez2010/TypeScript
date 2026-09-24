@@ -4,7 +4,7 @@ using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
 
-internal interface ICallSignatureHost
+internal interface ICallSignatureHost : IConstraintCheckHost
 {
     bool IsArray(Type type);
 
@@ -121,7 +121,7 @@ internal sealed class CallSignatures(TypeContext context, CheckerSymbols symbols
             if (!await relations.RelatedAsync(arguments[i], target, RelationKind.Assignable, cancellation).ConfigureAwait(false))
             {
                 if (reportErrors)
-                    host.ExpressionError(nodes[i], 2344);
+                    await host.CheckConstraintAsync(arguments[i], target, nodes[i], cancellation).ConfigureAwait(false);
                 return null;
             }
         }

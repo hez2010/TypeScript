@@ -1,0 +1,114 @@
+{
+    "timestamp": "2026-09-24T20:36:46.5083179+00:00",
+    "configuration": "Release",
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "managed": true,
+    "scope": "Source graph ordering/inclusion and required-property diagnostic selection; phase 4 remains incomplete",
+    "candidateSha256": "18c8fd71e51ea5fb9301f32dd3be8f865e383bdacf117a03ea0248a4e3e86919",
+    "compilerSha256": "233536b667a0c2293426b80bee5d8bb791af70bdab4849f9dd9135a7ff864c1d",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-missing-required-final-build.log",
+        "sha256": "2a3a081d0960e0d6fd9e4e2f1088279cac1873a8e0045b3f07f1f7d6a5f95b44"
+    },
+    "graphs": {
+        "single": "phase4-source-graphs-corpus-single.json",
+        "referenceDefault": "phase4-source-graphs-corpus-default.json",
+        "selectedConfigurations": 74,
+        "recoveredConfigurations": 6,
+        "inputCorrection": "phase4-source-graph-input-correction.json",
+        "allSourceGraphsMatch": true
+    },
+    "properties": {
+        "single": "phase4-required-properties-corpus-single.json",
+        "referenceDefault": "phase4-required-properties-corpus-default.json",
+        "selectedConfigurations": 1439,
+        "recoveredConfigurations": 141,
+        "retainedSingleModeResults": 1281,
+        "finalReplayedSingleModeResults": 158
+    },
+    "queries": {
+        "calls": {
+            "record": "phase4-required-property-calls.json",
+            "cases": 180,
+            "exact": 180,
+            "candidateSha256": "18c8fd71e51ea5fb9301f32dd3be8f865e383bdacf117a03ea0248a4e3e86919",
+            "compilerSha256": "44c0529e5edc524c447dc824f0ff46c9967f9e35d6d48d01a087ba64a8e0be22"
+        },
+        "type-nodes": {
+            "record": "phase4-required-property-type-nodes.json",
+            "cases": 192,
+            "exact": 192,
+            "candidateSha256": "18c8fd71e51ea5fb9301f32dd3be8f865e383bdacf117a03ea0248a4e3e86919",
+            "compilerSha256": "44c0529e5edc524c447dc824f0ff46c9967f9e35d6d48d01a087ba64a8e0be22"
+        },
+        "assignability": {
+            "record": "phase4-required-property-assignability.json",
+            "cases": 332,
+            "exact": 332,
+            "candidateSha256": "18c8fd71e51ea5fb9301f32dd3be8f865e383bdacf117a03ea0248a4e3e86919",
+            "compilerSha256": "44c0529e5edc524c447dc824f0ff46c9967f9e35d6d48d01a087ba64a8e0be22"
+        }
+    },
+    "safety": {
+        "graphAssertions": 20,
+        "relationAssertions": 35,
+        "newAssertions": 7,
+        "graphLog": "logs/csharp-phase4-source-graphs-safety.log",
+        "graphSha256": "4cbab4a5e1ebc08c979cbf732dea06b00bea72c58e69df25c640f0c228a12740",
+        "relationLog": "logs/csharp-phase4-missing-required-safety.log",
+        "relationSha256": "fd3c4dcdf72cd5598a641de2d7ff46e2e9adbe35136fc909f7ca52340bb9e9b3",
+        "referenceFixture": "built/csharp/required-property-safety-reference.jsonl",
+        "referenceFixtureSha256": "a6b5611806964e6431e252aee27287182ad0e0cf3dfc2e4ecfc33e763e0636ae",
+        "retention": "The graph suite predates diagnostic work; the relation suite and component queries predate the final diagnostic-context guards. The final 158-case replay and full default-mode corpus cover those guards."
+    },
+    "referenceIntegrity": {
+        "correctedCase": "compiler/augmentExportEquals2.ts",
+        "expectationsUnchanged": true,
+        "regeneratedConfigurationsPerMode": 1,
+        "otherReferenceResultsReused": true,
+        "negativeControls": 3,
+        "negativeControlLog": "logs/csharp-phase4-reference-correction-guards.log",
+        "negativeControlSha256": "1c6ca0ac4e7864881fbe1708fc2e575346e0d7c506dab021c8ecba5e777ddacd",
+        "oracleProvenance": "The legacy single-mode reference-run record lacked an oracle hash. Its original hash was restored from phase4-corpus-release-single.json after verifying the complete input hash. The driver now rejects missing oracle provenance."
+    },
+    "formatting": {
+        "csharpFiles": 12,
+        "tokenCommentSyntaxIdentical": true,
+        "libraryConfigurations": 2,
+        "dotnetWhitespaceExitCode": 0,
+        "diffCheckExitCode": 0,
+        "proofLog": "logs/csharp-phase4-graphs-properties-format.log",
+        "proofSha256": "b6b607b45b27013cf87cc9d61b4703244928e495df97d2b22e0ac8adbe7f1031",
+        "driverFormatExitCode": 0,
+        "oracleGofmtExitCode": 0
+    },
+    "reusedValidation": {
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "repositoryCommand": "npx hereby validate --all",
+        "repositoryExitCode": 0,
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "reason": "User directed reuse of unchanged results. Product Go/main repository inputs are unchanged; changed C# paths and reference export/correction guards received targeted validation. Completed corpus results were retained across follow-ups."
+    },
+    "cumulative": {
+        "activeConfigurations": 13446,
+        "matches": 12699,
+        "remaining": 747,
+        "failed": 0,
+        "diagnosticMismatches": 747,
+        "graphMismatches": 0,
+        "topStops": []
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "phase4Complete": false
+}

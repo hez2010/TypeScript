@@ -386,6 +386,9 @@ public sealed partial class CompilerProgram
                                     var resolution = reference.Resolution;
                                     if (projectOptions.Boolean("noResolve") == true)
                                         continue;
+                                    if (resolution.IsArbitraryExtension && !existing.Syntax.IsDeclarationFile
+                                        && projectOptions.Boolean("allowArbitraryExtensions") != true)
+                                        continue;
                                     if (resolution.Extension is ".js" or ".jsx" or ".mjs" or ".cjs"
                                         && !(projectOptions.Boolean("allowJs") ?? projectOptions.Boolean("checkJs") == true))
                                         continue;
@@ -394,7 +397,11 @@ public sealed partial class CompilerProgram
                                     int depth = item.Depth + (resolution.External ? 1 : 0);
                                     bool externalJs = resolution.External && resolution.Extension is ".js" or ".jsx" or ".mjs" or ".cjs";
                                     if (externalJs && depth > (projectOptions.Number("maxNodeModuleJsDepth") ?? 0))
+                                    {
+                                        if (!dependencies.Contains(resolution.FileName, files.Comparer))
+                                            dependencies.Add(resolution.FileName);
                                         continue;
+                                    }
                                     if (!dependencies.Contains(resolution.FileName, files.Comparer))
                                         dependencies.Add(resolution.FileName);
                                     pending.Enqueue(
@@ -532,16 +539,25 @@ public sealed partial class CompilerProgram
                         diagnostics.AddRange(resolved.Diagnostics);
                         if (!resolved.IsResolved || options.Boolean("noResolve") == true)
                             continue;
+                        if (resolved.IsArbitraryExtension
+                            && !syntax.IsDeclarationFile
+                            && options.Boolean("allowArbitraryExtensions") != true)
+                            continue;
                         if (syntax.ScriptKind is not (ScriptKind.JS or ScriptKind.JSX)
                             && (import.Node?.Flags & NodeFlags.JSDoc) != 0
                             && import.Node is not null)
                             continue;
                         bool js = resolved.Extension is ".js" or ".jsx" or ".mjs" or ".cjs";
                         int depth = currentDepth + (resolved.External ? 1 : 0);
-                        if (js && (!(options.Boolean("allowJs") ?? options.Boolean("checkJs") == true)
-                            || resolved.External && resolved.FileName.Contains("/node_modules/", StringComparison.Ordinal)
-                                && depth > (options.Number("maxNodeModuleJsDepth") ?? 0)))
+                        if (js && !(options.Boolean("allowJs") ?? options.Boolean("checkJs") == true))
                             continue;
+                        if (js && resolved.External && resolved.FileName.Contains("/node_modules/", StringComparison.Ordinal)
+                            && depth > (options.Number("maxNodeModuleJsDepth") ?? 0))
+                        {
+                            // An elided dependency can still be loaded through an explicit root or a shallower import.
+                            dependencies.Add(resolved.FileName);
+                            continue;
+                        }
                         if (resolved.Extension is ".tsx" or ".jsx" && options.String("jsx") is null)
                             continue;
                         Include(resolved.FileName, FileIncludeKind.Import, import.Node?.Pos ?? 0, depth: depth, package: resolved.PackageId,

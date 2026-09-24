@@ -205,7 +205,7 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
         FunctionThis = new(program.Symbols, FunctionContexts, Contexts, Algebra, Values, Instantiation.Engine, Facts, Widening, this);
         AwaitExpressions = new(context, Awaited, this);
         TypeReferenceChecks = new(context, links, References, Declared, program.Scopes, Instantiation.Constraints,
-            Instantiation.Engine, Relations, (node, code) => Error(node, code));
+            Instantiation.Engine, Relations, this);
         IndexDeclarationChecks = new(program.Symbols, Nodes, Members, Properties, Values, IndexSignatures, Bases, Relations,
             PropertyNameTypeAsync, (node, code) => Error(node, code));
         program.CallSignature = async (symbol, token) => (await SignaturesAsync(

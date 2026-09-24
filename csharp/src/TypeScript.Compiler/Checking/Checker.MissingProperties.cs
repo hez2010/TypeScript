@@ -6,6 +6,65 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
+    internal Dictionary<SyntaxNode, IReadOnlyList<Symbol>> RequiredPropertyDeclarations { get; } = [];
+
+    private async ValueTask<int?> MissingRequiredPropertyCodeAsync(Type source, Type target, RelationKind relation,
+        SyntaxNode node, CancellationToken cancellation)
+    {
+        if (source is not (ObjectType or IntersectionType) || target is not ObjectType)
+            return null;
+        if (source == GlobalObject || source is MappedType mapped && await Instantiation.Mapped.IsGenericAsync(mapped, cancellation))
+            return null;
+        if (await Normalization.GetAsync(source, false, cancellation) != source
+            || await Normalization.GetAsync(target, true, cancellation) != target)
+            return null;
+        if (target is TypeReference { Target: TupleType tuple }
+            && (ObjectRelations.ArrayOrTuple(source) || (tuple.CombinedFlags & ElementFlags.Variable) != 0))
+            return null;
+        var calls = await SignaturesAsync(source, false, cancellation);
+        var constructors = await SignaturesAsync(source, true, cancellation);
+        if ((calls.Count != 0 || constructors.Count != 0) && (await Properties.GetAsync(source, cancellation)).Count == 0
+            && !(calls.Count != 0 && (await SignaturesAsync(target, false, cancellation)).Count != 0)
+            && !(constructors.Count != 0 && (await SignaturesAsync(target, true, cancellation)).Count != 0))
+            return null;
+        bool requireOptional = relation is RelationKind.Subtype or RelationKind.StrictSubtype
+            && (source.ObjectFlags & ObjectFlags.ObjectLiteral) == 0
+            && !await EmptyArrayAsync(source, cancellation) && source is not TypeReference { Target: TupleType };
+        var missing = new List<Symbol>();
+        foreach (var property in await Properties.GetAsync(target, cancellation))
+        {
+            if (property.ValueDeclaration is { } declaration && SemanticSyntax.IsStatic(declaration)
+                && SemanticSyntax.Name(declaration) is PrivateIdentifierNode)
+                continue;
+            if ((requireOptional || (property.Flags & SymbolFlags.Optional) == 0 && (property.CheckFlags & CheckFlags.Partial) == 0)
+                && await Properties.PropertyAsync(source, property.Name, cancellation: cancellation) is null)
+                missing.Add(property);
+        }
+        if (missing.Count == 0)
+            return null;
+        if (SemanticSyntax.Name(missing[0].ValueDeclaration) is PrivateIdentifierNode privateName
+            && source.Symbol is { } sourceSymbol && (sourceSymbol.Flags & SymbolFlags.Class) != 0
+            && await Properties.PropertyAsync(
+                source,
+                PrivateAccess.Name(sourceSymbol, privateName.Text),
+                cancellation: cancellation) is not null)
+            return null;
+        if (missing.Count > 1)
+        {
+            bool mutableTarget = target is TypeReference { Target: TupleType { IsReadonly: false } }
+                || IsArray(target) && !IsReadonlyArray(target);
+            if (source is TypeReference { Target: TupleType sourceTuple })
+            {
+                if (sourceTuple.IsReadonly && mutableTarget || !ObjectRelations.ArrayOrTuple(target))
+                    return null;
+            }
+            else if (IsReadonlyArray(source) && mutableTarget || target is TypeReference { Target: TupleType } && !IsArray(source))
+                return null;
+        }
+        RequiredPropertyDeclarations[node] = missing;
+        return missing.Count == 1 ? 2741 : missing.Count > 5 ? 2740 : 2739;
+    }
+
     private async ValueTask CheckMissingPropertiesAsync(SourceFileNode file, CancellationToken cancellation)
     {
         for (int i = 0; i < DeferredMissingProperties.Count; i++)

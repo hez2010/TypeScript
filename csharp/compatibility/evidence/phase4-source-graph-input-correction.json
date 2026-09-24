@@ -1,0 +1,38 @@
+{
+    "records": [
+        {
+            "mode": "single",
+            "name": "compiler/augmentExportEquals2.ts",
+            "changes": [
+                {
+                    "file": "/.src/file3.ts",
+                    "before": "cc9bacdcc3063133dc1a412aa177ad5ffd8144428d1efcb6ca84f1e53ce3726a",
+                    "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                }
+            ],
+            "expectedOutputsUnchanged": true,
+            "baseInputSha256": "63befffd43c6e1a36331426b4dd2f3b01e4002f3d7f124c3da66f30a33a5c180",
+            "correctionSha256": "ea569831effe01a55e210da50442c429251d933793905bf1d27a289264a86061",
+            "regeneratedReference": "built/csharp/semantic-corpus-graph-input-corrected/single",
+            "reason": "The compiler harness installs entry files before auxiliary files; a duplicate empty auxiliary file overwrites the entry content."
+        },
+        {
+            "mode": "default",
+            "name": "compiler/augmentExportEquals2.ts",
+            "changes": [
+                {
+                    "file": "/.src/file3.ts",
+                    "before": "cc9bacdcc3063133dc1a412aa177ad5ffd8144428d1efcb6ca84f1e53ce3726a",
+                    "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                }
+            ],
+            "expectedOutputsUnchanged": true,
+            "baseInputSha256": "1021223d26cfedad8b1989a152ffb776bc54750978c457480fc0a0bb8f8bb3bf",
+            "correctionSha256": "4c16c7b555e8df466548ca7d8a484772673d2bb3a67015d60276ca9b7b933718",
+            "regeneratedReference": "built/csharp/semantic-corpus-graph-input-corrected/default",
+            "reason": "The compiler harness installs entry files before auxiliary files; a duplicate empty auxiliary file overwrites the entry content."
+        }
+    ],
+    "duplicateFileAudit": "built/csharp/duplicate-corpus-inputs.json",
+    "otherDuplicates": "The other three duplicate-filename sources include every unit as a root and preserve their original overwrite order."
+}

@@ -108,8 +108,28 @@ for (const mode of modes) {
     }
     const referenceRun = JSON.parse(await readFile(path.join(inputDirectory, "reference-run.json"), "utf8"));
     if (referenceRun.filter !== filter || referenceRun.mode !== mode) throw Error("Reference reuse does not match requested scope");
+    if (typeof referenceRun.oracleSha256 !== "string" || !/^[a-f0-9]{64}$/.test(referenceRun.oracleSha256)) {
+        throw Error("Cached reference is missing its oracle hash; restore it from recorded evidence or regenerate that reference scope");
+    }
     const inputText = await readFile(path.join(inputDirectory, "cases.jsonl"), "utf8");
     const cases = inputText.trim().split(/\r?\n/).filter(Boolean).map(JSON.parse).sort((a, b) => a.name.localeCompare(b.name, "en"));
+    let referenceInputCorrectionsSha256;
+    try {
+        const corrections = await readFile(path.join(inputDirectory, "input-corrections.jsonl"), "utf8");
+        referenceInputCorrectionsSha256 = sha256(Buffer.from(corrections));
+        for (const line of corrections.trim().split(/\r?\n/).filter(Boolean)) {
+            const replacement = JSON.parse(line);
+            const index = cases.findIndex(c => c.name === replacement.name);
+            if (index < 0) throw Error(`Unknown corrected reference case: ${replacement.name}`);
+            const { files: originalFiles, ...original } = cases[index];
+            const { files: replacementFiles, ...corrected } = replacement;
+            if (!same(original, corrected)) throw Error(`Reference input correction changes expectations: ${replacement.name}`);
+            cases[index] = replacement;
+        }
+    }
+    catch (error) {
+        if (error.code !== "ENOENT") throw error;
+    }
     if (!cases.length) throw Error("The reference exporter produced no cases");
     const inventory = JSON.parse(await readFile(path.join(inputDirectory, "inventory.json"), "utf8"));
     const planned = JSON.parse(await readFile(path.join(inputDirectory, "plan.json"), "utf8"));
@@ -217,7 +237,8 @@ for (const mode of modes) {
         graphAndCodeMatches: codeMatches,
         errorGroups: [...errors].sort((a, b) => b[1] - a[1]).map(([error, count]) => ({ error, count })),
         inputSha256: sha256(Buffer.from(inputText)),
-        oracleSha256: referenceRun.oracleSha256 ?? sha256(await readFile(oracle)),
+        ...referenceInputCorrectionsSha256 ? { referenceInputCorrectionsSha256 } : {},
+        oracleSha256: referenceRun.oracleSha256,
         candidateSha256: sha256(await readFile(managed ? dll : native)),
         ...managed ? { compilerSha256: sha256(await readFile(compilerDll)) } : {},
         ...mapperFixtureInfo ? { mapperFixture: mapperFixtureInfo } : {},

@@ -27,6 +27,9 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
             Suggestions.Add(code);
     }
 
+    public ValueTask<bool> CheckConstraintAsync(Type source, Type target, SyntaxNode node, CancellationToken cancellation)
+        => RelationDiagnostics.CheckAsync(source, target, RelationKind.Assignable, node, null, 2344, cancellation);
+
     public async ValueTask<Type> CheckedFunctionTypeAsync(SyntaxNode node, CancellationToken cancellation)
     {
         var pending = new Stack<(SyntaxNode Node, bool Visited)>();

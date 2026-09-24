@@ -1,0 +1,69 @@
+{
+    "timestamp": "2026-09-24T20:34:03.517Z",
+    "mode": "single",
+    "configuration": "Release",
+    "selectedConfigurations": 1439,
+    "replayedConfigurations": 158,
+    "retainedConfigurations": 1281,
+    "previousMatches": 1171,
+    "graphAndCodeMatches": 1312,
+    "recoveredConfigurations": 141,
+    "regressions": [],
+    "scope": "Required-property diagnostics for assignments, arguments and generic constraints; full phase 4 remains incomplete",
+    "parts": [
+        {
+            "directory": "built/csharp/semantic-corpus-missing-required-followup/single",
+            "summary": {
+                "timestamp": "2026-09-24T20:30:21.623Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "mode": "single",
+                "filter": "",
+                "managed": true,
+                "reuseSyntax": true,
+                "referenceJobs": 4,
+                "scope": "Original compiler test program graphs and semantic diagnostic codes; full diagnostic/type/symbol fidelity and parallel candidate checker scheduling remain incomplete",
+                "referenceExitCode": 0,
+                "exportedConfigurations": 15208,
+                "readyConfigurations": 158,
+                "availableConfigurations": 13446,
+                "selectionSha256": "cf44afd0b0d587c572a468b3d626fd98f8dea17b913afe56f4e7894f4e19b1ce",
+                "referenceInventoryFiles": 12730,
+                "plannedConfigurations": 15208,
+                "referenceMissingFiles": [],
+                "referenceMissingConfigurations": [],
+                "referenceSkipped": 1762,
+                "referenceFailed": 0,
+                "candidateFailures": 0,
+                "graphMismatches": 0,
+                "diagnosticMismatches": 11,
+                "graphAndCodeMatches": 147,
+                "errorGroups": [],
+                "inputSha256": "63befffd43c6e1a36331426b4dd2f3b01e4002f3d7f124c3da66f30a33a5c180",
+                "referenceInputCorrectionsSha256": "ea569831effe01a55e210da50442c429251d933793905bf1d27a289264a86061",
+                "oracleSha256": "072ce20500e1dfa626e6029e8ba98ed84b925a304216116200dd33d97f54654a",
+                "candidateSha256": "18c8fd71e51ea5fb9301f32dd3be8f865e383bdacf117a03ea0248a4e3e86919",
+                "compilerSha256": "233536b667a0c2293426b80bee5d8bb791af70bdab4849f9dd9135a7ff864c1d",
+                "candidateOutputSha256": "e99fe91993df532e200cf86f8d43051a7435ec6e54bc2be1bd600f56ceb1f951",
+                "fullSemanticCorpusGateComplete": false
+            },
+            "outputSha256": "e99fe91993df532e200cf86f8d43051a7435ec6e54bc2be1bd600f56ceb1f951"
+        },
+        {
+            "retainedFrom": [
+                "built/csharp/semantic-corpus-missing-required/single/candidate.jsonl",
+                "built/csharp/semantic-corpus-missing-required-affected/single/candidate.jsonl"
+            ],
+            "retainedOutputSha256": "c346720f6d814bdc744cf7dce871b23d88de912f74fd0561aa5472d1be4c1236",
+            "reason": "These 1281 results did not report a missing-property code and cannot change when narrowing eligibility for that diagnostic"
+        }
+    ],
+    "cumulative": {
+        "activeConfigurations": 13446,
+        "matches": 12699,
+        "remaining": 747,
+        "failed": 0,
+        "diagnosticMismatches": 747,
+        "graphMismatches": 0,
+        "topStops": []
+    }
+}
