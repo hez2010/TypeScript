@@ -1,0 +1,79 @@
+{
+    "timestamp": "2026-09-24T21:45:45.4705171+00:00",
+    "configuration": "Release",
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "managed": true,
+    "scope": "Catch declarations, ambient initializers and import-attribute validation; phase 4 remains incomplete",
+    "candidateSha256": "0a8978994b2c68560323977d9dd4dfbfbc4293b17c4c87632497b4fc0ef7f062",
+    "compilerSha256": "efbb7cd427463815326cb40475dead89d0eaf90db512f622a4a0eb88a375d3a2",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-context-grammar-build.log",
+        "sha256": "44e9c38803bdeab6f70800ee8b9fcef655a93f2749e361618092a575698e0320"
+    },
+    "safety": {
+        "runBeforeWhitespaceFormatting": true,
+        "log": "logs/csharp-phase4-context-grammar-safety.log",
+        "sha256": "4133113e5e16a12d8333701ff4ae490a337a4e8bee8e8c7da28f687e0223142e",
+        "checks": [
+            "catch binding patterns bypass variable initializer grammar",
+            "catch annotations, initializers and redeclarations",
+            "ambient const and mutable declarations",
+            "enum property and element initializers versus bare aliases",
+            "string-only import attributes and global attribute assignability"
+        ],
+        "assertions": 84,
+        "referenceFixture": "built/csharp/context-grammar-safety-reference.jsonl",
+        "referenceFixtureSha256": "f9987b0a1becaa54d2bceb4a2d532f8347b72f387b1c8200e7d3cc3e28e3d385",
+        "newAssertions": 1
+    },
+    "corpus": {
+        "parity": "phase4-context-grammar-mode-parity.json",
+        "previousMatches": 2169,
+        "regressions": [],
+        "retainedSingleResults": 66,
+        "selectedConfigurationsPerMode": 2320,
+        "scopeSelection": "Expected/actual affected diagnostic codes plus source containing catch bindings, declare variables/classes or with/assert attribute objects",
+        "single": "phase4-context-grammar-corpus-single.json",
+        "cumulative": {
+            "activeConfigurations": 13446,
+            "matches": 12750,
+            "remaining": 696,
+            "failed": 0,
+            "diagnosticMismatches": 696,
+            "graphMismatches": 0
+        },
+        "additionalSingleResults": 2254,
+        "referenceDefault": "phase4-context-grammar-corpus-default.json",
+        "graphAndCodeMatches": 2190,
+        "recoveredConfigurations": 21
+    },
+    "formatting": {
+        "libraryConfigurations": 2,
+        "dotnetWhitespaceExitCode": 0,
+        "proofLog": "logs/csharp-phase4-context-grammar-format.log",
+        "csharpFiles": 7,
+        "proofSha256": "86f123a54823a88089d4faace3fe8a657d96ef15f27b15ba08773e9c64240d60",
+        "tokenCommentSyntaxIdentical": true
+    },
+    "reusedValidation": {
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "validatedCommit": "00d370e5b0",
+        "repositoryCommand": "npx hereby validate --all",
+        "reason": "Cached reference results and unchanged repository validation were reused. The additional single-mode run excluded every initial case. No runtime checks repeated after token/comment/syntax-preserving formatting.",
+        "repositoryExitCode": 0
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "parallelCheckerGateComplete": false,
+    "phase4Complete": false
+}

@@ -111,24 +111,7 @@ internal sealed partial class Checker
             Error(node.PostfixToken, 1276);
             return;
         }
-        if ((node.Flags & NodeFlags.Ambient) != 0 && node.Initializer is { } initializer)
-        {
-            bool literal = initializer is StringLiteralNode or NoSubstitutionTemplateLiteralNode or NumericLiteralNode or BigIntLiteralNode
-                || initializer.Kind is SyntaxKind.TrueKeyword or SyntaxKind.FalseKeyword
-                || initializer is PrefixUnaryExpressionNode
-                {
-                    Operator: SyntaxKind.MinusToken, Operand: NumericLiteralNode
-                    or BigIntLiteralNode
-                };
-            if (!literal && initializer is IdentifierNode or PropertyAccessExpressionNode)
-                literal = (await Expressions.CheckAsync(
-                    initializer,
-                    cancellation: cancellation).ConfigureAwait(false)).Flags.HasFlag(TypeFlags.EnumLiteral);
-            if (!SemanticSyntax.HasModifier(node, SyntaxKind.ReadonlyKeyword) || node.Type is not null)
-                Error(initializer, 1039);
-            else if (!literal)
-                Error(initializer, 1254);
-        }
+        await CheckAmbientInitializerAsync(node, cancellation).ConfigureAwait(false);
         if (node.PostfixToken?.Kind == SyntaxKind.ExclamationToken)
         {
             if (node.Initializer is not null)

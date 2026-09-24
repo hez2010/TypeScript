@@ -53,13 +53,23 @@ internal sealed partial class Checker
         return data.ResolvedType = type;
     }
 
+    private bool ImportAttributeValues(ImportAttributesNode? node)
+    {
+        bool valid = true;
+        if (node is not null)
+            foreach (ImportAttributeNode attribute in node.Attributes!)
+                if (attribute.Value is not StringLiteralNode)
+                {
+                    Error(attribute.Value!, 2858);
+                    valid = false;
+                }
+        return valid;
+    }
+
     private async ValueTask CheckImportAttributesAsync(SyntaxNode declaration, ImportAttributesNode? node, CancellationToken cancellation)
     {
         if (node is null)
             return;
-        foreach (ImportAttributeNode attribute in node.Attributes!)
-            if (attribute.Value is not StringLiteralNode)
-                Error(attribute.Value!, 2858);
         globalImportAttributes ??= await program.Globals.GetAsync("ImportAttributes", 0, true, cancellation);
         if (globalImportAttributes != context.EmptyObjectType)
             await RelationDiagnostics.CheckAsync(await ImportAttributesExpressionAsync(node, cancellation),
@@ -69,7 +79,7 @@ internal sealed partial class Checker
         bool typeOnly = declaration is ImportTypeNode
             || declaration is ImportDeclarationNode { ImportClause: { } clause } && SemanticSyntax.TypeOnly(clause)
             || declaration is ExportDeclarationNode { IsTypeOnly: true };
-        var mode = node.Attributes.OfType<ImportAttributeNode>().FirstOrDefault(a => ImportAttributeName(a.Name!) == "resolution-mode");
+        var mode = node.Attributes!.OfType<ImportAttributeNode>().FirstOrDefault(a => ImportAttributeName(a.Name!) == "resolution-mode");
         bool grammar = SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0;
         string? modeText = mode?.Value switch
         {

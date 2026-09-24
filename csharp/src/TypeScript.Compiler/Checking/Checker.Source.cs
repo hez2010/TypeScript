@@ -125,7 +125,7 @@ internal sealed partial class Checker
                         await CheckSourceElementAsync(declaration, cancellation).ConfigureAwait(false);
                     break;
                 case VariableDeclarationNode declaration:
-                    VariableGrammar(declaration);
+                    await VariableGrammarAsync(declaration, cancellation).ConfigureAwait(false);
                     CheckDeclarationName(declaration);
                     await FunctionDeclarations.VariableAsync(declaration, cancellation).ConfigureAwait(false);
                     await CheckDisposableInitializerAsync(declaration, cancellation).ConfigureAwait(false);
@@ -268,11 +268,29 @@ internal sealed partial class Checker
                     {
                         if (clause.VariableDeclaration is { } caught)
                         {
-                            if (caught.Type is not null
-                                && (await Nodes.FromNodeAsync(caught.Type, cancellation).ConfigureAwait(false)).Flags is var flags
-                                && (flags & TypeFlags.AnyOrUnknown) == 0)
-                                Error(caught.Type, 1196);
-                            await CheckSourceElementAsync(caught, cancellation).ConfigureAwait(false);
+                            CheckDeclarationName(caught);
+                            await FunctionDeclarations.VariableAsync(caught, cancellation).ConfigureAwait(false);
+                            if (SemanticSyntax.Source(caught)?.ParseDiagnostics.Count == 0)
+                            {
+                                if (caught.Type is not null)
+                                {
+                                    if (((await Nodes.FromNodeAsync(
+                                        caught.Type,
+                                        cancellation).ConfigureAwait(false)).Flags & TypeFlags.AnyOrUnknown) == 0)
+                                        Error(caught.Type, 1196);
+                                }
+                                else if (caught.Initializer is not null)
+                                    Error(caught.Initializer, 1197);
+                                else
+                                {
+                                    var binding = program.Symbols.Binding(clause)!;
+                                    var locals = binding.Get(clause.Block!)?.Locals;
+                                    foreach (string name in binding.Get(clause)?.Locals.Keys ?? [])
+                                        if (locals?.GetValueOrDefault(name) is { ValueDeclaration: { } declaration } symbol
+                                            && (symbol.Flags & SymbolFlags.BlockScopedVariable) != 0)
+                                            Error(declaration, 2492);
+                                }
+                            }
                         }
                         await CheckSourceElementAsync(clause.Block, cancellation).ConfigureAwait(false);
                     }
@@ -392,7 +410,7 @@ internal sealed partial class Checker
         return true;
     }
 
-    private void VariableGrammar(VariableDeclarationNode node)
+    private async ValueTask VariableGrammarAsync(VariableDeclarationNode node, CancellationToken cancellation)
     {
         if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count != 0)
             return;
@@ -402,12 +420,17 @@ internal sealed partial class Checker
             Error(node, 1492);
             return;
         }
-        if (node.Parent?.Parent is not ForInOrOfStatementNode && (flags & NodeFlags.Ambient) == 0 && node.Initializer is null)
+        if (node.Parent?.Parent is not ForInOrOfStatementNode)
         {
-            if (node.Name is BindingPatternNode)
-                Error(node, 1182);
-            else if ((flags & NodeFlags.Constant) != 0)
-                Error(node, 1155);
+            if ((flags & NodeFlags.Ambient) != 0)
+                await CheckAmbientInitializerAsync(node, cancellation).ConfigureAwait(false);
+            else if (node.Initializer is null)
+            {
+                if (node.Name is BindingPatternNode && node.Parent is not BindingPatternNode)
+                    Error(node, 1182);
+                else if ((flags & NodeFlags.BlockScoped) is NodeFlags.Const or NodeFlags.Using or NodeFlags.AwaitUsing)
+                    Error(node, 1155);
+            }
         }
         if (node.ExclamationToken is not null
             && (node.Parent?.Parent is not VariableStatementNode

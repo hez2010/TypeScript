@@ -4,9 +4,21 @@
 
 ## Current overall status
 
-The complete Release import baseline plus subsequent affected-case results record **12,729 matches out of 13,446 active compiler configurations**, up from 12,725 before generic-tuple relation fixes and 9,365 at the original Release baseline. **All 13,446 configurations now finish execution and match source graphs.** **717 configurations still have diagnostic-code differences.** One exported input was corrected to reproduce the reference harness's duplicate-filename overwrite order; the reference's expected graph and diagnostics were unchanged.
+The complete Release import baseline plus subsequent affected-case results record **12,750 matches out of 13,446 active compiler configurations**, up from 12,729 before catch/ambient declaration fixes and 9,365 at the original Release baseline. **All 13,446 configurations now finish execution and match source graphs.** **696 configurations still have diagnostic-code differences.** One exported input was corrected to reproduce the reference harness's duplicate-filename overwrite order; the reference's expected graph and diagnostics were unchanged.
 
-These comparisons cover source graphs and diagnostic codes. **94.7% matching on this measure is not a Phase-4 completion percentage.** Complete diagnostic text, locations and related information; full type/symbol comparison; type display, node builders, accessibility and emit-resolver APIs; parallel checker validation; and the final memory/performance gates remain unfinished. Phase 4 is not nearly complete, and the evidence does not yet support a reliable completion estimate.
+These comparisons cover source graphs and diagnostic codes. **94.8% matching on this measure is not a Phase-4 completion percentage.** The remaining gates are:
+
+| Completion requirement | Current status |
+| --- | --- |
+| Execute active corpus and match source graphs | Complete: 13,446 configurations |
+| Match semantic diagnostic codes | 12,750 match; 696 differ |
+| Match diagnostic text, locations and related information | Incomplete |
+| Complete type/symbol comparisons, type display, node builders, accessibility and emit-resolver APIs | Incomplete |
+| Validate actual parallel checker scheduling | Incomplete; reference-mode corpus agreement is a narrower check |
+| Meet complete semantic workload memory/performance budgets | Incomplete |
+| Verify warning-free NativeAOT publishing | Deferred until final completion; no native execution |
+
+Phase 4 is not nearly complete, and the evidence does not yet support a reliable completion estimate. Completed results are retained: each implementation checkpoint replays affected inputs against cached oracle results. A failed check is repeated after a relevant fix; unchanged checks are reused.
 
 The next implementation priorities are remaining declaration/expression checks and diagnostic fidelity. The sections below are historical implementation checkpoints; their individual passing counts do not represent whole-phase completion.
 
@@ -834,6 +846,14 @@ Single-element generic tuples now use the reference's early relation rules: a mu
 Release validation covers **1,244 configurations per reference mode**, increasing matches from **1,152 to 1,156**, with **four recovered configurations and no regressions**. Both modes agree. Generic-relation/conditional/signature queries pass **496 configurations**. Safety passes **27 assertions**, including five new checks for recursion termination and mutable/readonly relation boundaries. The Release build has zero warnings and errors. Formatting preserved tokens, comments and syntax in three C# files; unchanged reference and repository results were reused. NativeAOT remains deferred until final phase-4 completion.
 
 Evidence: [single-mode corpus](../csharp/compatibility/evidence/phase4-variadic-relations-corpus-single.json), [reference-default corpus](../csharp/compatibility/evidence/phase4-variadic-relations-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-variadic-relations-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-variadic-relations-validation.json).
+
+## Catch declarations, ambient initializers and import attributes
+
+Catch bindings now follow catch-specific checks instead of ordinary variable-declaration initializer grammar. This removes false destructuring-initializer errors and reports invalid catch initializers and block-scoped redeclarations. Ambient variables and class properties share the reference's initializer rules, including enum property/element access and rejection of bare enum-valued aliases. Import/export attribute string checks now run at external-module syntax validation and prevent subsequent binding checks when invalid; import types retain their own attribute validation.
+
+Release validation covers **2,320 configurations per reference mode**, increasing matches from **2,169 to 2,190**, with **21 recovered configurations and no regressions**. Both modes agree. The initial 66 single-mode results were retained; the second run checked only the other 2,254 cases. All oracle results were reused. Program safety passes **84 assertions**, including a new fixture checked against the pinned reference. The Release build has zero warnings and errors. Formatting preserved tokens, comments and syntax in seven C# files. Unchanged repository validation was reused. Malformed import-attribute parser recovery remains unresolved. NativeAOT remains deferred until final phase-4 completion.
+
+Evidence: [single-mode corpus](../csharp/compatibility/evidence/phase4-context-grammar-corpus-single.json), [reference-default corpus](../csharp/compatibility/evidence/phase4-context-grammar-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-context-grammar-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-context-grammar-validation.json).
 
 ## Remaining completion work
 

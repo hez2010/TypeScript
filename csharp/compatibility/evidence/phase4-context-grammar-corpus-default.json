@@ -1,0 +1,65 @@
+{
+    "timestamp": "2026-09-24T21:44:40.304Z",
+    "mode": "default",
+    "configuration": "Release",
+    "scope": "Catch declarations, ambient initializers and import-attribute validation; phase 4 remains incomplete",
+    "selectedConfigurations": 2320,
+    "previousMatches": 2169,
+    "graphAndCodeMatches": 2190,
+    "recoveredConfigurations": 21,
+    "regressions": [],
+    "parts": [
+        {
+            "directory": "built/csharp/semantic-corpus-context-grammar/default",
+            "summary": {
+                "timestamp": "2026-09-24T21:44:06.236Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "mode": "default",
+                "filter": "",
+                "managed": true,
+                "reuseSyntax": true,
+                "referenceJobs": 4,
+                "scope": "Original compiler test program graphs and semantic diagnostic codes; full diagnostic/type/symbol fidelity and parallel candidate checker scheduling remain incomplete",
+                "referenceExitCode": 0,
+                "exportedConfigurations": 15208,
+                "readyConfigurations": 2320,
+                "availableConfigurations": 13446,
+                "selectionSha256": "c91eb4e1808055b4772172d5c57a39c6811d5653974b7c38ccb94e08b02cfd9b",
+                "referenceInventoryFiles": 12730,
+                "plannedConfigurations": 15208,
+                "referenceMissingFiles": [],
+                "referenceMissingConfigurations": [],
+                "referenceSkipped": 1762,
+                "referenceFailed": 0,
+                "candidateFailures": 0,
+                "graphMismatches": 0,
+                "diagnosticMismatches": 130,
+                "graphAndCodeMatches": 2190,
+                "errorGroups": [],
+                "inputSha256": "1021223d26cfedad8b1989a152ffb776bc54750978c457480fc0a0bb8f8bb3bf",
+                "referenceInputCorrectionsSha256": "4c16c7b555e8df466548ca7d8a484772673d2bb3a67015d60276ca9b7b933718",
+                "oracleSha256": "072ce20500e1dfa626e6029e8ba98ed84b925a304216116200dd33d97f54654a",
+                "candidateSha256": "0a8978994b2c68560323977d9dd4dfbfbc4293b17c4c87632497b4fc0ef7f062",
+                "compilerSha256": "efbb7cd427463815326cb40475dead89d0eaf90db512f622a4a0eb88a375d3a2",
+                "mapperFixture": {
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+                    "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+                    "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+                },
+                "candidateOutputSha256": "7898402262f4b3fabdc9563d7af66768e782109ddb677aa5eb7c0a7ea575ad91",
+                "fullSemanticCorpusGateComplete": false
+            },
+            "outputSha256": "7898402262f4b3fabdc9563d7af66768e782109ddb677aa5eb7c0a7ea575ad91"
+        }
+    ],
+    "validationReuse": "The 66 initial single-mode results were retained; the additional single-mode run excluded all 66. All oracle results were reused. Reference-default inputs were executed once.",
+    "cumulative": {
+        "activeConfigurations": 13446,
+        "matches": 12750,
+        "remaining": 696,
+        "failed": 0,
+        "diagnosticMismatches": 696,
+        "graphMismatches": 0
+    }
+}

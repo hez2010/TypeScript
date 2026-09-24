@@ -65,7 +65,12 @@ internal sealed partial class Checker
             Error(node, 2439);
             return false;
         }
-        return true;
+        return ImportAttributeValues(node switch
+        {
+            ImportDeclarationNode import => import.Attributes,
+            ExportDeclarationNode export => export.Attributes,
+            _ => null
+        });
     }
 
     private bool ModuleAugmentation(SyntaxNode node) => node is ModuleDeclarationNode && AmbientModule(node)
@@ -198,9 +203,10 @@ internal sealed partial class Checker
             return;
         if (!DeclarationModifiers(node) && node.Modifiers is { Count: > 0 })
             Error(node, 1191);
-        if (!ExternalModuleSyntax(node, node.ModuleSpecifier))
-            return;
+        bool validModule = ExternalModuleSyntax(node, node.ModuleSpecifier);
         await CheckImportAttributesAsync(node, node.Attributes, cancellation).ConfigureAwait(false);
+        if (!validModule)
+            return;
         if (node.ImportClause is { } clause)
         {
             if (SemanticSyntax.TypeOnly(clause) && clause.Name is not null && clause.NamedBindings is not null)

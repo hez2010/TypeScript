@@ -381,7 +381,47 @@ internal static class CheckerProgramTests
         checks += await ImportSafety();
         checks += await DeclarationSafety();
         checks += await ImportPathSafety();
+        checks += await ContextGrammarSafety();
         Console.WriteLine($"{checks} program/checker ownership assertions; interface and scope depth 20000");
+    }
+
+    private static async Task<int> ContextGrammarSafety()
+    {
+        const string source = """
+            import { value } from 'pkg' with { type: 1, active: true };
+            import { value as other } from 'pkg' with { type: {} };
+            try {} catch ({ message }: any) { const text = message; }
+            try {} catch (error: number) {}
+            try {} catch (error = 0) {}
+            try {} catch (error) { let error; }
+            declare let invalid = 1;
+            declare const typed: number = 1;
+            declare const good = -1;
+            declare const bad = 1 + 2;
+            declare enum E { A = 0 }
+            declare const member = E.A;
+            declare const index = E['A'];
+            declare const aliasMember = member;
+            declare class C { readonly item = E['A']; mutable = 1; readonly bad = aliasMember; }
+            """;
+        const string globals = """
+            interface ImportAttributes { [key: string]: string | number | boolean; }
+            declare module 'pkg' { export const value: number; }
+            """;
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("target", "\"esnext\"");
+        options.SetRaw("module", "\"preserve\"");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        { ["/project/main.ts"] = Wtf8.Encode(source), ["/project/globals.d.ts"] = Wtf8.Encode(globals) }), "/project",
+            new("/project/tsconfig.json", options, ["/project/main.ts", "/project/globals.d.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var file = program.GetFile("/project/main.ts")!.Syntax;
+        await checker.CheckSourceFileAsync(file);
+        var codes = checker.DiagnosticCodesForFile(file);
+        if (!codes.SequenceEqual([1039, 1039, 1039, 1196, 1197, 1254, 1254, 1254, 2322, 2492, 2858, 2858, 2858]))
+            throw new InvalidOperationException($"Context grammar diagnostics: {string.Join(',', codes)}");
+        return 1;
     }
 
     private static async Task<int> ImportPathSafety()
