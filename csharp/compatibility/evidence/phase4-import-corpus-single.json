@@ -1,0 +1,29 @@
+{
+    "timestamp": "2026-09-24T16:58:47.536Z",
+    "mode": "single",
+    "configuration": "Release",
+    "selectedConfigurations": 13446,
+    "previousMatches": 11125,
+    "graphAndCodeMatches": 11464,
+    "recoveredConfigurations": 339,
+    "regressions": [],
+    "parts": [
+        {
+            "directory": "built/csharp/semantic-corpus-import-full/single",
+            "configurations": 13446,
+            "candidateSha256": "01002f2b5f2bd1cac100998eaab634eb9671e7a375e1b32487866e441a5950bb",
+            "compilerSha256": "b374e173990bb48971940cbab556f07d89b891c2ea9b6733fdad1cb9a17f6766",
+            "outputSha256": "38fe28152a15e3ae6fd9dc4b03e5ae4017d855ccefc6f306d600e395efa36991"
+        },
+        {
+            "directory": "built/csharp/semantic-corpus-import-context/single",
+            "configurations": 253,
+            "candidateSha256": "01002f2b5f2bd1cac100998eaab634eb9671e7a375e1b32487866e441a5950bb",
+            "compilerSha256": "8384e237639be091922b0128bae48fb7c2ff98242441458edb63eafd088fed8a",
+            "outputSha256": "a2767016e32bc727a33bbcced437170e593cf2395d4a63fb37893c300b578547",
+            "selectionSha256": "04ad3469f18da98612a62f79bd8c452717e3511a08a861559bc7f6e4a8d103fe"
+        }
+    ],
+    "scope": "Dynamic imports, import types, attribute-aware module resolution and checker initialization; full phase 4 remains incomplete.",
+    "nativeAotVerification": "Deferred until final completion per user instruction"
+}

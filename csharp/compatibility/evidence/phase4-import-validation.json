@@ -1,0 +1,94 @@
+{
+    "timestamp": "2026-09-24T17:01:53.3859291+00:00",
+    "configuration": "Release",
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "managed": true,
+    "scope": "Dynamic imports, import types, attribute-aware module resolution and checker initialization; full phase 4 remains incomplete",
+    "finalBuildCandidateSha256": "01002f2b5f2bd1cac100998eaab634eb9671e7a375e1b32487866e441a5950bb",
+    "finalBuildCompilerSha256": "8384e237639be091922b0128bae48fb7c2ff98242441458edb63eafd088fed8a",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-import-build.log",
+        "sha256": "b62d84ec0496fdf473a994f45214559dc84a670fce428796648338a646632090"
+    },
+    "queries": {
+        "aliases": {
+            "record": "phase4-import-aliases.json",
+            "cases": 124,
+            "exact": 124,
+            "candidateSha256": "01002f2b5f2bd1cac100998eaab634eb9671e7a375e1b32487866e441a5950bb",
+            "compilerSha256": "b374e173990bb48971940cbab556f07d89b891c2ea9b6733fdad1cb9a17f6766"
+        },
+        "type-nodes": {
+            "record": "phase4-import-type-nodes.json",
+            "cases": 192,
+            "exact": 192,
+            "candidateSha256": "01002f2b5f2bd1cac100998eaab634eb9671e7a375e1b32487866e441a5950bb",
+            "compilerSha256": "b374e173990bb48971940cbab556f07d89b891c2ea9b6733fdad1cb9a17f6766"
+        }
+    },
+    "safety": {
+        "programAssertions": 74,
+        "newAssertions": 4,
+        "referenceInputSha256": "b7579bbc891a2e3144f61c4837cfc9bc33c50baf3a7eedce658e2ced5c77f0d6",
+        "referenceOutputSha256": "8266fa7a72a31ff2f185fda73996985568e0aca5dee475ba1fd6547c2bb4f0a4",
+        "referenceCodes": [
+            1340,
+            2322,
+            7036
+        ],
+        "log": "logs/csharp-phase4-import-program-safety.log",
+        "reuse": "Program safety was rerun on the final build because its import-options fixture uses contextual typing. The unchanged alias/type-node query results were retained. The final correction was also checked against 253 affected compiler configurations in both modes."
+    },
+    "corpus": {
+        "single": "phase4-import-corpus-single.json",
+        "referenceDefault": "phase4-import-corpus-default.json",
+        "parity": "phase4-import-mode-parity.json",
+        "fullConfigurationsPerMode": 13446,
+        "previousMatches": 11125,
+        "graphAndCodeMatches": 11464,
+        "recoveredConfigurations": 339,
+        "regressions": [],
+        "finalChangedCasesReplayed": 253,
+        "reasonForFullReplay": "Checker construction now precedes semantic symbol initialization, so all production checker creation paths were affected."
+    },
+    "formatting": {
+        "csharpFiles": 17,
+        "tokenCommentSyntaxIdentical": true,
+        "libraryConfigurations": 2,
+        "dotnetWhitespaceExitCode": 0,
+        "diffCheckExitCode": 0,
+        "proofLog": "logs/csharp-phase4-import-format.log",
+        "proofSha256": "305fd3d6b02ab5bce581ab5a158ee8291caefd7c8052b3a59fb5ac1bcc7dca3a"
+    },
+    "reusedValidation": {
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "repositoryCommand": "npx hereby validate --all",
+        "repositoryExitCode": 0,
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            "csharp/tools",
+            ".github/copilot-instructions.md"
+        ],
+        "reason": "User directed reuse of unchanged validation results. Go product code, repository tooling and checker generators are unchanged. The saved Go corpus reference was reused, and successful results outside the final import-context correction were retained."
+    },
+    "currentOverallStatus": {
+        "activeConfigurations": 13446,
+        "matchingSourceGraphsAndDiagnosticCodes": 11464,
+        "unmatched": 1982,
+        "candidateFailures": 822,
+        "completedDiagnosticMismatches": 1159,
+        "graphMismatches": 20,
+        "graphMismatchesOverlapOtherCategories": true,
+        "thisIsNotAPhaseCompletionPercentage": true
+    },
+    "nativeAotVerification": "Deferred until final completion per user instruction; no NativeAOT build or execution",
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "phase4Complete": false
+}

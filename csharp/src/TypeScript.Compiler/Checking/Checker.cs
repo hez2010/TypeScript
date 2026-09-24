@@ -377,7 +377,7 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
         Conditionals.EvaluateAsync(root, cancellation: cancellation);
 
     public ValueTask<Type> ImportTypeAsync(ImportTypeNode node, CancellationToken cancellation) =>
-        throw new InvalidOperationException("Checker requires import-type evaluation");
+        ResolveImportTypeAsync(node, cancellation);
 
     public async ValueTask<Type> ConstAssertionAsync(SyntaxNode node, CancellationToken cancellation)
     {

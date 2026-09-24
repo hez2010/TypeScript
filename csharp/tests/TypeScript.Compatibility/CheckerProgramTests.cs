@@ -378,7 +378,70 @@ internal static class CheckerProgramTests
         Check(loopChecker.CheckedFileCount == 1 && loopChecker.DiagnosticCodesForFile(loopProgram.SourceFiles[0].Syntax).Count == 0);
         Check(loopChecker.FlowTypes.ActiveLoopCount == 0);
         checks += await DisposableSafety();
+        checks += await ImportSafety();
         Console.WriteLine($"{checks} program/checker ownership assertions; interface and scope depth 20000");
+    }
+
+    private static async Task<int> ImportSafety()
+    {
+        const string globals = """
+            interface Array<T> { length: number; [n: number]: T; }
+            interface Promise<T> { then(onfulfilled: (value: T) => unknown): unknown; }
+            declare const Promise: any;
+            interface ImportAttributes { [key: string]: string; }
+            interface ImportCallOptions { with?: ImportAttributes; }
+            declare module '*.asset' { const value: number; export default value; }
+            declare module '*.asset' with { type: 'text' } { const value: string; export default value; }
+            """;
+        const string source = """
+            import type { Box } from './dep';
+            type Typed = import('./dep').Box<number>;
+            type Factory = typeof import('./dep').make<string>;
+            declare let typed: Typed;
+            const number: number = typed.value;
+            declare let make: Factory;
+            const text: string = make('text');
+            const dynamic = import('./dep');
+            const promised: Promise<typeof import('./dep')> = dynamic;
+            import(123);
+            type Invalid = import('./dep');
+            import asset from './file.asset' with { type: 'text' };
+            const assetText: string = asset;
+            type Asset = typeof import('./file.asset', { with: { type: 'text' } });
+            declare let projected: Asset;
+            const projectedText: string = projected.default;
+            import('./file.asset', { with: { type: 1 } });
+            """;
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        options.SetRaw("module", "\"preserve\"");
+        options.SetRaw("target", "\"esnext\"");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        {
+            ["/project/main.ts"] = Wtf8.Encode(source),
+            ["/project/globals.d.ts"] = Wtf8.Encode(globals),
+            ["/project/dep.ts"] = Wtf8.Encode(
+                "export class Box<T> { constructor(public value: T) {} } export function make<T>(value: T) { return value; }")
+        }), "/project", new("/project/tsconfig.json", options, ["/project/main.ts", "/project/globals.d.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var file = program.GetFile("/project/main.ts")!.Syntax;
+        var nodes = file.DescendantsAndSelf().ToArray();
+        var parents = nodes.Select(n => n.Parent).ToArray();
+        await checker.CheckSourceFileAsync(file);
+        var codes = checker.DiagnosticCodesForFile(file);
+        if (!codes.SequenceEqual([1340, 2322, 7036]))
+            throw new InvalidOperationException($"Import diagnostics: {string.Join(',', codes)}");
+        if (!nodes.Select(n => n.Parent).SequenceEqual(parents))
+            throw new InvalidOperationException("Import checking changed source parents");
+        var initializer = nodes.OfType<VariableDeclarationNode>().Single(n => n.Name is IdentifierNode { Text: "dynamic" }).Initializer!;
+        var type = await checker.GetExpressionTypeAsync(initializer);
+        if (type is not TypeReference reference || reference.Target?.Symbol?.Name != "Promise")
+            throw new InvalidOperationException("Dynamic import did not return Promise");
+        var arguments = await checker.TypeArgumentsAsync(reference, default);
+        if (await checker.Properties.PropertyAsync(arguments.Single(), "make") is null)
+            throw new InvalidOperationException("Dynamic import lost module exports");
+        return 4;
     }
 
     private static async Task<int> DisposableSafety()

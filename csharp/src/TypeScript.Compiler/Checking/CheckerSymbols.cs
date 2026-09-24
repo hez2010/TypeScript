@@ -82,10 +82,11 @@ internal sealed class CheckerSymbols
     }
 
     internal static async ValueTask<CheckerSymbols> CreateAsync(CompilerProgram program,
-        CheckerLinks links, ICheckerSymbolHost host, CancellationToken cancellation = default)
+        CheckerLinks links, ICheckerSymbolHost host, CancellationToken cancellation = default, Action<CheckerSymbols>? bound = null)
     {
         var result = new CheckerSymbols(program, links, host);
         host.Bind(result);
+        bound?.Invoke(result);
         await result.InitializeAsync(cancellation).ConfigureAwait(false);
         return result;
     }

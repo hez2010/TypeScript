@@ -49,6 +49,11 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
     {
         while (node.Parent is ParenthesizedExpressionNode or NonNullExpressionNode)
             node = node.Parent;
+        if (node.Parent is ImportAttributeNode attribute)
+        {
+            var attributes = globalImportAttributes ?? await program.Globals.GetAsync("ImportAttributes", 0, false, cancellation);
+            return await ContextualPropertyAsync(attributes, ImportAttributeName(attribute.Name!), cancellation);
+        }
         if (node.Parent is DecoratorNode decorator)
             return await DecoratorSignatureAsync(decorator, cancellation) is { } decoratorSignature
                 ? DecoratorFunction(decoratorSignature)

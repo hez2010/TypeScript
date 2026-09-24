@@ -9,6 +9,8 @@ namespace TypeScript.Compiler.Checking;
 
 internal interface ITypeReferenceHost
 {
+    ValueTask<Type> ImportTypeAsync(ImportTypeNode node, CancellationToken cancellation);
+
     ValueTask<Type> TypeFromNodeAsync(SyntaxNode node, CancellationToken cancellation);
 
     Symbol? AliasSymbol(SyntaxNode node);
@@ -36,6 +38,8 @@ internal sealed class TypeReferences(TypeContext context, CheckerLinks links, Ch
     internal async ValueTask<Type> FromNodeAsync(SyntaxNode node, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
+        if (node is ImportTypeNode import)
+            return await host.ImportTypeAsync(import, cancellation).ConfigureAwait(false);
         if (node is TypeReferenceNode { TypeName: IdentifierNode { Text: "const" }, TypeArguments: null or { Count: 0 } }
             && node.Parent is AsExpressionNode or TypeAssertionNode)
         {
@@ -121,7 +125,7 @@ internal sealed class TypeReferences(TypeContext context, CheckerLinks links, Ch
         return parent ?? symbols.UnknownSymbol;
     }
 
-    private async ValueTask<Type> ReferenceAsync(SyntaxNode node, Symbol symbol, CancellationToken cancellation)
+    internal async ValueTask<Type> ReferenceAsync(SyntaxNode node, Symbol symbol, CancellationToken cancellation)
     {
         if (symbol == symbols.UnknownSymbol)
             return context.ErrorType;
@@ -407,10 +411,17 @@ internal sealed class TypeReferences(TypeContext context, CheckerLinks links, Ch
         });
 
     internal static NodeList? Arguments(SyntaxNode node) => node switch
-    { TypeReferenceNode reference => reference.TypeArguments, ExpressionWithTypeArgumentsNode expression => expression.TypeArguments, _ => null };
+    {
+        TypeReferenceNode reference => reference.TypeArguments,
+        ExpressionWithTypeArgumentsNode expression => expression.TypeArguments,
+        ImportTypeNode import => import.TypeArguments,
+        _ => null
+    };
 
     internal static SyntaxNode? Name(SyntaxNode node)
     {
+        if (node is ImportTypeNode import)
+            return import.Qualifier;
         if (node is TypeReferenceNode reference)
             return reference.TypeName;
         if (node is ExpressionWithTypeArgumentsNode expression)

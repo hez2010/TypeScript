@@ -162,6 +162,7 @@ internal sealed class InstantiationExpressions(TypeContext context, TypeAlgebra 
     {
         ExpressionWithTypeArgumentsNode expression => (expression.Expression!, expression.TypeArguments),
         TypeQueryNode query => (query.ExprName!, query.TypeArguments),
+        ImportTypeNode import => (import.Qualifier ?? import.Argument!, import.TypeArguments),
         _ => throw new ArgumentException("Expected an instantiation expression or type query", nameof(node))
     };
 }

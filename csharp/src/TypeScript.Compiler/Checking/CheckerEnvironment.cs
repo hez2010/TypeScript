@@ -99,13 +99,16 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
 
     public ValueTask<Type> ImportAttributesTypeAsync(Symbol symbol, CancellationToken cancellation)
     {
+        if (SemanticChecker is { } checker)
+            return checker.ModuleImportAttributesAsync(symbol, cancellation);
         if (symbol.Declarations.OfType<ModuleDeclarationNode>().Any(d => d.Attributes is not null))
             throw new InvalidOperationException("Checker requires import attribute type resolution");
         return ValueTask.FromResult<Type>(context.EmptyObjectType);
     }
 
     public ValueTask<bool> IdenticalTypesAsync(Type first, Type second, CancellationToken cancellation)
-        => first == context.EmptyObjectType && second == context.EmptyObjectType ? ValueTask.FromResult(true)
+        => SemanticChecker is { } checker ? checker.Relations.RelatedAsync(first, second, RelationKind.Identity, cancellation)
+            : first == context.EmptyObjectType && second == context.EmptyObjectType ? ValueTask.FromResult(true)
             : throw new InvalidOperationException("Checker requires import attribute type identity");
 
     public ValueTask<Symbol?> ResolveAugmentationAsync(SyntaxNode moduleName, bool reportNotFound, CancellationToken cancellation)

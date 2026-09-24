@@ -104,7 +104,7 @@ internal sealed partial class Checker
         if (global && !ambient)
             Error(node.Name!, 2670);
         if (node.Attributes is not null)
-            throw new InvalidOperationException("Checker requires module import-attribute checking");
+            await CheckModuleAttributesAsync(node, cancellation).ConfigureAwait(false);
         if (!ModuleContext(node, AmbientModule(node) ? 1234 : 1235))
             return;
         if (!ambient && node.Name is StringLiteralNode)
@@ -137,8 +137,6 @@ internal sealed partial class Checker
         {
             if (ModuleAugmentation(node))
             {
-                if (node.Attributes is not null)
-                    Error(node.Attributes, 2884);
                 if (node.Body is ModuleBlockNode block && (global || (symbol.Flags & SymbolFlags.Transient) != 0))
                     foreach (var statement in block.Statements!)
                     {
@@ -206,8 +204,7 @@ internal sealed partial class Checker
             Error(node, 1191);
         if (!ExternalModuleSyntax(node, node.ModuleSpecifier))
             return;
-        if (node.Attributes is not null)
-            throw new InvalidOperationException("Checker requires import attribute validation");
+        await CheckImportAttributesAsync(node, node.Attributes, cancellation).ConfigureAwait(false);
         if (node.ImportClause is { } clause)
         {
             if (SemanticSyntax.TypeOnly(clause) && clause.Name is not null && clause.NamedBindings is not null)
@@ -219,10 +216,28 @@ internal sealed partial class Checker
                 if (clause.NamedBindings is NamespaceImportNode ns)
                     await CheckAliasSourceAsync(ns, cancellation).ConfigureAwait(false);
                 else if (clause.NamedBindings is NamedImportsNode imports
-                    && await program.ExternalModuleAsync(node, node.ModuleSpecifier, null, cancellation).ConfigureAwait(false) is not null)
+                    && await program.ExternalModuleAsync(
+                        node,
+                        node.ModuleSpecifier,
+                        node.Attributes,
+                        cancellation).ConfigureAwait(false) is { } module)
+                {
+                    if (DefaultOnlyModule(module, node.ModuleSpecifier!)
+                        && imports.Elements?.Any(
+                            e => (e as ImportSpecifierNode)?.PropertyName is not IdentifierNode { Text: "default" }) == true)
+                        Error(imports, 1544);
                     foreach (var binding in imports.Elements!)
                         await CheckAliasSourceAsync(binding, cancellation).ConfigureAwait(false);
+                }
             }
+            if (!SemanticSyntax.TypeOnly(clause) && ModuleKind is >= 101 and <= 199
+                && await ResolveImportModuleAsync(node, node.ModuleSpecifier,
+                    node.Attributes is null ? null : await ImportAttributesExpressionAsync(node.Attributes, cancellation),
+                    cancellation) is { } resolved
+                && DefaultOnlyModule(resolved, node.ModuleSpecifier!)
+                && node.Attributes?.Attributes?.OfType<ImportAttributeNode>().Any(a => ImportAttributeName(a.Name!) == "type"
+                    && a.Value is StringLiteralNode { Text: "json" }) != true)
+                Error(node.ModuleSpecifier!, 1543);
         }
         else if (program.Symbols.Program.Configuration.Options.Boolean("noUncheckedSideEffectImports") != false)
         {
@@ -304,8 +319,7 @@ internal sealed partial class Checker
             return;
         if (node.Modifiers is { Count: > 0 })
             Error(node, 1193);
-        if (node.Attributes is not null)
-            throw new InvalidOperationException("Checker requires export attribute validation");
+        await CheckImportAttributesAsync(node, node.Attributes, cancellation).ConfigureAwait(false);
         if (node.ModuleSpecifier is not null && !ExternalModuleSyntax(node, node.ModuleSpecifier))
             return;
         if (node.ExportClause is NamedExportsNode exports)
@@ -335,7 +349,11 @@ internal sealed partial class Checker
             if (node.Parent is not SourceFileNode && !ambient)
                 Error(node, 1194);
         }
-        else if (await program.ExternalModuleAsync(node, node.ModuleSpecifier, null, cancellation).ConfigureAwait(false) is { } module)
+        else if (await program.ExternalModuleAsync(
+            node,
+            node.ModuleSpecifier,
+            node.Attributes,
+            cancellation).ConfigureAwait(false) is { } module)
         {
             if (module.Exports.ContainsKey("export="))
                 Error(node.ModuleSpecifier!, 2498);

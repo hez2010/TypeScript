@@ -38,6 +38,14 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
             {
                 if (item.Node is TypeReferenceNode reference)
                     await TypeReferenceChecks.CheckAsync(reference, cancellation);
+                else if (item.Node is ImportTypeNode import)
+                {
+                    InstantiationGrammar(import, import.TypeArguments);
+                    await ImportTypeAsync(import, cancellation);
+                    if (!import.IsTypeOf)
+                        await TypeReferenceChecks.CheckAsync(import, cancellation);
+                    await CheckImportAttributesAsync(import, import.Attributes, cancellation);
+                }
                 else if (item.Node is TypeLiteralNode literal)
                     await IndexDeclarationChecks.TypeLiteralAsync(literal, cancellation);
                 if (item.Node is InferTypeNode)

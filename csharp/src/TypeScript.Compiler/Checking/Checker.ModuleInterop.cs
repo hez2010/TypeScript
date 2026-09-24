@@ -10,6 +10,10 @@ internal sealed partial class Checker
 
     private ReferenceResolutionMode ModuleUsageMode(SyntaxNode specifier)
     {
+        var file = SemanticSyntax.Source(specifier);
+        if (file is not null
+            && program.Symbols.Program.GetFile(file.FileName)!.Resolutions.FirstOrDefault(r => r.Node == specifier) is { Mode: not ReferenceResolutionMode.Unspecified } reference)
+            return reference.Mode;
         if (specifier.Parent is ExternalModuleReferenceNode || SemanticSyntax.RequireCall(specifier.Parent))
             return ReferenceResolutionMode.Require;
         int mode = EmitModuleKind(specifier);

@@ -18,9 +18,11 @@ internal sealed partial class Checker
         var context = new TypeContext(options.StrictOption("strictNullChecks"), options.Boolean("exactOptionalPropertyTypes") == true);
         var links = new CheckerLinks();
         var environment = new CheckerEnvironment(context, links);
-        await CheckerSymbols.CreateAsync(program, links, environment, cancellation).ConfigureAwait(false);
+        Checker? checker = null;
+        await CheckerSymbols.CreateAsync(program, links, environment, cancellation,
+            _ => checker = new(context, links, environment)).ConfigureAwait(false);
         cancellation.ThrowIfCancellationRequested();
-        return new(context, links, environment);
+        return checker!;
     }
 
     internal async ValueTask<Type> GetExpressionTypeAsync(SyntaxNode node, CancellationToken cancellation = default)

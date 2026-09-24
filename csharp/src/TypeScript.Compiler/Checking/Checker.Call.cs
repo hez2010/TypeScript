@@ -42,6 +42,9 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
         int index = arguments.ToList().IndexOf(argument);
         if (index < 0)
             return null;
+        if (call is CallExpressionNode import && IsImportCall(import))
+            return index == 0 ? context.StringType : index == 1
+                ? importCallOptionsType ?? await program.Globals.GetAsync("ImportCallOptions", 0, false, cancellation) : context.AnyType;
         var signature = links.Signatures.Get(call).ResolvedSignature == CallSignatures.Resolving
             ? CallSignatures.Resolving : await CallResolution.GetAsync(call, cancellation: cancellation);
         int restIndex = signature.Parameters.Count - 1;
@@ -107,6 +110,8 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
         CheckMode mode,
         CancellationToken cancellation)
     {
+        if (node is CallExpressionNode importCall && IsImportCall(importCall))
+            return await CallResolution.UntypedAsync(node, false, cancellation);
         if (node is DecoratorNode decorator)
             return await ResolveDecoratorAsync(decorator, candidates, mode, cancellation);
         if (node is BinaryExpressionNode binary)

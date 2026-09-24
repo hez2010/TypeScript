@@ -2,6 +2,14 @@
 
 **Phase 4 is incomplete.** Production checker creation, internal queries and an initial source-file semantic traversal now use the implemented type system, scope, instantiation, inference, flow and expression services. This does not satisfy the complete semantic-checker gate in the [rewrite plan](csharp-rewrite-plan.md). Complete semantic coverage and diagnostic formatting, full type/symbol queries and the emit resolver remain unavailable in the C# backend.
 
+## Current overall status
+
+After import integration, a complete Release replay in both reference modes plus a targeted check of the final import-context correction records **11,464 matches out of 13,446 active compiler configurations**, up from 11,125 before this batch and 9,365 at the original Release baseline. **1,982 configurations still do not match**: 822 stop in unsupported paths and 1,159 complete with diagnostic-code differences. There are also 20 source-graph differences, overlapping those categories. The largest remaining stop groups are JSX (432 configurations), late index binding (93), late exported members (44), and merge-diagnostic attribution (44).
+
+These comparisons cover source graphs and diagnostic codes. **85.3% matching on this measure is not a Phase-4 completion percentage.** Complete diagnostic text, locations and related information; full type/symbol comparison; type display, node builders, accessibility and emit-resolver APIs; parallel checker validation; and the final memory/performance gates remain unfinished. Phase 4 is not nearly complete, and the evidence does not yet support a reliable completion estimate.
+
+The next implementation priorities are JSX, late binding, remaining import edge cases and diagnostics. The sections below are historical implementation checkpoints; their individual passing counts do not represent whole-phase completion.
+
 **Validation policy, updated 2026-09-24.** At the user's request, all further execution and validation use the normal Release build. NativeAOT publishing is deferred until the final completion check, when it must finish without warnings or errors. NativeAOT binaries are no longer executed for validation. Earlier NativeAOT results below remain historical evidence.
 
 ## Implemented checkpoint
@@ -708,6 +716,14 @@ Decorator calls now use synthetic signatures for classes, methods, accessors, fi
 Targeted Release corpus validation covers **566 affected configurations per reference mode**. Graph/code matches increased from **48 to 522**, recovering **474 configurations**, with **no previously matching case regressing**. Only 13 cases affected by the final recovery-node and illegal-target corrections were rerun. The existing call suite passes **180 query configurations**. Signature safety passes **112 assertions**, including seven new checks for standard/legacy calls, metadata imports and source-parent preservation; the three new diagnostic fixtures agree with the Go oracle. Unchanged validation results are reused, and NativeAOT verification remains deferred until final completion.
 
 Evidence: [single-threaded affected corpus](../csharp/compatibility/evidence/phase4-decorator-corpus-single.json), [reference-default affected corpus](../csharp/compatibility/evidence/phase4-decorator-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-decorator-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-decorator-validation.json). Remaining diagnostic/grammar differences, JSX, import services, full semantic fidelity and the final workload gates remain open.
+
+## Import expressions, types and attributes
+
+Dynamic imports now check specifiers/options and produce promise types, including contextual argument types and missing-constructor diagnostics. Import types resolve namespace paths and generic type/value instantiations. Attribute-aware ambient-module selection uses assignability, specificity and pattern precedence. Import/export attributes, resolution-mode overrides, TypeScript extensions, JSON imports and CommonJS/ESM restrictions have corresponding checks. Production checker services are available during symbol initialization so module merging can resolve semantic attribute and wrapper types.
+
+Because initialization is shared by every program, this batch replayed **all 13,446 active compiler configurations in both reference modes**, reusing the saved reference. The final correction reran only **253 import configurations**. The combined result is **11,464 graph/code matches**, **339 newly matching configurations**, and **no regressions**. The alias and type-node suites pass **316 query configurations**. Program safety passes **74 assertions**, including four new import checks; its diagnostic fixture agrees with the Go oracle. Unchanged validations were retained, and NativeAOT verification remains deferred until final completion.
+
+Evidence: [full single-threaded corpus and final correction](../csharp/compatibility/evidence/phase4-import-corpus-single.json), [reference-default corpus](../csharp/compatibility/evidence/phase4-import-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-import-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-import-validation.json). The overall status above includes all retained failures and unfinished phase-4 gates.
 
 ## Remaining completion work
 

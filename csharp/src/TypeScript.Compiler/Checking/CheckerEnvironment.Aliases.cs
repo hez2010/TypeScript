@@ -40,17 +40,20 @@ internal sealed partial class CheckerEnvironment
         return ValueTask.CompletedTask;
     }
 
-    public ValueTask<Symbol?> ExternalModuleAsync(
+    public async ValueTask<Symbol?> ExternalModuleAsync(
         SyntaxNode location,
         SyntaxNode? specifier,
         ImportAttributesNode? attributes,
         CancellationToken cancellation)
     {
+        if (SemanticChecker is { } checker)
+            return await checker.ResolveImportModuleAsync(location, specifier,
+                attributes is null ? null : await checker.ImportAttributesExpressionAsync(attributes, cancellation), cancellation);
         if (attributes is not null)
             throw new InvalidOperationException("Checker requires import attribute evaluation");
         string? name = AliasTargets.Text(specifier) ?? (specifier as NoSubstitutionTemplateLiteralNode)?.Text;
         if (name is null)
-            return ValueTask.FromResult<Symbol?>(null);
+            return null;
         var file = Symbols.Binding(location)!.SourceFile;
         var reference = Symbols.Program.GetFile(file.FileName)!.Resolutions.FirstOrDefault(r => r.Node == specifier);
         var result = reference?.Resolution.IsResolved == true
@@ -61,7 +64,7 @@ internal sealed partial class CheckerEnvironment
             AliasDiagnostic(2306, specifier!);
         else if (result is null)
             AliasDiagnostic(2307, specifier!);
-        return ValueTask.FromResult(Symbols.Merger.GetMergedSymbol(result));
+        return Symbols.Merger.GetMergedSymbol(result);
     }
 
     public async ValueTask<Symbol?> AdjustEsModuleAsync(
@@ -215,7 +218,7 @@ internal sealed partial class CheckerEnvironment
             Messages.Module_0_has_already_exported_a_member_named_1_Consider_explicitly_re_exporting_to_resolve_the_ambiguity,
             earlierSpecifierText, name);
 
-    private void AliasDiagnostic(int code, SyntaxNode node)
+    internal void AliasDiagnostic(int code, SyntaxNode node)
     {
         if (reported.Add((node, code, "")))
             AddDiagnostic(node, code);
