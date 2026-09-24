@@ -126,8 +126,42 @@ internal static class CheckerExpressionTests
         checks += await JsxSafety();
         checks += await WithAndTemplateSafety();
         checks += await UnicodeLiteralSafety();
+        checks += await RegularExpressionSafety();
         Console.WriteLine(
             $"{checks} expression/literal/context/enum/cache/cancellation assertions; 20000-level expression, constant and context traversal");
+    }
+
+    private static async Task<int> RegularExpressionSafety()
+    {
+        const string source = """
+            /* 😀 */ const duplicate = /x/ggg;
+            const unmatched = /)/u;
+            const property = /\p{Script=Hiragan}/u;
+            """;
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("target", "\"es2018\"");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
+            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var file = program.SourceFiles[0].Syntax;
+        await checker.CheckSourceFileAsync(file);
+        var diagnostics = checker.DetailedDiagnosticsForFile(file);
+        var duplicates = diagnostics.Where(d => d.Code == 1500).ToArray();
+        int flags = source.IndexOf("ggg", StringComparison.Ordinal);
+        if (duplicates.Length != 2 || duplicates[0].Start != file.Source.ToBytePosition(flags + 1)
+            || duplicates[1].Start != file.Source.ToBytePosition(flags + 2) || duplicates.Any(d => d.Length != 1))
+            throw new InvalidOperationException("Regular-expression duplicate flags lost distinct byte ranges");
+        if (!diagnostics.Any(
+            d => d.RelatedInformation.Count != 0
+                && d.RelatedInformation.All(r => r.Message.Category == TypeScript.Compiler.Diagnostics.DiagnosticCategory.Message)))
+            throw new InvalidOperationException("Regular-expression spelling suggestion lost related information");
+        foreach (var literal in file.DescendantsAndSelf().OfType<RegularExpressionLiteralNode>())
+            await checker.GetExpressionTypeAsync(literal);
+        if (checker.DetailedDiagnosticsForFile(file).Count != diagnostics.Count)
+            throw new InvalidOperationException("Regular-expression checking emitted duplicate diagnostics");
+        return 3;
     }
 
     private static async Task<int> UnicodeLiteralSafety()

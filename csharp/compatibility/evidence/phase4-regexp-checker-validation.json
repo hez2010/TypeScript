@@ -1,0 +1,84 @@
+{
+    "timestamp": "2026-09-24T20:49:32.0911177+00:00",
+    "configuration": "Release",
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "managed": true,
+    "scope": "Regular-expression grammar integration with diagnostic spans and related suggestions; phase 4 remains incomplete",
+    "candidateSha256": "b0fdac3c53f15b48f057b6db799eae7762dd8dc4098f3f75a16f71affd1db3e7",
+    "compilerSha256": "badfa2e493fa7db0e766250db353e7f77c7e2c50bd30b74fa4ff3bbb4cf602e9",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-regexp-checker-final-build.log",
+        "sha256": "edd145efbf00acdd6552609efcc432db59b8e5d74ae1e0a7f261b09b9623c72b"
+    },
+    "queries": {
+        "record": "phase4-regexp-checker-expressions.json",
+        "cases": 40,
+        "exact": 40,
+        "candidateSha256": "b0fdac3c53f15b48f057b6db799eae7762dd8dc4098f3f75a16f71affd1db3e7",
+        "compilerSha256": "badfa2e493fa7db0e766250db353e7f77c7e2c50bd30b74fa4ff3bbb4cf602e9"
+    },
+    "safety": {
+        "assertions": 81,
+        "newAssertions": 3,
+        "checks": [
+            "distinct duplicate-flag diagnostics in one literal",
+            "UTF-16 scanner positions converted to byte ranges after non-ASCII text",
+            "spelling suggestions retained as related diagnostics",
+            "repeated queries do not emit duplicates"
+        ],
+        "log": "logs/csharp-phase4-regexp-checker-safety.log",
+        "sha256": "499946be23c4c66dfbdec3ebd709a8766bfdc1241795516f56411ebe7004cbd9",
+        "referenceFixture": "built/csharp/regexp-checker-safety-reference.jsonl",
+        "referenceFixtureSha256": "d1ba406126c3bc8aaa9bdf94c0cf5c5935c65d0bad0481d10c0dc4a90750c58f",
+        "runBeforeWhitespaceFormatting": true
+    },
+    "corpus": {
+        "single": "phase4-regexp-checker-corpus-single.json",
+        "referenceDefault": "phase4-regexp-checker-corpus-default.json",
+        "parity": "phase4-regexp-checker-mode-parity.json",
+        "selectedConfigurationsPerMode": 1316,
+        "previousMatches": 1199,
+        "graphAndCodeMatches": 1225,
+        "recoveredConfigurations": 26,
+        "regressions": [],
+        "cumulative": {
+            "activeConfigurations": 13446,
+            "matches": 12725,
+            "remaining": 721,
+            "failed": 0,
+            "diagnosticMismatches": 721,
+            "graphMismatches": 0,
+            "topStops": []
+        }
+    },
+    "formatting": {
+        "csharpFiles": 4,
+        "tokenCommentSyntaxIdentical": true,
+        "libraryConfigurations": 2,
+        "dotnetWhitespaceExitCode": 0,
+        "diffCheckExitCode": 0,
+        "proofLog": "logs/csharp-phase4-regexp-checker-format.log",
+        "proofSha256": "264325fda1656819651d9396c8e86f9e86eec4c56c2b8032913a07775d4004cc"
+    },
+    "reusedValidation": {
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "repositoryCommand": "npx hereby validate --all",
+        "repositoryExitCode": 0,
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "retainedInitialSingleModeCases": 67,
+        "reason": "User directed reuse of unchanged results. Reference and repository results were reused. The checker implementation is unchanged after the focused 67-case run; only safety tests were added. Broader validation executed only the additional 1249 single-mode cases, plus the full selected set in reference-default mode."
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "phase4Complete": false
+}

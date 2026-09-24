@@ -120,7 +120,10 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
         if (node is MetaPropertyNode meta)
             return await ValueExpressions.MetaAsync(meta, cancellation);
         if (node.Kind == SyntaxKind.RegularExpressionLiteral)
+        {
+            CheckRegularExpression(node);
             return program.Globals.Types["RegExp"];
+        }
         if (node is ArrayLiteralExpressionNode array)
             return await ArrayLiterals.CheckAsync(array, mode, cancellation);
         if (node is YieldExpressionNode yield)

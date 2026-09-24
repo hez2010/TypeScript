@@ -1,0 +1,66 @@
+{
+    "timestamp": "2026-09-24T20:47:55.234Z",
+    "mode": "single",
+    "configuration": "Release",
+    "selectedConfigurations": 1316,
+    "replayedConfigurations": 1249,
+    "retainedConfigurations": 67,
+    "previousMatches": 1199,
+    "graphAndCodeMatches": 1225,
+    "recoveredConfigurations": 26,
+    "regressions": [],
+    "scope": "Regular-expression grammar integration with diagnostic spans and related suggestions; full phase 4 remains incomplete",
+    "parts": [
+        {
+            "directory": "built/csharp/semantic-corpus-regexp-checker-affected/single",
+            "summary": {
+                "timestamp": "2026-09-24T20:46:17.818Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "mode": "single",
+                "filter": "",
+                "managed": true,
+                "reuseSyntax": true,
+                "referenceJobs": 4,
+                "scope": "Original compiler test program graphs and semantic diagnostic codes; full diagnostic/type/symbol fidelity and parallel candidate checker scheduling remain incomplete",
+                "referenceExitCode": 0,
+                "exportedConfigurations": 15208,
+                "readyConfigurations": 1249,
+                "availableConfigurations": 13446,
+                "selectionSha256": "15f835da56f11626fe42cff57ff2f425e3949b4dd9369fd6da64e315a95aec43",
+                "referenceInventoryFiles": 12730,
+                "plannedConfigurations": 15208,
+                "referenceMissingFiles": [],
+                "referenceMissingConfigurations": [],
+                "referenceSkipped": 1762,
+                "referenceFailed": 0,
+                "candidateFailures": 0,
+                "graphMismatches": 0,
+                "diagnosticMismatches": 91,
+                "graphAndCodeMatches": 1158,
+                "errorGroups": [],
+                "inputSha256": "63befffd43c6e1a36331426b4dd2f3b01e4002f3d7f124c3da66f30a33a5c180",
+                "referenceInputCorrectionsSha256": "ea569831effe01a55e210da50442c429251d933793905bf1d27a289264a86061",
+                "oracleSha256": "072ce20500e1dfa626e6029e8ba98ed84b925a304216116200dd33d97f54654a",
+                "candidateSha256": "b0fdac3c53f15b48f057b6db799eae7762dd8dc4098f3f75a16f71affd1db3e7",
+                "compilerSha256": "badfa2e493fa7db0e766250db353e7f77c7e2c50bd30b74fa4ff3bbb4cf602e9",
+                "candidateOutputSha256": "408ac066a83ed98f28db0ead4e77e68779a6684d006b67a7d8fd7fdd7a1780f5",
+                "fullSemanticCorpusGateComplete": false
+            },
+            "outputSha256": "408ac066a83ed98f28db0ead4e77e68779a6684d006b67a7d8fd7fdd7a1780f5"
+        },
+        {
+            "retainedFrom": "built/csharp/semantic-corpus-regexp-checker/single/candidate.jsonl",
+            "retainedOutputSha256": "dec3c3fa69880bbd301d657d88b593841072501cf87b4f3a8a0b98b85a0cadaf",
+            "reason": "The checker implementation is unchanged after the focused 67-case run; only safety tests were added"
+        }
+    ],
+    "cumulative": {
+        "activeConfigurations": 13446,
+        "matches": 12725,
+        "remaining": 721,
+        "failed": 0,
+        "diagnosticMismatches": 721,
+        "graphMismatches": 0,
+        "topStops": []
+    }
+}

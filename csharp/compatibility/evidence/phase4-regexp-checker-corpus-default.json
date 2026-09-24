@@ -1,0 +1,61 @@
+{
+    "timestamp": "2026-09-24T20:47:56.931Z",
+    "mode": "default",
+    "configuration": "Release",
+    "selectedConfigurations": 1316,
+    "replayedConfigurations": 1316,
+    "retainedConfigurations": 0,
+    "previousMatches": 1199,
+    "graphAndCodeMatches": 1225,
+    "recoveredConfigurations": 26,
+    "regressions": [],
+    "scope": "Regular-expression grammar integration with diagnostic spans and related suggestions; full phase 4 remains incomplete",
+    "parts": [
+        {
+            "directory": "built/csharp/semantic-corpus-regexp-checker-affected/default",
+            "summary": {
+                "timestamp": "2026-09-24T20:47:03.678Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "mode": "default",
+                "filter": "",
+                "managed": true,
+                "reuseSyntax": true,
+                "referenceJobs": 4,
+                "scope": "Original compiler test program graphs and semantic diagnostic codes; full diagnostic/type/symbol fidelity and parallel candidate checker scheduling remain incomplete",
+                "referenceExitCode": 0,
+                "exportedConfigurations": 15208,
+                "readyConfigurations": 1316,
+                "availableConfigurations": 13446,
+                "selectionSha256": "de552b917c2d8c1825cd0959a7c81fab31938e7b720df8454c23e06bd424bb99",
+                "referenceInventoryFiles": 12730,
+                "plannedConfigurations": 15208,
+                "referenceMissingFiles": [],
+                "referenceMissingConfigurations": [],
+                "referenceSkipped": 1762,
+                "referenceFailed": 0,
+                "candidateFailures": 0,
+                "graphMismatches": 0,
+                "diagnosticMismatches": 91,
+                "graphAndCodeMatches": 1225,
+                "errorGroups": [],
+                "inputSha256": "1021223d26cfedad8b1989a152ffb776bc54750978c457480fc0a0bb8f8bb3bf",
+                "referenceInputCorrectionsSha256": "4c16c7b555e8df466548ca7d8a484772673d2bb3a67015d60276ca9b7b933718",
+                "oracleSha256": "072ce20500e1dfa626e6029e8ba98ed84b925a304216116200dd33d97f54654a",
+                "candidateSha256": "b0fdac3c53f15b48f057b6db799eae7762dd8dc4098f3f75a16f71affd1db3e7",
+                "compilerSha256": "badfa2e493fa7db0e766250db353e7f77c7e2c50bd30b74fa4ff3bbb4cf602e9",
+                "candidateOutputSha256": "7c63a4d89cf836ce5b746d9847daed57b883dc6dbbae6eabdf3e74db672fb652",
+                "fullSemanticCorpusGateComplete": false
+            },
+            "outputSha256": "7c63a4d89cf836ce5b746d9847daed57b883dc6dbbae6eabdf3e74db672fb652"
+        }
+    ],
+    "cumulative": {
+        "activeConfigurations": 13446,
+        "matches": 12725,
+        "remaining": 721,
+        "failed": 0,
+        "diagnosticMismatches": 721,
+        "graphMismatches": 0,
+        "topStops": []
+    }
+}

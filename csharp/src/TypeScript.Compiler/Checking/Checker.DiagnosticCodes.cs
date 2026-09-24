@@ -9,6 +9,10 @@ namespace TypeScript.Compiler.Checking;
 internal sealed partial class Checker
 {
     private readonly List<(SyntaxNode? Node, int Code)> diagnosticFiles = [];
+    private readonly List<(SourceFileNode File, Diagnostic Diagnostic)> sourceDiagnostics = [];
+
+    internal IReadOnlyList<Diagnostic> DetailedDiagnosticsForFile(SourceFileNode file)
+        => sourceDiagnostics.Where(d => d.File == file).Select(d => d.Diagnostic).ToArray();
 
     internal void TrackDiagnostic(SyntaxNode? node, int code) => diagnosticFiles.Add((node, code));
 
@@ -17,7 +21,8 @@ internal sealed partial class Checker
     // File attribution is retained independently of the compatibility code lists.
     // Full message arguments, spans and related information remain separate work.
     internal IReadOnlyList<int> DiagnosticCodesForFile(SourceFileNode? file) => diagnosticFiles.Concat(program.DiagnosticFiles)
-        .Where(d => SemanticSyntax.Source(d.Node) == file).Select(d => d.Code).Order().ToArray();
+        .Where(d => SemanticSyntax.Source(d.Node) == file).Select(d => d.Code)
+        .Concat(sourceDiagnostics.Where(d => d.File == file).Select(d => d.Diagnostic.Code)).Order().ToArray();
 
     internal IReadOnlyList<int> DiagnosticCodesForProgramFile(SourceFileNode file)
     {
@@ -35,6 +40,9 @@ internal sealed partial class Checker
             }
         foreach (var diagnostic in program.Symbols.Binding(file)!.Diagnostics)
             diagnostics.Add((diagnostic.Start, diagnostic.Start + diagnostic.Length, diagnostic.Code));
+        foreach (var (source, diagnostic) in sourceDiagnostics)
+            if (source == file)
+                diagnostics.Add((diagnostic.Start, diagnostic.Start + diagnostic.Length, diagnostic.Code));
         if ((file.Flags & NodeFlags.JavaScriptFile) != 0
             && (file.CheckJsDirective?.Enabled ?? program.Symbols.Program.Configuration.Options.Boolean("checkJs") ?? false))
             foreach (var diagnostic in file.JSDocDiagnostics)
