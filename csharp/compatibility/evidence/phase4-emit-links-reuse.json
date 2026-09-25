@@ -1,0 +1,18 @@
+{
+    "prior": {
+        "previousCandidateHash": "a0a80e983a54c5fa5b66c6b931a797201a4f5e84b8dbc8eadcfde2ab8db87f55",
+        "candidateHash": "fa9b660e032d887d64f9f7735192a623d1d7cdc86d9aadbdb52558c40c35dae2",
+        "retainedCandidates": 36,
+        "replayedCandidates": 4,
+        "retainedReferences": 40,
+        "reason": "Only exported internal import-equals chains need the new direct-mark traversal. Other inputs have no such chains; JSX factory caching adds no checker graph changes and returns the same factory names."
+    },
+    "previousCandidateHash": "fa9b660e032d887d64f9f7735192a623d1d7cdc86d9aadbdb52558c40c35dae2",
+    "candidateHash": "683307f00524f8307236db17554cfa411977e7d93961e04fd1df469797d02030",
+    "oracleHash": "2f98f6053ab23e49f1c4ef7ce74ebdb5f24d2de468f00bab70ea29b6046ac284",
+    "retainedCandidates": 36,
+    "replayedCandidates": 4,
+    "retainedReferences": 40,
+    "addedConfigurations": 8,
+    "reason": "Replay JSX alias marking after using the reference direct-mark path, and add const-enum JSX factories and invalid exported import-equals declarations. The other 36 cases do not use those paths. Oracle additions serve separate JSX/declaration-service modes, leaving previous link-marking results unchanged."
+}

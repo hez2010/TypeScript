@@ -1,0 +1,8 @@
+{
+    "candidateHash": "85c5dcdcf4c82d984d348bfb3f1218e1f791945f0e9594e8f63f090aa6e5d4f8",
+    "oracleHash": "2f98f6053ab23e49f1c4ef7ce74ebdb5f24d2de468f00bab70ea29b6046ac284",
+    "retainedCandidates": 24,
+    "retainedReferences": 24,
+    "addedConfigurations": 4,
+    "reason": "Retain existing JSX getter outputs: the only behavior change treats empty configuration strings as absent. Existing inputs contain no empty options. The global reactNamespace node now retains the reference AST shape while printing the same text; safety assertions verify that shape. The oracle addition only serves separate declaration-service requests."
+}

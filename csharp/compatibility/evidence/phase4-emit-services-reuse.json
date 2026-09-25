@@ -1,0 +1,7 @@
+{
+    "candidateHash": "b220f3f8128121ff6e4c71242e899e7ec0617350bc65942eb0fd6348c23f33f1",
+    "retainedCandidates": 20,
+    "replayedCandidates": 0,
+    "newReferenceRuns": 20,
+    "reason": "The reference effective-modifier query requires a parent node and panicked on SourceFile. Both probes now skip the parentless root. Candidate queries were pure reads; remove only the three initial source-file flag rows from each already-completed candidate record. No checker implementation affecting these inputs changed."
+}

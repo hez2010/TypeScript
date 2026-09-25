@@ -12,6 +12,202 @@ namespace TypeScript.Compatibility;
 
 internal static class CheckerEmitQueryTests
 {
+    internal static async Task<int> LinkedSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Emit linking assertion {checks + 1}");
+            checks++;
+        }
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("reactNamespace", "\"Custom.Nested\"");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        {
+            ["/project/main.ts"] = Wtf8.Encode("import {named as first,named as second} from './dep';first;second;"),
+            ["/project/dep.ts"] = Wtf8.Encode("export const named=1;")
+        }), "/project", new("/project/tsconfig.json", options, ["/project/main.ts", "/project/dep.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var source = program.GetFile("/project/main.ts")!.Syntax;
+        var aliases = source.DescendantsAndSelf().OfType<ImportSpecifierNode>().ToArray();
+        var snapshot = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
+        Check(!await checker.IsReferencedAliasForEmitAsync(aliases[0]) && !await checker.IsReferencedAliasForEmitAsync(aliases[1]));
+        using var stop = new CancellationTokenSource();
+        bool reached = false;
+        checker.BeforeEmitLinkedReference = node =>
+        {
+            if (node is IdentifierNode { Text: "second", Parent: ExpressionStatementNode })
+            {
+                reached = true;
+                stop.Cancel();
+            }
+        };
+        try
+        {
+            await checker.MarkLinkedReferencesForEmitAsync(source, stop.Token);
+            throw new InvalidOperationException("Canceled linking completed");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        checker.BeforeEmitLinkedReference = null;
+        Check(reached);
+        Check(!await checker.IsReferencedAliasForEmitAsync(aliases[0]) && !await checker.IsReferencedAliasForEmitAsync(aliases[1]));
+        await checker.MarkLinkedReferencesForEmitAsync(source);
+        Check(await checker.IsReferencedAliasForEmitAsync(aliases[0]) && await checker.IsReferencedAliasForEmitAsync(aliases[1]));
+        await checker.MarkLinkedReferencesForEmitAsync(source);
+        Check(await checker.IsReferencedAliasForEmitAsync(aliases[0]) && await checker.IsReferencedAliasForEmitAsync(aliases[1]));
+        var other = await program.CreateCheckerAsync();
+        var firstUse = source.DescendantsAndSelf().OfType<IdentifierNode>().Single(
+            n => n.Text == "first" && n.Parent is ExpressionStatementNode);
+        await other.GetExpressionTypeAsync(firstUse);
+        Check(await other.IsReferencedAliasForEmitAsync(aliases[0]));
+        using var secondStop = new CancellationTokenSource();
+        other.BeforeEmitLinkedReference = node =>
+        {
+            if (node is IdentifierNode { Text: "second", Parent: ExpressionStatementNode })
+                secondStop.Cancel();
+        };
+        try
+        {
+            await other.MarkLinkedReferencesForEmitAsync(source, secondStop.Token);
+            throw new InvalidOperationException("Canceled linking completed");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        other.BeforeEmitLinkedReference = null;
+        Check(await other.IsReferencedAliasForEmitAsync(aliases[0]) && !await other.IsReferencedAliasForEmitAsync(aliases[1]));
+        Check(await checker.GetJsxFactoryForEmitAsync(null) is null);
+        var factory = await checker.GetJsxFactoryForEmitAsync(source);
+        Check(
+            factory is QualifiedNameNode { Left: IdentifierNode { Text: "Custom.Nested" }, Right: IdentifierNode { Text: "createElement" } });
+        Check(await checker.GetJsxFactoryForEmitAsync(null) == factory);
+        Check(await checker.GetJsxFactoryForEmitAsync(source, true) is null);
+        Check(snapshot.All(p => p.Parent == p.Node.Parent && p.Pos == p.Node.Pos && p.End == p.Node.End && p.Flags == p.Node.Flags));
+        return checks;
+    }
+
+    internal static async Task WriteServicesAsync(Utf8JsonWriter writer, SyntaxNode[] nodes, Checker checker, Func<SyntaxNode?, int> nodeId)
+    {
+        writer.WriteStartArray("emitQueries");
+        foreach (var node in nodes.Where(
+            n => SemanticSyntax.Source(n)?.FileName.StartsWith("/project/main.", StringComparison.Ordinal) == true))
+        {
+            if (QuerySyntax.Declaration(node) && node.Parent is not null)
+                foreach (var mask in new[]
+                {
+                ModifierFlags.All,
+                ModifierFlags.Export | ModifierFlags.Ambient,
+                ModifierFlags.Private | ModifierFlags.Protected
+            })
+                {
+                    Start(0, node);
+                    writer.WriteNumberValue((uint)mask);
+                    writer.WriteNumberValue((uint)await checker.GetEffectiveDeclarationFlagsForEmitAsync(node, mask));
+                    writer.WriteEndArray();
+                }
+            if (node is EnumMemberNode member)
+            {
+                var value = await checker.GetEnumMemberValueForEmitAsync(member);
+                Start(1, node);
+                Scalar(value.Value);
+                writer.WriteBooleanValue(value.IsSyntacticallyString);
+                writer.WriteBooleanValue(value.ResolvedOtherFiles);
+                writer.WriteBooleanValue(value.HasExternalReferences);
+                writer.WriteEndArray();
+            }
+            if (node is EnumMemberNode or PropertyAccessExpressionNode or ElementAccessExpressionNode)
+            {
+                Start(2, node);
+                Scalar(await checker.GetConstantValueForEmitAsync(node));
+                writer.WriteEndArray();
+            }
+            if (node is PropertyDeclarationNode || node is BinaryExpressionNode && (node.Flags & NodeFlags.JavaScriptFile) != 0)
+            {
+                Start(3, node);
+                writer.WriteBooleanValue(await checker.IsThisPropertyAssignmentRedundantForEmitAsync(node));
+                writer.WriteEndArray();
+            }
+        }
+        writer.WriteEndArray();
+        void Start(int operation, SyntaxNode node)
+        {
+            writer.WriteStartArray();
+            writer.WriteNumberValue(operation);
+            writer.WriteNumberValue(nodeId(node));
+        }
+        void Scalar(object? value)
+        {
+            if (value is string text)
+            {
+                writer.WriteStartArray();
+                writer.WriteStringValue("string");
+                writer.WriteBase64StringValue(Wtf8.Encode(text));
+                writer.WriteEndArray();
+            }
+            else if (value is double number)
+            {
+                writer.WriteStartArray();
+                writer.WriteStringValue("number");
+                writer.WriteStringValue(
+                    BitConverter.DoubleToUInt64Bits(number).ToString("x16", System.Globalization.CultureInfo.InvariantCulture));
+                writer.WriteEndArray();
+            }
+            else
+                writer.WriteNullValue();
+        }
+    }
+
+    internal static async Task WriteJsxAsync(Utf8JsonWriter writer, SyntaxNode[] nodes, Checker checker, Func<SyntaxNode?, int> nodeId)
+    {
+        SyntaxNode?[] locations = [null,..nodes.Where(
+            n=>SemanticSyntax.Source(n)?.FileName.StartsWith("/project/main.",StringComparison.Ordinal)==true
+            && n is SourceFileNode or JsxOpeningFragmentNode or JsxOpeningElementNode or JsxSelfClosingElementNode),null];
+        writer.WriteStartArray("emitQueries");
+        foreach (var location in locations)
+            foreach (bool fragment in new[] { false, true })
+            {
+                var node = await checker.GetJsxFactoryForEmitAsync(location, fragment);
+                writer.WriteStartArray();
+                writer.WriteNumberValue(nodeId(location));
+                writer.WriteBooleanValue(fragment);
+                if (node is null)
+                    writer.WriteNullValue();
+                else
+                    writer.WriteStringValue(
+                        Checker.PrintDiagnosticNode(node, sourceFile: location is null ? null : SemanticSyntax.Source(location)));
+                writer.WriteEndArray();
+            }
+        writer.WriteEndArray();
+    }
+
+    internal static async Task WriteLinksAsync(Utf8JsonWriter writer, SyntaxNode[] nodes, Checker checker, Func<SyntaxNode?, int> nodeId)
+    {
+        var main = nodes.Where(
+            n => SemanticSyntax.Source(n)?.FileName.StartsWith("/project/main.", StringComparison.Ordinal) == true).ToArray();
+        writer.WriteStartArray("emitQueries");
+        for (int pass = 0; pass < 3; pass++)
+        {
+            if (pass != 0)
+                foreach (var file in main.OfType<SourceFileNode>())
+                    await checker.MarkLinkedReferencesForEmitAsync(file);
+            foreach (var node in main.Where(ReferenceResolver.IsAliasDeclaration))
+            {
+                writer.WriteStartArray();
+                writer.WriteNumberValue(pass);
+                writer.WriteNumberValue(nodeId(node));
+                writer.WriteBooleanValue(await checker.IsReferencedAliasForEmitAsync(node));
+                writer.WriteEndArray();
+            }
+        }
+        writer.WriteEndArray();
+    }
+
     internal static async Task<int> Safety()
     {
         int checks = 0;

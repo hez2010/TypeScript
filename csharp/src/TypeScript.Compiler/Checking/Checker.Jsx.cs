@@ -117,7 +117,7 @@ internal sealed partial class Checker
         }
     }
 
-    private async ValueTask MarkJsxFactoryAsync(SyntaxNode node, CancellationToken cancellation)
+    private async ValueTask MarkJsxFactoryAsync(SyntaxNode node, CancellationToken cancellation, bool directAliasMark = false)
     {
         if (await JsxImplicitModuleAsync(node, cancellation) is not null)
             return;
@@ -135,7 +135,12 @@ internal sealed partial class Checker
                 program.Symbols.MarkReferenced(symbol, SymbolFlags.All);
                 if ((symbol.Flags & SymbolFlags.Alias) != 0
                     && await program.Aliases.TypeOnlyAsync(symbol, cancellation: cancellation) is null)
-                    await AliasReferences.MarkAsync(symbol, node, cancellation);
+                {
+                    if (directAliasMark)
+                        await AliasReferences.MarkDirectAsync(symbol, cancellation);
+                    else
+                        await AliasReferences.MarkAsync(symbol, node, cancellation);
+                }
             }
         }
         if (node is JsxOpeningFragmentNode)

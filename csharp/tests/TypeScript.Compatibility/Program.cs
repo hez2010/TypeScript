@@ -65,6 +65,12 @@ internal static class Program
                 CheckerCorpusTests.Lines(blobDirectory);
                 return 0;
             }
+            if (args is ["--checker-emit-links-safety"])
+            {
+                Console.WriteLine(
+                    $"Emit linking safety: {CheckerEmitQueryTests.LinkedSafety().GetAwaiter().GetResult()} assertions passed");
+                return 0;
+            }
             if (args is ["--checker-emit-queries-safety"])
             {
                 Console.WriteLine($"Emit query safety: {CheckerEmitQueryTests.Safety().GetAwaiter().GetResult()} assertions passed");

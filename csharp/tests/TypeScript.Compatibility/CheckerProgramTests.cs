@@ -1018,6 +1018,12 @@ internal static class CheckerProgramTests
             await CheckerEmitQueryTests.WriteReferencesAsync(writer, nodes, typeHost!, Node, SymbolId);
         if (input.TryGetProperty("emitSerialization", out var emitSerializationOption) && emitSerializationOption.GetBoolean())
             await CheckerEmitQueryTests.WriteSerializationAsync(writer, nodes, typeHost!, Node);
+        if (input.TryGetProperty("emitLinks", out var emitLinksOption) && emitLinksOption.GetBoolean())
+            await CheckerEmitQueryTests.WriteLinksAsync(writer, nodes, typeHost!, Node);
+        if (input.TryGetProperty("emitJsx", out var emitJsxOption) && emitJsxOption.GetBoolean())
+            await CheckerEmitQueryTests.WriteJsxAsync(writer, nodes, typeHost!, Node);
+        if (input.TryGetProperty("emitServices", out var emitServicesOption) && emitServicesOption.GetBoolean())
+            await CheckerEmitQueryTests.WriteServicesAsync(writer, nodes, typeHost!, Node);
         if (input.TryGetProperty("symbolTypeNodes", out var symbolTypeNodesOption) && symbolTypeNodesOption.GetBoolean())
             await CheckerSymbolDisplayTests.WriteAsync(writer, nodes, typeHost!, SymbolId, Node, typeNodes: true);
         if (input.TryGetProperty("symbolFormats", out var symbolFormatsOption) && symbolFormatsOption.GetBoolean())

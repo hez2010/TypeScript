@@ -1,0 +1,123 @@
+{
+    "timestamp": "2026-09-25T12:08:48.919Z",
+    "configuration": "Release",
+    "managed": true,
+    "scope": "Linked alias references with rollback, JSX factory entities, enum/constant values, effective modifiers and inherited property checks",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-emit-links-final-build.log",
+        "sha256": "c3e168edadf18599323855e575a84d6762f73f1e5000877c005082facaabb215"
+    },
+    "candidateSha256": "a2a194651e4f981139d5f0d2db0db23f3bc147776c52be917917fd097e114a94",
+    "compilerSha256": "62d1e67aada55a197f3df5a768e0af00214eb71b071178de491ce258fdaac6a5",
+    "comparisons": [
+        {
+            "mode": "emit-links",
+            "configurations": 48,
+            "queries": 420,
+            "comparedQueries": 420,
+            "exact": 48,
+            "failed": 0,
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "referenceFailures": 0,
+            "candidateFailures": 0,
+            "oracleHash": "2f98f6053ab23e49f1c4ef7ce74ebdb5f24d2de468f00bab70ea29b6046ac284",
+            "candidateHash": "683307f00524f8307236db17554cfa411977e7d93961e04fd1df469797d02030",
+            "inputHash": "6cf171db0d98e85a795c0d6c8d9645cf73aca03a01086b26862f0a9926a1032a",
+            "resultHash": "6db50e1396765ab9f77ffba4d9c983bb4549776d64284099cdda7c4a415bb882",
+            "managed": true
+        },
+        {
+            "mode": "emit-jsx",
+            "configurations": 28,
+            "queries": 280,
+            "comparedQueries": 280,
+            "exact": 28,
+            "failed": 0,
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "referenceFailures": 0,
+            "candidateFailures": 0,
+            "oracleHash": "2f98f6053ab23e49f1c4ef7ce74ebdb5f24d2de468f00bab70ea29b6046ac284",
+            "candidateHash": "85c5dcdcf4c82d984d348bfb3f1218e1f791945f0e9594e8f63f090aa6e5d4f8",
+            "inputHash": "7771f1a0bbf5b5ee4dc44eb07a84df40125e9a49d23f5ade6c495c49c0cac4f3",
+            "resultHash": "cd54b64e292238cd33a8f0ec1fa8eb2a1033484973c6de7f71e771f99a9ccf28",
+            "managed": true
+        },
+        {
+            "mode": "emit-services",
+            "configurations": 20,
+            "queries": 944,
+            "comparedQueries": 944,
+            "exact": 20,
+            "failed": 0,
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "referenceFailures": 0,
+            "candidateFailures": 0,
+            "oracleHash": "2f98f6053ab23e49f1c4ef7ce74ebdb5f24d2de468f00bab70ea29b6046ac284",
+            "candidateHash": "b220f3f8128121ff6e4c71242e899e7ec0617350bc65942eb0fd6348c23f33f1",
+            "inputHash": "f150889aa2f7519da00f8afdc6a098a12797bd7ed45cfe9c04426980b420e543",
+            "resultHash": "4529b00f9be817e8d720d102e2f009e159cb5befe528323c94c3324e679f7a38",
+            "managed": true
+        }
+    ],
+    "safety": {
+        "assertions": 14,
+        "log": "logs/csharp-phase4-emit-links-safety.log",
+        "scope": "Rollback after partial traversal, preservation of pre-existing alias marks, retry/idempotence, lazy JSX initialization, exact global factory AST shape and source ownership"
+    },
+    "reference": {
+        "revision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "frozenSourcesMatch": true,
+        "checkedSources": [
+            "checker/checker.go",
+            "checker/emitresolver.go",
+            "checker/jsx.go",
+            "ast/modifierflags.go"
+        ]
+    },
+    "reuse": {
+        "linkRecord": "phase4-emit-links-reuse.json",
+        "jsxRecord": "phase4-emit-jsx-reuse.json",
+        "serviceRecord": "phase4-emit-services-reuse.json",
+        "finalComparisonsRetained": true,
+        "reason": "Completed comparison records were retained after safety-only and formatting changes. Later direct JSX/export-import marking fixes affect only the link matrix, which replayed those affected cases and added dedicated cases. JSX getter and declaration-service matrices do not mark aliases. Declaration-service candidate results were reused with only invalid parentless-source modifier rows removed. Existing semantic alias calls have no active marking transaction and follow the same path; the retained corpus has no empty JSX factory/namespace options.",
+        "retainedLinkCandidates": 36,
+        "replayedLinkCandidates": 4,
+        "addedLinkConfigurations": 8,
+        "retainedLinkReferences": 40,
+        "retainedJsxCandidates": 24,
+        "retainedJsxReferences": 24,
+        "addedJsxConfigurations": 4,
+        "retainedServiceCandidates": 20,
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "semanticCorpus": "Retained; newly exposed emit services are not called by existing semantic diagnostic paths"
+    },
+    "formatting": {
+        "tokensCommentsAndSyntaxIdentical": true,
+        "csharpFiles": 11,
+        "libraryConfigurations": 2,
+        "inputsUnchanged": true,
+        "dotnetWhitespaceExitCode": 0,
+        "log": "logs/csharp-phase4-emit-links-format.log",
+        "proofSha256": "46a6c25da994af4ee21d1d87ff61d13540c1234f6e70c65055b8d6a073013090"
+    },
+    "generation": {
+        "exitCode": 0,
+        "command": "node csharp/tools/generate-checker.mjs --check"
+    },
+    "syntaxCheck": {
+        "exitCode": 0,
+        "command": "node --check csharp/tools/checker-locations.mjs"
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "phase4Complete": false
+}

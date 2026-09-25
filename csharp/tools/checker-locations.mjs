@@ -30,6 +30,9 @@ const signatureDeclarations = process.argv.includes("--signature-declarations");
 const emitQueries = process.argv.includes("--emit-queries");
 const emitReferences = process.argv.includes("--emit-references");
 const emitSerialization = process.argv.includes("--emit-serialization");
+const emitLinks = process.argv.includes("--emit-links");
+const emitJsx = process.argv.includes("--emit-jsx");
+const emitServices = process.argv.includes("--emit-services");
 const typeSyntax = process.argv.includes("--type-syntax") || conditionalSyntax || mappedSyntax || signatureSyntax || anonymousSyntax || syntaxOptions || syntaxNames || generatedNames || functionOptions || classOptions;
 const symbolTypeNodes = process.argv.includes("--symbol-type-nodes");
 const computedSymbols = process.argv.includes("--computed-symbols");
@@ -39,7 +42,11 @@ const symbolDisplay = process.argv.includes("--symbol-display") || symbolFormats
 const accessibility = process.argv.includes("--accessibility") || symbolDisplay;
 const output = path.join(
     root,
-    `built/csharp/checker-${emitSerialization ? "emit-serialization" : emitReferences ? "emit-references" : emitQueries ? "emit-queries" : signatureDeclarations ? "signature-declarations" : classOptions ? "class-options" : functionOptions ? "function-options" : generatedNames ? "generated-names" : syntaxNames ? "syntax-names" : syntaxOptions ? "syntax-options" : symbolTypeArguments ? "symbol-type-arguments" : anonymousSyntax ? "anonymous-syntax" : signatureSyntax ? "signature-syntax" : mappedSyntax ? "mapped-syntax" : conditionalSyntax ? "conditional-syntax" : typeSyntax ? "type-syntax" : symbolTypeNodes ? "symbol-type-nodes" : computedSymbols ? "computed-symbols" : symbolFormats ? "symbol-formats" : symbolDisplay ? "symbol-display" : accessibility ? "accessibility" : symbolChains ? "symbol-chains" : declarationVisibility ? "declaration-visibility" : contextQueries ? "context-queries" : scopeServices ? "scope-services" : symbolLocations ? "symbol-locations" : "locations"}`,
+    `built/csharp/checker-${
+        emitServices ? "emit-services"
+            : emitJsx ? "emit-jsx"
+            : emitLinks ? "emit-links" : emitSerialization ? "emit-serialization" : emitReferences ? "emit-references" : emitQueries ? "emit-queries" : signatureDeclarations ? "signature-declarations" : classOptions ? "class-options" : functionOptions ? "function-options" : generatedNames ? "generated-names" : syntaxNames ? "syntax-names" : syntaxOptions ? "syntax-options" : symbolTypeArguments ? "symbol-type-arguments" : anonymousSyntax ? "anonymous-syntax" : signatureSyntax ? "signature-syntax" : mappedSyntax ? "mapped-syntax" : conditionalSyntax ? "conditional-syntax" : typeSyntax ? "type-syntax" : symbolTypeNodes ? "symbol-type-nodes" : computedSymbols ? "computed-symbols" : symbolFormats ? "symbol-formats" : symbolDisplay ? "symbol-display" : accessibility ? "accessibility" : symbolChains ? "symbol-chains" : declarationVisibility ? "declaration-visibility" : contextQueries ? "context-queries" : scopeServices ? "scope-services" : symbolLocations ? "symbol-locations" : "locations"
+    }`,
 );
 const option = name => process.argv[process.argv.indexOf(name) + 1];
 const dotnet = process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, "dotnet.exe") : "dotnet";
@@ -226,6 +233,42 @@ exports["exported-name"]=C; Object.defineProperty(exports,"defined-name",{value:
     });
 }
 const inputs = [];
+if (emitServices) {
+    Object.assign(fixtures, {
+        emitServicesEnums: `enum E{A=1,B,C='é',D='x'+'y'}const enum CE{Zero=-0,Value=2,Text='s'}E.A;E['C'];CE.Value;CE['Text'];`,
+        emitServicesModifiers: `export const {value}= {value:1};export default abstract class C{private field=1;protected readonly other='';static value=1;abstract method():void;constructor(public readonly parameter:number){}}export async function f(){}`,
+        emitServicesAmbient: `export {};declare namespace N{const value:number;interface I{readonly field:string}class C{private x:number;readonly y:string}}declare global{interface Global{value:number}}`,
+        emitServicesInheritance: `class Base{value=1;readonly read=2;optional?:string;method(){}get accessor(){return 1}}class Derived extends Base{value=1;read=2;optional?:string;method=()=>{};accessor=1}interface I{only:number}class Implements implements I{only=1}`,
+        jsdocEmitServices: `class Base{value=1;method(){}}class Derived extends Base{constructor(){super();this.value=1;this.method=()=>{};this.extra='x'}}function F(){this.field=1}F.prototype.method=function(){};`,
+    });
+}
+if (emitJsx) {
+    Object.assign(fixtures, {
+        jsxFactoryDefault: `const value=<><div/><Custom/></>;`,
+        jsxFactoryPragma: `/** @jsx Local.h */\n/** @jsxFrag Local.Fragment */\nconst value=<><div/></>;`,
+        jsxFactoryConfigured: `const value=<><div/></>;`,
+        jsxFactoryNullFragment: `/** @jsxFrag null */\nconst value=<><div/></>;`,
+        jsxFactoryInvalid: `/** @jsx not.a[0] */\n/** @jsxFrag invalid[0] */\nconst value=<><div/></>;`,
+        jsxFactoryNamespace: `const value=<div/>;`,
+        jsxFactoryEmptyOptions: `const value=<><div/></>;`,
+    });
+}
+if (emitLinks) {
+    Object.assign(fixtures, {
+        emitLinksValues: `import Default,{named as value,type Shape} from './dep';import * as ns from './dep';const object={value};const C=Default;ns.named;type T=Shape;`,
+        emitLinksTypes: `import Default,{named,type Shape} from './dep';import * as ns from './dep';let x:Default;type T=Shape;type U=typeof named;type V=ns.Shape;`,
+        emitLinksExports: `import {named as value} from './dep';import * as ns from './dep';import A=ns;export import B=A;export {value};export type {Shape} from './dep';`,
+        emitLinksConstEnums: `import * as ns from './dep';import {CE,Only} from './dep';const a=ns.CE.A;const b=CE.A;type T=typeof Only;enum E{A=ns.Regular.A}export=ns.Only;`,
+        emitLinksVerbatim: `import {named as value} from './dep';import * as ns from './dep';value;ns.named;export {value};`,
+        emitLinksInvalid: `import {named as value} from './dep';const a={missing=1};enum E{[missing]=1}interface I extends missing(){}class C extends Object, missing{}for(var of missing){}value;`,
+        emitLinksDecorators: `import Default,{named as dec} from './dep';@dec class C{@dec field!:Default;@dec method(value:Default):Default{return value}}`,
+        emitLinksMissing: `import {missing} from './absent';missing();export {missing};`,
+        jsxEmitLinks: `import * as React from './dep';import Default from './dep';const value=<><Default/><div/></>;`,
+        jsxEmitLinksConstFactory: `import {CE as React} from './dep';const value=<div/>;`,
+        emitLinksIllegalExports: `namespace N{export import External=require('./dep')}export import Bad=require(missing);`,
+        jsdocEmitLinks: `const dep=require('./dep');const value=dep.named;exports.value=value;const {named}=require('./dep');named;`,
+    });
+}
 if (emitSerialization) {
     Object.assign(fixtures, {
         emitSerializationPrimitives: `type Num=number;type Str=string;type Bool=boolean;type Big=bigint;type Sym=symbol;type Void=void;type Null=null;type Never=never;type Any=any;type Unknown=unknown;let a:Num,b:Str,c:Bool,d:Big,e:Sym,f:Void,g:Null,h:Never,i:Any,j:Unknown;class Scope{}`,
@@ -464,6 +507,40 @@ for (const [name, source] of Object.entries(fixtures)) {
                 delete input.locations;
                 input.emitSerialization = true;
             }
+            if (emitLinks) {
+                const input = inputs.at(-1);
+                delete input.locations;
+                input.emitLinks = true;
+                if (name === "emitLinksVerbatim") input.options.verbatimModuleSyntax = true;
+                if (name === "emitLinksConstEnums") {
+                    input.options.preserveConstEnums = strict;
+                    input.files["/project/dep.ts"] = Buffer.from(`export const enum CE{A=1}export namespace Only{export const enum E{A=1}}export enum Regular{A=1}`).toString("base64");
+                }
+                if (name === "emitLinksDecorators") Object.assign(input.options, { experimentalDecorators: true, emitDecoratorMetadata: true });
+                if (name === "jsxEmitLinks") {
+                    input.options.jsx = "react";
+                    input.files["/project/dep.ts"] = Buffer.from(`export function createElement(...args:any[]):any{}export const Fragment={};export default function Component():any{}export namespace JSX{export interface Element{}export interface IntrinsicElements{div:{}}}`).toString("base64");
+                }
+                if (name === "jsxEmitLinksConstFactory") {
+                    input.options.jsx = "react";
+                    input.files["/project/dep.ts"] = Buffer.from(`export const enum CE{createElement=1}`).toString("base64");
+                }
+            }
+            if (emitJsx) {
+                const input = inputs.at(-1);
+                delete input.locations;
+                input.emitJsx = true;
+                input.options.jsx = "react";
+                if (name === "jsxFactoryConfigured") Object.assign(input.options, { jsxFactory: "Factory.make", jsxFragmentFactory: "Factory.Fragment" });
+                if (name === "jsxFactoryInvalid") Object.assign(input.options, { jsxFactory: "bad[0]", jsxFragmentFactory: "bad[0]" });
+                if (name === "jsxFactoryNamespace") input.options.reactNamespace = strict ? "Custom.Nested" : "Custom";
+                if (name === "jsxFactoryEmptyOptions") Object.assign(input.options, { jsxFactory: "", jsxFragmentFactory: "", reactNamespace: "Custom" });
+            }
+            if (emitServices) {
+                const input = inputs.at(-1);
+                delete input.locations;
+                input.emitServices = true;
+            }
         }
     }
 }
@@ -471,7 +548,8 @@ const formatFixtures = new Set(["namespaces", "imports", "typeImports", "classes
 const computedFixtures = new Set(["displayNames", "displayComputed", "displayAssigned", "jsdocDisplayNames", "classes", "visibilityExports", "accessibilityInstances", "chainClassNames"]);
 const typeNodeFixtures = new Set(["namespaces", "imports", "typeImports", "classes", "importsCommonJs", "visibilityAliases", "visibilityAmbient", "visibilityExports", "chainShadow", "chainReexports", "chainTypeOnly", "displayNames", "displayComputed", "accessibilityExportEquals", "accessibilityInstances", "symbolTypeModes", "symbolTypeAttributes"]);
 if (symbolTypeNodes) { for (const input of inputs) if (input.name.startsWith("symbolTypeModes:")) Object.assign(input.options, { module: "nodenext", moduleResolution: "nodenext" }); }
-const eligible = emitSerialization ? inputs.filter(input => input.name.startsWith("emitSerialization")) : emitReferences ? inputs.filter(input => input.name.startsWith("emitReferences") || input.name.startsWith("jsdocEmitReferences")) : emitQueries ? inputs.filter(input => input.name.startsWith("emitQueries") || input.name.startsWith("jsdocEmitQueries")) : signatureDeclarations ? inputs.filter(input => input.name.startsWith("signatureDeclarations")) : classOptions ? inputs.filter(input => input.name.startsWith("classOptions")) : functionOptions ? inputs.filter(input => input.name.startsWith("functionOptions")) : generatedNames ? inputs.filter(input => input.name.startsWith("generatedNames"))
+const eligible = emitServices ? inputs.filter(input => input.name.startsWith("emitServices") || input.name.startsWith("jsdocEmitServices")) :
+    emitJsx ? inputs.filter(input => input.name.startsWith("jsxFactory")) : emitLinks ? inputs.filter(input => input.name.startsWith("emitLinks") || input.name.startsWith("jsxEmitLinks") || input.name.startsWith("jsdocEmitLinks")) : emitSerialization ? inputs.filter(input => input.name.startsWith("emitSerialization")) : emitReferences ? inputs.filter(input => input.name.startsWith("emitReferences") || input.name.startsWith("jsdocEmitReferences")) : emitQueries ? inputs.filter(input => input.name.startsWith("emitQueries") || input.name.startsWith("jsdocEmitQueries")) : signatureDeclarations ? inputs.filter(input => input.name.startsWith("signatureDeclarations")) : classOptions ? inputs.filter(input => input.name.startsWith("classOptions")) : functionOptions ? inputs.filter(input => input.name.startsWith("functionOptions")) : generatedNames ? inputs.filter(input => input.name.startsWith("generatedNames"))
     : syntaxNames ? inputs.filter(input => input.name.startsWith("syntaxNames")) : syntaxOptions ? inputs.filter(input => input.name.startsWith("syntaxOptions")) : symbolTypeArguments ? inputs.filter(input => input.name.startsWith("symbolArguments") || formatFixtures.has(input.name.split(":")[0])) : anonymousSyntax ? inputs.filter(input => input.name.startsWith("anonymousSyntax")) : signatureSyntax ? inputs.filter(input => input.name.startsWith("signatureSyntax")) : mappedSyntax ? inputs.filter(input => input.name.startsWith("mappedSyntax")) : conditionalSyntax ? inputs.filter(input => input.name.startsWith("conditionalSyntax")) : typeSyntax ? inputs.filter(input => input.name.startsWith("typeSyntax")) : symbolTypeNodes ? inputs.filter(input => typeNodeFixtures.has(input.name.split(":")[0])) : computedSymbols ? inputs.filter(input => computedFixtures.has(input.name.split(":")[0])) : symbolFormats ? inputs.filter(input => formatFixtures.has(input.name.split(":")[0])) : inputs;
 const selected = process.argv.includes("--filter") ? eligible.filter(input => input.name.includes(option("--filter"))) : eligible;
 await writeFile(path.join(output, "inputs.json"), JSON.stringify(selected, null, 2));

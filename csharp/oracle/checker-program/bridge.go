@@ -293,7 +293,7 @@ func (c *Checker) csharpContextQueries(nodes []*ast.Node, nodeIDs map[*ast.Node]
 	return rows, graph
 }
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool, symbolLocations bool, documentationSymbols bool, scopeServices bool, contextQueries bool, declarationVisibility bool, symbolChains bool, accessibility bool, symbolDisplay bool, symbolFormats bool, symbolFormatValues []SymbolFormatFlags, symbolTypeNodes bool, typeSyntax bool, signatureSyntax bool, emitQueries bool, emitReferences bool, emitSerialization bool, typeSyntaxFlags ...nodebuilder.Flags) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool, symbolLocations bool, documentationSymbols bool, scopeServices bool, contextQueries bool, declarationVisibility bool, symbolChains bool, accessibility bool, symbolDisplay bool, symbolFormats bool, symbolFormatValues []SymbolFormatFlags, symbolTypeNodes bool, typeSyntax bool, signatureSyntax bool, emitQueries bool, emitReferences bool, emitSerialization bool, emitLinks bool, emitJsx bool, emitServices bool, typeSyntaxFlags ...nodebuilder.Flags) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -516,6 +516,15 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	}
 	if emitSerialization {
 		emitRows = c.csharpEmitSerialization(nodes, nodeIDs)
+	}
+	if emitLinks {
+		emitRows = c.csharpEmitLinks(nodes, nodeIDs)
+	}
+	if emitJsx {
+		emitRows = c.csharpEmitJsx(nodes, nodeIDs)
+	}
+	if emitServices {
+		emitRows = c.csharpEmitServices(nodes, nodeIDs)
 	}
 	var symbolTypeNodeRows []any
 	if symbolTypeNodes {
@@ -1287,7 +1296,7 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	if typeSyntax || signatureSyntax {
 		result["typeSyntaxQueries"] = typeSyntaxRows
 	}
-	if emitQueries || emitReferences || emitSerialization {
+	if emitQueries || emitReferences || emitSerialization || emitLinks || emitJsx || emitServices {
 		result["emitQueries"] = emitRows
 	}
 	if symbolTypeNodes {
@@ -1523,6 +1532,93 @@ func (c *Checker) csharpSymbolTypeNodes(nodes []*ast.Node, nodeIDs map[*ast.Node
 						rows = append(rows, []any{nodeIDs[location], sid(target), uint32(meaning), mode, arguments, text})
 					}
 				}
+			}
+		}
+	}
+	return rows
+}
+
+func (c *Checker) csharpEmitServices(nodes []*ast.Node, nodeIDs map[*ast.Node]int) []any {
+	r := c.GetEmitResolver()
+	rows := []any{}
+	scalar := func(v any) any {
+		switch x := v.(type) {
+		case string:
+			return []any{"string", base64.StdEncoding.EncodeToString([]byte(x))}
+		case jsnum.Number:
+			return []any{"number", fmt.Sprintf("%016x", math.Float64bits(float64(x)))}
+		}
+		return nil
+	}
+	for _, n := range nodes {
+		if !strings.HasPrefix(ast.GetSourceFileOfNode(n).FileName(), "/project/main.") {
+			continue
+		}
+		if ast.IsDeclaration(n) && n.Parent != nil {
+			for _, mask := range []ast.ModifierFlags{ast.ModifierFlagsAll, ast.ModifierFlagsExport | ast.ModifierFlagsAmbient, ast.ModifierFlagsPrivate | ast.ModifierFlagsProtected} {
+				rows = append(rows, []any{0, nodeIDs[n], uint32(mask), uint32(r.GetEffectiveDeclarationFlags(n, mask))})
+			}
+		}
+		if ast.IsEnumMember(n) {
+			v := r.GetEnumMemberValue(n)
+			rows = append(rows, []any{1, nodeIDs[n], scalar(v.Value), v.IsSyntacticallyString, v.ResolvedOtherFiles, v.HasExternalReferences})
+		}
+		if ast.IsEnumMember(n) || ast.IsPropertyAccessExpression(n) || ast.IsElementAccessExpression(n) {
+			rows = append(rows, []any{2, nodeIDs[n], scalar(r.GetConstantValue(n))})
+		}
+		if ast.IsPropertyDeclaration(n) || ast.IsBinaryExpression(n) && ast.IsInJSFile(n) {
+			rows = append(rows, []any{3, nodeIDs[n], r.IsThisPropertyAssignmentDeclarationRedundant(n)})
+		}
+	}
+	return rows
+}
+
+func (c *Checker) csharpEmitJsx(nodes []*ast.Node, nodeIDs map[*ast.Node]int) []any {
+	locations := []*ast.Node{nil}
+	rows := []any{}
+	r := c.GetEmitResolver()
+	for _, n := range nodes {
+		if strings.HasPrefix(ast.GetSourceFileOfNode(n).FileName(), "/project/main.") && (n.Kind == ast.KindSourceFile || n.Kind == ast.KindJsxOpeningFragment || ast.IsJsxOpeningLikeElement(n)) {
+			locations = append(locations, n)
+		}
+	}
+	locations = append(locations, nil)
+	for _, location := range locations {
+		for _, fragment := range []bool{false, true} {
+			var result *ast.Node
+			if fragment {
+				result = r.GetJsxFragmentFactoryEntity(location)
+			} else {
+				result = r.GetJsxFactoryEntity(location)
+			}
+			var value any
+			if result != nil {
+				writer, put := printer.GetSingleLineStringWriter()
+				p := printer.NewPrinter(printer.PrinterOptions{RemoveComments: true}, printer.PrintHandlers{}, printer.NewEmitContext())
+				p.Write(result, ast.GetSourceFileOfNode(location), writer, nil)
+				value = writer.String()
+				put()
+			}
+			rows = append(rows, []any{nodeIDs[location], fragment, value})
+		}
+	}
+	return rows
+}
+
+func (c *Checker) csharpEmitLinks(nodes []*ast.Node, nodeIDs map[*ast.Node]int) []any {
+	rows := []any{}
+	r := c.GetEmitResolver()
+	for pass := 0; pass < 3; pass++ {
+		if pass > 0 {
+			for _, file := range c.files {
+				if strings.HasPrefix(file.FileName(), "/project/main.") {
+					r.MarkLinkedReferencesRecursively(file)
+				}
+			}
+		}
+		for _, node := range nodes {
+			if strings.HasPrefix(ast.GetSourceFileOfNode(node).FileName(), "/project/main.") && ast.IsAliasSymbolDeclaration(node) {
+				rows = append(rows, []any{pass, nodeIDs[node], r.IsReferencedAliasDeclaration(node)})
 			}
 		}
 	}

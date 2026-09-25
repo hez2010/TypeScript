@@ -39,11 +39,12 @@ internal sealed partial class Checker
         var file = SemanticSyntax.Source(node)!;
         var options = program.Symbols.Program.Configuration.Options;
         if (fragment && ValidJsxFactory(JsxPragma(file, "jsxfrag") ?? options.String("jsxFragmentFactory")) is { } fragmentFactory)
-            return fragmentFactory;
+            return CacheEmitJsxFactory(fragmentFactory, file, true);
         if (!fragment && ValidJsxFactory(JsxPragma(file, "jsx")) is { } local)
-            return local;
-        return options.String("jsxFactory") is { } configured ? ValidJsxFactory(configured) ?? "React.createElement"
-            : (options.String("reactNamespace") ?? "React") + ".createElement";
+            return CacheEmitJsxFactory(local, file);
+        return CacheEmitJsxFactory(
+            options.String("jsxFactory") is { Length: > 0 } configured ? ValidJsxFactory(configured) ?? "React.createElement"
+            : (options.String("reactNamespace") is { Length: > 0 } reactNamespace ? reactNamespace : "React") + ".createElement");
     }
 
     private string? ValidJsxFactory(string? text)

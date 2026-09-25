@@ -165,7 +165,7 @@ public sealed partial class Binder
             Data(node).Flags |= NodeFlags.ThisNodeOrAnySubNodesHasError;
     }
 
-    private static bool IsContainer(SyntaxNode n) => FunctionLike(n) || n.Kind is K.SourceFile or K.ClassDeclaration or K.ClassExpression
+    internal static bool IsContainer(SyntaxNode n) => FunctionLike(n) || n.Kind is K.SourceFile or K.ClassDeclaration or K.ClassExpression
         or K.EnumDeclaration or K.ObjectLiteralExpression or K.TypeLiteral or K.JsxAttributes or K.InterfaceDeclaration
         or K.ModuleDeclaration or K.TypeAliasDeclaration or K.JSTypeAliasDeclaration or K.MappedType or K.ClassStaticBlockDeclaration or K.IndexSignature;
 

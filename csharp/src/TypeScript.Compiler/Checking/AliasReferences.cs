@@ -6,6 +6,63 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed class AliasReferences(CheckerSymbols symbols, CheckerLinks links, ReferenceSymbols references, AliasResolver aliases)
 {
+    private MarkingTransaction? transaction;
+
+    internal MarkingTransaction BeginTransaction() => new(this);
+
+    internal void MarkReferenced(Symbol symbol)
+    {
+        var data = links.Aliases.Get(symbol);
+        if (data.Referenced)
+            return;
+        transaction?.Added.Add(data);
+        data.Referenced = true;
+    }
+
+    internal async ValueTask MarkDirectAsync(Symbol symbol, CancellationToken cancellation)
+    {
+        cancellation.ThrowIfCancellationRequested();
+        if (links.Aliases.Get(symbol).Referenced)
+            return;
+        MarkReferenced(symbol);
+        if (AliasResolver.Declaration(symbol) is ImportEqualsDeclarationNode { ModuleReference: not ExternalModuleReferenceNode } import
+            && (await aliases.FlagsAsync((await aliases.SymbolAsync(symbol, cancellation: cancellation))!, cancellation: cancellation)
+                & SymbolFlags.Value) != 0)
+        {
+            var left = import.ModuleReference;
+            while (left is QualifiedNameNode qualified)
+                left = qualified.Left;
+            await IdentifierAsync((IdentifierNode)left!, cancellation);
+        }
+    }
+
+    internal sealed class MarkingTransaction : IDisposable
+    {
+        private readonly AliasReferences owner;
+        private readonly MarkingTransaction? previous;
+        private bool committed;
+        internal HashSet<AliasSymbolLinks> Added { get; } = [];
+
+        internal MarkingTransaction(AliasReferences owner)
+        {
+            this.owner = owner;
+            previous = owner.transaction;
+            owner.transaction = this;
+        }
+
+        internal void Commit() => committed = true;
+
+        public void Dispose()
+        {
+            if (!committed)
+                foreach (var data in Added)
+                    data.Referenced = false;
+            else if (previous is not null)
+                previous.Added.UnionWith(Added);
+            owner.transaction = previous;
+        }
+    }
+
     internal async ValueTask IdentifierAsync(IdentifierNode location, CancellationToken cancellation = default)
     {
         var options = symbols.Program.Configuration.Options;
@@ -62,7 +119,7 @@ internal sealed class AliasReferences(CheckerSymbols symbols, CheckerLinks links
                 var data = links.Aliases.Get(symbol);
                 if (data.Referenced)
                     return;
-                data.Referenced = true;
+                MarkReferenced(symbol);
                 owned.Add(data);
                 var declaration = AliasResolver.Declaration(symbol) ?? throw new InvalidOperationException("Referenced alias has no declaration");
                 if (declaration is not ImportEqualsDeclarationNode { ModuleReference: not ExternalModuleReferenceNode } import
