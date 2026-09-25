@@ -13,7 +13,7 @@ These comparisons cover source graphs and diagnostic codes. **94.9% matching on 
 | Execute active corpus and match source graphs | Complete: 13,446 configurations |
 | Match semantic diagnostic codes | 12,757 match; 689 differ |
 | Match diagnostic text, locations and related information | Incomplete: detailed records match in 1,997 of 3,368 selected configurations, including 1,381 with nonempty semantic diagnostics; the remaining corpus has not been compared at this level |
-| Complete type/symbol comparisons, type display, node builders, accessibility and emit-resolver APIs | Incomplete |
+| Complete type/symbol comparisons, type display, node builders, accessibility and emit-resolver APIs | Incomplete; general type-at-location queries now have 3,812 exact comparisons in 76 configurations |
 | Validate actual parallel checker scheduling | Incomplete; reference-mode corpus agreement is a narrower check |
 | Meet complete semantic workload memory/performance budgets | Incomplete |
 | Verify warning-free NativeAOT publishing | Deferred until final completion; no native execution |
@@ -970,6 +970,18 @@ Release validation covers **755 configurations per reference mode**. Graph/code 
 A focused fixture matches **18 complete pinned-reference records**. Safety passes **82 access/member assertions**, **127 program assertions** and **51 indexed-type assertions**. The Release build has zero warnings and errors. The follow-up single-mode run replays 50 affected cases and retains 705 completed results. Cached oracle outputs and unchanged repository validation were reused. Formatting preserves tokens, comments and syntax in twelve C# files. NativeAOT remains deferred until final phase-4 completion.
 
 Evidence: [single-mode corpus](../csharp/compatibility/evidence/phase4-access-diagnostics-corpus-single.json), [reference-default corpus](../csharp/compatibility/evidence/phase4-access-diagnostics-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-access-diagnostics-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-access-diagnostics-validation.json).
+
+## Type queries at syntax locations
+
+`GetTypeAtLocationAsync` now dispatches by syntax context to the existing expression, type-node, declaration, binding, heritage and module services. It preserves regular literal types for expressions, declaration types for names, inherited `this` arguments, and the reference's behavior inside `with` statements. Original JSDoc nodes resolve to their reparsed semantic counterparts. The query boundary retains program ownership checks, exclusive checker access and cancellation. The expression query path uses the reference's quick call/constructor/assertion rules and type-only checking. JSX attribute symbols now use the same initializer typing as JSX attribute objects.
+
+The new Release comparison visits every main-file syntax node in twenty fixtures under strict/non-strict options and single/reference-default program modes. **All 80 candidate configurations execute**, comprising **3,956 queries**. **76 configurations match the entire exported type/symbol graph and diagnostic-code output**, including **3,812 type-at-location queries**. Four configurations encounter a null-symbol panic in the pinned Go reference for a type-only named-import clause; those are retained as reference failures, not passing comparisons. The candidate handles that missing declaration symbol with its error type. Default type-only imports and individual type-only specifiers have separate passing coverage. These fixtures do not establish full-corpus query parity or actual parallel checker scheduling.
+
+The final Release build has zero warnings and errors. **Twenty query safety assertions** pass, covering regular versus declaration literal identity, flow narrowing, checker ownership, serialized queries, queued cancellation/retry, a 20,000-level qualified name and original/reparsed JSDoc lookup. The preceding program safety checks reached the new query assertions without failure; their 127 existing results were retained. After the JSX fix, 72 unaffected candidate results were reused and only the four affected JSX configurations plus four previously unexecuted candidate configurations were run. Cached oracle results and the unchanged repository suite were reused. A later change affected only safety tests and their command entry point; corpus results were retained. Formatting preserves tokens, comments and syntax in eight C# files.
+
+The cumulative semantic-diagnostic counts above are unchanged. General symbol-at-location lookup, remaining query APIs, complete type display/node builders, emit resolver and phase-wide completion gates remain open. NativeAOT publishing remains deferred until final completion.
+
+Evidence: [query comparisons](../csharp/compatibility/evidence/phase4-type-queries.json), [reference failures](../csharp/compatibility/evidence/phase4-type-queries-reference-failures.json), [retained results](../csharp/compatibility/evidence/phase4-type-queries-reuse.json), and [Release validation](../csharp/compatibility/evidence/phase4-type-queries-validation.json). The managed-only runner is `node csharp/tools/checker-locations.mjs`; it uses the existing Release harness and prepared pinned program oracle, caching results by input and executable hashes. Its exit code remains nonzero while the four reference failures are unresolved.
 
 ## Remaining completion work
 

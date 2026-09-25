@@ -385,6 +385,7 @@ internal static class CheckerProgramTests
         checks += await ContextGrammarSafety();
         checks += await DiagnosticDetailsSafety();
         checks += await CheckerDisplayTests.Safety();
+        checks += await CheckerQueryTests.Safety();
         Console.WriteLine($"{checks} program/checker ownership assertions; interface and scope depth 20000");
     }
 
@@ -995,6 +996,19 @@ internal static class CheckerProgramTests
                 writer.WriteNumberValue(Node(await host.Aliases.TypeOnlyAsync(symbol, SymbolFlags.Value)));
                 writer.WriteEndArray();
             }
+            writer.WriteEndArray();
+        }
+        if (input.TryGetProperty("locations", out var locationsOption) && locationsOption.GetBoolean())
+        {
+            writer.WriteStartArray("locationQueries");
+            foreach (var node in nodes)
+                if (SemanticSyntax.Source(node)?.FileName.StartsWith("/project/main.", StringComparison.Ordinal) == true)
+                {
+                    writer.WriteStartArray();
+                    writer.WriteNumberValue(Node(node));
+                    writer.WriteNumberValue(TypeId(await typeHost!.GetTypeAtLocationAsync(node)));
+                    writer.WriteEndArray();
+                }
             writer.WriteEndArray();
         }
         if (typeHost is not null)

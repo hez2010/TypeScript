@@ -179,6 +179,8 @@ internal sealed partial class Checker : ISignatureHost, IStructuredMemberHost, I
             return await ObjectLiterals.PropertyAsync(symbol.ValueDeclaration, true, 0, cancellation);
         if (symbol.ValueDeclaration is MethodDeclarationNode method)
             return await Functions.CheckAsync(method, cancellation: cancellation);
+        if (symbol.ValueDeclaration is JsxAttributeNode attribute)
+            return await JsxAttributeTypeAsync(attribute, 0, cancellation);
         if (symbol.ValueDeclaration is ExportAssignmentNode assignment)
             return assignment.Type is not null ? await Nodes.FromNodeAsync(assignment.Type, cancellation)
                 : await Variables.WidenAsync(

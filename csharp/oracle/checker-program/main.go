@@ -51,6 +51,7 @@ func main() {
 			Semantic        bool
 			SemanticDetails bool
 			TypeDisplays    bool
+			Locations       bool
 			NumberStrings   []string
 		}
 		if err := json.Unmarshal(lines.Bytes(), &input); err != nil {
@@ -114,7 +115,7 @@ func main() {
 			}
 			continue
 		}
-		result := c.CSharpProgramScopeProbe(input.Aliases, input.TypeNodes, input.Members, input.Values, input.Properties, input.Signatures, input.Identity, input.Assignability, input.Indexing, input.Constants, input.Expressions, input.Awaited, input.References, input.Flow, input.Identifiers, input.Access, input.Calls, input.Assertions).(map[string]any)
+		result := c.CSharpProgramScopeProbe(input.Aliases, input.TypeNodes, input.Members, input.Values, input.Properties, input.Signatures, input.Identity, input.Assignability, input.Indexing, input.Constants, input.Expressions, input.Awaited, input.References, input.Flow, input.Identifiers, input.Access, input.Calls, input.Assertions, input.Locations).(map[string]any)
 		if input.NumberStrings != nil {
 			rows := []string{}
 			for _, text := range input.NumberStrings {

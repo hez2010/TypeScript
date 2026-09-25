@@ -13,7 +13,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/jsnum"
 )
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -216,6 +216,14 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 				id, target, immediate, flags, withoutTypeOnly, withoutLocal,
 				nodeIDs[c.getTypeOnlyAliasDeclaration(symbol)], nodeIDs[c.getTypeOnlyAliasDeclarationEx(symbol, ast.SymbolFlagsValue)],
 			})
+		}
+	}
+	locationQueries := []any{}
+	if locations {
+		for _, node := range nodes {
+			if strings.HasPrefix(ast.GetSourceFileOfNode(node).FileName(), "/project/main.") {
+				locationQueries = append(locationQueries, []any{nodeIDs[node], tid(c.GetTypeAtLocation(node))})
+			}
 		}
 	}
 	typeQueries := []any{}
@@ -851,6 +859,9 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	}
 	if typeNodes {
 		result["typeQueries"] = typeQueries
+	}
+	if locations {
+		result["locationQueries"] = locationQueries
 	}
 	if memberQueries {
 		result["memberQueries"], result["members"] = memberRoots, memberRows

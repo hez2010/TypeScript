@@ -6,6 +6,9 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
+    private async ValueTask<Type> JsxAttributeTypeAsync(JsxAttributeNode node, CheckMode mode, CancellationToken cancellation) =>
+        node.Initializer is null ? context.TrueType : await Contexts.MutableAsync(node.Initializer, mode, cancellation);
+
     private async ValueTask<Type> CheckJsxAsync(SyntaxNode node, CheckMode mode, CancellationToken cancellation)
     {
         switch (node)

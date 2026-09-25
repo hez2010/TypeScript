@@ -113,6 +113,12 @@ internal static class Program
                 CheckerAliasTests.Safety().GetAwaiter().GetResult();
                 return 0;
             }
+            if (args is ["--checker-query-safety"])
+            {
+                Console.WriteLine(
+                    $"{CheckerQueryTests.Safety().GetAwaiter().GetResult()} type-location query ownership/cancellation assertions; depth 20000");
+                return 0;
+            }
             if (args is ["--checker-program-safety"])
             {
                 CheckerProgramTests.Safety().GetAwaiter().GetResult();

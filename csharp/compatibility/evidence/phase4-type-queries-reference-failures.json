@@ -1,0 +1,119 @@
+{
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "reason": "GetTypeAtLocation asks for the declared type of a type-only named-import clause with no default-import symbol. The pinned reference dereferences that null symbol.",
+    "acceptedAsPassing": false,
+    "configurations": [
+        {
+            "input": {
+                "name": "typeImports:false:1",
+                "files": {
+                    "/project/globals.d.ts": "aW50ZXJmYWNlIElBcmd1bWVudHMge30gaW50ZXJmYWNlIE9iamVjdCB7fSBpbnRlcmZhY2UgRnVuY3Rpb24ge30gaW50ZXJmYWNlIENhbGxhYmxlRnVuY3Rpb24gZXh0ZW5kcyBGdW5jdGlvbiB7fQppbnRlcmZhY2UgTmV3YWJsZUZ1bmN0aW9uIGV4dGVuZHMgRnVuY3Rpb24ge30gaW50ZXJmYWNlIFN0cmluZyB7fSBpbnRlcmZhY2UgTnVtYmVyIHt9IGludGVyZmFjZSBCb29sZWFuIHt9IGludGVyZmFjZSBSZWdFeHAge30KaW50ZXJmYWNlIEFycmF5PFQ+IHsgbGVuZ3RoOiBudW1iZXI7IFtuOiBudW1iZXJdOiBUOyB9IGludGVyZmFjZSBSZWFkb25seUFycmF5PFQ+IHsgcmVhZG9ubHkgbGVuZ3RoOiBudW1iZXI7IHJlYWRvbmx5IFtuOiBudW1iZXJdOiBUOyB9CmludGVyZmFjZSBUaGlzVHlwZTxUPiB7fQ==",
+                    "/project/main.ts": "aW1wb3J0IHR5cGUge1NoYXBlIGFzIFN9IGZyb20gIi4vZGVwIjsgaW1wb3J0IHR5cGUgRGVmYXVsdCBmcm9tICIuL2RlcCI7IGV4cG9ydCB0eXBlIHtTaGFwZSBhcyBUfSBmcm9tICIuL2RlcCI7CnR5cGUgSW1wb3J0ZWQ9aW1wb3J0KCIuL2RlcCIpLlNoYXBlOyB0eXBlIFZhbHVlcz10eXBlb2YgaW1wb3J0KCIuL2RlcCIpOyBsZXQgeDpTOw==",
+                    "/project/dep.ts": "ZXhwb3J0IGludGVyZmFjZSBTaGFwZSB7dmFsdWU6bnVtYmVyO30gZXhwb3J0IGNvbnN0IG5hbWVkPTE7IGV4cG9ydCBkZWZhdWx0IGNsYXNzIERlZmF1bHQgeyB2YWx1ZT0xOyB9"
+                },
+                "roots": [
+                    "/project/globals.d.ts",
+                    "/project/main.ts",
+                    "/project/dep.ts"
+                ],
+                "options": {
+                    "strict": false,
+                    "target": "esnext",
+                    "module": "esnext",
+                    "moduleResolution": "bundler",
+                    "jsx": "preserve"
+                },
+                "typeNodes": true,
+                "locations": true,
+                "concurrency": 1
+            },
+            "error": "Error: reference typeImports:false:1: panic: runtime error: invalid memory address or nil pointer dereference\n[signal 0xc0000005 code=0x0 addr=0x0 pc=0x7ff6dbefa4ae]\n\ngoroutine 1 [running]:\ngithub.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).tryGetDeclaredTypeOfSymbol(0x102686cbf908?, 0x7ff6dca34040?)\n\tD:/source/repos/TypeScript/built/csharp/oracle-source-w04NXA/tsc/internal/checker/checker.go:24069 +0xe\ngithub.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).getDeclaredTypeOfSymbol(...)\n\tD:/source/repos/TypeScript/built/csharp/oracle-source-w04NXA/tsc/internal/checker/checker.go:24060\ngithub.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).getTypeOfNode(0x102686cbf908, 0x102686bd1080)\n\tD:/source/repos/TypeScript/built/csharp/oracle-source-w04NXA/tsc/internal/checker/checker.go:32378 +0x208\ngithub.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).GetTypeAtLocation(0x102686cbf908, 0x2?)\n\tD:/source/repos/TypeScript/built/csharp/oracle-source-w04NXA/tsc/internal/checker/checker.go:32562 +0x28\ngithub.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).CSharpProgramScopeProbe(0x102686cbf908, 0x0, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, ...)\n\tD:/source/repos/TypeScript/built/csharp/oracle-source-w04NXA/tsc/internal/checker/csharp_program_probe.go:225 +0x159bc\nmain.main()\n\tD:/source/repos/TypeScript/built/csharp/oracle-source-w04NXA/tsc/cmd/checker-program-probe/main.go:118 +0x832\n",
+            "candidateCompleted": true,
+            "candidateQueries": 36
+        },
+        {
+            "input": {
+                "name": "typeImports:false:4",
+                "files": {
+                    "/project/globals.d.ts": "aW50ZXJmYWNlIElBcmd1bWVudHMge30gaW50ZXJmYWNlIE9iamVjdCB7fSBpbnRlcmZhY2UgRnVuY3Rpb24ge30gaW50ZXJmYWNlIENhbGxhYmxlRnVuY3Rpb24gZXh0ZW5kcyBGdW5jdGlvbiB7fQppbnRlcmZhY2UgTmV3YWJsZUZ1bmN0aW9uIGV4dGVuZHMgRnVuY3Rpb24ge30gaW50ZXJmYWNlIFN0cmluZyB7fSBpbnRlcmZhY2UgTnVtYmVyIHt9IGludGVyZmFjZSBCb29sZWFuIHt9IGludGVyZmFjZSBSZWdFeHAge30KaW50ZXJmYWNlIEFycmF5PFQ+IHsgbGVuZ3RoOiBudW1iZXI7IFtuOiBudW1iZXJdOiBUOyB9IGludGVyZmFjZSBSZWFkb25seUFycmF5PFQ+IHsgcmVhZG9ubHkgbGVuZ3RoOiBudW1iZXI7IHJlYWRvbmx5IFtuOiBudW1iZXJdOiBUOyB9CmludGVyZmFjZSBUaGlzVHlwZTxUPiB7fQ==",
+                    "/project/main.ts": "aW1wb3J0IHR5cGUge1NoYXBlIGFzIFN9IGZyb20gIi4vZGVwIjsgaW1wb3J0IHR5cGUgRGVmYXVsdCBmcm9tICIuL2RlcCI7IGV4cG9ydCB0eXBlIHtTaGFwZSBhcyBUfSBmcm9tICIuL2RlcCI7CnR5cGUgSW1wb3J0ZWQ9aW1wb3J0KCIuL2RlcCIpLlNoYXBlOyB0eXBlIFZhbHVlcz10eXBlb2YgaW1wb3J0KCIuL2RlcCIpOyBsZXQgeDpTOw==",
+                    "/project/dep.ts": "ZXhwb3J0IGludGVyZmFjZSBTaGFwZSB7dmFsdWU6bnVtYmVyO30gZXhwb3J0IGNvbnN0IG5hbWVkPTE7IGV4cG9ydCBkZWZhdWx0IGNsYXNzIERlZmF1bHQgeyB2YWx1ZT0xOyB9"
+                },
+                "roots": [
+                    "/project/globals.d.ts",
+                    "/project/main.ts",
+                    "/project/dep.ts"
+                ],
+                "options": {
+                    "strict": false,
+                    "target": "esnext",
+                    "module": "esnext",
+                    "moduleResolution": "bundler",
+                    "jsx": "preserve"
+                },
+                "typeNodes": true,
+                "locations": true,
+                "concurrency": 4
+            },
+            "error": "Error: reference typeImports:false:4: panic: runtime error: invalid memory address or nil pointer dereference\n[signal 0xc0000005 code=0x0 addr=0x0 pc=0x7ff6dbefa4ae]\n\ngoroutine 1 [running]:\ngithub.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).tryGetDeclaredTypeOfSymbol(0x27482559e008?, 0x274825500008?)\n\tD:/source/repos/TypeScript/built/csharp/oracle-source-w04NXA/tsc/internal/checker/checker.go:24069 +0xe\ngithub.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).getDeclaredTypeOfSymbol(...)\n\tD:/source/repos/TypeScript/built/csharp/oracle-source-w04NXA/tsc/internal/checker/checker.go:24060\ngithub.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).getTypeOfNode(0x27482559e008, 0x274825298060)\n\tD:/source/repos/TypeScript/built/csharp/oracle-source-w04NXA/tsc/internal/checker/checker.go:32378 +0x208\ngithub.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).GetTypeAtLocation(0x27482559e008, 0x2?)\n\tD:/source/repos/TypeScript/built/csharp/oracle-source-w04NXA/tsc/internal/checker/checker.go:32562 +0x28\ngithub.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).CSharpProgramScopeProbe(0x27482559e008, 0x0, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, ...)\n\tD:/source/repos/TypeScript/built/csharp/oracle-source-w04NXA/tsc/internal/checker/csharp_program_probe.go:225 +0x159bc\nmain.main()\n\tD:/source/repos/TypeScript/built/csharp/oracle-source-w04NXA/tsc/cmd/checker-program-probe/main.go:118 +0x832\n",
+            "candidateCompleted": true,
+            "candidateQueries": 36
+        },
+        {
+            "input": {
+                "name": "typeImports:true:1",
+                "files": {
+                    "/project/globals.d.ts": "aW50ZXJmYWNlIElBcmd1bWVudHMge30gaW50ZXJmYWNlIE9iamVjdCB7fSBpbnRlcmZhY2UgRnVuY3Rpb24ge30gaW50ZXJmYWNlIENhbGxhYmxlRnVuY3Rpb24gZXh0ZW5kcyBGdW5jdGlvbiB7fQppbnRlcmZhY2UgTmV3YWJsZUZ1bmN0aW9uIGV4dGVuZHMgRnVuY3Rpb24ge30gaW50ZXJmYWNlIFN0cmluZyB7fSBpbnRlcmZhY2UgTnVtYmVyIHt9IGludGVyZmFjZSBCb29sZWFuIHt9IGludGVyZmFjZSBSZWdFeHAge30KaW50ZXJmYWNlIEFycmF5PFQ+IHsgbGVuZ3RoOiBudW1iZXI7IFtuOiBudW1iZXJdOiBUOyB9IGludGVyZmFjZSBSZWFkb25seUFycmF5PFQ+IHsgcmVhZG9ubHkgbGVuZ3RoOiBudW1iZXI7IHJlYWRvbmx5IFtuOiBudW1iZXJdOiBUOyB9CmludGVyZmFjZSBUaGlzVHlwZTxUPiB7fQ==",
+                    "/project/main.ts": "aW1wb3J0IHR5cGUge1NoYXBlIGFzIFN9IGZyb20gIi4vZGVwIjsgaW1wb3J0IHR5cGUgRGVmYXVsdCBmcm9tICIuL2RlcCI7IGV4cG9ydCB0eXBlIHtTaGFwZSBhcyBUfSBmcm9tICIuL2RlcCI7CnR5cGUgSW1wb3J0ZWQ9aW1wb3J0KCIuL2RlcCIpLlNoYXBlOyB0eXBlIFZhbHVlcz10eXBlb2YgaW1wb3J0KCIuL2RlcCIpOyBsZXQgeDpTOw==",
+                    "/project/dep.ts": "ZXhwb3J0IGludGVyZmFjZSBTaGFwZSB7dmFsdWU6bnVtYmVyO30gZXhwb3J0IGNvbnN0IG5hbWVkPTE7IGV4cG9ydCBkZWZhdWx0IGNsYXNzIERlZmF1bHQgeyB2YWx1ZT0xOyB9"
+                },
+                "roots": [
+                    "/project/globals.d.ts",
+                    "/project/main.ts",
+                    "/project/dep.ts"
+                ],
+                "options": {
+                    "strict": true,
+                    "target": "esnext",
+                    "module": "esnext",
+                    "moduleResolution": "bundler",
+                    "jsx": "preserve"
+                },
+                "typeNodes": true,
+                "locations": true,
+                "concurrency": 1
+            },
+            "error": "Error: reference typeImports:true:1: panic: runtime error: invalid memory address or nil pointer dereference\n[signal 0xc0000005 code=0x0 addr=0x0 pc=0x7ff6dbefa4ae]\n\ngoroutine 1 [running]:\ngithub.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).tryGetDeclaredTypeOfSymbol(0x757e475d908?, 0x7ff6dca34040?)\n\tD:/source/repos/TypeScript/built/csharp/oracle-source-w04NXA/tsc/internal/checker/checker.go:24069 +0xe\ngithub.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).getDeclaredTypeOfSymbol(...)\n\tD:/source/repos/TypeScript/built/csharp/oracle-source-w04NXA/tsc/internal/checker/checker.go:24060\ngithub.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).getTypeOfNode(0x757e475d908, 0x757e45d70e0)\n\tD:/source/repos/TypeScript/built/csharp/oracle-source-w04NXA/tsc/internal/checker/checker.go:32378 +0x208\ngithub.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).GetTypeAtLocation(0x757e475d908, 0x2?)\n\tD:/source/repos/TypeScript/built/csharp/oracle-source-w04NXA/tsc/internal/checker/checker.go:32562 +0x28\ngithub.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).CSharpProgramScopeProbe(0x757e475d908, 0x0, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, ...)\n\tD:/source/repos/TypeScript/built/csharp/oracle-source-w04NXA/tsc/internal/checker/csharp_program_probe.go:225 +0x159bc\nmain.main()\n\tD:/source/repos/TypeScript/built/csharp/oracle-source-w04NXA/tsc/cmd/checker-program-probe/main.go:118 +0x832\n",
+            "candidateCompleted": true,
+            "candidateQueries": 36
+        },
+        {
+            "input": {
+                "name": "typeImports:true:4",
+                "files": {
+                    "/project/globals.d.ts": "aW50ZXJmYWNlIElBcmd1bWVudHMge30gaW50ZXJmYWNlIE9iamVjdCB7fSBpbnRlcmZhY2UgRnVuY3Rpb24ge30gaW50ZXJmYWNlIENhbGxhYmxlRnVuY3Rpb24gZXh0ZW5kcyBGdW5jdGlvbiB7fQppbnRlcmZhY2UgTmV3YWJsZUZ1bmN0aW9uIGV4dGVuZHMgRnVuY3Rpb24ge30gaW50ZXJmYWNlIFN0cmluZyB7fSBpbnRlcmZhY2UgTnVtYmVyIHt9IGludGVyZmFjZSBCb29sZWFuIHt9IGludGVyZmFjZSBSZWdFeHAge30KaW50ZXJmYWNlIEFycmF5PFQ+IHsgbGVuZ3RoOiBudW1iZXI7IFtuOiBudW1iZXJdOiBUOyB9IGludGVyZmFjZSBSZWFkb25seUFycmF5PFQ+IHsgcmVhZG9ubHkgbGVuZ3RoOiBudW1iZXI7IHJlYWRvbmx5IFtuOiBudW1iZXJdOiBUOyB9CmludGVyZmFjZSBUaGlzVHlwZTxUPiB7fQ==",
+                    "/project/main.ts": "aW1wb3J0IHR5cGUge1NoYXBlIGFzIFN9IGZyb20gIi4vZGVwIjsgaW1wb3J0IHR5cGUgRGVmYXVsdCBmcm9tICIuL2RlcCI7IGV4cG9ydCB0eXBlIHtTaGFwZSBhcyBUfSBmcm9tICIuL2RlcCI7CnR5cGUgSW1wb3J0ZWQ9aW1wb3J0KCIuL2RlcCIpLlNoYXBlOyB0eXBlIFZhbHVlcz10eXBlb2YgaW1wb3J0KCIuL2RlcCIpOyBsZXQgeDpTOw==",
+                    "/project/dep.ts": "ZXhwb3J0IGludGVyZmFjZSBTaGFwZSB7dmFsdWU6bnVtYmVyO30gZXhwb3J0IGNvbnN0IG5hbWVkPTE7IGV4cG9ydCBkZWZhdWx0IGNsYXNzIERlZmF1bHQgeyB2YWx1ZT0xOyB9"
+                },
+                "roots": [
+                    "/project/globals.d.ts",
+                    "/project/main.ts",
+                    "/project/dep.ts"
+                ],
+                "options": {
+                    "strict": true,
+                    "target": "esnext",
+                    "module": "esnext",
+                    "moduleResolution": "bundler",
+                    "jsx": "preserve"
+                },
+                "typeNodes": true,
+                "locations": true,
+                "concurrency": 4
+            },
+            "error": "Error: reference typeImports:true:4: panic: runtime error: invalid memory address or nil pointer dereference\n[signal 0xc0000005 code=0x0 addr=0x0 pc=0x7ff6dbefa4ae]\n\ngoroutine 1 [running]:\ngithub.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).tryGetDeclaredTypeOfSymbol(0x38521649e008?, 0x385216380008?)\n\tD:/source/repos/TypeScript/built/csharp/oracle-source-w04NXA/tsc/internal/checker/checker.go:24069 +0xe\ngithub.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).getDeclaredTypeOfSymbol(...)\n\tD:/source/repos/TypeScript/built/csharp/oracle-source-w04NXA/tsc/internal/checker/checker.go:24060\ngithub.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).getTypeOfNode(0x38521649e008, 0x385216406060)\n\tD:/source/repos/TypeScript/built/csharp/oracle-source-w04NXA/tsc/internal/checker/checker.go:32378 +0x208\ngithub.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).GetTypeAtLocation(0x38521649e008, 0x2?)\n\tD:/source/repos/TypeScript/built/csharp/oracle-source-w04NXA/tsc/internal/checker/checker.go:32562 +0x28\ngithub.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).CSharpProgramScopeProbe(0x38521649e008, 0x0, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, ...)\n\tD:/source/repos/TypeScript/built/csharp/oracle-source-w04NXA/tsc/internal/checker/csharp_program_probe.go:225 +0x159bc\nmain.main()\n\tD:/source/repos/TypeScript/built/csharp/oracle-source-w04NXA/tsc/cmd/checker-program-probe/main.go:118 +0x832\n",
+            "candidateCompleted": true,
+            "candidateQueries": 36
+        }
+    ]
+}

@@ -59,9 +59,7 @@ internal sealed partial class Checker
             {
                 if (declaration is JsxAttributeNode attribute)
                 {
-                    var type = attribute.Initializer is null
-                        ? context.TrueType
-                        : await Contexts.MutableAsync(attribute.Initializer, mode, cancellation);
+                    var type = await JsxAttributeTypeAsync(attribute, mode, cancellation);
                     flags |= type.ObjectFlags & ObjectFlags.PropagatingFlags;
                     var original = program.Symbols.Declaration(attribute);
                     var property = new Symbol(

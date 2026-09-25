@@ -1,0 +1,65 @@
+{
+    "timestamp": "2026-09-25T01:50:19.340Z",
+    "configuration": "Release",
+    "managed": true,
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "scope": "General type-at-location queries; phase 4 remains incomplete",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-type-queries-build.log",
+        "sha256": "92fa4c729606e06828845a4a24f42e08d86b171fd51508a968e98aa01df1c2a8"
+    },
+    "candidateSha256": "8f8d24ef19cd4ce75e4a34be7fa8276c12ddb0854a153219035e14a4568f7fb4",
+    "compilerSha256": "2f1576c65bcf058f3fc1d7320f5ae021660669f772581f80961824883184c9f8",
+    "queries": {
+        "configurations": 80,
+        "queries": 3956,
+        "comparedQueries": 3812,
+        "exact": 76,
+        "failed": 4,
+        "referenceFailures": 4,
+        "candidateFailures": 0,
+        "oracleHash": "7eb083a603ffc267bc2ce39f9e02c0ad88fc86ded5cfb4b19d79a5a66b0072c6",
+        "candidateHash": "59c7f3d8005fbc9cef1fa23c8a8b6b83688f80bf8830dfdd3d293cc57b6635f5",
+        "inputHash": "0fd113eea7c38f18959452244fe0c41c1ef8ea5c9891c58ff69e06b3cc6cadb5",
+        "resultHash": "3ebb29b742e5d25585d3d80bfd0d2caf0131ea82f9c92547842733283d17210e",
+        "managed": true,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8"
+    },
+    "safety": {
+        "queryAssertions": 20,
+        "log": "logs/csharp-phase4-type-queries-query-safety.log",
+        "reusedProgramAssertions": 127,
+        "programLog": "logs/csharp-phase4-type-queries-safety.log",
+        "programLogStatus": "Existing 127 checks completed before the first new query assertion failed; the corrected query safety suite subsequently passed separately. The complete program command was not rerun."
+    },
+    "formatting": {
+        "csharpFiles": 8,
+        "libraryConfigurations": 2,
+        "tokensCommentsAndSyntaxIdentical": true,
+        "log": "logs/csharp-phase4-type-queries-format.log",
+        "dotnetWhitespaceExitCode": 0,
+        "proofSha256": "c82e22b4d70a83c963ae9a60794d9b6e3f587734edacbeddfb2b8523cd335534"
+    },
+    "reuse": {
+        "record": "phase4-type-queries-reuse.json",
+        "corpusAfterLastBuild": "The only later changes are query safety assertions and their command entry point; the product compiler and query comparison path are unchanged.",
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "validatedCommit": "00d370e5b0",
+        "fullSemanticCorpus": "Unchanged corpus results retained. The new type query is not called by source checking; the existing JSX attribute initializer calculation was extracted unchanged, and the newly handled symbol path previously threw. No existing source-corpus case reached that throwing path."
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "phase4Complete": false,
+    "syntaxCheck": {
+        "command": "node --check csharp/tools/checker-locations.mjs",
+        "exitCode": 0
+    }
+}
