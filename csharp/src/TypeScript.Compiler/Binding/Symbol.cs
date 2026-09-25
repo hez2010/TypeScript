@@ -124,6 +124,7 @@ public sealed class NodeBinding
 
     private Dictionary<string, Symbol>? locals;
     private IReadOnlyDictionary<string, Symbol>? localsView;
+    internal bool HasLocals => locals is not null;
     public IReadOnlyDictionary<string, Symbol> Locals => localsView ?? ReadOnlyDictionary<string, Symbol>.Empty;
 }
 

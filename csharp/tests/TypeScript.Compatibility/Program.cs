@@ -143,6 +143,12 @@ internal static class Program
                     $"{CheckerVisibilityTests.Safety().GetAwaiter().GetResult()} declaration visibility/alias/rollback assertions; depth 20000");
                 return 0;
             }
+            if (args is ["--checker-symbol-chains-safety"])
+            {
+                Console.WriteLine(
+                    $"{CheckerSymbolChainTests.Safety().GetAwaiter().GetResult()} accessible-chain identity/qualification/rollback assertions; depth 20000");
+                return 0;
+            }
             if (args is ["--checker-program-safety"])
             {
                 CheckerProgramTests.Safety().GetAwaiter().GetResult();

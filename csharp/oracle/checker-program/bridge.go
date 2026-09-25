@@ -13,6 +13,51 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/jsnum"
 )
 
+func (c *Checker) csharpSymbolChains(nodes []*ast.Node, nodeIDs map[*ast.Node]int, sid func(*ast.Symbol) int) []any {
+	targets := []*ast.Symbol{}
+	seen := map[*ast.Symbol]bool{}
+	locations := []*ast.Node{nil}
+	for _, node := range nodes {
+		file := ast.GetSourceFileOfNode(node)
+		if file.FileName() != "/project/globals.d.ts" && ast.IsDeclaration(node) {
+			if symbol := c.getSymbolOfDeclaration(node); symbol != nil && !seen[symbol] {
+				seen[symbol] = true
+				targets = append(targets, symbol)
+			}
+		}
+		if strings.HasPrefix(file.FileName(), "/project/main.") {
+			switch node.Kind {
+			case ast.KindSourceFile, ast.KindBlock, ast.KindModuleDeclaration, ast.KindClassDeclaration, ast.KindClassExpression, ast.KindInterfaceDeclaration, ast.KindFunctionDeclaration, ast.KindFunctionExpression, ast.KindArrowFunction:
+				locations = append(locations, node)
+			}
+		}
+	}
+	if global := c.globals["globalValue"]; global != nil {
+		targets = append(targets, global)
+	}
+	rows := []any{}
+	for _, location := range locations {
+		for _, target := range targets {
+			for _, meaning := range []ast.SymbolFlags{ast.SymbolFlagsValue, ast.SymbolFlagsType, ast.SymbolFlagsNamespace} {
+				for _, externalOnly := range []bool{false, true} {
+					targetID := sid(target)
+					chain := c.GetAccessibleSymbolChain(target, location, meaning, externalOnly)
+					var result any
+					if len(chain) > 0 {
+						ids := []int{}
+						for _, symbol := range chain {
+							ids = append(ids, sid(symbol))
+						}
+						result = ids
+					}
+					rows = append(rows, []any{nodeIDs[location], targetID, uint32(meaning), externalOnly, result})
+				}
+			}
+		}
+	}
+	return rows
+}
+
 func (c *Checker) csharpVisibilityQueries(nodes []*ast.Node, nodeIDs map[*ast.Node]int, sid func(*ast.Symbol) int) []any {
 	type entry struct {
 		node               *ast.Node
@@ -189,7 +234,7 @@ func (c *Checker) csharpContextQueries(nodes []*ast.Node, nodeIDs map[*ast.Node]
 	return rows, graph
 }
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool, symbolLocations bool, documentationSymbols bool, scopeServices bool, contextQueries bool, declarationVisibility bool) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool, symbolLocations bool, documentationSymbols bool, scopeServices bool, contextQueries bool, declarationVisibility bool, symbolChains bool) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -393,6 +438,10 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 				nodeIDs[c.getTypeOnlyAliasDeclaration(symbol)], nodeIDs[c.getTypeOnlyAliasDeclarationEx(symbol, ast.SymbolFlagsValue)],
 			})
 		}
+	}
+	var chainRows []any
+	if symbolChains {
+		chainRows = c.csharpSymbolChains(nodes, nodeIDs, sid)
 	}
 	var visibilityRows []any
 	if declarationVisibility {
@@ -1133,6 +1182,9 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	}
 	if declarationVisibility {
 		result["visibilityQueries"] = visibilityRows
+	}
+	if symbolChains {
+		result["symbolChainQueries"] = chainRows
 	}
 	if documentationSymbols {
 		result["documentationSymbolQueries"] = documentationQueries

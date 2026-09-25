@@ -1,0 +1,6 @@
+{
+    "retainedConfigurations": 108,
+    "previousCandidateHash": "aea1264b02744aa3ee93ab800a1c74b675fc07c953d953074b163519474881d4",
+    "currentCandidateHash": "ce8ee361a2f968766dba7505c00ce1a4c673637616c2947363ce25890a9f593c",
+    "reason": "Only safety tests and their command dispatch changed after the exact comparison. The product and query serializer are unchanged; new multi-hop re-export inputs run separately."
+}

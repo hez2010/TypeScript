@@ -390,6 +390,7 @@ internal static class CheckerProgramTests
         checks += await CheckerQueryTests.ScopeSafety();
         checks += await CheckerContextQueryTests.Safety();
         checks += await CheckerVisibilityTests.Safety();
+        checks += await CheckerSymbolChainTests.Safety();
         Console.WriteLine($"{checks} program/checker ownership assertions; interface and scope depth 20000");
     }
 
@@ -1002,6 +1003,8 @@ internal static class CheckerProgramTests
             }
             writer.WriteEndArray();
         }
+        if (input.TryGetProperty("symbolChains", out var symbolChainOption) && symbolChainOption.GetBoolean())
+            await CheckerSymbolChainTests.WriteAsync(writer, nodes, typeHost!, SymbolId, Node);
         if (input.TryGetProperty("declarationVisibility", out var visibilityOption) && visibilityOption.GetBoolean())
             await CheckerVisibilityTests.WriteAsync(writer, nodes, typeHost!, SymbolId, Node);
         if (input.TryGetProperty("contextQueries", out var contextQueryOption) && contextQueryOption.GetBoolean())

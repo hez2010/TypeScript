@@ -16,7 +16,8 @@ const symbolLocations = process.argv.includes("--symbols");
 const scopeServices = process.argv.includes("--scopes");
 const contextQueries = process.argv.includes("--contexts");
 const declarationVisibility = process.argv.includes("--visibility");
-const output = path.join(root, `built/csharp/checker-${declarationVisibility ? "declaration-visibility" : contextQueries ? "context-queries" : scopeServices ? "scope-services" : symbolLocations ? "symbol-locations" : "locations"}`);
+const symbolChains = process.argv.includes("--chains");
+const output = path.join(root, `built/csharp/checker-${symbolChains ? "symbol-chains" : declarationVisibility ? "declaration-visibility" : contextQueries ? "context-queries" : scopeServices ? "scope-services" : symbolLocations ? "symbol-locations" : "locations"}`);
 const option = name => process.argv[process.argv.indexOf(name) + 1];
 const dotnet = process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, "dotnet.exe") : "dotnet";
 const dll = path.join(root, "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll");
@@ -160,12 +161,34 @@ function f(value){return value;}
 class C { /** @private */ secret=1; /** @protected */ field=1; public=1; }`,
     });
 }
+if (symbolChains) {
+    Object.assign(fixtures, {
+        chainAliases: `import * as Long from "./dep"; import {Deep} from "./dep"; import Root=require("./dep");
+import Local=Deep; import Short=Deep.Member; let value:Deep.Member; function f(Short:number){let value:Deep.Member;}`,
+        chainShadow: `namespace N {export class Member{} export const value=1;} import A=N; import B=N;
+function f(N:number,A:string){let value:B.Member;} function g(globalValue:string){globalThis.globalValue;}`,
+        chainClassNames: `const outer=class Self<T>{method(value:Self<T>){const inner=class Inner<U>{value!:Self<T>;};return inner;}};`,
+        chainReexports: `import * as All from "./dep"; export * as Forward from "./dep"; export {named as Alias} from "./dep";
+namespace N {export import Internal=All.Deep;} import Internal=N.Internal; let member:Internal.Member;`,
+        chainCycles: `import A=B; import B=A; namespace N {export import C=D; export import D=C;} export {A,B};`,
+        chainMerged: `interface Shared {value:number;} namespace Shared {export const value=1;} const c:Shared={value:1};
+namespace N {export interface T{a:number;}} namespace N {export interface T{b:string;}} import Alias=N; let merged:Alias.T;`,
+        chainTypeOnly: `import type {Shape} from "./dep"; import type * as Types from "./dep"; import type Alias=Types.Deep;
+function f<Shape>(value:Shape){let other:Types.Shape;} let member:Alias.Member;`,
+        chainDeepReexports: `import * as Surface from "./barrel2"; import Root=require("./barrel2");
+let value=Surface.next.nested.named; function shadow(next:number,nested:number){return Surface.next.nested.named;}`,
+    });
+}
 const inputs = [];
 for (const [name, source] of Object.entries(fixtures)) {
     for (const strict of [false, true]) {
         for (const concurrency of [1, 4]) {
-            const files = { "/project/globals.d.ts": library, [`/project/main.${name === "visibilityDts" ? "d.ts" : name.startsWith("jsx") ? "tsx" : name.startsWith("jsdoc") ? "js" : "ts"}`]: source, "/project/dep.ts": "export interface Shape {value:number;} export const named=1; export default class Default { value=1; }" };
-            inputs.push({ name: `${name}:${strict}:${concurrency}`, files: Object.fromEntries(Object.entries(files).map(([name, text]) => [name, Buffer.from(text).toString("base64")])), roots: Object.keys(files), options: { strict, target: "esnext", module: "esnext", moduleResolution: "bundler", jsx: "preserve", ...name.startsWith("jsdoc") ? { allowJs: true, checkJs: true } : {} }, typeNodes: true, ...declarationVisibility ? { declarationVisibility: true } : contextQueries ? { contextQueries: true } : scopeServices ? { scopeServices: true } : symbolLocations ? { symbolLocations: true, ...name.startsWith("jsdoc") ? { documentationSymbols: true } : {} } : { locations: true }, concurrency });
+            const files = { "/project/globals.d.ts": library + (symbolChains ? "declare const globalValue:number;" : ""), [`/project/main.${name === "visibilityDts" ? "d.ts" : name.startsWith("jsx") ? "tsx" : name.startsWith("jsdoc") ? "js" : "ts"}`]: source, "/project/dep.ts": "export interface Shape {value:number;} export const named=1; export default class Default { value=1; }" + (symbolChains ? " export namespace Deep {export class Member {value=1;}}" : "") };
+            if (name === "chainDeepReexports") {
+                files["/project/barrel.ts"] = "export * as nested from './dep'; export * as loop from './barrel2';";
+                files["/project/barrel2.ts"] = "export * as next from './barrel';";
+            }
+            inputs.push({ name: `${name}:${strict}:${concurrency}`, files: Object.fromEntries(Object.entries(files).map(([name, text]) => [name, Buffer.from(text).toString("base64")])), roots: Object.keys(files), options: { strict, target: "esnext", module: "esnext", moduleResolution: "bundler", jsx: "preserve", ...name.startsWith("jsdoc") ? { allowJs: true, checkJs: true } : {} }, typeNodes: true, ...symbolChains ? { symbolChains: true } : declarationVisibility ? { declarationVisibility: true } : contextQueries ? { contextQueries: true } : scopeServices ? { scopeServices: true } : symbolLocations ? { symbolLocations: true, ...name.startsWith("jsdoc") ? { documentationSymbols: true } : {} } : { locations: true }, concurrency });
         }
     }
 }
@@ -226,13 +249,13 @@ for (const input of selected) {
         candidateError = String(error);
         candidateFailures++;
     }
-    if (candidate) queries += (candidate.visibilityQueries ?? candidate.contextQueries ?? candidate.serviceQueries ?? candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
+    if (candidate) queries += (candidate.symbolChainQueries ?? candidate.visibilityQueries ?? candidate.contextQueries ?? candidate.serviceQueries ?? candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
     results.push({ input, reference, candidate, referenceError, candidateError });
     if (referenceError || candidateError) {
         failures.push({ name: input.name, referenceError, candidateError });
         continue;
     }
-    comparedQueries += (candidate.visibilityQueries ?? candidate.contextQueries ?? candidate.serviceQueries ?? candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
+    comparedQueries += (candidate.symbolChainQueries ?? candidate.visibilityQueries ?? candidate.contextQueries ?? candidate.serviceQueries ?? candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
     try {
         assert.deepStrictEqual(candidate, reference);
     }
@@ -272,6 +295,19 @@ if (declarationVisibility) {
     const phases = Array(5).fill(0);
     for (const result of results) for (const record of result.candidate?.visibilityQueries ?? []) phases[record[0]]++;
     summary.visibilityRecords = { initial: phases[0], afterPrecalculation: phases[1], aliasRetention: phases[2], afterRetention: phases[3], afterRepeatedPrecalculation: phases[4] };
+}
+if (symbolChains) {
+    let found = 0, absent = 0, longest = 0;
+    for (const result of results) {
+        for (const record of result.candidate?.symbolChainQueries ?? []) {
+            if (record[4] === null) absent++;
+            else {
+                found++;
+                longest = Math.max(longest, record[4].length);
+            }
+        }
+    }
+    summary.chains = { found, absent, longest };
 }
 if (contextQueries) {
     const counts = Array(8).fill(0);

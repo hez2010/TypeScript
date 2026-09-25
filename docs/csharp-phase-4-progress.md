@@ -13,7 +13,7 @@ These comparisons cover source graphs and diagnostic codes. **94.9% matching on 
 | Execute active corpus and match source graphs | Complete: 13,446 configurations |
 | Match semantic diagnostic codes | 12,757 match; 689 differ |
 | Match diagnostic text, locations and related information | Incomplete: detailed records match in 2,054 of 3,430 selected configurations, including 1,383 with nonempty semantic diagnostics; the remaining corpus has not been compared at this level |
-| Complete type/symbol comparisons, type display, node builders, accessibility and emit-resolver APIs | Incomplete; query families and declaration visibility have fixture comparisons; full accessibility, display/node builders and emit-resolver coverage remain open |
+| Complete type/symbol comparisons, type display, node builders, accessibility and emit-resolver APIs | Incomplete; query families, declaration visibility and accessible symbol chains have fixture comparisons; full accessibility results, display/node builders and emit-resolver coverage remain open |
 | Validate actual parallel checker scheduling | Incomplete; reference-mode corpus agreement is a narrower check |
 | Meet complete semantic workload memory/performance budgets | Incomplete |
 | Verify warning-free NativeAOT publishing | Deferred until final completion; no native execution |
@@ -1024,6 +1024,18 @@ Release comparison passes **all 112 configurations and 24,832 records**, coverin
 **Thirty-three safety assertions pass**, covering alias-chain retention, queries without alias marking, cancellation after marking multiple declarations, rollback after a callback throws, retry, idempotent precalculation, synthetic/foreign nodes and a **20,000-level** parent chain. The final Release build has zero warnings and errors. The comparison passed on its first run and was retained after adding safety tests. Earlier query, source-corpus and repository results were reused because existing checker paths are unchanged. Formatting preserves tokens, comments and syntax in five C# files. The frozen emit-resolver source matches Git blob `9bc590fd179bfb8f44b75350ac296adf55709945`.
 
 Evidence: [visibility comparisons](../csharp/compatibility/evidence/phase4-declaration-visibility.json) and [Release validation](../csharp/compatibility/evidence/phase4-declaration-visibility-validation.json). The managed runner is `node csharp/tools/checker-locations.mjs --visibility`. This is the visibility foundation for accessibility and emission; accessible symbol chains, complete symbol-accessibility results and the rest of the emit resolver remain open. NativeAOT verification remains deferred until phase-4 completion.
+
+## Accessible symbol chains
+
+`GetAccessibleSymbolChainAsync` now searches the reference's scope tables for direct names and usable aliases. The lookup honors shadowing, qualification, external-alias restrictions, namespace re-exports, UMD restrictions, named class expressions and the `globalThis` fallback. Competing chains prefer shorter paths and then the reference's declaration order. Member lookup uses raw type-parameter tables without forcing late-bound names.
+
+Local, member, raw-export and resolved-export tables have distinct identities for cycle detection and alias caching. Positive and negative chain results are cached by the first relevant scope, meaning and alias restriction. Returned chains are immutable. Exceptions and cancellation restore cache entries created or replaced by the request, and active traversal markers are removed in `finally`. Recursive alias traversal uses the existing runtime-async stack boundary.
+
+Release comparison passes **all 112 configurations and 60,216 records**, including the complete exported symbol/type graphs and diagnostic codes. It compares **17,340 found chains** and **42,876 absent chains**, in value/type/namespace meanings with and without external-alias restrictions. Coverage includes four-part qualification through cyclic namespace re-exports, shorter aliases, shadowed imports, merged symbols, type-only imports and class self references. The original 108 results were reused when four multi-hop configurations were added.
+
+**Eighteen safety assertions pass**, covering chain choice and identity, immutable results, qualification, `globalThis`, class-expression names, callback/cancellation rollback and retry, foreign syntax and a **20,000-level** scope chain. The Release build has zero warnings and errors. Existing semantic/query results and the unchanged repository suite were retained. Formatting preserves tokens, comments and syntax in five C# files. The frozen accessibility source matches Git blob `d19806d50599d98d89e0908aa8ac60db15dbc369`.
+
+Evidence: [chain comparisons](../csharp/compatibility/evidence/phase4-symbol-chains.json), [retained results](../csharp/compatibility/evidence/phase4-symbol-chains-reuse.json), and [Release validation](../csharp/compatibility/evidence/phase4-symbol-chains-validation.json). The managed runner is `node csharp/tools/checker-locations.mjs --chains`. Full symbol-accessibility results still require alternative-container discovery and diagnostic naming; those, complete display/node builders and the remaining emit resolver stay open. NativeAOT verification remains deferred until final phase-4 completion.
 
 ## Remaining completion work
 

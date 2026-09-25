@@ -1,0 +1,86 @@
+{
+    "timestamp": "2026-09-25T03:40:43.279Z",
+    "configuration": "Release",
+    "managed": true,
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "scope": "Accessible symbol chains; full symbol accessibility and emit resolver remain incomplete",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-symbol-chains-build.log",
+        "sha256": "c973a71ac7818786760069f6c723ec7608d7216d8cce6f7339c1274546145de0"
+    },
+    "candidateSha256": "8b6a66ac507fbbd0171f5e5e381f83c2ebd1e980e3b602283489543206d03b23",
+    "compilerSha256": "6ab12ab4af7c61569a3f5d676455d5adc3171c10fbd46b075355c1975a43ad6b",
+    "comparisons": {
+        "configurations": 112,
+        "queries": 60216,
+        "comparedQueries": 60216,
+        "exact": 112,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "6502049c895bf9f02fbe4e33d742afd8c1969dfeb9e37119da885ee37255d323",
+        "candidateHash": "ce8ee361a2f968766dba7505c00ce1a4c673637616c2947363ce25890a9f593c",
+        "inputHash": "179f897a4eb341fc06182bbd343b7fd839685ff1531f5e8bc02b0298feca051a",
+        "resultHash": "8ac6caa2d6184f867ff53659b9869f5eade4fb9a27d93d22771377742ee731d1",
+        "managed": true,
+        "chains": {
+            "found": 17340,
+            "absent": 42876,
+            "longest": 4
+        }
+    },
+    "safety": {
+        "assertions": 18,
+        "scopeDepth": 20000,
+        "log": "logs/csharp-phase4-symbol-chains-safety.log",
+        "checks": [
+            "shortest chain and declaration order",
+            "external aliases and shadowing",
+            "globalThis fallback",
+            "class-expression name scope",
+            "immutable chain cache values",
+            "exception and cancellation cache rollback",
+            "retry and foreign-node rejection",
+            "deep enclosing scopes"
+        ]
+    },
+    "formatting": {
+        "csharpFiles": 5,
+        "libraryConfigurations": 2,
+        "tokensCommentsAndSyntaxIdentical": true,
+        "log": "logs/csharp-phase4-symbol-chains-format.log",
+        "dotnetWhitespaceExitCode": 0,
+        "proofSha256": "0b97e14a300eeb76ae7a73c970e3539f0f40c9c09ab8e73a48ce5afac95d0adf",
+        "queryInputsUnchanged": true
+    },
+    "reference": {
+        "revision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "accessibilityBlob": "d19806d50599d98d89e0908aa8ac60db15dbc369",
+        "frozenSourceMatches": true
+    },
+    "reuse": {
+        "record": "phase4-symbol-chains-reuse.json",
+        "retainedConfigurations": 108,
+        "newConfigurations": 4,
+        "priorQueryAndCorpusRecord": "phase4-context-queries-validation.json",
+        "semanticCorpus": "Existing source-checking and query implementations are unchanged; the new HasLocals property only exposes whether a binding table exists.",
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ]
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "phase4Complete": false,
+    "syntaxCheck": {
+        "command": "node --check csharp/tools/checker-locations.mjs",
+        "exitCode": 0
+    }
+}
