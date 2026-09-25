@@ -1,0 +1,18 @@
+{
+    "retainedCandidates": 154,
+    "replayedExistingCandidates": 36,
+    "retainedReferences": 190,
+    "previousCandidateHash": "a185561f0959abf631516c9a321aa52563a26ec6cf715dbcb9e467d822c692dc",
+    "candidateHash": "3b6e346b583d42152e3763204840f036b53dabcc96c86d990bc73d9bcd27597c",
+    "previousOracleHash": "bf97d8dbec3adf1b53db66146791f7d463b06d1878043621486bc25a4d8ca029",
+    "referenceHash": "14ba37544cd7420637a80f59377109a6b00d2bcffbb564e4c641e03b0f043620",
+    "reason": "The new source-context input defaults to the previous behavior, so all existing reference records remain valid. Original literal/identifier text now follows the reference; previously equal spellings remain identical. Other corrections affect the recorded trailing-comma, spacing, namespace, tuple and source-file mismatches. Numeric property-access cases are also replayed because preserving literal spelling changes dot insertion. The other 154 passing cases do not change output under those rules.",
+    "correction": {
+        "retainedCandidates": 384,
+        "replayedCandidates": 7,
+        "retainedReferences": 391,
+        "previousCandidateHash": "3b6e346b583d42152e3763204840f036b53dabcc96c86d990bc73d9bcd27597c",
+        "candidateHash": "de5b32f798598132da1241f8d79f02b5352497a2951f8bed491e105b831fd2f4",
+        "reason": "The remaining fixes affect sourceless no-substitution template escaping, empty tuple spacing and empty source-file spacing. Other retained cases keep their output; source-backed templates still use original text, and the existing escaped-template case has the same canonical spelling. Harness additions do not change the printer comparison."
+    }
+}

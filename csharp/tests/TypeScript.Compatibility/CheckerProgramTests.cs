@@ -1007,7 +1007,10 @@ internal static class CheckerProgramTests
         if (input.TryGetProperty("symbolDisplay", out var symbolDisplayOption) && symbolDisplayOption.GetBoolean())
             await CheckerSymbolDisplayTests.WriteAsync(writer, nodes, typeHost!, SymbolId, Node);
         if (input.TryGetProperty("symbolFormats", out var symbolFormatsOption) && symbolFormatsOption.GetBoolean())
-            await CheckerSymbolDisplayTests.WriteAsync(writer, nodes, typeHost!, SymbolId, Node, formats: true);
+            await CheckerSymbolDisplayTests.WriteAsync(writer, nodes, typeHost!, SymbolId, Node, formats: true,
+                formatFlags: input.TryGetProperty("symbolFormatFlags", out var formatFlags)
+                    ? formatFlags.EnumerateArray().Select(v => v.GetInt32()).ToArray()
+                    : null);
         if (input.TryGetProperty("accessibility", out var accessibilityOption) && accessibilityOption.GetBoolean())
             await CheckerAccessibilityTests.WriteAsync(writer, nodes, typeHost!, SymbolId, Node);
         if (input.TryGetProperty("symbolChains", out var symbolChainOption) && symbolChainOption.GetBoolean())

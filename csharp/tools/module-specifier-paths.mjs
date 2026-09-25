@@ -16,7 +16,8 @@ const packageMaps = process.argv.includes("--packages");
 const nodeModules = process.argv.includes("--node-modules");
 const generation = process.argv.includes("--generation");
 const programHost = process.argv.includes("--program");
-const output = path.join(root, `built/csharp/module-specifier-${programHost ? "program" : generation ? "generation" : nodeModules ? "node-modules" : packageMaps ? "packages" : "paths"}`);
+const printNodes = process.argv.includes("--print");
+const output = path.join(root, `built/csharp/module-specifier-${printNodes ? "node-printer" : programHost ? "program" : generation ? "generation" : nodeModules ? "node-modules" : packageMaps ? "packages" : "paths"}`);
 const hash = value => createHash("sha256").update(value).digest("hex");
 const dotnet = process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, "dotnet.exe") : "dotnet";
 const oracle = path.join(root, "built/csharp/module-specifier-oracle.exe");
@@ -155,6 +156,115 @@ if (programHost) {
         });
     }
     for (const fixture of programCases) for (const sensitive of [true, false]) for (const concurrency of [1, 4]) add("program", { ...fixture, sensitive, concurrency, options: { noLib: true, ...fixture.options } });
+}
+if (printNodes) {
+    cases.length = 0;
+    const expressions = [
+        "'text'",
+        '"é中😀"',
+        '"\\0"',
+        '"\\0' + '1"',
+        '"\\uD800"',
+        '"quote\\"slash\\\\"',
+        "0x10",
+        "1_000",
+        "0b101",
+        "12n",
+        "/a+/gi",
+        "true",
+        "null",
+        "this",
+        "new.target",
+        "import.meta.url",
+        "a.b.c",
+        "a?.b?.[x]",
+        "a[1]",
+        "1..toString()",
+        "f(a,...rest)",
+        "f?.<T>(x)",
+        "new C",
+        "new C<T>()",
+        "new C(x)",
+        "tag`raw\\n${a+1}tail`",
+        "`plain\\n`",
+        "`not \\${a}`",
+        "(a + b) * c",
+        "a ** b ** c",
+        "a ? b : c",
+        "(a,b)",
+        "x = y + 1",
+        "+ +x",
+        "- -x",
+        "++x",
+        "x--",
+        "delete a.x",
+        "typeof a",
+        "void 0",
+        "await f()",
+        "a!",
+        "a as T",
+        "a satisfies T",
+        "<T>a",
+        "[1,,3,...rest]",
+        "[]",
+        "[1,]",
+        "({a:1,b,...rest})",
+        "({})",
+        "({a:1,})",
+        "({get x(){return 1;},set x(v){this.y=v;},async method<T>(x:T){return x;}})",
+        "(x=>x)",
+        "((x)=>x)",
+        "(async x=>x)",
+        "(<T>(x:T):T=>x)",
+        "(()=>({x:1}))",
+        "(function named<T>(x:T):T{return x;})",
+        "(function*(){yield 1;yield* rest;})",
+        "(class C extends Base implements I {static x=1; #private=2; constructor(public value:number){} method(){return this.value;} static { let x=1; }})",
+        "(()=>{let a=1; const {x:y=2,...rest}=obj; const [first,,last]=arr; if(a){return y;}else return last;})()",
+        "(()=>{for(let i=0;i<2;i++){continue;}for(const k in obj){}for(const v of arr){}while(x)break;do{x--;}while(x);return 1;})()",
+        "(()=>{switch(x){case 1:case 2:return 2;default:return 0;}})()",
+        "(()=>{try{throw 1;}catch(e){return e;}finally{debugger;}})()",
+        "(()=>{outer:for(;;){break outer;};;return 1;})()",
+        "(()=>{namespace A.B {export const x=1;} type T=number; interface I{x:T;} enum E{A=1,B} return A.B.x;})()",
+        "(()=>{using a=f();await using b=f();return a;})()",
+    ];
+    const types = [
+        "any",
+        "unknown",
+        "never",
+        "this",
+        "typeof x",
+        "typeof f<T>",
+        '"é" | 1 | null',
+        "string[]",
+        "(A|B)[]",
+        "A & B",
+        "[first:number,second?:string,...rest:boolean[]]",
+        "readonly [1,2]",
+        "{readonly x?:number; method<T>(x:T):T; (x:number):string; new(x:number):C; [key:string]:unknown;}",
+        "<T extends object=Record<string,unknown>>(x:T)=>keyof T",
+        "abstract new<T>(x:T)=>C<T>",
+        "T extends infer U extends string ? U : never",
+        "keyof T[K]",
+        "unique symbol",
+        "{+readonly [K in keyof T as `get${K & string}`]-?:T[K]}",
+        "import('pkg').T<A>",
+        "typeof import('pkg', {with:{type:'json'}}).value",
+        "`${T}-${K}`",
+        "(x:unknown)=>asserts x is string",
+    ];
+    for (const source of expressions) for (const neverAsciiEscape of [false, true]) add("print", { source: `class C { [${source}]: unknown; }`, printMode: "computed", neverAsciiEscape });
+    for (const type of types) for (const neverAsciiEscape of [false, true]) add("print", { source: `type T = ${type};`, printMode: "types", neverAsciiEscape });
+    for (const expression of ['<div title="é &amp; text" value={x} {...props}/>', "<><span>hello</span>{x}</>", '<ns:tag ns:value="x"/>']) for (const neverAsciiEscape of [false, true]) add("print", { source: `class C {[${expression}]:unknown;}`, fileName: "/project/main.tsx", printMode: "computed", neverAsciiEscape });
+    for (const source of ["import type A, {type B as C,D} from 'pkg' with {type:'json'}; export type {C};", "import X=require('pkg'); export=X;", "export * as ns from 'pkg'; export {X as Y} from 'other';", "declare global {interface I{}} namespace A.B {export const x=1;}"]) add("print", { source, printMode: "source", neverAsciiEscape: true });
+    cases.push(...cases.map(input => ({ ...input, withoutSource: true })));
+    for (const neverAsciiEscape of [false, true]) {
+        for (const withoutSource of [false, true]) {
+            add("print", { source: "class C {[\\u0061]:unknown;[(x => x)]:unknown;}", printMode: "computed", neverAsciiEscape, withoutSource });
+            add("print", { source: "type T=[];", printMode: "types", neverAsciiEscape, withoutSource });
+        }
+    }
+    for (const source of ["", "'use strict'; let x=1;", "#!/usr/bin/env node\nlet x=1;"]) add("print", { source, printMode: "source", neverAsciiEscape: true });
 }
 const selected = process.argv.includes("--filter") ? cases.filter(c => c.operation === option("--filter")) : cases;
 await writeFile(path.join(output, "inputs.json"), JSON.stringify(selected));

@@ -172,7 +172,7 @@ internal static class CheckerSymbolDisplayTests
     }
 
     internal static async Task WriteAsync(Utf8JsonWriter writer, SyntaxNode[] nodes, Checker checker,
-        Func<Symbol?, int> symbolId, Func<SyntaxNode?, int> nodeId, bool formats = false)
+        Func<Symbol?, int> symbolId, Func<SyntaxNode?, int> nodeId, bool formats = false, IReadOnlyList<int>? formatFlags = null)
     {
         var targets = new List<Symbol>();
         var seen = new HashSet<Symbol>();
@@ -200,7 +200,7 @@ internal static class CheckerSymbolDisplayTests
                 {
                     if (formats)
                     {
-                        foreach (var flags in new[] { 0, 1, 2, 6, 8, 10, 12, 14, 16, 17, 32, 34, 36, 38, 40, 42, 44, 46, 64 })
+                        foreach (var flags in formatFlags ?? [0, 1, 2, 6, 8, 10, 12, 14, 16, 17, 32, 34, 36, 38, 40, 42, 44, 46, 64])
                         {
                             writer.WriteStartArray();
                             writer.WriteNumberValue(nodeId(location));

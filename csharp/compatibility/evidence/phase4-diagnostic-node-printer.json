@@ -1,0 +1,19 @@
+{
+    "cases": 391,
+    "exact": 391,
+    "failed": 0,
+    "byOperation": {
+        "print": 391
+    },
+    "candidateExecuted": 7,
+    "candidateReused": 384,
+    "referenceExecuted": 0,
+    "referenceReused": 391,
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "oracleHash": "14ba37544cd7420637a80f59377109a6b00d2bcffbb564e4c641e03b0f043620",
+    "candidateHash": "de5b32f798598132da1241f8d79f02b5352497a2951f8bed491e105b831fd2f4",
+    "inputHash": "ceb06d5603964ee69f9545b878970c660fe2d915f32a3d6939aead8693033ce7",
+    "referenceHash": "c5bd0b844e0b776d93a3d0ee1f259c33d5c3029497e347771a8894420ce4d696",
+    "outputHash": "c5bd0b844e0b776d93a3d0ee1f259c33d5c3029497e347771a8894420ce4d696",
+    "managed": true
+}

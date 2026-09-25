@@ -11,6 +11,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/modulespecifiers"
 	"github.com/microsoft/TypeScript/tsc/internal/packagejson"
 	"github.com/microsoft/TypeScript/tsc/internal/parser"
+	"github.com/microsoft/TypeScript/tsc/internal/printer"
 	"github.com/microsoft/TypeScript/tsc/internal/symlinks"
 	"github.com/microsoft/TypeScript/tsc/internal/tsoptions"
 	"github.com/microsoft/TypeScript/tsc/internal/tsoptions/tsoptionstest"
@@ -23,6 +24,7 @@ func main() {
 	output := json.NewEncoder(os.Stdout)
 	for lines.Scan() {
 		var input struct {
+			WithoutSource                                                                                            bool
 			Operation, Source, FileName, Directory, Preference, OldSpecifier, Target, SourceDirectory, BaseDirectory string
 			Sensitive                                                                                                bool
 			DefaultMode, Mode                                                                                        core.ResolutionMode
@@ -38,6 +40,8 @@ func main() {
 			Imports, PreferTypeScript                                                                                bool
 			PackageNameOnly, Redirect                                                                                bool
 			GlobalTypingsCache                                                                                       string
+			PrintMode                                                                                                string
+			NeverAsciiEscape                                                                                         bool
 			ReferenceOutput, OriginalSource, Relative, ExcludedPrefix                                                string
 			Redirects                                                                                                []string
 			Symlinks                                                                                                 map[string][]string
@@ -48,6 +52,48 @@ func main() {
 		}
 		if err := json.Unmarshal(lines.Bytes(), &input); err != nil {
 			panic(err)
+		}
+		if input.Operation == "print" {
+			file := parser.ParseSourceFile(ast.SourceFileParseOptions{FileName: input.FileName}, input.Source, core.EnsureScriptKindFromFileName(input.FileName))
+			p := printer.NewPrinter(printer.PrinterOptions{RemoveComments: true, OmitTrailingSemicolon: true, NeverAsciiEscape: input.NeverAsciiEscape}, printer.PrintHandlers{}, printer.NewEmitContext())
+			writer, release := printer.GetSingleLineStringWriter()
+			rows := []any{}
+			var visit func(*ast.Node)
+			visit = func(node *ast.Node) {
+				if node == nil {
+					return
+				}
+				var target *ast.Node
+				switch input.PrintMode {
+				case "source":
+					if node.Kind == ast.KindSourceFile {
+						target = node
+					}
+				case "types":
+					if ast.IsTypeAliasDeclaration(node) {
+						target = node.Type()
+					}
+				default:
+					if ast.IsComputedPropertyName(node) {
+						target = node
+					}
+				}
+				if target != nil {
+					var context *ast.SourceFile = file
+					if input.WithoutSource {
+						context = nil
+					}
+					p.Write(target, context, writer, nil)
+					rows = append(rows, []any{int(target.Kind), target.Pos(), target.End(), writer.String()})
+				}
+				node.ForEachChild(func(child *ast.Node) bool { visit(child); return false })
+			}
+			visit(file.AsNode())
+			release()
+			if err := output.Encode(rows); err != nil {
+				panic(err)
+			}
+			continue
 		}
 		if input.Operation == "program" {
 			if err := output.Encode(programSpecifiers(lines.Bytes())); err != nil {

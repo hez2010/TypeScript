@@ -1,0 +1,114 @@
+{
+    "timestamp": "2026-09-25T07:10:32.9017608Z",
+    "configuration": "Release",
+    "managed": true,
+    "scope": "Computed-property symbol writing and its iterative single-line AST printer; type-argument/parameter construction and general type-node serialization remain incomplete",
+    "build": {
+        "log": "logs/csharp-phase4-node-printer-build.log",
+        "errors": 0,
+        "warnings": 0,
+        "sha256": "b378cbf7db15faf49faf25ea2745ea5f32d55a009611b0c8e220b99ce586b4e2",
+        "exitCode": 0
+    },
+    "candidateSha256": "747a658e56cc04892ab73771dc7dc8d21019a7e69f7fbcb3b9cfca3517fb9d8f",
+    "compilerSha256": "abe08a4c31b8bb03307b38cc80dd1ab122bc9b5574275427aca0d7c86c9e7123",
+    "printerComparisons": {
+        "cases": 391,
+        "exact": 391,
+        "failed": 0,
+        "byOperation": {
+            "print": 391
+        },
+        "candidateExecuted": 7,
+        "candidateReused": 384,
+        "referenceExecuted": 0,
+        "referenceReused": 391,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "oracleHash": "14ba37544cd7420637a80f59377109a6b00d2bcffbb564e4c641e03b0f043620",
+        "candidateHash": "de5b32f798598132da1241f8d79f02b5352497a2951f8bed491e105b831fd2f4",
+        "inputHash": "ceb06d5603964ee69f9545b878970c660fe2d915f32a3d6939aead8693033ce7",
+        "referenceHash": "c5bd0b844e0b776d93a3d0ee1f259c33d5c3029497e347771a8894420ce4d696",
+        "outputHash": "c5bd0b844e0b776d93a3d0ee1f259c33d5c3029497e347771a8894420ce4d696",
+        "managed": true
+    },
+    "computedSymbolComparisons": {
+        "configurations": 32,
+        "queries": 62688,
+        "comparedQueries": 62688,
+        "exact": 32,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "7888058229d5e63761097f3d841c1a1e1ef3d6f2be8f20ac0be0645a4f11128d",
+        "candidateHash": "de5b32f798598132da1241f8d79f02b5352497a2951f8bed491e105b831fd2f4",
+        "inputHash": "da7fa60b82f001f6ee888c9993235719547dda9429caafe36e8a94876a05bc00",
+        "resultHash": "6cf4f6f974b41bc5b9d01c5cf253c6a4008bbda38d7bcccc6481fae08e4d4af2",
+        "managed": true,
+        "symbolFormatFlags": [
+            20,
+            22,
+            28,
+            30,
+            52,
+            54,
+            60,
+            62
+        ]
+    },
+    "safety": {
+        "printerRetained": true,
+        "printerReuseReason": "Final corrections affect templates, empty tuples and empty source files. The safety inputs contain none of these; their code paths remain unchanged.",
+        "computedAssertions": 7,
+        "printerAssertions": 11,
+        "printerLog": "logs/csharp-phase4-node-printer-safety.log",
+        "printerDepth": 20000,
+        "computedLog": "logs/csharp-phase4-computed-symbols-safety.log",
+        "printerCandidateHash": "3b6e346b583d42152e3763204840f036b53dabcc96c86d990bc73d9bcd27597c"
+    },
+    "reference": {
+        "printerBlob": "31547cde51d6483f9dd8197d0a60a07645226774",
+        "utilitiesBlob": "857928ebf9f3aab8a4749c9cd74177e6686c6c41",
+        "nodeBuilderBlob": "5cd58f6ec95f0fe53386fe46d2b3ecf0d2d46d83",
+        "frozenSourcesMatch": true,
+        "revision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8"
+    },
+    "reuse": {
+        "retainedPrinterCandidates": 384,
+        "validatedCommit": "00d370e5b0",
+        "displayRecord": "phase4-symbol-display-validation.json",
+        "retainedPrinterReferences": 391,
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "replayedPrinterCandidates": 7,
+        "reason": "Previously validated modes never set both AllowAnyNodeKind and WriteComputedProps. Their default source-context escaping is unchanged. Backtick escaping is new and is not used by those older symbol display paths. Existing semantic diagnostic callers retain their previous display service.",
+        "formatModesRecord": "phase4-symbol-format-modes-validation.json",
+        "record": "phase4-diagnostic-node-printer-reuse.json",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ]
+    },
+    "formatting": {
+        "csharpFiles": 7,
+        "dotnetWhitespaceExitCode": 0,
+        "log": "logs/csharp-phase4-node-printer-format.log",
+        "tokensCommentsAndSyntaxIdentical": true,
+        "libraryConfigurations": 2,
+        "proofSha256": "7eac095077a450baf91cf518c1731f151f614bb49f96a463adfcf4e3267dafa8",
+        "inputsUnchanged": true
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "phase4Complete": false,
+    "syntaxChecks": [
+        {
+            "exitCode": 0,
+            "command": "node --check csharp/tools/checker-locations.mjs"
+        },
+        {
+            "exitCode": 0,
+            "command": "node --check csharp/tools/module-specifier-paths.mjs"
+        }
+    ]
+}

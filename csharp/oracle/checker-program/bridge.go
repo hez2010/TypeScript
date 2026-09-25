@@ -291,7 +291,7 @@ func (c *Checker) csharpContextQueries(nodes []*ast.Node, nodeIDs map[*ast.Node]
 	return rows, graph
 }
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool, symbolLocations bool, documentationSymbols bool, scopeServices bool, contextQueries bool, declarationVisibility bool, symbolChains bool, accessibility bool, symbolDisplay bool, symbolFormats bool) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool, symbolLocations bool, documentationSymbols bool, scopeServices bool, contextQueries bool, declarationVisibility bool, symbolChains bool, accessibility bool, symbolDisplay bool, symbolFormats bool, symbolFormatValues []SymbolFormatFlags) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -500,10 +500,10 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	var symbolDisplayRows []any
 	var symbolFormatRows []any
 	if symbolFormats {
-		symbolFormatRows = c.csharpSymbolDisplayQueries(nodes, nodeIDs, sid, true)
+		symbolFormatRows = c.csharpSymbolDisplayQueries(nodes, nodeIDs, sid, true, symbolFormatValues)
 	}
 	if symbolDisplay {
-		symbolDisplayRows = c.csharpSymbolDisplayQueries(nodes, nodeIDs, sid, false)
+		symbolDisplayRows = c.csharpSymbolDisplayQueries(nodes, nodeIDs, sid, false, nil)
 	}
 	if accessibility {
 		accessibilityRows = c.csharpAccessibilityQueries(nodes, nodeIDs, sid)
@@ -1368,7 +1368,7 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	return result
 }
 
-func (c *Checker) csharpSymbolDisplayQueries(nodes []*ast.Node, nodeIDs map[*ast.Node]int, sid func(*ast.Symbol) int, formats bool) []any {
+func (c *Checker) csharpSymbolDisplayQueries(nodes []*ast.Node, nodeIDs map[*ast.Node]int, sid func(*ast.Symbol) int, formats bool, formatValues []SymbolFormatFlags) []any {
 	targets := []*ast.Symbol{}
 	seen := map[*ast.Symbol]bool{}
 	locations := []*ast.Node{nil}
@@ -1396,7 +1396,11 @@ func (c *Checker) csharpSymbolDisplayQueries(nodes []*ast.Node, nodeIDs map[*ast
 			}
 			for _, meaning := range meanings {
 				if formats {
-					for _, flags := range []SymbolFormatFlags{0, 1, 2, 6, 8, 10, 12, 14, 16, 17, 32, 34, 36, 38, 40, 42, 44, 46, 64} {
+					values := formatValues
+					if values == nil {
+						values = []SymbolFormatFlags{0, 1, 2, 6, 8, 10, 12, 14, 16, 17, 32, 34, 36, 38, 40, 42, 44, 46, 64}
+					}
+					for _, flags := range values {
 						rows = append(rows, []any{nodeIDs[location], sid(target), uint32(meaning), uint32(flags), c.symbolToStringEx(target, location, meaning, flags)})
 					}
 					continue

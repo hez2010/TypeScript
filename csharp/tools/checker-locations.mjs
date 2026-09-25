@@ -17,10 +17,11 @@ const scopeServices = process.argv.includes("--scopes");
 const contextQueries = process.argv.includes("--contexts");
 const declarationVisibility = process.argv.includes("--visibility");
 const symbolChains = process.argv.includes("--chains");
-const symbolFormats = process.argv.includes("--symbol-formats");
+const computedSymbols = process.argv.includes("--computed-symbols");
+const symbolFormats = process.argv.includes("--symbol-formats") || computedSymbols;
 const symbolDisplay = process.argv.includes("--symbol-display") || symbolFormats;
 const accessibility = process.argv.includes("--accessibility") || symbolDisplay;
-const output = path.join(root, `built/csharp/checker-${symbolFormats ? "symbol-formats" : symbolDisplay ? "symbol-display" : accessibility ? "accessibility" : symbolChains ? "symbol-chains" : declarationVisibility ? "declaration-visibility" : contextQueries ? "context-queries" : scopeServices ? "scope-services" : symbolLocations ? "symbol-locations" : "locations"}`);
+const output = path.join(root, `built/csharp/checker-${computedSymbols ? "computed-symbols" : symbolFormats ? "symbol-formats" : symbolDisplay ? "symbol-display" : accessibility ? "accessibility" : symbolChains ? "symbol-chains" : declarationVisibility ? "declaration-visibility" : contextQueries ? "context-queries" : scopeServices ? "scope-services" : symbolLocations ? "symbol-locations" : "locations"}`);
 const option = name => process.argv[process.argv.indexOf(name) + 1];
 const dotnet = process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, "dotnet.exe") : "dotnet";
 const dll = path.join(root, "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll");
@@ -215,12 +216,13 @@ for (const [name, source] of Object.entries(fixtures)) {
                 files["/project/barrel2.ts"] = "export * as next from './barrel';";
             }
             if (name === "accessibilityExportEquals") files["/project/exported.ts"] = "class Root {} namespace Root {export class Item {value=1;}} export=Root;";
-            inputs.push({ name: `${name}:${strict}:${concurrency}`, files: Object.fromEntries(Object.entries(files).map(([name, text]) => [name, Buffer.from(text).toString("base64")])), roots: Object.keys(files), options: { strict, target: "esnext", module: "esnext", moduleResolution: "bundler", jsx: "preserve", ...name.startsWith("jsdoc") ? { allowJs: true, checkJs: true } : {} }, typeNodes: true, ...symbolFormats ? { symbolFormats: true } : symbolDisplay ? { symbolDisplay: true } : accessibility ? { accessibility: true } : symbolChains ? { symbolChains: true } : declarationVisibility ? { declarationVisibility: true } : contextQueries ? { contextQueries: true } : scopeServices ? { scopeServices: true } : symbolLocations ? { symbolLocations: true, ...name.startsWith("jsdoc") ? { documentationSymbols: true } : {} } : { locations: true }, concurrency });
+            inputs.push({ name: `${name}:${strict}:${concurrency}`, files: Object.fromEntries(Object.entries(files).map(([name, text]) => [name, Buffer.from(text).toString("base64")])), roots: Object.keys(files), options: { strict, target: "esnext", module: "esnext", moduleResolution: "bundler", jsx: "preserve", ...name.startsWith("jsdoc") ? { allowJs: true, checkJs: true } : {} }, typeNodes: true, ...symbolFormats ? { symbolFormats: true, ...computedSymbols ? { symbolFormatFlags: [20, 22, 28, 30, 52, 54, 60, 62] } : {} } : symbolDisplay ? { symbolDisplay: true } : accessibility ? { accessibility: true } : symbolChains ? { symbolChains: true } : declarationVisibility ? { declarationVisibility: true } : contextQueries ? { contextQueries: true } : scopeServices ? { scopeServices: true } : symbolLocations ? { symbolLocations: true, ...name.startsWith("jsdoc") ? { documentationSymbols: true } : {} } : { locations: true }, concurrency });
         }
     }
 }
 const formatFixtures = new Set(["namespaces", "imports", "typeImports", "classes", "functions", "importsCommonJs", "visibilityAliases", "visibilityAmbient", "visibilityExports", "chainShadow", "chainReexports", "chainTypeOnly", "chainClassNames", "displayNames", "displayComputed", "displayAssigned", "accessibilityExportEquals", "jsdocDisplayNames"]);
-const eligible = symbolFormats ? inputs.filter(input => formatFixtures.has(input.name.split(":")[0])) : inputs;
+const computedFixtures = new Set(["displayNames", "displayComputed", "displayAssigned", "jsdocDisplayNames", "classes", "visibilityExports", "accessibilityInstances", "chainClassNames"]);
+const eligible = computedSymbols ? inputs.filter(input => computedFixtures.has(input.name.split(":")[0])) : symbolFormats ? inputs.filter(input => formatFixtures.has(input.name.split(":")[0])) : inputs;
 const selected = process.argv.includes("--filter") ? eligible.filter(input => input.name.includes(option("--filter"))) : eligible;
 await writeFile(path.join(output, "inputs.json"), JSON.stringify(selected, null, 2));
 if (process.argv.includes("--list")) process.exit(0);
@@ -355,7 +357,7 @@ if (symbolDisplay && !symbolFormats) {
     for (const entry of results) for (const row of entry.candidate?.symbolDisplayQueries ?? []) row[0] === 0 ? names++ : accessibilityResults++;
     summary.symbolDisplayRecords = { names, accessibilityResults };
 }
-if (symbolFormats) summary.symbolFormatFlags = [0, 1, 2, 6, 8, 10, 12, 14, 16, 17, 32, 34, 36, 38, 40, 42, 44, 46, 64];
+if (symbolFormats) summary.symbolFormatFlags = computedSymbols ? [20, 22, 28, 30, 52, 54, 60, 62] : [0, 1, 2, 6, 8, 10, 12, 14, 16, 17, 32, 34, 36, 38, 40, 42, 44, 46, 64];
 if (contextQueries) {
     const counts = Array(8).fill(0);
     for (const result of results) for (const record of result.candidate?.contextQueries ?? []) counts[record[0]]++;

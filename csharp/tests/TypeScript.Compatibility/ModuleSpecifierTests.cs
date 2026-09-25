@@ -247,6 +247,35 @@ internal static class ModuleSpecifierTests
             p => Wtf8.Encode(JsonStrings.GetString(p.Value)));
         var fs = new MemoryFileSystem(files, input.GetProperty("sensitive").GetBoolean());
         var source = Parser.ParseSourceFile(new(Text("fileName")), new SourceText(Text("source")));
+        if (Text("operation") == "print")
+        {
+            bool neverAsciiEscape = input.TryGetProperty("neverAsciiEscape", out var never) && never.GetBoolean();
+            bool withoutSource = input.TryGetProperty("withoutSource", out var without) && without.GetBoolean();
+            writer.WriteStartArray();
+            foreach (var node in source.DescendantsAndSelf())
+            {
+                SyntaxNode? printedNode = Text("printMode") switch
+                {
+                    "source" => node is SourceFileNode ? node : null,
+                    "types" => (node as TypeAliasDeclarationNode)?.Type,
+                    _ => node is ComputedPropertyNameNode ? node : null
+                };
+                if (printedNode is null)
+                    continue;
+                writer.WriteStartArray();
+                writer.WriteNumberValue((int)printedNode.Kind);
+                writer.WriteNumberValue(printedNode.Pos);
+                writer.WriteNumberValue(printedNode.End);
+                writer.WriteStringValue(
+                    TypeScript.Compiler.Checking.Checker.PrintDiagnosticNode(
+                        printedNode,
+                        neverAsciiEscape,
+                        sourceFile: withoutSource ? null : source));
+                writer.WriteEndArray();
+            }
+            writer.WriteEndArray();
+            return;
+        }
         var endings = input.TryGetProperty("endings", out var suppliedEndings)
             ? suppliedEndings.EnumerateArray().Select(v => (ModuleSpecifierEnding)v.GetInt32()).ToArray() : [];
         string target = Text("target"), directory = Text("directory");

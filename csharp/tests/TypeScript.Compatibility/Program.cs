@@ -29,6 +29,17 @@ internal static class Program
                     $"Program module specifier safety: {ModuleSpecifierProgramTests.Safety().GetAwaiter().GetResult()} assertions passed");
                 return 0;
             }
+            if (args is ["--diagnostic-node-printer-safety"])
+            {
+                Console.WriteLine($"Diagnostic node printer safety: {DiagnosticNodePrinterTests.Safety()} assertions passed; depth 20000");
+                return 0;
+            }
+            if (args is ["--computed-symbols-safety"])
+            {
+                Console.WriteLine(
+                    $"Computed symbol safety: {DiagnosticNodePrinterTests.ComputedSafety().GetAwaiter().GetResult()} assertions passed");
+                return 0;
+            }
             if (args is ["--module-generation-safety"])
             {
                 Console.WriteLine($"Module generation safety: {ModuleSpecifierGenerationTests.Safety()} assertions passed");

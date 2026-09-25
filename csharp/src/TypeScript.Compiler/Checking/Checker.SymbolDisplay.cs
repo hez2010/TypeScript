@@ -18,8 +18,8 @@ internal sealed partial class Checker
         SymbolFormatFlags flags, CancellationToken cancellation = default)
     {
         if ((flags & SymbolFormatFlags.AllowAnyNodeKind) != 0
-            && (flags & (SymbolFormatFlags.WriteTypeParametersOrArguments | SymbolFormatFlags.WriteComputedProps)) != 0)
-            throw new NotSupportedException("Type-argument and computed-node serialization require the general node builder");
+            && (flags & SymbolFormatFlags.WriteTypeParametersOrArguments) != 0)
+            throw new NotSupportedException("Type-argument serialization requires the general type-node builder");
         using var query = await EnterQueryAsync(enclosing, cancellation).ConfigureAwait(false);
         return await ChainOperationAsync(() => ContainerOperationAsync(
             () => SymbolDisplayNameAsync(symbol, enclosing, meaning, cancellation, flags), cancellation), cancellation);
@@ -34,8 +34,19 @@ internal sealed partial class Checker
     }
 
     private async ValueTask<string> SymbolDisplayNameAsync(Symbol symbol, SyntaxNode? enclosing, SymbolFlags meaning,
-        CancellationToken cancellation, SymbolFormatFlags flags = SymbolFormatFlags.AllowAnyNodeKind)
+        CancellationToken cancellation, SymbolFormatFlags flags = SymbolFormatFlags.AllowAnyNodeKind, bool? neverAsciiEscape = null)
     {
+        bool ascii = !(neverAsciiEscape ?? enclosing is SourceFileNode);
+        if ((flags & (SymbolFormatFlags.AllowAnyNodeKind | SymbolFormatFlags.WriteComputedProps))
+            == (SymbolFormatFlags.AllowAnyNodeKind | SymbolFormatFlags.WriteComputedProps))
+        {
+            if (DisplayDeclarationName(symbol.ValueDeclaration!) is ComputedPropertyNameNode computed)
+                return PrintDiagnosticNode(computed, !ascii, cancellation, enclosing is null ? null : SemanticSyntax.Source(enclosing));
+            if (links.Values.TryGet(symbol)?.NameType is { Symbol: { } nameSymbol } nameType
+                && (nameType.Flags & (TypeFlags.EnumLiteral | TypeFlags.UniqueESSymbol)) != 0)
+                return "[" + await SymbolDisplayNameAsync(nameSymbol, nameSymbol.ValueDeclaration, meaning, cancellation,
+                    flags & ~SymbolFormatFlags.WriteComputedProps, !ascii) + "]";
+        }
         var state = new SymbolDisplayContext(enclosing, flags);
         List<Symbol> chain = enclosing is null
             || (symbol.Flags & SymbolFlags.TypeParameter) != 0
@@ -57,7 +68,7 @@ internal sealed partial class Checker
             {
                 output.Clear();
                 output.Append(
-                    QuoteSymbolText(await DisplayModuleSpecifierAsync(part, state, cancellation), '"', enclosing is not SourceFileNode));
+                    QuoteSymbolText(await DisplayModuleSpecifierAsync(part, state, cancellation), '"', ascii));
             }
             else if (i == 0 || IdentifierName(name.StartsWith('#') ? name[1..] : name))
             {
@@ -70,7 +81,7 @@ internal sealed partial class Checker
                 if (name.StartsWith('['))
                     name = name[1..^1];
                 if (Quoted(name) && (part.Flags & SymbolFlags.EnumMember) == 0)
-                    name = QuoteSymbolText(UnquoteSymbolText(name), name[0], enclosing is not SourceFileNode);
+                    name = QuoteSymbolText(UnquoteSymbolText(name), name[0], ascii);
                 output.Append('[').Append(name).Append(']');
             }
         }
@@ -190,8 +201,10 @@ internal sealed partial class Checker
         return nameType is UniqueSymbolType unique ? "[" + DisplayNameAsWritten(unique.Symbol!, state, first, cancellation) + "]" : "";
     }
 
-    private static SyntaxNode? DisplayDeclarationName(SyntaxNode declaration)
+    private static SyntaxNode? DisplayDeclarationName(SyntaxNode? declaration)
     {
+        if (declaration is null)
+            return null;
         if (declaration is ExportAssignmentNode { Expression: IdentifierNode exported })
             return exported;
         bool js = (declaration.Flags & NodeFlags.JavaScriptFile) != 0;
@@ -298,7 +311,9 @@ internal sealed partial class Checker
                 result.Append(c).Append(text[++i]);
                 continue;
             }
-            if (c == quote)
+            if (quote == '`' && c == '$' && i + 1 < text.Length && text[i + 1] == '{')
+                result.Append("\\$");
+            else if (c == quote)
                 result.Append('\\').Append(c);
             else
                 result.Append(c switch
@@ -307,7 +322,7 @@ internal sealed partial class Checker
                     '\\' => "\\\\",
                     '\b' => "\\b",
                     '\t' => "\\t",
-                    '\n' => "\\n",
+                    '\n' => quote == '`' ? "\n" : "\\n",
                     '\v' => "\\v",
                     '\f' => "\\f",
                     '\r' => "\\r",
