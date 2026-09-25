@@ -13,7 +13,8 @@ import { referenceRevision } from "./common.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const symbolLocations = process.argv.includes("--symbols");
-const output = path.join(root, `built/csharp/checker-${symbolLocations ? "symbol-" : ""}locations`);
+const scopeServices = process.argv.includes("--scopes");
+const output = path.join(root, `built/csharp/checker-${scopeServices ? "scope-services" : symbolLocations ? "symbol-locations" : "locations"}`);
 const option = name => process.argv[process.argv.indexOf(name) + 1];
 const dotnet = process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, "dotnet.exe") : "dotnet";
 const dll = path.join(root, "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll");
@@ -90,12 +91,32 @@ namespace N { export class Item {} } import Alias=N.Item; export=Alias;`,
 const module=import("./dep", {with:{type:"json"}}); type T=import("./dep", {with:{type:"json"}}).Shape;`,
     });
 }
+if (scopeServices) {
+    Object.assign(fixtures, {
+        scopeShadow: `const outer=1; function f<T>(argument:T){let outer="inner"; {const block=true; (()=>argument)();} return argument;}
+namespace N { export const outer=true; export interface Item { value:number; } function inner(){let local=outer;return local;} }`,
+        scopeStatic: `class C<T> { field!:T; method<U>(this:C<T>,value:U){const local=value;return ()=>arguments;}
+static method<U>(value:U){return value;} } const cls=class Named<T> {method(value:T){return Named;}};
+const fn=function self(value:number){return ()=>self(value);};`,
+        scopeConditional: `type Choose<T>=T extends infer U?U:T; type M<T>={[K in keyof T]:T[K]};
+function nested<T>(value:T){function inner<U>(other:U){return {value,other};} return inner;}`,
+        scopeExports: `import {named as local} from "./dep"; export {local as forwarded}; export * from "./dep";
+export * as everything from "./dep"; export default class Default { method(){return local;} }
+namespace N {export const x=1; export interface I {value:number;} }`,
+        symbolTypes: `declare let value:string|number; if(typeof value==="string"){value;} value=1; value;
+class C { get property():number{return 1;} set property(value:string|number){} }
+declare const c:C; c.property; c.property="text"; c["property"]=1;
+declare const optional:{value?:number}; optional.value; optional.value=1; optional?.value;`,
+        parameterProperties: `export class C { constructor(public value:string,readonly count=1,protected item?:number){const copy={value};this.value=value;} }
+declare const c:C; c.value; c.count;`,
+    });
+}
 const inputs = [];
 for (const [name, source] of Object.entries(fixtures)) {
     for (const strict of [false, true]) {
         for (const concurrency of [1, 4]) {
             const files = { "/project/globals.d.ts": library, [`/project/main.${name === "jsx" ? "tsx" : name.startsWith("jsdoc") ? "js" : "ts"}`]: source, "/project/dep.ts": "export interface Shape {value:number;} export const named=1; export default class Default { value=1; }" };
-            inputs.push({ name: `${name}:${strict}:${concurrency}`, files: Object.fromEntries(Object.entries(files).map(([name, text]) => [name, Buffer.from(text).toString("base64")])), roots: Object.keys(files), options: { strict, target: "esnext", module: "esnext", moduleResolution: "bundler", jsx: "preserve", ...name.startsWith("jsdoc") ? { allowJs: true, checkJs: true } : {} }, typeNodes: true, ...symbolLocations ? { symbolLocations: true, ...name.startsWith("jsdoc") ? { documentationSymbols: true } : {} } : { locations: true }, concurrency });
+            inputs.push({ name: `${name}:${strict}:${concurrency}`, files: Object.fromEntries(Object.entries(files).map(([name, text]) => [name, Buffer.from(text).toString("base64")])), roots: Object.keys(files), options: { strict, target: "esnext", module: "esnext", moduleResolution: "bundler", jsx: "preserve", ...name.startsWith("jsdoc") ? { allowJs: true, checkJs: true } : {} }, typeNodes: true, ...scopeServices ? { scopeServices: true } : symbolLocations ? { symbolLocations: true, ...name.startsWith("jsdoc") ? { documentationSymbols: true } : {} } : { locations: true }, concurrency });
         }
     }
 }
@@ -156,13 +177,13 @@ for (const input of selected) {
         candidateError = String(error);
         candidateFailures++;
     }
-    if (candidate) queries += (candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
+    if (candidate) queries += (candidate.serviceQueries ?? candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
     results.push({ input, reference, candidate, referenceError, candidateError });
     if (referenceError || candidateError) {
         failures.push({ name: input.name, referenceError, candidateError });
         continue;
     }
-    comparedQueries += (candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
+    comparedQueries += (candidate.serviceQueries ?? candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
     try {
         assert.deepStrictEqual(candidate, reference);
     }
@@ -184,6 +205,20 @@ await writeFile(path.join(output, "failures.json"), JSON.stringify(failures, nul
 await writeFile(path.join(output, "results.json"), JSON.stringify(results));
 const summary = { configurations: selected.length, queries, comparedQueries, exact: selected.length - failures.length, failed: failures.length, referenceRevision, referenceFailures, candidateFailures, oracleHash, candidateHash, inputHash: hash(JSON.stringify(selected)), resultHash: hash(JSON.stringify(results)), managed: true };
 if (symbolLocations) Object.assign(summary, { symbolAnswerMatches: summary.exact + locationMetadataDifferences.length, locationMetadataDifferences });
+if (scopeServices) {
+    const counts = Array(7).fill(0);
+    for (const result of results) for (const record of result.candidate?.serviceQueries ?? []) counts[record[0]]++;
+    summary.services = {
+        scopes: counts[0],
+        symbolTypesAtLocation: counts[1],
+        symbolTypesWithoutLocation: counts[1],
+        moduleExports: counts[2],
+        aliasTargets: counts[3],
+        localExportTargets: counts[4],
+        shorthandValues: counts[5],
+        parameterPropertyPairs: counts[6],
+    };
+}
 await writeFile(path.join(output, "summary.json"), JSON.stringify(summary, null, 2));
 if (process.argv.includes("--record")) await writeFile(path.join(root, "csharp/compatibility/evidence", option("--record") + ".json"), JSON.stringify(summary, null, 4) + "\n");
 console.log(summary);

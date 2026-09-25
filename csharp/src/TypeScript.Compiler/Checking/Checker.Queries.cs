@@ -6,6 +6,29 @@ namespace TypeScript.Compiler.Checking;
 internal sealed partial class Checker
 {
     private readonly SemaphoreSlim queryGate = new(1, 1);
+
+    private readonly struct QueryLease(SemaphoreSlim gate) : IDisposable
+    {
+        public void Dispose() => gate.Release();
+    }
+
+    private async ValueTask<QueryLease> EnterQueryAsync(SyntaxNode? node, CancellationToken cancellation)
+    {
+        await queryGate.WaitAsync(cancellation).ConfigureAwait(false);
+        try
+        {
+            if (node is not null)
+                RequireNode(node);
+            RequireUsable();
+            return new(queryGate);
+        }
+        catch
+        {
+            queryGate.Release();
+            throw;
+        }
+    }
+
     internal TypeContext Context => context;
     internal CheckerLinks Links => links;
     internal CheckerEnvironment Environment => program;

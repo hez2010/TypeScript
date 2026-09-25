@@ -125,6 +125,12 @@ internal static class Program
                     $"{CheckerQueryTests.SymbolSafety().GetAwaiter().GetResult()} symbol-location query identity/ownership/cancellation assertions");
                 return 0;
             }
+            if (args is ["--checker-scope-query-safety"])
+            {
+                Console.WriteLine(
+                    $"{CheckerQueryTests.ScopeSafety().GetAwaiter().GetResult()} scope/symbol-type query identity/cancellation assertions");
+                return 0;
+            }
             if (args is ["--checker-program-safety"])
             {
                 CheckerProgramTests.Safety().GetAwaiter().GetResult();

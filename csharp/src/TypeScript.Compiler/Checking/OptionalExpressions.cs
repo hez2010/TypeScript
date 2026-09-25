@@ -5,6 +5,8 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed class OptionalExpressions(TypeContext context, TypeAlgebra algebra, TypeFactQueries facts)
 {
+    internal Type RemoveMarker(Type type) => context.StrictNullChecks ? Remove(type, context.OptionalType) : type;
+
     internal ValueTask<Type> ReceiverAsync(Type type, SyntaxNode expression, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();

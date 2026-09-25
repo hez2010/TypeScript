@@ -387,6 +387,7 @@ internal static class CheckerProgramTests
         checks += await CheckerDisplayTests.Safety();
         checks += await CheckerQueryTests.Safety();
         checks += await CheckerQueryTests.SymbolSafety();
+        checks += await CheckerQueryTests.ScopeSafety();
         Console.WriteLine($"{checks} program/checker ownership assertions; interface and scope depth 20000");
     }
 
@@ -996,6 +997,90 @@ internal static class CheckerProgramTests
                 writer.WriteNumberValue(Node(await host.Aliases.TypeOnlyAsync(symbol)));
                 writer.WriteNumberValue(Node(await host.Aliases.TypeOnlyAsync(symbol, SymbolFlags.Value)));
                 writer.WriteEndArray();
+            }
+            writer.WriteEndArray();
+        }
+        if (input.TryGetProperty("scopeServices", out var servicesOption) && servicesOption.GetBoolean())
+        {
+            writer.WriteStartArray("serviceQueries");
+            var seenModules = new HashSet<Symbol>();
+            var seenAliases = new HashSet<Symbol>();
+            void OrderedSymbols(IReadOnlyList<Symbol> source)
+            {
+                writer.WriteStartArray();
+                foreach (var symbol in source.OrderBy(s => CanonicalName(s.Name), Comparer<string>.Create(TypeOrder.CompareSymbolNames)))
+                    writer.WriteNumberValue(SymbolId(symbol));
+                writer.WriteEndArray();
+            }
+            foreach (var node in nodes)
+            {
+                if (SemanticSyntax.Source(node)?.FileName.StartsWith("/project/main.", StringComparison.Ordinal) != true)
+                    continue;
+                foreach (var meaning in new[]
+                {
+                    SymbolFlags.Value,
+                    SymbolFlags.Type,
+                    SymbolFlags.Namespace,
+                    SymbolFlags.Alias,
+                    SymbolFlags.All
+                })
+                {
+                    writer.WriteStartArray();
+                    writer.WriteNumberValue(0);
+                    writer.WriteNumberValue(Node(node));
+                    writer.WriteNumberValue((uint)meaning);
+                    OrderedSymbols(await typeHost!.GetSymbolsInScopeAsync(node, meaning));
+                    writer.WriteEndArray();
+                }
+                var symbol = await typeHost!.GetSymbolAtLocationAsync(node);
+                if (symbol is not null)
+                {
+                    writer.WriteStartArray();
+                    writer.WriteNumberValue(1);
+                    writer.WriteNumberValue(Node(node));
+                    writer.WriteNumberValue(SymbolId(symbol));
+                    writer.WriteNumberValue(TypeId(await typeHost.GetTypeOfSymbolAtLocationAsync(symbol, node)));
+                    writer.WriteNumberValue(TypeId(await typeHost.GetTypeOfSymbolAtLocationAsync(symbol, null)));
+                    writer.WriteEndArray();
+                    if ((symbol.Flags & SymbolFlags.Alias) != 0 && seenAliases.Add(symbol))
+                    {
+                        writer.WriteStartArray();
+                        writer.WriteNumberValue(3);
+                        writer.WriteNumberValue(Node(node));
+                        writer.WriteNumberValue(SymbolId(symbol));
+                        writer.WriteNumberValue(SymbolId(await typeHost.GetAliasedSymbolAsync(symbol)));
+                        writer.WriteEndArray();
+                    }
+                }
+                if (QuerySyntax.Declaration(node) && environment.Declaration(node) is { } module
+                    && (module.Flags & SymbolFlags.Module) != 0 && seenModules.Add(module))
+                {
+                    writer.WriteStartArray();
+                    writer.WriteNumberValue(2);
+                    writer.WriteNumberValue(Node(node));
+                    writer.WriteNumberValue(SymbolId(module));
+                    OrderedSymbols(await typeHost.GetExportsOfModuleAsync(module));
+                    writer.WriteEndArray();
+                }
+                if (node is ExportSpecifierNode or ShorthandPropertyAssignmentNode)
+                {
+                    writer.WriteStartArray();
+                    writer.WriteNumberValue(node is ExportSpecifierNode ? 4 : 5);
+                    writer.WriteNumberValue(Node(node));
+                    writer.WriteNumberValue(SymbolId(node is ExportSpecifierNode
+                        ? await typeHost.GetExportSpecifierLocalTargetSymbolAsync(node) : await typeHost.GetShorthandAssignmentValueSymbolAsync(node)));
+                    writer.WriteEndArray();
+                }
+                if (DeclarationOrder.ParameterProperty(node) && node is ParameterDeclarationNode { Name: IdentifierNode name } parameter)
+                {
+                    var pair = await typeHost.GetSymbolsOfParameterPropertyDeclarationAsync(parameter, name.Text);
+                    writer.WriteStartArray();
+                    writer.WriteNumberValue(6);
+                    writer.WriteNumberValue(Node(node));
+                    writer.WriteNumberValue(SymbolId(pair.Parameter));
+                    writer.WriteNumberValue(SymbolId(pair.Property));
+                    writer.WriteEndArray();
+                }
             }
             writer.WriteEndArray();
         }

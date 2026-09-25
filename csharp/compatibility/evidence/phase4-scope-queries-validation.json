@@ -1,0 +1,86 @@
+{
+    "timestamp": "2026-09-25T02:27:16.426Z",
+    "configuration": "Release",
+    "managed": true,
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "scope": "Seven scope/export/symbol-type query APIs; phase 4 remains incomplete",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-scope-queries-build.log",
+        "sha256": "1a7c9548a6e8a55edb465f0b40fc9032ca7b4d113599c2857c15312dc9e3ad56"
+    },
+    "candidateSha256": "2ccf43d7b7f96d5b29686f446de4bc34d3de0bb9a90035d543c1dfc347a87af7",
+    "compilerSha256": "2b6a19e9b682549e4f7c1ef067c5227056b6c3dcf887df8c27ecf951be4486a6",
+    "comparisons": {
+        "configurations": 104,
+        "queries": 29500,
+        "comparedQueries": 29500,
+        "exact": 104,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "5c1c346964d67eefe798c741aa9871f84c5289a739168b35b1d737d7f2017b64",
+        "candidateHash": "6b902396b112cffcac124b5a6b84af6483fdd3fee20ff9e6ccf5488aa21a6127",
+        "inputHash": "1e81170626ed44a62ddceef58ac1cf0de04bfcdb72d380ab4cdc531521707610",
+        "resultHash": "6dbc664b5fb4ae6b6572518a667d1a3f961f9ebbb118e137522a77d914bf1e51",
+        "managed": true,
+        "services": {
+            "scopes": 27440,
+            "symbolTypesAtLocation": 1904,
+            "symbolTypesWithoutLocation": 1904,
+            "moduleExports": 52,
+            "aliasTargets": 60,
+            "localExportTargets": 16,
+            "shorthandValues": 16,
+            "parameterPropertyPairs": 12
+        }
+    },
+    "comparisonPolicy": "Scope/export results are name-sorted collections; empty collections serialize as empty arrays. Symbols, multiplicity, identities, all type graphs and diagnostic codes are compared.",
+    "safety": {
+        "scopeAssertions": 23,
+        "log": "logs/csharp-phase4-scope-queries-safety.log",
+        "retainedProgramAssertions": 127,
+        "retainedTypeQueryAssertions": 20,
+        "retainedSymbolQueryAssertions": 25,
+        "retainedRecords": [
+            "phase4-type-queries-validation.json",
+            "phase4-symbol-queries-validation.json"
+        ]
+    },
+    "formatting": {
+        "csharpFiles": 7,
+        "libraryConfigurations": 2,
+        "tokensCommentsAndSyntaxIdentical": true,
+        "log": "logs/csharp-phase4-scope-queries-format.log",
+        "dotnetWhitespaceExitCode": 0,
+        "proofSha256": "52d9990b18a92153349add80e77d5b6b5d703a4ea5d1eda5f819dfd6c673d3b4",
+        "queryInputsUnchanged": true
+    },
+    "reference": {
+        "revision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "servicesBlob": "c7d9995de5747cef4d82925d85c9def54f456c8f",
+        "frozenSourceMatches": true
+    },
+    "reuse": {
+        "comparisonConfigurations": 104,
+        "reason": "After the comparison completed, only focused safety tests and their command entry point changed. Formatting preserved product tokens/comments/syntax; no completed comparison was rerun.",
+        "semanticCorpus": "All additions are new query entry points or helpers used only by them. Existing source checking and prior query entry points are unchanged.",
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ]
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "phase4Complete": false,
+    "syntaxCheck": {
+        "command": "node --check csharp/tools/checker-locations.mjs",
+        "exitCode": 0
+    }
+}

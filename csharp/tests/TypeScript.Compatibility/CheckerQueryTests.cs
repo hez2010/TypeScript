@@ -10,6 +10,132 @@ namespace TypeScript.Compatibility;
 
 internal static class CheckerQueryTests
 {
+    internal static async Task<int> ScopeSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Checker scope query assertion {checks + 1}");
+            checks++;
+        }
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        const string source = "import {value as alias} from './dep'; export {alias as forwarded}; export * from './dep'; "
+            + "const shadow=1; class C<T> { constructor(public value:T){} "
+            + "method<U>(this:C<T>,parameter:U){const shadow='inner';return {shadow,parameter};} "
+            + "static staticMethod<V>(parameter:V){return parameter;} }";
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        {
+            ["/project/main.ts"] = Wtf8.Encode(source),
+            ["/project/dep.ts"] = Wtf8.Encode("export const value=1;")
+        }), "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var file = program.GetFile("/project/main.ts")!.Syntax;
+        var nodes = file.DescendantsAndSelf().ToArray();
+        var method = nodes.OfType<MethodDeclarationNode>().Single(n => n.Name is IdentifierNode { Text: "method" });
+        var location = method.Body!;
+        var scope = await checker.GetSymbolsInScopeAsync(location, TypeScript.Compiler.Binding.SymbolFlags.All);
+        Check(scope.Any(s => s.Name == "T") && scope.Any(s => s.Name == "U") && scope.Any(s => s.Name == "arguments"));
+        Check(scope.All(s => s.Name != "this"));
+        var shadow = scope.Single(s => s.Name == "shadow");
+        Check(shadow.ValueDeclaration?.Parent?.Parent?.Parent == method.Body);
+        var staticMethod = nodes.OfType<MethodDeclarationNode>().Single(n => n.Name is IdentifierNode { Text: "staticMethod" });
+        var staticScope = await checker.GetSymbolsInScopeAsync(staticMethod.Body!, TypeScript.Compiler.Binding.SymbolFlags.Type);
+        Check(staticScope.Any(s => s.Name == "V") && staticScope.All(s => s.Name is not "T" and not "U"));
+        var alias = scope.Single(s => s.Name == "alias");
+        var target = await checker.GetAliasedSymbolAsync(alias);
+        Check(target.Name == "value" && target != alias);
+        var export = nodes.OfType<ExportSpecifierNode>().Single();
+        Check(await checker.GetExportSpecifierLocalTargetSymbolAsync(export) == alias);
+        var shorthand = nodes.OfType<ShorthandPropertyAssignmentNode>().Single(n => n.Name is IdentifierNode { Text: "shadow" });
+        Check(await checker.GetShorthandAssignmentValueSymbolAsync(shorthand) == shadow);
+        var shadowType = await checker.GetTypeOfSymbolAtLocationAsync(shadow, shorthand.Name);
+        Check(shadowType is LiteralType { Value: "inner" });
+        var exports = await checker.GetExportsOfModuleAsync(checker.Symbols.Declaration(file)!);
+        Check(exports.Any(s => s.Name == "forwarded") && exports.Any(s => s.Name == "value"));
+        Check(exports.All(s => s.Name != "alias"));
+        var parameter = nodes.OfType<ConstructorDeclarationNode>().Single().Parameters!.OfType<ParameterDeclarationNode>().Single();
+        var pair = await checker.GetSymbolsOfParameterPropertyDeclarationAsync(parameter, "value");
+        Check(pair.Parameter != pair.Property && pair.Parameter.Name == "value" && pair.Property.Name == "value");
+        Check(pair.Parameter.Declarations.Contains(parameter) && pair.Property.Declarations.Contains(parameter));
+        Check(
+            await checker.GetTypeOfSymbolAtLocationAsync(
+                pair.Parameter,
+                null) == await checker.GetTypeOfSymbolAtLocationAsync(pair.Property, null));
+        Check((await checker.GetSymbolsInScopeAsync(location, 0)).Count == 0);
+        using var cancelled = new CancellationTokenSource();
+        cancelled.Cancel();
+        try
+        {
+            await checker.GetSymbolsInScopeAsync(location, TypeScript.Compiler.Binding.SymbolFlags.All, cancelled.Token);
+            throw new InvalidOperationException("Cancelled scope query completed");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        try
+        {
+            await checker.GetSymbolsInScopeAsync(new IdentifierNode { Text = "outside" }, TypeScript.Compiler.Binding.SymbolFlags.All);
+            throw new InvalidOperationException("Scope query accepted foreign syntax");
+        }
+        catch (ArgumentException)
+        {
+            checks++;
+        }
+        checker.BeforeMemberTable = _ => throw new InvalidOperationException("query callback");
+        try
+        {
+            await checker.GetSymbolsInScopeAsync(location, TypeScript.Compiler.Binding.SymbolFlags.All);
+            throw new InvalidOperationException("Query callback not reached");
+        }
+        catch (InvalidOperationException error) when (error.Message == "query callback")
+        {
+            checks++;
+        }
+        finally
+        {
+            checker.BeforeMemberTable = null;
+        }
+        Check((await checker.GetSymbolsInScopeAsync(location, TypeScript.Compiler.Binding.SymbolFlags.All)).Count == scope.Count);
+        using var entered = new ManualResetEventSlim();
+        using var release = new ManualResetEventSlim();
+        checker.BeforeMemberTable = _ =>
+        {
+            entered.Set();
+            if (!release.Wait(TimeSpan.FromSeconds(30)))
+                throw new InvalidOperationException("Scope query was not released");
+        };
+        var active = Task.Run(async () => await checker.GetSymbolsInScopeAsync(location, TypeScript.Compiler.Binding.SymbolFlags.All));
+        try
+        {
+            Check(entered.Wait(TimeSpan.FromSeconds(30)));
+            using var stop = new CancellationTokenSource();
+            var queued = checker.GetExportsOfModuleAsync(checker.Symbols.Declaration(file)!, stop.Token);
+            Check(!queued.IsCompleted);
+            stop.Cancel();
+            try
+            {
+                await queued;
+                throw new InvalidOperationException("Queued module query ignored cancellation");
+            }
+            catch (OperationCanceledException)
+            {
+                checks++;
+            }
+        }
+        finally
+        {
+            release.Set();
+        }
+        Check((await active).Count == scope.Count);
+        checker.BeforeMemberTable = null;
+        Check((await checker.GetExportsOfModuleAsync(checker.Symbols.Declaration(file)!)).Count == exports.Count);
+        return checks;
+    }
+
     internal static async Task<int> SymbolSafety()
     {
         int checks = 0;

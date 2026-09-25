@@ -1,0 +1,25 @@
+{
+    "configurations": 104,
+    "queries": 29500,
+    "comparedQueries": 29500,
+    "exact": 104,
+    "failed": 0,
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "referenceFailures": 0,
+    "candidateFailures": 0,
+    "oracleHash": "5c1c346964d67eefe798c741aa9871f84c5289a739168b35b1d737d7f2017b64",
+    "candidateHash": "6b902396b112cffcac124b5a6b84af6483fdd3fee20ff9e6ccf5488aa21a6127",
+    "inputHash": "1e81170626ed44a62ddceef58ac1cf0de04bfcdb72d380ab4cdc531521707610",
+    "resultHash": "6dbc664b5fb4ae6b6572518a667d1a3f961f9ebbb118e137522a77d914bf1e51",
+    "managed": true,
+    "services": {
+        "scopes": 27440,
+        "symbolTypesAtLocation": 1904,
+        "symbolTypesWithoutLocation": 1904,
+        "moduleExports": 52,
+        "aliasTargets": 60,
+        "localExportTargets": 16,
+        "shorthandValues": 16,
+        "parameterPropertyPairs": 12
+    }
+}

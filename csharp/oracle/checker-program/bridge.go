@@ -13,7 +13,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/jsnum"
 )
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool, symbolLocations bool, documentationSymbols bool) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool, symbolLocations bool, documentationSymbols bool, scopeServices bool) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -216,6 +216,51 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 				id, target, immediate, flags, withoutTypeOnly, withoutLocal,
 				nodeIDs[c.getTypeOnlyAliasDeclaration(symbol)], nodeIDs[c.getTypeOnlyAliasDeclarationEx(symbol, ast.SymbolFlagsValue)],
 			})
+		}
+	}
+	serviceQueries := []any{}
+	if scopeServices {
+		orderedSymbols := func(source []*ast.Symbol) []int {
+			slices.SortFunc(source, func(a, b *ast.Symbol) int { return strings.Compare(canonicalName(a.Name), canonicalName(b.Name)) })
+			ids := make([]int, len(source))
+			for i, symbol := range source {
+				ids[i] = sid(symbol)
+			}
+			return ids
+		}
+		seenModules, seenAliases := map[*ast.Symbol]bool{}, map[*ast.Symbol]bool{}
+		for _, node := range nodes {
+			if !strings.HasPrefix(ast.GetSourceFileOfNode(node).FileName(), "/project/main.") {
+				continue
+			}
+			for _, meaning := range []ast.SymbolFlags{ast.SymbolFlagsValue, ast.SymbolFlagsType, ast.SymbolFlagsNamespace, ast.SymbolFlagsAlias, ast.SymbolFlagsAll} {
+				serviceQueries = append(serviceQueries, []any{0, nodeIDs[node], uint32(meaning), orderedSymbols(c.GetSymbolsInScope(node, meaning))})
+			}
+			symbol := c.GetSymbolAtLocation(node)
+			if symbol != nil {
+				serviceQueries = append(serviceQueries, []any{1, nodeIDs[node], sid(symbol), tid(c.GetTypeOfSymbolAtLocation(symbol, node)), tid(c.GetTypeOfSymbolAtLocation(symbol, nil))})
+				if symbol.Flags&ast.SymbolFlagsAlias != 0 && !seenAliases[symbol] {
+					seenAliases[symbol] = true
+					serviceQueries = append(serviceQueries, []any{3, nodeIDs[node], sid(symbol), sid(c.GetAliasedSymbol(symbol))})
+				}
+			}
+			if ast.IsDeclaration(node) {
+				module := c.getSymbolOfDeclaration(node)
+				if module != nil && module.Flags&ast.SymbolFlagsModule != 0 && !seenModules[module] {
+					seenModules[module] = true
+					serviceQueries = append(serviceQueries, []any{2, nodeIDs[node], sid(module), orderedSymbols(c.GetExportsOfModule(module))})
+				}
+			}
+			if ast.IsExportSpecifier(node) {
+				serviceQueries = append(serviceQueries, []any{4, nodeIDs[node], sid(c.GetExportSpecifierLocalTargetSymbol(node))})
+			}
+			if ast.IsShorthandPropertyAssignment(node) {
+				serviceQueries = append(serviceQueries, []any{5, nodeIDs[node], sid(c.GetShorthandAssignmentValueSymbol(node))})
+			}
+			if ast.IsParameterPropertyDeclaration(node, node.Parent) && ast.IsIdentifier(node.Name()) {
+				parameter, property := c.GetSymbolsOfParameterPropertyDeclaration(node, node.Name().Text())
+				serviceQueries = append(serviceQueries, []any{6, nodeIDs[node], sid(parameter), sid(property)})
+			}
 		}
 	}
 	symbolLocationQueries := []any{}
@@ -895,6 +940,9 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	}
 	if symbolLocations {
 		result["symbolLocationQueries"] = symbolLocationQueries
+	}
+	if scopeServices {
+		result["serviceQueries"] = serviceQueries
 	}
 	if documentationSymbols {
 		result["documentationSymbolQueries"] = documentationQueries
