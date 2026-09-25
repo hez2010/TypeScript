@@ -18,13 +18,15 @@ const contextQueries = process.argv.includes("--contexts");
 const declarationVisibility = process.argv.includes("--visibility");
 const symbolChains = process.argv.includes("--chains");
 const conditionalSyntax = process.argv.includes("--conditional-syntax");
-const typeSyntax = process.argv.includes("--type-syntax") || conditionalSyntax;
+const mappedSyntax = process.argv.includes("--mapped-syntax");
+const signatureSyntax = process.argv.includes("--signature-syntax");
+const typeSyntax = process.argv.includes("--type-syntax") || conditionalSyntax || mappedSyntax || signatureSyntax;
 const symbolTypeNodes = process.argv.includes("--symbol-type-nodes");
 const computedSymbols = process.argv.includes("--computed-symbols");
 const symbolFormats = process.argv.includes("--symbol-formats") || computedSymbols;
 const symbolDisplay = process.argv.includes("--symbol-display") || symbolFormats || symbolTypeNodes;
 const accessibility = process.argv.includes("--accessibility") || symbolDisplay;
-const output = path.join(root, `built/csharp/checker-${conditionalSyntax ? "conditional-syntax" : typeSyntax ? "type-syntax" : symbolTypeNodes ? "symbol-type-nodes" : computedSymbols ? "computed-symbols" : symbolFormats ? "symbol-formats" : symbolDisplay ? "symbol-display" : accessibility ? "accessibility" : symbolChains ? "symbol-chains" : declarationVisibility ? "declaration-visibility" : contextQueries ? "context-queries" : scopeServices ? "scope-services" : symbolLocations ? "symbol-locations" : "locations"}`);
+const output = path.join(root, `built/csharp/checker-${signatureSyntax ? "signature-syntax" : mappedSyntax ? "mapped-syntax" : conditionalSyntax ? "conditional-syntax" : typeSyntax ? "type-syntax" : symbolTypeNodes ? "symbol-type-nodes" : computedSymbols ? "computed-symbols" : symbolFormats ? "symbol-formats" : symbolDisplay ? "symbol-display" : accessibility ? "accessibility" : symbolChains ? "symbol-chains" : declarationVisibility ? "declaration-visibility" : contextQueries ? "context-queries" : scopeServices ? "scope-services" : symbolLocations ? "symbol-locations" : "locations"}`);
 const option = name => process.argv[process.argv.indexOf(name) + 1];
 const dotnet = process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, "dotnet.exe") : "dotnet";
 const dll = path.join(root, "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll");
@@ -210,6 +212,32 @@ exports["exported-name"]=C; Object.defineProperty(exports,"defined-name",{value:
     });
 }
 const inputs = [];
+if (signatureSyntax) {
+    Object.assign(fixtures, {
+        signatureSyntaxBasic: `type SerializeFn=(x:number,y?:string)=>boolean;type SerializeVoid=()=>void;type SerializeRest=(...args:string[])=>number;type SerializeLiteral=(x:'é'|'b')=>'é';class Scope{} function location(){}`,
+        signatureSyntaxGeneric: `type SerializeGeneric=<T extends string,U=T>(value:T,other?:U)=>[T,U];type SerializeConst=<const T extends readonly unknown[]>(value:T)=>T;type SerializeNested=<T>(value:T)=><U>(other:U)=>[T,U];class Scope<T>{} function location<U>(){}`,
+        signatureSyntaxConstruct: `type SerializeNew=new (x:number)=>{value:number};type SerializeAbstract=abstract new <T>(x:T)=>{value:T};type SerializeOverloads={new(x:number):{n:number};new(x:string):{s:string}};class Scope{} function location(){}`,
+        signatureSyntaxTuples: `type SerializeRest=(...args:[x:number,y?:string,...z:boolean[]])=>void;type SerializeUnnamed=(...args:[number,string])=>void;type SerializeRepeated=(...args:[x:number,x:string,x_1:boolean])=>void;type SerializeVariadic<T extends unknown[]>=(...args:[...T,number])=>T;class Scope{} function location(){}`,
+        signatureSyntaxPredicates: `type SerializeGuard=(x:unknown)=>x is string;type SerializeAssert=(x:unknown)=>asserts x is string;type SerializeTruthy=(x:unknown)=>asserts x;type SerializeThis=(this:{value:unknown})=>this is {value:string};class Scope{} function location(){}`,
+        signatureSyntaxOverloads: `type SerializeCalls={(x:number):number;(x:string):string;field:number};type SerializeBoth={(x:string):number;new(x:number):{value:number};[key:string]:unknown};type SerializeCallback={callback:(value:number)=>string};class Scope{} function location(){}`,
+        signatureSyntaxBindings: `type SerializeObject=({x,y:renamed}:{x:number,y:string})=>void;type SerializeArray=([a,,...rest]:[number,string,...boolean[]])=>void;type SerializeThis=(this:{x:number},x:string)=>void;class Scope{} function location(){}`,
+        signatureSyntaxShadows: `declare const x:unique symbol;type SerializeShadow=(x:number)=>typeof globalThis.x;type SerializeNested=(x:number)=>(y:string)=>typeof globalThis.x;type SerializeBindings=({x}:{x:number})=>typeof globalThis.x;class Scope{} function location(){}`,
+        signatureSyntaxMethods: `type SerializeMethods={m<T>(value:T):T;m(value:string):number;optional?(x:number):string;'a-b'(x:string):void};type SerializeProperty={readonly callback:(x:number)=>string;};class Scope{} function location(){}`,
+        signatureSyntaxAccessors: `type SerializeSame={get value():string;set value(v:string);};type SerializeDifferent={get value():number;set value(v:string|number);};type SerializeRead={get value():'é';};type SerializeWrite={set value(v:number);};class Scope{} function location(){}`,
+        signatureSyntaxInstantiation: `type Box<T>={method(value:T):T; get field():T;set field(v:T|undefined)};type SerializeConcrete=Box<string>;type SerializeGeneric<U>=Box<U>;type SerializeCall=({value:number}&((x:number)=>string));class Scope{} function location(){}`,
+        signatureSyntaxScopeValues: `declare var x:unique symbol;type SerializeShadow=(x:number)=>typeof globalThis.x;type SerializeNested=(x:number)=>(y:string)=>typeof globalThis.x;type SerializeReuse=(x:number)=>typeof x;class Scope{} function location(){}`,
+    });
+}
+if (mappedSyntax) {
+    Object.assign(fixtures, {
+        mappedSyntaxModifiers: `type SerializePlain<T>={[K in keyof T]:T[K]};type SerializePlus<T>={+readonly [K in keyof T]+?:T[K]};type SerializeMinus<T>={-readonly [K in keyof T]-?:T[K]};type SerializeOptional<T>={[K in keyof T]?:T[K]};class Scope{} function location(){}`,
+        mappedSyntaxConstraints: `type SerializeKeys<K extends string>={[P in K]:P};type SerializeUnion<T,U>={[K in keyof (T|U)]:K};type SerializeIntersection<T,U>={[K in keyof (T&U)]:K};type SerializeIndexed<T,K extends keyof T>={[P in K]:T[P]};class Scope{} function location(){}`,
+        mappedSyntaxRemap: `type SerializeRename<T>={[K in keyof T as \`prefix_\${K & string}\`]:T[K]};type SerializeFilter<T>={[K in keyof T as T[K] extends string ? K : never]:T[K]};type SerializeConditional<T>={[K in keyof T]:T[K] extends infer U ? U : never};class Scope{} function location(){}`,
+        mappedSyntaxConcrete: `type Map<T>={readonly [K in keyof T]?:T[K]};type SerializeObject=Map<{x:number;'a-b':string}>;type SerializeTuple=Map<[number,string]>;type SerializeArray=Map<number[]>;type SerializeFinite={[K in 'a'|'b']:number};class Scope{} function location(){}`,
+        mappedSyntaxNested: `type SerializeNested<T>={[K in keyof T]:{[P in keyof T[K]]:T[K][P]}};type SerializeRecursive<T>={[K in keyof T]:SerializeRecursive<T[K]>};type SerializeOuter<T>={[K in keyof T as K]:{key:K,value:T[K]}};class Scope<K>{} function location<K>(){}`,
+        mappedSyntaxAliases: `import type {Shape as S} from './dep';type M<T>={[K in keyof T]:S};type SerializeAlias<T>=M<T>;type SerializeNested<T>={[K in keyof T]:S|T[K]};class Scope<S>{} function location<S>(){}`,
+    });
+}
 if (conditionalSyntax) {
     Object.assign(fixtures, {
         conditionalSyntaxBasic: `type SerializeBasic<T>=T extends string ? number : boolean; type SerializeNested<T>=T extends string ? T extends "x" ? 1 : 2 : never; type SerializeCheck<T>=(T extends string ? number : boolean) extends number ? 1 : 2; type SerializeExtends<T,U>=T extends (U extends string ? number : boolean) ? 1 : 2; class Scope{} function location(){}`,
@@ -270,7 +298,7 @@ const formatFixtures = new Set(["namespaces", "imports", "typeImports", "classes
 const computedFixtures = new Set(["displayNames", "displayComputed", "displayAssigned", "jsdocDisplayNames", "classes", "visibilityExports", "accessibilityInstances", "chainClassNames"]);
 const typeNodeFixtures = new Set(["namespaces", "imports", "typeImports", "classes", "importsCommonJs", "visibilityAliases", "visibilityAmbient", "visibilityExports", "chainShadow", "chainReexports", "chainTypeOnly", "displayNames", "displayComputed", "accessibilityExportEquals", "accessibilityInstances", "symbolTypeModes", "symbolTypeAttributes"]);
 if (symbolTypeNodes) { for (const input of inputs) if (input.name.startsWith("symbolTypeModes:")) Object.assign(input.options, { module: "nodenext", moduleResolution: "nodenext" }); }
-const eligible = conditionalSyntax ? inputs.filter(input => input.name.startsWith("conditionalSyntax")) : typeSyntax ? inputs.filter(input => input.name.startsWith("typeSyntax")) : symbolTypeNodes ? inputs.filter(input => typeNodeFixtures.has(input.name.split(":")[0])) : computedSymbols ? inputs.filter(input => computedFixtures.has(input.name.split(":")[0])) : symbolFormats ? inputs.filter(input => formatFixtures.has(input.name.split(":")[0])) : inputs;
+const eligible = signatureSyntax ? inputs.filter(input => input.name.startsWith("signatureSyntax")) : mappedSyntax ? inputs.filter(input => input.name.startsWith("mappedSyntax")) : conditionalSyntax ? inputs.filter(input => input.name.startsWith("conditionalSyntax")) : typeSyntax ? inputs.filter(input => input.name.startsWith("typeSyntax")) : symbolTypeNodes ? inputs.filter(input => typeNodeFixtures.has(input.name.split(":")[0])) : computedSymbols ? inputs.filter(input => computedFixtures.has(input.name.split(":")[0])) : symbolFormats ? inputs.filter(input => formatFixtures.has(input.name.split(":")[0])) : inputs;
 const selected = process.argv.includes("--filter") ? eligible.filter(input => input.name.includes(option("--filter"))) : eligible;
 await writeFile(path.join(output, "inputs.json"), JSON.stringify(selected, null, 2));
 if (process.argv.includes("--list")) process.exit(0);

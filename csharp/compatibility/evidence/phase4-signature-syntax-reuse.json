@@ -1,0 +1,18 @@
+{
+    "prior": {
+        "previousCandidateHash": "3fcdd8c3513bdb8b7ae030d98865d5745d63dd3b32fbb67b87a9d94191630b3f",
+        "candidateHash": "9ad32508fb6c88ee4dad8eabe1d1ba6684617e6c94c6067088524f2d7f814c50",
+        "retainedCandidates": 28,
+        "retainedReferences": 32,
+        "replayedCandidates": 4,
+        "addedConfigurations": 16,
+        "reason": "Only annotation reuse for typeof queries and method/accessor property branches changed after the first comparison. The retained 28 inputs have neither typeof annotations nor method/accessor properties. Four shadow cases are replayed and 16 new method/accessor/instantiation/value-scope cases are added."
+    },
+    "previousCandidateHash": "9ad32508fb6c88ee4dad8eabe1d1ba6684617e6c94c6067088524f2d7f814c50",
+    "candidateHash": "93938c7b8d4193a5760900ea952378c1b06d12a720f9c030f49432e199c7fecb",
+    "retainedCandidates": 40,
+    "retainedReferences": 48,
+    "replayedCandidates": 8,
+    "addedConfigurations": 0,
+    "reason": "The final implementation change preserves matching accessor annotations when printing a property. Eight accessor-containing configurations are replayed; the other 40 contain no accessors and retain their passing results. Safety-only assertions and dispatch do not change oracle answers."
+}

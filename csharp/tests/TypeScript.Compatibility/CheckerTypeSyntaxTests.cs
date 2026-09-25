@@ -12,6 +12,65 @@ namespace TypeScript.Compatibility;
 
 internal static class CheckerTypeSyntaxTests
 {
+    internal static async Task<int> SignatureSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Signature syntax assertion {checks + 1}");
+            checks++;
+        }
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        {
+            ["/project/main.ts"] = Wtf8.Encode(
+                "declare var x:number;type A=(x:number)=>typeof globalThis.x;type M<T>={readonly [K in keyof T]?:T[K]};")
+        }), "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var source = program.GetFile("/project/main.ts")!.Syntax;
+        var declarations = source.Statements!.OfType<TypeAliasDeclarationNode>().ToArray();
+        var type = await checker.Nodes.FromNodeAsync(declarations[0].Type!);
+        var mapped = await checker.Nodes.FromNodeAsync(declarations[1].Type!);
+        var snapshot = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
+        using var stop = new CancellationTokenSource();
+        bool canceledInScope = false;
+        checker.BeforeSymbolChainTable = _ =>
+        {
+            if (checker.TypeSyntaxScopeCount != 0)
+            {
+                canceledInScope = true;
+                stop.Cancel();
+                stop.Token.ThrowIfCancellationRequested();
+            }
+        };
+        try
+        {
+            await checker.SerializeTypeSyntaxAsync(type, source, true, cancellation: stop.Token);
+            throw new InvalidOperationException("Mid-signature cancellation was not observed");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        finally
+        {
+            checker.BeforeSymbolChainTable = null;
+        }
+        Check(canceledInScope);
+        Check(checker.TypeSyntaxScopeCount == 0);
+        Check(snapshot.All(p => p.Parent == p.Node.Parent && p.Pos == p.Node.Pos && p.End == p.Node.End && p.Flags == p.Node.Flags));
+        Check(await checker.SerializeTypeSyntaxAsync(type, source, true) == "(x: number) => typeof globalThis.x");
+        int cached = checker.AccessibleChainCacheCount;
+        Check(await checker.SerializeTypeSyntaxAsync(type, source, true) == "(x: number) => typeof globalThis.x");
+        Check(checker.AccessibleChainCacheCount == cached && checker.TypeSyntaxScopeCount == 0);
+        Check(await checker.SerializeTypeSyntaxAsync(mapped, source, true) == "{ readonly [K in keyof T]?: T[K] | undefined; }");
+        Check(snapshot.All(p => p.Parent == p.Node.Parent && p.Pos == p.Node.Pos && p.End == p.Node.End && p.Flags == p.Node.Flags));
+        return checks;
+    }
+
     internal static async Task<int> ConditionalSafety()
     {
         int checks = 0;

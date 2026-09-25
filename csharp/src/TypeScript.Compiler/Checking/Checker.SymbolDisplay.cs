@@ -27,7 +27,7 @@ internal sealed partial class Checker
 
     private sealed class SymbolDisplayContext(SyntaxNode? enclosing, SymbolFormatFlags flags)
     {
-        internal SyntaxNode? Enclosing { get; } = enclosing;
+        internal SyntaxNode? Enclosing { get; set; } = enclosing;
         internal SymbolFormatFlags Flags { get; } = flags;
         internal HashSet<(Symbol, SymbolFlags)> Parents { get; } = [];
         internal Dictionary<(Symbol, ReferenceResolutionMode), string> Modules { get; } = [];

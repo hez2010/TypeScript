@@ -1,0 +1,93 @@
+{
+    "timestamp": "2026-09-25T09:05:38.136Z",
+    "configuration": "Release",
+    "managed": true,
+    "scope": "Default untruncated mapped type, function/constructor signature, method/accessor and parameter syntax construction",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-mapped-signature-syntax-final-build.log",
+        "sha256": "b6efee8f453cb8a6357cbd74da08f4f44c1d3338c6f42d0f5b0966c31ff91f44"
+    },
+    "candidateSha256": "9505c1f2be09729f11219bf97acaa8340b670e34f5e88137b23a44e7c16d821b",
+    "compilerSha256": "a23015a3f4fd60d9a138b84153063fea0071bb552e6ce914fdb841d7b6e48ca7",
+    "mappedComparisons": {
+        "configurations": 24,
+        "queries": 1280,
+        "comparedQueries": 1280,
+        "exact": 24,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "76546edfa152dceaa137af5ee0ec2bd93c451361054e38e4b955dc588dba816f",
+        "candidateHash": "226c9b102a8f4dcf77af1c40dfc59d01dc02741b8e417e205f0fc2429b0acf84",
+        "inputHash": "0fb5d40db8653694d30d2122eda123a8123c6465a51f17f2b57710aa12ce3c5e",
+        "resultHash": "71f159275faac2467c93561332efcb2dd7aab7ea9b6fba31459ad2191859670b",
+        "managed": true
+    },
+    "signatureComparisons": {
+        "configurations": 48,
+        "queries": 2496,
+        "comparedQueries": 2496,
+        "exact": 48,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "76546edfa152dceaa137af5ee0ec2bd93c451361054e38e4b955dc588dba816f",
+        "candidateHash": "93938c7b8d4193a5760900ea952378c1b06d12a720f9c030f49432e199c7fecb",
+        "inputHash": "63ebe3a59fd6479734fa22ac874383b8fc8a1a97358c4dd4cc33099e6bf25a6d",
+        "resultHash": "dca60b6faab5a8b23748371762fb271c281625f3f35bd8842e8556435c7adcd5",
+        "managed": true
+    },
+    "safety": {
+        "assertions": 9,
+        "log": "logs/csharp-phase4-signature-syntax-safety.log",
+        "scope": "Mid-signature cancellation and recovery, scope cleanup, stable chain cache size, source ownership, mapped output"
+    },
+    "reference": {
+        "revision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "frozenSourcesMatch": true,
+        "checkedSources": [
+            "nodebuilderimpl.go",
+            "nodebuilderscopes.go",
+            "nodecopy.go",
+            "utilities.go",
+            "emitresolver.go"
+        ]
+    },
+    "reuse": {
+        "record": "phase4-signature-syntax-reuse.json",
+        "retainedMappedCandidates": 24,
+        "retainedSignatureCandidatesAfterFinalFix": 40,
+        "replayedSignatureCandidatesAfterFinalFix": 8,
+        "finalComparisonRetained": true,
+        "reason": "After the final passing comparison and safety run, the only functional change explicitly rejects mixed abstract constructor objects. No retained input reaches that rejection: the abstract constructor fixture uses a single constructor with no object members. Formatting was proven token/comment/syntax equivalent. Mapped inputs contain no signatures, methods, accessors or typeof annotation reuse. Prior core/conditional inputs contain no mapped types or callable members; the new branches leave their paths unchanged.",
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "semanticCorpus": "Retained; these builder APIs are not called by existing semantic diagnostic paths"
+    },
+    "formatting": {
+        "tokensCommentsAndSyntaxIdentical": true,
+        "csharpFiles": 6,
+        "libraryConfigurations": 2,
+        "log": "logs/csharp-phase4-mapped-signature-syntax-format.log",
+        "proofSha256": "7a6c930bb439ebd8b220dd7d4ed4af5151c0b6d0da3cf703610e619138f2a100",
+        "dotnetWhitespaceExitCode": 0,
+        "inputsUnchanged": true
+    },
+    "syntaxCheck": {
+        "exitCode": 0,
+        "command": "node --check csharp/tools/checker-locations.mjs"
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "phase4Complete": false
+}

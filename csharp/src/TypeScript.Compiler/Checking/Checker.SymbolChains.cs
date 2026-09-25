@@ -105,6 +105,8 @@ internal sealed partial class Checker
                 break;
         }
         cancellation.ThrowIfCancellationRequested();
+        if (firstScope is not null && typeSyntaxScopes.ContainsKey(firstScope))
+            return result;
         bool exists = accessibleChains.TryGetValue(key, out var previous);
         chainChanges?.Chains.TryAdd(key, (exists, previous));
         accessibleChains[key] = result;
@@ -257,6 +259,8 @@ internal sealed partial class Checker
         for (var location = enclosing; location is not null; location = location.Parent)
         {
             cancellation.ThrowIfCancellationRequested();
+            if (typeSyntaxScopes.TryGetValue(location, out var synthetic))
+                yield return new(synthetic, new(SymbolTableKind.Locals, location), true, location);
             var binding = program.Symbols.Binding(location);
             if (!(location is SourceFileNode && binding?.IsModule != true) && binding?.Get(location) is { HasLocals: true } data)
                 yield return new(data.Locals, new(SymbolTableKind.Locals, location), true, location);

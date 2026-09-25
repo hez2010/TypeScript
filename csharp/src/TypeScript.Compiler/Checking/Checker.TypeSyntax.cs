@@ -256,11 +256,12 @@ internal sealed partial class Checker
             }
             if (type is ObjectType objectType)
             {
+                if (type is MappedType mapped && (await Instantiation.Mapped.IsGenericAsync(mapped, cancellation) || mapped.ContainsError))
+                    return await MappedTypeSyntaxAsync(mapped, state, cancellation);
                 var resolved = await Members.ResolveAsync(objectType, cancellation);
-                if (resolved.CallSignatures.Count == 0 && resolved.ConstructSignatures.Count == 0
-                    && type is not MappedType && (type.Symbol is null
-                        || (type.Symbol.Flags & (SymbolFlags.TypeLiteral | SymbolFlags.ObjectLiteral)) != 0))
-                    return await ObjectPropertySyntaxAsync(resolved, state, cancellation);
+                if (type.Symbol is null
+                        || (type.Symbol.Flags & (SymbolFlags.TypeLiteral | SymbolFlags.ObjectLiteral)) != 0)
+                    return await ObjectTypeSyntaxAsync(resolved, state, cancellation);
             }
             throw new NotSupportedException($"Type syntax construction is not yet implemented for {type.GetType().Name}");
         }
@@ -281,6 +282,30 @@ internal sealed partial class Checker
         for (int i = 0; i < nodes.Length; i++)
             nodes[i] = await TypeSyntaxAsync(types[i], state, cancellation);
         return new(nodes);
+    }
+
+    private async ValueTask<SyntaxNode> MappedTypeSyntaxAsync(MappedType type, TypeSyntaxContext state, CancellationToken cancellation)
+    {
+        var f = state.Factory;
+        var declaration = type.Declaration!;
+        var template = await Instantiation.Mapped.TemplateAsync(type, cancellation);
+        var parameter = await Instantiation.Mapped.ParameterAsync(type, cancellation);
+        SyntaxNode constraint = MappedMembers.HasKeyofConstraint(type)
+            ? f.NewTypeOperatorNode(K.KeyOfKeyword, ParenthesizeType(
+                await TypeSyntaxAsync(await Instantiation.Members.ModifiersTypeAsync(type, cancellation), state, cancellation), f))
+            : await TypeSyntaxAsync(await Instantiation.Mapped.ConstraintAsync(type, cancellation), state, cancellation);
+        var parameterNode = await TypeParameterSyntaxAsync(parameter, constraint, state, cancellation);
+        var name = await Instantiation.Mapped.NameAsync(type, cancellation);
+        var nameNode = name is null ? null : await TypeSyntaxAsync(name, state, cancellation);
+        var templateNode = await TypeSyntaxAsync(
+            Values.NonMissing(template, (MappedTypes.Modifiers(type) & MappedTypeModifiers.IncludeOptional) != 0), state, cancellation);
+        var result = f.NewMappedTypeNode(
+            declaration.ReadonlyToken is { } readOnly ? f.NewToken(readOnly.Kind) : null,
+            parameterNode, nameNode,
+            declaration.QuestionToken is { } question ? f.NewToken(question.Kind) : null,
+            templateNode, null);
+        state.SingleLine.Add(result);
+        return result;
     }
 
     private async ValueTask<TypeParameterDeclarationNode> TypeParameterSyntaxAsync(TypeParameter parameter, SyntaxNode? constraint,
@@ -310,6 +335,10 @@ internal sealed partial class Checker
     {
         var f = state.Factory;
         var members = new List<SyntaxNode>();
+        foreach (var signature in type.CallSignatures)
+            members.Add(await SignatureSyntaxAsync(signature, K.CallSignature, state, cancellation));
+        foreach (var signature in type.ConstructSignatures)
+            members.Add(await SignatureSyntaxAsync(signature, K.ConstructSignature, state, cancellation));
         foreach (var index in type.IndexInfos)
         {
             string name = index.Declaration is IndexSignatureDeclarationNode { Parameters: { Count: > 0 } parameters }
@@ -327,14 +356,13 @@ internal sealed partial class Checker
         foreach (var property in type.Properties ?? [])
         {
             cancellation.ThrowIfCancellationRequested();
-            if ((property.Flags & (SymbolFlags.Accessor | SymbolFlags.Method | SymbolFlags.Function)) != 0)
-                throw new NotSupportedException("Callable/accessor property syntax requires signature construction");
             if ((property.CheckFlags & Binding.CheckFlags.ReverseMapped) != 0)
                 throw new NotSupportedException("Reverse-mapped property syntax requires recovery handling");
             var value = Values.NonMissing(await Values.GetAsync(property, cancellation), (property.Flags & SymbolFlags.Optional) != 0);
             SyntaxNode? reusedType = null;
             var declaration = property.ValueDeclaration ?? property.Declarations.FirstOrDefault();
-            if (state.Symbols.Enclosing is not null && declaration is ITypedNode { Type: { } annotation }
+            if ((property.Flags & (SymbolFlags.Accessor | SymbolFlags.Method | SymbolFlags.Function)) == 0
+                && state.Symbols.Enclosing is not null && declaration is ITypedNode { Type: { } annotation }
                 && (value.ObjectFlags & ObjectFlags.RequiresWidening) == 0)
             {
                 var annotated = await Nodes.FromNodeAsync(annotation, cancellation);
@@ -381,10 +409,46 @@ internal sealed partial class Checker
             else
                 propertyName = f.NewStringLiteral(name, singleQuote ? TokenFlags.SingleQuote : TokenFlags.None);
             bool readOnly = (property.CheckFlags & Binding.CheckFlags.Readonly) != 0
-                || property.Declarations.Any(d => SemanticSyntax.HasModifier(d, K.ReadonlyKeyword));
+                || property.Declarations.Any(d => SemanticSyntax.HasModifier(d, K.ReadonlyKeyword))
+                || (property.Flags & SymbolFlags.GetAccessor) != 0 && (property.Flags & SymbolFlags.SetAccessor) == 0;
+            if ((property.Flags & SymbolFlags.Accessor) != 0)
+            {
+                var write = await Values.WriteAsync(property, cancellation);
+                if (value != context.ErrorType && write != context.ErrorType && (value != write
+                    || (property.Parent?.Flags & SymbolFlags.Class) != 0 && !property.Declarations.Any(d => d is PropertyDeclarationNode)))
+                {
+                    foreach (var kind in new[] { K.GetAccessor, K.SetAccessor })
+                        if (property.Declarations.FirstOrDefault(d => d.Kind == kind) is { } accessor)
+                        {
+                            var signature = await Signatures.FromDeclarationAsync(accessor, cancellation);
+                            if (links.Values.TryGet(property)?.Mapper is { } mapper)
+                                signature = await Instantiation.Engine.SignatureAsync(signature, mapper, false, cancellation);
+                            members.Add(await SignatureSyntaxAsync(signature, kind, state, cancellation, propertyName));
+                        }
+                    continue;
+                }
+            }
+            var question = (property.Flags & SymbolFlags.Optional) != 0 ? f.NewToken(K.QuestionToken) : null;
+            if ((property.Flags & (SymbolFlags.Method | SymbolFlags.Function)) != 0 && !readOnly
+                && (await Properties.GetAsync(value, cancellation)).Count == 0)
+            {
+                var signatures = await SignaturesAsync(
+                    Algebra.Filter(value, t => (t.Flags & TypeFlags.Undefined) == 0),
+                    false,
+                    cancellation);
+                foreach (var signature in signatures)
+                    members.Add(await SignatureSyntaxAsync(signature, K.MethodSignature, state, cancellation, propertyName, question));
+                if (signatures.Count != 0 || question is null)
+                    continue;
+            }
             members.Add(f.NewPropertySignatureDeclaration(readOnly ? new([f.NewToken(K.ReadonlyKeyword)]) : null, propertyName,
-                (property.Flags & SymbolFlags.Optional) != 0 ? f.NewToken(K.QuestionToken) : null,
-                reusedType ?? await TypeSyntaxAsync(value, state, cancellation),
+                question,
+                reusedType ?? ((property.Flags & SymbolFlags.Accessor) != 0
+                    ? await DeclarationTypeSyntaxAsync(value,
+                        property.Declarations.OfType<GetAccessorDeclarationNode>().FirstOrDefault() as SyntaxNode
+                            ?? property.Declarations.OfType<SetAccessorDeclarationNode>().FirstOrDefault()?.Parameters?.LastOrDefault(),
+                        false, state, cancellation)
+                    : await TypeSyntaxAsync(value, state, cancellation)),
                 null));
         }
         var result = f.NewTypeLiteralNode(new(members.ToArray()));
