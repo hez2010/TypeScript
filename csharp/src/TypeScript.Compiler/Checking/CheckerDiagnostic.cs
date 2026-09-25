@@ -7,6 +7,17 @@ namespace TypeScript.Compiler.Checking;
 
 internal static class CheckerDiagnostic
 {
+    internal static string DeclarationName(SyntaxNode node)
+    {
+        if (node.Pos == node.End)
+            return "(Missing)";
+        var file = SemanticSyntax.Source(node);
+        if (file is null)
+            return SyntaxNameText.Get(node);
+        var (start, _) = TokenRange(file, node.Pos);
+        return file.Source.Text[file.Source.ToUtf16Position(start)..file.Source.ToUtf16Position(node.End)];
+    }
+
     internal static Diagnostic Create(SyntaxNode? node, DiagnosticMessage message, params string[] arguments)
     {
         var file = SemanticSyntax.Source(node);

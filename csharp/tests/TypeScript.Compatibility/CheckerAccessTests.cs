@@ -195,7 +195,63 @@ internal static class CheckerAccessTests
         checks += await ClassSafety();
         checks += await JavaScriptPropertySafety();
         checks += await DeclarationGrammarSafety();
+        checks += await PropertyDiagnosticSafety();
         Console.WriteLine($"{checks} access/optional/member/class/cancellation/spelling assertions; 20,000-level traversal.");
+    }
+
+    private static async Task<int> PropertyDiagnosticSafety()
+    {
+        string source = "\n" + """
+            interface Array<T> { length: number; [n: number]: T; }
+            interface String { length: number; }
+            interface Promise<T> { then(onfulfilled: (value: T) => any): any; }
+            declare const object: { length: number };
+            object.unknown;
+            object.lenght;
+            type Union = { left: number } | { right: string };
+            declare const union: Union;
+            union.left;
+            union.other;
+            class Static { static value = 1; }
+            declare const instance: Static;
+            instance.value;
+            declare const promised: Promise<{ value: number }>;
+            promised.value;
+            declare const text: string;
+            text.includes('x');
+            interface HTMLButtonElement {}
+            declare const element: HTMLButtonElement;
+            element.click;
+            type Never = { kind: 'a' } & { kind: 'b' };
+            declare const never: Never;
+            never.value;
+            object.\u0075nknown;
+            """.Replace("\r\n", "\n", StringComparison.Ordinal) + "\n";
+        // Complete pinned-reference records, including union and suggestion explanations.
+        const string reference = """
+            [{"arguments":["unknown","{ length: number; }"],"category":1,"chain":[],"code":2339,"file":"/project/main.ts","key":"Property_0_does_not_exist_on_type_1_2339","length":7,"related":[],"start":210},{"arguments":["lenght","{ length: number; }","length"],"category":1,"chain":[],"code":2551,"file":"/project/main.ts","key":"Property_0_does_not_exist_on_type_1_Did_you_mean_2_2551","length":6,"related":[{"arguments":["length"],"category":3,"chain":[],"code":2728,"file":"/project/main.ts","key":"_0_is_declared_here_2728","length":6,"related":[],"start":185}],"start":226},{"arguments":["left","Union"],"category":1,"chain":[{"arguments":["left","{ right: string; }"],"category":1,"chain":[],"code":2339,"file":"/project/main.ts","key":"Property_0_does_not_exist_on_type_1_2339","length":4,"related":[],"start":319}],"code":2339,"file":"/project/main.ts","key":"Property_0_does_not_exist_on_type_1_2339","length":4,"related":[],"start":319},{"arguments":["other","Union"],"category":1,"chain":[{"arguments":["other","{ left: number; }"],"category":1,"chain":[],"code":2339,"file":"/project/main.ts","key":"Property_0_does_not_exist_on_type_1_2339","length":5,"related":[],"start":331}],"code":2339,"file":"/project/main.ts","key":"Property_0_does_not_exist_on_type_1_2339","length":5,"related":[],"start":331},{"arguments":["value","Static","Static.value"],"category":1,"chain":[],"code":2576,"file":"/project/main.ts","key":"Property_0_does_not_exist_on_type_1_Did_you_mean_to_access_the_static_member_2_instead_2576","length":5,"related":[],"start":414},{"arguments":["value","Promise<{ value: number; }>"],"category":1,"chain":[],"code":2339,"file":"/project/main.ts","key":"Property_0_does_not_exist_on_type_1_2339","length":5,"related":[{"arguments":[],"category":1,"chain":[],"code":2773,"file":"/project/main.ts","key":"Did_you_forget_to_use_await_2773","length":5,"related":[],"start":482}],"start":482},{"arguments":["includes","string","es2015"],"category":1,"chain":[],"code":2550,"file":"/project/main.ts","key":"Property_0_does_not_exist_on_type_1_Do_you_need_to_change_your_target_library_Try_changing_the_lib_c_2550","length":8,"related":[],"start":522},{"arguments":["click","HTMLButtonElement"],"category":1,"chain":[],"code":2812,"file":"/project/main.ts","key":"Property_0_does_not_exist_on_type_1_Try_changing_the_lib_compiler_option_to_include_dom_2812","length":5,"related":[],"start":618},{"arguments":["value","never"],"category":1,"chain":[{"arguments":["Never","kind"],"category":1,"chain":[],"code":18031,"file":"/project/main.ts","key":"The_intersection_0_was_reduced_to_never_because_property_1_has_conflicting_types_in_some_constituent_18031","length":5,"related":[],"start":703}],"code":2339,"file":"/project/main.ts","key":"Property_0_does_not_exist_on_type_1_2339","length":5,"related":[],"start":703},{"arguments":["\\u0075nknown","{ length: number; }"],"category":1,"chain":[],"code":2339,"file":"/project/main.ts","key":"Property_0_does_not_exist_on_type_1_2339","length":12,"related":[],"start":717}]
+            """;
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        options.SetRaw("noErrorTruncation", "true");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
+            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        await checker.CheckProgramAsync();
+        var file = program.GetFile("/project/main.ts")!.Syntax;
+        using var stream = new MemoryStream();
+        using (var writer = new System.Text.Json.Utf8JsonWriter(stream))
+            CheckerCorpusTests.WriteDiagnostics(writer, checker.DetailedDiagnosticsForFile(file).OrderBy(d => d.Start));
+        using var actual = System.Text.Json.JsonDocument.Parse(stream.ToArray());
+        using var expected = System.Text.Json.JsonDocument.Parse(reference);
+        if (actual.RootElement.GetArrayLength() != expected.RootElement.GetArrayLength())
+            throw new InvalidOperationException("Property diagnostic count");
+        for (int i = 0; i < actual.RootElement.GetArrayLength(); i++)
+            if (!System.Text.Json.JsonElement.DeepEquals(actual.RootElement[i], expected.RootElement[i]))
+                throw new InvalidOperationException($"Property diagnostic {i}: {actual.RootElement[i].GetRawText()}");
+        return actual.RootElement.GetArrayLength();
     }
 
     private static async Task<int> DeclarationGrammarSafety()

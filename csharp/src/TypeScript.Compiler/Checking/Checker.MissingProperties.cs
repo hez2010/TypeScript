@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -75,16 +76,35 @@ internal sealed partial class Checker
                 continue;
             links.Nodes.Get(node).Flags |= NodeCheckFlags.TypeChecked;
             string name = SyntaxNameText.Get(node);
-            int code;
+            string displayedName = CheckerDiagnostic.DeclarationName(node);
+            string receiver = await TypeDisplay.GetAsync(await Views.ReducedAsync(type, cancellation), cancellation);
+            Diagnostic? chain = null;
+            if (node is not PrivateIdentifierNode && type is UnionType union && (type.Flags & TypeFlags.Primitive) == 0)
+                foreach (var part in union.Types)
+                    if (await Properties.PropertyAsync(part, name, cancellation: cancellation) is null
+                        && await ApplicableIndexAsync(part, name, cancellation) is null)
+                    {
+                        chain = CheckerDiagnostic.Create(node, Messages.Property_0_does_not_exist_on_type_1,
+                            displayedName, await TypeDisplay.GetAsync(await Views.ReducedAsync(part, cancellation), cancellation));
+                        break;
+                    }
+            Diagnostic Report(int code, params string[] arguments) => CheckerDiagnostic.Create(
+                node,
+                DiagnosticLocalization.GetMessage(code),
+                arguments)
+                with
+            { MessageChain = chain is null ? [] : [chain] };
+            Diagnostic diagnostic;
             if (await StaticPropertyAsync(name, type, cancellation).ConfigureAwait(false))
-                code = 2576;
+                diagnostic = Report(2576, displayedName, receiver, receiver + "." + displayedName);
             else if (await Awaited.OfPromiseAsync(type, cancellation: cancellation).ConfigureAwait(false) is { } promised
                 && await Properties.PropertyAsync(promised, name, cancellation: cancellation).ConfigureAwait(false) is not null)
-                code = 2339;
+                diagnostic = Report(2339, displayedName, receiver) with
+                { RelatedInformation = [CheckerDiagnostic.Create(node, Messages.Did_you_forget_to_use_await)] };
             else if (LibraryFeatures.PropertyLibrary(
                 (await ApparentAsync(type, cancellation).ConfigureAwait(false)).Symbol?.Name,
-                name) is not null)
-                code = 2550;
+                displayedName) is { } library)
+                diagnostic = Report(2550, displayedName, receiver, library);
             else
             {
                 var candidates = new List<Symbol>();
@@ -101,14 +121,50 @@ internal sealed partial class Checker
                         candidates.Add(property);
                 var similar = await SymbolSuggestions.FindAsync(name, candidates, SymbolFlags.Value, cancellation).ConfigureAwait(false);
                 if (similar is not null)
-                    code = suggestion ? 2568 : 2551;
+                {
+                    diagnostic = Report(suggestion ? 2568 : 2551, displayedName, receiver, similar.Name);
+                    if (similar.ValueDeclaration is { } declaration)
+                        diagnostic = diagnostic with
+                        {
+                            RelatedInformation = [CheckerDiagnostic.Create(
+                            declaration,
+                            Messages.X_0_is_declared_here,
+                            similar.Name)]
+                        };
+                }
                 else
-                    code = await EmptyDomTypeAsync(type, cancellation).ConfigureAwait(false) ? 2812 : 2339;
+                {
+                    if (type is IntersectionType intersection && (type.ObjectFlags & ObjectFlags.IsNeverIntersection) != 0)
+                    {
+                        Symbol? conflict = null;
+                        int code = 18031;
+                        foreach (var property in await Properties.CompositePropertiesAsync(intersection, cancellation))
+                            if ((property.Flags & SymbolFlags.Optional) == 0
+                                && (property.CheckFlags & (CheckFlags.NonUniformAndLiteral | CheckFlags.HasNeverType)) == CheckFlags.NonUniformAndLiteral
+                                && ((await Values.GetAsync(property, cancellation)).Flags & TypeFlags.Never) != 0)
+                            {
+                                conflict = property;
+                                break;
+                            }
+                        if (conflict is null)
+                        {
+                            code = 18032;
+                            conflict = (await Properties.CompositePropertiesAsync(intersection, cancellation))
+                                .FirstOrDefault(p => p.ValueDeclaration is null && (p.CheckFlags & CheckFlags.ContainsPrivate) != 0);
+                        }
+                        if (conflict is not null)
+                            chain = Report(code, await TypeDisplay.GetAsync(type, cancellation), TypeDisplay.SymbolName(conflict));
+                    }
+                    diagnostic = Report(
+                        await EmptyDomTypeAsync(type, cancellation).ConfigureAwait(false) ? 2812 : 2339,
+                        displayedName,
+                        receiver);
+                }
             }
-            if (suggestion && code == 2568)
-                ExpressionSuggestion(node, code);
+            if (suggestion && diagnostic.Code == 2568)
+                ExpressionSuggestion(node, diagnostic.Code);
             else
-                Error(node, code);
+                Error(node, diagnostic);
         }
         DeferredMissingProperties.RemoveAll(d => SemanticSyntax.Source(d.Node) == file);
     }

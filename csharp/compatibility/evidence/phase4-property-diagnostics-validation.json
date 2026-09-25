@@ -1,0 +1,100 @@
+{
+    "timestamp": "2026-09-25T00:48:28.8728046+00:00",
+    "configuration": "Release",
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "managed": true,
+    "scope": "Missing property messages, union constituents, spelling/static/library/await hints and never intersections; phase 4 remains incomplete",
+    "candidateSha256": "d574ab4497b41646fdf45fcfdf1938f601d69f4048f3144759b2182ed71f9ca4",
+    "compilerSha256": "013a046d58afb5b50f7c2a3cfb96833b039e0b00e1a3ad67a51915f68645678f",
+    "build": {
+        "log": "logs/csharp-phase4-property-diagnostics-build.log",
+        "errors": 0,
+        "exitCode": 0,
+        "sha256": "755b2553212f1696bbc5a4b879754f43204112a4a69663b4ebb0d8ac2baca9c5",
+        "warnings": 0
+    },
+    "fixture": {
+        "inputSha256": "1f16a475c953556814327317509b312054be92a5caf09b8d0145f5517229723d",
+        "candidateSha256": "891a07bbce1122daac8feca70110393f0728f4da432949d95f23cf4ac9835af7",
+        "referenceOracleSha256": "f5c03c77e3074463e10144d9a9028daf58b2f4f93c9b5c5278dd7d13bc5a1a7a",
+        "diagnosticRecords": 10,
+        "exactRecords": 10,
+        "retainedAssertions": "csharp/tests/TypeScript.Compatibility/CheckerAccessTests.cs",
+        "referenceSha256": "0b49712e0ef1cbe1635a83af8fa1c5958d470589363036a4f3998cf92d5f5864"
+    },
+    "safety": {
+        "accessAssertions": 64,
+        "logs": [
+            "logs/csharp-phase4-property-diagnostics-safety.log",
+            "logs/csharp-phase4-property-diagnostics-program-safety.log",
+            "logs/csharp-phase4-property-diagnostics-expression-safety.log"
+        ],
+        "programAssertions": 127,
+        "checks": [
+            "property spelling and receiver type",
+            "union constituent explanation",
+            "spelling suggestion and declaration",
+            "static-member suggestion",
+            "Promise await hint",
+            "library and empty-DOM hints",
+            "never intersection reason",
+            "escaped identifier spelling"
+        ],
+        "expressionAssertions": 81,
+        "newAssertions": 10
+    },
+    "corpus": {
+        "previousGraphAndCodeMatches": 459,
+        "single": "phase4-property-diagnostics-corpus-single.json",
+        "selectedConfigurationsPerMode": 523,
+        "parity": "phase4-property-diagnostics-mode-parity.json",
+        "currentDetailedMatchesWithinPreviousCoverage": 55,
+        "previousDetailedCoverage": 155,
+        "cumulative": {
+            "activeConfigurations": 13446,
+            "matches": 12757,
+            "remaining": 689,
+            "failed": 0,
+            "diagnosticMismatches": 689,
+            "graphMismatches": 0,
+            "detailedConfigurations": 3113,
+            "detailedMatches": 1767,
+            "nonemptyDetailedMatches": 1151,
+            "detailedDifferences": 1346
+        },
+        "remainingDetailedDifferences": 327,
+        "detailedDiagnosticMatches": 196,
+        "newlyMeasuredDetailedMatches": 141,
+        "previousDetailedMatches": 0,
+        "referenceDefault": "phase4-property-diagnostics-corpus-default.json",
+        "regressions": [],
+        "graphAndCodeMatches": 459,
+        "candidateFailures": []
+    },
+    "formatting": {
+        "libraryConfigurations": 2,
+        "proofSha256": "7fa6d80e9e74923b8937c69835cbd56240d01bc2fe44946a4c048ac8a0200faf",
+        "dotnetWhitespaceExitCode": 0,
+        "tokensCommentsAndSyntaxIdentical": true,
+        "csharpFiles": 3,
+        "proofLog": "logs/csharp-phase4-property-diagnostics-format.log"
+    },
+    "reusedValidation": {
+        "reason": "Cached oracle outputs and unchanged repository validation were reused. Affected candidate configurations were run once per reference mode; formatting preserved tokens/comments/syntax.",
+        "repositoryExitCode": 0,
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "repositoryCommand": "npx hereby validate --all"
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "parallelCheckerGateComplete": false,
+    "phase4Complete": false
+}
