@@ -17,12 +17,13 @@ const scopeServices = process.argv.includes("--scopes");
 const contextQueries = process.argv.includes("--contexts");
 const declarationVisibility = process.argv.includes("--visibility");
 const symbolChains = process.argv.includes("--chains");
+const typeSyntax = process.argv.includes("--type-syntax");
 const symbolTypeNodes = process.argv.includes("--symbol-type-nodes");
 const computedSymbols = process.argv.includes("--computed-symbols");
 const symbolFormats = process.argv.includes("--symbol-formats") || computedSymbols;
 const symbolDisplay = process.argv.includes("--symbol-display") || symbolFormats || symbolTypeNodes;
 const accessibility = process.argv.includes("--accessibility") || symbolDisplay;
-const output = path.join(root, `built/csharp/checker-${symbolTypeNodes ? "symbol-type-nodes" : computedSymbols ? "computed-symbols" : symbolFormats ? "symbol-formats" : symbolDisplay ? "symbol-display" : accessibility ? "accessibility" : symbolChains ? "symbol-chains" : declarationVisibility ? "declaration-visibility" : contextQueries ? "context-queries" : scopeServices ? "scope-services" : symbolLocations ? "symbol-locations" : "locations"}`);
+const output = path.join(root, `built/csharp/checker-${typeSyntax ? "type-syntax" : symbolTypeNodes ? "symbol-type-nodes" : computedSymbols ? "computed-symbols" : symbolFormats ? "symbol-formats" : symbolDisplay ? "symbol-display" : accessibility ? "accessibility" : symbolChains ? "symbol-chains" : declarationVisibility ? "declaration-visibility" : contextQueries ? "context-queries" : scopeServices ? "scope-services" : symbolLocations ? "symbol-locations" : "locations"}`);
 const option = name => process.argv[process.argv.indexOf(name) + 1];
 const dotnet = process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, "dotnet.exe") : "dotnet";
 const dll = path.join(root, "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll");
@@ -208,6 +209,18 @@ exports["exported-name"]=C; Object.defineProperty(exports,"defined-name",{value:
     });
 }
 const inputs = [];
+if (typeSyntax) {
+    Object.assign(fixtures, {
+        typeSyntaxPrimitives: `type SerializeAny=any; type SerializeUnknown=unknown; type SerializeString=string; type SerializeNumber=number; type SerializeBool=boolean; type SerializeBigInt=bigint; type SerializeSymbol=symbol; type SerializeObject=object; type SerializeVoid=void; type SerializeUndefined=undefined; type SerializeNull=null; type SerializeNever=never; class Scope{} function location(){}`,
+        typeSyntaxLiterals: `type SerializeString="é中😀";type SerializeNumber=-12;type SerializeBigInt=-12n;type SerializeTrue=true;type SerializeFalse=false;type SerializeZero=-0;type SerializeEscaped="\\uD800";class Scope{} function location(){}`,
+        typeSyntaxComposite: `type SerializeUnion=number|string|null|undefined;type SerializeBooleans=true|false|string;type SerializeIntersection=string&{};type SerializeLiteralUnion=1|2|3;type SerializeArray=(1|2)[];type SerializeReadonly=readonly string[];class Scope{} function location(){}`,
+        typeSyntaxTuples: `type SerializeTuple=[first:number,second?:string,...rest:boolean[]];type SerializeReadonly=readonly [1,"é"];type SerializeOptional=[(string|number)?];type SerializeEmpty=[];type SerializeVariadic<T extends unknown[]>=[number,...T];class Scope{} function location(){}`,
+        typeSyntaxNamed: `import type {Shape as Imported} from "./dep";interface Box<T>{value:T;}namespace N {export class C<T>{value!:T;}}type SerializeBox=Box<string>;type SerializeNested=N.C<number[]>;type SerializeImported=Imported;type SerializeParameter<T>=T;class Scope{} function location(){}`,
+        typeSyntaxOperators: `type SerializeKey<T>=keyof T;type SerializeIndexed<T,K extends keyof T>=T[K];type SerializeTemplate<T extends string>=\`é-\${T}-😀\`;type Uppercase<S extends string>=intrinsic;type SerializeMapping<T extends string>=Uppercase<T>;class Scope{} function location(){}`,
+        typeSyntaxEnums: `enum E {A=1,B=2}enum Named {"a-b"="text","c d"="other"}type SerializeEnum=E;type SerializeMember=E.A;type SerializeStringEnum=Named;type SerializeStringMember=Named["a-b"];type SerializeMixed=E.A|E.B|string;class Scope{} function location(){}`,
+        typeSyntaxUnique: `declare const key:unique symbol;type SerializeKey=typeof key;class Scope {method():this{return this;}}function location(){}`,
+    });
+}
 if (symbolTypeNodes) {
     Object.assign(fixtures, {
         symbolTypeModes: `import type {Shape} from "./esm.mjs"; export type Result=Shape; export class Local {field!:Shape;}`,
@@ -229,7 +242,15 @@ for (const [name, source] of Object.entries(fixtures)) {
                 files["/project/main.cts"] = source;
                 files["/project/esm.mts"] = "export interface Shape {value:number;} export const value=1;";
             }
-            inputs.push({ name: `${name}:${strict}:${concurrency}`, files: Object.fromEntries(Object.entries(files).map(([name, text]) => [name, Buffer.from(text).toString("base64")])), roots: Object.keys(files), options: { strict, target: "esnext", module: "esnext", moduleResolution: "bundler", jsx: "preserve", ...name.startsWith("jsdoc") ? { allowJs: true, checkJs: true } : {} }, typeNodes: true, ...symbolTypeNodes ? { symbolTypeNodes: true } : symbolFormats ? { symbolFormats: true, ...computedSymbols ? { symbolFormatFlags: [20, 22, 28, 30, 52, 54, 60, 62] } : {} } : symbolDisplay ? { symbolDisplay: true } : accessibility ? { accessibility: true } : symbolChains ? { symbolChains: true } : declarationVisibility ? { declarationVisibility: true } : contextQueries ? { contextQueries: true } : scopeServices ? { scopeServices: true } : symbolLocations ? { symbolLocations: true, ...name.startsWith("jsdoc") ? { documentationSymbols: true } : {} } : { locations: true }, concurrency });
+            inputs.push({
+                name: `${name}:${strict}:${concurrency}`,
+                files: Object.fromEntries(Object.entries(files).map(([name, text]) => [name, Buffer.from(text).toString("base64")])),
+                roots: Object.keys(files),
+                options: { strict, target: "esnext", module: "esnext", moduleResolution: "bundler", jsx: "preserve", ...name.startsWith("jsdoc") ? { allowJs: true, checkJs: true } : {} },
+                typeNodes: true,
+                ...typeSyntax ? { typeSyntax: true } : symbolTypeNodes ? { symbolTypeNodes: true } : symbolFormats ? { symbolFormats: true, ...computedSymbols ? { symbolFormatFlags: [20, 22, 28, 30, 52, 54, 60, 62] } : {} } : symbolDisplay ? { symbolDisplay: true } : accessibility ? { accessibility: true } : symbolChains ? { symbolChains: true } : declarationVisibility ? { declarationVisibility: true } : contextQueries ? { contextQueries: true } : scopeServices ? { scopeServices: true } : symbolLocations ? { symbolLocations: true, ...name.startsWith("jsdoc") ? { documentationSymbols: true } : {} } : { locations: true },
+                concurrency,
+            });
         }
     }
 }
@@ -237,7 +258,7 @@ const formatFixtures = new Set(["namespaces", "imports", "typeImports", "classes
 const computedFixtures = new Set(["displayNames", "displayComputed", "displayAssigned", "jsdocDisplayNames", "classes", "visibilityExports", "accessibilityInstances", "chainClassNames"]);
 const typeNodeFixtures = new Set(["namespaces", "imports", "typeImports", "classes", "importsCommonJs", "visibilityAliases", "visibilityAmbient", "visibilityExports", "chainShadow", "chainReexports", "chainTypeOnly", "displayNames", "displayComputed", "accessibilityExportEquals", "accessibilityInstances", "symbolTypeModes", "symbolTypeAttributes"]);
 if (symbolTypeNodes) { for (const input of inputs) if (input.name.startsWith("symbolTypeModes:")) Object.assign(input.options, { module: "nodenext", moduleResolution: "nodenext" }); }
-const eligible = symbolTypeNodes ? inputs.filter(input => typeNodeFixtures.has(input.name.split(":")[0])) : computedSymbols ? inputs.filter(input => computedFixtures.has(input.name.split(":")[0])) : symbolFormats ? inputs.filter(input => formatFixtures.has(input.name.split(":")[0])) : inputs;
+const eligible = typeSyntax ? inputs.filter(input => input.name.startsWith("typeSyntax")) : symbolTypeNodes ? inputs.filter(input => typeNodeFixtures.has(input.name.split(":")[0])) : computedSymbols ? inputs.filter(input => computedFixtures.has(input.name.split(":")[0])) : symbolFormats ? inputs.filter(input => formatFixtures.has(input.name.split(":")[0])) : inputs;
 const selected = process.argv.includes("--filter") ? eligible.filter(input => input.name.includes(option("--filter"))) : eligible;
 await writeFile(path.join(output, "inputs.json"), JSON.stringify(selected, null, 2));
 if (process.argv.includes("--list")) process.exit(0);
@@ -295,13 +316,13 @@ for (const input of selected) {
         candidateError = String(error);
         candidateFailures++;
     }
-    if (candidate) queries += (candidate.symbolTypeNodeQueries ?? candidate.symbolFormatQueries ?? candidate.symbolDisplayQueries ?? candidate.accessibilityQueries ?? candidate.symbolChainQueries ?? candidate.visibilityQueries ?? candidate.contextQueries ?? candidate.serviceQueries ?? candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
+    if (candidate) queries += (candidate.typeSyntaxQueries ?? candidate.symbolTypeNodeQueries ?? candidate.symbolFormatQueries ?? candidate.symbolDisplayQueries ?? candidate.accessibilityQueries ?? candidate.symbolChainQueries ?? candidate.visibilityQueries ?? candidate.contextQueries ?? candidate.serviceQueries ?? candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
     results.push({ input, reference, candidate, referenceError, candidateError });
     if (referenceError || candidateError) {
         failures.push({ name: input.name, referenceError, candidateError });
         continue;
     }
-    comparedQueries += (candidate.symbolTypeNodeQueries ?? candidate.symbolFormatQueries ?? candidate.symbolDisplayQueries ?? candidate.accessibilityQueries ?? candidate.symbolChainQueries ?? candidate.visibilityQueries ?? candidate.contextQueries ?? candidate.serviceQueries ?? candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
+    comparedQueries += (candidate.typeSyntaxQueries ?? candidate.symbolTypeNodeQueries ?? candidate.symbolFormatQueries ?? candidate.symbolDisplayQueries ?? candidate.accessibilityQueries ?? candidate.symbolChainQueries ?? candidate.visibilityQueries ?? candidate.contextQueries ?? candidate.serviceQueries ?? candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
     try {
         assert.deepStrictEqual(candidate, reference);
     }

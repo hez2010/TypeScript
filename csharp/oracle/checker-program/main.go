@@ -26,6 +26,7 @@ func main() {
 	output := json.NewEncoder(os.Stdout)
 	for lines.Scan() {
 		var input struct {
+			TypeSyntax            bool
 			SymbolTypeNodes       bool
 			SymbolFormatFlags     []checker.SymbolFormatFlags
 			Files                 map[string]string
@@ -126,7 +127,7 @@ func main() {
 			}
 			continue
 		}
-		result := c.CSharpProgramScopeProbe(input.Aliases, input.TypeNodes, input.Members, input.Values, input.Properties, input.Signatures, input.Identity, input.Assignability, input.Indexing, input.Constants, input.Expressions, input.Awaited, input.References, input.Flow, input.Identifiers, input.Access, input.Calls, input.Assertions, input.Locations, input.SymbolLocations, input.DocumentationSymbols, input.ScopeServices, input.ContextQueries, input.DeclarationVisibility, input.SymbolChains, input.Accessibility, input.SymbolDisplay, input.SymbolFormats, input.SymbolFormatFlags, input.SymbolTypeNodes).(map[string]any)
+		result := c.CSharpProgramScopeProbe(input.Aliases, input.TypeNodes, input.Members, input.Values, input.Properties, input.Signatures, input.Identity, input.Assignability, input.Indexing, input.Constants, input.Expressions, input.Awaited, input.References, input.Flow, input.Identifiers, input.Access, input.Calls, input.Assertions, input.Locations, input.SymbolLocations, input.DocumentationSymbols, input.ScopeServices, input.ContextQueries, input.DeclarationVisibility, input.SymbolChains, input.Accessibility, input.SymbolDisplay, input.SymbolFormats, input.SymbolFormatFlags, input.SymbolTypeNodes, input.TypeSyntax).(map[string]any)
 		if input.NumberStrings != nil {
 			rows := []string{}
 			for _, text := range input.NumberStrings {

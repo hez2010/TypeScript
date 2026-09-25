@@ -9,11 +9,13 @@ namespace TypeScript.Compiler.Checking;
 internal sealed partial class Checker
 {
     internal static string PrintDiagnosticNode(SyntaxNode node, bool neverAsciiEscape = false, CancellationToken cancellation = default,
-        SourceFileNode? sourceFile = null) => new SymbolNodePrinter(neverAsciiEscape, cancellation, sourceFile).Print(node);
+        SourceFileNode? sourceFile = null, IReadOnlySet<SyntaxNode>? noAsciiEscape = null, IReadOnlySet<SyntaxNode>? singleLine = null) =>
+        new SymbolNodePrinter(neverAsciiEscape, cancellation, sourceFile, noAsciiEscape, singleLine).Print(node);
 
     // Single-line, comment-free AST output used by symbol and type serialization.
     // The explicit work stack also handles input-shaped expression/function nesting.
-    private sealed class SymbolNodePrinter(bool neverAsciiEscape, CancellationToken cancellation, SourceFileNode? sourceFile)
+    private sealed class SymbolNodePrinter(bool neverAsciiEscape, CancellationToken cancellation, SourceFileNode? sourceFile,
+        IReadOnlySet<SyntaxNode>? noAsciiEscape, IReadOnlySet<SyntaxNode>? singleLine)
     {
         private readonly record struct Part(SyntaxNode? Node = null, string? Text = null, IReadOnlyList<Part>? Parts = null);
 
@@ -98,7 +100,7 @@ internal sealed partial class Checker
                         OriginalText(literal) ?? QuoteSymbolText(
                             literal.Text,
                             (literal.TokenFlags & TokenFlags.SingleQuote) != 0 ? '\'' : '"',
-                            !neverAsciiEscape));
+                            !neverAsciiEscape && noAsciiEscape?.Contains(literal) != true));
                     break;
                 case NumericLiteralNode literal:
                     output.Append(NumberText(literal));
@@ -113,13 +115,16 @@ internal sealed partial class Checker
                     output.Append(OriginalText(literal) ?? QuoteSymbolText(literal.Text, '`', !neverAsciiEscape));
                     break;
                 case TemplateHeadNode literal:
-                    output.Append('`').Append(TemplateText(literal.Text, literal.RawText)).Append("${");
+                    output.Append('`').Append(
+                        TemplateText(literal.Text, literal.RawText, noAsciiEscape?.Contains(literal) == true)).Append("${");
                     break;
                 case TemplateMiddleNode literal:
-                    output.Append('}').Append(TemplateText(literal.Text, literal.RawText)).Append("${");
+                    output.Append('}').Append(
+                        TemplateText(literal.Text, literal.RawText, noAsciiEscape?.Contains(literal) == true)).Append("${");
                     break;
                 case TemplateTailNode literal:
-                    output.Append('}').Append(TemplateText(literal.Text, literal.RawText)).Append('`');
+                    output.Append('}').Append(
+                        TemplateText(literal.Text, literal.RawText, noAsciiEscape?.Contains(literal) == true)).Append('`');
                     break;
                 case ComputedPropertyNameNode computed:
                     Push(T("["), N(computed.Expression), T("]"));
@@ -580,7 +585,8 @@ internal sealed partial class Checker
                     Push(N(array.ElementType), T("[]"));
                     break;
                 case TupleTypeNode tuple:
-                    Push(tuple.Elements is { Count: > 0 } ? List(tuple.Elements, "[ ", ", ", " ]") : T("[ ]"));
+                    Push(singleLine?.Contains(tuple) == true ? List(tuple.Elements, "[", ", ", "]", true)
+                        : tuple.Elements is { Count: > 0 } ? List(tuple.Elements, "[ ", ", ", " ]") : T("[ ]"));
                     break;
                 case NamedTupleMemberNode member:
                     Push(N(member.DotDotDotToken), N(member.Name), N(member.QuestionToken), T(": "), N(member.Type));
@@ -821,11 +827,11 @@ internal sealed partial class Checker
             pending.Push(new(Parts: parts));
         }
 
-        private string TemplateText(string text, string raw)
+        private string TemplateText(string text, string raw, bool noAscii = false)
         {
             if (raw.Length != 0 || text.Length == 0)
                 return raw;
-            return QuoteSymbolText(text, '`', !neverAsciiEscape)[1..^1];
+            return QuoteSymbolText(text, '`', !neverAsciiEscape && !noAscii)[1..^1];
         }
 
         private static bool UnarySpace(PrefixUnaryExpressionNode node) => node.Operator is K.PlusToken or K.MinusToken

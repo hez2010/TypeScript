@@ -1,0 +1,8 @@
+{
+    "retainedCandidates": 28,
+    "replayedCandidates": 4,
+    "retainedReferences": 32,
+    "previousCandidateHash": "f04c4e0a830b61c9df9db144d67903903ae9183fbf346e8bf4e12db1d1929ca6",
+    "candidateHash": "923ae1da2f26d5c4f229afca15eca7d9fbf9a5c46b57544f66c5358ffe839cd2",
+    "reason": "The only product correction adds syntax for a structurally empty object. All other initial cases already finished successfully and never reached the former unsupported-object branch. Safety tests and command dispatch do not change comparisons."
+}

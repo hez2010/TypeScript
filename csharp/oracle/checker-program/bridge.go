@@ -293,7 +293,7 @@ func (c *Checker) csharpContextQueries(nodes []*ast.Node, nodeIDs map[*ast.Node]
 	return rows, graph
 }
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool, symbolLocations bool, documentationSymbols bool, scopeServices bool, contextQueries bool, declarationVisibility bool, symbolChains bool, accessibility bool, symbolDisplay bool, symbolFormats bool, symbolFormatValues []SymbolFormatFlags, symbolTypeNodes bool) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool, symbolLocations bool, documentationSymbols bool, scopeServices bool, contextQueries bool, declarationVisibility bool, symbolChains bool, accessibility bool, symbolDisplay bool, symbolFormats bool, symbolFormatValues []SymbolFormatFlags, symbolTypeNodes bool, typeSyntax bool) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -500,6 +500,10 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	}
 	var accessibilityRows []any
 	var symbolDisplayRows []any
+	var typeSyntaxRows []any
+	if typeSyntax {
+		typeSyntaxRows = c.csharpTypeSyntax(nodes, nodeIDs)
+	}
 	var symbolTypeNodeRows []any
 	if symbolTypeNodes {
 		symbolTypeNodeRows = c.csharpSymbolTypeNodes(nodes, nodeIDs, sid)
@@ -1267,6 +1271,9 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	if symbolDisplay {
 		result["symbolDisplayQueries"] = symbolDisplayRows
 	}
+	if typeSyntax {
+		result["typeSyntaxQueries"] = typeSyntaxRows
+	}
 	if symbolTypeNodes {
 		result["symbolTypeNodeQueries"] = symbolTypeNodeRows
 	}
@@ -1492,6 +1499,53 @@ func (c *Checker) csharpSymbolTypeNodes(nodes []*ast.Node, nodeIDs map[*ast.Node
 						release()
 						rows = append(rows, []any{nodeIDs[location], sid(target), uint32(meaning), mode, arguments, text})
 					}
+				}
+			}
+		}
+	}
+	return rows
+}
+
+func (c *Checker) csharpTypeSyntax(nodes []*ast.Node, nodeIDs map[*ast.Node]int) []any {
+	locations := []*ast.Node{nil}
+	targets := []*ast.Node{}
+	for _, node := range nodes {
+		file := ast.GetSourceFileOfNode(node)
+		if !strings.HasPrefix(file.FileName(), "/project/main.") {
+			continue
+		}
+		if ast.IsTypeAliasDeclaration(node) && strings.HasPrefix(node.Name().Text(), "Serialize") {
+			targets = append(targets, node.Type())
+		}
+		if node.Kind == ast.KindSourceFile || node.Kind == ast.KindClassDeclaration || node.Kind == ast.KindFunctionDeclaration {
+			locations = append(locations, node)
+		}
+	}
+	rows := []any{}
+	for _, target := range targets {
+		t := c.getTypeFromTypeNode(target)
+		for _, location := range locations {
+			for _, expand := range []bool{false, true} {
+				for _, outside := range []bool{false, true} {
+					b, release := c.getNodeBuilder()
+					flags := nodebuilder.FlagsIgnoreErrors | nodebuilder.FlagsNoTruncation
+					if expand {
+						flags |= nodebuilder.FlagsInTypeAlias
+					}
+					if outside {
+						flags |= nodebuilder.FlagsUseAliasDefinedOutsideCurrentScope
+					}
+					node := b.TypeToTypeNode(t, location, flags, nodebuilder.InternalFlagsNone, nil)
+					value := ""
+					if node != nil {
+						writer, put := printer.GetSingleLineStringWriter()
+						p := printer.NewPrinter(printer.PrinterOptions{RemoveComments: true, OmitTrailingSemicolon: true, NeverAsciiEscape: location != nil && location.Kind == ast.KindSourceFile}, printer.PrintHandlers{}, b.EmitContext())
+						p.Write(node, ast.GetSourceFileOfNode(location), writer, nil)
+						value = writer.String()
+						put()
+					}
+					release()
+					rows = append(rows, []any{nodeIDs[target], nodeIDs[location], expand, outside, value})
 				}
 			}
 		}

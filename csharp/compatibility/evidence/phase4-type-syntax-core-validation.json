@@ -1,0 +1,73 @@
+{
+    "timestamp": "2026-09-25T08:12:33.7208992Z",
+    "configuration": "Release",
+    "managed": true,
+    "scope": "Untruncated primitive/composite/reference type-to-syntax construction; general object, signature, mapped, conditional and parameter construction remain incomplete",
+    "build": {
+        "log": "logs/csharp-phase4-type-syntax-build.log",
+        "sha256": "01703335c66b69832abbd089b7797979cb0a4991359ea7a550eb968293bd1498",
+        "warnings": 0,
+        "exitCode": 0,
+        "errors": 0
+    },
+    "candidateSha256": "b61ba34795f9f3d9e2541194ee85c19f7dc234d886e7eb848e5e13f68f6b32cc",
+    "compilerSha256": "2e6a17deebdabb3a763263e9e47980470803af911e7551b77919a2e29d363142",
+    "comparisons": {
+        "configurations": 32,
+        "queries": 2880,
+        "comparedQueries": 2880,
+        "exact": 32,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "76546edfa152dceaa137af5ee0ec2bd93c451361054e38e4b955dc588dba816f",
+        "candidateHash": "923ae1da2f26d5c4f229afca15eca7d9fbf9a5c46b57544f66c5358ffe839cd2",
+        "inputHash": "ae3bcf95f95ce4d05a03b702b9758907e5246cecf377d14e9d90fd4b457f9d78",
+        "resultHash": "94f573fc9d1c0e6be202de52d9b76d730b0684e8decfb12cf3fbffb2022ed52f",
+        "managed": true
+    },
+    "referenceMode": "NodeBuilder FlagsIgnoreErrors | FlagsNoTruncation, with independent InTypeAlias and UseAliasDefinedOutsideCurrentScope variants",
+    "safety": {
+        "log": "logs/csharp-phase4-type-syntax-safety.log",
+        "assertions": 9,
+        "fixtureCorrection": "A focused oracle/candidate probe confirmed the optional tuple retains undefined. The safety expectation was corrected without changing product code or repeating the completed matrix."
+    },
+    "reference": {
+        "nodeBuilderBlob": "5cd58f6ec95f0fe53386fe46d2b3ecf0d2d46d83",
+        "printerBlob": "234e3e4b0818dc0af2dd474e7babf88da3480f76",
+        "frozenSourcesMatch": true,
+        "revision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8"
+    },
+    "reuse": {
+        "retainedReferences": 32,
+        "finalMatrixRetained": true,
+        "retainedCandidates": 28,
+        "record": "phase4-type-syntax-core-reuse.json",
+        "reason": "After the final passing comparison only a safety expectation changed. Earlier printer callers supply no per-node hints and therefore keep their prior branches. Existing semantic checking and diagnostic display do not invoke the new conversion entry point.",
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "replayedCandidates": 4
+    },
+    "formatting": {
+        "tokensCommentsAndSyntaxIdentical": true,
+        "dotnetWhitespaceExitCode": 0,
+        "libraryConfigurations": 2,
+        "proofSha256": "44cc3ab2722546aafa4973e8dfc3d84dd52ba29da4d3b741c918bb76d0a73c1a",
+        "csharpFiles": 5,
+        "log": "logs/csharp-phase4-type-syntax-format.log",
+        "inputsUnchanged": true
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "phase4Complete": false,
+    "syntaxCheck": {
+        "exitCode": 0,
+        "command": "node --check csharp/tools/checker-locations.mjs"
+    }
+}
