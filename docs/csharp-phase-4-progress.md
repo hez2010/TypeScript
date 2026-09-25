@@ -4,15 +4,15 @@
 
 ## Current overall status
 
-The complete Release import baseline plus subsequent affected-case results record **12,757 matches out of 13,446 active compiler configurations**, up from 12,755 before overload/literal diagnostic fixes and 9,365 at the original Release baseline. **All 13,446 configurations now finish execution and match source graphs.** **689 configurations still have diagnostic-code differences.** One exported input was corrected to reproduce the reference harness's duplicate-filename overwrite order; the reference's expected graph and diagnostics were unchanged.
+The complete Release import baseline plus subsequent affected-case results record **12,778 matches out of 13,446 active compiler configurations**, up from 12,757 before the recovery/declaration-diagnostics batch and 9,365 at the original Release baseline. **All 13,446 configurations now finish execution and match source graphs.** **668 configurations still have diagnostic-code differences.** One exported input was corrected to reproduce the reference harness's duplicate-filename overwrite order; the reference's expected graph and diagnostics were unchanged.
 
-These comparisons cover source graphs and diagnostic codes. **94.9% matching on this measure is not a Phase-4 completion percentage.** The remaining gates are:
+These comparisons cover source graphs and diagnostic codes. **95.0% matching on this measure is not a Phase-4 completion percentage.** The remaining gates are:
 
 | Completion requirement | Current status |
 | --- | --- |
 | Execute active corpus and match source graphs | Complete: 13,446 configurations |
-| Match semantic diagnostic codes | 12,757 match; 689 differ |
-| Match diagnostic text, locations and related information | Incomplete: detailed records match in 2,054 of 3,430 selected configurations, including 1,383 with nonempty semantic diagnostics; the remaining corpus has not been compared at this level |
+| Match semantic diagnostic codes | 12,778 match; 668 differ |
+| Match diagnostic text, locations and related information | Incomplete: detailed records match in 2,206 of 3,597 selected configurations, including 1,524 with nonempty semantic diagnostics; the remaining corpus has not been compared at this level |
 | Complete type/symbol comparisons, type display, node builders, accessibility and emit-resolver APIs | Incomplete; query families, visibility, formatted accessibility and symbol-format flags have fixture comparisons; remaining node-builder policies, type display and emit-resolver coverage remain open |
 | Validate actual parallel checker scheduling | Incomplete; reference-mode corpus agreement is a narrower check |
 | Meet complete semantic workload memory/performance budgets | Incomplete |
@@ -20,7 +20,7 @@ These comparisons cover source graphs and diagnostic codes. **94.9% matching on 
 
 Phase 4 is not nearly complete, and the evidence does not yet support a reliable completion estimate. Completed results are retained: each implementation checkpoint replays affected inputs against cached oracle results. A failed check is repeated after a relevant fix; unchanged checks are reused.
 
-**Current implementation focus:** complete late-bound index construction, JavaScript type-node conversion and annotation/reverse-mapped recovery, then integrate the remaining display/emit APIs. Declaration/expression types, signature returns/type parameters and literal constants now have direct serialization comparisons, alongside linked-reference marking, JSX factories, declaration facts, references and metadata classification. These internal probes do not establish a complete emit resolver or reduce the 689 semantic corpus differences. Remaining semantic and detailed diagnostic differences still need work; parallel scheduling and performance/memory gates follow.
+**Current implementation focus:** complete the remaining semantic and detailed diagnostic differences alongside inferred-return recovery and full display/emit integration. The latest batch adds late-bound/computed index construction, JavaScript annotation conversion, imported-type spelling and reverse-mapped recovery, and closes 21 semantic corpus configurations. These internal APIs still do not establish a complete emit resolver. Parallel scheduling and performance/memory gates remain open.
 
 The next implementation priorities are missing diagnostic arguments and relation chains, remaining declaration/expression checks, and the unfinished checker APIs. The sections below are historical implementation checkpoints; their individual passing counts do not represent whole-phase completion.
 
@@ -1250,6 +1250,18 @@ Annotation reuse now rejects a `unique symbol` annotation outside its original e
 The Release matrix matches **44 configurations / 7,096 results**, including exported type/symbol graphs and diagnostic codes. The initial 32 configurations retained 24 candidates and replayed eight after fixes; eight additional tuple/rest-scope configurations retained the original 32. The template-literal fix replayed only four candidates, retaining 36. The final contextual-array extension retained all 40 earlier candidate/reference records and added four configurations. **Thirteen new safety assertions pass**, covering cancellation/retry, temporary scope cleanup, constants, synthesized fallbacks, foreign-node rejection, concurrent query isolation and source ownership. **Ten existing signature safety assertions pass** after sharing return construction.
 
 Evidence: [construction comparisons](../csharp/compatibility/evidence/phase4-emit-syntax.json), [retained results](../csharp/compatibility/evidence/phase4-emit-syntax-reuse.json), and [Release validation](../csharp/compatibility/evidence/phase4-emit-syntax-validation.json). The managed mode is `--emit-syntax`. The Release build has zero warnings and errors; formatting preserves tokens, comments and syntax in seven C# files. Existing semantic corpus totals are unchanged. NativeAOT was neither built nor executed; its warning/error-free publish remains deferred until final phase completion.
+
+## Recovery and declaration-diagnostics batch
+
+Late-bound index serialization handles static and instance members, inherited sentinel indexes, visible computed names and index-signature fallback. Each emitted declaration gets its own node-builder context so length limits and generated names do not leak to the next declaration. The object-type builder shares index construction and can retain computed components. Reverse-mapped properties now use the pinned reference's cycle, non-anonymous nesting and repeated-mapping recovery rules; reverse-mapped index values use the reference's elided placeholder.
+
+JavaScript type-node conversion handles JSDoc nullable/optional/non-nullable/variadic forms, property tags, normalized primitive names, missing generic arguments, nested scopes and type-parameter renaming. Import-type reuse preserves same-file spelling and rewrites foreign-file module specifiers. Declaration annotations and object initializers share recovery with property serialization. Full pseudo-type/inferred-return recovery, symbol tracking through an emit context and complete type-display integration still need work.
+
+The same batch adds unique-symbol and readonly type-operator grammar checks, fixes computed class-property restrictions, checks unannotated method-signature returns, and fills implicit-any diagnostic arguments. Repeated instantiation/conditional recursion reports use the checker’s existing per-node diagnostic guard. Import-type diagnostics include their module argument.
+
+Affected corpus comparisons cover **293 distinct configurations in each of single and reference-default modes**, using cached references and retaining unchanged candidate records between fixes. **21 configurations now match diagnostic codes**, reducing the full retained baseline from 689 differences to **668**, with no code or previously measured detailed regressions in the affected set. **49 previously measured detailed mismatches now match exactly**. Detailed coverage grows by 167 configurations, reaching **2,206 exact records out of 3,597 measured**. The corpus selections still contain unrelated failures; they are not presented as entirely passing suites.
+
+Evidence: [semantic and detailed changes](../csharp/compatibility/evidence/phase4-recovery-semantics.json), [recovery API comparisons](../csharp/compatibility/evidence/phase4-emit-recovery.json), [retained recovery results](../csharp/compatibility/evidence/phase4-emit-recovery-reuse.json), [shared node-builder regressions](../csharp/compatibility/evidence/phase4-recovery-regressions.json), and [Release validation](../csharp/compatibility/evidence/phase4-recovery-validation.json). The recovery matrix matches **56 configurations / 3,672 results**, including deep reverse mappings and length isolation between emitted indexes. The shared regression batch replays 108 affected inputs and retains 121 unchanged results; all comparisons pass. Ten new safety assertions cover static/instance index construction, generated-name scopes, module rewriting, cancellation/retry, foreign-node rejection, concurrent queries and unchanged source trees. Release builds have zero warnings and errors. Formatting is checked without rerunning runtime validation, and NativeAOT remains deferred until final phase completion.
 
 ## Remaining completion work
 

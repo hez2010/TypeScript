@@ -27,6 +27,8 @@ internal interface IFunctionDeclarationHost : IConstraintCheckHost
 
     ValueTask CheckFunctionReturnAsync(SyntaxNode node, SyntaxNode annotation, Type type, CancellationToken cancellation);
 
+    ValueTask ReportImplicitAnyAsync(SyntaxNode declaration, Type type, CancellationToken cancellation);
+
     ValueTask ParameterEnvironmentAsync(ParameterDeclarationNode node, CancellationToken cancellation);
 
     ValueTask<bool> BindingEnvironmentAsync(BindingElementNode node, CancellationToken cancellation);
@@ -203,6 +205,8 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
                 cancellation).ConfigureAwait(false);
         else if (host.NoImplicitAny && node is ConstructSignatureDeclarationNode or CallSignatureDeclarationNode)
             host.ExpressionError(node, node is ConstructSignatureDeclarationNode ? 7013 : 7020);
+        else if (node is MethodSignatureDeclarationNode)
+            await host.ReportImplicitAnyAsync(node, context.AnyType, cancellation).ConfigureAwait(false);
         if (node is not IndexSignatureDeclarationNode)
             host.RegisterUnused(node);
     }

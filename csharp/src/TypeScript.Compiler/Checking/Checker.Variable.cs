@@ -114,7 +114,7 @@ internal sealed partial class Checker : IVariableTypeHost
         if ((declaration.Flags & NodeFlags.JavaScriptFile) != 0 && SemanticSyntax.Source(declaration)?.CheckJsDirective?.Enabled != true
             && program.Symbols.Program.Configuration.Options.Boolean("checkJs") != true)
             return;
-        await Widening.GetAsync(type, cancellation);
+        string typeText = await TypeDisplay.GetAsync(await Widening.GetAsync(type, cancellation), cancellation);
         int code;
         if (declaration is ParameterDeclarationNode parameter)
         {
@@ -126,7 +126,9 @@ internal sealed partial class Checker : IVariableTypeHost
                 if (keyword || await program.EntityNames.ResolveAsync(name, SymbolFlags.Type, true, cancellation: cancellation) is not null)
                 {
                     code = 7051;
-                    Report();
+                    int index = Signatures.Parameters(parameter.Parent!)?.ToList().IndexOf(parameter) ?? -1;
+                    Report("arg" + index.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                        CheckerDiagnostic.DeclarationName(name) + (parameter.DotDotDotToken is null ? "" : "[]"));
                     return;
                 }
             }
@@ -155,11 +157,18 @@ internal sealed partial class Checker : IVariableTypeHost
         }
         else
             code = NoImplicitAny ? 7005 : 7043;
-        Report();
-        void Report()
+        var declarationName = SemanticSyntax.Name(declaration) ?? (declaration is BinaryExpressionNode binary ? binary.Left switch
+        {
+            PropertyAccessExpressionNode property => property.Name,
+            ElementAccessExpressionNode element => element.ArgumentExpression,
+            _ => binary.Left
+        } : null);
+        string nameText = declarationName is null ? "" : CheckerDiagnostic.DeclarationName(declarationName);
+        Report(code is 7011 or 7012 or 7025 ? [typeText] : [nameText, typeText]);
+        void Report(params string[] arguments)
         {
             if (NoImplicitAny)
-                Error(declaration, code);
+                Error(declaration, code, arguments);
             else if (suggestionLocations.Add((declaration, code)))
                 Suggestions.Add(code);
         }

@@ -173,7 +173,7 @@ internal sealed partial class Checker
         }
         else if ((await program.Aliases.FlagsAsync(target, cancellation: cancellation) & meaning) == 0)
         {
-            Error(node, node.IsTypeOf ? 1339 : 1340);
+            Error(node, node.IsTypeOf ? 1339 : 1340, literal.Text);
             links.SymbolNodes.Get(node).ResolvedSymbol = UnknownSymbol;
             return data.ResolvedType = context.ErrorType;
         }

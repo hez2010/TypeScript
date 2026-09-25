@@ -348,8 +348,13 @@ internal sealed partial class Checker
                     return reusableAnnotation;
                 if (annotation is TypeQueryNode query && await ReuseTypeQuerySyntaxAsync(query, state, cancellation) is { } reusedQuery)
                     return reusedQuery;
+                return await RecoverAnnotationSyntaxAsync(annotation, state, cancellation);
             }
         }
+        if (state.Symbols.Enclosing is not null
+            && declaration is ITypedNode { Type: null } and IInitializedNode { Initializer: { } initializer }
+            && await ReuseInitializerTypeSyntaxAsync(value, initializer, state, cancellation) is { } inferred)
+            return inferred;
         return await TypeSyntaxAsync(value, state, cancellation);
     }
 

@@ -33,6 +33,7 @@ const emitSerialization = process.argv.includes("--emit-serialization");
 const emitLinks = process.argv.includes("--emit-links");
 const emitJsx = process.argv.includes("--emit-jsx");
 const emitSyntax = process.argv.includes("--emit-syntax");
+const emitRecovery = process.argv.includes("--emit-recovery");
 const emitServices = process.argv.includes("--emit-services");
 const typeSyntax = process.argv.includes("--type-syntax") || conditionalSyntax || mappedSyntax || signatureSyntax || anonymousSyntax || syntaxOptions || syntaxNames || generatedNames || functionOptions || classOptions;
 const symbolTypeNodes = process.argv.includes("--symbol-type-nodes");
@@ -44,7 +45,7 @@ const accessibility = process.argv.includes("--accessibility") || symbolDisplay;
 const output = path.join(
     root,
     `built/csharp/checker-${
-        emitSyntax ? "emit-syntax" : emitServices ? "emit-services"
+        emitRecovery ? "emit-recovery" : emitSyntax ? "emit-syntax" : emitServices ? "emit-services"
             : emitJsx ? "emit-jsx"
             : emitLinks ? "emit-links" : emitSerialization ? "emit-serialization" : emitReferences ? "emit-references" : emitQueries ? "emit-queries" : signatureDeclarations ? "signature-declarations" : classOptions ? "class-options" : functionOptions ? "function-options" : generatedNames ? "generated-names" : syntaxNames ? "syntax-names" : syntaxOptions ? "syntax-options" : symbolTypeArguments ? "symbol-type-arguments" : anonymousSyntax ? "anonymous-syntax" : signatureSyntax ? "signature-syntax" : mappedSyntax ? "mapped-syntax" : conditionalSyntax ? "conditional-syntax" : typeSyntax ? "type-syntax" : symbolTypeNodes ? "symbol-type-nodes" : computedSymbols ? "computed-symbols" : symbolFormats ? "symbol-formats" : symbolDisplay ? "symbol-display" : accessibility ? "accessibility" : symbolChains ? "symbol-chains" : declarationVisibility ? "declaration-visibility" : contextQueries ? "context-queries" : scopeServices ? "scope-services" : symbolLocations ? "symbol-locations" : "locations"
     }`,
@@ -234,6 +235,24 @@ exports["exported-name"]=C; Object.defineProperty(exports,"defined-name",{value:
     });
 }
 const inputs = [];
+if (emitRecovery) {
+    Object.assign(fixtures, {
+        emitRecoveryIndexes: `declare const key:string;declare const num:number;declare const sym:symbol;class C{[key]=1;readonly [sym]='x';static [num]=true}class Scope{}type Serialize=InstanceType<typeof C>;`,
+        emitRecoveryIndexLengths: `declare const key:string;declare const num:number;declare const sym:symbol;class C{[key]={firstLongMember:1,secondLongMember:2,thirdLongMember:3,fourthLongMember:4};[sym]={firstLongMember:1,secondLongMember:2,thirdLongMember:3,fourthLongMember:4};static [num]={firstLongMember:1,secondLongMember:2,thirdLongMember:3,fourthLongMember:4}}class Scope{}`,
+        emitRecoveryIndexScopes: `function create(key:string){class C{[key]=1;static [key]='x'}return C}const C=create('a');type Serialize=InstanceType<typeof C>;class Scope{}`,
+        emitRecoveryIndexMix: `declare const key:string;interface I{[key]:number;[s:string]:number;named:number}class Base{[s:string]:any}class C extends Base{[key]=true}class Scope{}`,
+        emitRecoveryReverse: `declare function unwrap<T>(value:{[K in keyof T]:{value:T[K]}}):T;const result=unwrap({one:{value:1},two:{value:'x'}});type Serialize=typeof result;class Scope{}`,
+        emitRecoveryReverseNested: `type Box<T>={value:T};type Deep<T>={[K in keyof T]:Deep<T[K]>|Box<T[K]>};declare function unwrap<T>(value:Deep<T>):T;const result=unwrap({a:{b:{value:1}},c:{value:'x'}});type Serialize=typeof result;class Scope{}`,
+        emitRecoveryReverseDepth: `type Box<T>={value:T};type Deep<T>={[K in keyof T]:Deep<T[K]>|Box<T[K]>};declare function unwrap<T>(value:Deep<T>):T;const result=unwrap({a:{b:{c:{d:{e:{value:1}}}}}});type Serialize=typeof result;class Scope{}`,
+        emitRecoveryReverseArrays: `declare function unwrap<T>(value:{[K in keyof T]:{value:T[K]}}):T;declare const source:{[x:string]:{value:{next:{value:number}}}};const result=unwrap(source);type Serialize=typeof result;class Scope{}`,
+        emitRecoveryAnnotations: `import {Shape} from './dep';type Serialize={value:Shape|string;callback:<T>(value:T)=>T;tuple:readonly ['é',number]};type MissingUse=Missing;class Scope<T>{field!:this;}`,
+        emitRecoveryImports: `type Serialize=import('./dep').Shape;type Module=typeof import('./dep');class Scope{}`,
+        jsdocEmitRecoveryPrimitives: `/** @type {?String} */let text;/** @type {!Number} */let number;/** @type {Boolean=} */let optional;/** @type {*} */let any;/** @type {Array} */let array;class Scope{}`,
+        jsdocEmitRecoveryFunctions: `/** @param {string} x @param {...number} values @returns {?number} */function f(x,...values){return null}/** @type {function(string):boolean} */let callback;class Scope{}`,
+        jsdocEmitRecoveryAliases: `/** @template T @typedef {{value:T}} Box *//** @type {Box} */let box;/** @type {Box<string>} */let typed;/** @type {import('./dep').Shape} */let imported;class Scope{}`,
+        jsdocEmitRecoveryObject: `/** @typedef {object} Data @property {string} name @property {number} [count] *//** @type {Data} */let data;/** @type {{nested:?string, fn:function(number):string}} */let object;class Scope{}`,
+    });
+}
 if (emitSyntax) {
     Object.assign(fixtures, {
         emitSyntaxLiterals: `const text='é';const number=-2;const big=-12n;const yes=true;const no=false;const zero=-0;let ordinary=1;const infinity=1e999;const annotated:'x'='x';class Scope{readonly value='é';mutable='x'}`,
@@ -552,6 +571,10 @@ for (const [name, source] of Object.entries(fixtures)) {
                 if (name === "jsxFactoryNamespace") input.options.reactNamespace = strict ? "Custom.Nested" : "Custom";
                 if (name === "jsxFactoryEmptyOptions") Object.assign(input.options, { jsxFactory: "", jsxFragmentFactory: "", reactNamespace: "Custom" });
             }
+            if (emitRecovery) {
+                delete inputs.at(-1).locations;
+                inputs.at(-1).emitRecovery = true;
+            }
             if (emitSyntax) {
                 delete inputs.at(-1).locations;
                 inputs.at(-1).emitSyntax = true;
@@ -568,7 +591,7 @@ const formatFixtures = new Set(["namespaces", "imports", "typeImports", "classes
 const computedFixtures = new Set(["displayNames", "displayComputed", "displayAssigned", "jsdocDisplayNames", "classes", "visibilityExports", "accessibilityInstances", "chainClassNames"]);
 const typeNodeFixtures = new Set(["namespaces", "imports", "typeImports", "classes", "importsCommonJs", "visibilityAliases", "visibilityAmbient", "visibilityExports", "chainShadow", "chainReexports", "chainTypeOnly", "displayNames", "displayComputed", "accessibilityExportEquals", "accessibilityInstances", "symbolTypeModes", "symbolTypeAttributes"]);
 if (symbolTypeNodes) { for (const input of inputs) if (input.name.startsWith("symbolTypeModes:")) Object.assign(input.options, { module: "nodenext", moduleResolution: "nodenext" }); }
-const eligible = emitSyntax ? inputs.filter(input => input.name.startsWith("emitSyntax") || input.name.startsWith("jsdocEmitSyntax")) : emitServices ? inputs.filter(input => input.name.startsWith("emitServices") || input.name.startsWith("jsdocEmitServices")) :
+const eligible = emitRecovery ? inputs.filter(input => input.name.startsWith("emitRecovery") || input.name.startsWith("jsdocEmitRecovery")) : emitSyntax ? inputs.filter(input => input.name.startsWith("emitSyntax") || input.name.startsWith("jsdocEmitSyntax")) : emitServices ? inputs.filter(input => input.name.startsWith("emitServices") || input.name.startsWith("jsdocEmitServices")) :
     emitJsx ? inputs.filter(input => input.name.startsWith("jsxFactory")) : emitLinks ? inputs.filter(input => input.name.startsWith("emitLinks") || input.name.startsWith("jsxEmitLinks") || input.name.startsWith("jsdocEmitLinks")) : emitSerialization ? inputs.filter(input => input.name.startsWith("emitSerialization")) : emitReferences ? inputs.filter(input => input.name.startsWith("emitReferences") || input.name.startsWith("jsdocEmitReferences")) : emitQueries ? inputs.filter(input => input.name.startsWith("emitQueries") || input.name.startsWith("jsdocEmitQueries")) : signatureDeclarations ? inputs.filter(input => input.name.startsWith("signatureDeclarations")) : classOptions ? inputs.filter(input => input.name.startsWith("classOptions")) : functionOptions ? inputs.filter(input => input.name.startsWith("functionOptions")) : generatedNames ? inputs.filter(input => input.name.startsWith("generatedNames"))
     : syntaxNames ? inputs.filter(input => input.name.startsWith("syntaxNames")) : syntaxOptions ? inputs.filter(input => input.name.startsWith("syntaxOptions")) : symbolTypeArguments ? inputs.filter(input => input.name.startsWith("symbolArguments") || formatFixtures.has(input.name.split(":")[0])) : anonymousSyntax ? inputs.filter(input => input.name.startsWith("anonymousSyntax")) : signatureSyntax ? inputs.filter(input => input.name.startsWith("signatureSyntax")) : mappedSyntax ? inputs.filter(input => input.name.startsWith("mappedSyntax")) : conditionalSyntax ? inputs.filter(input => input.name.startsWith("conditionalSyntax")) : typeSyntax ? inputs.filter(input => input.name.startsWith("typeSyntax")) : symbolTypeNodes ? inputs.filter(input => typeNodeFixtures.has(input.name.split(":")[0])) : computedSymbols ? inputs.filter(input => computedFixtures.has(input.name.split(":")[0])) : symbolFormats ? inputs.filter(input => formatFixtures.has(input.name.split(":")[0])) : inputs;
 const selected = process.argv.includes("--filter") ? eligible.filter(input => input.name.includes(option("--filter"))) : eligible;

@@ -36,6 +36,7 @@ func main() {
 			EmitJsx               bool
 			EmitServices          bool
 			EmitSyntax            bool
+			EmitRecovery          bool
 			TypeSyntaxFlags       []nodebuilder.Flags
 			SymbolTypeNodes       bool
 			SymbolFormatFlags     []checker.SymbolFormatFlags
@@ -137,7 +138,7 @@ func main() {
 			}
 			continue
 		}
-		result := c.CSharpProgramScopeProbe(input.Aliases, input.TypeNodes, input.Members, input.Values, input.Properties, input.Signatures, input.Identity, input.Assignability, input.Indexing, input.Constants, input.Expressions, input.Awaited, input.References, input.Flow, input.Identifiers, input.Access, input.Calls, input.Assertions, input.Locations, input.SymbolLocations, input.DocumentationSymbols, input.ScopeServices, input.ContextQueries, input.DeclarationVisibility, input.SymbolChains, input.Accessibility, input.SymbolDisplay, input.SymbolFormats, input.SymbolFormatFlags, input.SymbolTypeNodes, input.TypeSyntax, input.SignatureSyntax, input.EmitQueries, input.EmitReferences, input.EmitSerialization, input.EmitLinks, input.EmitJsx, input.EmitServices, input.EmitSyntax, input.TypeSyntaxFlags...).(map[string]any)
+		result := c.CSharpProgramScopeProbe(input.Aliases, input.TypeNodes, input.Members, input.Values, input.Properties, input.Signatures, input.Identity, input.Assignability, input.Indexing, input.Constants, input.Expressions, input.Awaited, input.References, input.Flow, input.Identifiers, input.Access, input.Calls, input.Assertions, input.Locations, input.SymbolLocations, input.DocumentationSymbols, input.ScopeServices, input.ContextQueries, input.DeclarationVisibility, input.SymbolChains, input.Accessibility, input.SymbolDisplay, input.SymbolFormats, input.SymbolFormatFlags, input.SymbolTypeNodes, input.TypeSyntax, input.SignatureSyntax, input.EmitQueries, input.EmitReferences, input.EmitSerialization, input.EmitLinks, input.EmitJsx, input.EmitServices, input.EmitSyntax, input.EmitRecovery, input.TypeSyntaxFlags...).(map[string]any)
 		if input.NumberStrings != nil {
 			rows := []string{}
 			for _, text := range input.NumberStrings {

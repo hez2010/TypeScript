@@ -100,8 +100,9 @@ internal sealed partial class Checker
             return;
         }
         if (node.Name is ComputedPropertyNameNode computed
-            && (await ComputedNameAsync(computed, cancellation).ConfigureAwait(false)).Flags is var flags
-            && (flags & TypeFlags.StringOrNumberLiteralOrUnique) == 0 && !LateMembers.LateSyntax(computed))
+            && computed.Expression is not (StringLiteralNode or NumericLiteralNode or NoSubstitutionTemplateLiteralNode
+                or PrefixUnaryExpressionNode { Operator: SyntaxKind.PlusToken or SyntaxKind.MinusToken, Operand: NumericLiteralNode })
+            && !LateMembers.LateSyntax(computed))
         {
             Error(node.Name, 1166);
             return;

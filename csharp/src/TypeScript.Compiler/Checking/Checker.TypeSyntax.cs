@@ -44,6 +44,7 @@ internal sealed partial class Checker
         internal HashSet<SyntaxNode> NoAsciiEscape { get; } = [];
         internal HashSet<SyntaxNode> SingleLine { get; } = [];
         internal HashSet<Type> Active { get; } = [];
+        internal List<Symbol> ReverseMappedProperties { get; } = [];
         internal IReadOnlyList<TypeParameter>? InferParameters { get; set; }
     }
 
@@ -623,20 +624,8 @@ internal sealed partial class Checker
         foreach (var signature in type.ConstructSignatures)
             members.Add(await SignatureSyntaxAsync(signature, K.ConstructSignature, state, cancellation));
         foreach (var index in type.IndexInfos)
-        {
-            string name = index.Declaration is IndexSignatureDeclarationNode { Parameters: { Count: > 0 } parameters }
-                && SemanticSyntax.Name(parameters[0]) is IdentifierNode id ? id.Text : "x";
-            var parameter = f.NewParameterDeclaration(
-                null,
-                null,
-                f.NewIdentifier(name),
-                null,
-                await TypeSyntaxAsync(index.KeyType, state, cancellation),
-                null);
-            members.Add(f.NewIndexSignatureDeclaration(index.IsReadonly ? new([f.NewToken(K.ReadonlyKeyword)]) : null, new([parameter]),
-                await TypeSyntaxAsync(index.ValueType, state, cancellation)));
-            state.Length.Add(name, 4 + (index.IsReadonly ? 9 : 0));
-        }
+            members.AddRange(await ObjectIndexSyntaxAsync(index, (type.ObjectFlags & ObjectFlags.ReverseMapped) != 0
+                ? ElidedTypeSyntax(state) : null, state, cancellation));
         var properties = type.Properties ?? [];
         for (int propertyIndex = 0; propertyIndex < properties.Count; propertyIndex++)
         {
@@ -653,9 +642,9 @@ internal sealed partial class Checker
             var property = properties[propertyIndex];
             if ((state.Flags & NodeBuilderFlags.WriteClassExpressionAsTypeLiteral) != 0 && (property.Flags & SymbolFlags.Prototype) != 0)
                 continue;
-            if ((property.CheckFlags & Binding.CheckFlags.ReverseMapped) != 0)
-                throw new NotSupportedException("Reverse-mapped property syntax requires recovery handling");
-            var value = Values.NonMissing(await Values.GetAsync(property, cancellation), (property.Flags & SymbolFlags.Optional) != 0);
+            bool placeholder = ReverseMappedPlaceholder(property, state);
+            var value = placeholder ? context.AnyType
+                : Values.NonMissing(await Values.GetAsync(property, cancellation), (property.Flags & SymbolFlags.Optional) != 0);
             SyntaxNode? reusedType = null;
             var declaration = property.ValueDeclaration ?? property.Declarations.FirstOrDefault();
             if ((property.Flags & (SymbolFlags.Accessor | SymbolFlags.Method | SymbolFlags.Function)) == 0
@@ -770,12 +759,34 @@ internal sealed partial class Checker
                 if (signatures.Count != 0 || question is null)
                     continue;
             }
-            var propertyTypeNode = reusedType ?? ((property.Flags & SymbolFlags.Accessor) != 0
-                ? await DeclarationTypeSyntaxAsync(value,
-                    property.Declarations.OfType<GetAccessorDeclarationNode>().FirstOrDefault() as SyntaxNode
-                        ?? property.Declarations.OfType<SetAccessorDeclarationNode>().FirstOrDefault()?.Parameters?.LastOrDefault(),
-                    false, state, cancellation)
-                : await TypeSyntaxAsync(value, state, cancellation));
+            SyntaxNode propertyTypeNode;
+            if (placeholder)
+                propertyTypeNode = ElidedTypeSyntax(state);
+            else
+            {
+                bool reverseMapped = (property.CheckFlags & Binding.CheckFlags.ReverseMapped) != 0;
+                if (reverseMapped)
+                    state.ReverseMappedProperties.Add(property);
+                try
+                {
+                    propertyTypeNode = reusedType ?? ((property.Flags & SymbolFlags.Accessor) != 0
+                        ? await DeclarationTypeSyntaxAsync(value,
+                            property.Declarations.OfType<GetAccessorDeclarationNode>().FirstOrDefault() as SyntaxNode
+                                ?? property.Declarations.OfType<SetAccessorDeclarationNode>().FirstOrDefault()?.Parameters?.LastOrDefault(),
+                            false, state, cancellation)
+                        : await DeclarationTypeSyntaxAsync(
+                            value,
+                            declaration,
+                            (property.Flags & SymbolFlags.Optional) != 0,
+                            state,
+                            cancellation));
+                }
+                finally
+                {
+                    if (reverseMapped)
+                        state.ReverseMappedProperties.RemoveAt(state.ReverseMappedProperties.Count - 1);
+                }
+            }
             if (readOnly)
                 state.Length.Add(9);
             members.Add(f.NewPropertySignatureDeclaration(readOnly ? new([f.NewToken(K.ReadonlyKeyword)]) : null, propertyName,

@@ -1026,6 +1026,8 @@ internal static class CheckerProgramTests
             await CheckerEmitQueryTests.WriteServicesAsync(writer, nodes, typeHost!, Node);
         if (input.TryGetProperty("emitSyntax", out var emitSyntaxOption) && emitSyntaxOption.GetBoolean())
             await CheckerEmitSyntaxTests.WriteAsync(writer, nodes, typeHost!, Node);
+        if (input.TryGetProperty("emitRecovery", out var emitRecoveryOption) && emitRecoveryOption.GetBoolean())
+            await CheckerEmitSyntaxTests.WriteRecoveryAsync(writer, nodes, typeHost!, Node);
         if (input.TryGetProperty("symbolTypeNodes", out var symbolTypeNodesOption) && symbolTypeNodesOption.GetBoolean())
             await CheckerSymbolDisplayTests.WriteAsync(writer, nodes, typeHost!, SymbolId, Node, typeNodes: true);
         if (input.TryGetProperty("symbolFormats", out var symbolFormatsOption) && symbolFormatsOption.GetBoolean())

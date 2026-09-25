@@ -64,10 +64,7 @@ internal sealed partial class Checker
             if (type is UniqueSymbolType && type.Symbol == symbol && (enclosing is null
                 || symbol!.Declarations.Any(d => SemanticSyntax.Source(d) == SemanticSyntax.Source(enclosing))))
                 state.Flags |= NodeBuilderFlags.AllowUniqueESSymbolType;
-            var reused = enclosing is not null
-                && declaration is ITypedNode { Type: null } and IInitializedNode { Initializer: { } initializer }
-                ? await ReuseInitializerTypeSyntaxAsync(type, initializer, state, cancellation) : null;
-            var node = reused ?? await DeclarationTypeSyntaxAsync(
+            var node = await DeclarationTypeSyntaxAsync(
                 type,
                 declaration,
                 !addUndefined && VariableTypes.Optional(declaration),
@@ -117,6 +114,43 @@ internal sealed partial class Checker
             var node = state.Factory.NewTupleTypeNode(new(items.ToArray()));
             state.SingleLine.Add(node);
             return state.Factory.NewTypeOperatorNode(K.ReadonlyKeyword, node);
+        }
+        if (expression is ObjectLiteralExpressionNode { Properties: { } properties }
+            && properties.All(p => p is PropertyAssignmentNode { Name: IdentifierNode or StringLiteralNode or NumericLiteralNode }))
+        {
+            var expected = await Properties.GetAsync(type, cancellation);
+            if (expected.Count != properties.Count)
+                return null;
+            var members = new List<SyntaxNode>();
+            foreach (PropertyAssignmentNode property in properties)
+            {
+                string? name = property.Name switch
+                {
+                    IdentifierNode identifier => identifier.Text,
+                    StringLiteralNode text => text.Text,
+                    NumericLiteralNode number => number.Text,
+                    _ => null
+                };
+                var symbol = expected.FirstOrDefault(p => p.Name == name);
+                if (symbol is null || (symbol.Flags & SymbolFlags.Optional) != 0)
+                    return null;
+                var value = await Values.GetAsync(symbol, cancellation);
+                var observed = await ExpressionTypeForQueryAsync(property.Initializer!, cancellation);
+                var inferred = await Algebra.RegularTypeAsync(observed, cancellation);
+                var widened = await Widening.LiteralAsync(observed, cancellation);
+                if (await Algebra.RegularTypeAsync(value, cancellation) != inferred
+                    && !await Relations.RelatedAsync(value, widened, RelationKind.Identity, cancellation))
+                    return null;
+                var typeNode = await ReuseInitializerTypeSyntaxAsync(value, property.Initializer!, state, cancellation)
+                    ?? await TypeSyntaxAsync(value, state, cancellation);
+                members.Add(
+                    state.Factory.NewPropertySignatureDeclaration(
+                    IsReadonly(symbol) ? new([state.Factory.NewToken(K.ReadonlyKeyword)]) : null,
+                    CloneSyntaxBindingName(property.Name!, state), null, typeNode, null));
+            }
+            var result = state.Factory.NewTypeLiteralNode(new(members.ToArray()));
+            state.SingleLine.Add(result);
+            return result;
         }
         return null;
     }

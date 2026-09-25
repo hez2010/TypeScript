@@ -70,6 +70,12 @@ internal static class Program
                 Console.WriteLine($"Emit syntax safety: {CheckerEmitSyntaxTests.Safety().GetAwaiter().GetResult()} assertions passed");
                 return 0;
             }
+            if (args is ["--checker-recovery-safety"])
+            {
+                Console.WriteLine(
+                    $"Syntax recovery safety: {CheckerEmitSyntaxTests.RecoverySafety().GetAwaiter().GetResult()} assertions passed");
+                return 0;
+            }
             if (args is ["--checker-emit-links-safety"])
             {
                 Console.WriteLine(

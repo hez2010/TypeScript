@@ -1,0 +1,41 @@
+{
+    "candidateHash": "3b4160d94c330ad221ac1bb6822e4f222ed0a7c9b8debde8aa952b28194e7e41",
+    "configurations": 229,
+    "retainedCandidates": 121,
+    "replayedCandidates": 108,
+    "retainedReferences": 108,
+    "failures": [],
+    "groups": [
+        {
+            "mode": "emit-recovery",
+            "total": 48,
+            "retained": 36,
+            "replayed": 12
+        },
+        {
+            "mode": "emit-syntax",
+            "total": 44,
+            "retained": 12,
+            "replayed": 32
+        },
+        {
+            "mode": "signature-syntax",
+            "total": 48,
+            "retained": 28,
+            "replayed": 20
+        },
+        {
+            "mode": "anonymous-syntax",
+            "total": 44,
+            "retained": 12,
+            "replayed": 32
+        },
+        {
+            "mode": "syntax-options",
+            "total": 45,
+            "retained": 33,
+            "replayed": 12
+        }
+    ],
+    "reason": "Reuse reference records from the unchanged probe modes. Replay initializer/annotation/property construction inputs affected by shared recovery, including shadowed signatures, class expressions, computed indexes, quote reuse and reverse-mapped types. Other cases do not use those paths."
+}

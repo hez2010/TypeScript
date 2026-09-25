@@ -50,6 +50,15 @@ internal sealed partial class Checker
     internal void TrackDiagnostic(SyntaxNode? node, int code, params string[] arguments)
         => diagnosticFiles.Add((node, CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), arguments)));
 
+    internal bool ReportTypeRecursionLimit()
+    {
+        var node = DiagnosticNode;
+        if (node is not null && !reported.Add((node, 2589)))
+            return false;
+        TrackDiagnostic(node, 2589);
+        return true;
+    }
+
     private void ErrorOnFirstToken(SyntaxNode node, int code)
     {
         if (!reported.Add((node, code)))

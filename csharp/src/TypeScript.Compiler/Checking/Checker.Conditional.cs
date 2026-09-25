@@ -32,8 +32,8 @@ internal sealed partial class Checker : IConditionalTypeHost, IConditionalRelati
 
     public void ConditionalDepthExceeded()
     {
-        Diagnostics.Add(2589);
-        TrackDiagnostic(DiagnosticNode, 2589);
+        if (ReportTypeRecursionLimit())
+            Diagnostics.Add(2589);
     }
 
     public async ValueTask<TypeMapper> InferConditionalRelationAsync(IReadOnlyList<TypeParameter> parameters, Type source, Type target,

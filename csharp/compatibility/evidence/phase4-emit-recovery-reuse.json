@@ -1,0 +1,23 @@
+{
+    "prior": {
+        "prior": {
+            "previousCandidateHash": "b98c4486b72b39f6afe7080b9208c61ce5bc93253b77f61cefa2c6f97ba105c1",
+            "candidateHash": "c11a29acb6d8d337e0c4ad9570fe319a550d8d25150cf3434ea4655f57ef1996",
+            "retainedCandidates": 36,
+            "replayedCandidates": 12,
+            "retainedReferences": 48,
+            "reason": "Replay imported type syntax preservation, reverse-mapped property initializer comparison and the JSDoc variadic probe getter correction. Other fixtures do not enter these changed branches."
+        },
+        "candidateHash": "3b4160d94c330ad221ac1bb6822e4f222ed0a7c9b8debde8aa952b28194e7e41",
+        "retainedCandidates": 48,
+        "retainedReferences": 48,
+        "newConfigurations": 4,
+        "regressionReplayedCandidates": 12,
+        "reason": "The shared recovery regression batch replayed all 12 existing reverse-mapped inputs; the remaining 36 inputs do not depend on initializer recovery or the new grammar/implicit-any diagnostic branches. Add four deeper reverse-mapping configurations."
+    },
+    "candidateHash": "8eb3a4f86a3d21b4945719f365213a6d812f1cc2aac545c35b0f7746e4822b7f",
+    "retainedCandidates": 52,
+    "retainedReferences": 52,
+    "newConfigurations": 4,
+    "reason": "Add cross-index length-limit coverage. Existing indexes do not exceed the shared length budget or introduce generated type parameter names; other query operations are unchanged. Formatting preserves source tokens and syntax."
+}

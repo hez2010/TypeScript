@@ -52,7 +52,7 @@ internal sealed partial class Checker
             () => EntityNameVisibilityAsync(entityName, enclosing, cancellation), cancellation), cancellation), cancellation);
 
     private async ValueTask<SymbolAccessibilityResult> EntityNameVisibilityAsync(SyntaxNode entityName, SyntaxNode enclosing,
-        CancellationToken cancellation)
+        CancellationToken cancellation, bool computeAliases = true)
     {
         RequireNode(enclosing);
         if ((entityName.Flags & NodeFlags.Synthesized) != 0)
@@ -90,7 +90,7 @@ internal sealed partial class Checker
         }
         if (symbol is null)
             return new(SymbolAccessibility.NotResolved, ErrorSymbolName: identifier.Text, ErrorNode: identifier);
-        return VisibleDeclarations(symbol, true, cancellation) is { } aliases ? new(SymbolAccessibility.Accessible, aliases)
+        return VisibleDeclarations(symbol, computeAliases, cancellation) is { } aliases ? new(SymbolAccessibility.Accessible, aliases)
             : new(SymbolAccessibility.NotAccessible, ErrorSymbolName: identifier.Text, ErrorNode: identifier);
     }
 

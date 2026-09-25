@@ -293,7 +293,7 @@ func (c *Checker) csharpContextQueries(nodes []*ast.Node, nodeIDs map[*ast.Node]
 	return rows, graph
 }
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool, symbolLocations bool, documentationSymbols bool, scopeServices bool, contextQueries bool, declarationVisibility bool, symbolChains bool, accessibility bool, symbolDisplay bool, symbolFormats bool, symbolFormatValues []SymbolFormatFlags, symbolTypeNodes bool, typeSyntax bool, signatureSyntax bool, emitQueries bool, emitReferences bool, emitSerialization bool, emitLinks bool, emitJsx bool, emitServices bool, emitSyntax bool, typeSyntaxFlags ...nodebuilder.Flags) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool, symbolLocations bool, documentationSymbols bool, scopeServices bool, contextQueries bool, declarationVisibility bool, symbolChains bool, accessibility bool, symbolDisplay bool, symbolFormats bool, symbolFormatValues []SymbolFormatFlags, symbolTypeNodes bool, typeSyntax bool, signatureSyntax bool, emitQueries bool, emitReferences bool, emitSerialization bool, emitLinks bool, emitJsx bool, emitServices bool, emitSyntax bool, emitRecovery bool, typeSyntaxFlags ...nodebuilder.Flags) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -528,6 +528,9 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	}
 	if emitSyntax {
 		emitRows = c.csharpEmitSyntax(nodes, nodeIDs)
+	}
+	if emitRecovery {
+		emitRows = c.csharpEmitRecovery(nodes, nodeIDs)
 	}
 	var symbolTypeNodeRows []any
 	if symbolTypeNodes {
@@ -1299,7 +1302,7 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	if typeSyntax || signatureSyntax {
 		result["typeSyntaxQueries"] = typeSyntaxRows
 	}
-	if emitQueries || emitReferences || emitSerialization || emitLinks || emitJsx || emitServices || emitSyntax {
+	if emitQueries || emitReferences || emitSerialization || emitLinks || emitJsx || emitServices || emitSyntax || emitRecovery {
 		result["emitQueries"] = emitRows
 	}
 	if symbolTypeNodes {
@@ -1903,6 +1906,57 @@ func (c *Checker) csharpEmitSyntax(nodes []*ast.Node, nodeIDs map[*ast.Node]int)
 		}
 		if ast.IsVariableDeclaration(n) || ast.IsPropertyDeclaration(n) {
 			emit(4, n, nil, 0)
+		}
+	}
+	return rows
+}
+
+func (c *Checker) csharpEmitRecovery(nodes []*ast.Node, nodeIDs map[*ast.Node]int) []any {
+	targets := []*ast.Node{}
+	locations := []*ast.Node{nil}
+	for _, n := range nodes {
+		if !strings.HasPrefix(ast.GetSourceFileOfNode(n).FileName(), "/project/main.") {
+			continue
+		}
+		targets = append(targets, n)
+		if n.Kind == ast.KindSourceFile || (n.Kind == ast.KindClassDeclaration || n.Kind == ast.KindFunctionDeclaration) && n.Name() != nil && n.Name().Text() == "Scope" {
+			locations = append(locations, n)
+		}
+	}
+	flags := []nodebuilder.Flags{0, nodebuilder.FlagsNoTruncation, nodebuilder.FlagsNoTruncation | nodebuilder.FlagsGenerateNamesForShadowedTypeParams}
+	rows := []any{}
+	r := c.GetEmitResolver()
+	for _, n := range targets {
+		for _, location := range locations {
+			for _, flag := range flags {
+				e := printer.NewEmitContext()
+				b := NewNodeBuilder(c, e)
+				options := flag | nodebuilder.FlagsIgnoreErrors
+				print := func(node *ast.Node) string {
+					if node == nil {
+						return ""
+					}
+					writer, put := printer.GetSingleLineStringWriter()
+					defer put()
+					p := printer.NewPrinter(printer.PrinterOptions{RemoveComments: true, OmitTrailingSemicolon: true, NeverAsciiEscape: location != nil && location.Kind == ast.KindSourceFile}, printer.PrintHandlers{}, e)
+					p.Write(node, ast.GetSourceFileOfNode(location), writer, nil)
+					return writer.String()
+				}
+				if ast.IsClassLike(n) || ast.IsInterfaceDeclaration(n) {
+					b.enterContext(location, options, nodebuilder.InternalFlagsNone, nil)
+					values := []string{}
+					for _, node := range r.CreateLateBoundIndexSignatures(e, n, location, options, nodebuilder.InternalFlagsNone, b.impl.ctx.tracker) {
+						values = append(values, print(node))
+					}
+					rows = append(rows, []any{0, nodeIDs[n], nodeIDs[location], uint32(flag), values})
+				}
+				if n.Type() != nil {
+					rows = append(rows, []any{1, nodeIDs[n], nodeIDs[location], uint32(flag), print(r.TryJSTypeNodeToTypeNode(e, n.Type(), location, options, nodebuilder.InternalFlagsNone, nil))})
+				}
+				if ast.IsTypeAliasDeclaration(n) && strings.HasPrefix(n.Name().Text(), "Serialize") {
+					rows = append(rows, []any{2, nodeIDs[n], nodeIDs[location], uint32(flag), print(b.TypeToTypeNode(c.getTypeFromTypeNode(n.Type()), location, options, nodebuilder.InternalFlagsNone, nil))})
+				}
+			}
 		}
 	}
 	return rows

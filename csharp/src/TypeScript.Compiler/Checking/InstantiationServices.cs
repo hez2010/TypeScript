@@ -208,8 +208,8 @@ internal sealed class InstantiationServices : ITypeInstantiationHost, ITupleType
 
     public void InstantiationLimit(int depth, int count)
     {
-        Diagnostics.Add(2589);
-        checker.TrackDiagnostic(checker.DiagnosticNode, 2589);
+        if (checker.ReportTypeRecursionLimit())
+            Diagnostics.Add(2589);
     }
 
     public void TupleTooLarge()
