@@ -141,7 +141,79 @@ internal static class CheckerAssignabilityTests
         Check(!host.Variances.Measuring && host.Instantiation.Resolutions.Count == 0);
         checks += await MissingPropertySafety();
         checks += await DiagnosticChainSafety();
+        checks += await ObjectDiagnosticSafety();
         Console.WriteLine($"{checks} structural relation/variance/facts/cancellation assertions");
+    }
+
+    private static async Task<int> ObjectDiagnosticSafety()
+    {
+        string source = "\n" + """
+            interface Array<T> { length: number; [n: number]: T; push(...items: T[]): number; }
+            interface ReadonlyArray<T> { readonly length: number; readonly [n: number]: T; }
+            interface Required { value: number; }
+            declare const nestedSource: { inner: {} };
+            const nestedTarget: { inner: Required } = nestedSource;
+            const multiple: { inner: { a:number; b:number; c:number; d:number; e:number; f:number } } = nestedSource;
+            declare const optionalSource: { value?: number };
+            const optionalTarget: Required = optionalSource;
+            class PrivateA { private value!: number; }
+            class PrivateB { private value!: number; }
+            class Public { value!: number; }
+            const privatePair: PrivateA = new PrivateB();
+            const privatePublic: Public = new PrivateA();
+            const publicPrivate: PrivateA = new Public();
+            class ProtectedA { protected value!: number; }
+            class ProtectedB { protected value!: number; }
+            const protectedPair: ProtectedA = new ProtectedB();
+            const protectedPublic: Public = new ProtectedA();
+            declare const readArray: readonly number[];
+            const writeArray: number[] = readArray;
+            declare const readTuple: readonly [number, string];
+            const writeTuple: [number, string] = readTuple;
+            declare const shortTuple: [number];
+            const longTarget: [number, string] = shortTuple;
+            declare const longTuple: [number, number, number];
+            const shortTarget: [number, number] = longTuple;
+            declare const array: number[];
+            const fixedTarget: [number, number] = array;
+            declare const optionalTuple: [number, number?];
+            const fixedShort: [number] = optionalTuple;
+            declare const optionalFirst: [number?];
+            const requiredFirst: [number] = optionalFirst;
+            declare const mismatch: [number, string];
+            const mismatchTarget: [number, number] = mismatch;
+            declare const ranged: [string, number, number];
+            const rangedTarget: [string, ...boolean[]] = ranged;
+            class HashA { #value = 1; }
+            class HashB { #value = 1; }
+            const hashPrivate: HashA = new HashB();
+            """.Replace("\r\n", "\n", StringComparison.Ordinal) + "\n";
+        // Complete pinned-reference diagnostics for nested properties, access and tuple failures.
+        const string reference = """
+            [{"arguments":["{ inner: {}; }","{ inner: Required; }"],"category":1,"chain":[{"arguments":["inner"],"category":1,"chain":[{"arguments":["value","{}","Required"],"category":1,"chain":[],"code":2741,"file":"/project/main.ts","key":"Property_0_is_missing_in_type_1_but_required_in_type_2_2741","length":12,"related":[{"arguments":["value"],"category":3,"chain":[],"code":2728,"file":"/project/main.ts","key":"_0_is_declared_here_2728","length":5,"related":[],"start":187}],"start":253}],"code":2326,"file":"/project/main.ts","key":"Types_of_property_0_are_incompatible_2326","length":12,"related":[{"arguments":["value"],"category":3,"chain":[],"code":2728,"file":"/project/main.ts","key":"_0_is_declared_here_2728","length":5,"related":[],"start":187}],"start":253}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":12,"related":[{"arguments":["value"],"category":3,"chain":[],"code":2728,"file":"/project/main.ts","key":"_0_is_declared_here_2728","length":5,"related":[],"start":187}],"start":253},{"arguments":["{ inner: {}; }","{ inner: { a: number; b: number; c: number; d: number; e: number; f: number; }; }"],"category":1,"chain":[{"arguments":["inner"],"category":1,"chain":[{"arguments":["{}","{ a: number; b: number; c: number; d: number; e: number; f: number; }","a, b, c, d","2"],"category":1,"chain":[],"code":2740,"file":"/project/main.ts","key":"Type_0_is_missing_the_following_properties_from_type_1_Colon_2_and_3_more_2740","length":8,"related":[],"start":309}],"code":2326,"file":"/project/main.ts","key":"Types_of_property_0_are_incompatible_2326","length":8,"related":[],"start":309}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":8,"related":[],"start":309},{"arguments":["{ value?: number | undefined; }","Required"],"category":1,"chain":[{"arguments":["value"],"category":1,"chain":[{"arguments":["number | undefined","number"],"category":1,"chain":[{"arguments":["undefined","number"],"category":1,"chain":[],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":14,"related":[],"start":465}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":14,"related":[],"start":465}],"code":2326,"file":"/project/main.ts","key":"Types_of_property_0_are_incompatible_2326","length":14,"related":[],"start":465}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":14,"related":[],"start":465},{"arguments":["PrivateB","PrivateA"],"category":1,"chain":[{"arguments":["value"],"category":1,"chain":[],"code":2442,"file":"/project/main.ts","key":"Types_have_separate_declarations_of_a_private_property_0_2442","length":11,"related":[],"start":633}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":11,"related":[],"start":633},{"arguments":["PrivateA","Public"],"category":1,"chain":[{"arguments":["value","PrivateA","Public"],"category":1,"chain":[],"code":2325,"file":"/project/main.ts","key":"Property_0_is_private_in_type_1_but_not_in_type_2_2325","length":13,"related":[],"start":679}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":13,"related":[],"start":679},{"arguments":["Public","PrivateA"],"category":1,"chain":[{"arguments":["value","PrivateA","Public"],"category":1,"chain":[],"code":2325,"file":"/project/main.ts","key":"Property_0_is_private_in_type_1_but_not_in_type_2_2325","length":13,"related":[],"start":725}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":13,"related":[],"start":725},{"arguments":["ProtectedB","ProtectedA"],"category":1,"chain":[{"arguments":["value","ProtectedB","ProtectedA"],"category":1,"chain":[],"code":2443,"file":"/project/main.ts","key":"Property_0_is_protected_but_type_1_is_not_a_class_derived_from_2_2443","length":13,"related":[],"start":865}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":13,"related":[],"start":865},{"arguments":["ProtectedA","Public"],"category":1,"chain":[{"arguments":["value","ProtectedA","Public"],"category":1,"chain":[],"code":2444,"file":"/project/main.ts","key":"Property_0_is_protected_in_type_1_but_public_in_type_2_2444","length":15,"related":[],"start":917}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":15,"related":[],"start":917},{"arguments":["readonly number[]","number[]"],"category":1,"chain":[{"arguments":["push","readonly number[]","number[]"],"category":1,"chain":[],"code":2741,"file":"/project/main.ts","key":"Property_0_is_missing_in_type_1_but_required_in_type_2_2741","length":10,"related":[{"arguments":["push"],"category":3,"chain":[],"code":2728,"file":"/project/main.ts","key":"_0_is_declared_here_2728","length":28,"related":[],"start":54}],"start":1011}],"code":4104,"file":"/project/main.ts","key":"The_type_0_is_readonly_and_cannot_be_assigned_to_the_mutable_type_1_4104","length":10,"related":[{"arguments":["push"],"category":3,"chain":[],"code":2728,"file":"/project/main.ts","key":"_0_is_declared_here_2728","length":28,"related":[],"start":54}],"start":1011},{"arguments":["readonly [number, string]","[number, string]"],"category":1,"chain":[],"code":4104,"file":"/project/main.ts","key":"The_type_0_is_readonly_and_cannot_be_assigned_to_the_mutable_type_1_4104","length":10,"related":[],"start":1103},{"arguments":["[number]","[number, string]"],"category":1,"chain":[{"arguments":["1","2"],"category":1,"chain":[],"code":2618,"file":"/project/main.ts","key":"Source_has_0_element_s_but_target_requires_1_2618","length":10,"related":[],"start":1187}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":10,"related":[],"start":1187},{"arguments":["[number, number, number]","[number, number]"],"category":1,"chain":[{"arguments":["3","2"],"category":1,"chain":[],"code":2619,"file":"/project/main.ts","key":"Source_has_0_element_s_but_target_allows_only_1_2619","length":11,"related":[],"start":1287}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":11,"related":[],"start":1287},{"arguments":["number[]","[number, number]"],"category":1,"chain":[{"arguments":["2"],"category":1,"chain":[],"code":2620,"file":"/project/main.ts","key":"Target_requires_0_element_s_but_source_may_have_fewer_2620","length":11,"related":[],"start":1367}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":11,"related":[],"start":1367},{"arguments":["[number, (number | undefined)?]","[number]"],"category":1,"chain":[{"arguments":["1"],"category":1,"chain":[],"code":2621,"file":"/project/main.ts","key":"Target_allows_only_0_element_s_but_source_may_have_more_2621","length":10,"related":[],"start":1460}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":10,"related":[],"start":1460},{"arguments":["[(number | undefined)?]","[number]"],"category":1,"chain":[{"arguments":["0"],"category":1,"chain":[],"code":2623,"file":"/project/main.ts","key":"Source_provides_no_match_for_required_element_at_position_0_in_target_2623","length":13,"related":[],"start":1544}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":13,"related":[],"start":1544},{"arguments":["[number, string]","[number, number]"],"category":1,"chain":[{"arguments":["1","1"],"category":1,"chain":[{"arguments":["string","number"],"category":1,"chain":[],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":14,"related":[],"start":1633}],"code":2626,"file":"/project/main.ts","key":"Type_at_position_0_in_source_is_not_compatible_with_type_at_position_1_in_target_2626","length":14,"related":[],"start":1633}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":14,"related":[],"start":1633},{"arguments":["[string, number, number]","[string, ...boolean[]]"],"category":1,"chain":[{"arguments":["1","2","1"],"category":1,"chain":[{"arguments":["number","boolean"],"category":1,"chain":[],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":12,"related":[],"start":1732}],"code":2627,"file":"/project/main.ts","key":"Type_at_positions_0_through_1_in_source_is_not_compatible_with_type_at_position_2_in_target_2627","length":12,"related":[],"start":1732}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":12,"related":[],"start":1732},{"arguments":["HashB","HashA"],"category":1,"chain":[{"arguments":["#value","HashB","HashA"],"category":1,"chain":[],"code":18015,"file":"/project/main.ts","key":"Property_0_in_type_1_refers_to_a_different_member_that_cannot_be_accessed_from_within_type_2_18015","length":11,"related":[],"start":1841}],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":11,"related":[],"start":1841}]
+            """;
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        options.SetRaw("noErrorTruncation", "true");
+        options.SetRaw("target", "\"esnext\"");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
+            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        await checker.CheckProgramAsync();
+        var file = program.GetFile("/project/main.ts")!.Syntax;
+        using var stream = new MemoryStream();
+        using (var writer = new System.Text.Json.Utf8JsonWriter(stream))
+            CheckerCorpusTests.WriteDiagnostics(writer, checker.DetailedDiagnosticsForFile(file).OrderBy(d => d.Start));
+        using var actual = System.Text.Json.JsonDocument.Parse(stream.ToArray());
+        using var expected = System.Text.Json.JsonDocument.Parse(reference);
+        if (actual.RootElement.GetArrayLength() != expected.RootElement.GetArrayLength())
+            throw new InvalidOperationException("Object diagnostic count");
+        for (int i = 0; i < actual.RootElement.GetArrayLength(); i++)
+            if (!System.Text.Json.JsonElement.DeepEquals(actual.RootElement[i], expected.RootElement[i]))
+                throw new InvalidOperationException($"Object diagnostic {i}: {actual.RootElement[i].GetRawText()}");
+        return actual.RootElement.GetArrayLength();
     }
 
     private static async Task<int> DiagnosticChainSafety()

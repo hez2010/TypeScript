@@ -61,6 +61,9 @@ internal sealed partial class Checker : IStructuralRelationHost, IObjectRelation
     public ValueTask<bool> ValidOverrideAsync(Symbol source, Symbol target, CancellationToken cancellation) =>
         RelationSupport.ValidOverrideAsync(source, target, cancellation);
 
+    public ValueTask<Type?> DeclaringClassAsync(Symbol symbol, CancellationToken cancellation)
+        => RelationSupport.DeclaringClassAsync(symbol, cancellation);
+
     public ValueTask<Type?> EffectiveIntersectionConstraintAsync(
         IReadOnlyList<Type> types,
         bool targetUnion,

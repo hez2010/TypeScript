@@ -177,6 +177,8 @@ internal sealed class DiscriminantRelations(TypeContext context, TypeAlgebra alg
                     if (sourceProperty != targetProperty
                         && await objects.PropertyAsync(
                             operation,
+                            source,
+                            type,
                             sourceProperty,
                             targetProperty,
                             0,

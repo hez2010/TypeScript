@@ -4,15 +4,15 @@
 
 ## Current overall status
 
-The complete Release import baseline plus subsequent affected-case results record **12,750 matches out of 13,446 active compiler configurations**, up from 12,729 before catch/ambient declaration fixes and 9,365 at the original Release baseline. **All 13,446 configurations now finish execution and match source graphs.** **696 configurations still have diagnostic-code differences.** One exported input was corrected to reproduce the reference harness's duplicate-filename overwrite order; the reference's expected graph and diagnostics were unchanged.
+The complete Release import baseline plus subsequent affected-case results record **12,752 matches out of 13,446 active compiler configurations**, up from 12,750 before property/tuple diagnostic selection fixes and 9,365 at the original Release baseline. **All 13,446 configurations now finish execution and match source graphs.** **694 configurations still have diagnostic-code differences.** One exported input was corrected to reproduce the reference harness's duplicate-filename overwrite order; the reference's expected graph and diagnostics were unchanged.
 
 These comparisons cover source graphs and diagnostic codes. **94.8% matching on this measure is not a Phase-4 completion percentage.** The remaining gates are:
 
 | Completion requirement | Current status |
 | --- | --- |
 | Execute active corpus and match source graphs | Complete: 13,446 configurations |
-| Match semantic diagnostic codes | 12,750 match; 696 differ |
-| Match diagnostic text, locations and related information | Incomplete: detailed records match in 1,361 of 2,652 selected configurations, including 745 with nonempty semantic diagnostics; the remaining corpus has not been compared at this level |
+| Match semantic diagnostic codes | 12,752 match; 694 differ |
+| Match diagnostic text, locations and related information | Incomplete: detailed records match in 1,436 of 2,652 selected configurations, including 820 with nonempty semantic diagnostics; the remaining corpus has not been compared at this level |
 | Complete type/symbol comparisons, type display, node builders, accessibility and emit-resolver APIs | Incomplete |
 | Validate actual parallel checker scheduling | Incomplete; reference-mode corpus agreement is a narrower check |
 | Meet complete semantic workload memory/performance budgets | Incomplete |
@@ -904,6 +904,18 @@ Release validation covers **1,541 configurations per reference mode**. Detailed 
 A focused fixture matches **13 complete pinned-reference diagnostic records** and verifies that a successful later overload discards earlier failures. Safety passes **129 signature/function/call assertions**, **127 program assertions** and **39 relation assertions**. The Release build has zero warnings and errors. The follow-up single-mode run replays 1,135 affected configurations and retains 406 completed results; reference outputs are reused. Formatting preserves tokens, comments and syntax in seven C# files. Unchanged repository validation was reused. NativeAOT remains deferred until final phase-4 completion.
 
 Evidence: [single-mode corpus](../csharp/compatibility/evidence/phase4-signature-diagnostics-corpus-single.json), [reference-default corpus](../csharp/compatibility/evidence/phase4-signature-diagnostics-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-signature-diagnostics-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-signature-diagnostics-validation.json).
+
+## Property access, missing properties and tuple explanations
+
+Property comparisons now report private/protected declaration conflicts and optional-versus-required mismatches. Nested missing-property errors retain their required declarations throughout the diagnostic chain; distinct private identifiers keep their specific explanation. Readonly array/tuple assignments select the reference's readonly diagnostic while preserving any preceding property explanation. The global `Object` case retains its general assignment error and explanatory note.
+
+Tuple diagnostics now explain minimum/maximum lengths, required and variadic positions, and incompatible element positions or ranges. Tuple display parenthesizes optional/rest unions and other compound element types where required, while preserving boolean and alias spelling. Assignability decisions are unchanged by these reporting additions.
+
+Release validation covers **1,541 configurations per reference mode**. Detailed matches increase from **574 to 649**, recovering **75 configurations**. Graph/code matches increase from **1,411 to 1,413**, recovering **two configurations**. There are no regressions or checker failures, and both modes agree on every final record. Cumulative detailed matches reach **1,436/2,652**, including **820 with semantic diagnostics** and 616 with empty semantic diagnostics. The cumulative graph/code result is **12,752/13,446**, leaving **694 code differences**.
+
+A focused fixture matches **18 complete pinned-reference diagnostic records**. Safety passes **57 relation assertions**, **127 program assertions** and **129 signature assertions**. The Release build has zero warnings and errors. The final single-mode replay covers 139 cases potentially affected by the global `Object` explanation and retains 1,402 completed results. Cached oracle outputs and unchanged repository validation were reused. Formatting preserves tokens, comments and syntax in seven C# files. NativeAOT remains deferred until final phase-4 completion.
+
+Evidence: [single-mode corpus](../csharp/compatibility/evidence/phase4-object-diagnostics-corpus-single.json), [reference-default corpus](../csharp/compatibility/evidence/phase4-object-diagnostics-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-object-diagnostics-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-object-diagnostics-validation.json).
 
 ## Remaining completion work
 

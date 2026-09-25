@@ -202,11 +202,19 @@ internal sealed class TypeDisplay(
                     for (int i = 0; i < tuple.ElementInfos.Count; i++)
                     {
                         var info = tuple.ElementInfos[i];
+                        var element = values.NonMissing(arguments[i], (info.Flags & ElementFlags.Optional) != 0);
                         string item = await WriteAsync(
-                            values.NonMissing(arguments[i], (info.Flags & ElementFlags.Optional) != 0),
+                            element,
                             active,
                             cancellation).ConfigureAwait(false);
                         bool rest = (info.Flags & (ElementFlags.Rest | ElementFlags.Variadic)) != 0;
+                        if (((info.Flags & ElementFlags.Rest) != 0
+                            || (info.Flags & ElementFlags.Optional) != 0 && info.LabeledDeclaration is not NamedTupleMemberNode)
+                            && (element is UnionOrIntersectionType or ConditionalType or IndexType
+                                && element.Alias is null
+                                && (element.Flags & TypeFlags.Boolean) == 0
+                                || element is ObjectType && item.Contains("=>", StringComparison.Ordinal) && !item.StartsWith('{')))
+                            item = "(" + item + ")";
                         if ((info.Flags & ElementFlags.Rest) != 0)
                             item += "[]";
                         if (info.LabeledDeclaration is NamedTupleMemberNode label)

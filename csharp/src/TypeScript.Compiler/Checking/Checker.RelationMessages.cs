@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
+using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
 
 namespace TypeScript.Compiler.Checking;
@@ -41,14 +42,60 @@ internal sealed partial class Checker
         else
             arguments = [sourceText, targetText];
         var diagnostic = CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), arguments);
+        if (code == 2741 && RequiredPropertyDeclarations.TryGetValue(node, out var required)
+            && required[0].Declarations.FirstOrDefault() is { } declaration)
+            diagnostic = diagnostic with
+            {
+                RelatedInformation = [CheckerDiagnostic.Create(declaration, Messages.X_0_is_declared_here,
+                TypeDisplay.SymbolName(required[0]))]
+            };
         if (code is not (2739 or 2740 or 2741))
         {
             var explanation = await Relations.ExplainAsync(originalSource, target, kind, cancellation);
             if (await RelationChainAsync(explanation?.Next, diagnostic, cancellation) is { } chain)
-                diagnostic = diagnostic with { MessageChain = [chain] };
+                diagnostic = diagnostic with { MessageChain = [chain], RelatedInformation = chain.RelatedInformation };
             diagnostic = await ConstraintReasonAsync(diagnostic, originalSource, source, target, sourceText, targetText, cancellation);
         }
+        diagnostic = SelectRelationDiagnostic(diagnostic, originalSource, target, sourceText, targetText);
         Error(node, StripRelationMarkers(diagnostic));
+    }
+
+    private bool ReadonlyAssignment(Type source, Type target) =>
+        (source is TypeReference { Target: TupleType { IsReadonly: true } } || IsReadonlyArray(source))
+        && (target is TypeReference { Target: TupleType { IsReadonly: false } } || IsArray(target) && !IsReadonlyArray(target));
+
+    private Diagnostic SelectRelationDiagnostic(Diagnostic diagnostic, Type source, Type target, string sourceText, string targetText)
+    {
+        if (ReadonlyAssignment(source, target))
+            return diagnostic with
+            {
+                Message = DiagnosticLocalization.GetMessage(4104),
+                Arguments = [sourceText, targetText],
+                MessageChain = diagnostic.Code is 2739 or 2740 or 2741 ? [diagnostic] : diagnostic.MessageChain
+            };
+        if (source == GlobalObject && (target.Flags & TypeFlags.Primitive) == 0)
+            return diagnostic with
+            {
+                MessageChain = [diagnostic with
+            {
+                Message = DiagnosticLocalization.GetMessage(2696),
+                Arguments = []
+            }]
+            };
+        if (diagnostic.MessageChain is not [var next])
+            return diagnostic;
+        bool matches = next.Code switch
+        {
+            4104 => next.Arguments.SequenceEqual(new[] { sourceText, targetText }),
+            2741 when diagnostic.Code is not (2420 or 2720 or 2352) => next.Arguments is [_, var s, var t]
+                && s == sourceText
+                && t == targetText,
+            2739 or 2740 when diagnostic.Code is not (2420 or 2720 or 2352) => next.Arguments.Length >= 2
+                && next.Arguments[0] == sourceText
+                && next.Arguments[1] == targetText,
+            _ => false
+        };
+        return matches ? next : diagnostic;
     }
 
     private static Diagnostic StripRelationMarkers(Diagnostic diagnostic)
@@ -80,7 +127,7 @@ internal sealed partial class Checker
             Message = DiagnosticLocalization.GetMessage(explanation.Code),
             Arguments = [],
             MessageChain = next is null ? [] : [next],
-            RelatedInformation = []
+            RelatedInformation = next?.RelatedInformation ?? []
         };
         if (explanation.Code is 2322 or 2678)
         {
@@ -92,7 +139,8 @@ internal sealed partial class Checker
             string sourceText = await TypeDisplay.GetAsync(source, cancellation);
             string targetText = await TypeDisplay.GetAsync(target, cancellation);
             diagnostic = diagnostic with { Arguments = [sourceText, targetText] };
-            return await ConstraintReasonAsync(diagnostic, originalSource, source, target, sourceText, targetText, cancellation);
+            diagnostic = await ConstraintReasonAsync(diagnostic, originalSource, source, target, sourceText, targetText, cancellation);
+            return SelectRelationDiagnostic(diagnostic, originalSource, target, sourceText, targetText);
         }
         if (explanation.Arguments is { } supplied)
         {
@@ -103,6 +151,8 @@ internal sealed partial class Checker
                     string text => text,
                     int count => count.ToString(CultureInfo.InvariantCulture),
                     Type type => await TypeDisplay.GetAsync(type, cancellation),
+                    Symbol symbol => TypeDisplay.SymbolName(symbol),
+                    IReadOnlyList<Symbol> symbols => string.Join(", ", symbols.Select(TypeDisplay.SymbolName)),
                     Signature signature => await TypeDisplay.GetSignatureAsync(signature, cancellation),
                     TypePredicate predicate => await TypeDisplay.GetPredicateAsync(predicate, cancellation),
                     _ => throw new InvalidOperationException("Unsupported relation argument")
@@ -114,6 +164,8 @@ internal sealed partial class Checker
             {
                 Arguments = explanation.Code switch
                 {
+                    2741 => [TypeDisplay.SymbolName(explanation.Property!), await TypeDisplay.GetAsync(explanation.Source!, cancellation),
+                        await TypeDisplay.GetAsync(explanation.Target!, cancellation)],
                     2326 or 2530 => [TypeDisplay.SymbolName(explanation.Property!)],
                     2634 => [await TypeDisplay.GetAsync(explanation.Source!, cancellation)],
                     2517 or 2518 or 2685 => [],
@@ -124,6 +176,12 @@ internal sealed partial class Checker
                         ],
                     _ => throw new InvalidOperationException($"Unsupported relation explanation {explanation.Code}")
                 }
+            };
+        if (explanation.Code == 2741 && explanation.Property!.Declarations.FirstOrDefault() is { } declaration)
+            diagnostic = diagnostic with
+            {
+                RelatedInformation = [CheckerDiagnostic.Create(declaration, Messages.X_0_is_declared_here,
+                TypeDisplay.SymbolName(explanation.Property))]
             };
         if (explanation.Code == 2326 && next is { MessageChain.Count: 1 } && next.MessageChain[0] is { Code: >= 2202 and <= 2205 } marker)
         {

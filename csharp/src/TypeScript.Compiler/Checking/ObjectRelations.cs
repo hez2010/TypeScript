@@ -24,6 +24,8 @@ internal interface IObjectRelationHost
 
     ValueTask<bool> ValidOverrideAsync(Symbol source, Symbol target, CancellationToken cancellation);
 
+    ValueTask<Type?> DeclaringClassAsync(Symbol symbol, CancellationToken cancellation);
+
     ValueTask<bool> EmptyArrayAsync(Type type, CancellationToken cancellation);
 
     CheckFlags AccessFlags(Symbol symbol, bool write);
@@ -142,13 +144,50 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
             && (source.ObjectFlags & ObjectFlags.ObjectLiteral) == 0
             && !await host.EmptyArrayAsync(source, cancellation).ConfigureAwait(false) && source is not TypeReference { Target: TupleType };
         var targetProperties = await properties.GetAsync(target, cancellation).ConfigureAwait(false);
+        List<Symbol>? missing = null;
         foreach (var property in targetProperties)
         {
             if (property.ValueDeclaration is { } d && SemanticSyntax.IsStatic(d) && (d as INamedNode)?.Name is PrivateIdentifierNode)
                 continue;
             if ((requireOptional || (property.Flags & SymbolFlags.Optional) == 0 && (property.CheckFlags & CheckFlags.Partial) == 0)
                 && await properties.PropertyAsync(source, property.Name, cancellation: cancellation).ConfigureAwait(false) is null)
+            {
+                if (!operation.ReportErrors)
+                    return Ternary.False;
+                (missing ??= []).Add(property);
+            }
+        }
+        if (missing is not null)
+        {
+            if (SemanticSyntax.Name(missing[0].ValueDeclaration) is PrivateIdentifierNode privateName
+                && source.Symbol is { } sourceSymbol && (sourceSymbol.Flags & SymbolFlags.Class) != 0
+                && await properties.PropertyAsync(
+                    source,
+                    PrivateAccess.Name(sourceSymbol, privateName.Text),
+                    cancellation: cancellation).ConfigureAwait(false) is not null
+                && target.Symbol is { } targetSymbol)
+            {
+                operation.ExplainArguments(18015, privateName.Text, sourceSymbol, targetSymbol);
                 return Ternary.False;
+            }
+            if (!await CallableAsync(source, cancellation).ConfigureAwait(false)
+                || (await properties.GetAsync(source, cancellation).ConfigureAwait(false)).Count != 0
+                || (await host.SignaturesAsync(source, false, cancellation).ConfigureAwait(false)).Count != 0
+                    && (await host.SignaturesAsync(target, false, cancellation).ConfigureAwait(false)).Count != 0
+                || (await host.SignaturesAsync(source, true, cancellation).ConfigureAwait(false)).Count != 0
+                    && (await host.SignaturesAsync(target, true, cancellation).ConfigureAwait(false)).Count != 0)
+            {
+                if (missing.Count == 1)
+                    operation.Explain(2741, source, target, missing[0]);
+                else if (ArrayLikeMissingProperties(source, target))
+                {
+                    if (missing.Count > 5)
+                        operation.ExplainArguments(2740, source, target, missing.Take(4).ToArray(), missing.Count - 4);
+                    else
+                        operation.ExplainArguments(2739, source, target, missing);
+                }
+            }
+            return Ternary.False;
         }
         if ((target.ObjectFlags & ObjectFlags.ObjectLiteral) != 0)
             foreach (var property in await properties.GetAsync(source, cancellation).ConfigureAwait(false))
@@ -168,7 +207,14 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
                 cancellation: cancellation).ConfigureAwait(false);
             if (sourceProperty is null || sourceProperty == targetProperty)
                 continue;
-            var related = await PropertyAsync(operation, sourceProperty, targetProperty, intersection, cancellation).ConfigureAwait(false);
+            var related = await PropertyAsync(
+                operation,
+                source,
+                target,
+                sourceProperty,
+                targetProperty,
+                intersection,
+                cancellation).ConfigureAwait(false);
             if (related == Ternary.False)
                 return related;
             result &= related;
@@ -178,6 +224,8 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
 
     internal async ValueTask<Ternary> PropertyAsync(
         RelationOperation operation,
+        Type sourceObject,
+        Type targetObject,
         Symbol source,
         Symbol target,
         IntersectionState intersection,
@@ -190,15 +238,36 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
         if (((sourceFlags | targetFlags) & CheckFlags.ContainsPrivate) != 0)
         {
             if (source.ValueDeclaration != target.ValueDeclaration)
+            {
+                if (operation.ReportErrors)
+                {
+                    if ((sourceFlags & targetFlags & CheckFlags.ContainsPrivate) != 0)
+                        operation.ExplainArguments(2442, target);
+                    else
+                        operation.ExplainArguments(2325, target,
+                            (sourceFlags & CheckFlags.ContainsPrivate) != 0 ? sourceObject : targetObject,
+                            (sourceFlags & CheckFlags.ContainsPrivate) != 0 ? targetObject : sourceObject);
+                }
                 return Ternary.False;
+            }
         }
         else if ((targetFlags & CheckFlags.ContainsProtected) != 0)
         {
             if (!await host.ValidOverrideAsync(source, target, cancellation).ConfigureAwait(false))
+            {
+                if (operation.ReportErrors)
+                    operation.ExplainArguments(2443, target,
+                        await host.DeclaringClassAsync(source, cancellation).ConfigureAwait(false) ?? sourceObject,
+                        await host.DeclaringClassAsync(target, cancellation).ConfigureAwait(false) ?? targetObject);
                 return Ternary.False;
+            }
         }
         else if ((sourceFlags & CheckFlags.ContainsProtected) != 0)
+        {
+            if (operation.ReportErrors)
+                operation.ExplainArguments(2444, target, sourceObject, targetObject);
             return Ternary.False;
+        }
         if (operation.Kind == RelationKind.StrictSubtype && host.IsReadonly(source) && !host.IsReadonly(target))
             return Ternary.False;
         var targetType = values.NonMissing(
@@ -220,15 +289,30 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
         }
         if (related == Ternary.False)
         {
-            operation.Explain(2326, property: source);
+            operation.Explain(2326, property: target);
             return related;
         }
-        return !(skipOptional ?? operation.Kind == RelationKind.Comparable)
+        if (!(skipOptional ?? operation.Kind == RelationKind.Comparable)
             && (source.Flags & SymbolFlags.Optional) != 0
             && (target.Flags & SymbolFlags.ClassMember) != 0
-            && (target.Flags & SymbolFlags.Optional) == 0
-            ? Ternary.False
-            : related;
+            && (target.Flags & SymbolFlags.Optional) == 0)
+        {
+            if (operation.ReportErrors)
+                operation.ExplainArguments(2327, target, sourceObject, targetObject);
+            return Ternary.False;
+        }
+        return related;
+    }
+
+    private bool ArrayLikeMissingProperties(Type source, Type target)
+    {
+        bool mutable = target is TypeReference { Target: TupleType { IsReadonly: false } }
+            || host.IsArray(target) && !host.IsReadonlyArray(target);
+        if (source is TypeReference { Target: TupleType tuple })
+            return !(tuple.IsReadonly && mutable) && ArrayOrTuple(target);
+        if (host.IsReadonlyArray(source) && mutable)
+            return false;
+        return target is not TypeReference { Target: TupleType } || host.IsArray(source);
     }
 
     private async ValueTask<Ternary> TupleAsync(
@@ -250,9 +334,25 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
         bool sourceRest = sourceTuple is null || (sourceTuple.CombinedFlags & ElementFlags.Rest) != 0;
         bool targetRest = (targetTuple.CombinedFlags & ElementFlags.Rest) != 0, targetVariable = (targetTuple.CombinedFlags & ElementFlags.Variable) != 0;
         int sourceMinimum = sourceTuple?.MinLength ?? 0;
-        if (!sourceRest && sourceArity < targetTuple.MinLength || !targetVariable && targetArity < sourceMinimum
-            || !targetVariable && (sourceRest || targetArity < sourceArity))
+        if (!sourceRest && sourceArity < targetTuple.MinLength)
+        {
+            if (operation.ReportErrors)
+                operation.ExplainArguments(2618, sourceArity, targetTuple.MinLength);
             return Ternary.False;
+        }
+        if (!targetVariable && targetArity < sourceMinimum)
+        {
+            if (operation.ReportErrors)
+                operation.ExplainArguments(2619, sourceMinimum, targetArity);
+            return Ternary.False;
+        }
+        if (!targetVariable && (sourceRest || targetArity < sourceArity))
+        {
+            if (operation.ReportErrors)
+                operation.ExplainArguments(sourceMinimum < targetTuple.MinLength ? 2620 : 2621,
+                    sourceMinimum < targetTuple.MinLength ? targetTuple.MinLength : targetArity);
+            return Ternary.False;
+        }
         var sourceArguments = await references.TypeArgumentsAsync(source, cancellation).ConfigureAwait(false);
         var targetArguments = await references.TypeArgumentsAsync(target, cancellation).ConfigureAwait(false);
         int start = 0, end = 0;
@@ -272,14 +372,32 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
             else
             {
                 if (i >= targetArity)
+                {
+                    if (operation.ReportErrors)
+                        operation.ExplainArguments(2621, targetArity);
                     return Ternary.False;
+                }
                 position = i;
             }
             var targetFlags = position >= 0 ? targetTuple.ElementInfos[position].Flags : 0;
-            if ((targetFlags & ElementFlags.Variadic) != 0 && (sourceFlags & ElementFlags.Variadic) == 0
-                || (sourceFlags & ElementFlags.Variadic) != 0 && (targetFlags & ElementFlags.Variable) == 0
-                || (targetFlags & ElementFlags.Required) != 0 && (sourceFlags & ElementFlags.Required) == 0)
+            if ((targetFlags & ElementFlags.Variadic) != 0 && (sourceFlags & ElementFlags.Variadic) == 0)
+            {
+                if (operation.ReportErrors)
+                    operation.ExplainArguments(2624, position);
                 return Ternary.False;
+            }
+            if ((sourceFlags & ElementFlags.Variadic) != 0 && (targetFlags & ElementFlags.Variable) == 0)
+            {
+                if (operation.ReportErrors)
+                    operation.ExplainArguments(2625, i, position);
+                return Ternary.False;
+            }
+            if ((targetFlags & ElementFlags.Required) != 0 && (sourceFlags & ElementFlags.Required) == 0)
+            {
+                if (operation.ReportErrors)
+                    operation.ExplainArguments(2623, position);
+                return Ternary.False;
+            }
             if (canExclude)
             {
                 if (((sourceFlags | targetFlags) & ElementFlags.Variable) != 0)
@@ -301,7 +419,16 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
                 intersection: intersection,
                 cancellation: cancellation).ConfigureAwait(false);
             if (related == Ternary.False)
+            {
+                if (operation.ReportErrors && (sourceArity > 1 || targetArity > 1))
+                {
+                    if (targetRest && i >= start && sourceArity - 1 - i >= end && start != sourceArity - end - 1)
+                        operation.ExplainArguments(2627, start, sourceArity - end - 1, position);
+                    else
+                        operation.ExplainArguments(2626, i, position);
+                }
                 return related;
+            }
             result &= related;
         }
         return result;

@@ -1,0 +1,99 @@
+{
+    "timestamp": "2026-09-25T00:05:31.9018825+00:00",
+    "configuration": "Release",
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "managed": true,
+    "scope": "Nested required/private/protected properties, readonly assignment codes and tuple explanations; phase 4 remains incomplete",
+    "candidateSha256": "05c0eddefc7fc9791161b7c4628416d97d8b78df694584b74595ab8540f0f091",
+    "compilerSha256": "c57db1a9fc587cd4d30321aad2d69db4a19286d1f38dd2f280cd799ccccd6b00",
+    "build": {
+        "warnings": 0,
+        "exitCode": 0,
+        "log": "logs/csharp-phase4-object-diagnostics-build.log",
+        "sha256": "020049add88e237f7e281d12dce846f65ec0f7808afc017180787565400b52cc",
+        "errors": 0
+    },
+    "fixture": {
+        "exactRecords": 18,
+        "retainedAssertions": "csharp/tests/TypeScript.Compatibility/CheckerAssignabilityTests.cs",
+        "referenceSha256": "2a618338eaf8b4b9fe2e89fb5e7a5f92d63990c4ef734197fffcb0632ccb97a5",
+        "inputSha256": "a6f65b9bbafadc3c93ebbe2ecf15ac23c24a2b39ef5a37f747238cc6ec725e08",
+        "diagnosticRecords": 18,
+        "referenceOracleSha256": "f5c03c77e3074463e10144d9a9028daf58b2f4f93c9b5c5278dd7d13bc5a1a7a",
+        "candidateSha256": "2f215a09f146070f7b642cf1bbd21b481922520b1384c07cfd8ab068f179f2e2"
+    },
+    "safety": {
+        "newAssertions": 18,
+        "programAssertions": 127,
+        "checks": [
+            "nested required properties and propagated related information",
+            "multiple missing properties",
+            "private/protected and private-identifier conflicts",
+            "readonly arrays and tuples",
+            "tuple minimum/maximum length and optional elements",
+            "element position and range mismatches"
+        ],
+        "relationAssertions": 57,
+        "signatureAssertions": 129,
+        "logs": [
+            "logs/csharp-phase4-object-diagnostics-safety.log",
+            "logs/csharp-phase4-object-diagnostics-program-safety.log",
+            "logs/csharp-phase4-object-diagnostics-signature-safety.log"
+        ]
+    },
+    "corpus": {
+        "recoveredDetailedConfigurations": 75,
+        "previousDetailedMatches": 574,
+        "single": "phase4-object-diagnostics-corpus-single.json",
+        "detailedDiagnosticMatches": 649,
+        "referenceDefault": "phase4-object-diagnostics-corpus-default.json",
+        "graphAndCodeMatches": 1413,
+        "selectedConfigurationsPerMode": 1541,
+        "singleModeFollowUpConfigurations": 139,
+        "regressions": [],
+        "cumulative": {
+            "activeConfigurations": 13446,
+            "matches": 12752,
+            "remaining": 694,
+            "failed": 0,
+            "diagnosticMismatches": 694,
+            "graphMismatches": 0,
+            "detailedConfigurations": 2652,
+            "detailedMatches": 1436,
+            "nonemptyDetailedMatches": 820,
+            "detailedDifferences": 1216
+        },
+        "candidateFailures": [],
+        "recoveredCodeConfigurations": 2,
+        "previousGraphAndCodeMatches": 1411,
+        "retainedSingleResults": 1402,
+        "remainingDetailedDifferences": 892,
+        "parity": "phase4-object-diagnostics-mode-parity.json"
+    },
+    "formatting": {
+        "csharpFiles": 7,
+        "libraryConfigurations": 2,
+        "dotnetWhitespaceExitCode": 0,
+        "proofSha256": "dd15fe3a07eacde7304b0a78164d1fff764fec9df0fa38c75f26c1736d746737",
+        "tokensCommentsAndSyntaxIdentical": true,
+        "proofLog": "logs/csharp-phase4-object-diagnostics-format.log"
+    },
+    "reusedValidation": {
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "validatedCommit": "00d370e5b0",
+        "reason": "Cached oracle outputs, unaffected candidate results and unchanged repository validation were reused. No runtime replays were needed after token-preserving formatting.",
+        "repositoryExitCode": 0,
+        "repositoryCommand": "npx hereby validate --all"
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "parallelCheckerGateComplete": false,
+    "phase4Complete": false
+}

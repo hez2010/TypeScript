@@ -123,7 +123,7 @@ internal sealed class RelationSupport(
         return true;
     }
 
-    private async ValueTask<Type?> DeclaringClassAsync(Symbol symbol, CancellationToken cancellation)
+    internal async ValueTask<Type?> DeclaringClassAsync(Symbol symbol, CancellationToken cancellation)
         =>
             symbol.Parent is { } parent && (parent.Flags & SymbolFlags.Class) != 0
                 ? await declared.GetAsync(parent, cancellation).ConfigureAwait(false)
