@@ -15,7 +15,8 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 const symbolLocations = process.argv.includes("--symbols");
 const scopeServices = process.argv.includes("--scopes");
 const contextQueries = process.argv.includes("--contexts");
-const output = path.join(root, `built/csharp/checker-${contextQueries ? "context-queries" : scopeServices ? "scope-services" : symbolLocations ? "symbol-locations" : "locations"}`);
+const declarationVisibility = process.argv.includes("--visibility");
+const output = path.join(root, `built/csharp/checker-${declarationVisibility ? "declaration-visibility" : contextQueries ? "context-queries" : scopeServices ? "scope-services" : symbolLocations ? "symbol-locations" : "locations"}`);
 const option = name => process.argv[process.argv.indexOf(name) + 1];
 const dotnet = process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, "dotnet.exe") : "dotnet";
 const dll = path.join(root, "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll");
@@ -132,12 +133,39 @@ const element=<Component value="yes" onChange={value=>{value;}}/>;`,
         contextImports: `interface ImportCallOptions {with?:{type:string};} const module=import("./dep",{with:{type:"json"}});`,
     });
 }
+if (declarationVisibility) {
+    Object.assign(fixtures, {
+        visibilityExports: `const hidden=1; export const visible=hidden; class Hidden {} export class Public { private secret=1; protected member=1;
+public field=1; #private=1; constructor(value:number){} get property(){return this.field;} set property(value:number){this.field=value;} }
+export {hidden}; export default Hidden;`,
+        visibilityAliases: `namespace N { export class C {} } import A=N; import B=A; export {B};
+import Default,{named as value,Shape} from "./dep"; import * as All from "./dep"; export {value,All};`,
+        visibilityAmbient: `declare namespace N { interface I {value:number;} class C {private field:number; public method(x:number):void;} }
+declare module "external" { class C {} import Alias=N; module "nested" {interface I {}} }`,
+        visibilityAugmentation: `export {}; declare module "./dep" { interface Shape { extra:string; } }
+declare global { interface Global {value:number;} }`,
+        visibilityDts: `export {}; interface Hidden {value:number;} export interface Public {value:Hidden; method(x:number):string;}
+declare const hidden:Hidden; export {hidden};`,
+        visibilityBindings: `const {a,b:{c}}={a:1,b:{c:2}}; const [first,,...rest]=[1,2,3]; const {}={}; const []=[];
+export {a,c,first,rest}; function f({local}:{local:number}){return local;}`,
+        jsdocVisibilityCommonJs: `const local=1; function C(){} exports.value=local; module.exports.C=C;
+const {named}=require("./dep"); exports.named=named;`,
+        jsdocVisibilityTypes: `exports.value=1;
+/** @typedef {{value:number}} Shape */
+/** @callback Callback
+ * @param {Shape} value
+ * @returns {number}
+ */
+function f(value){return value;}
+class C { /** @private */ secret=1; /** @protected */ field=1; public=1; }`,
+    });
+}
 const inputs = [];
 for (const [name, source] of Object.entries(fixtures)) {
     for (const strict of [false, true]) {
         for (const concurrency of [1, 4]) {
-            const files = { "/project/globals.d.ts": library, [`/project/main.${name.startsWith("jsx") ? "tsx" : name.startsWith("jsdoc") ? "js" : "ts"}`]: source, "/project/dep.ts": "export interface Shape {value:number;} export const named=1; export default class Default { value=1; }" };
-            inputs.push({ name: `${name}:${strict}:${concurrency}`, files: Object.fromEntries(Object.entries(files).map(([name, text]) => [name, Buffer.from(text).toString("base64")])), roots: Object.keys(files), options: { strict, target: "esnext", module: "esnext", moduleResolution: "bundler", jsx: "preserve", ...name.startsWith("jsdoc") ? { allowJs: true, checkJs: true } : {} }, typeNodes: true, ...contextQueries ? { contextQueries: true } : scopeServices ? { scopeServices: true } : symbolLocations ? { symbolLocations: true, ...name.startsWith("jsdoc") ? { documentationSymbols: true } : {} } : { locations: true }, concurrency });
+            const files = { "/project/globals.d.ts": library, [`/project/main.${name === "visibilityDts" ? "d.ts" : name.startsWith("jsx") ? "tsx" : name.startsWith("jsdoc") ? "js" : "ts"}`]: source, "/project/dep.ts": "export interface Shape {value:number;} export const named=1; export default class Default { value=1; }" };
+            inputs.push({ name: `${name}:${strict}:${concurrency}`, files: Object.fromEntries(Object.entries(files).map(([name, text]) => [name, Buffer.from(text).toString("base64")])), roots: Object.keys(files), options: { strict, target: "esnext", module: "esnext", moduleResolution: "bundler", jsx: "preserve", ...name.startsWith("jsdoc") ? { allowJs: true, checkJs: true } : {} }, typeNodes: true, ...declarationVisibility ? { declarationVisibility: true } : contextQueries ? { contextQueries: true } : scopeServices ? { scopeServices: true } : symbolLocations ? { symbolLocations: true, ...name.startsWith("jsdoc") ? { documentationSymbols: true } : {} } : { locations: true }, concurrency });
         }
     }
 }
@@ -198,13 +226,13 @@ for (const input of selected) {
         candidateError = String(error);
         candidateFailures++;
     }
-    if (candidate) queries += (candidate.contextQueries ?? candidate.serviceQueries ?? candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
+    if (candidate) queries += (candidate.visibilityQueries ?? candidate.contextQueries ?? candidate.serviceQueries ?? candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
     results.push({ input, reference, candidate, referenceError, candidateError });
     if (referenceError || candidateError) {
         failures.push({ name: input.name, referenceError, candidateError });
         continue;
     }
-    comparedQueries += (candidate.contextQueries ?? candidate.serviceQueries ?? candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
+    comparedQueries += (candidate.visibilityQueries ?? candidate.contextQueries ?? candidate.serviceQueries ?? candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
     try {
         assert.deepStrictEqual(candidate, reference);
     }
@@ -239,6 +267,11 @@ if (scopeServices) {
         shorthandValues: counts[5],
         parameterPropertyPairs: counts[6],
     };
+}
+if (declarationVisibility) {
+    const phases = Array(5).fill(0);
+    for (const result of results) for (const record of result.candidate?.visibilityQueries ?? []) phases[record[0]]++;
+    summary.visibilityRecords = { initial: phases[0], afterPrecalculation: phases[1], aliasRetention: phases[2], afterRetention: phases[3], afterRepeatedPrecalculation: phases[4] };
 }
 if (contextQueries) {
     const counts = Array(8).fill(0);

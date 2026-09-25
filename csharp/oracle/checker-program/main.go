@@ -26,37 +26,38 @@ func main() {
 	output := json.NewEncoder(os.Stdout)
 	for lines.Scan() {
 		var input struct {
-			Files                map[string]string
-			Roots                []string
-			Options              map[string]any
-			Concurrency          int
-			Aliases              bool
-			TypeNodes            bool
-			Members              bool
-			Values               bool
-			Properties           bool
-			Signatures           bool
-			Identity             bool
-			Assignability        bool
-			Indexing             bool
-			Constants            bool
-			Expressions          bool
-			Awaited              bool
-			References           bool
-			Flow                 bool
-			Identifiers          bool
-			Access               bool
-			Calls                bool
-			Assertions           bool
-			Semantic             bool
-			SemanticDetails      bool
-			TypeDisplays         bool
-			Locations            bool
-			SymbolLocations      bool
-			DocumentationSymbols bool
-			ScopeServices        bool
-			ContextQueries       bool
-			NumberStrings        []string
+			Files                 map[string]string
+			Roots                 []string
+			Options               map[string]any
+			Concurrency           int
+			Aliases               bool
+			TypeNodes             bool
+			Members               bool
+			Values                bool
+			Properties            bool
+			Signatures            bool
+			Identity              bool
+			Assignability         bool
+			Indexing              bool
+			Constants             bool
+			Expressions           bool
+			Awaited               bool
+			References            bool
+			Flow                  bool
+			Identifiers           bool
+			Access                bool
+			Calls                 bool
+			Assertions            bool
+			Semantic              bool
+			SemanticDetails       bool
+			TypeDisplays          bool
+			Locations             bool
+			SymbolLocations       bool
+			DocumentationSymbols  bool
+			ScopeServices         bool
+			ContextQueries        bool
+			DeclarationVisibility bool
+			NumberStrings         []string
 		}
 		if err := json.Unmarshal(lines.Bytes(), &input); err != nil {
 			panic(err)
@@ -119,7 +120,7 @@ func main() {
 			}
 			continue
 		}
-		result := c.CSharpProgramScopeProbe(input.Aliases, input.TypeNodes, input.Members, input.Values, input.Properties, input.Signatures, input.Identity, input.Assignability, input.Indexing, input.Constants, input.Expressions, input.Awaited, input.References, input.Flow, input.Identifiers, input.Access, input.Calls, input.Assertions, input.Locations, input.SymbolLocations, input.DocumentationSymbols, input.ScopeServices, input.ContextQueries).(map[string]any)
+		result := c.CSharpProgramScopeProbe(input.Aliases, input.TypeNodes, input.Members, input.Values, input.Properties, input.Signatures, input.Identity, input.Assignability, input.Indexing, input.Constants, input.Expressions, input.Awaited, input.References, input.Flow, input.Identifiers, input.Access, input.Calls, input.Assertions, input.Locations, input.SymbolLocations, input.DocumentationSymbols, input.ScopeServices, input.ContextQueries, input.DeclarationVisibility).(map[string]any)
 		if input.NumberStrings != nil {
 			rows := []string{}
 			for _, text := range input.NumberStrings {

@@ -13,6 +13,86 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/jsnum"
 )
 
+func (c *Checker) csharpVisibilityQueries(nodes []*ast.Node, nodeIDs map[*ast.Node]int, sid func(*ast.Symbol) int) []any {
+	type entry struct {
+		node               *ast.Node
+		owner              int
+		documentationIndex int
+	}
+	type declaration struct {
+		node   *ast.Node
+		symbol *ast.Symbol
+	}
+	entries := []entry{}
+	declarations := []declaration{}
+	seen := map[*ast.Symbol]bool{}
+	files := []*ast.SourceFile{}
+	for _, node := range nodes {
+		file := ast.GetSourceFileOfNode(node)
+		if !strings.HasPrefix(file.FileName(), "/project/main.") {
+			continue
+		}
+		entries = append(entries, entry{node, nodeIDs[node], -1})
+		index := 0
+		for _, comment := range node.JSDoc(file) {
+			pending := []*ast.Node{comment}
+			for len(pending) > 0 {
+				part := pending[len(pending)-1]
+				pending = pending[:len(pending)-1]
+				entries = append(entries, entry{part, nodeIDs[node], index})
+				index++
+				children := []*ast.Node{}
+				part.ForEachChild(func(child *ast.Node) bool { children = append(children, child); return false })
+				for i := len(children) - 1; i >= 0; i-- {
+					pending = append(pending, children[i])
+				}
+			}
+		}
+		if ast.IsSourceFile(node) {
+			files = append(files, node.AsSourceFile())
+		}
+		if ast.IsDeclaration(node) {
+			if symbol := c.getSymbolOfDeclaration(node); symbol != nil && !seen[symbol] {
+				seen[symbol] = true
+				declarations = append(declarations, declaration{node, symbol})
+			}
+		}
+	}
+	r := c.GetEmitResolver()
+	rows := []any{}
+	visibility := func(phase int) {
+		for _, entry := range entries {
+			rows = append(rows, []any{phase, entry.owner, entry.documentationIndex, int(entry.node.Kind), r.IsDeclarationVisible(entry.node)})
+		}
+	}
+	visibility(0)
+	for _, file := range files {
+		r.PrecalculateDeclarationEmitVisibility(file)
+	}
+	visibility(1)
+	for _, declaration := range declarations {
+		for _, compute := range []bool{false, true} {
+			result := r.hasVisibleDeclarations(declaration.symbol, compute)
+			var aliases any
+			if result != nil {
+				ids := []int{}
+				for _, alias := range result.AliasesToMakeVisible {
+					ids = append(ids, nodeIDs[alias])
+				}
+				slices.Sort(ids)
+				aliases = ids
+			}
+			rows = append(rows, []any{2, nodeIDs[declaration.node], sid(declaration.symbol), compute, aliases})
+		}
+	}
+	visibility(3)
+	for _, file := range files {
+		r.PrecalculateDeclarationEmitVisibility(file)
+	}
+	visibility(4)
+	return rows
+}
+
 func (c *Checker) csharpContextQueries(nodes []*ast.Node, nodeIDs map[*ast.Node]int, tid func(*Type) int, sid func(*ast.Symbol) int) ([]any, []any) {
 	rows, graph := []any{}, []any{}
 	queue := []*Signature{}
@@ -109,7 +189,7 @@ func (c *Checker) csharpContextQueries(nodes []*ast.Node, nodeIDs map[*ast.Node]
 	return rows, graph
 }
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool, symbolLocations bool, documentationSymbols bool, scopeServices bool, contextQueries bool) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool, symbolLocations bool, documentationSymbols bool, scopeServices bool, contextQueries bool, declarationVisibility bool) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -313,6 +393,10 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 				nodeIDs[c.getTypeOnlyAliasDeclaration(symbol)], nodeIDs[c.getTypeOnlyAliasDeclarationEx(symbol, ast.SymbolFlagsValue)],
 			})
 		}
+	}
+	var visibilityRows []any
+	if declarationVisibility {
+		visibilityRows = c.csharpVisibilityQueries(nodes, nodeIDs, sid)
 	}
 	var contextRows, contextSignatures []any
 	if contextQueries {
@@ -1046,6 +1130,9 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	}
 	if contextQueries {
 		result["contextQueries"], result["querySignatureGraph"] = contextRows, contextSignatures
+	}
+	if declarationVisibility {
+		result["visibilityQueries"] = visibilityRows
 	}
 	if documentationSymbols {
 		result["documentationSymbolQueries"] = documentationQueries

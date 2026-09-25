@@ -137,6 +137,12 @@ internal static class Program
                     $"{CheckerContextQueryTests.Safety().GetAwaiter().GetResult()} context/signature query cache/cancellation assertions");
                 return 0;
             }
+            if (args is ["--checker-visibility-safety"])
+            {
+                Console.WriteLine(
+                    $"{CheckerVisibilityTests.Safety().GetAwaiter().GetResult()} declaration visibility/alias/rollback assertions; depth 20000");
+                return 0;
+            }
             if (args is ["--checker-program-safety"])
             {
                 CheckerProgramTests.Safety().GetAwaiter().GetResult();
