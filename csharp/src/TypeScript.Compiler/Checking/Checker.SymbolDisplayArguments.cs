@@ -86,9 +86,7 @@ internal sealed partial class Checker
                 return null;
             var meaning = reference.TypeName is QualifiedNameNode ? SymbolFlags.Namespace : SymbolFlags.Type;
             var original = await program.EntityNames.ResolveAsync(identifier, meaning, true, true, cancellation: cancellation);
-            if (original is null)
-                return null;
-            if ((original.Flags & SymbolFlags.TypeParameter) != 0)
+            if (original is not null && (original.Flags & SymbolFlags.TypeParameter) != 0)
             {
                 var parameter = program.Scopes.Parameter(original);
                 if (state.Mapper is not null && await state.Mapper.MapAsync(parameter, cancellation) != parameter)
@@ -100,8 +98,15 @@ internal sealed partial class Checker
             if (state.Symbols.Enclosing is null)
                 continue;
             var current = await program.EntityNames.ResolveAsync(identifier, meaning, true, true, state.Symbols.Enclosing, cancellation);
-            if (current is null || !await SameSymbolReferenceAsync(current, original, cancellation)
-                || (await SymbolAccessibilityAsync(current, state.Symbols.Enclosing, meaning, false, true, cancellation)).Accessibility
+            if (current == UnknownSymbol
+                || original is not null && (current is null || !await SameSymbolReferenceAsync(current, original, cancellation))
+                || current is not null && (await SymbolAccessibilityAsync(
+                    current,
+                    state.Symbols.Enclosing,
+                    meaning,
+                    false,
+                    true,
+                    cancellation)).Accessibility
                     != SymbolAccessibility.Accessible)
                 return null;
         }

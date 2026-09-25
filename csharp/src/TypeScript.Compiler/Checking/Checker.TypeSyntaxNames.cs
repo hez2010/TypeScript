@@ -229,6 +229,7 @@ internal sealed partial class Checker
             var inferred = program.Symbols.Binding(node)?.Get(node)?.Locals.Values
                 .Where(s => (s.Flags & SymbolFlags.TypeParameter) != 0).Select(program.Scopes.Parameter).ToArray() ?? [];
             using (state.ParameterNames?.EnterScope())
+            using (state.QualifiedNames.EnterScope())
             using (EnterGeneratedParameterScope(node, inferred, state, cancellation))
             {
                 copies[conditional.ExtendsType!] = await Visit(conditional.ExtendsType!);
@@ -240,6 +241,7 @@ internal sealed partial class Checker
         {
             bool introducesScope = Signatures.FunctionLike(node) || node is MappedTypeNode;
             using var names = introducesScope ? state.ParameterNames?.EnterScope() : null;
+            using var qualifiedNames = introducesScope ? state.QualifiedNames.EnterScope() : null;
             var signature = Signatures.FunctionLike(node) ? await Signatures.FromDeclarationAsync(node, cancellation) : null;
             using var values = signature is null ? null : EnterValueParameterScope(node, signature.Parameters, null, state, cancellation);
             IReadOnlyList<TypeParameter> declaredParameters = node is MappedTypeNode mapped

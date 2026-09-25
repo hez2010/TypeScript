@@ -11,6 +11,21 @@ internal sealed partial class Checker
     private readonly Dictionary<SyntaxNode, IReadOnlyDictionary<string, Symbol>> typeSyntaxScopes = [];
     internal int TypeSyntaxScopeCount => typeSyntaxScopes.Count;
 
+    internal ValueTask<string> SerializeSignatureSyntaxAsync(Signature signature, K kind, SyntaxNode? enclosing,
+        NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation, CancellationToken cancellation = default)
+    {
+        if (signature.Context != context)
+            throw new ArgumentException("Signature belongs to another checker", nameof(signature));
+        return VisibilityQueryAsync(enclosing, () => ChainOperationAsync(() => ContainerOperationAsync(async () =>
+        {
+            var state = new TypeSyntaxContext(enclosing, (flags & NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope) != 0,
+                (flags & NodeBuilderFlags.UseOnlyExternalAliasing) != 0, flags);
+            var node = await SignatureSyntaxAsync(signature, kind, state, cancellation);
+            return PrintDiagnosticNode(node, enclosing is SourceFileNode, cancellation,
+                enclosing is null ? null : SemanticSyntax.Source(enclosing), state.NoAsciiEscape, state.SingleLine);
+        }, cancellation), cancellation), cancellation);
+    }
+
     private async ValueTask<SyntaxNode> ObjectTypeSyntaxAsync(StructuredType type, TypeSyntaxContext state, CancellationToken cancellation)
     {
         if ((type.Properties?.Count ?? 0) == 0 && type.IndexInfos.Count == 0)
@@ -25,7 +40,8 @@ internal sealed partial class Checker
         {
             var types = abstractSignatures.Select(s => (Type)SignatureInstantiation.FromSignature(s)).ToList();
             if (type.CallSignatures.Count + type.ConstructSignatures.Count - abstractSignatures.Length
-                + type.IndexInfos.Count + (type.Properties?.Count ?? 0) != 0)
+                + type.IndexInfos.Count + ((state.Flags & NodeBuilderFlags.WriteClassExpressionAsTypeLiteral) != 0
+                    ? type.Properties?.Count(p => (p.Flags & SymbolFlags.Prototype) == 0) ?? 0 : type.Properties?.Count ?? 0) != 0)
             {
                 if (type.WithoutAbstractConstructSignatures is not { } withoutAbstract)
                 {
@@ -57,34 +73,43 @@ internal sealed partial class Checker
                 if (parent is TypeAliasDeclarationNode && program.Symbols.Declaration(parent) is { } alias)
                     return await SymbolTypeNodeAsync(alias, SymbolFlags.Type, null, state.Symbols, false, cancellation);
             }
-            bool named = (symbol.Flags & SymbolFlags.Method) != 0 && IdentifierName(symbol.Name)
-                && symbol.Declarations.Any(d => SemanticSyntax.HasModifier(d, K.StaticKeyword));
-            if ((symbol.Flags & SymbolFlags.Function) != 0)
-            {
-                named |= symbol.Parent is not null;
-                if (!named)
-                    foreach (var declaration in symbol.Declarations)
-                    {
-                        if (declaration.Parent is SourceFileNode or ModuleBlockNode)
-                        {
-                            named = true;
-                            break;
-                        }
-                        if (declaration is FunctionExpressionNode or ArrowFunctionNode
-                            && declaration.Parent is VariableDeclarationNode variable
-                            && variable.Parent?.Parent?.Parent is SourceFileNode or ModuleBlockNode)
-                        {
-                            named = true;
-                            if (symbol.ValueDeclaration?.Parent is { } owner && owner != state.Symbols.Enclosing)
-                                symbol = program.Symbols.Declaration(owner) ?? symbol;
-                            break;
-                        }
-                    }
-            }
-            if (named)
-                return await SymbolTypeNodeAsync(symbol, SymbolFlags.Value, null, state.Symbols, false, cancellation);
+            if (await NamedFunctionSyntaxAsync(symbol, state, cancellation) is { } named)
+                return named;
         }
         return ElidedTypeSyntax(state);
+    }
+
+    private async ValueTask<SyntaxNode?> NamedFunctionSyntaxAsync(Symbol symbol, TypeSyntaxContext state, CancellationToken cancellation)
+    {
+        bool named = (symbol.Flags & SymbolFlags.Method) != 0 && IdentifierName(symbol.Name)
+            && symbol.Declarations.Any(d => SemanticSyntax.HasModifier(d, K.StaticKeyword));
+        if ((symbol.Flags & SymbolFlags.Function) != 0)
+        {
+            named |= symbol.Parent is not null;
+            if (!named)
+                foreach (var declaration in symbol.Declarations)
+                {
+                    if (declaration.Parent is SourceFileNode or ModuleBlockNode)
+                    {
+                        named = true;
+                        break;
+                    }
+                    if (declaration is FunctionExpressionNode or ArrowFunctionNode
+                        && declaration.Parent is VariableDeclarationNode variable
+                        && variable.Parent?.Parent?.Parent is SourceFileNode or ModuleBlockNode)
+                    {
+                        named = true;
+                        if (symbol.ValueDeclaration?.Parent is { } owner && owner != state.Symbols.Enclosing)
+                            symbol = program.Symbols.Declaration(owner) ?? symbol;
+                        break;
+                    }
+                }
+        }
+        if (named && ((state.Flags & NodeBuilderFlags.UseStructuralFallback) == 0
+            || (await SymbolAccessibilityAsync(symbol, state.Symbols.Enclosing, SymbolFlags.Value, false, true, cancellation)).Accessibility
+                == SymbolAccessibility.Accessible))
+            return await SymbolTypeNodeAsync(symbol, SymbolFlags.Value, null, state.Symbols, false, cancellation);
+        return null;
     }
 
     private async ValueTask<SyntaxNode> SignatureSyntaxAsync(Signature signature, K kind, TypeSyntaxContext state,
@@ -94,8 +119,10 @@ internal sealed partial class Checker
         var allocated = new List<Symbol>();
         var previous = state.Symbols.Enclosing;
         var previousMapper = state.Mapper;
+        var originalFlags = state.Flags;
         GeneratedParameterScope? valueScope = null;
         using var names = state.ParameterNames?.EnterScope();
+        using var qualifiedNames = state.QualifiedNames.EnterScope();
         GeneratedParameterScope? generatedScope = null;
         try
         {
@@ -105,24 +132,35 @@ internal sealed partial class Checker
             valueScope = EnterValueParameterScope(signature.Declaration, expanded, signature.Parameters, state, cancellation);
             generatedScope = EnterGeneratedParameterScope(signature.Declaration, signature.TypeParameters, state, cancellation);
             var typeParameters = new List<SyntaxNode>();
-            foreach (var parameter in signature.TypeParameters)
+            if ((state.Flags & NodeBuilderFlags.WriteTypeArgumentsOfSignature) != 0
+                && signature.Target is { TypeParameters.Count: > 0 } target
+                && signature.Mapper is { } mapper)
             {
-                var constraint = await Instantiation.Constraints.ConstraintAsync(parameter, cancellation);
-                typeParameters.Add(await TypeParameterSyntaxAsync(parameter,
-                    constraint is null ? null : await ConstraintSyntaxAsync(parameter, constraint, state, cancellation),
-                    state,
-                    cancellation));
+                foreach (var parameter in target.TypeParameters)
+                    typeParameters.Add(await TypeSyntaxAsync((await Instantiation.Engine.InstantiateAsync(parameter, mapper,
+                        cancellation: cancellation))!, state, cancellation));
             }
+            else
+                foreach (var parameter in signature.TypeParameters)
+                {
+                    var constraint = await Instantiation.Constraints.ConstraintAsync(parameter, cancellation);
+                    typeParameters.Add(await TypeParameterSyntaxAsync(parameter,
+                        constraint is null ? null : await ConstraintSyntaxAsync(parameter, constraint, state, cancellation),
+                        state,
+                        cancellation));
+                }
+            state.Flags &= ~NodeBuilderFlags.SuppressAnyReturnType;
             var parameters = new List<SyntaxNode>();
             if ((state.Flags & NodeBuilderFlags.OmitThisParameter) == 0 && signature.ThisParameter is { } thisParameter)
                 parameters.Add(await ParameterSyntaxAsync(thisParameter, state, cancellation));
             var selected = expanded.Take(Math.Max(0, expanded.Count - 1)).Any(p => (p.CheckFlags & Binding.CheckFlags.RestParameter) != 0)
                 ? signature.Parameters : expanded;
             foreach (var parameter in selected)
-                parameters.Add(await ParameterSyntaxAsync(parameter, state, cancellation));
+                parameters.Add(await ParameterSyntaxAsync(parameter, state, cancellation, preserveModifiers: kind == K.Constructor));
             var returnType = await Signatures.ReturnAsync(signature, cancellation);
-            var predicate = await Signatures.PredicateAsync(signature, cancellation);
-            SyntaxNode result;
+            bool suppressReturn = (originalFlags & NodeBuilderFlags.SuppressAnyReturnType) != 0 && (returnType.Flags & TypeFlags.Any) != 0;
+            var predicate = suppressReturn ? null : await Signatures.PredicateAsync(signature, cancellation);
+            SyntaxNode? result = null;
             if (predicate is not null)
             {
                 SyntaxNode parameterName = predicate.Kind is TypePredicateKind.This or TypePredicateKind.AssertsThis
@@ -134,21 +172,45 @@ internal sealed partial class Checker
                         : null,
                     parameterName, predicate.Type is null ? null : await TypeSyntaxAsync(predicate.Type, state, cancellation));
             }
-            else
+            else if (!suppressReturn)
                 result = await DeclarationTypeSyntaxAsync(returnType, signature.Declaration, false, state, cancellation);
             NodeList? typeParameterList = typeParameters.Count == 0 ? null : new(typeParameters.ToArray());
             var parameterList = new NodeList(parameters.ToArray());
+            name ??= f.NewIdentifier("");
             return kind switch
             {
                 K.CallSignature => f.NewCallSignatureDeclaration(typeParameterList, parameterList, result),
                 K.ConstructSignature => f.NewConstructSignatureDeclaration(typeParameterList, parameterList, result),
                 K.MethodSignature => f.NewMethodSignatureDeclaration(null, name, question, typeParameterList, parameterList, result),
-                K.FunctionType => f.NewFunctionTypeNode(typeParameterList, parameterList, result),
+                K.FunctionType => f.NewFunctionTypeNode(typeParameterList, parameterList,
+                    result ?? f.NewTypeReferenceNode(f.NewIdentifier(""), null)),
                 K.ConstructorType => f.NewConstructorTypeNode(
                     (signature.Flags & SignatureFlags.Abstract) != 0 ? new([f.NewToken(K.AbstractKeyword)]) : null,
-                    typeParameterList, parameterList, result),
+                    typeParameterList, parameterList, result ?? f.NewTypeReferenceNode(f.NewIdentifier(""), null)),
                 K.GetAccessor => f.NewGetAccessorDeclaration(null, name, null, parameterList, result, null, null),
                 K.SetAccessor => f.NewSetAccessorDeclaration(null, name, null, parameterList, null, null, null),
+                K.Constructor => f.NewConstructorDeclaration(null, null, parameterList, null, null, null),
+                K.MethodDeclaration => f.NewMethodDeclaration(null, null, name, null, typeParameterList, parameterList, result, null, null),
+                K.IndexSignature => f.NewIndexSignatureDeclaration(null, parameterList, result),
+                K.FunctionDeclaration => f.NewFunctionDeclaration(
+                    null,
+                    null,
+                    (IdentifierNode)name,
+                    typeParameterList,
+                    parameterList,
+                    result,
+                    null,
+                    null),
+                K.FunctionExpression => f.NewFunctionExpression(null, null, (IdentifierNode)name, typeParameterList, parameterList, result,
+                    null, f.NewBlock(new([]), false)),
+                K.ArrowFunction => f.NewArrowFunction(
+                    null,
+                    typeParameterList,
+                    parameterList,
+                    result,
+                    null,
+                    null,
+                    f.NewBlock(new([]), false)),
                 _ => throw new InvalidOperationException("Unsupported signature syntax kind")
             };
         }
@@ -157,6 +219,7 @@ internal sealed partial class Checker
             generatedScope?.Dispose();
             valueScope?.Dispose();
             state.Mapper = previousMapper;
+            state.Flags = originalFlags;
             state.Symbols.Enclosing = previous;
             foreach (var symbol in allocated)
                 links.Values.Remove(symbol);
@@ -204,17 +267,27 @@ internal sealed partial class Checker
         return result;
     }
 
-    private async ValueTask<SyntaxNode> ParameterSyntaxAsync(Symbol symbol, TypeSyntaxContext state, CancellationToken cancellation)
+    private async ValueTask<SyntaxNode> ParameterSyntaxAsync(Symbol symbol, TypeSyntaxContext state, CancellationToken cancellation,
+        bool preserveModifiers = false)
     {
         var f = state.Factory;
         var declaration = symbol.Declarations.OfType<ParameterDeclarationNode>().FirstOrDefault();
         var value = await Values.GetAsync(symbol, cancellation);
         bool optional = (symbol.CheckFlags & Binding.CheckFlags.OptionalParameter) != 0
             || declaration is not null && await OptionalSyntaxParameterAsync(declaration, cancellation);
-        bool addUndefined = context.StrictNullChecks && declaration is not null
-            && (declaration.Initializer is not null && !optional
-                || optional && declaration.Initializer is null && declaration.Modifiers?.Any(m => m.Kind is
-                    K.PublicKeyword or K.PrivateKeyword or K.ProtectedKeyword or K.ReadonlyKeyword) == true);
+        bool parameterProperty = declaration?.Modifiers?.Any(m => m.Kind is
+            K.PublicKeyword or K.PrivateKeyword or K.ProtectedKeyword or K.ReadonlyKeyword) == true;
+        bool addUndefined = context.StrictNullChecks && declaration is not null && (declaration.Flags & NodeFlags.Synthesized) == 0
+            && (declaration.Initializer is not null
+                && !optional
+                && (!parameterProperty || SemanticSyntax.FunctionDeclarationLike(state.Symbols.Enclosing))
+                || optional && declaration.Initializer is null && parameterProperty);
+        if (addUndefined && declaration?.Type is { } annotation)
+        {
+            var annotated = await Nodes.FromNodeAsync(annotation, cancellation);
+            addUndefined = annotated != context.ErrorType && (annotated is UnionType union
+                ? union.Types.All(t => (t.Flags & TypeFlags.Undefined) == 0) : (annotated.Flags & TypeFlags.Undefined) == 0);
+        }
         if (addUndefined)
             value = await Algebra.UnionAsync([value, context.UndefinedType], cancellation: cancellation);
         var type = await DeclarationTypeSyntaxAsync(
@@ -229,7 +302,9 @@ internal sealed partial class Checker
                 state) : f.NewIdentifier(symbol.Name);
         state.NoAsciiEscape.Add(name);
         state.Length.Add(symbol.Name, 3);
-        return f.NewParameterDeclaration(null,
+        var modifiers = preserveModifiers && (state.Flags & NodeBuilderFlags.OmitParameterModifiers) == 0
+            ? declaration?.Modifiers?.Where(m => m.Kind is not K.Decorator).Select(m => f.NewToken(m.Kind)).ToArray() : null;
+        return f.NewParameterDeclaration(modifiers is { Length: > 0 } ? new(modifiers) : null,
             declaration?.DotDotDotToken is not null || (symbol.CheckFlags & Binding.CheckFlags.RestParameter) != 0
                 ? f.NewToken(K.DotDotDotToken)
                 : null,

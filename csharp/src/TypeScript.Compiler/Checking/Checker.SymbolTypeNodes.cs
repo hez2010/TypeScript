@@ -39,6 +39,7 @@ internal sealed partial class Checker
         {
             SyntaxNode? qualifier = chain.Count > 1
                 ? await TypeAccessFromChainAsync(chain, chain.Count - 1, 1, arguments, state, forbidIndexed, factory, cancellation) : null;
+            var importArguments = arguments ?? await QualifiedTypeArgumentsAsync(chain, 0, state, cancellation);
             ReferenceResolutionMode mode = 0;
             var contextFile = state.Enclosing is null ? null : SemanticSyntax.Source(state.Enclosing);
             var targetFile = chain[0].Declarations.OfType<SourceFileNode>().FirstOrDefault();
@@ -52,7 +53,7 @@ internal sealed partial class Checker
             var argument = factory.NewLiteralTypeNode(factory.NewStringLiteral(specifier, state.StringLiteralFlags));
             state.Length?.Add(specifier, 10);
             if (qualifier is null or IdentifierNode or QualifiedNameNode)
-                return factory.NewImportTypeNode(typeOf, argument, attributes, qualifier, arguments);
+                return factory.NewImportTypeNode(typeOf, argument, attributes, qualifier, importArguments);
             if (qualifier is not IndexedAccessTypeNode indexed)
                 throw new InvalidOperationException("Unexpected module type qualification");
             while (indexed.ObjectType is IndexedAccessTypeNode parent)
@@ -60,11 +61,15 @@ internal sealed partial class Checker
             if (indexed.ObjectType is not TypeReferenceNode reference)
                 throw new InvalidOperationException("Indexed module qualification has no type reference");
             return factory.NewIndexedAccessTypeNode(
-                factory.NewImportTypeNode(typeOf, argument, attributes, reference.TypeName, arguments),
+                factory.NewImportTypeNode(typeOf, argument, attributes, reference.TypeName, importArguments),
                 indexed.IndexType);
         }
         var name = await TypeAccessFromChainAsync(chain, chain.Count - 1, 0, arguments, state, forbidIndexed, factory, cancellation);
         if (name is IndexedAccessTypeNode)
+            return name;
+        if (name is ExpressionWithTypeArgumentsNode expression && typeOf)
+            return factory.NewTypeQueryNode(CloneTypeName(expression.Expression!, factory), expression.TypeArguments);
+        if (name is not (IdentifierNode or QualifiedNameNode))
             return name;
         return typeOf ? factory.NewTypeQueryNode(name, null) : factory.NewTypeReferenceNode(name, arguments);
     }
@@ -76,6 +81,9 @@ internal sealed partial class Checker
             ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
         cancellation.ThrowIfCancellationRequested();
         var symbol = chain[index];
+        var typeParameterNodes = index == chain.Count - 1
+            ? arguments
+            : await QualifiedTypeArgumentsAsync(chain, index, state, cancellation);
         var parent = index > 0 ? chain[index - 1] : null;
         string name = index == 0 ? DisplayNameAsWritten(symbol, state, true, cancellation) : "";
         if (index == 0 && !state.ExpressionNames)
@@ -128,15 +136,41 @@ internal sealed partial class Checker
         {
             var left = await TypeAccessFromChainAsync(chain, index - 1, stopper, arguments, state, forbidIndexed, factory, cancellation);
             return factory.NewIndexedAccessTypeNode(
-                left is IndexedAccessTypeNode ? left : factory.NewTypeReferenceNode(left, index == chain.Count - 1 ? arguments : null),
+                left is IndexedAccessTypeNode ? left : factory.NewTypeReferenceNode(left, typeParameterNodes),
                 factory.NewLiteralTypeNode(factory.NewStringLiteral(name, state.StringLiteralFlags)));
         }
         var identifier = factory.NewIdentifier(name);
-        return index > stopper
-            ? factory.NewQualifiedName(
-                await TypeAccessFromChainAsync(chain, index - 1, stopper, arguments, state, forbidIndexed, factory, cancellation),
-                identifier)
-            : identifier;
+        if (index <= stopper)
+            return identifier;
+        var lhs = await TypeAccessFromChainAsync(chain, index - 1, stopper, arguments, state, forbidIndexed, factory, cancellation);
+        var typeArguments = typeParameterNodes;
+        if (!state.InstantiationExpressions || lhs is IdentifierNode or QualifiedNameNode && typeArguments is not { Count: > 0 })
+            return factory.NewQualifiedName(lhs, identifier);
+        SyntaxNode access = factory.NewPropertyAccessExpression(TypeNameExpression(lhs, factory), null, identifier, NodeFlags.None);
+        return typeArguments is { Count: > 0 } ? factory.NewExpressionWithTypeArguments(access, typeArguments) : access;
+    }
+
+    private static SyntaxNode TypeNameExpression(SyntaxNode node, NodeFactory factory)
+    {
+        if (node is not QualifiedNameNode)
+            return node;
+        var parts = new Stack<SyntaxNode>();
+        while (node is QualifiedNameNode qualified)
+        {
+            parts.Push(qualified.Right!);
+            node = qualified.Left!;
+        }
+        foreach (var part in parts)
+            node = factory.NewPropertyAccessExpression(node, null, part, NodeFlags.None);
+        return node;
+    }
+
+    private static SyntaxNode CloneTypeName(SyntaxNode node, NodeFactory factory)
+    {
+        var clone = node.DeepClone<SyntaxNode>(factory);
+        foreach (var child in clone.DescendantsAndSelf())
+            child.Parent = null;
+        return clone;
     }
 
     private async ValueTask<ImportAttributesNode?> TypeImportAttributesAsync(Symbol symbol, string specifier,

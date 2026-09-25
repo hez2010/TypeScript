@@ -1,0 +1,113 @@
+{
+    "timestamp": "2026-09-25T11:10:38.913Z",
+    "configuration": "Release",
+    "managed": true,
+    "scope": "Callable/class node-builder options, qualified arguments and direct signature-declaration construction; general recovery and emit resolver remain incomplete",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-signature-declarations-build.log",
+        "sha256": "a7e299ab30fa192243d487837b460f61d0594889ac5413ad9bdb649791bd3d03"
+    },
+    "candidateSha256": "ddd2e7726ed42790a1aaafb92b8071d4ddb20b571752db0213153c6cb588fa74",
+    "compilerSha256": "329b11b5a2cab4eddc5042862ea43119ea8d37ea0b68d3a198356ecc6272421c",
+    "comparisons": [
+        {
+            "mode": "function-options",
+            "configurations": 24,
+            "queries": 12544,
+            "comparedQueries": 12544,
+            "exact": 24,
+            "failed": 0,
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "referenceFailures": 0,
+            "candidateFailures": 0,
+            "oracleHash": "a3f28e9bc2e25a51c4d0c0c0805583beae13567d29a8158830afdd679ed1dbaa",
+            "candidateHash": "165b7999efac0b6ce07b8dad6d6aa510fee418a5c3cb0f3d0ce57380fd738b2e",
+            "inputHash": "ca5bd2098666cc60e999bb39c5ae2f025cf267cc5d03843f04ef509c83ff9909",
+            "resultHash": "39d04a890bb2be58e36236f698f7944e9d7aeb6f177f1310066b8af638a8bbca",
+            "managed": true
+        },
+        {
+            "mode": "class-options",
+            "configurations": 28,
+            "queries": 7776,
+            "comparedQueries": 7776,
+            "exact": 28,
+            "failed": 0,
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "referenceFailures": 0,
+            "candidateFailures": 0,
+            "oracleHash": "a3f28e9bc2e25a51c4d0c0c0805583beae13567d29a8158830afdd679ed1dbaa",
+            "candidateHash": "165b7999efac0b6ce07b8dad6d6aa510fee418a5c3cb0f3d0ce57380fd738b2e",
+            "inputHash": "d11fc4c41a2b2b61a864ee2f245c0504f01ee7c59e62d5e4cbe5f5f1f5a2a415",
+            "resultHash": "93bf1622611c4b8769b1f5eda43992bccc6472cfd4c881df5d166c9b5497ac7c",
+            "managed": true
+        },
+        {
+            "mode": "signature-declarations",
+            "configurations": 20,
+            "queries": 13520,
+            "comparedQueries": 13520,
+            "exact": 20,
+            "failed": 0,
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "referenceFailures": 0,
+            "candidateFailures": 0,
+            "oracleHash": "a3f28e9bc2e25a51c4d0c0c0805583beae13567d29a8158830afdd679ed1dbaa",
+            "candidateHash": "165b7999efac0b6ce07b8dad6d6aa510fee418a5c3cb0f3d0ce57380fd738b2e",
+            "inputHash": "a855bfe713fb0c1509318b3a166f46cec79bb86865422d1f87eb152b00aeacc6",
+            "resultHash": "4560fb95bb5394e78394b9927fb064b3f19da1f067d51bcf06f0828db0822378",
+            "managed": true
+        }
+    ],
+    "safety": {
+        "assertions": 10,
+        "log": "logs/csharp-phase4-signature-declarations-safety.log",
+        "scope": "Return suppression and flag restoration, constructor modifiers, missing arrow token, named function references, cancellation/retry, foreign signature rejection and source ownership"
+    },
+    "reference": {
+        "revision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "frozenSourcesMatch": true,
+        "nodeBuilderBlob": "5cd58f6ec95f0fe53386fe46d2b3ecf0d2d46d83",
+        "nodeCopyBlob": "822a68634fdb00ae6f49d1e239cf4c608048f775",
+        "emitResolverBlob": "9bc590fd179bfb8f44b75350ac296adf55709945",
+        "probeFormattingEquivalent": true
+    },
+    "reuse": {
+        "callableRecord": "phase4-callable-options-reuse.json",
+        "declarationRecord": "phase4-signature-declarations-reuse.json",
+        "retainedCallableCandidates": 52,
+        "retainedCallableReferences": 52,
+        "retainedDeclarationCandidates": 16,
+        "replayedDeclarationCandidates": 4,
+        "retainedDeclarationReferences": 20,
+        "finalComparisonsRetained": true,
+        "reason": "Only safety tests, dispatch, formatting and documentation changed after final comparisons. Earlier type-syntax modes do not set newly enabled options; unresolved annotation reuse is exercised by the new declaration cases. The arrow-printer change affects factory arrows with a missing token; retained source-printer inputs have parsed arrow tokens.",
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "semanticCorpus": "Retained; existing semantic diagnostic paths do not call these formatting helpers"
+    },
+    "formatting": {
+        "tokensCommentsAndSyntaxIdentical": true,
+        "csharpFiles": 11,
+        "libraryConfigurations": 2,
+        "inputsUnchanged": true,
+        "dotnetWhitespaceExitCode": 0,
+        "log": "logs/csharp-phase4-callable-options-format.log",
+        "proofSha256": "46a6c25da994af4ee21d1d87ff61d13540c1234f6e70c65055b8d6a073013090"
+    },
+    "syntaxCheck": {
+        "exitCode": 0,
+        "command": "node --check csharp/tools/checker-locations.mjs"
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "phase4Complete": false
+}

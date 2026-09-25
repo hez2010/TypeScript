@@ -293,7 +293,7 @@ func (c *Checker) csharpContextQueries(nodes []*ast.Node, nodeIDs map[*ast.Node]
 	return rows, graph
 }
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool, symbolLocations bool, documentationSymbols bool, scopeServices bool, contextQueries bool, declarationVisibility bool, symbolChains bool, accessibility bool, symbolDisplay bool, symbolFormats bool, symbolFormatValues []SymbolFormatFlags, symbolTypeNodes bool, typeSyntax bool, typeSyntaxFlags ...nodebuilder.Flags) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool, symbolLocations bool, documentationSymbols bool, scopeServices bool, contextQueries bool, declarationVisibility bool, symbolChains bool, accessibility bool, symbolDisplay bool, symbolFormats bool, symbolFormatValues []SymbolFormatFlags, symbolTypeNodes bool, typeSyntax bool, signatureSyntax bool, typeSyntaxFlags ...nodebuilder.Flags) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -503,6 +503,9 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	var typeSyntaxRows []any
 	if typeSyntax {
 		typeSyntaxRows = c.csharpTypeSyntax(nodes, nodeIDs, typeSyntaxFlags)
+	}
+	if signatureSyntax {
+		typeSyntaxRows = c.csharpSignatureSyntax(nodes, nodeIDs)
 	}
 	var symbolTypeNodeRows []any
 	if symbolTypeNodes {
@@ -1271,7 +1274,7 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	if symbolDisplay {
 		result["symbolDisplayQueries"] = symbolDisplayRows
 	}
-	if typeSyntax {
+	if typeSyntax || signatureSyntax {
 		result["typeSyntaxQueries"] = typeSyntaxRows
 	}
 	if symbolTypeNodes {
@@ -1506,6 +1509,47 @@ func (c *Checker) csharpSymbolTypeNodes(nodes []*ast.Node, nodeIDs map[*ast.Node
 						release()
 						rows = append(rows, []any{nodeIDs[location], sid(target), uint32(meaning), mode, arguments, text})
 					}
+				}
+			}
+		}
+	}
+	return rows
+}
+
+func (c *Checker) csharpSignatureSyntax(nodes []*ast.Node, nodeIDs map[*ast.Node]int) []any {
+	locations := []*ast.Node{nil}
+	targets := []*ast.Node{}
+	for _, node := range nodes {
+		if !strings.HasPrefix(ast.GetSourceFileOfNode(node).FileName(), "/project/main.") {
+			continue
+		}
+		if node.Kind == ast.KindSourceFile || node.Kind == ast.KindClassDeclaration || node.Kind == ast.KindFunctionDeclaration {
+			locations = append(locations, node)
+		}
+		if ast.IsFunctionLike(node) && ((node.Name() != nil && strings.HasPrefix(node.Name().Text(), "serialize")) || (node.Parent != nil && node.Parent.Kind == ast.KindClassDeclaration && strings.HasPrefix(node.Parent.Name().Text(), "Serialize"))) {
+			targets = append(targets, node)
+		}
+	}
+	kinds := []ast.Kind{ast.KindCallSignature, ast.KindConstructSignature, ast.KindFunctionType, ast.KindConstructorType, ast.KindMethodSignature, ast.KindMethodDeclaration, ast.KindConstructor, ast.KindGetAccessor, ast.KindSetAccessor, ast.KindIndexSignature, ast.KindFunctionDeclaration, ast.KindFunctionExpression, ast.KindArrowFunction}
+	flags := []nodebuilder.Flags{nodebuilder.FlagsNoTruncation, nodebuilder.FlagsNoTruncation | nodebuilder.FlagsOmitParameterModifiers, nodebuilder.FlagsNoTruncation | nodebuilder.FlagsSuppressAnyReturnType, nodebuilder.FlagsNoTruncation | nodebuilder.FlagsOmitThisParameter, nodebuilder.FlagsNoTruncation | nodebuilder.FlagsGenerateNamesForShadowedTypeParams}
+	rows := []any{}
+	for _, target := range targets {
+		signature := c.getSignatureFromDeclaration(target)
+		for _, location := range locations {
+			for _, kind := range kinds {
+				for _, flag := range flags {
+					b, release := c.getNodeBuilder()
+					node := b.SignatureToSignatureDeclaration(signature, kind, location, flag|nodebuilder.FlagsIgnoreErrors, nodebuilder.InternalFlagsNone, nil)
+					value := ""
+					if node != nil {
+						writer, put := printer.GetSingleLineStringWriter()
+						p := printer.NewPrinter(printer.PrinterOptions{RemoveComments: true, OmitTrailingSemicolon: true, NeverAsciiEscape: location != nil && location.Kind == ast.KindSourceFile}, printer.PrintHandlers{}, b.EmitContext())
+						p.Write(node, ast.GetSourceFileOfNode(location), writer, nil)
+						value = writer.String()
+						put()
+					}
+					release()
+					rows = append(rows, []any{nodeIDs[target], nodeIDs[location], int(kind), uint32(flag), value})
 				}
 			}
 		}

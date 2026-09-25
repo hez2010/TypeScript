@@ -12,6 +12,86 @@ namespace TypeScript.Compatibility;
 
 internal static class CheckerTypeSyntaxTests
 {
+    internal static async Task<int> DeclarationSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Signature declaration assertion {checks + 1}");
+            checks++;
+        }
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        {
+            ["/project/main.ts"] = Wtf8.Encode(
+                "function f(callback:()=>any):any{return callback()}class C{constructor(public value:number){}}type F=typeof f;")
+        }), "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var source = program.GetFile("/project/main.ts")!.Syntax;
+        var function = source.Statements!.OfType<FunctionDeclarationNode>().Single();
+        var constructor = source.DescendantsAndSelf().OfType<ConstructorDeclarationNode>().Single();
+        var signature = await checker.Signatures.FromDeclarationAsync(function);
+        var ctor = await checker.Signatures.FromDeclarationAsync(constructor);
+        var snapshot = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
+        const NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation;
+        Check(
+            await checker.SerializeSignatureSyntaxAsync(
+                signature,
+                SyntaxKind.CallSignature,
+                source,
+                flags | NodeBuilderFlags.SuppressAnyReturnType)
+            == "(callback: () => any)");
+        Check(await checker.SerializeSignatureSyntaxAsync(signature, SyntaxKind.CallSignature, source, flags)
+            == "(callback: () => any): any");
+        Check(
+            await checker.SerializeSignatureSyntaxAsync(
+                ctor,
+                SyntaxKind.Constructor,
+                source,
+                flags) == "constructor(public value: number)");
+        Check(
+            await checker.SerializeSignatureSyntaxAsync(
+                ctor,
+                SyntaxKind.Constructor,
+                source,
+                flags | NodeBuilderFlags.OmitParameterModifiers)
+            == "constructor(value: number)");
+        Check(await checker.SerializeSignatureSyntaxAsync(signature, SyntaxKind.ArrowFunction, source, flags)
+            == "(callback: () => any): any  { }");
+        var type = await checker.Nodes.FromNodeAsync(source.Statements!.OfType<TypeAliasDeclarationNode>().Single().Type!);
+        Check(await checker.SerializeTypeSyntaxAsync(type, source, flags | NodeBuilderFlags.UseTypeOfFunction) == "typeof f");
+        using var stop = new CancellationTokenSource();
+        stop.Cancel();
+        try
+        {
+            await checker.SerializeSignatureSyntaxAsync(signature, SyntaxKind.FunctionType, source, flags, stop.Token);
+            throw new InvalidOperationException("Canceled signature construction completed");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        var other = await program.CreateCheckerAsync();
+        var foreign = await other.Signatures.FromDeclarationAsync(function);
+        try
+        {
+            await checker.SerializeSignatureSyntaxAsync(foreign, SyntaxKind.FunctionType, source, flags);
+            throw new InvalidOperationException("Foreign signature accepted");
+        }
+        catch (ArgumentException)
+        {
+            checks++;
+        }
+        Check(await checker.SerializeSignatureSyntaxAsync(signature, SyntaxKind.CallSignature, source, flags)
+            == "(callback: () => any): any");
+        Check(
+            checker.TypeSyntaxScopeCount == 0
+                && snapshot.All(p => p.Parent == p.Node.Parent && p.Pos == p.Node.Pos && p.End == p.Node.End && p.Flags == p.Node.Flags));
+        return checks;
+    }
+
     internal static async Task<int> NamesSafety()
     {
         int checks = 0;
@@ -153,8 +233,8 @@ internal static class CheckerTypeSyntaxTests
         Check(checker.TypeSyntaxScopeCount == 0);
         try
         {
-            await checker.SerializeTypeSyntaxAsync(a, source, flags | NodeBuilderFlags.UseInstantiationExpressions);
-            throw new InvalidOperationException("An unimplemented node-builder option was accepted");
+            await checker.SerializeTypeSyntaxAsync(a, source, flags | (NodeBuilderFlags)(1u << 31));
+            throw new InvalidOperationException("An unknown node-builder option was accepted");
         }
         catch (NotSupportedException)
         {
@@ -332,6 +412,49 @@ internal static class CheckerTypeSyntaxTests
         }
         Check(await checker.SerializeTypeSyntaxAsync(a) == "\"é\"");
         return checks;
+    }
+
+    internal static async Task WriteSignaturesAsync(
+        Utf8JsonWriter writer,
+        SyntaxNode[] nodes,
+        Checker checker,
+        Func<SyntaxNode?, int> nodeId)
+    {
+        var main = nodes.Where(
+            n => SemanticSyntax.Source(n)?.FileName.StartsWith("/project/main.", StringComparison.Ordinal) == true).ToArray();
+        SyntaxNode?[] locations = [null, .. main.Where(n => n is SourceFileNode or ClassDeclarationNode or FunctionDeclarationNode)];
+        var targets = main.Where(n => Signatures.FunctionLike(n) && (SemanticSyntax.Name(n) is IdentifierNode name
+            && name.Text.StartsWith("serialize", StringComparison.Ordinal) || n.Parent is ClassDeclarationNode { Name: { } parentName }
+            && parentName.Text.StartsWith("Serialize", StringComparison.Ordinal)));
+        SyntaxKind[] kinds = [SyntaxKind.CallSignature,SyntaxKind.ConstructSignature,SyntaxKind.FunctionType,SyntaxKind.ConstructorType,
+            SyntaxKind.MethodSignature,SyntaxKind.MethodDeclaration,SyntaxKind.Constructor,SyntaxKind.GetAccessor,SyntaxKind.SetAccessor,
+            SyntaxKind.IndexSignature,SyntaxKind.FunctionDeclaration,SyntaxKind.FunctionExpression,SyntaxKind.ArrowFunction];
+        NodeBuilderFlags[] flags = [NodeBuilderFlags.NoTruncation,NodeBuilderFlags.NoTruncation|NodeBuilderFlags.OmitParameterModifiers,
+            NodeBuilderFlags.NoTruncation|NodeBuilderFlags.SuppressAnyReturnType,NodeBuilderFlags.NoTruncation|NodeBuilderFlags.OmitThisParameter,
+            NodeBuilderFlags.NoTruncation|NodeBuilderFlags.GenerateNamesForShadowedTypeParams];
+        writer.WriteStartArray("typeSyntaxQueries");
+        foreach (var target in targets)
+        {
+            var signature = await checker.Signatures.FromDeclarationAsync(target);
+            foreach (var location in locations)
+                foreach (var kind in kinds)
+                    foreach (var flag in flags)
+                    {
+                        string value = await checker.SerializeSignatureSyntaxAsync(
+                            signature,
+                            kind,
+                            location,
+                            flag | NodeBuilderFlags.IgnoreErrors);
+                        writer.WriteStartArray();
+                        writer.WriteNumberValue(nodeId(target));
+                        writer.WriteNumberValue(nodeId(location));
+                        writer.WriteNumberValue((int)kind);
+                        writer.WriteNumberValue((uint)flag);
+                        writer.WriteStringValue(value);
+                        writer.WriteEndArray();
+                    }
+        }
+        writer.WriteEndArray();
     }
 
     internal static async Task WriteAsync(Utf8JsonWriter writer, SyntaxNode[] nodes, Checker checker, Func<SyntaxNode?, int> nodeId,

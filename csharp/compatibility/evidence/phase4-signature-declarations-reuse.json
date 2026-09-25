@@ -1,0 +1,18 @@
+{
+    "prior": {
+        "previousCandidateHash": "e27d3ec234bb79ee9bed62442d0c6ad29111fade93ec423168c3a3723ec0d1f4",
+        "candidateHash": "d0c7b031261d0cb62e93e73e03d84ba347457a8e05ee917aeda38586a60f9778",
+        "retainedCandidates": 12,
+        "replayedCandidates": 4,
+        "addedConfigurations": 4,
+        "retainedReferences": 16,
+        "reason": "Replay constructor parameter-property cases and add required initialized/explicit-undefined/error annotations. Other inputs have no parameter properties; the new annotation check repeats already-resolved primitive annotations without altering their output or exported state."
+    },
+    "previousCandidateHash": "d0c7b031261d0cb62e93e73e03d84ba347457a8e05ee917aeda38586a60f9778",
+    "candidateHash": "165b7999efac0b6ce07b8dad6d6aa510fee418a5c3cb0f3d0ce57380fd738b2e",
+    "retainedCandidates": 16,
+    "replayedCandidates": 4,
+    "addedConfigurations": 0,
+    "retainedReferences": 20,
+    "reason": "The final change preserves unresolved annotations when lookup is still unresolved at the destination. Only the four initialized-property/error-annotation inputs contain unresolved type names; the other 16 retain their passing results."
+}

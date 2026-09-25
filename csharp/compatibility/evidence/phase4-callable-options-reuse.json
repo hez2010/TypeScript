@@ -1,0 +1,17 @@
+{
+    "candidateHash": "165b7999efac0b6ce07b8dad6d6aa510fee418a5c3cb0f3d0ce57380fd738b2e",
+    "oracleHash": "a3f28e9bc2e25a51c4d0c0c0805583beae13567d29a8158830afdd679ed1dbaa",
+    "records": [
+        {
+            "mode": "class-options",
+            "retainedCandidates": 28,
+            "retainedReferences": 28
+        },
+        {
+            "mode": "function-options",
+            "retainedCandidates": 24,
+            "retainedReferences": 24
+        }
+    ],
+    "reason": "Retain completed function/class/qualified-reference comparisons. Later changes add a direct signature API, preserve a missing arrow token on nodes manufactured by that API, and refine parameter-property/error-annotation handling. These inputs have no affected parameter properties, unresolved reused annotations or class-instance clones. The probe change is gated on the new signatureSyntax request, which these inputs do not set."
+}

@@ -28,6 +28,8 @@ internal sealed partial class Checker
         internal TokenFlags StringLiteralFlags { get; init; }
         internal bool FullyQualified { get; set; }
         internal bool ForbidIndexedAccess { get; init; }
+        internal bool InstantiationExpressions { get; init; }
+        internal TypeSyntaxContext? Types { get; init; }
         internal HashSet<(Symbol, SymbolFlags)> Parents { get; } = [];
         internal Dictionary<(Symbol, ReferenceResolutionMode), string> Modules { get; } = [];
     }

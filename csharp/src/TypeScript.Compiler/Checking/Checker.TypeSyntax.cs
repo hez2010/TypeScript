@@ -26,15 +26,18 @@ internal sealed partial class Checker
                 Length = Length,
                 FullyQualified = (flags & NodeBuilderFlags.UseFullyQualifiedType) != 0,
                 ForbidIndexedAccess = (flags & NodeBuilderFlags.ForbidIndexedAccessSymbolReferences) != 0,
+                InstantiationExpressions = (flags & NodeBuilderFlags.UseInstantiationExpressions) != 0,
                 StringLiteralFlags = (flags & NodeBuilderFlags.UseSingleQuotesForStringLiteralType) != 0
                     ? TokenFlags.SingleQuote
-                    : TokenFlags.None
+                    : TokenFlags.None,
+                Types = this
             };
         }
 
-        internal NodeBuilderFlags Flags { get; }
+        internal NodeBuilderFlags Flags { get; set; }
         internal TypeSyntaxNames? ParameterNames { get; }
         internal TypeMapper? Mapper { get; set; }
+        internal QualifiedTypeParameterNames QualifiedNames { get; } = new();
         internal TypeSyntaxLength Length { get; }
         internal NodeFactory Factory { get; } = new();
         internal SymbolDisplayContext Symbols { get; }
@@ -58,7 +61,12 @@ internal sealed partial class Checker
             | NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope | NodeBuilderFlags.UseSingleQuotesForStringLiteralType
             | NodeBuilderFlags.NoTypeReduction | NodeBuilderFlags.OmitThisParameter | NodeBuilderFlags.AllowUniqueESSymbolType
             | NodeBuilderFlags.InTypeAlias | NodeBuilderFlags.UseFullyQualifiedType | NodeBuilderFlags.ForbidIndexedAccessSymbolReferences
-            | NodeBuilderFlags.GenerateNamesForShadowedTypeParams;
+            | NodeBuilderFlags.GenerateNamesForShadowedTypeParams | NodeBuilderFlags.UseTypeOfFunction
+            | NodeBuilderFlags.UseStructuralFallback | NodeBuilderFlags.SuppressAnyReturnType
+            | NodeBuilderFlags.WriteTypeArgumentsOfSignature | NodeBuilderFlags.WriteCallStyleSignature
+            | NodeBuilderFlags.OmitParameterModifiers | NodeBuilderFlags.WriteClassExpressionAsTypeLiteral
+            | NodeBuilderFlags.UseInstantiationExpressions | NodeBuilderFlags.MultilineObjectLiterals
+            | NodeBuilderFlags.WriteTypeParametersInQualifiedName;
         if ((flags & ~supported) != 0)
             throw new NotSupportedException("The requested node-builder options are not implemented");
         context.RequireOwned(type);
@@ -195,16 +203,27 @@ internal sealed partial class Checker
             && (type.ObjectFlags & ObjectFlags.InstantiationExpressionType) == 0)
         {
             bool named = (objectSymbol.Flags & (SymbolFlags.Enum | SymbolFlags.ValueModule)) != 0;
+            var meaning = SymbolFlags.Value;
             if ((objectSymbol.Flags & SymbolFlags.Class) != 0)
             {
                 var declared = (InterfaceType)await Declared.GetAsync(objectSymbol, cancellation);
+                if (type == declared || (type.ObjectFlags & ObjectFlags.IsClassInstanceClone) != 0)
+                    meaning = SymbolFlags.Type;
                 var baseConstructor = await ClassBases.ConstructorAsync(declared, cancellation);
                 named = (baseConstructor.Flags & TypeFlags.TypeVariable) == 0
                     && (baseConstructor is not IntersectionType intersection
                         || intersection.Types.All(t => (t.Flags & TypeFlags.TypeVariable) == 0));
+                if (named && (state.Flags & NodeBuilderFlags.WriteClassExpressionAsTypeLiteral) != 0
+                    && objectSymbol.ValueDeclaration is ClassDeclarationNode or ClassExpressionNode)
+                    named = objectSymbol.ValueDeclaration is ClassDeclarationNode
+                        && (await SymbolAccessibilityAsync(objectSymbol, state.Symbols.Enclosing, meaning, false, true,
+                            cancellation)).Accessibility == SymbolAccessibility.Accessible;
             }
             if (named)
-                return await SymbolTypeNodeAsync(objectSymbol, SymbolFlags.Value, null, state.Symbols, false, cancellation);
+                return await SymbolTypeNodeAsync(objectSymbol, meaning, null, state.Symbols, false, cancellation);
+            if ((state.Flags & NodeBuilderFlags.UseTypeOfFunction) != 0
+                && await NamedFunctionSyntaxAsync(objectSymbol, state, cancellation) is { } functionNode)
+                return functionNode;
         }
         if (!state.Active.Add(type))
             return await RecursiveTypeSyntaxAsync(type, state, cancellation);
@@ -212,7 +231,14 @@ internal sealed partial class Checker
         try
         {
             if (type is TypeReference reference && (type.ObjectFlags & ObjectFlags.Reference) != 0)
+            {
+                if ((state.Flags & NodeBuilderFlags.WriteClassExpressionAsTypeLiteral) != 0 && reference.Symbol is { } classSymbol
+                    && classSymbol.ValueDeclaration is ClassDeclarationNode or ClassExpressionNode
+                    && (await SymbolAccessibilityAsync(classSymbol, state.Symbols.Enclosing, SymbolFlags.Value, false, true,
+                        cancellation)).Accessibility != SymbolAccessibility.Accessible)
+                    return await ObjectTypeSyntaxAsync(await Members.ResolveAsync(reference, cancellation), state, cancellation);
                 return await ReferenceTypeSyntaxAsync(reference, state, cancellation);
+            }
             if (type is TypeParameter inferredParameter && state.InferParameters?.Contains(inferredParameter) == true)
             {
                 state.Length.Add(inferredParameter.Symbol?.Name ?? "", 6);
@@ -463,6 +489,7 @@ internal sealed partial class Checker
         SyntaxNode? nameNode;
         SyntaxNode templateNode;
         using (state.ParameterNames?.EnterScope())
+        using (state.QualifiedNames.EnterScope())
         using (EnterGeneratedParameterScope(declaration, [parameter], state, cancellation))
         {
             parameterNode = await TypeParameterSyntaxAsync(parameter, constraint, state, cancellation);
@@ -553,19 +580,28 @@ internal sealed partial class Checker
     private async ValueTask<TypeParameterDeclarationNode> TypeParameterSyntaxAsync(TypeParameter parameter, SyntaxNode? constraint,
         TypeSyntaxContext state, CancellationToken cancellation)
     {
-        var f = state.Factory;
-        var modifiers = new List<SyntaxNode>();
-        foreach (var kind in new[] { K.ConstKeyword, K.InKeyword, K.OutKeyword })
-            if (parameter.Symbol?.Declarations.Any(d => SemanticSyntax.HasModifier(d, kind)) == true)
-                modifiers.Add(f.NewToken(kind));
-        string name = TypeSyntaxParameterName(parameter, state, cancellation);
-        var defaultType = await Instantiation.Constraints.DefaultAsync(parameter, cancellation);
-        return f.NewTypeParameterDeclaration(
-            modifiers.Count == 0 ? null : new(modifiers.ToArray()),
-            f.NewIdentifier(name),
-            constraint,
-            null,
-            defaultType is null ? null : await TypeSyntaxAsync(defaultType, state, cancellation));
+        var flags = state.Flags;
+        state.Flags &= ~NodeBuilderFlags.WriteTypeParametersInQualifiedName;
+        try
+        {
+            var f = state.Factory;
+            var modifiers = new List<SyntaxNode>();
+            foreach (var kind in new[] { K.ConstKeyword, K.InKeyword, K.OutKeyword })
+                if (parameter.Symbol?.Declarations.Any(d => SemanticSyntax.HasModifier(d, kind)) == true)
+                    modifiers.Add(f.NewToken(kind));
+            string name = TypeSyntaxParameterName(parameter, state, cancellation);
+            var defaultType = await Instantiation.Constraints.DefaultAsync(parameter, cancellation);
+            return f.NewTypeParameterDeclaration(
+                modifiers.Count == 0 ? null : new(modifiers.ToArray()),
+                f.NewIdentifier(name),
+                constraint,
+                null,
+                defaultType is null ? null : await TypeSyntaxAsync(defaultType, state, cancellation));
+        }
+        finally
+        {
+            state.Flags = flags;
+        }
     }
 
     private async ValueTask<SyntaxNode> ObjectPropertySyntaxAsync(
@@ -615,6 +651,8 @@ internal sealed partial class Checker
                 propertyIndex = properties.Count - 1;
             }
             var property = properties[propertyIndex];
+            if ((state.Flags & NodeBuilderFlags.WriteClassExpressionAsTypeLiteral) != 0 && (property.Flags & SymbolFlags.Prototype) != 0)
+                continue;
             if ((property.CheckFlags & Binding.CheckFlags.ReverseMapped) != 0)
                 throw new NotSupportedException("Reverse-mapped property syntax requires recovery handling");
             var value = Values.NonMissing(await Values.GetAsync(property, cancellation), (property.Flags & SymbolFlags.Optional) != 0);
@@ -843,7 +881,7 @@ internal sealed partial class Checker
             {
                 var group = await TypeSyntaxListAsync(arguments.Skip(start).Take(i - start).ToArray(), state, cancellation);
                 var node = await SymbolTypeNodeAsync(parent!, SymbolFlags.Type, group, state.Symbols, true, cancellation);
-                outer = outer is null ? node : AppendTypeReference(outer, node, f);
+                outer = outer is null ? node : AppendTypeReference(outer, node, f, state.Symbols.InstantiationExpressions);
             }
         }
         var nodes = await TypeSyntaxListAsync(
@@ -851,7 +889,7 @@ internal sealed partial class Checker
             state,
             cancellation);
         var final = await SymbolTypeNodeAsync(reference.Symbol, SymbolFlags.Type, nodes, state.Symbols, true, cancellation);
-        return outer is null ? final : AppendTypeReference(outer, final, f);
+        return outer is null ? final : AppendTypeReference(outer, final, f, state.Symbols.InstantiationExpressions);
 
         Symbol? ParameterOwner(Type type)
         {
@@ -860,7 +898,11 @@ internal sealed partial class Checker
         }
     }
 
-    private static SyntaxNode AppendTypeReference(SyntaxNode root, SyntaxNode reference, NodeFactory factory)
+    private static SyntaxNode AppendTypeReference(
+        SyntaxNode root,
+        SyntaxNode reference,
+        NodeFactory factory,
+        bool instantiationExpressions = false)
     {
         if (reference is not TypeReferenceNode typeReference)
             throw new InvalidOperationException("Outer type argument composition requires a named reference");
@@ -872,6 +914,16 @@ internal sealed partial class Checker
             current = qualified.Left;
         }
         names.Push((IdentifierNode)current!);
+        if (root is not ImportTypeNode && (root is not TypeReferenceNode
+            || instantiationExpressions && root is TypeReferenceNode { TypeArguments.Count: > 0 }))
+        {
+            SyntaxNode expression = root is TypeReferenceNode rootReference
+                ? factory.NewExpressionWithTypeArguments(TypeNameExpression(rootReference.TypeName!, factory), rootReference.TypeArguments)
+                : TypeNameExpression(root, factory);
+            foreach (var part in names)
+                expression = factory.NewPropertyAccessExpression(expression, null, part, NodeFlags.None);
+            return expression;
+        }
         SyntaxNode? name = root is ImportTypeNode import ? import.Qualifier : ((TypeReferenceNode)root).TypeName;
         foreach (var part in names)
             name = name is null ? part : factory.NewQualifiedName(name, part);

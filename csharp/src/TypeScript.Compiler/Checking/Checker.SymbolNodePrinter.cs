@@ -251,7 +251,7 @@ internal sealed partial class Checker
                         TypeArguments(arrow.TypeParameters),
                         SimpleArrow(arrow) ? N(arrow.Parameters![0]) : Parameters(arrow.Parameters),
                         Annotation(arrow.Type),
-                        T(" => "),
+                        T(" "), N(arrow.EqualsGreaterThanToken), T(" "),
                         N(arrow.Body));
                     break;
                 case FunctionExpressionNode function:

@@ -24,14 +24,17 @@ const anonymousSyntax = process.argv.includes("--anonymous-syntax");
 const syntaxOptions = process.argv.includes("--syntax-options");
 const syntaxNames = process.argv.includes("--syntax-names");
 const generatedNames = process.argv.includes("--generated-names");
-const typeSyntax = process.argv.includes("--type-syntax") || conditionalSyntax || mappedSyntax || signatureSyntax || anonymousSyntax || syntaxOptions || syntaxNames || generatedNames;
+const functionOptions = process.argv.includes("--function-options");
+const classOptions = process.argv.includes("--class-options");
+const signatureDeclarations = process.argv.includes("--signature-declarations");
+const typeSyntax = process.argv.includes("--type-syntax") || conditionalSyntax || mappedSyntax || signatureSyntax || anonymousSyntax || syntaxOptions || syntaxNames || generatedNames || functionOptions || classOptions;
 const symbolTypeNodes = process.argv.includes("--symbol-type-nodes");
 const computedSymbols = process.argv.includes("--computed-symbols");
 const symbolTypeArguments = process.argv.includes("--symbol-type-arguments");
 const symbolFormats = process.argv.includes("--symbol-formats") || computedSymbols || symbolTypeArguments;
 const symbolDisplay = process.argv.includes("--symbol-display") || symbolFormats || symbolTypeNodes;
 const accessibility = process.argv.includes("--accessibility") || symbolDisplay;
-const output = path.join(root, `built/csharp/checker-${generatedNames ? "generated-names" : syntaxNames ? "syntax-names" : syntaxOptions ? "syntax-options" : symbolTypeArguments ? "symbol-type-arguments" : anonymousSyntax ? "anonymous-syntax" : signatureSyntax ? "signature-syntax" : mappedSyntax ? "mapped-syntax" : conditionalSyntax ? "conditional-syntax" : typeSyntax ? "type-syntax" : symbolTypeNodes ? "symbol-type-nodes" : computedSymbols ? "computed-symbols" : symbolFormats ? "symbol-formats" : symbolDisplay ? "symbol-display" : accessibility ? "accessibility" : symbolChains ? "symbol-chains" : declarationVisibility ? "declaration-visibility" : contextQueries ? "context-queries" : scopeServices ? "scope-services" : symbolLocations ? "symbol-locations" : "locations"}`);
+const output = path.join(root, `built/csharp/checker-${signatureDeclarations ? "signature-declarations" : classOptions ? "class-options" : functionOptions ? "function-options" : generatedNames ? "generated-names" : syntaxNames ? "syntax-names" : syntaxOptions ? "syntax-options" : symbolTypeArguments ? "symbol-type-arguments" : anonymousSyntax ? "anonymous-syntax" : signatureSyntax ? "signature-syntax" : mappedSyntax ? "mapped-syntax" : conditionalSyntax ? "conditional-syntax" : typeSyntax ? "type-syntax" : symbolTypeNodes ? "symbol-type-nodes" : computedSymbols ? "computed-symbols" : symbolFormats ? "symbol-formats" : symbolDisplay ? "symbol-display" : accessibility ? "accessibility" : symbolChains ? "symbol-chains" : declarationVisibility ? "declaration-visibility" : contextQueries ? "context-queries" : scopeServices ? "scope-services" : symbolLocations ? "symbol-locations" : "locations"}`);
 const option = name => process.argv[process.argv.indexOf(name) + 1];
 const dotnet = process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, "dotnet.exe") : "dotnet";
 const dll = path.join(root, "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll");
@@ -217,6 +220,36 @@ exports["exported-name"]=C; Object.defineProperty(exports,"defined-name",{value:
     });
 }
 const inputs = [];
+if (signatureDeclarations) {
+    Object.assign(fixtures, {
+        signatureDeclarationsFunctions: `function serializePlain(x:number,y?:string):any{return x}function serializeGeneric<T extends string>(x:T):T{return x}function location<T>(){}`,
+        signatureDeclarationsConstructors: `class SerializeClass<T>{constructor(public value:T,protected optional?:string,private readonly count=1){}get item():T{return this.value}set item(value:T){this.value=value}}class Scope<T>{}`,
+        signatureDeclarationsDefaults: `function serializeDefaults(x:number=1,y:string,z?:boolean):void{}function serializeBindings({x=1}:{x?:number}={},...rest:[string,boolean?]):void{}class Scope{}`,
+        signatureDeclarationsPredicates: `function serializeGuard(x:unknown):x is string{return typeof x==='string'}function serializeAssert(this:{x:unknown},x:unknown):asserts x{}class Scope{}`,
+        signatureDeclarationsInitializedProperties: `class SerializeRequired{constructor(public x:number=1,y:string,protected optional?:number|undefined){}}class SerializeError{constructor(public x?:Unresolved|undefined){}}function location(){}`,
+    });
+}
+if (classOptions) {
+    Object.assign(fixtures, {
+        classOptionsExpressions: `const C=class<T>{value!:T;static member=1;constructor(value:T){this.value=value}};const Named=class Inner{field=1};type SerializeClass=typeof C;type SerializeNamed=typeof Named;class Scope{}function location(){}`,
+        classOptionsPrivate: `function make(){class Hidden{private secret=1;protected field='';public value=1;get item(){return this.value}set item(value:string|number){}method(x:number){return x}}return Hidden}const C=make();type SerializeClass=typeof C;type SerializeInstance=InstanceType<typeof C>;type InstanceType<T extends new(...args:any[])=>any>=T extends new(...args:any[])=>infer U?U:never;class Scope{}function location(){}`,
+        classOptionsAbstract: `function make(){abstract class Hidden{abstract method():void;static member=1}return Hidden}const C=make();const Empty=class{};type SerializeClass=typeof C;type SerializeEmpty=typeof Empty;class Scope{}function location(){}`,
+        classOptionsInstantiations: `namespace N{export class Box<T>{value!:T}export function f<T>(x:T){return x}}type SerializeQualified=N.Box<number>;type SerializeFunction=typeof N.f<string>;function outer<T>(){class Inner<U>{value!:T;other!:U}return Inner}const C=outer<string>();type SerializeOuter=typeof C;class Scope{}function location(){}`,
+        classOptionsMixins: `function mix<T extends abstract new(...args:any[])=>object>(Base:T){abstract class Derived extends Base{value=1;static member=1}type SerializeMixin=typeof Derived;return Derived}class Scope{}function location(){}`,
+        classOptionsEmpty: `type SerializeEmpty={};type SerializeNested={field:{};optional?:{};readonly value:[]};type SerializeMembers={method():{};new():{}};class Scope{}function location(){}`,
+        classOptionsQualifiedParameters: `function outer<T>(){class Inner<U>{value!:T;other!:U}return Inner}const C=outer<string>();type SerializeOuter=typeof C;namespace N{export class Box<T>{value!:T}}type SerializeReference=N.Box<number>;class Scope{}function location(){}`,
+    });
+}
+if (functionOptions) {
+    Object.assign(fixtures, {
+        functionOptionsNames: `function f<T>(x:T):T{return x}const arrow=(x:number)=>x;const expr=function named(x:string){return x};class C{static f(x:number){return x}f(x:string){return x}}type SerializeFunction=typeof f;type SerializeArrow=typeof arrow;type SerializeExpression=typeof expr;type SerializeStatic=typeof C.f;class Scope{}function location(){}`,
+        functionOptionsLocal: `function outer(){function local(x:number){return x}const arrow=(x:string)=>x;type SerializeLocal=typeof local;type SerializeArrow=typeof arrow;return local}type SerializeOuter=typeof outer;class Scope{}function location(){}`,
+        functionOptionsSuppress: `type SerializeAny=(x:number)=>any;type SerializeNested=(callback:()=>any)=>()=>any;type SerializeObject={call(x:string):any;new():any;(x:number):any};type SerializeUnknown=()=>unknown;class Scope{}function location(){}`,
+        functionOptionsGeneric: `interface Box<T>{call:<U extends T>(x:U)=>U;method<U extends T>(x:U):U}declare const box:Box<string>;type SerializeCall=typeof box.call;type SerializeMethod=typeof box.method;function id<T>(x:T):T{return x}const stringId=id<string>;type SerializeInstantiated=typeof stringId;class Scope{}function location(){}`,
+        functionOptionsConstruct: `type SerializeNew=new(x:number)=>any;type SerializeAbstract=abstract new()=>unknown;class C<T>{constructor(public value:T){}}type SerializeClass=typeof C;class Scope{}function location(){}`,
+        functionOptionsAliases: `namespace N{export function f(x:number){return x}}import Alias=N.f;type SerializeAlias=typeof Alias;type SerializeFunction=typeof N.f;class Scope{}function location(N:number){}`,
+    });
+}
 if (generatedNames) {
     Object.assign(fixtures, {
         generatedNamesParameters: `type SerializeNested=<T>(a:T)=><T>(b:T)=>[T,typeof a];type SerializeSimple<T>=[T,T];class Scope<T,T_1>{}function location<T>(){}`,
@@ -360,11 +393,18 @@ for (const [name, source] of Object.entries(fixtures)) {
                 roots: Object.keys(files),
                 options: { strict, target: "esnext", module: "esnext", moduleResolution: "bundler", jsx: "preserve", ...name.startsWith("jsdoc") ? { allowJs: true, checkJs: true } : {} },
                 typeNodes: true,
-                ...typeSyntax ? { typeSyntax: true, ...generatedNames ? { typeSyntaxFlags: [4, 5, 69] } : syntaxNames ? { typeSyntaxFlags: [0, 1, 65, 17, 81] } : syntaxOptions ? { typeSyntaxFlags: [0, 1, 2, 3, 1 | (1 << 28), 1 | (1 << 20), 1 | (1 << 25), 1 | (1 << 29)] } : {} } : symbolTypeNodes ? { symbolTypeNodes: true } : symbolFormats ? { symbolFormats: true, ...symbolTypeArguments ? { symbolFormatFlags: [5, 7, 13, 15, 21, 23, 29, 31, 37, 39, 45, 47, 53, 55, 61, 63] } : computedSymbols ? { symbolFormatFlags: [20, 22, 28, 30, 52, 54, 60, 62] } : {} } : symbolDisplay ? { symbolDisplay: true } : accessibility ? { accessibility: true } : symbolChains ? { symbolChains: true } : declarationVisibility ? { declarationVisibility: true } : contextQueries ? { contextQueries: true } : scopeServices ? { scopeServices: true } : symbolLocations ? { symbolLocations: true, ...name.startsWith("jsdoc") ? { documentationSymbols: true } : {} } : { locations: true },
+                ...typeSyntax ? { typeSyntax: true, ...functionOptions ? { typeSyntaxFlags: [1, 4097, 4105, 257, 33, 289, 8193, 134217729] } : generatedNames ? { typeSyntaxFlags: [4, 5, 69] } : syntaxNames ? { typeSyntaxFlags: [0, 1, 65, 17, 81] } : syntaxOptions ? { typeSyntaxFlags: [0, 1, 2, 3, 1 | (1 << 28), 1 | (1 << 20), 1 | (1 << 25), 1 | (1 << 29)] } : {} }
+                    : symbolTypeNodes ? { symbolTypeNodes: true } : symbolFormats ? { symbolFormats: true, ...symbolTypeArguments ? { symbolFormatFlags: [5, 7, 13, 15, 21, 23, 29, 31, 37, 39, 45, 47, 53, 55, 61, 63] } : computedSymbols ? { symbolFormatFlags: [20, 22, 28, 30, 52, 54, 60, 62] } : {} } : symbolDisplay ? { symbolDisplay: true } : accessibility ? { accessibility: true } : symbolChains ? { symbolChains: true } : declarationVisibility ? { declarationVisibility: true } : contextQueries ? { contextQueries: true } : scopeServices ? { scopeServices: true } : symbolLocations ? { symbolLocations: true, ...name.startsWith("jsdoc") ? { documentationSymbols: true } : {} } : { locations: true },
                 concurrency,
             });
             if (name === "syntaxOptionsUntruncatedLimit") inputs.at(-1).typeSyntaxFlags = [1];
             if (name === "generatedNamesDefaultScopes") inputs.at(-1).typeSyntaxFlags = [1];
+            if (classOptions) inputs.at(-1).typeSyntaxFlags = [1, 2049, 1025, 1073741825, 1073743873, 2053];
+            if (name === "classOptionsQualifiedParameters") inputs.at(-1).typeSyntaxFlags = [513, 1073742337, 1073744385];
+            if (signatureDeclarations) {
+                delete inputs.at(-1).locations;
+                inputs.at(-1).signatureSyntax = true;
+            }
         }
     }
 }
@@ -372,7 +412,7 @@ const formatFixtures = new Set(["namespaces", "imports", "typeImports", "classes
 const computedFixtures = new Set(["displayNames", "displayComputed", "displayAssigned", "jsdocDisplayNames", "classes", "visibilityExports", "accessibilityInstances", "chainClassNames"]);
 const typeNodeFixtures = new Set(["namespaces", "imports", "typeImports", "classes", "importsCommonJs", "visibilityAliases", "visibilityAmbient", "visibilityExports", "chainShadow", "chainReexports", "chainTypeOnly", "displayNames", "displayComputed", "accessibilityExportEquals", "accessibilityInstances", "symbolTypeModes", "symbolTypeAttributes"]);
 if (symbolTypeNodes) { for (const input of inputs) if (input.name.startsWith("symbolTypeModes:")) Object.assign(input.options, { module: "nodenext", moduleResolution: "nodenext" }); }
-const eligible = generatedNames ? inputs.filter(input => input.name.startsWith("generatedNames"))
+const eligible = signatureDeclarations ? inputs.filter(input => input.name.startsWith("signatureDeclarations")) : classOptions ? inputs.filter(input => input.name.startsWith("classOptions")) : functionOptions ? inputs.filter(input => input.name.startsWith("functionOptions")) : generatedNames ? inputs.filter(input => input.name.startsWith("generatedNames"))
     : syntaxNames ? inputs.filter(input => input.name.startsWith("syntaxNames")) : syntaxOptions ? inputs.filter(input => input.name.startsWith("syntaxOptions")) : symbolTypeArguments ? inputs.filter(input => input.name.startsWith("symbolArguments") || formatFixtures.has(input.name.split(":")[0])) : anonymousSyntax ? inputs.filter(input => input.name.startsWith("anonymousSyntax")) : signatureSyntax ? inputs.filter(input => input.name.startsWith("signatureSyntax")) : mappedSyntax ? inputs.filter(input => input.name.startsWith("mappedSyntax")) : conditionalSyntax ? inputs.filter(input => input.name.startsWith("conditionalSyntax")) : typeSyntax ? inputs.filter(input => input.name.startsWith("typeSyntax")) : symbolTypeNodes ? inputs.filter(input => typeNodeFixtures.has(input.name.split(":")[0])) : computedSymbols ? inputs.filter(input => computedFixtures.has(input.name.split(":")[0])) : symbolFormats ? inputs.filter(input => formatFixtures.has(input.name.split(":")[0])) : inputs;
 const selected = process.argv.includes("--filter") ? eligible.filter(input => input.name.includes(option("--filter"))) : eligible;
 await writeFile(path.join(output, "inputs.json"), JSON.stringify(selected, null, 2));
