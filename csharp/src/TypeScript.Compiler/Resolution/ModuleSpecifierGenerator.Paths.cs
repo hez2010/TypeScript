@@ -123,6 +123,8 @@ internal sealed partial class ModuleSpecifierGenerator
 
     private static int CompareText(string a, string b) => Wtf8.Encode(a).AsSpan().SequenceCompareTo(Wtf8.Encode(b));
 
-    private static bool Ignored(string path) => path.Contains("/node_modules/.", StringComparison.Ordinal)
+    internal static string CanonicalFileName(string path, bool caseSensitive) => caseSensitive ? path : Lower(path, fileName: true);
+
+    internal static bool Ignored(string path) => path.Contains("/node_modules/.", StringComparison.Ordinal)
             || path.Contains("/.git", StringComparison.Ordinal) || path.Contains(".#", StringComparison.Ordinal);
 }

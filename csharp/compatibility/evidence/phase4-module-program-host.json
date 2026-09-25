@@ -1,0 +1,19 @@
+{
+    "cases": 52,
+    "exact": 52,
+    "failed": 0,
+    "byOperation": {
+        "program": 52
+    },
+    "candidateExecuted": 12,
+    "candidateReused": 40,
+    "referenceExecuted": 12,
+    "referenceReused": 40,
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "oracleHash": "3bb1888e8d50d089be17b8cfa771f92266fcc543869c9e51542021902c0a01e3",
+    "candidateHash": "b2005ae72ade2aa6c02b569a7a2e95250b05c35ce11639d6fffaff041440c1cd",
+    "inputHash": "526ce55cf30c0a2b71b1fabd0180df0408cf97f55e8258ffbd3b4b13024eeb5f",
+    "referenceHash": "04bc3537367e2d0d26881d45ad447f8a1445cd1341ef336bb434fef7dea09cd8",
+    "outputHash": "6bbcb49d1fd4c6836f132d2c62ff29dff0aa50eee0fe834285677e26060d7298",
+    "managed": true
+}

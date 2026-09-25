@@ -1,0 +1,13 @@
+{
+    "retainedCandidates": 40,
+    "replayedCandidates": 12,
+    "retainedReferences": 40,
+    "extendedReferences": 12,
+    "previousCandidateHash": "118d1ae14bcdde1723e2011c13ffcb2222004e12685b51f5c16082f27b8067c9",
+    "candidateHash": "b2005ae72ade2aa6c02b569a7a2e95250b05c35ce11639d6fffaff041440c1cd",
+    "previousOracleHash": "027ebb565a4b769766b8230c8addb692376495c2f9b9564ef1bdd04e505fd923",
+    "referenceHash": "3bb1888e8d50d089be17b8cfa771f92266fcc543869c9e51542021902c0a01e3",
+    "originalSourceRecords": 112,
+    "originalQueries": 2448,
+    "reason": "All 52 original programs matched source/resolution metadata and module naming. Twelve had missing option diagnostics. The forty other inputs do not meet the added diagnostic conditions; their unchanged records are retained. Empty diagnostic-code lists prove the newly exported complete diagnostic list is empty, so both cached formats are extended with [] without execution. The twelve nonempty reference diagnostic lists are newly exported and their candidates replayed."
+}

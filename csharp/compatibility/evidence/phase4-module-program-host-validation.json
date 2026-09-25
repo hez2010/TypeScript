@@ -1,0 +1,90 @@
+{
+    "timestamp": "2026-09-25T05:35:54.6411021Z",
+    "configuration": "Release",
+    "managed": true,
+    "scope": "Production module-specifier host, project modes, symlink discovery and module-path option diagnostics; symbol formatting remains incomplete",
+    "build": {
+        "log": "logs/csharp-phase4-module-host-build.log",
+        "exitCode": 0,
+        "errors": 0,
+        "warnings": 0,
+        "sha256": "1bc12a20d3a4f0d9e0eb1a4c7db41b8f1a743aac0f2d7dd3486917633aefd15f"
+    },
+    "candidateSha256": "3b12c46e3d0e5c1ac8732404b5792a4facf860bf57a88047a4cd08736fc1b5ab",
+    "compilerSha256": "cf83992ba3f68e62425488b3478a951c065fb72b4bb264194c70097b5d7c821d",
+    "comparisons": {
+        "cases": 52,
+        "exact": 52,
+        "failed": 0,
+        "byOperation": {
+            "program": 52
+        },
+        "candidateExecuted": 12,
+        "candidateReused": 40,
+        "referenceExecuted": 12,
+        "referenceReused": 40,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "oracleHash": "3bb1888e8d50d089be17b8cfa771f92266fcc543869c9e51542021902c0a01e3",
+        "candidateHash": "b2005ae72ade2aa6c02b569a7a2e95250b05c35ce11639d6fffaff041440c1cd",
+        "inputHash": "526ce55cf30c0a2b71b1fabd0180df0408cf97f55e8258ffbd3b4b13024eeb5f",
+        "referenceHash": "04bc3537367e2d0d26881d45ad447f8a1445cd1341ef336bb434fef7dea09cd8",
+        "outputHash": "6bbcb49d1fd4c6836f132d2c62ff29dff0aa50eee0fe834285677e26060d7298",
+        "managed": true
+    },
+    "coverage": {
+        "sourceRecords": 112,
+        "diagnosticCodes": [
+            5090,
+            5069,
+            5011
+        ],
+        "namingQueries": 2448,
+        "comparison": "Exact structured records using deepStrictEqual; raw output hashes can differ because JSON object key order differs.",
+        "nonemptyProgramDiagnosticConfigurations": 12
+    },
+    "safety": {
+        "assertions": 12,
+        "log": "logs/csharp-phase4-module-host-safety.log",
+        "concurrentCallers": 16
+    },
+    "reference": {
+        "programBlob": "37ff6abbf4caab5b6d058266c8532bf54e844e64",
+        "symlinksBlob": "107a5cb35b2d4e698b2e3f79aa4dce50a91ec243",
+        "frozenSourcesMatch": true,
+        "commonDirectoryBlob": "adea8cd5e46561efcd1f26715d23875a9dd84f62",
+        "revision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8"
+    },
+    "reuse": {
+        "retainedCandidates": 40,
+        "earlierPrograms": "Existing graph fixtures have valid relative paths, no root declarationDir/outDir combination matching the new errors, and do not export CommonSourceDirectory. Their resolution traversal is unchanged.",
+        "semanticCorpus": "Source traversal and checker algorithms are unchanged; the corpus harness excludes program-option diagnostics and passes an empty project-reference list.",
+        "replayedCandidates": 12,
+        "validatedCommit": "00d370e5b0",
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "retainedReferences": 40,
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "earlierNaming": "Core path/package/generation algorithms are unchanged.",
+        "record": "phase4-module-program-host-reuse.json",
+        "extendedReferences": 12
+    },
+    "formatting": {
+        "dotnetWhitespaceExitCode": 0,
+        "libraryConfigurations": 2,
+        "csharpFiles": 9,
+        "tokensCommentsAndSyntaxIdentical": true,
+        "log": "logs/csharp-phase4-module-host-format.log",
+        "proofSha256": "7c1c6f10159f2642e07caa55e66ffd4223a7ffe737eb37db2f828a662b947a0e",
+        "inputsUnchanged": true
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "phase4Complete": false,
+    "syntaxCheck": {
+        "exitCode": 0,
+        "command": "node --check csharp/tools/module-specifier-paths.mjs"
+    }
+}

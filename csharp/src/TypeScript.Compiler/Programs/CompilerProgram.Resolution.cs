@@ -12,9 +12,10 @@ public sealed partial class CompilerProgram
     internal ReferenceResolutionMode ResolutionModeForUsage(SourceFileNode source, SyntaxNode? specifier)
     {
         var file = GetFile(source.FileName) ?? throw new ArgumentException("Source belongs to another program", nameof(source));
+        var options = ProjectReferences.Find(source.FileName)?.Project.Options ?? Configuration.Options;
         return specifier is null
-            ? Builder.DefaultMode(source.FileName, Configuration.Options, file.ImpliedFormat, file.PackageType)
-            : Builder.UsageMode(specifier, source.FileName, Configuration.Options, file.ImpliedFormat, file.PackageType);
+            ? Builder.DefaultMode(source.FileName, options, file.ImpliedFormat, file.PackageType)
+            : Builder.UsageMode(specifier, source.FileName, options, file.ImpliedFormat, file.PackageType);
     }
 
     private sealed partial class Builder

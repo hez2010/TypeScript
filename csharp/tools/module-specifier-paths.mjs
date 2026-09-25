@@ -15,7 +15,8 @@ import {
 const packageMaps = process.argv.includes("--packages");
 const nodeModules = process.argv.includes("--node-modules");
 const generation = process.argv.includes("--generation");
-const output = path.join(root, `built/csharp/module-specifier-${generation ? "generation" : nodeModules ? "node-modules" : packageMaps ? "packages" : "paths"}`);
+const programHost = process.argv.includes("--program");
+const output = path.join(root, `built/csharp/module-specifier-${programHost ? "program" : generation ? "generation" : nodeModules ? "node-modules" : packageMaps ? "packages" : "paths"}`);
 const hash = value => createHash("sha256").update(value).digest("hex");
 const dotnet = process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, "dotnet.exe") : "dotnet";
 const oracle = path.join(root, "built/csharp/module-specifier-oracle.exe");
@@ -121,6 +122,39 @@ if (generation) {
         add("all-paths", { target: "/project/İ.ts", redirects: ["/project/😀.ts", "/project/𐐀.ts", "/project/\ue000.ts", "/project/K.ts", "/project/Z.ts"], sensitive });
         add("select", { source: "import 'existing';", importTargets: { existing: "/project/İ.ts" }, sensitive, modulePaths: [{ FileName: "/project/i.ts", IsInNodeModules: false, IsRedirect: false }] });
     }
+}
+if (programHost) {
+    cases.length = 0;
+    const programCases = [
+        { name: "local", roots: ["/project/src/main.ts"], files: { "/project/src/main.ts": "import {x} from './item'; export {x};", "/project/src/item.ts": "export const x=1;" } },
+        { name: "paths", roots: ["/project/src/main.ts"], options: { paths: { "@lib/*": ["lib/*"] }, rootDirs: ["src", "generated"] }, files: { "/project/src/main.ts": "import {x} from '@lib/item'; export {x};", "/project/lib/item.ts": "export const x=1;", "/project/package.json": '{"imports":{"#item":"./lib/item.js"}}' } },
+        { name: "output-imports", roots: ["/project/src/main.ts", "/project/src/item.ts"], options: { outDir: "lib", declarationDir: "types", rootDir: "src" }, files: { "/project/src/main.ts": "export const main=1;", "/project/src/item.ts": "export const x=1;", "/project/package.json": '{"imports":{"#item":{"types":"./types/item.d.ts","default":"./lib/item.js"}}}' } },
+        { name: "dual-mode", roots: ["/project/main.mts", "/project/main.cts"], options: { module: "nodenext" }, files: { "/project/main.mts": "import {x} from 'pkg'; export {x};", "/project/main.cts": "import p=require('pkg'); export {p};", "/project/node_modules/pkg/package.json": '{"name":"pkg","version":"1","exports":{".":{"import":"./index.d.mts","require":"./index.d.cts"}}}', "/project/node_modules/pkg/index.d.mts": "export const x:1;", "/project/node_modules/pkg/index.d.cts": "export const x:2;" } },
+        { name: "resolved-symlink", roots: ["/project/main.ts"], fileLinks: { "/project/node_modules/pkg": "/store/pkg" }, files: { "/project/main.ts": "import {x} from 'pkg'; export {x};", "/project/package.json": '{"dependencies":{"pkg":"*"}}', "/store/pkg/package.json": '{"name":"pkg","version":"1","types":"index.d.ts"}', "/store/pkg/index.d.ts": "export {x} from './hidden';", "/store/pkg/hidden.d.ts": "export const x:1;" } },
+        { name: "dependency-symlink", roots: ["/project/main.ts", "/store/pkg/hidden.ts"], fileLinks: { "/project/node_modules/pkg": "/store/pkg" }, files: { "/project/main.ts": "export const main=1;", "/project/package.json": '{"dependencies":{"pkg":"*"},"optionalDependencies":{"absent":"*"}}', "/store/pkg/package.json": '{"name":"pkg","version":"1","types":"hidden.ts"}', "/store/pkg/hidden.ts": "export const x=1;" } },
+        { name: "dev-symlink", roots: ["/project/main.ts", "/store/pkg/hidden.ts"], fileLinks: { "/project/node_modules/pkg": "/store/pkg" }, files: { "/project/main.ts": "export const main=1;", "/project/package.json": '{"devDependencies":{"pkg":"*"}}', "/store/pkg/package.json": '{"name":"pkg","version":"1","types":"hidden.ts"}', "/store/pkg/hidden.ts": "export const x=1;" } },
+        { name: "own-package", roots: ["/store/pkg/main.ts", "/store/pkg/hidden.ts"], fileLinks: { "/store/pkg/node_modules/pkg": "/store/pkg" }, files: { "/store/pkg/main.ts": "export const main=1;", "/store/pkg/package.json": '{"name":"pkg","version":"1","types":"hidden.ts","dependencies":{"pkg":"*"}}', "/store/pkg/hidden.ts": "export const x=1;" } },
+        { name: "duplicate-package", roots: ["/project/main.ts", "/other/main.ts"], files: { "/project/main.ts": "import {x} from 'pkg'; export {x};", "/other/main.ts": "import {x} from 'pkg'; export {x};", "/project/node_modules/pkg/package.json": '{"name":"pkg","version":"1","types":"index.d.ts"}', "/other/node_modules/pkg/package.json": '{"name":"pkg","version":"1","types":"index.d.ts"}', "/project/node_modules/pkg/index.d.ts": "export const x:1;", "/other/node_modules/pkg/index.d.ts": "export const x:1;" } },
+        { name: "json-js", roots: ["/project/src/main.js"], options: { allowJs: true, resolveJsonModule: true, outDir: "out" }, files: { "/project/src/main.js": "import data from './data.json'; export {data};", "/project/src/data.json": '{"value":1}' } },
+        { name: "global-types", roots: ["/project/main.ts"], globalTypingsCache: "/cache", files: { "/project/main.ts": "import {x} from 'pkg'; export {x};", "/cache/node_modules/@types/pkg/index.d.ts": "export const x:1;" } },
+    ];
+    for (const useSources of [false, true]) {
+        programCases.push({
+            name: "project-reference-" + useSources,
+            useSources,
+            config: "/project/tsconfig.json",
+            files: {
+                "/project/tsconfig.json": JSON.stringify({ compilerOptions: { noLib: true, module: "nodenext" }, files: ["main.mts"], references: [{ path: "../child" }] }),
+                "/project/main.mts": "import {x} from '../child/src/item'; export {x};",
+                "/child/tsconfig.json": JSON.stringify({ compilerOptions: { noLib: true, composite: true, module: "preserve", rootDir: "src", outDir: "dist" }, files: ["src/item.ts", "src/helper.ts"] }),
+                "/child/src/item.ts": "import {y} from './helper'; export const x=y;",
+                "/child/src/helper.ts": "export const y=1;",
+                "/child/dist/item.d.ts": "import {y} from './helper'; export declare const x:typeof y;",
+                "/child/dist/helper.d.ts": "export declare const y:1;",
+            },
+        });
+    }
+    for (const fixture of programCases) for (const sensitive of [true, false]) for (const concurrency of [1, 4]) add("program", { ...fixture, sensitive, concurrency, options: { noLib: true, ...fixture.options } });
 }
 const selected = process.argv.includes("--filter") ? cases.filter(c => c.operation === option("--filter")) : cases;
 await writeFile(path.join(output, "inputs.json"), JSON.stringify(selected));

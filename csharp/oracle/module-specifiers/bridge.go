@@ -90,6 +90,10 @@ func CSharpGeneration(operation string, file *ast.SourceFile, options *core.Comp
 
 func (h *CSharpPathHost) GetGlobalTypingsCacheLocation() string { return h.GlobalTypingsCache }
 
+func CSharpAllModulePaths(importing, target string, host ModuleSpecifierGenerationHost, options *core.CompilerOptions) []ModulePath {
+	return getAllModulePathsWorker(getInfo(importing, host), target, host, options, ModuleSpecifierOptions{})
+}
+
 func CSharpNodeModuleSpecifier(file *ast.SourceFile, options *core.CompilerOptions, host *CSharpPathHost,
 	target, preference string, mode core.ResolutionMode, packageNameOnly, redirect bool,
 ) string {

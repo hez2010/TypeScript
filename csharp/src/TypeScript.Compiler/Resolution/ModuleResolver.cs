@@ -131,7 +131,10 @@ public sealed partial class ModuleResolver
         return types.SelectMany(t => t == "*" ? matches : (IEnumerable<string>)[t]).Distinct(StringComparer.Ordinal).ToArray();
     }
 
-    public string? ResolvePackageDirectory(string name, string containingFile)
+    public string? ResolvePackageDirectory(string name, string containingFile) =>
+        ResolvePackageDirectoryInfo(name, containingFile)?.FileName;
+
+    internal ResolvedModule? ResolvePackageDirectoryInfo(string name, string containingFile)
     {
         (string package, _) = PackageName(name);
         foreach (string directory in PackageJsonCache.Ancestors(CompilerPath.DirectoryName(CompilerPath.Resolve(cwd, containingFile))))
@@ -140,12 +143,17 @@ public sealed partial class ModuleResolver
                 continue;
             string path = CompilerPath.Combine(directory, "node_modules", package);
             if (fs.DirectoryExists(path))
-                return options.Boolean("preserveSymlinks") == true ? path : fs.RealPath(path);
+                return Result(path);
             path = CompilerPath.Combine(directory, "node_modules/@types", Mangle(package));
             if (fs.DirectoryExists(path))
-                return options.Boolean("preserveSymlinks") == true ? path : fs.RealPath(path);
+                return Result(path);
         }
         return null;
+        ResolvedModule Result(string path)
+        {
+            string real = options.Boolean("preserveSymlinks") == true ? path : fs.RealPath(path);
+            return new(real, OriginalPath: real == path ? "" : path);
+        }
     }
 
     public static (string Name, string Subpath) PackageName(string name)

@@ -229,6 +229,11 @@ internal static class ModuleSpecifierTests
 
     private static void Write(JsonElement input, Utf8JsonWriter writer)
     {
+        if (input.GetProperty("operation").GetString() == "program")
+        {
+            Parser.RunParse(ModuleSpecifierProgramTests.WriteAsync(input, writer));
+            return;
+        }
         string Text(string key, string fallback = "") => input.TryGetProperty(key, out var value) ? JsonStrings.GetString(value) : fallback;
         int Number(string key) => input.TryGetProperty(key, out var value) ? value.GetInt32() : 0;
         string[] Strings(string key) => input.TryGetProperty(key, out var value)

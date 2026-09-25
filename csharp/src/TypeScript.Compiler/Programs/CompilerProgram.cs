@@ -43,6 +43,9 @@ public sealed partial class CompilerProgram
 {
     private readonly Dictionary<string, ProgramFile> files;
     private readonly IFileSystem fileSystem;
+    private readonly HashSet<string> externalLibraryFiles;
+    internal string CurrentDirectory { get; }
+    internal string GlobalTypingsCache { get; }
     internal string ModuleResolutionKind { get; }
     public IReadOnlyList<ProgramFile> SourceFiles { get; }
     public IReadOnlyList<string> RootFileNames { get; }
@@ -59,14 +62,14 @@ public sealed partial class CompilerProgram
     {
         files = builder.files;
         fileSystem = builder.fs;
+        CurrentDirectory = builder.CurrentDirectory;
+        GlobalTypingsCache = builder.GlobalTypingsCache;
+        externalLibraryFiles = builder.ExternalLibraryFiles.ToHashSet(files.Comparer);
         ModuleResolutionKind = builder.ResolutionKind;
         SourceFiles = Array.AsReadOnly(ordered);
         Configuration = builder.config;
         RootFileNames = Array.AsReadOnly(builder.config.FileNames.ToArray());
         ProjectReferences = builder.references;
-        Diagnostics = builder.diagnostics.OrderBy(
-            d => d.FileName ?? "",
-            StringComparer.Ordinal).ThenBy(d => d.Start).ThenBy(d => d.Code).ToArray();
         MissingFiles = builder.missing.ToArray();
         Redirects = builder.redirects.AsReadOnly();
         ReusedSourceFiles = builder.reused;
@@ -74,8 +77,14 @@ public sealed partial class CompilerProgram
             p => p.Key,
             p => (IReadOnlyList<FileIncludeReason>)p.Value.AsReadOnly(),
             files.Comparer);
-        CommonSourceDirectory = builder.config.Options.String("rootDir") ?? ProjectReferences.CommonDirectory(
-            ordered.Where(f => !f.Library && !f.Syntax.IsDeclarationFile).Select(f => f.Syntax.FileName), builder.fs.CaseSensitive);
+        string common = Configuration.Options.String("rootDir") ?? (Configuration.FileName.Length != 0
+            ? CompilerPath.DirectoryName(Configuration.FileName) : ProjectReferences.CommonDirectory(
+                ordered.Where(f => SourceFileMayBeEmitted(f.Syntax)).Select(f => f.Syntax.FileName), fileSystem.CaseSensitive));
+        if (common.Length == 0 && ordered.All(f => !SourceFileMayBeEmitted(f.Syntax)))
+            common = CurrentDirectory;
+        CommonSourceDirectory = common.Length == 0 ? "" : CompilerPath.EnsureTrailingSeparator(common);
+        Diagnostics = builder.diagnostics.Concat(ModulePathOptionDiagnostics()).OrderBy(
+            d => d.FileName ?? "", StringComparer.Ordinal).ThenBy(d => d.Start).ThenBy(d => d.Code).ToArray();
     }
 
     public ProgramFile? GetFile(string path)
@@ -94,7 +103,8 @@ public sealed partial class CompilerProgram
 
     public static ValueTask<CompilerProgram> CreateAsync(IFileSystem fileSystem, string currentDirectory, ParsedConfig config,
         CompilerProgram? previous = null, bool useProjectReferenceSources = false, int concurrency = 4,
-        string? defaultLibraryDirectory = null, ContentMapperProject? mapperProject = null, CancellationToken cancellation = default) =>
+        string? defaultLibraryDirectory = null, ContentMapperProject? mapperProject = null, CancellationToken cancellation = default,
+        string globalTypingsCache = "") =>
         new Builder(
             fileSystem,
             currentDirectory,
@@ -104,7 +114,7 @@ public sealed partial class CompilerProgram
             concurrency,
             defaultLibraryDirectory,
             mapperProject,
-            cancellation).Build();
+            cancellation, globalTypingsCache).Build();
 
     private sealed partial class Builder
     {
@@ -113,6 +123,9 @@ public sealed partial class CompilerProgram
         internal readonly ParsedConfig config;
         private readonly CompilerProgram? previous;
         private readonly string cwd, libraryDirectory;
+        internal string CurrentDirectory => cwd;
+        internal string GlobalTypingsCache { get; }
+        internal IEnumerable<string> ExternalLibraryFiles => loadedDepth.Where(p => p.Value > 0).Select(p => p.Key);
         private readonly int concurrency;
         private readonly CancellationToken cancellation;
         internal readonly ProjectReferences references;
@@ -140,12 +153,22 @@ public sealed partial class CompilerProgram
             Diagnostic[]? Diagnostics = null,
             bool FailedLookup = false);
 
-        internal Builder(IFileSystem fs, string cwd, ParsedConfig config, CompilerProgram? previous, bool useSources,
-            int concurrency, string? libraryDirectory, ContentMapperProject? mapperProject, CancellationToken cancellation)
+        internal Builder(
+            IFileSystem fs,
+            string cwd,
+            ParsedConfig config,
+            CompilerProgram? previous,
+            bool useSources,
+            int concurrency,
+            string? libraryDirectory,
+            ContentMapperProject? mapperProject,
+            CancellationToken cancellation,
+            string globalTypingsCache)
         {
             ArgumentOutOfRangeException.ThrowIfLessThan(concurrency, 1);
             this.fs = fs;
             this.cwd = CompilerPath.Normalize(cwd);
+            GlobalTypingsCache = globalTypingsCache;
             this.previous = previous;
             var ownedOptions = new CompilerOptions();
             ownedOptions.Merge(config.Options);
@@ -182,7 +205,12 @@ public sealed partial class CompilerProgram
             lock (resolvers)
             {
                 if (!resolvers.TryGetValue(project.FileName, out var resolver))
-                    resolvers[project.FileName] = resolver = new(resolutionFs, project.Options, cwd, project.FileName,
+                    resolvers[project.FileName] = resolver = new(
+                        resolutionFs,
+                        project.Options,
+                        cwd,
+                        project.FileName,
+                        typingsLocation: GlobalTypingsCache,
                         extraExtensions: config.ContentMappers.SelectMany(m => m.Extensions));
                 return resolver;
             }

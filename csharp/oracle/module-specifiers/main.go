@@ -49,6 +49,12 @@ func main() {
 		if err := json.Unmarshal(lines.Bytes(), &input); err != nil {
 			panic(err)
 		}
+		if input.Operation == "program" {
+			if err := output.Encode(programSpecifiers(lines.Bytes())); err != nil {
+				panic(err)
+			}
+			continue
+		}
 		if input.Files == nil {
 			input.Files = map[string]string{}
 		}
