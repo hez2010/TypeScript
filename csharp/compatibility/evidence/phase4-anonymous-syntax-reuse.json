@@ -1,0 +1,35 @@
+{
+    "prior": {
+        "prior": {
+            "prior": {
+                "previousCandidateHash": "f3e5f498892ef104c10f92cbee219e325e4a961966c149653763a0ec155d6425",
+                "candidateHash": "b0bdba441a610430a7bf7beaa051d0d1547637441f4bd0fa77603ef7810bba66",
+                "retainedCandidates": 24,
+                "replayedCandidates": 8,
+                "retainedReferences": 32,
+                "reason": "The outer-argument composition and instantiated typeof reuse changes affect only the eight failed mixin/instantiation inputs. The other 24 have no instantiated outer arguments or generic typeof nodes. Existing nongeneric typeof reuse follows the same resolution checks."
+            },
+            "previousCandidateHash": "b0bdba441a610430a7bf7beaa051d0d1547637441f4bd0fa77603ef7810bba66",
+            "candidateHash": "0e9f467dabbe8c875712ed38ccbca5497bd0150381f1200715dc8d33ef714b42",
+            "retainedCandidates": 28,
+            "replayedCandidates": 4,
+            "addedConfigurations": 12,
+            "retainedReferences": 32,
+            "reason": "The final mixin fix adds parentheses around a constructed intersection constituent. Only the four mixin inputs reach that shape. New computed-property and inaccessible generic typeof fallback branches are absent from the retained 28 cases. Twelve new inputs cover those branches and composite parentheses."
+        },
+        "previousCandidateHash": "0e9f467dabbe8c875712ed38ccbca5497bd0150381f1200715dc8d33ef714b42",
+        "candidateHash": "b9117e629f07d47f02c16e9d8d33fb961130769658a0291814d8d10d66ebeebd",
+        "retainedCandidates": 36,
+        "replayedCandidates": 8,
+        "addedConfigurations": 0,
+        "retainedReferences": 44,
+        "reason": "The final changes preserve qualified names in reused generic typeof expressions and avoid reducing a union origin twice. The 36 retained cases have no exported union origins and no qualified generic typeof expression. Eight affected candidates are replayed."
+    },
+    "previousCandidateHash": "b9117e629f07d47f02c16e9d8d33fb961130769658a0291814d8d10d66ebeebd",
+    "candidateHash": "fff6a1ad061832e6e9ef21dadf24bae211d9941e46785303a6f9d4fe08d57dea",
+    "retainedCandidates": 40,
+    "replayedCandidates": 4,
+    "addedConfigurations": 0,
+    "retainedReferences": 44,
+    "reason": "The final fix matches the pinned builder by discarding arguments in the fallback that reconstructs an inaccessible generic typeof name. Only four scope-instantiation inputs exercise that fallback; the other 40 retain their passing results."
+}

@@ -20,13 +20,14 @@ const symbolChains = process.argv.includes("--chains");
 const conditionalSyntax = process.argv.includes("--conditional-syntax");
 const mappedSyntax = process.argv.includes("--mapped-syntax");
 const signatureSyntax = process.argv.includes("--signature-syntax");
-const typeSyntax = process.argv.includes("--type-syntax") || conditionalSyntax || mappedSyntax || signatureSyntax;
+const anonymousSyntax = process.argv.includes("--anonymous-syntax");
+const typeSyntax = process.argv.includes("--type-syntax") || conditionalSyntax || mappedSyntax || signatureSyntax || anonymousSyntax;
 const symbolTypeNodes = process.argv.includes("--symbol-type-nodes");
 const computedSymbols = process.argv.includes("--computed-symbols");
 const symbolFormats = process.argv.includes("--symbol-formats") || computedSymbols;
 const symbolDisplay = process.argv.includes("--symbol-display") || symbolFormats || symbolTypeNodes;
 const accessibility = process.argv.includes("--accessibility") || symbolDisplay;
-const output = path.join(root, `built/csharp/checker-${signatureSyntax ? "signature-syntax" : mappedSyntax ? "mapped-syntax" : conditionalSyntax ? "conditional-syntax" : typeSyntax ? "type-syntax" : symbolTypeNodes ? "symbol-type-nodes" : computedSymbols ? "computed-symbols" : symbolFormats ? "symbol-formats" : symbolDisplay ? "symbol-display" : accessibility ? "accessibility" : symbolChains ? "symbol-chains" : declarationVisibility ? "declaration-visibility" : contextQueries ? "context-queries" : scopeServices ? "scope-services" : symbolLocations ? "symbol-locations" : "locations"}`);
+const output = path.join(root, `built/csharp/checker-${anonymousSyntax ? "anonymous-syntax" : signatureSyntax ? "signature-syntax" : mappedSyntax ? "mapped-syntax" : conditionalSyntax ? "conditional-syntax" : typeSyntax ? "type-syntax" : symbolTypeNodes ? "symbol-type-nodes" : computedSymbols ? "computed-symbols" : symbolFormats ? "symbol-formats" : symbolDisplay ? "symbol-display" : accessibility ? "accessibility" : symbolChains ? "symbol-chains" : declarationVisibility ? "declaration-visibility" : contextQueries ? "context-queries" : scopeServices ? "scope-services" : symbolLocations ? "symbol-locations" : "locations"}`);
 const option = name => process.argv[process.argv.indexOf(name) + 1];
 const dotnet = process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, "dotnet.exe") : "dotnet";
 const dll = path.join(root, "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll");
@@ -212,6 +213,21 @@ exports["exported-name"]=C; Object.defineProperty(exports,"defined-name",{value:
     });
 }
 const inputs = [];
+if (anonymousSyntax) {
+    Object.assign(fixtures, {
+        anonymousSyntaxValues: `function f(x:number):string{return ''}const arrow=(x:string)=>x;const expression=function named(x:boolean){return x};type SerializeFunction=typeof f;type SerializeArrow=typeof arrow;type SerializeExpression=typeof expression;class Scope{} function location(){}`,
+        anonymousSyntaxNamed: `class C<T>{static value=1;field!:T;}abstract class A{}enum E {A,B}namespace N {export const value=1;}type SerializeClass=typeof C;type SerializeAbstract=typeof A;type SerializeEnum=typeof E;type SerializeNamespace=typeof N;class Scope{} function location(){}`,
+        anonymousSyntaxMembers: `class C {static method(x:number):string{return ''} method(x:string):number{return 0}}declare const instance:C;const obj={method(x:string){return x},get value(){return 1},set value(x:string|number){}};type SerializeStatic=typeof C.method;type SerializeInstance=typeof instance.method;type SerializeObject=typeof obj;class Scope{} function location(){}`,
+        anonymousSyntaxDefaults: `function f(x:number=1,y:string,z?:boolean){return y}function g(x='é'){return x}function h({x=1,y:renamed='a'}:{x?:number,y?:string}={}){return x}type SerializeRequired=typeof f;type SerializeOptional=typeof g;type SerializeBindings=typeof h;class Scope{} function location(){}`,
+        anonymousSyntaxRecursive: `function f():typeof f{return f}const arrow=():typeof arrow=>arrow;class C {static f():typeof C.f{return C.f}}type SerializeFunction=typeof f;type SerializeArrow=typeof arrow;type SerializeStatic=typeof C.f;class Scope{} function location(){}`,
+        anonymousSyntaxClassExpressions: `const C=class Inner<T>{field!:T;static x=1};const D=class {value=1};type SerializeNamed=typeof C;type SerializeUnnamed=typeof D;class Scope{} function location(){}`,
+        anonymousSyntaxMixins: `function mix<T extends abstract new (...args:any[])=>object>(Base:T){abstract class Derived extends Base{value=1;static field='x'}type SerializeMixin=typeof Derived;return Derived}class Scope{} function location(){}`,
+        anonymousSyntaxInstantiations: `function f<T>(x:T):T{return x}class C<T>{value!:T;constructor(value:T){this.value=value}}type SerializeFunction=typeof f<string>;type SerializeClass=typeof C<number>;class Scope{} function location(){}`,
+        anonymousSyntaxComputed: `declare const key:unique symbol;enum E {A='a',B=2}type SerializeSymbols={[key]:string};type SerializeEnums={[E.A]:number;[E.B]:string};type SerializeMethods={[key](x:number):string};class Scope{} function location(){}`,
+        anonymousSyntaxInstantiationScopes: `namespace N{export function f<T>(x:T):T{return x}}type SerializeGlobal=typeof N.f<'é'>;type SerializeArg<T>=typeof N.f<T>;class Scope<N>{}function location(N:number){}`,
+        anonymousSyntaxComposite: `type SerializeUnion=({x:number}&{y:string})|boolean;type SerializeFunction=((x:number)=>string)|boolean;type SerializeIntersection=({x:number}|{y:string})&{z:boolean};class Scope{} function location(){}`,
+    });
+}
 if (signatureSyntax) {
     Object.assign(fixtures, {
         signatureSyntaxBasic: `type SerializeFn=(x:number,y?:string)=>boolean;type SerializeVoid=()=>void;type SerializeRest=(...args:string[])=>number;type SerializeLiteral=(x:'é'|'b')=>'é';class Scope{} function location(){}`,
@@ -298,7 +314,7 @@ const formatFixtures = new Set(["namespaces", "imports", "typeImports", "classes
 const computedFixtures = new Set(["displayNames", "displayComputed", "displayAssigned", "jsdocDisplayNames", "classes", "visibilityExports", "accessibilityInstances", "chainClassNames"]);
 const typeNodeFixtures = new Set(["namespaces", "imports", "typeImports", "classes", "importsCommonJs", "visibilityAliases", "visibilityAmbient", "visibilityExports", "chainShadow", "chainReexports", "chainTypeOnly", "displayNames", "displayComputed", "accessibilityExportEquals", "accessibilityInstances", "symbolTypeModes", "symbolTypeAttributes"]);
 if (symbolTypeNodes) { for (const input of inputs) if (input.name.startsWith("symbolTypeModes:")) Object.assign(input.options, { module: "nodenext", moduleResolution: "nodenext" }); }
-const eligible = signatureSyntax ? inputs.filter(input => input.name.startsWith("signatureSyntax")) : mappedSyntax ? inputs.filter(input => input.name.startsWith("mappedSyntax")) : conditionalSyntax ? inputs.filter(input => input.name.startsWith("conditionalSyntax")) : typeSyntax ? inputs.filter(input => input.name.startsWith("typeSyntax")) : symbolTypeNodes ? inputs.filter(input => typeNodeFixtures.has(input.name.split(":")[0])) : computedSymbols ? inputs.filter(input => computedFixtures.has(input.name.split(":")[0])) : symbolFormats ? inputs.filter(input => formatFixtures.has(input.name.split(":")[0])) : inputs;
+const eligible = anonymousSyntax ? inputs.filter(input => input.name.startsWith("anonymousSyntax")) : signatureSyntax ? inputs.filter(input => input.name.startsWith("signatureSyntax")) : mappedSyntax ? inputs.filter(input => input.name.startsWith("mappedSyntax")) : conditionalSyntax ? inputs.filter(input => input.name.startsWith("conditionalSyntax")) : typeSyntax ? inputs.filter(input => input.name.startsWith("typeSyntax")) : symbolTypeNodes ? inputs.filter(input => typeNodeFixtures.has(input.name.split(":")[0])) : computedSymbols ? inputs.filter(input => computedFixtures.has(input.name.split(":")[0])) : symbolFormats ? inputs.filter(input => formatFixtures.has(input.name.split(":")[0])) : inputs;
 const selected = process.argv.includes("--filter") ? eligible.filter(input => input.name.includes(option("--filter"))) : eligible;
 await writeFile(path.join(output, "inputs.json"), JSON.stringify(selected, null, 2));
 if (process.argv.includes("--list")) process.exit(0);

@@ -1,0 +1,70 @@
+{
+    "timestamp": "2026-09-25T09:21:48.496Z",
+    "configuration": "Release",
+    "managed": true,
+    "scope": "Default untruncated anonymous values, recursive function values, generic typeof, mixin/abstract constructors, composed references and computed property names",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-anonymous-syntax-build.log",
+        "sha256": "a15ab4eabccf0a1ea7900475c55145d39f2ff0d5e7e08ea49e1d539f2d147508"
+    },
+    "comparisons": {
+        "configurations": 44,
+        "queries": 2448,
+        "comparedQueries": 2448,
+        "exact": 44,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "76546edfa152dceaa137af5ee0ec2bd93c451361054e38e4b955dc588dba816f",
+        "candidateHash": "fff6a1ad061832e6e9ef21dadf24bae211d9941e46785303a6f9d4fe08d57dea",
+        "inputHash": "09eb7fdf9b133b0453d90bdbb3133251dcae819c635890611ab2ee44cfaf967f",
+        "resultHash": "f8fc52d96f37b61966b748c7bc35be422d2972ef0b7dee606a10ec9ffa2ad6d4",
+        "managed": true
+    },
+    "candidateSha256": "7b68b3f5d2366d10b9ab44b0ab65e5e5d0cd9e7409b415ca4f8c9bb64b3647b5",
+    "compilerSha256": "89aeb6213ece4231ce131d0423b48b4712602fec750126d5c2a4ed1c0b5f8b53",
+    "reference": {
+        "revision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "frozenSourcesMatch": true,
+        "nodeBuilderBlob": "5cd58f6ec95f0fe53386fe46d2b3ecf0d2d46d83",
+        "nodeCopyBlob": "822a68634fdb00ae6f49d1e239cf4c608048f775"
+    },
+    "reuse": {
+        "record": "phase4-anonymous-syntax-reuse.json",
+        "retainedCandidates": 40,
+        "replayedCandidates": 4,
+        "retainedReferences": 44,
+        "finalComparisonRetained": true,
+        "reason": "Only formatting and documentation changed after the final comparison. Earlier core/conditional/mapped/signature inputs have no exported union origins or instantiated outer arguments. Their supported branches remain unchanged; the new nonlocal function/constructor/computed-name paths are covered by this matrix.",
+        "priorSafetyRecord": "phase4-mapped-signature-syntax-validation.json",
+        "priorSafetyAssertions": 9,
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "semanticCorpus": "Retained: existing semantic diagnostic callers do not invoke these type-syntax helpers"
+    },
+    "formatting": {
+        "tokensCommentsAndSyntaxIdentical": true,
+        "csharpFiles": 2,
+        "libraryConfigurations": 2,
+        "inputsUnchanged": true,
+        "dotnetWhitespaceExitCode": 0,
+        "log": "logs/csharp-phase4-anonymous-syntax-format.log",
+        "proofSha256": "8e2e6eca4c2b6e4e76ef3919abb23b89bff2e20a546edcdc5d81f40a1d1e9737"
+    },
+    "syntaxCheck": {
+        "exitCode": 0,
+        "command": "node --check csharp/tools/checker-locations.mjs"
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "phase4Complete": false
+}

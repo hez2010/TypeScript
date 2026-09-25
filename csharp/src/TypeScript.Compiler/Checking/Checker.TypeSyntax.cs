@@ -145,8 +145,24 @@ internal sealed partial class Checker
                 state.Symbols,
                 false,
                 cancellation);
+        if (type is ObjectType { Symbol: { } objectSymbol } && (type.ObjectFlags & ObjectFlags.Anonymous) != 0
+            && (type.ObjectFlags & ObjectFlags.InstantiationExpressionType) == 0)
+        {
+            bool named = (objectSymbol.Flags & (SymbolFlags.Enum | SymbolFlags.ValueModule)) != 0;
+            if ((objectSymbol.Flags & SymbolFlags.Class) != 0)
+            {
+                var declared = (InterfaceType)await Declared.GetAsync(objectSymbol, cancellation);
+                var baseConstructor = await ClassBases.ConstructorAsync(declared, cancellation);
+                named = (baseConstructor.Flags & TypeFlags.TypeVariable) == 0
+                    && (baseConstructor is not IntersectionType intersection
+                        || intersection.Types.All(t => (t.Flags & TypeFlags.TypeVariable) == 0));
+            }
+            if (named)
+                return await SymbolTypeNodeAsync(objectSymbol, SymbolFlags.Value, null, state.Symbols, false, cancellation);
+        }
         if (!state.Active.Add(type))
-            return f.NewKeywordTypeNode(K.AnyKeyword);
+            return await RecursiveTypeSyntaxAsync(type, state, cancellation);
+        var activeType = type;
         try
         {
             if (type is TypeReference reference && (type.ObjectFlags & ObjectFlags.Reference) != 0)
@@ -176,7 +192,7 @@ internal sealed partial class Checker
                     cancellation)
                     : f.NewTypeReferenceNode(f.NewIdentifier("?"), null);
             if (type is UnionType { Origin: { } origin })
-                return await TypeSyntaxAsync(origin, state, cancellation);
+                type = origin;
             if (type is UnionOrIntersectionType composite)
             {
                 IReadOnlyList<Type> types = type is UnionType
@@ -188,7 +204,7 @@ internal sealed partial class Checker
                 if (nodes is null)
                     return f.NewKeywordTypeNode(K.AnyKeyword);
                 var parenthesized = new NodeList(nodes.Select(n => n is FunctionTypeNode or ConstructorTypeNode or ConditionalTypeNode
-                    || type is IntersectionType && n is UnionTypeNode ? f.NewParenthesizedTypeNode(n) : n).ToArray());
+                    or UnionTypeNode or IntersectionTypeNode ? f.NewParenthesizedTypeNode(n) : n).ToArray());
                 return type is UnionType ? f.NewUnionTypeNode(parenthesized) : f.NewIntersectionTypeNode(parenthesized);
             }
             if (type is IndexType index)
@@ -256,18 +272,20 @@ internal sealed partial class Checker
             }
             if (type is ObjectType objectType)
             {
+                if (type is InstantiationExpressionType { Node: TypeQueryNode query }
+                    && await Nodes.FromNodeAsync(query, cancellation) == type
+                    && await ReuseTypeQuerySyntaxAsync(query, state, cancellation) is { } reused)
+                    return reused;
                 if (type is MappedType mapped && (await Instantiation.Mapped.IsGenericAsync(mapped, cancellation) || mapped.ContainsError))
                     return await MappedTypeSyntaxAsync(mapped, state, cancellation);
                 var resolved = await Members.ResolveAsync(objectType, cancellation);
-                if (type.Symbol is null
-                        || (type.Symbol.Flags & (SymbolFlags.TypeLiteral | SymbolFlags.ObjectLiteral)) != 0)
-                    return await ObjectTypeSyntaxAsync(resolved, state, cancellation);
+                return await ObjectTypeSyntaxAsync(resolved, state, cancellation);
             }
             throw new NotSupportedException($"Type syntax construction is not yet implemented for {type.GetType().Name}");
         }
         finally
         {
-            state.Active.Remove(type);
+            state.Active.Remove(activeType);
         }
     }
 
@@ -379,8 +397,33 @@ internal sealed partial class Checker
                     reusedType = ReuseLiteralTypeSyntax(annotation, state, cancellation);
             }
             var nameType = links.Values.TryGet(property)?.NameType;
-            if (nameType is UniqueSymbolType || nameType is { Flags: var flags } && (flags & TypeFlags.EnumLiteral) != 0)
-                throw new NotSupportedException("Symbol-named properties require computed reference tracking");
+            SyntaxNode? computedName = null;
+            if (nameType?.Symbol is { } nameSymbol)
+            {
+                if (nameType is UniqueSymbolType)
+                {
+                    var sourceScope = new SymbolDisplayContext(declaration ?? state.Symbols.Enclosing, state.Symbols.Flags);
+                    if (await SymbolTypeNodeAsync(
+                        nameSymbol,
+                        SymbolFlags.Value,
+                        null,
+                        sourceScope,
+                        false,
+                        cancellation) is TypeQueryNode query)
+                        computedName = f.NewComputedPropertyName(query.ExprName);
+                }
+                else if ((nameType.Flags & TypeFlags.EnumLiteral) != 0 && state.Symbols.Enclosing is not null
+                    && (await SymbolAccessibilityAsync(nameSymbol.Parent ?? nameSymbol, state.Symbols.Enclosing,
+                        SymbolFlags.Value, false, false, cancellation)).Accessibility == SymbolAccessibility.Accessible
+                    && await SymbolTypeNodeAsync(
+                        nameSymbol,
+                        SymbolFlags.Value,
+                        null,
+                        state.Symbols,
+                        false,
+                        cancellation) is TypeQueryNode query)
+                    computedName = f.NewComputedPropertyName(query.ExprName);
+            }
             string name = property.Name;
             if (nameType is LiteralType { Value: string text })
                 name = text;
@@ -397,7 +440,11 @@ internal sealed partial class Checker
                         && ((await ExpressionTypeForQueryAsync(computed.Expression!, cancellation)).Flags & TypeFlags.StringLike) != 0;
             }
             SyntaxNode propertyName;
-            if (SemanticSyntax.Name(property.ValueDeclaration) is PrivateIdentifierNode privateName)
+            if (computedName is not null)
+                propertyName = computedName;
+            else if (nameType is UniqueSymbolType)
+                throw new NotSupportedException("Computed property name has no value expression");
+            else if (SemanticSyntax.Name(property.ValueDeclaration) is PrivateIdentifierNode privateName)
                 propertyName = f.NewPrivateIdentifier(privateName.Text);
             else if (IdentifierName(name))
                 propertyName = f.NewIdentifier(name);
@@ -521,14 +568,55 @@ internal sealed partial class Checker
         if (reference.Target is not InterfaceType target || reference.Symbol is null)
             throw new InvalidOperationException("Unnamed type reference");
         int count = target.AllTypeParameters.Count - (target.ThisType is null ? 0 : 1);
-        if (target.OuterTypeParameterCount != 0
-            && !arguments.Take(target.OuterTypeParameterCount).SequenceEqual(target.AllTypeParameters.Take(target.OuterTypeParameterCount)))
-            throw new NotSupportedException("Instantiated outer type arguments require reference composition");
+        SyntaxNode? outer = null;
+        int outerCount = target.OuterTypeParameterCount;
+        for (int i = 0; i < outerCount;)
+        {
+            int start = i;
+            var parent = ParameterOwner(target.AllTypeParameters[i]);
+            do
+                i++;
+            while (i < outerCount && ParameterOwner(target.AllTypeParameters[i]) == parent);
+            if (!arguments.Skip(start).Take(i - start).SequenceEqual(target.AllTypeParameters.Skip(start).Take(i - start)))
+            {
+                var group = await TypeSyntaxListAsync(arguments.Skip(start).Take(i - start).ToArray(), state, cancellation);
+                var node = await SymbolTypeNodeAsync(parent!, SymbolFlags.Type, group, state.Symbols, true, cancellation);
+                outer = outer is null ? node : AppendTypeReference(outer, node, f);
+            }
+        }
         var nodes = await TypeSyntaxListAsync(
             arguments.Skip(target.OuterTypeParameterCount).Take(count - target.OuterTypeParameterCount).ToArray(),
             state,
             cancellation);
-        return await SymbolTypeNodeAsync(reference.Symbol, SymbolFlags.Type, nodes, state.Symbols, true, cancellation);
+        var final = await SymbolTypeNodeAsync(reference.Symbol, SymbolFlags.Type, nodes, state.Symbols, true, cancellation);
+        return outer is null ? final : AppendTypeReference(outer, final, f);
+
+        Symbol? ParameterOwner(Type type)
+        {
+            var declaration = type.Symbol?.Declarations.OfType<TypeParameterDeclarationNode>().FirstOrDefault();
+            return declaration?.Parent is { } owner ? program.Symbols.Declaration(owner) : null;
+        }
+    }
+
+    private static SyntaxNode AppendTypeReference(SyntaxNode root, SyntaxNode reference, NodeFactory factory)
+    {
+        if (reference is not TypeReferenceNode typeReference)
+            throw new InvalidOperationException("Outer type argument composition requires a named reference");
+        var names = new Stack<SyntaxNode>();
+        var current = typeReference.TypeName;
+        while (current is QualifiedNameNode qualified)
+        {
+            names.Push(qualified.Right!);
+            current = qualified.Left;
+        }
+        names.Push((IdentifierNode)current!);
+        SyntaxNode? name = root is ImportTypeNode import ? import.Qualifier : ((TypeReferenceNode)root).TypeName;
+        foreach (var part in names)
+            name = name is null ? part : factory.NewQualifiedName(name, part);
+        // The pinned builder discards the outer argument list when appending a reference.
+        return root is ImportTypeNode imported
+            ? factory.NewImportTypeNode(imported.IsTypeOf, imported.Argument, imported.Attributes, name, typeReference.TypeArguments)
+            : factory.NewTypeReferenceNode(name, typeReference.TypeArguments);
     }
 
     private static SyntaxNode ParenthesizeType(SyntaxNode node, NodeFactory f, bool postfix = false) =>

@@ -20,9 +20,71 @@ internal sealed partial class Checker
             if (type.ConstructSignatures.Count == 1 && type.CallSignatures.Count == 0)
                 return await SignatureSyntaxAsync(type.ConstructSignatures[0], K.ConstructorType, state, cancellation);
         }
-        if (type.ConstructSignatures.Any(s => (s.Flags & SignatureFlags.Abstract) != 0))
-            throw new NotSupportedException("Mixed abstract constructor syntax requires intersection construction");
+        var abstractSignatures = type.ConstructSignatures.Where(s => (s.Flags & SignatureFlags.Abstract) != 0).ToArray();
+        if (abstractSignatures.Length != 0)
+        {
+            var types = abstractSignatures.Select(s => (Type)SignatureInstantiation.FromSignature(s)).ToList();
+            if (type.CallSignatures.Count + type.ConstructSignatures.Count - abstractSignatures.Length
+                + type.IndexInfos.Count + (type.Properties?.Count ?? 0) != 0)
+            {
+                if (type.WithoutAbstractConstructSignatures is not { } withoutAbstract)
+                {
+                    var copy = context.NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved, type.Symbol);
+                    copy.Members = type.Members;
+                    copy.Properties = type.Properties;
+                    copy.CallSignatures = type.CallSignatures;
+                    copy.ConstructSignatures = type.ConstructSignatures.Where(s => (s.Flags & SignatureFlags.Abstract) == 0).ToArray();
+                    copy.IndexInfos = type.IndexInfos;
+                    copy.WithoutAbstractConstructSignatures = copy;
+                    type.WithoutAbstractConstructSignatures = withoutAbstract = copy;
+                }
+                types.Add(withoutAbstract);
+            }
+            return await TypeSyntaxAsync(await Algebra.IntersectionAsync(types, cancellation: cancellation), state, cancellation);
+        }
         return await ObjectPropertySyntaxAsync(type, state, cancellation);
+    }
+
+    private async ValueTask<SyntaxNode> RecursiveTypeSyntaxAsync(Type type, TypeSyntaxContext state, CancellationToken cancellation)
+    {
+        if (type is ObjectType { Symbol: { } symbol } && (type.ObjectFlags & ObjectFlags.InstantiationExpressionType) == 0)
+        {
+            if ((symbol.Flags & SymbolFlags.TypeLiteral) != 0 && symbol.Declarations.FirstOrDefault() is { } literal)
+            {
+                var parent = literal.Parent;
+                while (parent is ParenthesizedTypeNode)
+                    parent = parent.Parent;
+                if (parent is TypeAliasDeclarationNode && program.Symbols.Declaration(parent) is { } alias)
+                    return await SymbolTypeNodeAsync(alias, SymbolFlags.Type, null, state.Symbols, false, cancellation);
+            }
+            bool named = (symbol.Flags & SymbolFlags.Method) != 0 && IdentifierName(symbol.Name)
+                && symbol.Declarations.Any(d => SemanticSyntax.HasModifier(d, K.StaticKeyword));
+            if ((symbol.Flags & SymbolFlags.Function) != 0)
+            {
+                named |= symbol.Parent is not null;
+                if (!named)
+                    foreach (var declaration in symbol.Declarations)
+                    {
+                        if (declaration.Parent is SourceFileNode or ModuleBlockNode)
+                        {
+                            named = true;
+                            break;
+                        }
+                        if (declaration is FunctionExpressionNode or ArrowFunctionNode
+                            && declaration.Parent is VariableDeclarationNode variable
+                            && variable.Parent?.Parent?.Parent is SourceFileNode or ModuleBlockNode)
+                        {
+                            named = true;
+                            if (symbol.ValueDeclaration?.Parent is { } owner && owner != state.Symbols.Enclosing)
+                                symbol = program.Symbols.Declaration(owner) ?? symbol;
+                            break;
+                        }
+                    }
+            }
+            if (named)
+                return await SymbolTypeNodeAsync(symbol, SymbolFlags.Value, null, state.Symbols, false, cancellation);
+        }
+        return state.Factory.NewKeywordTypeNode(K.AnyKeyword);
     }
 
     private async ValueTask<SyntaxNode> SignatureSyntaxAsync(Signature signature, K kind, TypeSyntaxContext state,
@@ -177,7 +239,10 @@ internal sealed partial class Checker
             !addUndefined && declaration?.QuestionToken is not null,
             state,
             cancellation);
-        var name = declaration?.Name is { } original ? CloneSyntaxBindingName(original, state) : f.NewIdentifier(symbol.Name);
+        var name = declaration?.Name is { } original
+            ? CloneSyntaxBindingName(
+                original is QualifiedNameNode qualified ? qualified.Right! : original,
+                state) : f.NewIdentifier(symbol.Name);
         state.NoAsciiEscape.Add(name);
         return f.NewParameterDeclaration(null,
             declaration?.DotDotDotToken is not null || (symbol.CheckFlags & Binding.CheckFlags.RestParameter) != 0
@@ -201,7 +266,7 @@ internal sealed partial class Checker
 
     private static SyntaxNode CloneSyntaxBindingName(SyntaxNode name, TypeSyntaxContext state)
     {
-        var result = (name is QualifiedNameNode qualified ? qualified.Right! : name).DeepClone<SyntaxNode>(state.Factory);
+        var result = name.DeepClone<SyntaxNode>(state.Factory);
         foreach (var node in result.DescendantsAndSelf())
         {
             node.Parent = null;
@@ -231,40 +296,58 @@ internal sealed partial class Checker
             {
                 if (ReuseLiteralTypeSyntax(annotation, state, cancellation) is { } reused)
                     return reused;
-                if (annotation is TypeQueryNode { TypeArguments: null, ExprName: { } entity })
-                {
-                    var left = entity;
-                    while (left is QualifiedNameNode qualified)
-                        left = qualified.Left!;
-                    if (left is IdentifierNode identifier)
-                    {
-                        var original = await program.EntityNames.ResolveAsync(
-                            identifier,
-                            SymbolFlags.Value,
-                            true,
-                            true,
-                            cancellation: cancellation);
-                        var current = await program.EntityNames.ResolveAsync(identifier, SymbolFlags.Value, true, true,
-                            state.Symbols.Enclosing, cancellation);
-                        for (var scope = state.Symbols.Enclosing; scope is not null; scope = scope.Parent)
-                            if (typeSyntaxScopes.TryGetValue(scope, out var locals)
-                                && locals.TryGetValue(identifier.Text, out var local) && (local.Flags & SymbolFlags.Value) != 0)
-                            {
-                                current = local;
-                                break;
-                            }
-                        if (current != UnknownSymbol && (original is null || current is not null
-                            && await SameSymbolReferenceAsync(
-                                current.ExportSymbol ?? current,
-                                original.ExportSymbol ?? original,
-                                cancellation))
-                            && (current is null || (await SymbolAccessibilityAsync(current, state.Symbols.Enclosing,
-                                SymbolFlags.Value, false, true, cancellation)).Accessibility == SymbolAccessibility.Accessible))
-                            return CloneSyntaxBindingName(annotation, state);
-                    }
-                }
+                if (annotation is TypeQueryNode query && await ReuseTypeQuerySyntaxAsync(query, state, cancellation) is { } reusedQuery)
+                    return reusedQuery;
             }
         }
         return await TypeSyntaxAsync(value, state, cancellation);
+    }
+
+    private async ValueTask<SyntaxNode?> ReuseTypeQuerySyntaxAsync(
+        TypeQueryNode query,
+        TypeSyntaxContext state,
+        CancellationToken cancellation)
+    {
+        var left = query.ExprName;
+        while (left is QualifiedNameNode qualified)
+            left = qualified.Left;
+        if (left is not IdentifierNode identifier)
+            return null;
+        var original = await program.EntityNames.ResolveAsync(identifier, SymbolFlags.Value, true, true, cancellation: cancellation);
+        var current = await program.EntityNames.ResolveAsync(
+            identifier,
+            SymbolFlags.Value,
+            true,
+            true,
+            state.Symbols.Enclosing,
+            cancellation);
+        for (var scope = state.Symbols.Enclosing; scope is not null; scope = scope.Parent)
+            if (typeSyntaxScopes.TryGetValue(scope, out var locals)
+                && locals.TryGetValue(identifier.Text, out var local) && (local.Flags & SymbolFlags.Value) != 0)
+            {
+                current = local;
+                break;
+            }
+        var arguments = new List<SyntaxNode>();
+        if (query.TypeArguments is { } typeArguments)
+            foreach (var argument in typeArguments)
+                arguments.Add(ReuseLiteralTypeSyntax(argument, state, cancellation)
+                    ?? await TypeSyntaxAsync(await Nodes.FromNodeAsync(argument, cancellation), state, cancellation));
+        NodeList? argumentNodes = query.TypeArguments is null ? null : new(arguments.ToArray());
+        if (current != UnknownSymbol && (original is null || current is not null
+            && await SameSymbolReferenceAsync(current.ExportSymbol ?? current, original.ExportSymbol ?? original, cancellation))
+            && (current is null || (await SymbolAccessibilityAsync(current, state.Symbols.Enclosing,
+                SymbolFlags.Value, false, true, cancellation)).Accessibility == SymbolAccessibility.Accessible))
+        {
+            if (query.TypeArguments is null)
+                return CloneSyntaxBindingName(query, state);
+            return state.Factory.NewTypeQueryNode(CloneSyntaxBindingName(query.ExprName!, state), argumentNodes);
+        }
+        var symbol = await program.EntityNames.ResolveAsync(query.ExprName, SymbolFlags.Value, true, cancellation: cancellation);
+        if (symbol is null || symbol == UnknownSymbol || (await SymbolAccessibilityAsync(symbol, state.Symbols.Enclosing,
+            SymbolFlags.Value, false, true, cancellation)).Accessibility != SymbolAccessibility.Accessible)
+            return null;
+        // The pinned builder drops type arguments when this fallback returns a typeof query.
+        return await SymbolTypeNodeAsync(symbol, SymbolFlags.Value, argumentNodes, state.Symbols, false, cancellation);
     }
 }
