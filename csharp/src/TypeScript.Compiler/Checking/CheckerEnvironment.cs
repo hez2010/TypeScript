@@ -242,7 +242,21 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
 
     public void ValueUseSuggestion(SyntaxNode node, DiagnosticMessage message, string name) => Suggestion(node, message.Code, name);
 
-    public void DeclarationRelatedInfo(SyntaxNode declaration, bool typeOnly, string name) { }
+    public void DeclarationRelatedInfo(SyntaxNode? location, int code, SyntaxNode declaration, bool typeOnly, string name)
+    {
+        var message = !typeOnly ? Messages.X_0_is_declared_here
+            : declaration is ExportSpecifierNode or ExportDeclarationNode or NamespaceExportNode
+                ? Messages.X_0_was_exported_here : Messages.X_0_was_imported_here;
+        var note = CheckerDiagnostic.Create(declaration, message, name);
+        for (int i = DiagnosticFiles.Count - 1; i >= 0; i--)
+            if (DiagnosticFiles[i].Node == location && DiagnosticFiles[i].Diagnostic.Code == code)
+            {
+                var diagnostic = DiagnosticFiles[i].Diagnostic;
+                if (!diagnostic.RelatedInformation.Any(d => d.Code == note.Code && d.Start == note.Start && d.FileName == note.FileName))
+                    DiagnosticFiles[i] = (location, diagnostic with { RelatedInformation = [.. diagnostic.RelatedInformation, note] });
+                return;
+            }
+    }
 
     public bool ValidTypeOnlyUse(SyntaxNode node) => ReferenceSyntax.ValidTypeOnlyUse(node);
 

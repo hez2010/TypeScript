@@ -29,10 +29,6 @@ internal sealed partial class Checker : IAccessExpressionHost, IIndexedAccessVal
     public bool UseDefineForClassFields => program.Symbols.Program.Configuration.Options.Boolean("useDefineForClassFields")
         ?? program.Symbols.Program.Configuration.Options.EmitTargetYear >= 2022;
 
-    public void AccessError(SyntaxNode node, int code, Type? type = null, Symbol? symbol = null) => Error(node, code);
-
-    public void MemberError(SyntaxNode node, int code, Symbol symbol, Type? type = null) => Error(node, code);
-
     public ValueTask MarkPropertyAliasAsync(SyntaxNode node, Symbol? property, Type parentType, CancellationToken cancellation) =>
         AliasReferences.PropertyAsync(node, property, parentType, cancellation);
 
@@ -217,8 +213,12 @@ internal sealed partial class Checker : IAccessExpressionHost, IIndexedAccessVal
         CancellationToken cancellation)
             => Access.ElementPropertyAsync(property, objectType, node, flags, cancellation);
 
-    public void ReadonlyIndex(IndexInfo? index, Type objectType, ElementAccessExpressionNode? node) =>
-        Access.ReadonlyIndex(index, objectType, node);
+    public ValueTask ReadonlyIndexAsync(
+        IndexInfo? index,
+        Type objectType,
+        ElementAccessExpressionNode? node,
+        CancellationToken cancellation) =>
+        Access.ReadonlyIndexAsync(index, objectType, node, cancellation);
 
     public ValueTask<Type?> MissingElementAsync(
         Type original,

@@ -15,7 +15,13 @@ internal interface IMemberAccessibilityHost
 
     bool ClassInstanceProperty(SyntaxNode declaration);
 
-    void MemberError(SyntaxNode node, int code, Symbol symbol, Type? type = null);
+    ValueTask MemberErrorAsync(
+        SyntaxNode node,
+        int code,
+        Symbol symbol,
+        CancellationToken cancellation,
+        Type? type = null,
+        Type? enclosing = null);
 }
 
 internal sealed class MemberAccessibility(CheckerSymbols symbols, CheckerLinks links, DeclaredTypes declared, BaseTypes bases,
@@ -38,9 +44,9 @@ internal sealed class MemberAccessibility(CheckerSymbols symbols, CheckerLinks l
         if (super)
         {
             if (abstractMember)
-                return Fail(2513);
+                return await FailAsync(2513);
             if ((flags & CheckFlags.ContainsStatic) == 0 && property.Declarations.Any(host.ClassInstanceProperty))
-                return Fail(2855);
+                return await FailAsync(2855);
         }
         if (abstractMember
             && await AnyPropertyAsync(
@@ -51,7 +57,7 @@ internal sealed class MemberAccessibility(CheckerSymbols symbols, CheckerLinks l
                 || node.Parent?.Kind == SyntaxKind.ObjectBindingPattern
                     && node.Parent.Parent is VariableDeclarationNode { Initializer.Kind: SyntaxKind.ThisKeyword })
             && symbols.Parent(property) is { Flags: var parentFlags } && (parentFlags & SymbolFlags.Class) != 0 && UsedDuringInitialization(node))
-            return Fail(2715);
+            return await FailAsync(2715);
         var privateFlag = writing ? CheckFlags.ContainsWritePrivate : CheckFlags.ContainsPrivate;
         var protectedFlag = writing ? CheckFlags.ContainsWriteProtected : CheckFlags.ContainsProtected;
         if ((flags & (privateFlag | protectedFlag)) == 0)
@@ -59,7 +65,8 @@ internal sealed class MemberAccessibility(CheckerSymbols symbols, CheckerLinks l
         if ((flags & privateFlag) != 0)
         {
             var declaration = symbols.Parent(property)?.Declarations.FirstOrDefault(SemanticSyntax.ClassLike);
-            return declaration is not null && DeclarationOrder.Ancestor(node.Parent, n => n == declaration) is not null || Fail(2341);
+            return declaration is not null && DeclarationOrder.Ancestor(node.Parent, n => n == declaration) is not null
+                || await FailAsync(2341);
         }
         if (super)
             return true;
@@ -79,7 +86,7 @@ internal sealed class MemberAccessibility(CheckerSymbols symbols, CheckerLinks l
             if (type is not null && await DerivedFromDeclaringAsync(type, property, writing, cancellation).ConfigureAwait(false))
                 enclosing = type;
             if ((flags & CheckFlags.ContainsStatic) != 0 || enclosing is null)
-                return Fail(2445);
+                return await FailAsync(2445);
         }
         if ((flags & CheckFlags.ContainsStatic) != 0)
             return true;
@@ -90,15 +97,21 @@ internal sealed class MemberAccessibility(CheckerSymbols symbols, CheckerLinks l
         if (receiver is null || !await bases.HasBaseAsync(receiver, enclosing, cancellation).ConfigureAwait(false))
         {
             if (receiver is not null)
-                Fail(2446);
+                await FailAsync(2446, enclosing, receiver);
             return false;
         }
         return true;
 
-        bool Fail(int code)
+        async ValueTask<bool> FailAsync(int code, Type? enclosingType = null, Type? receiverType = null)
         {
             if (error is not null)
-                host.MemberError(error, code, property, containingType);
+                await host.MemberErrorAsync(
+                    error,
+                    code,
+                    property,
+                    cancellation,
+                    receiverType ?? containingType,
+                    enclosingType).ConfigureAwait(false);
             return false;
         }
     }

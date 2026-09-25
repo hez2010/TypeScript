@@ -196,7 +196,61 @@ internal static class CheckerAccessTests
         checks += await JavaScriptPropertySafety();
         checks += await DeclarationGrammarSafety();
         checks += await PropertyDiagnosticSafety();
+        checks += await AccessDiagnosticSafety();
         Console.WriteLine($"{checks} access/optional/member/class/cancellation/spelling assertions; 20,000-level traversal.");
+    }
+
+    private static async Task<int> AccessDiagnosticSafety()
+    {
+        string source = "\n" + """
+            interface Array<T> { length: number; [n: number]: T; }
+            class Base { private secret = 1; protected hidden = 1; readonly fixed = 1; field = 1; }
+            declare const base: Base;
+            base.secret;
+            base.hidden;
+            base.fixed = 2;
+            base['fixed'] = 2;
+            class Derived extends Base { use(other: Base) { other.hidden; super.field; } }
+            abstract class Abstract { abstract value: number; abstract method(): void; constructor() { this.value; } }
+            class Concrete extends Abstract { value = 1; method() { super.method(); } }
+            class Early { first = this.later; later = 1; static next = Later; }
+            class Later {}
+            declare const readonlyIndex: { readonly [key: string]: number };
+            readonlyIndex.value = 1;
+            readonlyIndex['value'] = 1;
+            function generic<T extends Base>(value: T) { value['secret']; }
+            class Hidden { #value = 0; #method() {} set #setter(value: number) {} use() { this.#method = () => {}; this.#setter; } }
+            declare const hidden: Hidden;
+            hidden.#value;
+            class Outer { #value = 0; inner() { return class Inner { #value = 0; read(value: Outer) { return value.#value; } }; } }
+            class Uninitialized { value: number; constructor() { this.value; this.value = 1; } }
+            """.Replace("\r\n", "\n", StringComparison.Ordinal) + "\n";
+        const string reference = """
+            [{"arguments":["secret","Base"],"category":1,"chain":[],"code":2341,"file":"/project/main.ts","key":"Property_0_is_private_and_only_accessible_within_class_1_2341","length":6,"related":[],"start":175},{"arguments":["hidden","Base"],"category":1,"chain":[],"code":2445,"file":"/project/main.ts","key":"Property_0_is_protected_and_only_accessible_within_class_1_and_its_subclasses_2445","length":6,"related":[],"start":188},{"arguments":["fixed"],"category":1,"chain":[],"code":2540,"file":"/project/main.ts","key":"Cannot_assign_to_0_because_it_is_a_read_only_property_2540","length":5,"related":[],"start":201},{"arguments":["fixed"],"category":1,"chain":[],"code":2540,"file":"/project/main.ts","key":"Cannot_assign_to_0_because_it_is_a_read_only_property_2540","length":7,"related":[],"start":217},{"arguments":["hidden","Derived","Base"],"category":1,"chain":[],"code":2446,"file":"/project/main.ts","key":"Property_0_is_protected_and_only_accessible_through_an_instance_of_class_1_This_is_an_instance_of_cl_2446","length":6,"related":[],"start":285},{"arguments":["field"],"category":1,"chain":[],"code":2855,"file":"/project/main.ts","key":"Class_field_0_defined_by_the_parent_class_is_not_accessible_in_the_child_class_via_super_2855","length":5,"related":[],"start":299},{"arguments":["value","Abstract"],"category":1,"chain":[],"code":2715,"file":"/project/main.ts","key":"Abstract_property_0_in_class_1_cannot_be_accessed_in_the_constructor_2715","length":5,"related":[],"start":406},{"arguments":["method","Abstract"],"category":1,"chain":[],"code":2513,"file":"/project/main.ts","key":"Abstract_method_0_in_class_1_cannot_be_accessed_via_super_expression_2513","length":6,"related":[],"start":479},{"arguments":["later"],"category":1,"chain":[],"code":2729,"file":"/project/main.ts","key":"Property_0_is_used_before_its_initialization_2729","length":5,"related":[{"arguments":["later"],"category":3,"chain":[],"code":2728,"file":"/project/main.ts","key":"_0_is_declared_here_2728","length":5,"related":[],"start":527}],"start":520},{"arguments":["Later"],"category":1,"chain":[],"code":2449,"file":"/project/main.ts","key":"Class_0_used_before_its_declaration_2449","length":5,"related":[{"arguments":["Later"],"category":3,"chain":[],"code":2728,"file":"/project/main.ts","key":"_0_is_declared_here_2728","length":5,"related":[],"start":567}],"start":552},{"arguments":["{ readonly [key: string]: number; }"],"category":1,"chain":[],"code":2542,"file":"/project/main.ts","key":"Index_signature_in_type_0_only_permits_reading_2542","length":19,"related":[],"start":641},{"arguments":["value"],"category":1,"chain":[],"code":4111,"file":"/project/main.ts","key":"Property_0_comes_from_an_index_signature_so_it_must_be_accessed_with_0_4111","length":5,"related":[],"start":655},{"arguments":["{ readonly [key: string]: number; }"],"category":1,"chain":[],"code":2542,"file":"/project/main.ts","key":"Index_signature_in_type_0_only_permits_reading_2542","length":22,"related":[],"start":666},{"arguments":["#method"],"category":1,"chain":[],"code":2803,"file":"/project/main.ts","key":"Cannot_assign_to_private_method_0_Private_methods_are_not_writable_2803","length":7,"related":[],"start":841},{"arguments":[],"category":1,"chain":[],"code":2806,"file":"/project/main.ts","key":"Private_accessor_was_defined_without_a_getter_2806","length":12,"related":[],"start":861},{"arguments":["#value","Hidden"],"category":1,"chain":[],"code":18013,"file":"/project/main.ts","key":"Property_0_is_not_accessible_outside_class_1_because_it_has_a_private_identifier_18013","length":6,"related":[],"start":916},{"arguments":["#value","Outer"],"category":1,"chain":[],"code":18014,"file":"/project/main.ts","key":"The_property_0_cannot_be_accessed_on_type_1_within_this_class_because_it_is_shadowed_by_another_priv_18014","length":6,"related":[{"arguments":["#value"],"category":1,"chain":[],"code":18017,"file":"/project/main.ts","key":"The_shadowing_declaration_of_0_is_defined_here_18017","length":6,"related":[],"start":981},{"arguments":["#value"],"category":1,"chain":[],"code":18018,"file":"/project/main.ts","key":"The_declaration_of_0_that_you_probably_intended_to_use_is_defined_here_18018","length":6,"related":[],"start":938}],"start":1027},{"arguments":["value"],"category":1,"chain":[],"code":2565,"file":"/project/main.ts","key":"Property_0_is_used_before_being_assigned_2565","length":5,"related":[],"start":1102}]
+            """;
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        options.SetRaw("noErrorTruncation", "true");
+        options.SetRaw("target", "\"esnext\"");
+        options.SetRaw("noPropertyAccessFromIndexSignature", "true");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
+            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        await checker.CheckProgramAsync();
+        var file = program.GetFile("/project/main.ts")!.Syntax;
+        using var stream = new MemoryStream();
+        using (var writer = new System.Text.Json.Utf8JsonWriter(stream))
+            CheckerCorpusTests.WriteDiagnostics(writer, checker.DetailedDiagnosticsForFile(file).OrderBy(d => d.Start).ThenBy(d => d.Code));
+        using var actual = System.Text.Json.JsonDocument.Parse(stream.ToArray());
+        using var expected = System.Text.Json.JsonDocument.Parse(reference);
+        if (actual.RootElement.GetArrayLength() != expected.RootElement.GetArrayLength())
+            throw new InvalidOperationException("Access diagnostic count");
+        for (int i = 0; i < actual.RootElement.GetArrayLength(); i++)
+            if (!System.Text.Json.JsonElement.DeepEquals(actual.RootElement[i], expected.RootElement[i]))
+                throw new InvalidOperationException($"Access diagnostic {i}: {actual.RootElement[i].GetRawText()}");
+        return actual.RootElement.GetArrayLength();
     }
 
     private static async Task<int> PropertyDiagnosticSafety()

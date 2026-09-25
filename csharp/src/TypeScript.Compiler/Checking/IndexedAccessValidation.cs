@@ -9,7 +9,14 @@ internal interface IIndexedAccessValidationHost
 
     CheckFlags AccessFlags(Symbol symbol, bool writing);
 
-    void AccessError(SyntaxNode node, int code, Type? type = null, Symbol? symbol = null);
+    ValueTask AccessErrorAsync(
+        SyntaxNode node,
+        int code,
+        CancellationToken cancellation,
+        Type? type = null,
+        Symbol? symbol = null,
+        Type? index = null,
+        Symbol? related = null);
 }
 
 internal sealed class IndexedAccessValidation(TypeContext context, TypeKeys keys, MappedTypes mapped, MappedMembers members,
@@ -41,7 +48,7 @@ internal sealed class IndexedAccessValidation(TypeContext context, TypeKeys keys
         {
             if (node is ElementAccessExpressionNode && ReferenceSyntax.AssignmentTarget(node) is not null
                 && objectType is MappedType mappedObject && (MappedTypes.Modifiers(mappedObject) & MappedTypeModifiers.IncludeReadonly) != 0)
-                host.AccessError(node, 2542, objectType);
+                await host.AccessErrorAsync(node, 2542, cancellation, objectType).ConfigureAwait(false);
             return type;
         }
         if (((await mapped.GenericFlagsAsync(objectType, cancellation).ConfigureAwait(false)) & ObjectFlags.IsGenericObjectType) != 0
@@ -54,13 +61,13 @@ internal sealed class IndexedAccessValidation(TypeContext context, TypeKeys keys
                 {
                     if ((host.AccessFlags(property, false) & (CheckFlags.ContainsPrivate | CheckFlags.ContainsProtected)) != 0)
                     {
-                        host.AccessError(node, 4105, symbol: property);
+                        await host.AccessErrorAsync(node, 4105, cancellation, symbol: property).ConfigureAwait(false);
                         return context.ErrorType;
                     }
                     break;
                 }
         }
-        host.AccessError(node, 2536, objectType);
+        await host.AccessErrorAsync(node, 2536, cancellation, objectType, index: indexType).ConfigureAwait(false);
         return context.ErrorType;
     }
 }

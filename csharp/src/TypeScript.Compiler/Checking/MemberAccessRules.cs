@@ -13,7 +13,13 @@ internal interface IMemberAccessHost
 
     ValueTask<SyntaxNode?> ConstructorPropertyAsync(Symbol symbol, CancellationToken cancellation);
 
-    void MemberError(SyntaxNode node, int code, Symbol symbol, Type? type = null);
+    ValueTask MemberErrorAsync(
+        SyntaxNode node,
+        int code,
+        Symbol symbol,
+        CancellationToken cancellation,
+        Type? type = null,
+        Type? enclosing = null);
 }
 
 internal sealed class MemberAccessRules(CheckerSymbols symbols, CheckerLinks links, ReferenceSymbols references,
@@ -83,10 +89,10 @@ internal sealed class MemberAccessRules(CheckerSymbols symbols, CheckerLinks lin
             && !await order.BeforeUseAsync(declaration, name, cancellation).ConfigureAwait(false)
             && !(declaration is MethodDeclarationNode && SemanticSyntax.IsStatic(declaration))
             && (host.UseDefineForClassFields || !await AncestorPropertyAsync(property, cancellation).ConfigureAwait(false)))
-            host.MemberError(name, 2729, property);
+            await host.MemberErrorAsync(name, 2729, property, cancellation).ConfigureAwait(false);
         else if (declaration is ClassDeclarationNode && node.Parent is not TypeReferenceNode && (declaration.Flags & NodeFlags.Ambient) == 0
             && !await order.BeforeUseAsync(declaration, name, cancellation).ConfigureAwait(false))
-            host.MemberError(name, 2449, property);
+            await host.MemberErrorAsync(name, 2449, property, cancellation).ConfigureAwait(false);
     }
 
     private async ValueTask<bool> AncestorPropertyAsync(Symbol property, CancellationToken cancellation)

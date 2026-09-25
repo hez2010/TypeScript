@@ -18,7 +18,7 @@ internal interface IIndexedTypeHost
     ValueTask<Type?> ElementPropertyAsync(Symbol property, Type objectType, ElementAccessExpressionNode node,
         AccessFlags flags, CancellationToken cancellation);
 
-    void ReadonlyIndex(IndexInfo? index, Type objectType, ElementAccessExpressionNode? node);
+    ValueTask ReadonlyIndexAsync(IndexInfo? index, Type objectType, ElementAccessExpressionNode? node, CancellationToken cancellation);
 
     ValueTask<Type?> MissingElementAsync(Type original, Type objectType, Type index, Type fullIndex,
         ElementAccessExpressionNode node, string? propertyName, AccessFlags flags, CancellationToken cancellation);
@@ -175,12 +175,12 @@ internal sealed class IndexedTypes(TypeContext context, TypeAlgebra algebra, Typ
                 }
                 if (position >= 0)
                 {
-                    host.ReadonlyIndex(
+                    await host.ReadonlyIndexAsync(
                         (await host.IndexesAsync(
                             objectType,
                             cancellation).ConfigureAwait(false)).FirstOrDefault(i => i.KeyType == context.NumberType),
                         objectType,
-                        element);
+                        element, cancellation).ConfigureAwait(false);
                     return await TupleRestAsync(
                         objectType,
                         position,
@@ -216,7 +216,7 @@ internal sealed class IndexedTypes(TypeContext context, TypeAlgebra algebra, Typ
                     await host.InvalidIndexAsync(IndexNode(node), objectType, indexType, 2538, cancellation).ConfigureAwait(false);
                     return await IncludeMissingAsync(index.ValueType, flags, cancellation).ConfigureAwait(false);
                 }
-                host.ReadonlyIndex(index, objectType, element);
+                await host.ReadonlyIndexAsync(index, objectType, element, cancellation).ConfigureAwait(false);
                 bool enumMember = objectType.Symbol is { } symbol && (symbol.Flags & SymbolFlags.Enum) != 0
                     && (indexType.Flags & TypeFlags.EnumLiteral) != 0 && indexType.Symbol?.Parent == symbol;
                 return await IncludeMissingAsync(index.ValueType, enumMember ? 0 : flags, cancellation).ConfigureAwait(false);

@@ -18,7 +18,7 @@ internal interface IValueUseHost
 
     void ValueUseSuggestion(SyntaxNode node, DiagnosticMessage message, string name);
 
-    void DeclarationRelatedInfo(SyntaxNode declaration, bool typeOnly, string name);
+    void DeclarationRelatedInfo(SyntaxNode? location, int code, SyntaxNode declaration, bool typeOnly, string name);
 }
 
 internal sealed class ValueUseChecks(CheckerSymbols symbols, AliasResolver aliases, DeclarationOrder order, IValueUseHost host)
@@ -89,10 +89,11 @@ internal sealed class ValueUseChecks(CheckerSymbols symbols, AliasResolver alias
             && (symbol.Flags & SymbolFlags.Value) == 0 && !host.ValidTypeOnlyUse(location)
             && await aliases.TypeOnlyAsync(symbol, SymbolFlags.Value, cancellation).ConfigureAwait(false) is { } typeOnly)
         {
-            host.ValueUseError(location, typeOnly is ExportSpecifierNode or ExportDeclarationNode or NamespaceExportNode
+            var message = typeOnly is ExportSpecifierNode or ExportDeclarationNode or NamespaceExportNode
                 ? Messages.X_0_cannot_be_used_as_a_value_because_it_was_exported_using_export_type
-                : Messages.X_0_cannot_be_used_as_a_value_because_it_was_imported_using_import_type, name);
-            host.DeclarationRelatedInfo(typeOnly, true, name);
+                : Messages.X_0_cannot_be_used_as_a_value_because_it_was_imported_using_import_type;
+            host.ValueUseError(location, message, name);
+            host.DeclarationRelatedInfo(location, message.Code, typeOnly, true, name);
         }
         if (symbols.Program.Configuration.Options.Boolean("isolatedModules") == true && inModule && valueMeaning
             && symbols.Lookup(symbols.Globals, name, meaning) == symbol
@@ -129,7 +130,7 @@ internal sealed class ValueUseChecks(CheckerSymbols symbols, AliasResolver alias
         if (message is not null)
         {
             host.ValueUseError(location, message, NameText(declaration));
-            host.DeclarationRelatedInfo(declaration, false, NameText(declaration));
+            host.DeclarationRelatedInfo(location, message.Code, declaration, false, NameText(declaration));
         }
     }
 

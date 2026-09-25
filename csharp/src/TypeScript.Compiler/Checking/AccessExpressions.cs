@@ -155,21 +155,21 @@ internal sealed class AccessExpressions(TypeContext context, CheckerLinks links,
                 {
                     var global = symbols.GlobalThisSymbol.Exports.GetValueOrDefault(SyntaxNameText.Get(right));
                     if (global is not null && (global.Flags & SymbolFlags.BlockScoped) != 0)
-                        host.AccessError(right, 2339, leftType);
+                        await host.AccessErrorAsync(right, 2339, cancellation, leftType).ConfigureAwait(false);
                     else if (host.NoImplicitAny)
-                        host.AccessError(right, 7017, leftType);
+                        await host.AccessErrorAsync(right, 7017, cancellation, leftType).ConfigureAwait(false);
                     return context.AnyType;
                 }
                 if (SyntaxNameText.Get(right).Length != 0 && !await host.ExtendingInterfaceAsync(node, cancellation).ConfigureAwait(false))
                     host.MissingProperty(right, leftType is TypeParameter { IsThisType: true } ? apparent : leftType, suggestion);
                 return context.ErrorType;
             }
-            ReadonlyIndex(index, apparent, node);
+            await ReadonlyIndexAsync(index, apparent, node, cancellation).ConfigureAwait(false);
             type = index.ValueType;
             if (host.NoUncheckedIndexedAccess && assignment != 1)
                 type = await algebra.UnionAsync([type, context.MissingType], cancellation: cancellation).ConfigureAwait(false);
             if (host.NoPropertyAccessFromIndexSignature && node is PropertyAccessExpressionNode)
-                host.AccessError(right, 4111);
+                await host.AccessErrorAsync(right, 4111, cancellation).ConfigureAwait(false);
             if (index.Declaration is not null)
                 await host.IndexDeprecatedAsync(index, right, cancellation).ConfigureAwait(false);
         }
@@ -189,7 +189,7 @@ internal sealed class AccessExpressions(TypeContext context, CheckerLinks links,
                 cancellation).ConfigureAwait(false);
             if (await host.ReadonlyAssignmentAsync(node, property, assignment, cancellation).ConfigureAwait(false))
             {
-                host.AccessError(right, 2540, symbol: property);
+                await host.AccessErrorAsync(right, 2540, cancellation, symbol: property).ConfigureAwait(false);
                 return context.ErrorType;
             }
             type = await host.AutoConstructorPropertyAsync(node, property, cancellation).ConfigureAwait(false) ? context.AutoType
@@ -228,7 +228,7 @@ internal sealed class AccessExpressions(TypeContext context, CheckerLinks links,
             return type;
         if (ConstEnum(type) && node.ArgumentExpression is not (StringLiteralNode or NoSubstitutionTemplateLiteralNode))
         {
-            host.AccessError(node.ArgumentExpression!, 2476);
+            await host.AccessErrorAsync(node.ArgumentExpression!, 2476, cancellation).ConfigureAwait(false);
             return context.ErrorType;
         }
         if (await host.NumericForInAsync(node.ArgumentExpression!, cancellation).ConfigureAwait(false))
@@ -253,10 +253,10 @@ internal sealed class AccessExpressions(TypeContext context, CheckerLinks links,
         return await host.ValidateIndexAsync(result, node, cancellation).ConfigureAwait(false);
     }
 
-    internal void ReadonlyIndex(IndexInfo? index, Type type, SyntaxNode? node)
+    internal async ValueTask ReadonlyIndexAsync(IndexInfo? index, Type type, SyntaxNode? node, CancellationToken cancellation)
     {
         if (index?.IsReadonly == true && node is not null && (ReferenceSyntax.AssignmentTarget(node) is not null || DeleteTarget(node)))
-            host.AccessError(node, 2542, type);
+            await host.AccessErrorAsync(node, 2542, cancellation, type).ConfigureAwait(false);
     }
 
     internal async ValueTask<Type?> ElementPropertyAsync(Symbol property, Type objectType, ElementAccessExpressionNode node,
@@ -266,7 +266,7 @@ internal sealed class AccessExpressions(TypeContext context, CheckerLinks links,
         int assignment = ReferenceSyntax.AssignmentKind(node);
         if (await host.ReadonlyAssignmentAsync(node, property, assignment, cancellation).ConfigureAwait(false))
         {
-            host.AccessError(node.ArgumentExpression!, 2540, symbol: property);
+            await host.AccessErrorAsync(node.ArgumentExpression!, 2540, cancellation, symbol: property).ConfigureAwait(false);
             return null;
         }
         if ((flags & AccessFlags.CacheSymbol) != 0)

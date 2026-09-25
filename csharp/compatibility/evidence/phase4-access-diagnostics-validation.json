@@ -1,0 +1,101 @@
+{
+    "timestamp": "2026-09-25T01:23:17.2661225+00:00",
+    "configuration": "Release",
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "managed": true,
+    "scope": "Access/member diagnostics with types, receiver constraints and declaration references; phase 4 remains incomplete",
+    "candidateSha256": "338d2727fabcb8ceb86fed52ac22309689f9f40f108e35e8f69861993d338e89",
+    "compilerSha256": "d2c2f76bf2a059d3836e6b172a0677833b4db6274d3bd542da4599e5b3d7f718",
+    "build": {
+        "errors": 0,
+        "exitCode": 0,
+        "warnings": 0,
+        "sha256": "d3eede7f815f2f0d6c644e0778623b0a2e5b61979f8838a9594f09f519166746",
+        "log": "logs/csharp-phase4-access-diagnostics-build.log"
+    },
+    "fixture": {
+        "diagnosticRecords": 18,
+        "referenceOracleSha256": "f5c03c77e3074463e10144d9a9028daf58b2f4f93c9b5c5278dd7d13bc5a1a7a",
+        "inputSha256": "174362fc9ed0664a07f5636861b6e43069e6c7905127275fd9a6bf8cc14d73a2",
+        "referenceSha256": "d3d278154af3e51074ef6703495352f043c84934d74297152726c1add7be2e3f",
+        "retainedAssertions": "csharp/tests/TypeScript.Compatibility/CheckerAccessTests.cs",
+        "exactRecords": 18,
+        "candidateSha256": "c47f7b024b7754e978bea1fcffd4447a7c7b3c4816d461984614aaeeba77dd4b"
+    },
+    "safety": {
+        "newAssertions": 18,
+        "logs": [
+            "logs/csharp-phase4-access-diagnostics-safety.log",
+            "logs/csharp-phase4-access-diagnostics-program-safety.log",
+            "logs/csharp-phase4-access-diagnostics-index-safety.log"
+        ],
+        "indexAssertions": 51,
+        "programAssertions": 127,
+        "checks": [
+            "private/protected/abstract access",
+            "enclosing and receiver classes",
+            "readonly writes and index signatures",
+            "generic private access",
+            "private-identifier shadowing notes",
+            "declaration-order references",
+            "initialization and assignment errors"
+        ],
+        "accessAssertions": 82
+    },
+    "corpus": {
+        "previousGraphAndCodeMatches": 673,
+        "remainingDetailedDifferences": 383,
+        "retainedSingleConfigurations": 705,
+        "regressions": [],
+        "previousDetailedCoverage": 556,
+        "referenceDefault": "phase4-access-diagnostics-corpus-default.json",
+        "graphAndCodeMatches": 673,
+        "selectedConfigurationsPerMode": 755,
+        "candidateFailures": [],
+        "detailedDiagnosticMatches": 372,
+        "cumulative": {
+            "activeConfigurations": 13446,
+            "matches": 12757,
+            "remaining": 689,
+            "failed": 0,
+            "diagnosticMismatches": 689,
+            "graphMismatches": 0,
+            "detailedConfigurations": 3368,
+            "detailedMatches": 1997,
+            "nonemptyDetailedMatches": 1381,
+            "detailedDifferences": 1371
+        },
+        "previousDetailedMatches": 202,
+        "newlyMeasuredDetailedMatches": 134,
+        "parity": "phase4-access-diagnostics-mode-parity.json",
+        "single": "phase4-access-diagnostics-corpus-single.json",
+        "followUpSingleConfigurations": 50,
+        "currentDetailedMatchesWithinPreviousCoverage": 238
+    },
+    "formatting": {
+        "tokensCommentsAndSyntaxIdentical": true,
+        "dotnetWhitespaceExitCode": 0,
+        "proofLog": "logs/csharp-phase4-access-diagnostics-format.log",
+        "proofSha256": "4043839d56807ea5b4b19c77fde3ad1fe6830134b38f0ab60ef74bbd4fee890d",
+        "csharpFiles": 12,
+        "libraryConfigurations": 2
+    },
+    "reusedValidation": {
+        "reason": "Cached oracle outputs, completed unaffected candidate results and unchanged repository validation were reused. Formatting preserved tokens/comments/syntax.",
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "repositoryExitCode": 0,
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "validatedCommit": "00d370e5b0",
+        "repositoryCommand": "npx hereby validate --all"
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "parallelCheckerGateComplete": false,
+    "phase4Complete": false
+}

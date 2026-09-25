@@ -10,7 +10,14 @@ internal interface IAccessFlowHost
 
     ValueTask<Type> AutoPropertyFlowAsync(SyntaxNode node, Symbol? property, CancellationToken cancellation);
 
-    void AccessError(SyntaxNode node, int code, Type? type = null, Symbol? symbol = null);
+    ValueTask AccessErrorAsync(
+        SyntaxNode node,
+        int code,
+        CancellationToken cancellation,
+        Type? type = null,
+        Symbol? symbol = null,
+        Type? index = null,
+        Symbol? related = null);
 }
 
 internal sealed class AccessFlow(TypeContext context, TypeAlgebra algebra, SymbolTypes values, TypeWidening widening,
@@ -51,7 +58,7 @@ internal sealed class AccessFlow(TypeContext context, TypeAlgebra algebra, Symbo
         var result = await flows.GetAsync(node, type, initial, cancellation: cancellation).ConfigureAwait(false);
         if (uninitialized && !ContainsUndefined(type) && ContainsUndefined(result))
         {
-            host.AccessError(errorNode, 2565, symbol: property);
+            await host.AccessErrorAsync(errorNode, 2565, cancellation, symbol: property).ConfigureAwait(false);
             return type;
         }
         return assignment != 0 ? await widening.LiteralBaseAsync(result, cancellation).ConfigureAwait(false) : result;

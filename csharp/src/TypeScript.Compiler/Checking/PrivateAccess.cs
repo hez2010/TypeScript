@@ -14,7 +14,14 @@ internal interface IPrivateAccessHost
 
     ValueTask PrivateEmitHelpersAsync(SyntaxNode node, bool read, bool write, CancellationToken cancellation);
 
-    void AccessError(SyntaxNode node, int code, Type? type = null, Symbol? symbol = null);
+    ValueTask AccessErrorAsync(
+        SyntaxNode node,
+        int code,
+        CancellationToken cancellation,
+        Type? type = null,
+        Symbol? symbol = null,
+        Type? index = null,
+        Symbol? related = null);
 }
 
 internal sealed class PrivateAccess(TypeContext context, CheckerSymbols symbols, TypeProperties properties, IPrivateAccessHost host)
@@ -35,7 +42,7 @@ internal sealed class PrivateAccess(TypeContext context, CheckerSymbols symbols,
                 break;
         }
         if (assignment != 0 && lexical?.ValueDeclaration is MethodDeclarationNode)
-            host.AccessError(name, 2803, symbol: lexical);
+            await host.AccessErrorAsync(name, 2803, cancellation, symbol: lexical).ConfigureAwait(false);
         if (anyLike)
         {
             if (lexical is not null)
@@ -44,7 +51,7 @@ internal sealed class PrivateAccess(TypeContext context, CheckerSymbols symbols,
                     : apparent);
             if (ContainingClass(name) is null)
             {
-                host.AccessError(name, 18016);
+                await host.AccessErrorAsync(name, 18016, cancellation).ConfigureAwait(false);
                 return (null, context.AnyType);
             }
         }
@@ -56,10 +63,10 @@ internal sealed class PrivateAccess(TypeContext context, CheckerSymbols symbols,
             if (await ReportScopeAsync(left, name, lexical, cancellation).ConfigureAwait(false))
                 return (null, context.ErrorType);
             if (ContainingClass(name) is { } container && SemanticSyntax.Source(container) is { } file && host.PlainJavaScript(file))
-                host.AccessError(name, 1111);
+                await host.AccessErrorAsync(name, 1111, cancellation).ConfigureAwait(false);
         }
         else if ((property.Flags & (SymbolFlags.SetAccessor | SymbolFlags.GetAccessor)) == SymbolFlags.SetAccessor && assignment != 1)
-            host.AccessError(node, 2806, symbol: property);
+            await host.AccessErrorAsync(node, 2806, cancellation, symbol: property).ConfigureAwait(false);
         return (property, null);
     }
 
@@ -75,9 +82,9 @@ internal sealed class PrivateAccess(TypeContext context, CheckerSymbols symbols,
             if (lexical?.ValueDeclaration is { } lexicalDeclaration
                 && DeclarationOrder.ContainingClass(lexicalDeclaration) is { } lexicalClass
                 && DeclarationOrder.Ancestor(lexicalClass, n => n == owner) is not null)
-                host.AccessError(name, 18014, type, lexical);
+                await host.AccessErrorAsync(name, 18014, cancellation, type, lexical, related: property).ConfigureAwait(false);
             else
-                host.AccessError(name, 18013, type, property);
+                await host.AccessErrorAsync(name, 18013, cancellation, type, property).ConfigureAwait(false);
             return true;
         }
         return false;
