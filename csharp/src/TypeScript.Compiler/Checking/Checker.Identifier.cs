@@ -231,13 +231,13 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
                 if ((source.ObjectFlags & ObjectFlags.JsxAttributes) != 0)
                     await ReportRelationMessageAsync(node, relationDiagnosticHead ?? headCode ?? 2322, source, target, kind, cancellation);
                 else if (relationDiagnosticHead is null)
-                    Error(
+                    RelationError(
                         (excess.ValueDeclaration as INamedNode)?.Name ?? node,
                         2353,
                         TypeDisplay.SymbolName(excess),
                         await TypeDisplay.GetAsync(target, cancellation));
                 else
-                    Error((excess.ValueDeclaration as INamedNode)?.Name ?? node, relationDiagnosticHead ?? 2353);
+                    RelationError((excess.ValueDeclaration as INamedNode)?.Name ?? node, relationDiagnosticHead ?? 2353);
                 return false;
             }
             int? missingCode = headCode is not (2420 or 2720 or 2352 or 2787 or 2788 or 2789)

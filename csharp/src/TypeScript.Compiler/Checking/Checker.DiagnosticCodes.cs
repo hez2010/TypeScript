@@ -31,13 +31,12 @@ internal sealed partial class Checker
             };
         if (diagnostic.Code == 2741 && RequiredPropertyDeclarations.TryGetValue(node, out var missing)
             && missing[0].Declarations.FirstOrDefault() is { } declaration)
-            return diagnostic with
-            {
-                RelatedInformation = [CheckerDiagnostic.Create(
-                declaration,
-                Messages.X_0_is_declared_here,
-                TypeDisplay.SymbolName(missing[0]))]
-            };
+        {
+            var related = CheckerDiagnostic.Create(declaration, Messages.X_0_is_declared_here, TypeDisplay.SymbolName(missing[0]));
+            return diagnostic.RelatedInformation.Any(d => d.Code == related.Code && d.FileName == related.FileName
+                && d.Start == related.Start && d.Length == related.Length && d.Arguments.SequenceEqual(related.Arguments))
+                ? diagnostic : diagnostic with { RelatedInformation = [.. diagnostic.RelatedInformation, related] };
+        }
         if (program.MergeRelatedDeclarations.TryGetValue((node, diagnostic.Code), out var declarations))
             return diagnostic with
             {

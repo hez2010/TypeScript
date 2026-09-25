@@ -8,6 +8,114 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
+    private List<(SyntaxNode Node, Diagnostic Diagnostic)>? callDiagnosticOutput;
+    private List<(SyntaxNode Node, Diagnostic Diagnostic)>? relationDiagnosticOutput;
+
+    private void RelationError(SyntaxNode node, int code, params string[] arguments)
+        => RelationError(node, CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), arguments));
+
+    private void RelationError(SyntaxNode node, Diagnostic diagnostic)
+    {
+        if (relationDiagnosticOutput is { } output)
+            output.Add((node, diagnostic));
+        else
+            Error(node, diagnostic);
+    }
+
+    public async ValueTask ExpectedPropertyInfoAsync(
+        SyntaxNode node,
+        Type target,
+        Type key,
+        Symbol? property,
+        CancellationToken cancellation)
+    {
+        Diagnostic? note = null;
+        bool DefaultLibrary(SyntaxNode declaration) => SemanticSyntax.Source(declaration) is { } file
+            && program.Symbols.Program.GetFile(file.FileName)?.Library == true;
+        if (property is null && await ApplicableIndexAsync(target, key, cancellation) is { Declaration: { } indexDeclaration }
+            && !DefaultLibrary(indexDeclaration))
+            note = CheckerDiagnostic.Create(indexDeclaration, Messages.The_expected_type_comes_from_this_index_signature);
+        else if ((property?.Declarations.FirstOrDefault() ?? target.Symbol?.Declarations.FirstOrDefault()) is { } declaration
+            && !DefaultLibrary(declaration))
+        {
+            string name = MappedMembers.PropertyName(key);
+            if (name.Length == 0 || (key.Flags & TypeFlags.UniqueESSymbol) != 0)
+                name = await TypeDisplay.GetAsync(key, cancellation);
+            note = CheckerDiagnostic.Create(declaration, Messages.The_expected_type_comes_from_property_0_which_is_declared_here_on_type_1,
+                name, await TypeDisplay.GetAsync(target, cancellation));
+        }
+        if (note is null)
+            return;
+        if (relationDiagnosticOutput is { } output)
+        {
+            for (int i = output.Count - 1; i >= 0; i--)
+                if (output[i].Node == node)
+                {
+                    var diagnostic = output[i].Diagnostic;
+                    output[i] = (node, diagnostic with { RelatedInformation = [.. diagnostic.RelatedInformation, note] });
+                    return;
+                }
+        }
+        else
+            for (int i = diagnosticFiles.Count - 1; i >= 0; i--)
+                if (diagnosticFiles[i].Node == node)
+                {
+                    var diagnostic = diagnosticFiles[i].Diagnostic;
+                    diagnosticFiles[i] = (node, diagnostic with { RelatedInformation = [.. diagnostic.RelatedInformation, note] });
+                    return;
+                }
+    }
+
+    private async ValueTask ReportOverloadFailureAsync(CallResolution.State state, CancellationToken cancellation)
+    {
+        var last = state.ArgumentErrors[^1];
+        var diagnostics = new List<(SyntaxNode Node, Diagnostic Diagnostic)>();
+        var previous = callDiagnosticOutput;
+        callDiagnosticOutput = diagnostics;
+        try
+        {
+            await CallResolution.ApplicableAsync(state.Node, state.Arguments, last, RelationKind.Assignable, 0,
+                true, state.Node is BinaryExpressionNode ? 2860 : 2345, cancellation);
+        }
+        finally
+        {
+            callDiagnosticOutput = previous;
+        }
+        Diagnostic? implementationNote = null;
+        if (diagnostics.Count != 0 && last.Declaration is { } declaration
+            && program.Symbols.Declaration(declaration) is { Declarations.Count: > 1 } symbol
+            && symbol.Declarations.FirstOrDefault(d => d is IFunctionSignature && SemanticSyntax.Body(d) is not null) is { } implementation)
+        {
+            var signature = await Signatures.FromDeclarationAsync(implementation, cancellation);
+            if (await CallResolution.ImplementationApplicableAsync(state, signature, cancellation))
+                implementationNote = CheckerDiagnostic.Create(implementation,
+                    Messages.The_call_would_have_succeeded_against_this_implementation_but_implementation_signatures_of_overloads_are_not_externally_visible);
+        }
+        foreach (var (node, value) in diagnostics)
+        {
+            var diagnostic = value;
+            if (state.ArgumentErrors.Count > 1)
+            {
+                diagnostic = diagnostic with
+                {
+                    Message = Messages.The_last_overload_gave_the_following_error,
+                    Arguments = [],
+                    MessageChain = [diagnostic]
+                };
+                diagnostic = diagnostic with { Message = Messages.No_overload_matches_this_call, MessageChain = [diagnostic] };
+                if (last.Declaration is { } lastDeclaration)
+                    diagnostic = diagnostic with
+                    {
+                        RelatedInformation = [.. diagnostic.RelatedInformation,
+                        CheckerDiagnostic.Create(lastDeclaration, Messages.The_last_overload_is_declared_here)]
+                    };
+            }
+            if (implementationNote is not null)
+                diagnostic = diagnostic with { RelatedInformation = [.. diagnostic.RelatedInformation, implementationNote] };
+            Error(node, diagnostic);
+        }
+    }
+
     private static string CountText(int count) => count.ToString(CultureInfo.InvariantCulture);
 
     private static SyntaxNode CallErrorNode(SyntaxNode node) => node is CallExpressionNode call

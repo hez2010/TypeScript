@@ -19,7 +19,9 @@ internal interface ILiteralElaborationHost
         int? headCode,
         CancellationToken cancellation);
 
-    void LiteralRelationError(SyntaxNode node, int code);
+    ValueTask LiteralRelationErrorAsync(SyntaxNode node, int code, Type source, Type target, CancellationToken cancellation);
+
+    ValueTask ExpectedPropertyInfoAsync(SyntaxNode node, Type target, Type key, Symbol? property, CancellationToken cancellation);
 }
 
 internal sealed class LiteralElaboration(TypeContext context, CheckerSymbols symbols, TypeAlgebra algebra, TypeRelations relations,
@@ -159,7 +161,10 @@ internal sealed class LiteralElaboration(TypeContext context, CheckerSymbols sym
             && (targetType == context.MissingType
                 || targetType is UnionType targetUnion && targetUnion.Types.Contains(context.MissingType)))
         {
-            host.LiteralRelationError(property, 2375);
+            await host.LiteralRelationErrorAsync(property, 2412, specific, targetType, cancellation).ConfigureAwait(false);
+            await host.ExpectedPropertyInfoAsync(property, target, key,
+                await properties.PropertyAsync(target, MappedMembers.PropertyName(key), cancellation: cancellation).ConfigureAwait(false),
+                cancellation).ConfigureAwait(false);
             return true;
         }
         string name = MappedMembers.PropertyName(key);
@@ -172,6 +177,8 @@ internal sealed class LiteralElaboration(TypeContext context, CheckerSymbols sym
         bool related = await host.ReportRelationAsync(specific, targetType, kind, property, code, cancellation).ConfigureAwait(false);
         if (related && specific != sourceType)
             related = await host.ReportRelationAsync(sourceType, targetType, kind, property, code, cancellation).ConfigureAwait(false);
+        if (!related)
+            await host.ExpectedPropertyInfoAsync(property, target, key, targetProperty, cancellation).ConfigureAwait(false);
         return !related;
     }
 }

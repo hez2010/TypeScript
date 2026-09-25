@@ -79,10 +79,10 @@ internal sealed partial class Checker
                     var specific = expression is null ? actual : await Contexts.WithAsync(expression, actual,
                         () => Contexts.MutableAsync(expression, CheckMode.Contextual, cancellation), cancellation);
                     if (child is JsxTextNode)
-                        Error(child, 2747);
+                        RelationError(child, 2747);
                     else if (context.ExactOptionalPropertyTypes && Predicates.Maybe(specific, TypeFlags.Undefined, cancellation)
                         && (expected == context.MissingType || expected is UnionType union && union.Types.Contains(context.MissingType)))
-                        Error(child, 2375);
+                        RelationError(child, 2375);
                     else
                         await ReportRelationAsync(specific, expected, relation, child, null, cancellation);
                     reported = true;
@@ -94,7 +94,7 @@ internal sealed partial class Checker
                 relation,
                 cancellation))
             {
-                Error(element.OpeningElement!.TagName!, 2746);
+                RelationError(element.OpeningElement!.TagName!, 2746);
                 reported = true;
             }
         }
@@ -118,7 +118,7 @@ internal sealed partial class Checker
             relation,
             cancellation))
         {
-            Error(element.OpeningElement!.TagName!, 2745);
+            RelationError(element.OpeningElement!.TagName!, 2745);
             reported = true;
         }
         return reported;

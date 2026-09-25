@@ -16,9 +16,10 @@ internal sealed partial class Checker
         RelationKind kind,
         CancellationToken cancellation)
     {
-        if (code is not (2322 or 2344 or 2345 or 2352 or 2375 or 2412 or 2420 or 2720 or 2739 or 2740 or 2741 or 2787 or 2788 or 2789))
+        if (code is not (2322 or 2344 or 2345 or 2352 or 2375 or 2412 or 2420 or 2684 or 2720 or 2739 or 2740 or 2741 or 2787 or 2788
+            or 2789))
         {
-            Error(node, code);
+            RelationError(node, code);
             return;
         }
         var originalSource = source;
@@ -57,7 +58,7 @@ internal sealed partial class Checker
             diagnostic = await ConstraintReasonAsync(diagnostic, originalSource, source, target, sourceText, targetText, cancellation);
         }
         diagnostic = SelectRelationDiagnostic(diagnostic, originalSource, target, sourceText, targetText);
-        Error(node, StripRelationMarkers(diagnostic));
+        RelationError(node, StripRelationMarkers(diagnostic));
     }
 
     private bool ReadonlyAssignment(Type source, Type target) =>

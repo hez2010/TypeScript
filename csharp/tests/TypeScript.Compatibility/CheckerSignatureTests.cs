@@ -221,8 +221,64 @@ internal static class CheckerSignatureTests
         checks += await PredicateSafety();
         checks += await SignatureDiagnosticSafety();
         checks += await CallArityDiagnosticSafety();
+        checks += await OverloadDiagnosticSafety();
         Console.WriteLine(
             $"{checks} signature/function/call/iteration/inference/context/cancellation assertions; binding and return traversal depth 20000");
+    }
+
+    private static async Task<int> OverloadDiagnosticSafety()
+    {
+        string source = "\n" + """
+            interface Array<T> { length: number; [n: number]: T; }
+            function pick(value: number): number;
+            function pick(value: string): string;
+            function pick(value: unknown): unknown { return value; }
+            pick(true);
+            declare function external(value: { a: number }): void;
+            declare function external(value: { b: string }): void;
+            external({ a: 1, b: 2 });
+            function only(value: string): void;
+            function only(value: any): void {}
+            only(123);
+            declare function nested(value: { data: { name: string } }): void;
+            declare function nested(value: { data: { name: number } }): void;
+            declare const data: { data: { name: boolean } };
+            nested(data);
+            function generic<T extends string>(value: T): T;
+            function generic<T extends number>(value: T): T;
+            function generic<T>(value: T): T { return value; }
+            generic(true);
+            declare function primitive(value: string): void;
+            primitive(123);
+            declare function receiver(this: { a: number }, value: string): void;
+            declare function receiver(this: { a: string }, value: number): void;
+            receiver(123);
+            """.Replace("\r\n", "\n", StringComparison.Ordinal) + "\n";
+        // Pinned-reference argument errors, overload wrappers and related declarations.
+        const string reference = """
+            [{"arguments":[],"category":1,"chain":[{"arguments":[],"category":1,"chain":[{"arguments":["boolean","string"],"category":1,"chain":[],"code":2345,"file":"/project/main.ts","key":"Argument_of_type_0_is_not_assignable_to_parameter_of_type_1_2345","length":4,"related":[],"start":194}],"code":2770,"file":"/project/main.ts","key":"The_last_overload_gave_the_following_error_2770","length":4,"related":[],"start":194}],"code":2769,"file":"/project/main.ts","key":"No_overload_matches_this_call_2769","length":4,"related":[{"arguments":[],"category":1,"chain":[],"code":2771,"file":"/project/main.ts","key":"The_last_overload_is_declared_here_2771","length":4,"related":[],"start":103},{"arguments":[],"category":1,"chain":[],"code":2793,"file":"/project/main.ts","key":"The_call_would_have_succeeded_against_this_implementation_but_implementation_signatures_of_overloads_2793","length":4,"related":[],"start":141}],"start":194},{"arguments":[],"category":1,"chain":[{"arguments":[],"category":1,"chain":[{"arguments":["number","string"],"category":1,"chain":[],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":1,"related":[{"arguments":["b","{ b: string; }"],"category":3,"chain":[],"code":6500,"file":"/project/main.ts","key":"The_expected_type_comes_from_property_0_which_is_declared_here_on_type_1_6500","length":1,"related":[],"start":291}],"start":328}],"code":2770,"file":"/project/main.ts","key":"The_last_overload_gave_the_following_error_2770","length":1,"related":[{"arguments":["b","{ b: string; }"],"category":3,"chain":[],"code":6500,"file":"/project/main.ts","key":"The_expected_type_comes_from_property_0_which_is_declared_here_on_type_1_6500","length":1,"related":[],"start":291}],"start":328}],"code":2769,"file":"/project/main.ts","key":"No_overload_matches_this_call_2769","length":1,"related":[{"arguments":["b","{ b: string; }"],"category":3,"chain":[],"code":6500,"file":"/project/main.ts","key":"The_expected_type_comes_from_property_0_which_is_declared_here_on_type_1_6500","length":1,"related":[],"start":291},{"arguments":[],"category":1,"chain":[],"code":2771,"file":"/project/main.ts","key":"The_last_overload_is_declared_here_2771","length":8,"related":[],"start":273}],"start":328},{"arguments":["number","string"],"category":1,"chain":[],"code":2345,"file":"/project/main.ts","key":"Argument_of_type_0_is_not_assignable_to_parameter_of_type_1_2345","length":3,"related":[{"arguments":[],"category":1,"chain":[],"code":2793,"file":"/project/main.ts","key":"The_call_would_have_succeeded_against_this_implementation_but_implementation_signatures_of_overloads_2793","length":4,"related":[],"start":382}],"start":413},{"arguments":[],"category":1,"chain":[{"arguments":[],"category":1,"chain":[{"arguments":["{ data: { name: boolean; }; }","{ data: { name: number; }; }"],"category":1,"chain":[{"arguments":["data.name"],"category":1,"chain":[{"arguments":["boolean","number"],"category":1,"chain":[],"code":2322,"file":"/project/main.ts","key":"Type_0_is_not_assignable_to_type_1_2322","length":4,"related":[],"start":607}],"code":2200,"file":"/project/main.ts","key":"The_types_of_0_are_incompatible_between_these_types_2200","length":4,"related":[],"start":607}],"code":2345,"file":"/project/main.ts","key":"Argument_of_type_0_is_not_assignable_to_parameter_of_type_1_2345","length":4,"related":[],"start":607}],"code":2770,"file":"/project/main.ts","key":"The_last_overload_gave_the_following_error_2770","length":4,"related":[],"start":607}],"code":2769,"file":"/project/main.ts","key":"No_overload_matches_this_call_2769","length":4,"related":[{"arguments":[],"category":1,"chain":[],"code":2771,"file":"/project/main.ts","key":"The_last_overload_is_declared_here_2771","length":6,"related":[],"start":502}],"start":607},{"arguments":[],"category":1,"chain":[{"arguments":[],"category":1,"chain":[{"arguments":["boolean","number"],"category":1,"chain":[],"code":2345,"file":"/project/main.ts","key":"Argument_of_type_0_is_not_assignable_to_parameter_of_type_1_2345","length":4,"related":[],"start":771}],"code":2770,"file":"/project/main.ts","key":"The_last_overload_gave_the_following_error_2770","length":4,"related":[],"start":771}],"code":2769,"file":"/project/main.ts","key":"No_overload_matches_this_call_2769","length":4,"related":[{"arguments":[],"category":1,"chain":[],"code":2771,"file":"/project/main.ts","key":"The_last_overload_is_declared_here_2771","length":7,"related":[],"start":672},{"arguments":[],"category":1,"chain":[],"code":2793,"file":"/project/main.ts","key":"The_call_would_have_succeeded_against_this_implementation_but_implementation_signatures_of_overloads_2793","length":7,"related":[],"start":721}],"start":771},{"arguments":["number","string"],"category":1,"chain":[],"code":2345,"file":"/project/main.ts","key":"Argument_of_type_0_is_not_assignable_to_parameter_of_type_1_2345","length":3,"related":[],"start":837},{"arguments":[],"category":1,"chain":[{"arguments":[],"category":1,"chain":[{"arguments":["void","{ a: string; }"],"category":1,"chain":[],"code":2684,"file":"/project/main.ts","key":"The_this_context_of_type_0_is_not_assignable_to_method_s_this_of_type_1_2684","length":13,"related":[],"start":981}],"code":2770,"file":"/project/main.ts","key":"The_last_overload_gave_the_following_error_2770","length":13,"related":[],"start":981}],"code":2769,"file":"/project/main.ts","key":"No_overload_matches_this_call_2769","length":13,"related":[{"arguments":[],"category":1,"chain":[],"code":2771,"file":"/project/main.ts","key":"The_last_overload_is_declared_here_2771","length":8,"related":[],"start":929}],"start":981}]
+            """;
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        options.SetRaw("noErrorTruncation", "true");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
+            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        await checker.CheckProgramAsync();
+        var file = program.GetFile("/project/main.ts")!.Syntax;
+        using var stream = new MemoryStream();
+        using (var writer = new System.Text.Json.Utf8JsonWriter(stream))
+            CheckerCorpusTests.WriteDiagnostics(writer, checker.DetailedDiagnosticsForFile(file).OrderBy(d => d.Start));
+        using var actual = System.Text.Json.JsonDocument.Parse(stream.ToArray());
+        using var expected = System.Text.Json.JsonDocument.Parse(reference);
+        if (actual.RootElement.GetArrayLength() != expected.RootElement.GetArrayLength())
+            throw new InvalidOperationException("Overload diagnostic count");
+        for (int i = 0; i < actual.RootElement.GetArrayLength(); i++)
+            if (!System.Text.Json.JsonElement.DeepEquals(actual.RootElement[i], expected.RootElement[i]))
+                throw new InvalidOperationException($"Overload diagnostic {i}: {actual.RootElement[i].GetRawText()}");
+        return actual.RootElement.GetArrayLength();
     }
 
     private static async Task<int> CallArityDiagnosticSafety()

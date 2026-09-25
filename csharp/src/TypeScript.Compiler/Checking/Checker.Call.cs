@@ -20,7 +20,13 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
     private int? relationDiagnosticHead;
     internal Action<SyntaxNode>? BeforeCallDiagnostics { get; set; }
 
-    public void LiteralRelationError(SyntaxNode node, int code) => Error(node, relationDiagnosticHead ?? code);
+    public async ValueTask LiteralRelationErrorAsync(SyntaxNode node, int code, Type source, Type target, CancellationToken cancellation)
+    {
+        if (relationDiagnosticHead is { } head)
+            RelationError(node, head);
+        else
+            RelationError(node, code, await TypeDisplay.GetAsync(source, cancellation), await TypeDisplay.GetAsync(target, cancellation));
+    }
 
     public async ValueTask MissingAwaitInfoAsync(
         SyntaxNode node,
@@ -231,6 +237,8 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
         if (errorNode is null)
             return await Relations.RelatedAsync(source, target, relation, cancellation);
         int? previous = relationDiagnosticHead;
+        var previousOutput = relationDiagnosticOutput;
+        relationDiagnosticOutput = callDiagnosticOutput;
         if (code is 2769 or 2860 or >= 1238 and <= 1241)
             relationDiagnosticHead = code;
         try
@@ -240,6 +248,7 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
         finally
         {
             relationDiagnosticHead = previous;
+            relationDiagnosticOutput = previousOutput;
         }
     }
 
@@ -365,8 +374,7 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
         }
         if (state.ArgumentErrors.Count != 0)
         {
-            await CallResolution.ApplicableAsync(state.Node, state.Arguments, state.ArgumentErrors[^1], RelationKind.Assignable, 0,
-                true, state.ArgumentErrors.Count > 1 ? 2769 : state.Node is BinaryExpressionNode ? 2860 : 2345, cancellation);
+            await ReportOverloadFailureAsync(state, cancellation);
             return;
         }
         if (state.ArgumentArityError is { } arity)

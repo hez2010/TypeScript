@@ -36,6 +36,8 @@ internal sealed partial class Checker
         if (!await JsxFactoryArityAsync(node, report, cancellation))
             return false;
         int? previous = relationDiagnosticHead;
+        var previousOutput = relationDiagnosticOutput;
+        relationDiagnosticOutput = report ? callDiagnosticOutput : null;
         if (report && headCode == 2769)
             relationDiagnosticHead = headCode;
         try
@@ -51,6 +53,7 @@ internal sealed partial class Checker
         finally
         {
             relationDiagnosticHead = previous;
+            relationDiagnosticOutput = previousOutput;
         }
     }
 

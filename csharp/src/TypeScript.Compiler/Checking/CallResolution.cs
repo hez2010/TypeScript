@@ -301,6 +301,18 @@ internal sealed partial class CallResolution(TypeContext context, CheckerLinks l
         return result;
     }
 
+    internal async ValueTask<bool> ImplementationApplicableAsync(State state, Signature implementation, CancellationToken cancellation)
+    {
+        var local = new State(state.Node, [implementation], state.Arguments, state.TypeArguments)
+        {
+            Single = implementation.TypeParameters.Count == 0,
+            Recursive = state.Recursive,
+            TrailingComma = state.TrailingComma,
+            ArgumentMode = state.ArgumentMode
+        };
+        return await ChooseAsync(local, RelationKind.Assignable, cancellation).ConfigureAwait(false) is not null;
+    }
+
     private async ValueTask<Signature?> ChooseAsync(State state, RelationKind relation, CancellationToken cancellation)
     {
         state.ArgumentErrors.Clear();

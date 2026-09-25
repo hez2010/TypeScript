@@ -4,15 +4,15 @@
 
 ## Current overall status
 
-The complete Release import baseline plus subsequent affected-case results record **12,755 matches out of 13,446 active compiler configurations**, up from 12,752 before call-arity diagnostic fixes and 9,365 at the original Release baseline. **All 13,446 configurations now finish execution and match source graphs.** **691 configurations still have diagnostic-code differences.** One exported input was corrected to reproduce the reference harness's duplicate-filename overwrite order; the reference's expected graph and diagnostics were unchanged.
+The complete Release import baseline plus subsequent affected-case results record **12,757 matches out of 13,446 active compiler configurations**, up from 12,755 before overload/literal diagnostic fixes and 9,365 at the original Release baseline. **All 13,446 configurations now finish execution and match source graphs.** **689 configurations still have diagnostic-code differences.** One exported input was corrected to reproduce the reference harness's duplicate-filename overwrite order; the reference's expected graph and diagnostics were unchanged.
 
 These comparisons cover source graphs and diagnostic codes. **94.9% matching on this measure is not a Phase-4 completion percentage.** The remaining gates are:
 
 | Completion requirement | Current status |
 | --- | --- |
 | Execute active corpus and match source graphs | Complete: 13,446 configurations |
-| Match semantic diagnostic codes | 12,755 match; 691 differ |
-| Match diagnostic text, locations and related information | Incomplete: detailed records match in 1,509 of 2,723 selected configurations, including 893 with nonempty semantic diagnostics; the remaining corpus has not been compared at this level |
+| Match semantic diagnostic codes | 12,757 match; 689 differ |
+| Match diagnostic text, locations and related information | Incomplete: detailed records match in 1,571 of 2,745 selected configurations, including 955 with nonempty semantic diagnostics; the remaining corpus has not been compared at this level |
 | Complete type/symbol comparisons, type display, node builders, accessibility and emit-resolver APIs | Incomplete |
 | Validate actual parallel checker scheduling | Incomplete; reference-mode corpus agreement is a narrower check |
 | Meet complete semantic workload memory/performance budgets | Incomplete |
@@ -926,6 +926,18 @@ Release validation covers **137 configurations per reference mode**, increasing 
 A focused fixture matches **12 complete pinned-reference records**. Safety passes **141 signature/function/call assertions** and **127 program assertions**. The Release build has zero warnings and errors. Cached reference results and unchanged repository validation were reused; the candidate cases were run once per reference mode. Formatting preserves tokens, comments and syntax in three C# files. NativeAOT remains deferred until final phase-4 completion.
 
 Evidence: [single-mode corpus](../csharp/compatibility/evidence/phase4-call-arity-corpus-single.json), [reference-default corpus](../csharp/compatibility/evidence/phase4-call-arity-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-call-arity-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-call-arity-validation.json).
+
+## Overload argument errors and expected-property origins
+
+Failed overload calls now collect the selected candidate's argument diagnostics before adding the last-overload and no-matching-overload messages. The original error range, arguments and nested explanation remain intact. Reports include the last overload's declaration and, when applicable, the hidden implementation signature that would have accepted the call. The implementation check uses a separate call-resolution state. Diagnostic collection is scoped and restored through `finally`, including JSX relation elaboration.
+
+Literal elaboration now retains expected-property or index-signature origins while excluding default-library declarations. Existing missing-property related information is preserved. Exact-optional literal mismatches use their specific diagnostic, and `this`-context failures retain both type arguments. Other call and decorator diagnostic work remains unfinished.
+
+Release validation covers **1,576 configurations per reference mode**, increasing graph/code matches from **1,446 to 1,448**, with **two recovered configurations and no regressions or checker failures**. Detailed matches reach **733**, all with semantic diagnostics. Within the 1,554 configurations previously checked at this level, matches increase from **671 to 718**; 15 further matches are newly measured. Both modes agree on every final record. Cumulative detailed matches reach **1,571/2,745**, including **955 with semantic diagnostics** and 616 with empty semantic diagnostics. The cumulative graph/code result is **12,757/13,446**, leaving **689 code differences**.
+
+A focused fixture matches **seven complete pinned-reference records**, including ordinary and generic implementation notes, property origins and `this`-context failures. Safety passes **148 signature/function/call assertions**, **127 program assertions** and **81 expression assertions**. The Release build has zero warnings and errors. Cached reference results and unchanged repository validation were reused; affected candidate configurations were run once per reference mode. Formatting preserves tokens, comments and syntax in ten C# files. NativeAOT remains deferred until final phase-4 completion.
+
+Evidence: [single-mode corpus](../csharp/compatibility/evidence/phase4-overload-diagnostics-corpus-single.json), [reference-default corpus](../csharp/compatibility/evidence/phase4-overload-diagnostics-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-overload-diagnostics-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-overload-diagnostics-validation.json).
 
 ## Remaining completion work
 
