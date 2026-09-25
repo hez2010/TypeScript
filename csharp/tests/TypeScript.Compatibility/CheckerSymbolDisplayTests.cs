@@ -12,6 +12,59 @@ namespace TypeScript.Compatibility;
 
 internal static class CheckerSymbolDisplayTests
 {
+    internal static async Task<int> FormatSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Symbol format assertion {checks + 1}");
+            checks++;
+        }
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        {
+            ["/project/main.ts"] = Wtf8.Encode("namespace N {export class C{}} import A=N.C; export default class Named{}"),
+            ["/project/other.ts"] = Wtf8.Encode("export const other=1;")
+        }), "/project", new("/project/tsconfig.json", options, ["/project/main.ts", "/project/other.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var source = program.GetFile("/project/main.ts")!.Syntax;
+        var other = program.GetFile("/project/other.ts")!.Syntax;
+        var symbol = checker.Symbols.Declaration(
+            source.DescendantsAndSelf().OfType<ClassDeclarationNode>().Single(n => n.Name?.Text == "C"))!;
+        var export = checker.Symbols.Declaration(source)!.Exports["default"];
+        Check(await checker.GetSymbolDisplayNameAsync(symbol, source, SymbolFlags.Type, SymbolFormatFlags.None) == "A");
+        Check(
+            await checker.GetSymbolDisplayNameAsync(symbol, source, SymbolFlags.Type, SymbolFormatFlags.UseOnlyExternalAliasing) == "N.C");
+        Check(await checker.GetSymbolDisplayNameAsync(symbol, source, SymbolFlags.Type, SymbolFormatFlags.DoNotIncludeSymbolChain) == "C");
+        Check(await checker.GetSymbolDisplayNameAsync(export, other, SymbolFlags.Type, SymbolFormatFlags.None) == "default");
+        Check(
+            await checker.GetSymbolDisplayNameAsync(
+                export,
+                other,
+                SymbolFlags.Type,
+                SymbolFormatFlags.UseAliasDefinedOutsideCurrentScope) == "Named");
+        Check(await checker.GetSymbolDisplayNameAsync(symbol, source, SymbolFlags.Type, SymbolFormatFlags.None) == "A");
+        var fresh = await program.CreateCheckerAsync();
+        var before = (fresh.AccessibleChainCacheCount, fresh.SymbolTableAliasCacheCount, fresh.SymbolContainerCacheCount);
+        using var stop = new CancellationTokenSource();
+        fresh.BeforeSymbolChainTable = _ => stop.Cancel();
+        try
+        {
+            await fresh.GetSymbolDisplayNameAsync(symbol, source, SymbolFlags.Type, SymbolFormatFlags.UseOnlyExternalAliasing, stop.Token);
+            throw new InvalidOperationException("Canceled format completed");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        Check(before == (fresh.AccessibleChainCacheCount, fresh.SymbolTableAliasCacheCount, fresh.SymbolContainerCacheCount));
+        fresh.BeforeSymbolChainTable = null;
+        Check(await fresh.GetSymbolDisplayNameAsync(symbol, source, SymbolFlags.Type, SymbolFormatFlags.UseOnlyExternalAliasing) == "N.C");
+        return checks;
+    }
+
     internal static async Task<int> Safety()
     {
         int checks = 0;
@@ -119,7 +172,7 @@ internal static class CheckerSymbolDisplayTests
     }
 
     internal static async Task WriteAsync(Utf8JsonWriter writer, SyntaxNode[] nodes, Checker checker,
-        Func<Symbol?, int> symbolId, Func<SyntaxNode?, int> nodeId)
+        Func<Symbol?, int> symbolId, Func<SyntaxNode?, int> nodeId, bool formats = false)
     {
         var targets = new List<Symbol>();
         var seen = new HashSet<Symbol>();
@@ -138,13 +191,28 @@ internal static class CheckerSymbolDisplayTests
             writer.WriteNumberValue(symbolId(target));
             writer.WriteNumberValue((uint)meaning);
         }
-        writer.WriteStartArray("symbolDisplayQueries");
+        writer.WriteStartArray(formats ? "symbolFormatQueries" : "symbolDisplayQueries");
         foreach (var location in locations)
             foreach (var target in targets)
                 foreach (var meaning in location is null
                     ? new[] { SymbolFlags.All }
                     : new[] { SymbolFlags.Value, SymbolFlags.Type, SymbolFlags.Namespace })
                 {
+                    if (formats)
+                    {
+                        foreach (var flags in new[] { 0, 1, 2, 6, 8, 10, 12, 14, 16, 17, 32, 34, 36, 38, 40, 42, 44, 46, 64 })
+                        {
+                            writer.WriteStartArray();
+                            writer.WriteNumberValue(nodeId(location));
+                            writer.WriteNumberValue(symbolId(target));
+                            writer.WriteNumberValue((uint)meaning);
+                            writer.WriteNumberValue(flags);
+                            writer.WriteStringValue(
+                                await checker.GetSymbolDisplayNameAsync(target, location, meaning, (SymbolFormatFlags)flags));
+                            writer.WriteEndArray();
+                        }
+                        continue;
+                    }
                     Start(0, location, target, meaning);
                     writer.WriteStringValue(await checker.GetSymbolDisplayNameAsync(target, location, meaning));
                     writer.WriteEndArray();

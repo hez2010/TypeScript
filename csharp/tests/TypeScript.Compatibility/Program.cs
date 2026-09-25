@@ -54,6 +54,12 @@ internal static class Program
                 CheckerCorpusTests.Lines(blobDirectory);
                 return 0;
             }
+            if (args is ["--checker-symbol-formats-safety"])
+            {
+                Console.WriteLine(
+                    $"Symbol format mode safety: {CheckerSymbolDisplayTests.FormatSafety().GetAwaiter().GetResult()} assertions passed");
+                return 0;
+            }
             if (args is ["--checker-symbol-display-safety"])
             {
                 Console.WriteLine(

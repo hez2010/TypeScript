@@ -10,28 +10,36 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
-    // Diagnostic symbol names use the reference's AllowAnyNodeKind mode. General
-    // node-builder flags and type-argument serialization are separate entry points.
-    internal async ValueTask<string> GetSymbolDisplayNameAsync(Symbol symbol, SyntaxNode? enclosing = null,
-        SymbolFlags meaning = SymbolFlags.All, CancellationToken cancellation = default)
+    internal ValueTask<string> GetSymbolDisplayNameAsync(Symbol symbol, SyntaxNode? enclosing = null,
+        SymbolFlags meaning = SymbolFlags.All, CancellationToken cancellation = default) =>
+        GetSymbolDisplayNameAsync(symbol, enclosing, meaning, SymbolFormatFlags.AllowAnyNodeKind, cancellation);
+
+    internal async ValueTask<string> GetSymbolDisplayNameAsync(Symbol symbol, SyntaxNode? enclosing, SymbolFlags meaning,
+        SymbolFormatFlags flags, CancellationToken cancellation = default)
     {
+        if ((flags & SymbolFormatFlags.AllowAnyNodeKind) != 0
+            && (flags & (SymbolFormatFlags.WriteTypeParametersOrArguments | SymbolFormatFlags.WriteComputedProps)) != 0)
+            throw new NotSupportedException("Type-argument and computed-node serialization require the general node builder");
         using var query = await EnterQueryAsync(enclosing, cancellation).ConfigureAwait(false);
         return await ChainOperationAsync(() => ContainerOperationAsync(
-            () => SymbolDisplayNameAsync(symbol, enclosing, meaning, cancellation), cancellation), cancellation);
+            () => SymbolDisplayNameAsync(symbol, enclosing, meaning, cancellation, flags), cancellation), cancellation);
     }
 
-    private sealed class SymbolDisplayContext(SyntaxNode? enclosing)
+    private sealed class SymbolDisplayContext(SyntaxNode? enclosing, SymbolFormatFlags flags)
     {
         internal SyntaxNode? Enclosing { get; } = enclosing;
+        internal SymbolFormatFlags Flags { get; } = flags;
         internal HashSet<(Symbol, SymbolFlags)> Parents { get; } = [];
         internal Dictionary<Symbol, string> Modules { get; } = [];
     }
 
     private async ValueTask<string> SymbolDisplayNameAsync(Symbol symbol, SyntaxNode? enclosing, SymbolFlags meaning,
-        CancellationToken cancellation)
+        CancellationToken cancellation, SymbolFormatFlags flags = SymbolFormatFlags.AllowAnyNodeKind)
     {
-        var state = new SymbolDisplayContext(enclosing);
-        List<Symbol> chain = enclosing is null || (symbol.Flags & SymbolFlags.TypeParameter) != 0
+        var state = new SymbolDisplayContext(enclosing, flags);
+        List<Symbol> chain = enclosing is null
+            || (symbol.Flags & SymbolFlags.TypeParameter) != 0
+            || (flags & SymbolFormatFlags.DoNotIncludeSymbolChain) != 0
             ? [symbol] : (await DisplaySymbolChainAsync(symbol, meaning, true, state, cancellation))!;
         var output = new StringBuilder();
         for (int i = 0; i < chain.Count; i++)
@@ -39,7 +47,13 @@ internal sealed partial class Checker
             cancellation.ThrowIfCancellationRequested();
             var part = chain[i];
             string name = DisplayNameAsWritten(part, state, i == 0, cancellation);
-            if (Quoted(name) && part.Declarations.Any(NonGlobalExternalModule))
+            if ((flags & SymbolFormatFlags.AllowAnyNodeKind) == 0)
+            {
+                if (i != 0)
+                    output.Append('.');
+                output.Append(name);
+            }
+            else if (Quoted(name) && part.Declarations.Any(NonGlobalExternalModule))
             {
                 output.Clear();
                 output.Append(
@@ -73,7 +87,8 @@ internal sealed partial class Checker
             throw new InvalidOperationException("Cyclic symbol qualification");
         try
         {
-            var accessible = await AccessibleChainAsync(new(symbol, state.Enclosing, meaning, false, []), cancellation);
+            var accessible = await AccessibleChainAsync(new(symbol, state.Enclosing, meaning,
+                (state.Flags & SymbolFormatFlags.UseOnlyExternalAliasing) != 0, []), cancellation);
             if (accessible is null || await NeedsQualificationAsync(accessible[0], state.Enclosing,
                 accessible.Count > 1 ? QualifiedLeftMeaning(meaning) : meaning, cancellation))
             {
@@ -131,7 +146,8 @@ internal sealed partial class Checker
     private string DisplayNameAsWritten(Symbol symbol, SymbolDisplayContext state, bool first, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
-        if (symbol.Name == "default" && (!first || symbol.Declarations.Count == 0 || state.Enclosing is not null
+        if (symbol.Name == "default" && (state.Flags & SymbolFormatFlags.UseAliasDefinedOutsideCurrentScope) == 0
+            && (!first || symbol.Declarations.Count == 0 || state.Enclosing is not null
             && DefaultBindingContext(symbol.Declarations[0]) != DefaultBindingContext(state.Enclosing)))
             return "default";
         if (symbol.Declarations.Count != 0)

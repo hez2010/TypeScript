@@ -251,6 +251,18 @@ public enum ContextFlags : uint
     SkipBindingPatterns = 1u << 3,
 }
 
+[Flags]
+public enum SymbolFormatFlags : uint
+{
+    None = 0,
+    WriteTypeParametersOrArguments = 1u << 0,
+    UseOnlyExternalAliasing = 1u << 1,
+    AllowAnyNodeKind = 1u << 2,
+    UseAliasDefinedOutsideCurrentScope = 1u << 3,
+    WriteComputedProps = 1u << 4,
+    DoNotIncludeSymbolChain = 1u << 5,
+}
+
 // checker.go SHA256 f6dbbfd2d0816458155609717ebb0325e6b7751654df69a426a98d682e6cdd17
 public enum TypeSystemPropertyName : int
 {

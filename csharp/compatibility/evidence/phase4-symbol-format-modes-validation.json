@@ -1,0 +1,102 @@
+{
+    "timestamp": "2026-09-25T06:14:24.0950303Z",
+    "configuration": "Release",
+    "managed": true,
+    "scope": "Entity-name output and alias/qualification control modes; expression type-argument and computed-node serialization remain incomplete",
+    "build": {
+        "sha256": "582cd82ac080fec6360816e9f78029b98ad8fd1f2ea1623a818b9a12089c3b39",
+        "exitCode": 0,
+        "warnings": 0,
+        "log": "logs/csharp-phase4-symbol-formats-build.log",
+        "errors": 0
+    },
+    "candidateSha256": "db36d253dc653bc912d083e822eef0d8f0936c6802286f09c17d0f6090eb5214",
+    "compilerSha256": "4c91fc6834a5986b4d0cd88d493405482026f788712da6edbe6ce8c65d9eaad0",
+    "comparisons": {
+        "configurations": 72,
+        "queries": 275728,
+        "comparedQueries": 275728,
+        "exact": 72,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "b6e5258c81958d0696cbbfd3e5ff90ea02cd8a1678f216391f66ef863da80e21",
+        "candidateHash": "77c47953c4c5a8e6ae446791795555a68475ed880c2f0ba2293295f91e79a647",
+        "inputHash": "e281739a187c150c5ae4d1827b67645fa25f7dace7094441ffa24de96740fb45",
+        "resultHash": "1d3a1277a7ed857bb69f3fc5f8bf90a6f2ce8afc5f7fdf1b4471e27accb36501",
+        "managed": true,
+        "symbolFormatFlags": [
+            0,
+            1,
+            2,
+            6,
+            8,
+            10,
+            12,
+            14,
+            16,
+            17,
+            32,
+            34,
+            36,
+            38,
+            40,
+            42,
+            44,
+            46,
+            64
+        ]
+    },
+    "safety": {
+        "assertions": 9,
+        "log": "logs/csharp-phase4-symbol-formats-safety.log"
+    },
+    "reference": {
+        "typesBlob": "1ec80b0a26f62516bb9b51742cfdf4c8ec8cfd62",
+        "frozenSourcesMatch": true,
+        "printerBlob": "234e3e4b0818dc0af2dd474e7babf88da3480f76",
+        "nodeBuilderBlob": "5cd58f6ec95f0fe53386fe46d2b3ecf0d2d46d83",
+        "revision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8"
+    },
+    "generator": {
+        "priorConstantsUnchanged": true,
+        "exitCode": 0,
+        "command": "node csharp/tools/generate-checker.mjs --check"
+    },
+    "reuse": {
+        "displayRecord": "phase4-symbol-display-validation.json",
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "retainedDisplayConfigurations": 172,
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "reason": "The diagnostic overload supplies AllowAnyNodeKind. Every new flag-dependent branch takes its previous path for that flag; accessible-chain cache keys remain ExternalOnly=false. The new comparison matrix excludes that previously validated flag. No existing semantic caller uses the new modes.",
+        "retainedDisplaySafetyAssertions": 17
+    },
+    "formatting": {
+        "log": "logs/csharp-phase4-symbol-formats-format.log",
+        "proofSha256": "0b97e14a300eeb76ae7a73c970e3539f0f40c9c09ab8e73a48ce5afac95d0adf",
+        "dotnetWhitespaceExitCode": 0,
+        "csharpFiles": 5,
+        "libraryConfigurations": 2,
+        "tokensCommentsAndSyntaxIdentical": true,
+        "inputsUnchanged": true
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "phase4Complete": false,
+    "syntaxChecks": [
+        {
+            "command": "node --check csharp/tools/checker-locations.mjs",
+            "exitCode": 0
+        },
+        {
+            "command": "node --check csharp/tools/generate-checker.mjs",
+            "exitCode": 0
+        }
+    ]
+}
