@@ -70,6 +70,21 @@ internal sealed partial class Checker
         foreach (var node in annotation.DescendantsAndSelf())
         {
             cancellation.ThrowIfCancellationRequested();
+            if (node is TypeOperatorNode { Operator: Syntax.SyntaxKind.UniqueKeyword, Type.Kind: Syntax.SyntaxKind.SymbolKeyword })
+            {
+                var enclosing = state.Symbols.Enclosing;
+                while (enclosing is not null && (generatedParameterScopes.Contains(enclosing) || valueParameterScopes.Contains(enclosing)))
+                    enclosing = enclosing.Parent;
+                bool sameScope = false;
+                for (var ancestor = node; ancestor is not null; ancestor = ancestor.Parent)
+                    if (ancestor == enclosing)
+                    {
+                        sameScope = true;
+                        break;
+                    }
+                if (!sameScope)
+                    return null;
+            }
             if (node is ImportTypeNode or ThisTypeNode or ComputedPropertyNameNode
                 || node is TypeQueryNode && parameters is null
                 || node.Kind is >= Syntax.SyntaxKind.FirstJSDocNode and <= Syntax.SyntaxKind.LastJSDocNode)

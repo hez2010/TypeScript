@@ -112,7 +112,11 @@ internal sealed partial class Checker
                     output.Append(literal.Text);
                     break;
                 case NoSubstitutionTemplateLiteralNode literal:
-                    output.Append(OriginalText(literal) ?? QuoteSymbolText(literal.Text, '`', !neverAsciiEscape));
+                    output.Append(
+                        OriginalText(literal) ?? QuoteSymbolText(
+                            literal.Text,
+                            '`',
+                            !neverAsciiEscape && noAsciiEscape?.Contains(literal) != true));
                     break;
                 case TemplateHeadNode literal:
                     output.Append('`').Append(

@@ -65,6 +65,11 @@ internal static class Program
                 CheckerCorpusTests.Lines(blobDirectory);
                 return 0;
             }
+            if (args is ["--checker-emit-syntax-safety"])
+            {
+                Console.WriteLine($"Emit syntax safety: {CheckerEmitSyntaxTests.Safety().GetAwaiter().GetResult()} assertions passed");
+                return 0;
+            }
             if (args is ["--checker-emit-links-safety"])
             {
                 Console.WriteLine(

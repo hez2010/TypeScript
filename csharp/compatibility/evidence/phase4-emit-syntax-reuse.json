@@ -1,0 +1,24 @@
+{
+    "prior": {
+        "previousCandidateHash": "90a06b2b746b2479b203940cf68a417fc7d2af1a007ec702411878955d569c1c",
+        "candidateHash": "60d949422630f0730bbc7aefeccd3301fa4355e7191760aaac72d64adc78369d",
+        "retainedCandidates": 36,
+        "replayedCandidates": 4,
+        "retainedReferences": 40,
+        "prior": {
+            "previousCandidateHash": "cf5c3fafa8997727612c6e828728fef0f3387fd27d737c2e92b546be5af92c32",
+            "candidateHash": "90a06b2b746b2479b203940cf68a417fc7d2af1a007ec702411878955d569c1c",
+            "retainedCandidates": 24,
+            "replayedCandidates": 8,
+            "retainedReferences": 32,
+            "reason": "Replay const-tuple initializer recovery and unique-symbol reuse outside the original declaration scope. The other fixtures have neither unannotated literal/tuple types requiring initializer recovery nor direct unique-symbol annotations serialized into an unrelated function scope."
+        },
+        "reason": "Replay the four new tuple cases after honoring no-ASCII-escaping on reused template literals. The other 36 cases contain no reused template literal. Signature return construction was extracted without changing type, predicate, annotation or suppression decisions."
+    },
+    "previousCandidateHash": "60d949422630f0730bbc7aefeccd3301fa4355e7191760aaac72d64adc78369d",
+    "candidateHash": "e7319b0b8f6f1ec0abce473b464c5aa369d1c52fe0f7f3d3f609fe5a614eab1d",
+    "retainedCandidates": 40,
+    "retainedReferences": 40,
+    "addedConfigurations": 4,
+    "reason": "Add contextual tuple initializers. New syntactic guards preserve all earlier initializer decisions: every previously reused tuple is an as-const literal without surrounding contextual annotations, calls, satisfies expressions or JSX."
+}

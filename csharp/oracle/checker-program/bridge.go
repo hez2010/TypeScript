@@ -293,7 +293,7 @@ func (c *Checker) csharpContextQueries(nodes []*ast.Node, nodeIDs map[*ast.Node]
 	return rows, graph
 }
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool, symbolLocations bool, documentationSymbols bool, scopeServices bool, contextQueries bool, declarationVisibility bool, symbolChains bool, accessibility bool, symbolDisplay bool, symbolFormats bool, symbolFormatValues []SymbolFormatFlags, symbolTypeNodes bool, typeSyntax bool, signatureSyntax bool, emitQueries bool, emitReferences bool, emitSerialization bool, emitLinks bool, emitJsx bool, emitServices bool, typeSyntaxFlags ...nodebuilder.Flags) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool, symbolLocations bool, documentationSymbols bool, scopeServices bool, contextQueries bool, declarationVisibility bool, symbolChains bool, accessibility bool, symbolDisplay bool, symbolFormats bool, symbolFormatValues []SymbolFormatFlags, symbolTypeNodes bool, typeSyntax bool, signatureSyntax bool, emitQueries bool, emitReferences bool, emitSerialization bool, emitLinks bool, emitJsx bool, emitServices bool, emitSyntax bool, typeSyntaxFlags ...nodebuilder.Flags) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -525,6 +525,9 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	}
 	if emitServices {
 		emitRows = c.csharpEmitServices(nodes, nodeIDs)
+	}
+	if emitSyntax {
+		emitRows = c.csharpEmitSyntax(nodes, nodeIDs)
 	}
 	var symbolTypeNodeRows []any
 	if symbolTypeNodes {
@@ -1296,7 +1299,7 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	if typeSyntax || signatureSyntax {
 		result["typeSyntaxQueries"] = typeSyntaxRows
 	}
-	if emitQueries || emitReferences || emitSerialization || emitLinks || emitJsx || emitServices {
+	if emitQueries || emitReferences || emitSerialization || emitLinks || emitJsx || emitServices || emitSyntax {
 		result["emitQueries"] = emitRows
 	}
 	if symbolTypeNodes {
@@ -1821,6 +1824,85 @@ func (c *Checker) csharpTypeSyntax(nodes []*ast.Node, nodeIDs map[*ast.Node]int,
 					}
 				}
 			}
+		}
+	}
+	return rows
+}
+
+func (c *Checker) csharpEmitSyntax(nodes []*ast.Node, nodeIDs map[*ast.Node]int) []any {
+	targets := []*ast.Node{}
+	locations := []*ast.Node{nil}
+	for _, n := range nodes {
+		if !strings.HasPrefix(ast.GetSourceFileOfNode(n).FileName(), "/project/main.") {
+			continue
+		}
+		targets = append(targets, n)
+		if n.Kind == ast.KindSourceFile || (n.Kind == ast.KindClassDeclaration || n.Kind == ast.KindFunctionDeclaration) && n.Name() != nil && n.Name().Text() == "Scope" {
+			locations = append(locations, n)
+		}
+	}
+	flags := []nodebuilder.Flags{nodebuilder.FlagsNoTruncation, nodebuilder.FlagsNoTruncation | nodebuilder.FlagsGenerateNamesForShadowedTypeParams, nodebuilder.FlagsNoTruncation | nodebuilder.FlagsSuppressAnyReturnType, nodebuilder.FlagsNoTruncation | nodebuilder.FlagsUseSingleQuotesForStringLiteralType}
+	rows := []any{}
+	r := c.GetEmitResolver()
+	emit := func(op int, n *ast.Node, location *ast.Node, flag nodebuilder.Flags) {
+		e := printer.NewEmitContext()
+		print := func(node *ast.Node) string {
+			if node == nil {
+				return ""
+			}
+			writer, put := printer.GetSingleLineStringWriter()
+			defer put()
+			p := printer.NewPrinter(printer.PrinterOptions{RemoveComments: true, OmitTrailingSemicolon: true, NeverAsciiEscape: location != nil && location.Kind == ast.KindSourceFile}, printer.PrintHandlers{}, e)
+			p.Write(node, ast.GetSourceFileOfNode(location), writer, nil)
+			return writer.String()
+		}
+		f := flag | nodebuilder.FlagsIgnoreErrors
+		var value any
+		switch op {
+		case 0:
+			value = print(r.CreateTypeOfDeclaration(e, n, location, f, nodebuilder.InternalFlagsNone, nil))
+		case 1:
+			value = print(r.CreateTypeOfExpression(e, n, location, f, nodebuilder.InternalFlagsNone, nil))
+		case 2:
+			value = print(r.CreateReturnTypeOfSignatureDeclaration(e, n, location, f, nodebuilder.InternalFlagsNone, nil))
+		case 3:
+			values := []string{}
+			for _, parameter := range r.CreateTypeParametersOfSignatureDeclaration(e, n, location, f, nodebuilder.InternalFlagsNone, nil) {
+				values = append(values, print(parameter))
+			}
+			value = values
+		case 4:
+			if literal := r.CreateLiteralConstValue(e, n, nil); literal != nil {
+				value = print(literal)
+			}
+		}
+		rows = append(rows, []any{op, nodeIDs[n], nodeIDs[location], uint32(flag), value})
+	}
+	for _, n := range targets {
+		if ast.IsVariableDeclaration(n) || ast.IsParameterDeclaration(n) || ast.IsPropertyDeclaration(n) || ast.IsPropertySignatureDeclaration(n) || ast.IsAccessor(n) {
+			for _, location := range locations {
+				for _, flag := range flags {
+					emit(0, n, location, flag)
+				}
+			}
+		}
+		if ast.HasInitializer(n) && n.Initializer() != nil {
+			for _, location := range locations {
+				for _, flag := range flags {
+					emit(1, n.Initializer(), location, flag)
+				}
+			}
+		}
+		if ast.IsFunctionLike(n) {
+			for _, location := range locations {
+				for _, flag := range flags {
+					emit(2, n, location, flag)
+					emit(3, n, location, flag)
+				}
+			}
+		}
+		if ast.IsVariableDeclaration(n) || ast.IsPropertyDeclaration(n) {
+			emit(4, n, nil, 0)
 		}
 	}
 	return rows

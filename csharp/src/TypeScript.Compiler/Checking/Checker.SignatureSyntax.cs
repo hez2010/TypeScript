@@ -157,23 +157,9 @@ internal sealed partial class Checker
                 ? signature.Parameters : expanded;
             foreach (var parameter in selected)
                 parameters.Add(await ParameterSyntaxAsync(parameter, state, cancellation, preserveModifiers: kind == K.Constructor));
-            var returnType = await Signatures.ReturnAsync(signature, cancellation);
-            bool suppressReturn = (originalFlags & NodeBuilderFlags.SuppressAnyReturnType) != 0 && (returnType.Flags & TypeFlags.Any) != 0;
-            var predicate = suppressReturn ? null : await Signatures.PredicateAsync(signature, cancellation);
-            SyntaxNode? result = null;
-            if (predicate is not null)
-            {
-                SyntaxNode parameterName = predicate.Kind is TypePredicateKind.This or TypePredicateKind.AssertsThis
-                    ? f.NewThisTypeNode() : f.NewIdentifier(predicate.ParameterName);
-                state.NoAsciiEscape.Add(parameterName);
-                result = f.NewTypePredicateNode(
-                    predicate.Kind is TypePredicateKind.AssertsThis or TypePredicateKind.AssertsIdentifier
-                        ? f.NewToken(K.AssertsKeyword)
-                        : null,
-                    parameterName, predicate.Type is null ? null : await TypeSyntaxAsync(predicate.Type, state, cancellation));
-            }
-            else if (!suppressReturn)
-                result = await DeclarationTypeSyntaxAsync(returnType, signature.Declaration, false, state, cancellation);
+            state.Flags |= originalFlags & NodeBuilderFlags.SuppressAnyReturnType;
+            var result = await ReturnTypeSyntaxAsync(signature, state, cancellation);
+            state.Flags &= ~NodeBuilderFlags.SuppressAnyReturnType;
             NodeList? typeParameterList = typeParameters.Count == 0 ? null : new(typeParameters.ToArray());
             var parameterList = new NodeList(parameters.ToArray());
             name ??= f.NewIdentifier("");

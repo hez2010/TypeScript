@@ -1,0 +1,95 @@
+{
+    "timestamp": "2026-09-25T12:28:52.670Z",
+    "configuration": "Release",
+    "managed": true,
+    "scope": "Declaration/expression types, signature returns/type parameters and literal constant syntax; broader recovery and emit-context integration remain incomplete",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-emit-syntax-build.log",
+        "sha256": "1cfb2ee4b91f97c3dd096d9fece64341a32fa8a7c60ab767c40b69b56870ffed"
+    },
+    "candidateSha256": "0a642661fbbab40821db3d094f4ed87aedf597fe624fa21201d46b953b868767",
+    "compilerSha256": "8101a85d0039e8bd1f0766859b95a7bc6f32e8aa67323e06a435a1a8c743afc3",
+    "comparisons": [
+        {
+            "mode": "emit-syntax",
+            "configurations": 44,
+            "queries": 7096,
+            "comparedQueries": 7096,
+            "exact": 44,
+            "failed": 0,
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "referenceFailures": 0,
+            "candidateFailures": 0,
+            "oracleHash": "9ad17b062b9d5ced9bd470353d7d27ad5b04ee26211cdc7ff54a2239d96697aa",
+            "candidateHash": "e7319b0b8f6f1ec0abce473b464c5aa369d1c52fe0f7f3d3f609fe5a614eab1d",
+            "inputHash": "678e166e55ac1b12c552f72d97641660cc9d4e706f0626de654cdaed066deb04",
+            "resultHash": "d1af700b2d0ab2b4b56a8d8c3ff7eef8e054d0a1a39a43863349c0e15a720ec9",
+            "managed": true
+        }
+    ],
+    "safety": [
+        {
+            "assertions": 13,
+            "log": "logs/csharp-phase4-emit-syntax-safety.log",
+            "candidateHash": "90a06b2b746b2479b203940cf68a417fc7d2af1a007ec702411878955d569c1c",
+            "scope": "Cancellation/retry, temporary scope cleanup, literal constants, synthesized fallbacks, foreign syntax rejection, concurrent queries and source ownership"
+        },
+        {
+            "assertions": 10,
+            "log": "logs/csharp-phase4-emit-syntax-signature-safety.log",
+            "candidateHash": "60d949422630f0730bbc7aefeccd3301fa4355e7191760aaac72d64adc78369d",
+            "scope": "Existing direct signature safety after extracting shared return construction"
+        }
+    ],
+    "reference": {
+        "revision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "frozenSourcesMatch": true,
+        "checkedSources": [
+            "checker/emitresolver.go",
+            "checker/nodecopy.go",
+            "checker/nodebuilderimpl.go",
+            "checker/nodebuilderscopes.go",
+            "checker/pseudotypenodebuilder.go",
+            "pseudochecker/lookup.go"
+        ],
+        "probeFormattingEquivalent": true
+    },
+    "reuse": {
+        "record": "phase4-emit-syntax-reuse.json",
+        "finalComparisonsRetained": true,
+        "finalExtension": {
+            "retainedCandidates": 40,
+            "retainedReferences": 40,
+            "addedConfigurations": 4
+        },
+        "safetyRetained": true,
+        "reason": "Later changes only guard contextual const-array recovery, which the retained safety cases do not exercise. General annotation reuse and template-literal fixes are covered by the new matrix; shared return construction retains the old type/predicate/suppression decisions and passes direct signature safety. Final formatting preserves tokens/comments/syntax and fixture input hashes.",
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "semanticCorpus": "Retained; new construction queries and annotation-reuse policies are not called by existing semantic diagnostics; the printer change only affects explicitly marked reused template literals"
+    },
+    "formatting": {
+        "tokensCommentsAndSyntaxIdentical": true,
+        "csharpFiles": 7,
+        "libraryConfigurations": 2,
+        "inputsUnchanged": true,
+        "dotnetWhitespaceExitCode": 0,
+        "log": "logs/csharp-phase4-emit-syntax-format.log",
+        "proofSha256": "676c6dfcf007a7423ec9a60d2102d11008061e50294ea7f07b5fc33cc703eb65"
+    },
+    "syntaxCheck": {
+        "exitCode": 0,
+        "command": "node --check csharp/tools/checker-locations.mjs"
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "phase4Complete": false
+}

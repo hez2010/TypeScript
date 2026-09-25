@@ -32,6 +32,7 @@ const emitReferences = process.argv.includes("--emit-references");
 const emitSerialization = process.argv.includes("--emit-serialization");
 const emitLinks = process.argv.includes("--emit-links");
 const emitJsx = process.argv.includes("--emit-jsx");
+const emitSyntax = process.argv.includes("--emit-syntax");
 const emitServices = process.argv.includes("--emit-services");
 const typeSyntax = process.argv.includes("--type-syntax") || conditionalSyntax || mappedSyntax || signatureSyntax || anonymousSyntax || syntaxOptions || syntaxNames || generatedNames || functionOptions || classOptions;
 const symbolTypeNodes = process.argv.includes("--symbol-type-nodes");
@@ -43,7 +44,7 @@ const accessibility = process.argv.includes("--accessibility") || symbolDisplay;
 const output = path.join(
     root,
     `built/csharp/checker-${
-        emitServices ? "emit-services"
+        emitSyntax ? "emit-syntax" : emitServices ? "emit-services"
             : emitJsx ? "emit-jsx"
             : emitLinks ? "emit-links" : emitSerialization ? "emit-serialization" : emitReferences ? "emit-references" : emitQueries ? "emit-queries" : signatureDeclarations ? "signature-declarations" : classOptions ? "class-options" : functionOptions ? "function-options" : generatedNames ? "generated-names" : syntaxNames ? "syntax-names" : syntaxOptions ? "syntax-options" : symbolTypeArguments ? "symbol-type-arguments" : anonymousSyntax ? "anonymous-syntax" : signatureSyntax ? "signature-syntax" : mappedSyntax ? "mapped-syntax" : conditionalSyntax ? "conditional-syntax" : typeSyntax ? "type-syntax" : symbolTypeNodes ? "symbol-type-nodes" : computedSymbols ? "computed-symbols" : symbolFormats ? "symbol-formats" : symbolDisplay ? "symbol-display" : accessibility ? "accessibility" : symbolChains ? "symbol-chains" : declarationVisibility ? "declaration-visibility" : contextQueries ? "context-queries" : scopeServices ? "scope-services" : symbolLocations ? "symbol-locations" : "locations"
     }`,
@@ -233,6 +234,21 @@ exports["exported-name"]=C; Object.defineProperty(exports,"defined-name",{value:
     });
 }
 const inputs = [];
+if (emitSyntax) {
+    Object.assign(fixtures, {
+        emitSyntaxLiterals: `const text='é';const number=-2;const big=-12n;const yes=true;const no=false;const zero=-0;let ordinary=1;const infinity=1e999;const annotated:'x'='x';class Scope{readonly value='é';mutable='x'}`,
+        emitSyntaxParameters: `function f(x:number=1,y:string,z?:boolean,...rest:number[]):[number,string]{return [x,y]}class Scope{constructor(public optional?:string,private value:number=1,readonly required:string){}}`,
+        emitSyntaxFunctions: `function identity<T extends string,U=T>(value:T,other:U):T{return value}function guard(value:unknown):value is string{return typeof value==='string'}function inferred(value:unknown){return typeof value==='number'}function anyReturn():any{}function Scope<T>(){}const arrow=<T>(value:T)=>value;`,
+        emitSyntaxObjects: `const object={value:1,text:'x',method(x:number){return x}};const tuple=[1,'x'] as const;const array=[1,2];const fn=(value:string)=>value;class Scope{get value():number{return 1}set value(v:string|number){}}`,
+        emitSyntaxSymbols: `declare const unique:unique symbol;const same=unique;namespace N{export enum E{A=1,B='é'}}const numeric=N.E.A;const text=N.E.B;class Scope{readonly unique:unique symbol;optional?:typeof unique}`,
+        emitSyntaxAnnotations: `import type {Shape} from './dep';declare const shape:Shape;declare const union:Shape|string;declare const missing:Missing;function f<T>(x:T):{value:T}{return {value:x}}class Scope<T>{}`,
+        emitSyntaxScope: `declare var value:unique symbol;function f(value:number):typeof globalThis.value{throw 1}function g<T>(value:T):<U>(other:U)=>[T,U]{throw 1}function Scope<T>(){}`,
+        emitSyntaxTupleForms: "const tuple=[0x10,-0xF,true,12n,`é`,['nested']] as const;const scalar='é' as const;const spread=[...tuple] as const;class Scope{}",
+        emitSyntaxRestScope: `declare var value:unique symbol;function f(...args:[value:number]):typeof globalThis.value{throw 1}function g<T>({value}:{value:T}):typeof value{return value}function Scope<T>(){}`,
+        emitSyntaxContextual: "const fn:(value:readonly ['x'])=>void=(value=['x'])=>{};const checked=([`é`] as const) satisfies readonly string[];class Scope{}",
+        jsdocEmitSyntax: `/** @type {string} */ let text='x';/** @param {number} x @returns {number} */ function f(x){return x}class Scope{/** @type {number} */ value=1;get text(){return 'x'}}`,
+    });
+}
 if (emitServices) {
     Object.assign(fixtures, {
         emitServicesEnums: `enum E{A=1,B,C='é',D='x'+'y'}const enum CE{Zero=-0,Value=2,Text='s'}E.A;E['C'];CE.Value;CE['Text'];`,
@@ -536,6 +552,10 @@ for (const [name, source] of Object.entries(fixtures)) {
                 if (name === "jsxFactoryNamespace") input.options.reactNamespace = strict ? "Custom.Nested" : "Custom";
                 if (name === "jsxFactoryEmptyOptions") Object.assign(input.options, { jsxFactory: "", jsxFragmentFactory: "", reactNamespace: "Custom" });
             }
+            if (emitSyntax) {
+                delete inputs.at(-1).locations;
+                inputs.at(-1).emitSyntax = true;
+            }
             if (emitServices) {
                 const input = inputs.at(-1);
                 delete input.locations;
@@ -548,7 +568,7 @@ const formatFixtures = new Set(["namespaces", "imports", "typeImports", "classes
 const computedFixtures = new Set(["displayNames", "displayComputed", "displayAssigned", "jsdocDisplayNames", "classes", "visibilityExports", "accessibilityInstances", "chainClassNames"]);
 const typeNodeFixtures = new Set(["namespaces", "imports", "typeImports", "classes", "importsCommonJs", "visibilityAliases", "visibilityAmbient", "visibilityExports", "chainShadow", "chainReexports", "chainTypeOnly", "displayNames", "displayComputed", "accessibilityExportEquals", "accessibilityInstances", "symbolTypeModes", "symbolTypeAttributes"]);
 if (symbolTypeNodes) { for (const input of inputs) if (input.name.startsWith("symbolTypeModes:")) Object.assign(input.options, { module: "nodenext", moduleResolution: "nodenext" }); }
-const eligible = emitServices ? inputs.filter(input => input.name.startsWith("emitServices") || input.name.startsWith("jsdocEmitServices")) :
+const eligible = emitSyntax ? inputs.filter(input => input.name.startsWith("emitSyntax") || input.name.startsWith("jsdocEmitSyntax")) : emitServices ? inputs.filter(input => input.name.startsWith("emitServices") || input.name.startsWith("jsdocEmitServices")) :
     emitJsx ? inputs.filter(input => input.name.startsWith("jsxFactory")) : emitLinks ? inputs.filter(input => input.name.startsWith("emitLinks") || input.name.startsWith("jsxEmitLinks") || input.name.startsWith("jsdocEmitLinks")) : emitSerialization ? inputs.filter(input => input.name.startsWith("emitSerialization")) : emitReferences ? inputs.filter(input => input.name.startsWith("emitReferences") || input.name.startsWith("jsdocEmitReferences")) : emitQueries ? inputs.filter(input => input.name.startsWith("emitQueries") || input.name.startsWith("jsdocEmitQueries")) : signatureDeclarations ? inputs.filter(input => input.name.startsWith("signatureDeclarations")) : classOptions ? inputs.filter(input => input.name.startsWith("classOptions")) : functionOptions ? inputs.filter(input => input.name.startsWith("functionOptions")) : generatedNames ? inputs.filter(input => input.name.startsWith("generatedNames"))
     : syntaxNames ? inputs.filter(input => input.name.startsWith("syntaxNames")) : syntaxOptions ? inputs.filter(input => input.name.startsWith("syntaxOptions")) : symbolTypeArguments ? inputs.filter(input => input.name.startsWith("symbolArguments") || formatFixtures.has(input.name.split(":")[0])) : anonymousSyntax ? inputs.filter(input => input.name.startsWith("anonymousSyntax")) : signatureSyntax ? inputs.filter(input => input.name.startsWith("signatureSyntax")) : mappedSyntax ? inputs.filter(input => input.name.startsWith("mappedSyntax")) : conditionalSyntax ? inputs.filter(input => input.name.startsWith("conditionalSyntax")) : typeSyntax ? inputs.filter(input => input.name.startsWith("typeSyntax")) : symbolTypeNodes ? inputs.filter(input => typeNodeFixtures.has(input.name.split(":")[0])) : computedSymbols ? inputs.filter(input => computedFixtures.has(input.name.split(":")[0])) : symbolFormats ? inputs.filter(input => formatFixtures.has(input.name.split(":")[0])) : inputs;
 const selected = process.argv.includes("--filter") ? eligible.filter(input => input.name.includes(option("--filter"))) : eligible;
