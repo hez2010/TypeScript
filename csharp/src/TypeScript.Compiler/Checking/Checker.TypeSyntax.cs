@@ -11,11 +11,12 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
-    private sealed class TypeSyntaxContext(SyntaxNode? enclosing, bool aliasesOutsideScope)
+    private sealed class TypeSyntaxContext(SyntaxNode? enclosing, bool aliasesOutsideScope, bool externalAliasesOnly = false)
     {
         internal NodeFactory Factory { get; } = new();
         internal SymbolDisplayContext Symbols { get; } = new(enclosing,
-            aliasesOutsideScope ? SymbolFormatFlags.UseAliasDefinedOutsideCurrentScope : SymbolFormatFlags.None);
+            (aliasesOutsideScope ? SymbolFormatFlags.UseAliasDefinedOutsideCurrentScope : SymbolFormatFlags.None)
+                | (externalAliasesOnly ? SymbolFormatFlags.UseOnlyExternalAliasing : SymbolFormatFlags.None));
         internal HashSet<SyntaxNode> NoAsciiEscape { get; } = [];
         internal HashSet<SyntaxNode> SingleLine { get; } = [];
         internal HashSet<Type> Active { get; } = [];
@@ -394,7 +395,8 @@ internal sealed partial class Checker
                         value = annotated;
                 }
                 if (annotated == value)
-                    reusedType = ReuseLiteralTypeSyntax(annotation, state, cancellation);
+                    reusedType = ReuseLiteralTypeSyntax(annotation, state, cancellation)
+                        ?? await ReuseTypeAnnotationSyntaxAsync(annotation, state, cancellation);
             }
             var nameType = links.Values.TryGet(property)?.NameType;
             SyntaxNode? computedName = null;

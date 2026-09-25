@@ -14,16 +14,10 @@ internal sealed partial class Checker
         SymbolFlags meaning = SymbolFlags.All, CancellationToken cancellation = default) =>
         GetSymbolDisplayNameAsync(symbol, enclosing, meaning, SymbolFormatFlags.AllowAnyNodeKind, cancellation);
 
-    internal async ValueTask<string> GetSymbolDisplayNameAsync(Symbol symbol, SyntaxNode? enclosing, SymbolFlags meaning,
-        SymbolFormatFlags flags, CancellationToken cancellation = default)
-    {
-        if ((flags & SymbolFormatFlags.AllowAnyNodeKind) != 0
-            && (flags & SymbolFormatFlags.WriteTypeParametersOrArguments) != 0)
-            throw new NotSupportedException("Type-argument serialization requires the general type-node builder");
-        using var query = await EnterQueryAsync(enclosing, cancellation).ConfigureAwait(false);
-        return await ChainOperationAsync(() => ContainerOperationAsync(
-            () => SymbolDisplayNameAsync(symbol, enclosing, meaning, cancellation, flags), cancellation), cancellation);
-    }
+    internal ValueTask<string> GetSymbolDisplayNameAsync(Symbol symbol, SyntaxNode? enclosing, SymbolFlags meaning,
+        SymbolFormatFlags flags, CancellationToken cancellation = default) =>
+        VisibilityQueryAsync(enclosing, () => ChainOperationAsync(() => ContainerOperationAsync(
+            () => SymbolDisplayNameAsync(symbol, enclosing, meaning, cancellation, flags), cancellation), cancellation), cancellation);
 
     private sealed class SymbolDisplayContext(SyntaxNode? enclosing, SymbolFormatFlags flags)
     {
@@ -52,6 +46,20 @@ internal sealed partial class Checker
             || (symbol.Flags & SymbolFlags.TypeParameter) != 0
             || (flags & SymbolFormatFlags.DoNotIncludeSymbolChain) != 0
             ? [symbol] : (await DisplaySymbolChainAsync(symbol, meaning, true, state, cancellation))!;
+        var arguments = new Dictionary<int, string>();
+        if ((flags & (SymbolFormatFlags.AllowAnyNodeKind | SymbolFormatFlags.WriteTypeParametersOrArguments))
+            == (SymbolFormatFlags.AllowAnyNodeKind | SymbolFormatFlags.WriteTypeParametersOrArguments))
+        {
+            var types = new TypeSyntaxContext(enclosing, (flags & SymbolFormatFlags.UseAliasDefinedOutsideCurrentScope) != 0,
+                (flags & SymbolFormatFlags.UseOnlyExternalAliasing) != 0);
+            for (int i = chain.Count - 2; i >= 0; i--)
+            {
+                var nodes = await SymbolDisplayArgumentsAsync(chain[i], chain[i + 1], types, cancellation);
+                if (nodes.Count != 0)
+                    arguments[i] = "<" + string.Join(", ", nodes.Select(n => PrintDiagnosticNode(n, !ascii, cancellation,
+                        enclosing is null ? null : SemanticSyntax.Source(enclosing), types.NoAsciiEscape, types.SingleLine))) + ">";
+            }
+        }
         var output = new StringBuilder();
         for (int i = 0; i < chain.Count; i++)
         {
@@ -84,6 +92,8 @@ internal sealed partial class Checker
                     name = QuoteSymbolText(UnquoteSymbolText(name), name[0], ascii);
                 output.Append('[').Append(name).Append(']');
             }
+            if (arguments.TryGetValue(i, out var typeArguments))
+                output.Append(typeArguments);
         }
         return output.ToString();
     }

@@ -1,0 +1,40 @@
+{
+    "candidateHash": "4bf68f7b93b42f00a036be1a2a9a7513042192546ba628a112c84c1eaa3c202e",
+    "oracleHash": "d42040ff772aeefb96d2dd3ee12258968fc3d3f6e222be50cd8c4e7db58967b8",
+    "records": [
+        {
+            "mode": "conditional-syntax",
+            "configurations": 28,
+            "retainedCandidates": 20,
+            "replayedCandidates": 8,
+            "retainedReferences": 28,
+            "affected": [
+                "conditionalSyntaxObject",
+                "conditionalSyntaxProperties"
+            ]
+        },
+        {
+            "mode": "mapped-syntax",
+            "configurations": 24,
+            "retainedCandidates": 20,
+            "replayedCandidates": 4,
+            "retainedReferences": 24,
+            "affected": [
+                "mappedSyntaxNested"
+            ]
+        },
+        {
+            "mode": "signature-syntax",
+            "configurations": 48,
+            "retainedCandidates": 36,
+            "replayedCandidates": 12,
+            "retainedReferences": 48,
+            "affected": [
+                "signatureSyntaxConstruct",
+                "signatureSyntaxOverloads",
+                "signatureSyntaxMethods"
+            ]
+        }
+    ],
+    "reason": "Replay only families whose ordinary property annotations now use the broader syntax reuse path. Other property annotations are primitive/literal types or absent. The oracle change is gated on symbol-format flags containing both bits 1 and 4, which are not requested by any type-syntax input; every reference output remains applicable."
+}

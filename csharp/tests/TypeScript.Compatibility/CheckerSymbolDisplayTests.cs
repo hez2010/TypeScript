@@ -12,6 +12,65 @@ namespace TypeScript.Compatibility;
 
 internal static class CheckerSymbolDisplayTests
 {
+    internal static async Task<int> TypeArgumentsSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Symbol type arguments assertion {checks + 1}");
+            checks++;
+        }
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        {
+            ["/project/main.ts"] = Wtf8.Encode(
+                "type Bound={value:number};class C<T extends Bound>{field!:T}declare const concrete:C<{value:number}>;concrete.field;")
+        }), "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var source = program.GetFile("/project/main.ts")!.Syntax;
+        var property = checker.Symbols.Declaration(source.DescendantsAndSelf().OfType<PropertyDeclarationNode>().Single())!;
+        var snapshot = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
+        const SymbolFormatFlags flags = SymbolFormatFlags.AllowAnyNodeKind | SymbolFormatFlags.WriteTypeParametersOrArguments;
+        var before = (checker.DeclarationVisibilityCount, checker.VisibilityFileCount,
+            checker.AccessibleChainCacheCount, checker.SymbolTableAliasCacheCount, checker.SymbolContainerCacheCount);
+        using var stop = new CancellationTokenSource();
+        bool visited = false;
+        checker.BeforeVisibilityNode = _ =>
+        {
+            visited = true;
+            stop.Cancel();
+            stop.Token.ThrowIfCancellationRequested();
+        };
+        try
+        {
+            await checker.GetSymbolDisplayNameAsync(property, source, SymbolFlags.Value, flags, stop.Token);
+            throw new InvalidOperationException("Cancellation while formatting a constraint was not observed");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        finally
+        {
+            checker.BeforeVisibilityNode = null;
+        }
+        Check(visited);
+        Check(before == (checker.DeclarationVisibilityCount, checker.VisibilityFileCount,
+            checker.AccessibleChainCacheCount, checker.SymbolTableAliasCacheCount, checker.SymbolContainerCacheCount));
+        Check(await checker.GetSymbolDisplayNameAsync(property, source, SymbolFlags.Value, flags) == "C<T extends Bound>.field");
+        var access = source.DescendantsAndSelf().OfType<PropertyAccessExpressionNode>().Single();
+        var instantiated = await checker.GetSymbolAtLocationAsync(access);
+        Check(instantiated is not null && (instantiated.CheckFlags & CheckFlags.Instantiated) != 0);
+        Check(await checker.GetSymbolDisplayNameAsync(instantiated!, source, SymbolFlags.Value, flags) == "C<{ value: number; }>.field");
+        Check(await checker.GetSymbolDisplayNameAsync(property, source, SymbolFlags.Value) == "C.field");
+        Check(await checker.GetSymbolDisplayNameAsync(property, source, SymbolFlags.Value,
+            flags | SymbolFormatFlags.DoNotIncludeSymbolChain) == "field");
+        Check(snapshot.All(p => p.Parent == p.Node.Parent && p.Pos == p.Node.Pos && p.End == p.Node.End && p.Flags == p.Node.Flags));
+        return checks;
+    }
+
     internal static async Task<int> FormatSafety()
     {
         int checks = 0;
@@ -178,9 +237,15 @@ internal static class CheckerSymbolDisplayTests
         var targets = new List<Symbol>();
         var seen = new HashSet<Symbol>();
         foreach (var node in nodes)
+        {
             if (SemanticSyntax.Source(node)?.FileName != "/project/globals.d.ts" && QuerySyntax.Declaration(node)
                 && checker.Symbols.Declaration(node) is { } symbol && seen.Add(symbol))
                 targets.Add(symbol);
+            if (formats && formatFlags?.Any(f => (f & 5) == 5) == true
+                && node is PropertyAccessExpressionNode or ElementAccessExpressionNode
+                && await checker.GetSymbolAtLocationAsync(node) is { } member && seen.Add(member))
+                targets.Add(member);
+        }
         SyntaxNode?[] locations = [null, .. nodes.Where(
             n => SemanticSyntax.Source(n)?.FileName.StartsWith("/project/main.", StringComparison.Ordinal) == true
             && (n is SourceFileNode or ModuleDeclarationNode or ClassDeclarationNode or ClassExpressionNode or FunctionDeclarationNode

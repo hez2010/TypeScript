@@ -1,0 +1,16 @@
+{
+    "prior": {
+        "previousCandidateHash": "70c7e51da3c8d648e5d485e02c908285df185b023f72ed63d177a531baf92a9b",
+        "candidateHash": "69a70d660742f024622b5349513b960fe899bda89423f619935e2633f1cca908",
+        "retainedCandidates": 76,
+        "replayedCandidates": 8,
+        "retainedReferences": 84,
+        "reason": "Constraint annotation reuse changes only the two new constrained-generic fixture families. The 76 retained configurations have no printed nontrivial type-parameter constraints. The summary flag-list correction changes reporting only."
+    },
+    "previousCandidateHash": "69a70d660742f024622b5349513b960fe899bda89423f619935e2633f1cca908",
+    "candidateHash": "4bf68f7b93b42f00a036be1a2a9a7513042192546ba628a112c84c1eaa3c202e",
+    "retainedCandidates": 76,
+    "replayedCandidates": 8,
+    "retainedReferences": 84,
+    "reason": "Property annotation reuse affects the two constrained-generic families, including the inferred parameter inside a default conditional type. Both families are replayed; 76 configurations without nontrivial printed constraints retain their passing results."
+}

@@ -1396,6 +1396,13 @@ func (c *Checker) csharpSymbolDisplayQueries(nodes []*ast.Node, nodeIDs map[*ast
 				targets = append(targets, s)
 			}
 		}
+		if formats && slices.ContainsFunc(formatValues, func(f SymbolFormatFlags) bool { return f&5 == 5 }) &&
+			(node.Kind == ast.KindPropertyAccessExpression || node.Kind == ast.KindElementAccessExpression) {
+			if s := c.GetSymbolAtLocation(node); s != nil && !seen[s] {
+				seen[s] = true
+				targets = append(targets, s)
+			}
+		}
 		if strings.HasPrefix(file.FileName(), "/project/main.") {
 			switch node.Kind {
 			case ast.KindSourceFile, ast.KindModuleDeclaration, ast.KindClassDeclaration, ast.KindClassExpression, ast.KindFunctionDeclaration:

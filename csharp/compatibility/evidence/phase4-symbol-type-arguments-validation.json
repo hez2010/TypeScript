@@ -1,0 +1,145 @@
+{
+    "timestamp": "2026-09-25T09:39:01.173Z",
+    "configuration": "Release",
+    "managed": true,
+    "scope": "Qualified symbol type-parameter/argument formatting and compatible constraint/property syntax reuse; general truncation/name-generation policies remain incomplete",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-symbol-type-arguments-build.log",
+        "sha256": "8ef4d666ca765f975bf6751e87eaf986e26e60648b43b0ac231b663f28f90eb3"
+    },
+    "candidateSha256": "43d83b504f1328ef9c040cfb4041a75b769fafed99f495acb2f157de9ee55127",
+    "compilerSha256": "8747c13641d84f8147ec263777f310802dd2e6d5501b1a4f260ff18beed06101",
+    "comparisons": {
+        "configurations": 84,
+        "queries": 313920,
+        "comparedQueries": 313920,
+        "exact": 84,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "d42040ff772aeefb96d2dd3ee12258968fc3d3f6e222be50cd8c4e7db58967b8",
+        "candidateHash": "4bf68f7b93b42f00a036be1a2a9a7513042192546ba628a112c84c1eaa3c202e",
+        "inputHash": "1f9f48e9abdad831a707f82e3ae9a7129cdd4648f46267651ec59730b671cc31",
+        "resultHash": "638eab2897f4b203ac6b6852d77b86b7af9e0655c579ed1cfa6af3fd10aaf76c",
+        "managed": true,
+        "symbolFormatFlags": [
+            5,
+            7,
+            13,
+            15,
+            21,
+            23,
+            29,
+            31,
+            37,
+            39,
+            45,
+            47,
+            53,
+            55,
+            61,
+            63
+        ]
+    },
+    "annotationRegressions": [
+        {
+            "name": "conditional",
+            "configurations": 28,
+            "queries": 1344,
+            "comparedQueries": 1344,
+            "exact": 28,
+            "failed": 0,
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "referenceFailures": 0,
+            "candidateFailures": 0,
+            "oracleHash": "d42040ff772aeefb96d2dd3ee12258968fc3d3f6e222be50cd8c4e7db58967b8",
+            "candidateHash": "4bf68f7b93b42f00a036be1a2a9a7513042192546ba628a112c84c1eaa3c202e",
+            "inputHash": "2d651fa59427b689aa9298f8d6e8d9f7ba2c42261c69412705eba964fabefd8c",
+            "resultHash": "ec6aa1c8272d02ba194e7f9628c5a29d2ca12b2d5d4ce8f17e74ffc1898e49a7",
+            "managed": true
+        },
+        {
+            "name": "mapped",
+            "configurations": 24,
+            "queries": 1280,
+            "comparedQueries": 1280,
+            "exact": 24,
+            "failed": 0,
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "referenceFailures": 0,
+            "candidateFailures": 0,
+            "oracleHash": "d42040ff772aeefb96d2dd3ee12258968fc3d3f6e222be50cd8c4e7db58967b8",
+            "candidateHash": "4bf68f7b93b42f00a036be1a2a9a7513042192546ba628a112c84c1eaa3c202e",
+            "inputHash": "0fb5d40db8653694d30d2122eda123a8123c6465a51f17f2b57710aa12ce3c5e",
+            "resultHash": "71f159275faac2467c93561332efcb2dd7aab7ea9b6fba31459ad2191859670b",
+            "managed": true
+        },
+        {
+            "name": "signatures",
+            "configurations": 48,
+            "queries": 2496,
+            "comparedQueries": 2496,
+            "exact": 48,
+            "failed": 0,
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "referenceFailures": 0,
+            "candidateFailures": 0,
+            "oracleHash": "d42040ff772aeefb96d2dd3ee12258968fc3d3f6e222be50cd8c4e7db58967b8",
+            "candidateHash": "4bf68f7b93b42f00a036be1a2a9a7513042192546ba628a112c84c1eaa3c202e",
+            "inputHash": "63ebe3a59fd6479734fa22ac874383b8fc8a1a97358c4dd4cc33099e6bf25a6d",
+            "resultHash": "dca60b6faab5a8b23748371762fb271c281625f3f35bd8842e8556435c7adcd5",
+            "managed": true
+        }
+    ],
+    "safety": {
+        "assertions": 9,
+        "log": "logs/csharp-phase4-symbol-type-arguments-safety.log",
+        "scope": "Cancellation during constraint visibility, cache rollback and retry, instantiated arguments, flag isolation and unchanged source ownership"
+    },
+    "reference": {
+        "revision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "nodeBuilderBlob": "5cd58f6ec95f0fe53386fe46d2b3ecf0d2d46d83",
+        "probeFormattingEquivalent": true,
+        "oracleLog": "logs/csharp-phase4-symbol-type-arguments-oracle.log"
+    },
+    "reuse": {
+        "record": "phase4-symbol-type-arguments-reuse.json",
+        "annotationRecord": "phase4-type-annotation-reuse.json",
+        "retainedCandidates": 76,
+        "replayedCandidates": 8,
+        "retainedReferences": 84,
+        "annotationRetainedCandidates": 76,
+        "annotationReplayedCandidates": 24,
+        "annotationRetainedReferences": 100,
+        "finalComparisonRetained": true,
+        "reason": "After passing comparisons only safety assertions/dispatch, formatting and documentation changed. Earlier symbol-format requests do not set the new flag combination. The added oracle member lookups are gated on that combination; earlier reference results remain applicable. Type-syntax regressions replay only families affected by property annotation reuse.",
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "semanticCorpus": "Retained: existing semantic diagnostic callers do not use these formatting helpers"
+    },
+    "formatting": {
+        "tokensCommentsAndSyntaxIdentical": true,
+        "csharpFiles": 5,
+        "libraryConfigurations": 2,
+        "inputsUnchanged": true,
+        "dotnetWhitespaceExitCode": 0,
+        "log": "logs/csharp-phase4-symbol-type-arguments-format.log",
+        "proofSha256": "0b97e14a300eeb76ae7a73c970e3539f0f40c9c09ab8e73a48ce5afac95d0adf"
+    },
+    "syntaxCheck": {
+        "exitCode": 0,
+        "command": "node --check csharp/tools/checker-locations.mjs"
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "phase4Complete": false
+}

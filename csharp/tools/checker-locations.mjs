@@ -24,10 +24,11 @@ const anonymousSyntax = process.argv.includes("--anonymous-syntax");
 const typeSyntax = process.argv.includes("--type-syntax") || conditionalSyntax || mappedSyntax || signatureSyntax || anonymousSyntax;
 const symbolTypeNodes = process.argv.includes("--symbol-type-nodes");
 const computedSymbols = process.argv.includes("--computed-symbols");
-const symbolFormats = process.argv.includes("--symbol-formats") || computedSymbols;
+const symbolTypeArguments = process.argv.includes("--symbol-type-arguments");
+const symbolFormats = process.argv.includes("--symbol-formats") || computedSymbols || symbolTypeArguments;
 const symbolDisplay = process.argv.includes("--symbol-display") || symbolFormats || symbolTypeNodes;
 const accessibility = process.argv.includes("--accessibility") || symbolDisplay;
-const output = path.join(root, `built/csharp/checker-${anonymousSyntax ? "anonymous-syntax" : signatureSyntax ? "signature-syntax" : mappedSyntax ? "mapped-syntax" : conditionalSyntax ? "conditional-syntax" : typeSyntax ? "type-syntax" : symbolTypeNodes ? "symbol-type-nodes" : computedSymbols ? "computed-symbols" : symbolFormats ? "symbol-formats" : symbolDisplay ? "symbol-display" : accessibility ? "accessibility" : symbolChains ? "symbol-chains" : declarationVisibility ? "declaration-visibility" : contextQueries ? "context-queries" : scopeServices ? "scope-services" : symbolLocations ? "symbol-locations" : "locations"}`);
+const output = path.join(root, `built/csharp/checker-${symbolTypeArguments ? "symbol-type-arguments" : anonymousSyntax ? "anonymous-syntax" : signatureSyntax ? "signature-syntax" : mappedSyntax ? "mapped-syntax" : conditionalSyntax ? "conditional-syntax" : typeSyntax ? "type-syntax" : symbolTypeNodes ? "symbol-type-nodes" : computedSymbols ? "computed-symbols" : symbolFormats ? "symbol-formats" : symbolDisplay ? "symbol-display" : accessibility ? "accessibility" : symbolChains ? "symbol-chains" : declarationVisibility ? "declaration-visibility" : contextQueries ? "context-queries" : scopeServices ? "scope-services" : symbolLocations ? "symbol-locations" : "locations"}`);
 const option = name => process.argv[process.argv.indexOf(name) + 1];
 const dotnet = process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, "dotnet.exe") : "dotnet";
 const dll = path.join(root, "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll");
@@ -213,6 +214,13 @@ exports["exported-name"]=C; Object.defineProperty(exports,"defined-name",{value:
     });
 }
 const inputs = [];
+if (symbolTypeArguments) {
+    Object.assign(fixtures, {
+        symbolArgumentsParameters: `class C<T extends string='é',U={readonly value?:T}>{field!:U;method(value:T):U{return this.field}static member=1}interface I<in T,out U>{method(value:T):U}class Unicode<É extends 'é'='é'>{value!:É}namespace N{export class Inner<T extends number=1>{value!:T}}`,
+        symbolArgumentsInstances: `class C<T>{value!:T;method(value:T):T{return value};'a-b'!:T}declare const number:C<number>, text:C<string>;number.value;text.value;number.method;text['a-b'];namespace N{export class D<T>{field!:T}}import Alias=N.D;declare const aliased:Alias<boolean>;aliased.field;`,
+        symbolArgumentsConstraints: `type Map<T>={[K in keyof T]:T[K]};class C<T extends Map<{value:number}>,U extends (x:T)=>T,V=T extends {value:infer R}?R:never>{field!:V}function outer<T extends string>(){class Inner<U extends T>{value!:U}return Inner}const Local=outer<'é'>();new Local().value;`,
+    });
+}
 if (anonymousSyntax) {
     Object.assign(fixtures, {
         anonymousSyntaxValues: `function f(x:number):string{return ''}const arrow=(x:string)=>x;const expression=function named(x:boolean){return x};type SerializeFunction=typeof f;type SerializeArrow=typeof arrow;type SerializeExpression=typeof expression;class Scope{} function location(){}`,
@@ -304,7 +312,7 @@ for (const [name, source] of Object.entries(fixtures)) {
                 roots: Object.keys(files),
                 options: { strict, target: "esnext", module: "esnext", moduleResolution: "bundler", jsx: "preserve", ...name.startsWith("jsdoc") ? { allowJs: true, checkJs: true } : {} },
                 typeNodes: true,
-                ...typeSyntax ? { typeSyntax: true } : symbolTypeNodes ? { symbolTypeNodes: true } : symbolFormats ? { symbolFormats: true, ...computedSymbols ? { symbolFormatFlags: [20, 22, 28, 30, 52, 54, 60, 62] } : {} } : symbolDisplay ? { symbolDisplay: true } : accessibility ? { accessibility: true } : symbolChains ? { symbolChains: true } : declarationVisibility ? { declarationVisibility: true } : contextQueries ? { contextQueries: true } : scopeServices ? { scopeServices: true } : symbolLocations ? { symbolLocations: true, ...name.startsWith("jsdoc") ? { documentationSymbols: true } : {} } : { locations: true },
+                ...typeSyntax ? { typeSyntax: true } : symbolTypeNodes ? { symbolTypeNodes: true } : symbolFormats ? { symbolFormats: true, ...symbolTypeArguments ? { symbolFormatFlags: [5, 7, 13, 15, 21, 23, 29, 31, 37, 39, 45, 47, 53, 55, 61, 63] } : computedSymbols ? { symbolFormatFlags: [20, 22, 28, 30, 52, 54, 60, 62] } : {} } : symbolDisplay ? { symbolDisplay: true } : accessibility ? { accessibility: true } : symbolChains ? { symbolChains: true } : declarationVisibility ? { declarationVisibility: true } : contextQueries ? { contextQueries: true } : scopeServices ? { scopeServices: true } : symbolLocations ? { symbolLocations: true, ...name.startsWith("jsdoc") ? { documentationSymbols: true } : {} } : { locations: true },
                 concurrency,
             });
         }
@@ -314,7 +322,7 @@ const formatFixtures = new Set(["namespaces", "imports", "typeImports", "classes
 const computedFixtures = new Set(["displayNames", "displayComputed", "displayAssigned", "jsdocDisplayNames", "classes", "visibilityExports", "accessibilityInstances", "chainClassNames"]);
 const typeNodeFixtures = new Set(["namespaces", "imports", "typeImports", "classes", "importsCommonJs", "visibilityAliases", "visibilityAmbient", "visibilityExports", "chainShadow", "chainReexports", "chainTypeOnly", "displayNames", "displayComputed", "accessibilityExportEquals", "accessibilityInstances", "symbolTypeModes", "symbolTypeAttributes"]);
 if (symbolTypeNodes) { for (const input of inputs) if (input.name.startsWith("symbolTypeModes:")) Object.assign(input.options, { module: "nodenext", moduleResolution: "nodenext" }); }
-const eligible = anonymousSyntax ? inputs.filter(input => input.name.startsWith("anonymousSyntax")) : signatureSyntax ? inputs.filter(input => input.name.startsWith("signatureSyntax")) : mappedSyntax ? inputs.filter(input => input.name.startsWith("mappedSyntax")) : conditionalSyntax ? inputs.filter(input => input.name.startsWith("conditionalSyntax")) : typeSyntax ? inputs.filter(input => input.name.startsWith("typeSyntax")) : symbolTypeNodes ? inputs.filter(input => typeNodeFixtures.has(input.name.split(":")[0])) : computedSymbols ? inputs.filter(input => computedFixtures.has(input.name.split(":")[0])) : symbolFormats ? inputs.filter(input => formatFixtures.has(input.name.split(":")[0])) : inputs;
+const eligible = symbolTypeArguments ? inputs.filter(input => input.name.startsWith("symbolArguments") || formatFixtures.has(input.name.split(":")[0])) : anonymousSyntax ? inputs.filter(input => input.name.startsWith("anonymousSyntax")) : signatureSyntax ? inputs.filter(input => input.name.startsWith("signatureSyntax")) : mappedSyntax ? inputs.filter(input => input.name.startsWith("mappedSyntax")) : conditionalSyntax ? inputs.filter(input => input.name.startsWith("conditionalSyntax")) : typeSyntax ? inputs.filter(input => input.name.startsWith("typeSyntax")) : symbolTypeNodes ? inputs.filter(input => typeNodeFixtures.has(input.name.split(":")[0])) : computedSymbols ? inputs.filter(input => computedFixtures.has(input.name.split(":")[0])) : symbolFormats ? inputs.filter(input => formatFixtures.has(input.name.split(":")[0])) : inputs;
 const selected = process.argv.includes("--filter") ? eligible.filter(input => input.name.includes(option("--filter"))) : eligible;
 await writeFile(path.join(output, "inputs.json"), JSON.stringify(selected, null, 2));
 if (process.argv.includes("--list")) process.exit(0);
@@ -449,7 +457,7 @@ if (symbolDisplay && !symbolFormats && !symbolTypeNodes) {
     for (const entry of results) for (const row of entry.candidate?.symbolDisplayQueries ?? []) row[0] === 0 ? names++ : accessibilityResults++;
     summary.symbolDisplayRecords = { names, accessibilityResults };
 }
-if (symbolFormats) summary.symbolFormatFlags = computedSymbols ? [20, 22, 28, 30, 52, 54, 60, 62] : [0, 1, 2, 6, 8, 10, 12, 14, 16, 17, 32, 34, 36, 38, 40, 42, 44, 46, 64];
+if (symbolFormats) summary.symbolFormatFlags = symbolTypeArguments ? [5, 7, 13, 15, 21, 23, 29, 31, 37, 39, 45, 47, 53, 55, 61, 63] : computedSymbols ? [20, 22, 28, 30, 52, 54, 60, 62] : [0, 1, 2, 6, 8, 10, 12, 14, 16, 17, 32, 34, 36, 38, 40, 42, 44, 46, 64];
 if (contextQueries) {
     const counts = Array(8).fill(0);
     for (const result of results) for (const record of result.candidate?.contextQueries ?? []) counts[record[0]]++;
