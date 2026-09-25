@@ -9,7 +9,7 @@ namespace TypeScript.Compiler.Checking;
 internal sealed partial class Checker
 {
     internal async ValueTask<Symbol?> ResolveImportModuleAsync(SyntaxNode location, SyntaxNode? specifier, Type? attributes,
-        CancellationToken cancellation, bool implicitImport = false, int missingModuleCode = 2307)
+        CancellationToken cancellation, bool implicitImport = false, int missingModuleCode = 2307, bool ignoreErrors = false)
     {
         cancellation.ThrowIfCancellationRequested();
         string? name = specifier switch
@@ -20,7 +20,7 @@ internal sealed partial class Checker
         };
         if (name is null)
             return null;
-        if (name.StartsWith("@types/", StringComparison.Ordinal))
+        if (!ignoreErrors && name.StartsWith("@types/", StringComparison.Ordinal))
             Error(specifier!, 6137);
         var file = program.Symbols.Binding(location)!.SourceFile;
         var reference = program.Symbols.Program.GetFile(file.FileName)!.Resolutions.FirstOrDefault(
@@ -30,7 +30,7 @@ internal sealed partial class Checker
             && !(reference.Resolution.IsArbitraryExtension && !file.IsDeclarationFile
                 && program.Symbols.Program.Configuration.Options.Boolean("allowArbitraryExtensions") != true))
         {
-            if (!implicitImport)
+            if (!implicitImport && !ignoreErrors)
                 CheckResolvedImport(location, specifier!, name, file, reference);
             module = program.Symbols.Program.GetFile(reference.Resolution.FileName)?.Binding.Symbol;
         }
@@ -72,7 +72,7 @@ internal sealed partial class Checker
                     ? program.Symbols.PatternAugmentations.GetValueOrDefault(name) ?? target : target;
             }
         }
-        if (module is null)
+        if (module is null && !ignoreErrors)
             ReportUnresolvedImport(implicitImport ? location : specifier!, name, file, reference, missingModuleCode);
         return program.Symbols.Merger.GetMergedSymbol(module);
     }

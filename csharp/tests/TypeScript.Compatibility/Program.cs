@@ -119,6 +119,12 @@ internal static class Program
                     $"{CheckerQueryTests.Safety().GetAwaiter().GetResult()} type-location query ownership/cancellation assertions; depth 20000");
                 return 0;
             }
+            if (args is ["--checker-symbol-query-safety"])
+            {
+                Console.WriteLine(
+                    $"{CheckerQueryTests.SymbolSafety().GetAwaiter().GetResult()} symbol-location query identity/ownership/cancellation assertions");
+                return 0;
+            }
             if (args is ["--checker-program-safety"])
             {
                 CheckerProgramTests.Safety().GetAwaiter().GetResult();

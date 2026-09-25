@@ -1,0 +1,82 @@
+{
+    "timestamp": "2026-09-25T02:10:12.182Z",
+    "configuration": "Release",
+    "managed": true,
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "scope": "General symbol-at-location queries; phase 4 remains incomplete",
+    "build": {
+        "warnings": 0,
+        "errors": 0,
+        "exitCode": 0,
+        "log": "logs/csharp-phase4-symbol-queries-build.log",
+        "sha256": "da903d6127d246728fd0b401c6b4f987e8242233a2952d5793936780a23272b3"
+    },
+    "candidateSha256": "26081557632e30be360466e28b272f1a3a4d17677a3424d686fd5ad13c3f4d45",
+    "compilerSha256": "29c859be1aada40eff3e99267944f89269c5f51f2126be1ea9465623e2820c87",
+    "queries": {
+        "configurations": 104,
+        "queries": 5312,
+        "comparedQueries": 5312,
+        "exact": 96,
+        "failed": 8,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "a3762100b2ecc06397cb9a6a99ea4c2bed5d5fc008b5f534681cceebe0f1c454",
+        "candidateHash": "be0c9cc96e9e162d5c96b0e16c2549c6b9550b592b714b99dcd42847cac7a96f",
+        "inputHash": "68eb6b0ac9f7ef354d82a509fe7dfa06df8b3a3d5c7c9bb70a1021376773d09b",
+        "resultHash": "fcc0585d9c006b929f700951778e057f58b134626a1c8ef7558535b690bbfcc5",
+        "managed": true,
+        "symbolAnswerMatches": 104,
+        "locationMetadataDifferences": [
+            "jsdoc:false:1",
+            "jsdoc:false:4",
+            "jsdoc:true:1",
+            "jsdoc:true:4",
+            "jsdocReferences:false:1",
+            "jsdocReferences:false:4",
+            "jsdocReferences:true:1",
+            "jsdocReferences:true:4"
+        ]
+    },
+    "safety": {
+        "symbolQueryAssertions": 25,
+        "log": "logs/csharp-phase4-symbol-queries-safety.log",
+        "retainedTypeQueryAssertions": 20,
+        "retainedProgramAssertions": 127,
+        "retainedRecord": "phase4-type-queries-validation.json",
+        "reason": "Subsequent changes affect only optional documentation-query instrumentation; product code and safety tests are unchanged."
+    },
+    "formatting": {
+        "csharpFiles": 8,
+        "libraryConfigurations": 2,
+        "tokensCommentsAndSyntaxIdentical": true,
+        "log": "logs/csharp-phase4-symbol-queries-format.log",
+        "dotnetWhitespaceExitCode": 0,
+        "proofSha256": "3d2866ce787a0888f039e370898d42ff95bbe5aec87a37d1707484b75586ab44",
+        "queryInputsUnchanged": true
+    },
+    "reference": {
+        "revision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "checkerBlob": "8aec6df21d7af00dae77b0e831dcb4d34149893e",
+        "frozenSourceMatches": true
+    },
+    "reuse": {
+        "record": "phase4-symbol-queries-reuse.json",
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "semanticCorpus": "The new query is not called by source checking. Existing import resolver calls keep ignoreErrors=false. No semantic-corpus expectations were changed."
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "phase4Complete": false,
+    "syntaxCheck": {
+        "command": "node --check csharp/tools/checker-locations.mjs",
+        "exitCode": 0
+    }
+}

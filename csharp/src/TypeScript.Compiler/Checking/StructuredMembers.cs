@@ -45,6 +45,7 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
     MappedMembers mapped, TypeOrder order, IStructuredMemberHost host)
 {
     private readonly IndexInfo anyBaseIndex = context.NewIndexInfo(context.StringType, context.AnyType);
+    internal IndexInfo AnyBaseIndex => anyBaseIndex;
     private readonly IndexInfo enumIndex = context.NewIndexInfo(context.NumberType, context.StringType, true);
     internal IndexInfo EnumNumberIndex => enumIndex;
 

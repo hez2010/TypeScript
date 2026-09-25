@@ -386,6 +386,7 @@ internal static class CheckerProgramTests
         checks += await DiagnosticDetailsSafety();
         checks += await CheckerDisplayTests.Safety();
         checks += await CheckerQueryTests.Safety();
+        checks += await CheckerQueryTests.SymbolSafety();
         Console.WriteLine($"{checks} program/checker ownership assertions; interface and scope depth 20000");
     }
 
@@ -996,6 +997,37 @@ internal static class CheckerProgramTests
                 writer.WriteNumberValue(Node(await host.Aliases.TypeOnlyAsync(symbol, SymbolFlags.Value)));
                 writer.WriteEndArray();
             }
+            writer.WriteEndArray();
+        }
+        if (input.TryGetProperty("symbolLocations", out var symbolLocationsOption) && symbolLocationsOption.GetBoolean())
+        {
+            writer.WriteStartArray("symbolLocationQueries");
+            foreach (var node in nodes)
+                if (SemanticSyntax.Source(node)?.FileName.StartsWith("/project/main.", StringComparison.Ordinal) == true)
+                {
+                    writer.WriteStartArray();
+                    writer.WriteNumberValue(Node(node));
+                    writer.WriteNumberValue(SymbolId(await typeHost!.GetSymbolAtLocationAsync(node)));
+                    writer.WriteEndArray();
+                }
+            writer.WriteEndArray();
+        }
+        if (input.TryGetProperty("documentationSymbols", out var documentationSymbolsOption) && documentationSymbolsOption.GetBoolean())
+        {
+            writer.WriteStartArray("documentationSymbolQueries");
+            foreach (var owner in nodes)
+                if (SemanticSyntax.Source(owner) is { } file && file.FileName.StartsWith("/project/main.", StringComparison.Ordinal))
+                    foreach (var comment in await file.GetDocumentationAsync(owner))
+                        foreach (var node in comment.DescendantsAndSelf())
+                        {
+                            writer.WriteStartArray();
+                            writer.WriteNumberValue(Node(owner));
+                            writer.WriteNumberValue((int)node.Kind);
+                            writer.WriteNumberValue(node.Pos);
+                            writer.WriteNumberValue(node.End);
+                            writer.WriteNumberValue(SymbolId(await typeHost!.GetSymbolAtLocationAsync(node)));
+                            writer.WriteEndArray();
+                        }
             writer.WriteEndArray();
         }
         if (input.TryGetProperty("locations", out var locationsOption) && locationsOption.GetBoolean())

@@ -8,10 +8,12 @@ import {
 } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { isDeepStrictEqual } from "node:util";
 import { referenceRevision } from "./common.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const output = path.join(root, "built/csharp/checker-locations");
+const symbolLocations = process.argv.includes("--symbols");
+const output = path.join(root, `built/csharp/checker-${symbolLocations ? "symbol-" : ""}locations`);
 const option = name => process.argv[process.argv.indexOf(name) + 1];
 const dotnet = process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, "dotnet.exe") : "dotnet";
 const dll = path.join(root, "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll");
@@ -62,12 +64,38 @@ function Component(props:{value:number}) {return <div title="x"/>;} const node=<
     jsdoc: `/** @template T @param {T} value @returns {T} */ function identity(value){ return value; }
 /** @type {number} */ let n=1; const s=identity("text");`,
 };
+if (symbolLocations) {
+    Object.assign(fixtures, {
+        jsdocReferences: `class C { field=1; static value=2; }
+/** Links {@link value}, {@link C.field} and {@link C.value}.
+ * @param {number} value A value.
+ * @returns {number} The result.
+ */
+function documented(value){return value;}
+/** @template T
+ * @param {T} item
+ * @returns {T}
+ */
+function generic(item){return item;}`,
+        indexSymbols: `interface Dictionary { [key:string]:number; } declare const dictionary:Dictionary;
+dictionary.value; dictionary.value; dictionary["key"]; type Value=Dictionary["key"];
+declare const both: { [key:\`a\${string}\`]:number } & { [key:\`\${string}z\`]:1 }; both.az; both.az;`,
+        missingSymbols: `let a:Missing; let b:Missing.Member; let c:Missing.Member; missingValue; unknownObject.property;
+import {absent} from "./missing"; type Imported=import("./missing").Type;`,
+        privateSymbols: `class C { #value=1; #method(){return this.#value;} has(other:object){return #value in other;} }
+declare const c:C; c.#value; class D { #value=2; read(){return this.#value;} }`,
+        declarationNames: `class C { ["named"](){return 1;} [42]=true; constructor(){} } const o={ ["text"]:1, [42]:true };
+namespace N { export class Item {} } import Alias=N.Item; export=Alias;`,
+        moduleQueries: `import {named} from "./dep" with {type:"json"}; export {named} from "./dep";
+const module=import("./dep", {with:{type:"json"}}); type T=import("./dep", {with:{type:"json"}}).Shape;`,
+    });
+}
 const inputs = [];
 for (const [name, source] of Object.entries(fixtures)) {
     for (const strict of [false, true]) {
         for (const concurrency of [1, 4]) {
-            const files = { "/project/globals.d.ts": library, [`/project/main.${name === "jsx" ? "tsx" : name === "jsdoc" ? "js" : "ts"}`]: source, "/project/dep.ts": "export interface Shape {value:number;} export const named=1; export default class Default { value=1; }" };
-            inputs.push({ name: `${name}:${strict}:${concurrency}`, files: Object.fromEntries(Object.entries(files).map(([name, text]) => [name, Buffer.from(text).toString("base64")])), roots: Object.keys(files), options: { strict, target: "esnext", module: "esnext", moduleResolution: "bundler", jsx: "preserve", ...name === "jsdoc" ? { allowJs: true, checkJs: true } : {} }, typeNodes: true, locations: true, concurrency });
+            const files = { "/project/globals.d.ts": library, [`/project/main.${name === "jsx" ? "tsx" : name.startsWith("jsdoc") ? "js" : "ts"}`]: source, "/project/dep.ts": "export interface Shape {value:number;} export const named=1; export default class Default { value=1; }" };
+            inputs.push({ name: `${name}:${strict}:${concurrency}`, files: Object.fromEntries(Object.entries(files).map(([name, text]) => [name, Buffer.from(text).toString("base64")])), roots: Object.keys(files), options: { strict, target: "esnext", module: "esnext", moduleResolution: "bundler", jsx: "preserve", ...name.startsWith("jsdoc") ? { allowJs: true, checkJs: true } : {} }, typeNodes: true, ...symbolLocations ? { symbolLocations: true, ...name.startsWith("jsdoc") ? { documentationSymbols: true } : {} } : { locations: true }, concurrency });
         }
     }
 }
@@ -109,6 +137,7 @@ async function probe(command, args, input, executableHash, role) {
     return result;
 }
 const failures = [];
+const locationMetadataDifferences = [];
 let queries = 0, comparedQueries = 0, referenceFailures = 0, candidateFailures = 0;
 const results = [];
 for (const input of selected) {
@@ -127,23 +156,34 @@ for (const input of selected) {
         candidateError = String(error);
         candidateFailures++;
     }
-    if (candidate) queries += candidate.locationQueries.length;
+    if (candidate) queries += (candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
     results.push({ input, reference, candidate, referenceError, candidateError });
     if (referenceError || candidateError) {
         failures.push({ name: input.name, referenceError, candidateError });
         continue;
     }
-    comparedQueries += candidate.locationQueries.length;
+    comparedQueries += (candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
     try {
         assert.deepStrictEqual(candidate, reference);
     }
     catch {
         failures.push({ name: input.name, input, reference, candidate });
+        if (symbolLocations) {
+            // These columns describe the input comment node, not a returned
+            // symbol. Retain every strict failure while reporting answer parity.
+            const answers = result =>
+                result.documentationSymbolQueries ? {
+                    ...result,
+                    documentationSymbolQueries: result.documentationSymbolQueries.map(([owner, kind, , , symbol]) => [owner, kind, symbol]),
+                } : result;
+            if (isDeepStrictEqual(answers(candidate), answers(reference))) locationMetadataDifferences.push(input.name);
+        }
     }
 }
 await writeFile(path.join(output, "failures.json"), JSON.stringify(failures, null, 2));
 await writeFile(path.join(output, "results.json"), JSON.stringify(results));
 const summary = { configurations: selected.length, queries, comparedQueries, exact: selected.length - failures.length, failed: failures.length, referenceRevision, referenceFailures, candidateFailures, oracleHash, candidateHash, inputHash: hash(JSON.stringify(selected)), resultHash: hash(JSON.stringify(results)), managed: true };
+if (symbolLocations) Object.assign(summary, { symbolAnswerMatches: summary.exact + locationMetadataDifferences.length, locationMetadataDifferences });
 await writeFile(path.join(output, "summary.json"), JSON.stringify(summary, null, 2));
 if (process.argv.includes("--record")) await writeFile(path.join(root, "csharp/compatibility/evidence", option("--record") + ".json"), JSON.stringify(summary, null, 4) + "\n");
 console.log(summary);

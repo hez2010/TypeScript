@@ -13,7 +13,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/jsnum"
 )
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool, symbolLocations bool, documentationSymbols bool) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -216,6 +216,36 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 				id, target, immediate, flags, withoutTypeOnly, withoutLocal,
 				nodeIDs[c.getTypeOnlyAliasDeclaration(symbol)], nodeIDs[c.getTypeOnlyAliasDeclarationEx(symbol, ast.SymbolFlagsValue)],
 			})
+		}
+	}
+	symbolLocationQueries := []any{}
+	if symbolLocations {
+		for _, node := range nodes {
+			if strings.HasPrefix(ast.GetSourceFileOfNode(node).FileName(), "/project/main.") {
+				symbolLocationQueries = append(symbolLocationQueries, []any{nodeIDs[node], sid(c.GetSymbolAtLocation(node))})
+			}
+		}
+	}
+	documentationQueries := []any{}
+	if documentationSymbols {
+		for _, owner := range nodes {
+			file := ast.GetSourceFileOfNode(owner)
+			if !strings.HasPrefix(file.FileName(), "/project/main.") {
+				continue
+			}
+			for _, comment := range owner.JSDoc(file) {
+				pending := []*ast.Node{comment}
+				for len(pending) != 0 {
+					node := pending[len(pending)-1]
+					pending = pending[:len(pending)-1]
+					documentationQueries = append(documentationQueries, []any{nodeIDs[owner], int(node.Kind), node.Pos(), node.End(), sid(c.GetSymbolAtLocation(node))})
+					children := []*ast.Node{}
+					node.ForEachChild(func(child *ast.Node) bool { children = append(children, child); return false })
+					for i := len(children) - 1; i >= 0; i-- {
+						pending = append(pending, children[i])
+					}
+				}
+			}
 		}
 	}
 	locationQueries := []any{}
@@ -862,6 +892,12 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	}
 	if locations {
 		result["locationQueries"] = locationQueries
+	}
+	if symbolLocations {
+		result["symbolLocationQueries"] = symbolLocationQueries
+	}
+	if documentationSymbols {
+		result["documentationSymbolQueries"] = documentationQueries
 	}
 	if memberQueries {
 		result["memberQueries"], result["members"] = memberRoots, memberRows

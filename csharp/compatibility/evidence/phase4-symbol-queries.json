@@ -1,0 +1,26 @@
+{
+    "configurations": 104,
+    "queries": 5312,
+    "comparedQueries": 5312,
+    "exact": 96,
+    "failed": 8,
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "referenceFailures": 0,
+    "candidateFailures": 0,
+    "oracleHash": "a3762100b2ecc06397cb9a6a99ea4c2bed5d5fc008b5f534681cceebe0f1c454",
+    "candidateHash": "be0c9cc96e9e162d5c96b0e16c2549c6b9550b592b714b99dcd42847cac7a96f",
+    "inputHash": "68eb6b0ac9f7ef354d82a509fe7dfa06df8b3a3d5c7c9bb70a1021376773d09b",
+    "resultHash": "fcc0585d9c006b929f700951778e057f58b134626a1c8ef7558535b690bbfcc5",
+    "managed": true,
+    "symbolAnswerMatches": 104,
+    "locationMetadataDifferences": [
+        "jsdoc:false:1",
+        "jsdoc:false:4",
+        "jsdoc:true:1",
+        "jsdoc:true:4",
+        "jsdocReferences:false:1",
+        "jsdocReferences:false:4",
+        "jsdocReferences:true:1",
+        "jsdocReferences:true:4"
+    ]
+}

@@ -10,6 +10,117 @@ namespace TypeScript.Compatibility;
 
 internal static class CheckerQueryTests
 {
+    internal static async Task<int> SymbolSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Checker symbol query assertion {checks + 1}");
+            checks++;
+        }
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        const string source = "import {value as alias} from './dep'; import './missing'; "
+            + "interface Foo { bar:string; } declare const foo:Foo; foo.bar; foo['bar']; alias; "
+            + "declare const dict:{[key:string]:number}; dict.key; dict.key; "
+            + "let a:Missing.Member; let b:Missing.Member; unknownValue;";
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        {
+            ["/project/main.ts"] = Wtf8.Encode(source),
+            ["/project/dep.ts"] = Wtf8.Encode("export const value=1;")
+        }), "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var file = program.GetFile("/project/main.ts")!.Syntax;
+        var nodes = file.DescendantsAndSelf().ToArray();
+        var import = nodes.OfType<ImportSpecifierNode>().Single();
+        var alias = await checker.GetSymbolAtLocationAsync(import.Name!);
+        var target = await checker.GetSymbolAtLocationAsync(import.PropertyName!);
+        Check(alias?.Name == "alias" && target?.Name == "value" && alias != target);
+        Check(await checker.GetSymbolAtLocationAsync(nodes.OfType<IdentifierNode>().Last(n => n.Text == "alias")) == alias);
+        var property = nodes.OfType<PropertyAccessExpressionNode>().First();
+        var symbol = await checker.GetSymbolAtLocationAsync(property);
+        Check(symbol?.Name == "bar" && symbol.ValueDeclaration is PropertySignatureDeclarationNode);
+        Check(await checker.GetSymbolAtLocationAsync(property.Name!) == symbol);
+        Check(await checker.GetSymbolAtLocationAsync(nodes.OfType<ElementAccessExpressionNode>().Single().ArgumentExpression!) == symbol);
+        var keys = nodes.OfType<PropertyAccessExpressionNode>().Where(n => n.Name is IdentifierNode { Text: "key" }).ToArray();
+        var index = await checker.GetSymbolAtLocationAsync(keys[0]);
+        Check(index is not null && (index.CheckFlags & TypeScript.Compiler.Binding.CheckFlags.IndexSymbol) != 0);
+        Check(index!.Declarations is [IndexSignatureDeclarationNode]);
+        Check(await checker.GetSymbolAtLocationAsync(keys[1]) == index);
+        var names = nodes.OfType<QualifiedNameNode>().ToArray();
+        var unresolved = await checker.GetSymbolAtLocationAsync(names[0]);
+        Check(unresolved?.Name == "Member" && unresolved.Parent?.Name == "Missing"
+            && (unresolved.CheckFlags & TypeScript.Compiler.Binding.CheckFlags.Unresolved) != 0);
+        Check(await checker.GetSymbolAtLocationAsync(names[1]) == unresolved);
+        int diagnostics = checker.Diagnostics.Count + checker.Environment.Diagnostics.Count;
+        Check(await checker.GetSymbolAtLocationAsync(nodes.OfType<IdentifierNode>().Single(n => n.Text == "unknownValue")) is null);
+        Check(await checker.GetSymbolAtLocationAsync(nodes.OfType<StringLiteralNode>().Single(n => n.Text == "./missing")) is null);
+        Check(checker.Diagnostics.Count + checker.Environment.Diagnostics.Count == diagnostics);
+        Check(await checker.GetSymbolAtLocationAsync(file) == checker.Symbols.Declaration(file));
+        using var cancelled = new CancellationTokenSource();
+        cancelled.Cancel();
+        try
+        {
+            await checker.GetSymbolAtLocationAsync(property, cancelled.Token);
+            throw new InvalidOperationException("Cancelled symbol query completed");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        Check(await checker.GetSymbolAtLocationAsync(property) == symbol);
+        try
+        {
+            await checker.GetSymbolAtLocationAsync(new IdentifierNode { Text = "foo" });
+            throw new InvalidOperationException("Symbol query accepted foreign syntax");
+        }
+        catch (ArgumentException)
+        {
+            checks++;
+        }
+        var other = await program.CreateCheckerAsync();
+        Check(await other.GetSymbolAtLocationAsync(keys[0]) != index);
+        using var entered = new ManualResetEventSlim();
+        using var release = new ManualResetEventSlim();
+        other.BeforeExpressionFinish = () =>
+        {
+            entered.Set();
+            if (!release.Wait(TimeSpan.FromSeconds(30)))
+                throw new InvalidOperationException("Symbol query was not released");
+        };
+        var active = Task.Run(async () => await other.GetSymbolAtLocationAsync(property));
+        try
+        {
+            Check(entered.Wait(TimeSpan.FromSeconds(30)));
+            using var stop = new CancellationTokenSource();
+            var queued = other.GetSymbolAtLocationAsync(import.Name!, stop.Token);
+            Check(!queued.IsCompleted);
+            stop.Cancel();
+            try
+            {
+                await queued;
+                throw new InvalidOperationException("Queued symbol query ignored cancellation");
+            }
+            catch (OperationCanceledException)
+            {
+                checks++;
+            }
+        }
+        finally
+        {
+            release.Set();
+        }
+        Check((await active)?.Name == "bar");
+        other.BeforeExpressionFinish = null;
+        Check(await other.GetSymbolAtLocationAsync(import.Name!) == alias);
+        await checker.CheckProgramAsync();
+        Check(checker.Environment.Diagnostics.Contains(2304));
+        Check(checker.Environment.Diagnostics.Contains(2882));
+        return checks;
+    }
+
     internal static async Task<int> Safety()
     {
         int checks = 0;

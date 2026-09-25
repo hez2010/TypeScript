@@ -82,7 +82,7 @@ internal sealed class TypeReferences(TypeContext context, CheckerLinks links, Ch
         return ignoreErrors ? symbols.UnknownSymbol : Unresolved(name);
     }
 
-    private Symbol Unresolved(SyntaxNode name)
+    internal Symbol Unresolved(SyntaxNode name)
     {
         var segments = new Stack<string>();
         while (true)

@@ -7,6 +7,29 @@ namespace TypeScript.Compiler.Checking;
 
 internal static class QuerySyntax
 {
+    internal static bool Declaration(SyntaxNode? node) => node?.Kind is K.SourceFile or K.VariableDeclaration or K.Parameter
+        or K.BindingElement or K.MissingDeclaration or K.FunctionDeclaration or K.ClassDeclaration or K.ClassExpression
+        or K.InterfaceDeclaration or K.TypeAliasDeclaration or K.JSTypeAliasDeclaration or K.EnumMember or K.EnumDeclaration
+        or K.ImportDeclaration or K.JSImportDeclaration or K.NamespaceImport or K.ExportAssignment or K.NamespaceExportDeclaration
+        or K.NamespaceExport or K.ExportSpecifier or K.CallSignature or K.ConstructSignature or K.Constructor or K.GetAccessor
+        or K.SetAccessor or K.IndexSignature or K.MethodSignature or K.MethodDeclaration or K.PropertySignature or K.PropertyDeclaration
+        or K.SemicolonClassElement or K.ClassStaticBlockDeclaration or K.NoSubstitutionTemplateLiteral or K.BinaryExpression
+        or K.ArrowFunction or K.FunctionExpression or K.CallExpression or K.ObjectLiteralExpression or K.SpreadAssignment
+        or K.PropertyAssignment or K.ShorthandPropertyAssignment or K.MappedType or K.TypeLiteral or K.NamedTupleMember
+        or K.FunctionType or K.ConstructorType or K.JsxAttributes or K.JsxAttribute or K.JSDocSignature or K.ModuleDeclaration
+        or K.ImportEqualsDeclaration or K.ExportDeclaration or K.ImportClause or K.ImportSpecifier or K.JSDocTypeLiteral
+        || node is TypeParameterDeclarationNode { Parent: not null };
+
+    internal static bool DeclarationName(SyntaxNode node) => node is not SourceFileNode and not BindingPatternNode
+        && Declaration(node.Parent) && SemanticSyntax.Name(node.Parent) == node;
+
+    internal static bool DeclarationOrImportName(SyntaxNode node) => node.Parent is ImportSpecifierNode or ExportSpecifierNode
+        ? node is IdentifierNode or StringLiteralNode : DeclarationName(node);
+
+    internal static bool JsxTag(SyntaxNode node) => node.Parent is JsxOpeningElementNode opening && opening.TagName == node
+        || node.Parent is JsxClosingElementNode closing && closing.TagName == node
+        || node.Parent is JsxSelfClosingElementNode element && element.TagName == node;
+
     internal static bool RightSide(SyntaxNode node) => node.Parent is QualifiedNameNode qualified && qualified.Right == node
         || node.Parent is PropertyAccessExpressionNode access && access.Name == node
         || node.Parent is MetaPropertyNode meta && meta.Name == node;

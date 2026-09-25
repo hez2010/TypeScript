@@ -1,0 +1,725 @@
+{
+    "scope": "Original documentation node input locations; no returned-symbol differences",
+    "acceptedAsPassing": false,
+    "rowSchema": [
+        "ownerNodeId",
+        "syntaxKind",
+        "start",
+        "end",
+        "symbolId"
+    ],
+    "configurations": [
+        {
+            "name": "jsdoc:false:1",
+            "input": {
+                "name": "jsdoc:false:1",
+                "files": {
+                    "/project/globals.d.ts": "aW50ZXJmYWNlIElBcmd1bWVudHMge30gaW50ZXJmYWNlIE9iamVjdCB7fSBpbnRlcmZhY2UgRnVuY3Rpb24ge30gaW50ZXJmYWNlIENhbGxhYmxlRnVuY3Rpb24gZXh0ZW5kcyBGdW5jdGlvbiB7fQppbnRlcmZhY2UgTmV3YWJsZUZ1bmN0aW9uIGV4dGVuZHMgRnVuY3Rpb24ge30gaW50ZXJmYWNlIFN0cmluZyB7fSBpbnRlcmZhY2UgTnVtYmVyIHt9IGludGVyZmFjZSBCb29sZWFuIHt9IGludGVyZmFjZSBSZWdFeHAge30KaW50ZXJmYWNlIEFycmF5PFQ+IHsgbGVuZ3RoOiBudW1iZXI7IFtuOiBudW1iZXJdOiBUOyB9IGludGVyZmFjZSBSZWFkb25seUFycmF5PFQ+IHsgcmVhZG9ubHkgbGVuZ3RoOiBudW1iZXI7IHJlYWRvbmx5IFtuOiBudW1iZXJdOiBUOyB9CmludGVyZmFjZSBUaGlzVHlwZTxUPiB7fQ==",
+                    "/project/main.js": "LyoqIEB0ZW1wbGF0ZSBUIEBwYXJhbSB7VH0gdmFsdWUgQHJldHVybnMge1R9ICovIGZ1bmN0aW9uIGlkZW50aXR5KHZhbHVlKXsgcmV0dXJuIHZhbHVlOyB9Ci8qKiBAdHlwZSB7bnVtYmVyfSAqLyBsZXQgbj0xOyBjb25zdCBzPWlkZW50aXR5KCJ0ZXh0Iik7",
+                    "/project/dep.ts": "ZXhwb3J0IGludGVyZmFjZSBTaGFwZSB7dmFsdWU6bnVtYmVyO30gZXhwb3J0IGNvbnN0IG5hbWVkPTE7IGV4cG9ydCBkZWZhdWx0IGNsYXNzIERlZmF1bHQgeyB2YWx1ZT0xOyB9"
+                },
+                "roots": [
+                    "/project/globals.d.ts",
+                    "/project/main.js",
+                    "/project/dep.ts"
+                ],
+                "options": {
+                    "strict": false,
+                    "target": "esnext",
+                    "module": "esnext",
+                    "moduleResolution": "bundler",
+                    "jsx": "preserve",
+                    "allowJs": true,
+                    "checkJs": true
+                },
+                "typeNodes": true,
+                "symbolLocations": true,
+                "documentationSymbols": true,
+                "concurrency": 1
+            },
+            "differences": [
+                {
+                    "reference": [
+                        73,
+                        315,
+                        90,
+                        112,
+                        0
+                    ],
+                    "candidate": [
+                        73,
+                        315,
+                        91,
+                        112,
+                        0
+                    ]
+                }
+            ],
+            "referenceHash": "63647fe28a8e0f887491cbee111a8a43c28aa2c6c3be125d1cf5d8dbf35ecf7f",
+            "candidateHash": "b925e33297ad8ab1b80e374308ceffd423a2042326f63d08a22a56faf44e4d1b"
+        },
+        {
+            "name": "jsdoc:false:4",
+            "input": {
+                "name": "jsdoc:false:4",
+                "files": {
+                    "/project/globals.d.ts": "aW50ZXJmYWNlIElBcmd1bWVudHMge30gaW50ZXJmYWNlIE9iamVjdCB7fSBpbnRlcmZhY2UgRnVuY3Rpb24ge30gaW50ZXJmYWNlIENhbGxhYmxlRnVuY3Rpb24gZXh0ZW5kcyBGdW5jdGlvbiB7fQppbnRlcmZhY2UgTmV3YWJsZUZ1bmN0aW9uIGV4dGVuZHMgRnVuY3Rpb24ge30gaW50ZXJmYWNlIFN0cmluZyB7fSBpbnRlcmZhY2UgTnVtYmVyIHt9IGludGVyZmFjZSBCb29sZWFuIHt9IGludGVyZmFjZSBSZWdFeHAge30KaW50ZXJmYWNlIEFycmF5PFQ+IHsgbGVuZ3RoOiBudW1iZXI7IFtuOiBudW1iZXJdOiBUOyB9IGludGVyZmFjZSBSZWFkb25seUFycmF5PFQ+IHsgcmVhZG9ubHkgbGVuZ3RoOiBudW1iZXI7IHJlYWRvbmx5IFtuOiBudW1iZXJdOiBUOyB9CmludGVyZmFjZSBUaGlzVHlwZTxUPiB7fQ==",
+                    "/project/main.js": "LyoqIEB0ZW1wbGF0ZSBUIEBwYXJhbSB7VH0gdmFsdWUgQHJldHVybnMge1R9ICovIGZ1bmN0aW9uIGlkZW50aXR5KHZhbHVlKXsgcmV0dXJuIHZhbHVlOyB9Ci8qKiBAdHlwZSB7bnVtYmVyfSAqLyBsZXQgbj0xOyBjb25zdCBzPWlkZW50aXR5KCJ0ZXh0Iik7",
+                    "/project/dep.ts": "ZXhwb3J0IGludGVyZmFjZSBTaGFwZSB7dmFsdWU6bnVtYmVyO30gZXhwb3J0IGNvbnN0IG5hbWVkPTE7IGV4cG9ydCBkZWZhdWx0IGNsYXNzIERlZmF1bHQgeyB2YWx1ZT0xOyB9"
+                },
+                "roots": [
+                    "/project/globals.d.ts",
+                    "/project/main.js",
+                    "/project/dep.ts"
+                ],
+                "options": {
+                    "strict": false,
+                    "target": "esnext",
+                    "module": "esnext",
+                    "moduleResolution": "bundler",
+                    "jsx": "preserve",
+                    "allowJs": true,
+                    "checkJs": true
+                },
+                "typeNodes": true,
+                "symbolLocations": true,
+                "documentationSymbols": true,
+                "concurrency": 4
+            },
+            "differences": [
+                {
+                    "reference": [
+                        73,
+                        315,
+                        90,
+                        112,
+                        0
+                    ],
+                    "candidate": [
+                        73,
+                        315,
+                        91,
+                        112,
+                        0
+                    ]
+                }
+            ],
+            "referenceHash": "63647fe28a8e0f887491cbee111a8a43c28aa2c6c3be125d1cf5d8dbf35ecf7f",
+            "candidateHash": "b925e33297ad8ab1b80e374308ceffd423a2042326f63d08a22a56faf44e4d1b"
+        },
+        {
+            "name": "jsdoc:true:1",
+            "input": {
+                "name": "jsdoc:true:1",
+                "files": {
+                    "/project/globals.d.ts": "aW50ZXJmYWNlIElBcmd1bWVudHMge30gaW50ZXJmYWNlIE9iamVjdCB7fSBpbnRlcmZhY2UgRnVuY3Rpb24ge30gaW50ZXJmYWNlIENhbGxhYmxlRnVuY3Rpb24gZXh0ZW5kcyBGdW5jdGlvbiB7fQppbnRlcmZhY2UgTmV3YWJsZUZ1bmN0aW9uIGV4dGVuZHMgRnVuY3Rpb24ge30gaW50ZXJmYWNlIFN0cmluZyB7fSBpbnRlcmZhY2UgTnVtYmVyIHt9IGludGVyZmFjZSBCb29sZWFuIHt9IGludGVyZmFjZSBSZWdFeHAge30KaW50ZXJmYWNlIEFycmF5PFQ+IHsgbGVuZ3RoOiBudW1iZXI7IFtuOiBudW1iZXJdOiBUOyB9IGludGVyZmFjZSBSZWFkb25seUFycmF5PFQ+IHsgcmVhZG9ubHkgbGVuZ3RoOiBudW1iZXI7IHJlYWRvbmx5IFtuOiBudW1iZXJdOiBUOyB9CmludGVyZmFjZSBUaGlzVHlwZTxUPiB7fQ==",
+                    "/project/main.js": "LyoqIEB0ZW1wbGF0ZSBUIEBwYXJhbSB7VH0gdmFsdWUgQHJldHVybnMge1R9ICovIGZ1bmN0aW9uIGlkZW50aXR5KHZhbHVlKXsgcmV0dXJuIHZhbHVlOyB9Ci8qKiBAdHlwZSB7bnVtYmVyfSAqLyBsZXQgbj0xOyBjb25zdCBzPWlkZW50aXR5KCJ0ZXh0Iik7",
+                    "/project/dep.ts": "ZXhwb3J0IGludGVyZmFjZSBTaGFwZSB7dmFsdWU6bnVtYmVyO30gZXhwb3J0IGNvbnN0IG5hbWVkPTE7IGV4cG9ydCBkZWZhdWx0IGNsYXNzIERlZmF1bHQgeyB2YWx1ZT0xOyB9"
+                },
+                "roots": [
+                    "/project/globals.d.ts",
+                    "/project/main.js",
+                    "/project/dep.ts"
+                ],
+                "options": {
+                    "strict": true,
+                    "target": "esnext",
+                    "module": "esnext",
+                    "moduleResolution": "bundler",
+                    "jsx": "preserve",
+                    "allowJs": true,
+                    "checkJs": true
+                },
+                "typeNodes": true,
+                "symbolLocations": true,
+                "documentationSymbols": true,
+                "concurrency": 1
+            },
+            "differences": [
+                {
+                    "reference": [
+                        73,
+                        315,
+                        90,
+                        112,
+                        0
+                    ],
+                    "candidate": [
+                        73,
+                        315,
+                        91,
+                        112,
+                        0
+                    ]
+                }
+            ],
+            "referenceHash": "3e78dfebaa84efa67f97fa84642ecf924c6db9cb44825c39a2df637f9c1d2465",
+            "candidateHash": "4af81406035e82f2b288c1575e243580529f920c8419141e75dc1ad8e47fa265"
+        },
+        {
+            "name": "jsdoc:true:4",
+            "input": {
+                "name": "jsdoc:true:4",
+                "files": {
+                    "/project/globals.d.ts": "aW50ZXJmYWNlIElBcmd1bWVudHMge30gaW50ZXJmYWNlIE9iamVjdCB7fSBpbnRlcmZhY2UgRnVuY3Rpb24ge30gaW50ZXJmYWNlIENhbGxhYmxlRnVuY3Rpb24gZXh0ZW5kcyBGdW5jdGlvbiB7fQppbnRlcmZhY2UgTmV3YWJsZUZ1bmN0aW9uIGV4dGVuZHMgRnVuY3Rpb24ge30gaW50ZXJmYWNlIFN0cmluZyB7fSBpbnRlcmZhY2UgTnVtYmVyIHt9IGludGVyZmFjZSBCb29sZWFuIHt9IGludGVyZmFjZSBSZWdFeHAge30KaW50ZXJmYWNlIEFycmF5PFQ+IHsgbGVuZ3RoOiBudW1iZXI7IFtuOiBudW1iZXJdOiBUOyB9IGludGVyZmFjZSBSZWFkb25seUFycmF5PFQ+IHsgcmVhZG9ubHkgbGVuZ3RoOiBudW1iZXI7IHJlYWRvbmx5IFtuOiBudW1iZXJdOiBUOyB9CmludGVyZmFjZSBUaGlzVHlwZTxUPiB7fQ==",
+                    "/project/main.js": "LyoqIEB0ZW1wbGF0ZSBUIEBwYXJhbSB7VH0gdmFsdWUgQHJldHVybnMge1R9ICovIGZ1bmN0aW9uIGlkZW50aXR5KHZhbHVlKXsgcmV0dXJuIHZhbHVlOyB9Ci8qKiBAdHlwZSB7bnVtYmVyfSAqLyBsZXQgbj0xOyBjb25zdCBzPWlkZW50aXR5KCJ0ZXh0Iik7",
+                    "/project/dep.ts": "ZXhwb3J0IGludGVyZmFjZSBTaGFwZSB7dmFsdWU6bnVtYmVyO30gZXhwb3J0IGNvbnN0IG5hbWVkPTE7IGV4cG9ydCBkZWZhdWx0IGNsYXNzIERlZmF1bHQgeyB2YWx1ZT0xOyB9"
+                },
+                "roots": [
+                    "/project/globals.d.ts",
+                    "/project/main.js",
+                    "/project/dep.ts"
+                ],
+                "options": {
+                    "strict": true,
+                    "target": "esnext",
+                    "module": "esnext",
+                    "moduleResolution": "bundler",
+                    "jsx": "preserve",
+                    "allowJs": true,
+                    "checkJs": true
+                },
+                "typeNodes": true,
+                "symbolLocations": true,
+                "documentationSymbols": true,
+                "concurrency": 4
+            },
+            "differences": [
+                {
+                    "reference": [
+                        73,
+                        315,
+                        90,
+                        112,
+                        0
+                    ],
+                    "candidate": [
+                        73,
+                        315,
+                        91,
+                        112,
+                        0
+                    ]
+                }
+            ],
+            "referenceHash": "3e78dfebaa84efa67f97fa84642ecf924c6db9cb44825c39a2df637f9c1d2465",
+            "candidateHash": "4af81406035e82f2b288c1575e243580529f920c8419141e75dc1ad8e47fa265"
+        },
+        {
+            "name": "jsdocReferences:false:1",
+            "input": {
+                "name": "jsdocReferences:false:1",
+                "files": {
+                    "/project/globals.d.ts": "aW50ZXJmYWNlIElBcmd1bWVudHMge30gaW50ZXJmYWNlIE9iamVjdCB7fSBpbnRlcmZhY2UgRnVuY3Rpb24ge30gaW50ZXJmYWNlIENhbGxhYmxlRnVuY3Rpb24gZXh0ZW5kcyBGdW5jdGlvbiB7fQppbnRlcmZhY2UgTmV3YWJsZUZ1bmN0aW9uIGV4dGVuZHMgRnVuY3Rpb24ge30gaW50ZXJmYWNlIFN0cmluZyB7fSBpbnRlcmZhY2UgTnVtYmVyIHt9IGludGVyZmFjZSBCb29sZWFuIHt9IGludGVyZmFjZSBSZWdFeHAge30KaW50ZXJmYWNlIEFycmF5PFQ+IHsgbGVuZ3RoOiBudW1iZXI7IFtuOiBudW1iZXJdOiBUOyB9IGludGVyZmFjZSBSZWFkb25seUFycmF5PFQ+IHsgcmVhZG9ubHkgbGVuZ3RoOiBudW1iZXI7IHJlYWRvbmx5IFtuOiBudW1iZXJdOiBUOyB9CmludGVyZmFjZSBUaGlzVHlwZTxUPiB7fQ==",
+                    "/project/main.js": "Y2xhc3MgQyB7IGZpZWxkPTE7IHN0YXRpYyB2YWx1ZT0yOyB9Ci8qKiBMaW5rcyB7QGxpbmsgdmFsdWV9LCB7QGxpbmsgQy5maWVsZH0gYW5kIHtAbGluayBDLnZhbHVlfS4KICogQHBhcmFtIHtudW1iZXJ9IHZhbHVlIEEgdmFsdWUuCiAqIEByZXR1cm5zIHtudW1iZXJ9IFRoZSByZXN1bHQuCiAqLwpmdW5jdGlvbiBkb2N1bWVudGVkKHZhbHVlKXtyZXR1cm4gdmFsdWU7fQovKiogQHRlbXBsYXRlIFQKICogQHBhcmFtIHtUfSBpdGVtCiAqIEByZXR1cm5zIHtUfQogKi8KZnVuY3Rpb24gZ2VuZXJpYyhpdGVtKXtyZXR1cm4gaXRlbTt9",
+                    "/project/dep.ts": "ZXhwb3J0IGludGVyZmFjZSBTaGFwZSB7dmFsdWU6bnVtYmVyO30gZXhwb3J0IGNvbnN0IG5hbWVkPTE7IGV4cG9ydCBkZWZhdWx0IGNsYXNzIERlZmF1bHQgeyB2YWx1ZT0xOyB9"
+                },
+                "roots": [
+                    "/project/globals.d.ts",
+                    "/project/main.js",
+                    "/project/dep.ts"
+                ],
+                "options": {
+                    "strict": false,
+                    "target": "esnext",
+                    "module": "esnext",
+                    "moduleResolution": "bundler",
+                    "jsx": "preserve",
+                    "allowJs": true,
+                    "checkJs": true
+                },
+                "typeNodes": true,
+                "symbolLocations": true,
+                "documentationSymbols": true,
+                "concurrency": 1
+            },
+            "differences": [
+                {
+                    "reference": [
+                        69,
+                        315,
+                        36,
+                        169,
+                        0
+                    ],
+                    "candidate": [
+                        69,
+                        315,
+                        37,
+                        169,
+                        0
+                    ]
+                },
+                {
+                    "reference": [
+                        69,
+                        316,
+                        37,
+                        47,
+                        0
+                    ],
+                    "candidate": [
+                        69,
+                        316,
+                        41,
+                        47,
+                        0
+                    ]
+                },
+                {
+                    "reference": [
+                        69,
+                        316,
+                        97,
+                        102,
+                        0
+                    ],
+                    "candidate": [
+                        69,
+                        316,
+                        97,
+                        101,
+                        0
+                    ]
+                },
+                {
+                    "reference": [
+                        69,
+                        316,
+                        124,
+                        136,
+                        0
+                    ],
+                    "candidate": [
+                        69,
+                        316,
+                        124,
+                        135,
+                        0
+                    ]
+                },
+                {
+                    "reference": [
+                        69,
+                        316,
+                        153,
+                        167,
+                        0
+                    ],
+                    "candidate": [
+                        69,
+                        316,
+                        154,
+                        165,
+                        0
+                    ]
+                },
+                {
+                    "reference": [
+                        78,
+                        315,
+                        211,
+                        266,
+                        0
+                    ],
+                    "candidate": [
+                        78,
+                        315,
+                        212,
+                        266,
+                        0
+                    ]
+                }
+            ],
+            "referenceHash": "b25baf0c4f3ebc843707ee01b552c27250e518d9c98dfb370cf5a5b8ed310cc8",
+            "candidateHash": "9de64915f657b8ee50b898cc990c28f1f5b3539aee84cd3d3fe9926b8780dedc"
+        },
+        {
+            "name": "jsdocReferences:false:4",
+            "input": {
+                "name": "jsdocReferences:false:4",
+                "files": {
+                    "/project/globals.d.ts": "aW50ZXJmYWNlIElBcmd1bWVudHMge30gaW50ZXJmYWNlIE9iamVjdCB7fSBpbnRlcmZhY2UgRnVuY3Rpb24ge30gaW50ZXJmYWNlIENhbGxhYmxlRnVuY3Rpb24gZXh0ZW5kcyBGdW5jdGlvbiB7fQppbnRlcmZhY2UgTmV3YWJsZUZ1bmN0aW9uIGV4dGVuZHMgRnVuY3Rpb24ge30gaW50ZXJmYWNlIFN0cmluZyB7fSBpbnRlcmZhY2UgTnVtYmVyIHt9IGludGVyZmFjZSBCb29sZWFuIHt9IGludGVyZmFjZSBSZWdFeHAge30KaW50ZXJmYWNlIEFycmF5PFQ+IHsgbGVuZ3RoOiBudW1iZXI7IFtuOiBudW1iZXJdOiBUOyB9IGludGVyZmFjZSBSZWFkb25seUFycmF5PFQ+IHsgcmVhZG9ubHkgbGVuZ3RoOiBudW1iZXI7IHJlYWRvbmx5IFtuOiBudW1iZXJdOiBUOyB9CmludGVyZmFjZSBUaGlzVHlwZTxUPiB7fQ==",
+                    "/project/main.js": "Y2xhc3MgQyB7IGZpZWxkPTE7IHN0YXRpYyB2YWx1ZT0yOyB9Ci8qKiBMaW5rcyB7QGxpbmsgdmFsdWV9LCB7QGxpbmsgQy5maWVsZH0gYW5kIHtAbGluayBDLnZhbHVlfS4KICogQHBhcmFtIHtudW1iZXJ9IHZhbHVlIEEgdmFsdWUuCiAqIEByZXR1cm5zIHtudW1iZXJ9IFRoZSByZXN1bHQuCiAqLwpmdW5jdGlvbiBkb2N1bWVudGVkKHZhbHVlKXtyZXR1cm4gdmFsdWU7fQovKiogQHRlbXBsYXRlIFQKICogQHBhcmFtIHtUfSBpdGVtCiAqIEByZXR1cm5zIHtUfQogKi8KZnVuY3Rpb24gZ2VuZXJpYyhpdGVtKXtyZXR1cm4gaXRlbTt9",
+                    "/project/dep.ts": "ZXhwb3J0IGludGVyZmFjZSBTaGFwZSB7dmFsdWU6bnVtYmVyO30gZXhwb3J0IGNvbnN0IG5hbWVkPTE7IGV4cG9ydCBkZWZhdWx0IGNsYXNzIERlZmF1bHQgeyB2YWx1ZT0xOyB9"
+                },
+                "roots": [
+                    "/project/globals.d.ts",
+                    "/project/main.js",
+                    "/project/dep.ts"
+                ],
+                "options": {
+                    "strict": false,
+                    "target": "esnext",
+                    "module": "esnext",
+                    "moduleResolution": "bundler",
+                    "jsx": "preserve",
+                    "allowJs": true,
+                    "checkJs": true
+                },
+                "typeNodes": true,
+                "symbolLocations": true,
+                "documentationSymbols": true,
+                "concurrency": 4
+            },
+            "differences": [
+                {
+                    "reference": [
+                        69,
+                        315,
+                        36,
+                        169,
+                        0
+                    ],
+                    "candidate": [
+                        69,
+                        315,
+                        37,
+                        169,
+                        0
+                    ]
+                },
+                {
+                    "reference": [
+                        69,
+                        316,
+                        37,
+                        47,
+                        0
+                    ],
+                    "candidate": [
+                        69,
+                        316,
+                        41,
+                        47,
+                        0
+                    ]
+                },
+                {
+                    "reference": [
+                        69,
+                        316,
+                        97,
+                        102,
+                        0
+                    ],
+                    "candidate": [
+                        69,
+                        316,
+                        97,
+                        101,
+                        0
+                    ]
+                },
+                {
+                    "reference": [
+                        69,
+                        316,
+                        124,
+                        136,
+                        0
+                    ],
+                    "candidate": [
+                        69,
+                        316,
+                        124,
+                        135,
+                        0
+                    ]
+                },
+                {
+                    "reference": [
+                        69,
+                        316,
+                        153,
+                        167,
+                        0
+                    ],
+                    "candidate": [
+                        69,
+                        316,
+                        154,
+                        165,
+                        0
+                    ]
+                },
+                {
+                    "reference": [
+                        78,
+                        315,
+                        211,
+                        266,
+                        0
+                    ],
+                    "candidate": [
+                        78,
+                        315,
+                        212,
+                        266,
+                        0
+                    ]
+                }
+            ],
+            "referenceHash": "b25baf0c4f3ebc843707ee01b552c27250e518d9c98dfb370cf5a5b8ed310cc8",
+            "candidateHash": "9de64915f657b8ee50b898cc990c28f1f5b3539aee84cd3d3fe9926b8780dedc"
+        },
+        {
+            "name": "jsdocReferences:true:1",
+            "input": {
+                "name": "jsdocReferences:true:1",
+                "files": {
+                    "/project/globals.d.ts": "aW50ZXJmYWNlIElBcmd1bWVudHMge30gaW50ZXJmYWNlIE9iamVjdCB7fSBpbnRlcmZhY2UgRnVuY3Rpb24ge30gaW50ZXJmYWNlIENhbGxhYmxlRnVuY3Rpb24gZXh0ZW5kcyBGdW5jdGlvbiB7fQppbnRlcmZhY2UgTmV3YWJsZUZ1bmN0aW9uIGV4dGVuZHMgRnVuY3Rpb24ge30gaW50ZXJmYWNlIFN0cmluZyB7fSBpbnRlcmZhY2UgTnVtYmVyIHt9IGludGVyZmFjZSBCb29sZWFuIHt9IGludGVyZmFjZSBSZWdFeHAge30KaW50ZXJmYWNlIEFycmF5PFQ+IHsgbGVuZ3RoOiBudW1iZXI7IFtuOiBudW1iZXJdOiBUOyB9IGludGVyZmFjZSBSZWFkb25seUFycmF5PFQ+IHsgcmVhZG9ubHkgbGVuZ3RoOiBudW1iZXI7IHJlYWRvbmx5IFtuOiBudW1iZXJdOiBUOyB9CmludGVyZmFjZSBUaGlzVHlwZTxUPiB7fQ==",
+                    "/project/main.js": "Y2xhc3MgQyB7IGZpZWxkPTE7IHN0YXRpYyB2YWx1ZT0yOyB9Ci8qKiBMaW5rcyB7QGxpbmsgdmFsdWV9LCB7QGxpbmsgQy5maWVsZH0gYW5kIHtAbGluayBDLnZhbHVlfS4KICogQHBhcmFtIHtudW1iZXJ9IHZhbHVlIEEgdmFsdWUuCiAqIEByZXR1cm5zIHtudW1iZXJ9IFRoZSByZXN1bHQuCiAqLwpmdW5jdGlvbiBkb2N1bWVudGVkKHZhbHVlKXtyZXR1cm4gdmFsdWU7fQovKiogQHRlbXBsYXRlIFQKICogQHBhcmFtIHtUfSBpdGVtCiAqIEByZXR1cm5zIHtUfQogKi8KZnVuY3Rpb24gZ2VuZXJpYyhpdGVtKXtyZXR1cm4gaXRlbTt9",
+                    "/project/dep.ts": "ZXhwb3J0IGludGVyZmFjZSBTaGFwZSB7dmFsdWU6bnVtYmVyO30gZXhwb3J0IGNvbnN0IG5hbWVkPTE7IGV4cG9ydCBkZWZhdWx0IGNsYXNzIERlZmF1bHQgeyB2YWx1ZT0xOyB9"
+                },
+                "roots": [
+                    "/project/globals.d.ts",
+                    "/project/main.js",
+                    "/project/dep.ts"
+                ],
+                "options": {
+                    "strict": true,
+                    "target": "esnext",
+                    "module": "esnext",
+                    "moduleResolution": "bundler",
+                    "jsx": "preserve",
+                    "allowJs": true,
+                    "checkJs": true
+                },
+                "typeNodes": true,
+                "symbolLocations": true,
+                "documentationSymbols": true,
+                "concurrency": 1
+            },
+            "differences": [
+                {
+                    "reference": [
+                        69,
+                        315,
+                        36,
+                        169,
+                        0
+                    ],
+                    "candidate": [
+                        69,
+                        315,
+                        37,
+                        169,
+                        0
+                    ]
+                },
+                {
+                    "reference": [
+                        69,
+                        316,
+                        37,
+                        47,
+                        0
+                    ],
+                    "candidate": [
+                        69,
+                        316,
+                        41,
+                        47,
+                        0
+                    ]
+                },
+                {
+                    "reference": [
+                        69,
+                        316,
+                        97,
+                        102,
+                        0
+                    ],
+                    "candidate": [
+                        69,
+                        316,
+                        97,
+                        101,
+                        0
+                    ]
+                },
+                {
+                    "reference": [
+                        69,
+                        316,
+                        124,
+                        136,
+                        0
+                    ],
+                    "candidate": [
+                        69,
+                        316,
+                        124,
+                        135,
+                        0
+                    ]
+                },
+                {
+                    "reference": [
+                        69,
+                        316,
+                        153,
+                        167,
+                        0
+                    ],
+                    "candidate": [
+                        69,
+                        316,
+                        154,
+                        165,
+                        0
+                    ]
+                },
+                {
+                    "reference": [
+                        78,
+                        315,
+                        211,
+                        266,
+                        0
+                    ],
+                    "candidate": [
+                        78,
+                        315,
+                        212,
+                        266,
+                        0
+                    ]
+                }
+            ],
+            "referenceHash": "eaa42e68c67107151fa4e6604388dd468c06fd0265c410653b3360da035fb2f7",
+            "candidateHash": "a68f482eb617b0e183dc66fbcd09fb6784368b64305e115a24761dac80a5bd7c"
+        },
+        {
+            "name": "jsdocReferences:true:4",
+            "input": {
+                "name": "jsdocReferences:true:4",
+                "files": {
+                    "/project/globals.d.ts": "aW50ZXJmYWNlIElBcmd1bWVudHMge30gaW50ZXJmYWNlIE9iamVjdCB7fSBpbnRlcmZhY2UgRnVuY3Rpb24ge30gaW50ZXJmYWNlIENhbGxhYmxlRnVuY3Rpb24gZXh0ZW5kcyBGdW5jdGlvbiB7fQppbnRlcmZhY2UgTmV3YWJsZUZ1bmN0aW9uIGV4dGVuZHMgRnVuY3Rpb24ge30gaW50ZXJmYWNlIFN0cmluZyB7fSBpbnRlcmZhY2UgTnVtYmVyIHt9IGludGVyZmFjZSBCb29sZWFuIHt9IGludGVyZmFjZSBSZWdFeHAge30KaW50ZXJmYWNlIEFycmF5PFQ+IHsgbGVuZ3RoOiBudW1iZXI7IFtuOiBudW1iZXJdOiBUOyB9IGludGVyZmFjZSBSZWFkb25seUFycmF5PFQ+IHsgcmVhZG9ubHkgbGVuZ3RoOiBudW1iZXI7IHJlYWRvbmx5IFtuOiBudW1iZXJdOiBUOyB9CmludGVyZmFjZSBUaGlzVHlwZTxUPiB7fQ==",
+                    "/project/main.js": "Y2xhc3MgQyB7IGZpZWxkPTE7IHN0YXRpYyB2YWx1ZT0yOyB9Ci8qKiBMaW5rcyB7QGxpbmsgdmFsdWV9LCB7QGxpbmsgQy5maWVsZH0gYW5kIHtAbGluayBDLnZhbHVlfS4KICogQHBhcmFtIHtudW1iZXJ9IHZhbHVlIEEgdmFsdWUuCiAqIEByZXR1cm5zIHtudW1iZXJ9IFRoZSByZXN1bHQuCiAqLwpmdW5jdGlvbiBkb2N1bWVudGVkKHZhbHVlKXtyZXR1cm4gdmFsdWU7fQovKiogQHRlbXBsYXRlIFQKICogQHBhcmFtIHtUfSBpdGVtCiAqIEByZXR1cm5zIHtUfQogKi8KZnVuY3Rpb24gZ2VuZXJpYyhpdGVtKXtyZXR1cm4gaXRlbTt9",
+                    "/project/dep.ts": "ZXhwb3J0IGludGVyZmFjZSBTaGFwZSB7dmFsdWU6bnVtYmVyO30gZXhwb3J0IGNvbnN0IG5hbWVkPTE7IGV4cG9ydCBkZWZhdWx0IGNsYXNzIERlZmF1bHQgeyB2YWx1ZT0xOyB9"
+                },
+                "roots": [
+                    "/project/globals.d.ts",
+                    "/project/main.js",
+                    "/project/dep.ts"
+                ],
+                "options": {
+                    "strict": true,
+                    "target": "esnext",
+                    "module": "esnext",
+                    "moduleResolution": "bundler",
+                    "jsx": "preserve",
+                    "allowJs": true,
+                    "checkJs": true
+                },
+                "typeNodes": true,
+                "symbolLocations": true,
+                "documentationSymbols": true,
+                "concurrency": 4
+            },
+            "differences": [
+                {
+                    "reference": [
+                        69,
+                        315,
+                        36,
+                        169,
+                        0
+                    ],
+                    "candidate": [
+                        69,
+                        315,
+                        37,
+                        169,
+                        0
+                    ]
+                },
+                {
+                    "reference": [
+                        69,
+                        316,
+                        37,
+                        47,
+                        0
+                    ],
+                    "candidate": [
+                        69,
+                        316,
+                        41,
+                        47,
+                        0
+                    ]
+                },
+                {
+                    "reference": [
+                        69,
+                        316,
+                        97,
+                        102,
+                        0
+                    ],
+                    "candidate": [
+                        69,
+                        316,
+                        97,
+                        101,
+                        0
+                    ]
+                },
+                {
+                    "reference": [
+                        69,
+                        316,
+                        124,
+                        136,
+                        0
+                    ],
+                    "candidate": [
+                        69,
+                        316,
+                        124,
+                        135,
+                        0
+                    ]
+                },
+                {
+                    "reference": [
+                        69,
+                        316,
+                        153,
+                        167,
+                        0
+                    ],
+                    "candidate": [
+                        69,
+                        316,
+                        154,
+                        165,
+                        0
+                    ]
+                },
+                {
+                    "reference": [
+                        78,
+                        315,
+                        211,
+                        266,
+                        0
+                    ],
+                    "candidate": [
+                        78,
+                        315,
+                        212,
+                        266,
+                        0
+                    ]
+                }
+            ],
+            "referenceHash": "eaa42e68c67107151fa4e6604388dd468c06fd0265c410653b3360da035fb2f7",
+            "candidateHash": "a68f482eb617b0e183dc66fbcd09fb6784368b64305e115a24761dac80a5bd7c"
+        }
+    ]
+}
