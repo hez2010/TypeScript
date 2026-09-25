@@ -12,7 +12,8 @@ import {
     root,
 } from "./common.mjs";
 
-const output = path.join(root, "built/csharp/module-specifier-paths");
+const packageMaps = process.argv.includes("--packages");
+const output = path.join(root, `built/csharp/module-specifier-${packageMaps ? "packages" : "paths"}`);
 const hash = value => createHash("sha256").update(value).digest("hex");
 const dotnet = process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, "dotnet.exe") : "dotnet";
 const oracle = path.join(root, "built/csharp/module-specifier-oracle.exe");
@@ -32,6 +33,31 @@ for (const target of ["./file.ts", "./file.tsx", "./file.d.ts", "./file.mts", ".
 for (const target of ["foo.d.json.ts", "foo.module.d.css.ts", "foo.d.ts", "foo.ts", "foo.d.one.two.ts", "./dir.d.x/foo.d.css.ts", "foo.css", "foo.d.css.mts"]) add("non-js", { target });
 for (const sensitive of [true, false]) for (const roots of [["/project/src", "/project/generated"], ["/project", "/project/src", "/project/generated"], ["C:/src", "D:/generated"], ["//server/share/src", "//server/share/generated"]]) for (const sourceDirectory of roots.flatMap(root => [root, root + "/sub"])) for (const target of roots.flatMap(root => [root + "/folder/index.ts", root + "/sub/file.ts", root.toUpperCase() + "/sub/file.d.ts"])) for (const ending of endings.slice(0, 4)) add("roots", { sensitive, roots, sourceDirectory, target, endings: ending });
 for (const sensitive of [true, false]) for (const target of ["src/item.ts", "src/item.d.ts", "src/folder/index.d.ts", "src/file.js.js", "SRC/ITEM.ts", "../item.ts", "src/foo.d.css.ts"]) for (const paths of [[["@app/*", ["./src/*"]]], [["@app/*", ["./src/*.ts"]]], [["@app/*", ["./src/*.d.ts"]]], [["exact", ["./src/item.ts"]], ["@app/*", ["./src/*"]]], [["first/*", ["./src/*"]], ["second/*", ["./src/*"]]], [["@app/*", ["C:/other/*", "/project/src/*"]]], [["@item", ["./src/item"]]], [["@app/*", ["./src/*.js"]]]]) for (const ending of endings.slice(0, 6)) for (const files of [{}, { "/project/src/folder.ts": "", "/project/src/file.js": "" }]) add("paths", { sensitive, target, paths, endings: ending, baseDirectory: "/project", files });
+if (packageMaps) {
+    cases.length = 0;
+    const optionSets = [{}, { outDir: "lib", declarationDir: "types" }, { outDir: "lib", jsx: "preserve" }, { declarationDir: "types", moduleResolution: "nodenext" }];
+    const conditionSets = [["import", "types", "node"], ["require", "types", "node"], ["import", "custom"], ["types"]];
+    const targets = ["/project/src/item.ts", "/project/lib/item.ts", "/project/lib/item.d.ts", "/project/lib/item.tsx", "/project/lib/item.jsx", "/project/lib/item.mts", "/project/lib/item.d.mts", "/project/lib/item.cts", "/project/lib/item.cjs", "/project/lib/item.json", "/project/types/item.d.ts", "/project/types/item.d.mts", "/project/lib/item.vue", "/PROJECT/LIB/ITEM.ts"];
+    const mapCases = [
+        ["./lib/item.js", "pkg", 0],
+        ["./lib/item.d.ts", "pkg", 0],
+        ["./lib/*.js", "pkg/*", 2],
+        ["./lib/*", "pkg/*", 2],
+        ["./lib/", "pkg/", 1],
+        ["./types/*.d.ts", "pkg/*", 2],
+        ["./types/", "pkg/", 1],
+        [{ types: "./types/item.d.ts", import: "./lib/item.js", require: "./lib/item.cjs", default: "./src/item.js" }, "pkg", 0],
+        [{ "types@>=7.1.0-dev": "./types/item.d.ts", "default": "./lib/item.js" }, "pkg", 0],
+        [{ "types@>99": "./types/item.d.ts", "types@invalid": "./lib/item.js", "custom": "./lib/item.js" }, "pkg", 0],
+        [[null, { unknown: "./none.js" }, "./lib/item.js"], "pkg", 0],
+        [false, "pkg", 0],
+    ];
+    for (const [packageMap, packageName, matchMode] of mapCases) for (const target of targets) for (const options of optionSets) for (const conditions of conditionSets) for (const imports of [false, true]) for (const preferTypeScript of [false, true]) for (const sensitive of [false, true]) add("package-map", { packageMap, packageName, matchMode, target, options, conditions, imports, preferTypeScript, sensitive, packageDirectory: "/project", commonDirectory: "/project/src", mapperExtensions: [".vue"] });
+    for (const packageMap of ["./lib/item.js", { ".": "./lib/item.js", "./*": "./lib/*.js" }, { "./sub/": "./lib/" }, { default: "./lib/item.js" }, { "./*": [null, "./lib/*.js"] }, { ".": { types: "./types/item.d.ts", default: "./lib/item.js" } }, { ".": "./lib/item.js", "default": "./types/item.d.ts" }]) for (const target of targets) for (const conditions of conditionSets) for (const sensitive of [true, false]) add("package-exports", { packageMap, target, conditions, sensitive, packageName: "@scope/pkg", packageDirectory: "/project" });
+    for (const imports of [{ "#item": "./lib/item.js" }, { "#*": "./lib/*.js" }, { "#/items/*": "./lib/*.js" }, { "#": "./lib/item.js", "#/": "./lib/item.js", "plain": "./lib/item.js", "#valid": "./lib/item.js" }, { "#item": { types: "./types/item.d.ts", import: "./lib/item.js", require: "./lib/item.cjs" } }, { "#item": [null, "./types/item.d.ts", "./lib/item.js"] }, "./lib/item.js", null]) for (const target of targets) for (const resolution of ["bundler", "node16", "nodenext"]) for (const mode of [0, 1, 99]) for (const preferTypeScript of [false, true]) add("package-imports", { target, mode, preferTypeScript, sourceDirectory: "/project/src/nested", commonDirectory: "/project/src", options: { outDir: "lib", declarationDir: "types", moduleResolution: resolution }, files: { "/project/package.json": JSON.stringify({ imports }) } });
+    for (const options of optionSets) for (const target of [...targets, "/project/src/style.module.css", "/project/src/noextension", "/project/src/item.d.css.ts"]) for (const sensitive of [true, false]) add("output-paths", { options, target, sensitive, commonDirectory: "/project/src", mapperExtensions: [".module.css", ".css", ".vue"] });
+    for (const options of [{}, { moduleResolution: "node16" }, { moduleResolution: "nodenext" }, { module: "node20" }, { moduleResolution: "bundler", customConditions: ["custom", "custom"] }]) for (const mode of [0, 1, 99]) add("package-conditions", { options, mode });
+}
 const selected = process.argv.includes("--filter") ? cases.filter(c => c.operation === option("--filter")) : cases;
 await writeFile(path.join(output, "inputs.json"), JSON.stringify(selected));
 if (process.argv.includes("--list")) process.exit(0);

@@ -1,0 +1,23 @@
+{
+    "cases": 24455,
+    "exact": 24455,
+    "failed": 0,
+    "byOperation": {
+        "package-map": 21504,
+        "package-exports": 784,
+        "package-imports": 2016,
+        "output-paths": 136,
+        "package-conditions": 15
+    },
+    "candidateExecuted": 24455,
+    "candidateReused": 0,
+    "referenceExecuted": 24455,
+    "referenceReused": 0,
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "oracleHash": "202c6035ed0fc1ae09580d10b8ba36ea11da5b062272f45b373e9f80580b1eef",
+    "candidateHash": "2597f3f0f4b4684e1076c61c956aae01b9c66a311dca3aaafb3f95524a938862",
+    "inputHash": "464aa5b9c4b0e24635ff4778e51e0b0abf8dc3a86607e892a1054eba5a29e9d9",
+    "referenceHash": "7bfc6c0ebf2432e6b8b48b727c498eb117f6a68892bdc98709b27e2e42f3a4cb",
+    "outputHash": "7bfc6c0ebf2432e6b8b48b727c498eb117f6a68892bdc98709b27e2e42f3a4cb",
+    "managed": true
+}

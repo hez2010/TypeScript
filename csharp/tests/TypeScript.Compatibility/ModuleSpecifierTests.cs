@@ -11,6 +11,105 @@ namespace TypeScript.Compatibility;
 
 internal static class ModuleSpecifierTests
 {
+    internal static int PackageSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Package specifier assertion {checks + 1}");
+            checks++;
+        }
+        var options = new CompilerOptions();
+        options.SetRaw("outDir", "\"lib\"");
+        options.SetRaw("declarationDir", "\"types\"");
+        var fs = new MemoryFileSystem(new Dictionary<string, byte[]>
+        {
+            ["/project/package.json"] = Wtf8.Encode(
+                "{\"imports\":{\"#item\":{\"types\":\"./types/item.d.ts\",\"default\":\"./lib/item.js\"},\"#/*\":\"./lib/*.js\"}}")
+        });
+        var naming = new ModuleSpecifierPackages(fs, options, "/project", "/project/src", [".vue"]);
+        Check(naming.OutputFile("/project/src/item.ts", false) == "/project/lib/item.js");
+        Check(naming.OutputFile("/project/src/item.ts", true) == "/project/types/item.d.ts");
+        Check(naming.OutputFile("/project/src/item.vue", true) == "/project/types/item.d.vue.ts");
+        Check(naming.OutputFile("/project/src/item.mts", true) == "/project/types/item.d.mts");
+        Check(naming.Conditions(0).SequenceEqual(["import", "types"]));
+        Check(naming.FromImports("/project/src/item.ts", "/project/src", 0, false) == "#item");
+        Check(naming.FromImports("/project/lib/other.ts", "/project/src", 0, false) == "#/other");
+        Check(naming.FromImports("/project/lib/other.ts", "/project/src", 0, true) == "#/other");
+        using var ordered = JsonDocument.Parse(
+            "{\"types@>99\":\"./lib/item.js\",\"types@>=7.1.0-dev\":\"./types/item.d.ts\",\"default\":\"./lib/item.js\"}");
+        Check(
+            naming.FromMap(
+                "/project/src/item.ts",
+                "/project",
+                "pkg",
+                ordered.RootElement,
+                ["types"],
+                PackageSpecifierMatch.Exact,
+                true,
+                false) == "pkg");
+        using var fallback = JsonDocument.Parse("[null,{\"unknown\":\"./none.js\"},\"./lib/item.js\"]");
+        Check(
+            naming.FromMap(
+                "/project/lib/item.ts",
+                "/project",
+                "pkg",
+                fallback.RootElement,
+                [],
+                PackageSpecifierMatch.Exact,
+                false,
+                false) == "pkg");
+        using var exports = JsonDocument.Parse("{\"./first/*\":\"./lib/*.js\",\"./second/*\":\"./lib/*.js\"}");
+        Check(
+            naming.FromExports(
+                "/project/lib/item.ts",
+                "/project",
+                "@scope/pkg",
+                exports.RootElement,
+                ["types"]) == "@scope/pkg/first/item");
+        using var deep = JsonDocument.Parse(new string('[', 20_000) + "\"./lib/item.js\"" + new string(']', 20_000),
+            new JsonDocumentOptions { MaxDepth = int.MaxValue });
+        Check(
+            naming.FromMap(
+                "/project/lib/item.ts",
+                "/project",
+                "deep",
+                deep.RootElement,
+                [],
+                PackageSpecifierMatch.Exact,
+                false,
+                false) == "deep");
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+        foreach (Action query in new Action[]
+        {
+            () => naming.FromMap("x", "/project", "x", deep.RootElement, [], PackageSpecifierMatch.Exact, false, false, cancellation.Token),
+            () => naming.FromExports("x", "/project", "x", exports.RootElement, [], cancellation.Token),
+            () => naming.FromImports("x", "/project", 0, false, cancellation.Token)
+        })
+        {
+            try
+            {
+                query();
+                throw new InvalidOperationException("Canceled package naming query completed");
+            }
+            catch (OperationCanceledException)
+            {
+                checks++;
+            }
+        }
+        Check(naming.FromImports("/project/src/item.ts", "/project/src", 0, false) == "#item");
+        var nodeOptions = new CompilerOptions();
+        nodeOptions.SetRaw("moduleResolution", "\"node16\"");
+        var nodeNaming = new ModuleSpecifierPackages(fs, nodeOptions, "/project", "/project/src");
+        Check(nodeNaming.Conditions(0).SequenceEqual(["require", "types", "node"]));
+        Check(nodeNaming.FromImports("/project/lib/other.ts", "/project/src", 0, false) == "");
+        nodeOptions.SetRaw("resolvePackageJsonImports", "false");
+        Check(nodeNaming.FromImports("/project/lib/item.ts", "/project/src", 0, false) == "");
+        return checks;
+    }
+
     internal static int Safety()
     {
         int checks = 0;
@@ -101,6 +200,38 @@ internal static class ModuleSpecifierTests
         var endings = input.TryGetProperty("endings", out var suppliedEndings)
             ? suppliedEndings.EnumerateArray().Select(v => (ModuleSpecifierEnding)v.GetInt32()).ToArray() : [];
         string target = Text("target"), directory = Text("directory");
+        if (Text("operation") is "package-map" or "package-exports" or "package-imports" or "package-conditions" or "output-paths")
+        {
+            var naming = new ModuleSpecifierPackages(
+                fs,
+                options,
+                directory,
+                Text("commonDirectory", directory),
+                Strings("mapperExtensions"));
+            JsonElement map = input.TryGetProperty("packageMap", out var packageMap) ? packageMap : default;
+            bool prefer = input.TryGetProperty("preferTypeScript", out var preferred) && preferred.GetBoolean();
+            string? named = Text("operation") switch
+            {
+                "package-map" => naming.FromMap(target, Text("packageDirectory"), Text("packageName"), map, Strings("conditions"),
+                    (PackageSpecifierMatch)Number("matchMode"),
+                    input.TryGetProperty("imports", out var imports) && imports.GetBoolean(),
+                    prefer),
+                "package-exports" => naming.FromExports(target, Text("packageDirectory"), Text("packageName"), map, Strings("conditions")),
+                "package-imports" => naming.FromImports(target, Text("sourceDirectory"), (ReferenceResolutionMode)Number("mode"), prefer),
+                _ => null
+            };
+            if (named is not null)
+                writer.WriteStringValue(named);
+            else
+            {
+                writer.WriteStartArray();
+                foreach (string item in Text("operation") == "package-conditions" ? naming.Conditions((ReferenceResolutionMode)Number("mode"))
+                    : new[] { naming.OutputFile(target, false), naming.OutputFile(target, true) })
+                    writer.WriteStringValue(item);
+                writer.WriteEndArray();
+            }
+            return;
+        }
         if (Text("operation") == "endings")
         {
             writer.WriteStartArray();

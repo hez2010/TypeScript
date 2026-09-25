@@ -5,14 +5,61 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/collections"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
+	"github.com/microsoft/TypeScript/tsc/internal/module"
+	"github.com/microsoft/TypeScript/tsc/internal/outputpaths"
+	"github.com/microsoft/TypeScript/tsc/internal/packagejson"
+	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 )
 
 type CSharpPathHost struct {
 	ModuleSpecifierGenerationHost
-	Directory   string
-	Sensitive   bool
-	DefaultMode core.ResolutionMode
-	Exists      func(string) bool
+	Directory        string
+	Sensitive        bool
+	DefaultMode      core.ResolutionMode
+	Exists           func(string) bool
+	Read             func(string) (string, bool)
+	CommonDirectory  string
+	MapperExtensions []string
+}
+
+func (h *CSharpPathHost) CommonSourceDirectory() string     { return h.CommonDirectory }
+func (h *CSharpPathHost) ContentMapperExtensions() []string { return h.MapperExtensions }
+func (h *CSharpPathHost) GetNearestAncestorDirectoryWithPackageJson(directory string) string {
+	for {
+		if h.Exists(tspath.CombinePaths(directory, "package.json")) {
+			return directory
+		}
+		parent := tspath.GetDirectoryPath(directory)
+		if parent == directory || directory == "" {
+			return ""
+		}
+		directory = parent
+	}
+}
+func (h *CSharpPathHost) GetPackageJsonInfo(path string) *packagejson.InfoCacheEntry {
+	text, ok := h.Read(path)
+	if !ok {
+		return nil
+	}
+	fields, err := packagejson.Parse([]byte(text))
+	return &packagejson.InfoCacheEntry{PackageDirectory: tspath.GetDirectoryPath(path), DirectoryExists: true, Contents: &packagejson.PackageJson{Fields: fields, Parseable: err == nil}}
+}
+
+func CSharpPackageSpecifiers(operation string, options *core.CompilerOptions, host *CSharpPathHost, target, directory, name, sourceDirectory string,
+	value packagejson.ExportsOrImports, conditions []string, mode MatchingMode, imports, preferTypeScript bool, importMode core.ResolutionMode) any {
+	switch operation {
+	case "package-map":
+		return tryGetModuleNameFromExportsOrImports(options, host, target, directory, name, value, conditions, mode, imports, preferTypeScript)
+	case "package-exports":
+		return tryGetModuleNameFromExports(options, host, target, directory, name, value, conditions)
+	case "package-imports":
+		return tryGetModuleNameFromPackageJsonImports(target, sourceDirectory, options, host, importMode, preferTypeScript)
+	case "package-conditions":
+		return module.GetConditions(options, importMode)
+	case "output-paths":
+		return []string{outputpaths.GetOutputJSFileNameWorker(target, options, host), outputpaths.GetOutputDeclarationFileNameWorker(target, options, host)}
+	}
+	panic("Unknown package naming operation")
 }
 
 func (h *CSharpPathHost) GetCurrentDirectory() string     { return h.Directory }

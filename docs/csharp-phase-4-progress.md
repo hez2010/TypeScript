@@ -1059,6 +1059,16 @@ The first run found sixteen declaration-extension precedence differences. After 
 
 Evidence: [path/ending comparisons](../csharp/compatibility/evidence/phase4-module-specifier-paths.json), [reuse provenance](../csharp/compatibility/evidence/phase4-module-specifier-paths-reuse.json), and [Release validation](../csharp/compatibility/evidence/phase4-module-specifier-paths-validation.json). The managed runner is `node csharp/tools/module-specifier-paths.mjs`, using the prepared module-specifier oracle and Release harness. This does not complete module-specifier generation or formatted symbol-accessibility results. NativeAOT verification remains deferred until phase-4 completion.
 
+## Reverse package maps and output paths
+
+Module-specifier naming now has the reverse package-map layer. It follows ordered conditional branches, custom and versioned `types` conditions, arrays, exact targets, legacy directory mappings and wildcard mappings. Package-import lookup observes the nearest package boundary and the reference's `#/` restrictions. JavaScript/declaration output projections account for output directories, JSX, Node extensions and content-mapper extensions. The implementation uses an explicit stack for nested map values and checks cancellation during traversal.
+
+Release comparison passes **all 24,455 cases**: **21,504 raw map combinations**, **784 package-export maps**, **2,016 package-import cases**, **136 output-path cases**, and **15 condition lists**. It covers ordering and fallback, null/invalid entries, compiler-version conditions, case-sensitive/insensitive hosts, TypeScript-extension preferences and declaration output. The matrix passed on its first run. **Nineteen focused assertions** also pass, including **20,000-level** nesting, cancellation and retry. The Release build has zero warnings and errors.
+
+The completed matrix was retained after adding safety tests. Earlier ending/path, checker and repository evidence remains applicable; no existing production caller invokes the new package-naming layer. Formatting preserves tokens, comments and syntax in four C# files. The pinned map and output-path sources match blobs `5418ca371aa3a9e64e0631aa4b37a6e7201b9d89` and `83a098654063fa6a9ba27e523cb9e48d9a1be65f`.
+
+Evidence: [package-map comparisons](../csharp/compatibility/evidence/phase4-module-package-maps.json) and [Release validation](../csharp/compatibility/evidence/phase4-module-package-maps-validation.json). Run the prepared managed harness and reference oracle with `node csharp/tools/module-specifier-paths.mjs --packages`. Candidate module-path discovery, final specifier selection and integration with symbol formatting remain open. NativeAOT verification remains deferred until phase-4 completion.
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:

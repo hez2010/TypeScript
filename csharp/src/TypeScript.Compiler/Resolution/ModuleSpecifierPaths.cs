@@ -184,9 +184,9 @@ internal static class ModuleSpecifierPaths
 
     private static bool JavaScriptExtension(string path) => Extension(path) is ".js" or ".jsx" or ".mjs" or ".cjs";
 
-    private static string Extension(string path) => extensions.FirstOrDefault(e => path.EndsWith(e, StringComparison.Ordinal)) ?? "";
+    internal static string Extension(string path) => extensions.FirstOrDefault(e => path.EndsWith(e, StringComparison.Ordinal)) ?? "";
 
-    private static string WithoutExtension(string path) => path[..(path.Length - Extension(path).Length)];
+    internal static string WithoutExtension(string path) => path[..(path.Length - Extension(path).Length)];
 
     internal static string ProcessEnding(string fileName, IReadOnlyList<ModuleSpecifierEnding> endings, CompilerOptions options,
         IFileSystem? fileSystem = null, string currentDirectory = "", CancellationToken cancellation = default)
@@ -253,7 +253,7 @@ internal static class ModuleSpecifierPaths
         return bare[..bare.IndexOf(".d.", StringComparison.Ordinal)] + bare[bare.LastIndexOf('.')..];
     }
 
-    private static string JavaScriptFileExtension(string path, CompilerOptions options) => Extension(path) switch
+    internal static string JavaScriptFileExtension(string path, CompilerOptions options) => Extension(path) switch
     {
         ".ts" or ".d.ts" => ".js",
         ".tsx" => options.String("jsx") == "preserve" || options.Number("jsx") == 1 ? ".jsx" : ".js",
