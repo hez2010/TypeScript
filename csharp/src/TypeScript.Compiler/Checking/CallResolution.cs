@@ -8,6 +8,8 @@ namespace TypeScript.Compiler.Checking;
 internal interface ICallResolutionHost
 {
     bool NoImplicitAny { get; }
+    bool InferencePartiallyBlocked { get; }
+    int? ApparentArgumentCount { get; }
 
     bool ContextSensitive(SyntaxNode node);
 
@@ -296,7 +298,7 @@ internal sealed partial class CallResolution(TypeContext context, CheckerLinks l
                 frames[i].Published = result;
                 break;
             }
-        if (candidatesOut is null)
+        if (candidatesOut is null && !host.InferencePartiallyBlocked)
             await host.ReportCallErrorsAsync(state, original, cancellation).ConfigureAwait(false);
         return result;
     }

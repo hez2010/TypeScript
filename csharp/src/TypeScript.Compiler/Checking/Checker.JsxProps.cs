@@ -121,9 +121,11 @@ internal sealed partial class Checker
         }
         if (node.Parent is JsxSpreadAttributeNode spread)
             return await Contexts.GetAsync(spread.Parent!, flags, cancellation);
-        if (node is JsxAttributesNode && node.Parent is { } opening)
+        if (node.Parent is JsxOpeningElementNode or JsxSelfClosingElementNode)
         {
-            var applied = Contexts.AppliedContext(opening is JsxOpeningElementNode ? opening.Parent! : node, flags);
+            var opening = node.Parent;
+            var applied = opening is JsxOpeningElementNode && flags == ContextFlags.IgnoreNodeInferences ? null
+                : Contexts.AppliedContext(opening is JsxOpeningElementNode ? opening.Parent! : node, flags);
             if (applied is not null)
                 return applied;
             var signature = links.Signatures.Get(opening).ResolvedSignature == CallSignatures.Resolving ? CallSignatures.Resolving

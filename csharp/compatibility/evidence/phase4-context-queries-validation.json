@@ -1,0 +1,114 @@
+{
+    "timestamp": "2026-09-25T02:55:38.611Z",
+    "configuration": "Release",
+    "managed": true,
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "scope": "Nine contextual-type/signature query APIs and shared checker fixes; phase 4 remains incomplete",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-context-queries-build.log",
+        "sha256": "02764549a1437bdd12fe0867ad9cff2d52d37a5a45997c3e35777a42118d8641"
+    },
+    "candidateSha256": "c499f161966ed94513ecc965b3eb0f5f1bac795e93d6c5e243b24181c0b1e12e",
+    "compilerSha256": "b650a5bf451f906c0e345472ad2ae75e94c6b04ba97df32300deb4091e05c370",
+    "comparisons": {
+        "configurations": 112,
+        "queries": 7644,
+        "comparedQueries": 7644,
+        "exact": 112,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "78553a7869b7504b9443b1145e8a492d4a2e233ced9e32dc16473267db7136a6",
+        "candidateHash": "08160373712c13fb95a631c38edd0d0129df741763d1a4c6a8b21b358ce962ab",
+        "inputHash": "c65794a9e5217beddd1f9d63dda5108cbe813f00abaccd4dfcb349ece37e1507",
+        "resultHash": "017ecbd34b2b995f5f210639dc284b5e0355dcfc594185ec89b80a643b062b25",
+        "managed": true,
+        "contextRecords": {
+            "expressionTypes": 6768,
+            "objectElements": 36,
+            "arrayPositions": 108,
+            "jsxAttributes": 16,
+            "resolvedSignaturesAndReturns": 108,
+            "argumentTypes": 240,
+            "signatureHelp": 324,
+            "stringCompletions": 44
+        }
+    },
+    "safety": {
+        "contextQueryAssertions": 24,
+        "signatureAssertions": 148,
+        "expressionAssertions": 81,
+        "logs": [
+            "logs/csharp-phase4-context-queries-safety.log",
+            "logs/csharp-phase4-context-queries-signature-safety.log",
+            "logs/csharp-phase4-context-queries-expression-safety.log"
+        ]
+    },
+    "semanticCorpus": {
+        "configurationsPerMode": 571,
+        "single": "phase4-context-query-semantics-single.json",
+        "referenceDefault": "phase4-context-query-semantics-default.json",
+        "parity": "phase4-context-query-semantics-parity.json",
+        "regressions": [],
+        "candidateFailures": [],
+        "codeDeltaAudit": [
+            {
+                "name": "conformance/destructuringParameterDeclaration1ES5.ts",
+                "code": 7031,
+                "before": 38,
+                "after": 37,
+                "reference": 37
+            },
+            {
+                "name": "conformance/destructuringParameterDeclaration1ES5iterable.ts",
+                "code": 7031,
+                "before": 38,
+                "after": 37,
+                "reference": 37
+            },
+            {
+                "name": "conformance/destructuringParameterDeclaration1ES6.ts",
+                "code": 7031,
+                "before": 41,
+                "after": 40,
+                "reference": 40
+            }
+        ],
+        "selector": "Call-error diagnostic codes, array-elision syntax or suppression directives; checked against retained candidate/reference records",
+        "selectionSha256": "78b11b38379112ebb228d9b2ffc0dfaec51a76b17ae5b9aee2a0a76c98744770"
+    },
+    "formatting": {
+        "csharpFiles": 11,
+        "libraryConfigurations": 2,
+        "tokensCommentsAndSyntaxIdentical": true,
+        "log": "logs/csharp-phase4-context-queries-format.log",
+        "dotnetWhitespaceExitCode": 0,
+        "proofSha256": "cd31adf4c2de87425ca06c863d24eee683742022cc720b1f7fc9df7bcf52458a",
+        "queryInputsUnchanged": true
+    },
+    "reuse": {
+        "queryRecord": "phase4-context-queries-reuse.json",
+        "retainedQueryConfigurations": 98,
+        "affectedQueryConfigurations": 14,
+        "semanticReference": "Reused complete pinned reference corpus and existing input correction",
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "finalReview": "Completion candidate merging was aligned with the reference to preserve repetitions within the ordinary candidate list. The existing exact signature-identity comparison establishes that none of the fixtures had an ordinary-only repetition; completed query results and safety assertions were retained. This query-only change cannot affect source-corpus results. The final product was rebuilt without warnings or errors."
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "phase4Complete": false,
+    "syntaxCheck": {
+        "command": "node --check csharp/tools/checker-locations.mjs",
+        "exitCode": 0
+    }
+}

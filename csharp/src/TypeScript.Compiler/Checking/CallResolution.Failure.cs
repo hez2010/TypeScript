@@ -11,12 +11,13 @@ internal sealed partial class CallResolution
         host.DeferExpression(state.Node);
         if (candidatesRequested || state.Candidates.Count == 1 || state.Candidates.Any(s => s.TypeParameters.Count != 0))
         {
+            int argumentCount = host.ApparentArgumentCount ?? state.Arguments.Count;
             int best = -1, maximum = -1;
             for (int i = 0; i < state.Candidates.Count; i++)
             {
                 int count = await parameters.CountAsync(state.Candidates[i], cancellation).ConfigureAwait(false);
                 if (await parameters.HasRestAsync(state.Candidates[i], cancellation).ConfigureAwait(false)
-                    || count >= state.Arguments.Count)
+                    || count >= argumentCount)
                 {
                     best = i;
                     break;
@@ -50,7 +51,7 @@ internal sealed partial class CallResolution
                 types = await callInference.InferAsync(state.Node, candidate, state.Arguments,
                     mode | CheckMode.SkipContextSensitive | CheckMode.SkipGenericFunctions, inferred, cancellation).ConfigureAwait(false);
             }
-            return state.Candidates[best] = await instantiation.WithoutFillingAsync(candidate, types, cancellation).ConfigureAwait(false);
+            return state.Candidates[best] = await instantiation.CreateAsync(candidate, types, cancellation).ConfigureAwait(false);
         }
         var candidates = state.Candidates;
         Symbol? receiver = null;

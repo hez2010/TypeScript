@@ -1,0 +1,25 @@
+{
+    "configurations": 112,
+    "queries": 7644,
+    "comparedQueries": 7644,
+    "exact": 112,
+    "failed": 0,
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "referenceFailures": 0,
+    "candidateFailures": 0,
+    "oracleHash": "78553a7869b7504b9443b1145e8a492d4a2e233ced9e32dc16473267db7136a6",
+    "candidateHash": "08160373712c13fb95a631c38edd0d0129df741763d1a4c6a8b21b358ce962ab",
+    "inputHash": "c65794a9e5217beddd1f9d63dda5108cbe813f00abaccd4dfcb349ece37e1507",
+    "resultHash": "017ecbd34b2b995f5f210639dc284b5e0355dcfc594185ec89b80a643b062b25",
+    "managed": true,
+    "contextRecords": {
+        "expressionTypes": 6768,
+        "objectElements": 36,
+        "arrayPositions": 108,
+        "jsxAttributes": 16,
+        "resolvedSignaturesAndReturns": 108,
+        "argumentTypes": 240,
+        "signatureHelp": 324,
+        "stringCompletions": 44
+    }
+}

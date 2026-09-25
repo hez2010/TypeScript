@@ -13,7 +13,103 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/jsnum"
 )
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool, symbolLocations bool, documentationSymbols bool, scopeServices bool) any {
+func (c *Checker) csharpContextQueries(nodes []*ast.Node, nodeIDs map[*ast.Node]int, tid func(*Type) int, sid func(*ast.Symbol) int) ([]any, []any) {
+	rows, graph := []any{}, []any{}
+	queue := []*Signature{}
+	ids := map[*Signature]int{nil: 0}
+	qid := func(signature *Signature) int {
+		if id, ok := ids[signature]; ok {
+			return id
+		}
+		queue = append(queue, signature)
+		ids[signature] = len(queue)
+		return len(queue)
+	}
+	qids := func(signatures []*Signature) []int {
+		result := make([]int, len(signatures))
+		for i, signature := range signatures {
+			result[i] = qid(signature)
+		}
+		return result
+	}
+	for _, node := range nodes {
+		if !strings.HasPrefix(ast.GetSourceFileOfNode(node).FileName(), "/project/main.") {
+			continue
+		}
+		if ast.IsExpressionNode(node) {
+			for _, flags := range []ContextFlags{ContextFlagsNone, ContextFlagsSignature, ContextFlagsNoConstraints, ContextFlagsIgnoreNodeInferences, ContextFlagsSkipBindingPatterns, ContextFlagsNoConstraints | ContextFlagsIgnoreNodeInferences} {
+				rows = append(rows, []any{0, nodeIDs[node], uint32(flags), tid(c.GetContextualType(node, flags))})
+			}
+		}
+		if node.Parent != nil && ast.IsObjectLiteralExpression(node.Parent) {
+			rows = append(rows, []any{1, nodeIDs[node], tid(c.GetContextualTypeForObjectLiteralElement(node, ContextFlagsNone))})
+		}
+		if ast.IsArrayLiteralExpression(node) {
+			contextual := c.GetContextualType(node, ContextFlagsNone)
+			for i := 0; i <= len(node.Elements()); i++ {
+				position := node.End()
+				if i < len(node.Elements()) {
+					position = node.Elements()[i].Pos()
+				}
+				rows = append(rows, []any{2, nodeIDs[node], i, tid(c.GetContextualTypeForArrayLiteralAtPosition(contextual, node, position))})
+			}
+		}
+		if ast.IsJsxAttribute(node) || ast.IsJsxSpreadAttribute(node) {
+			rows = append(rows, []any{3, nodeIDs[node], tid(c.GetContextualTypeForJsxAttribute(node))})
+		}
+		if !ast.IsCallLikeExpression(node) {
+			continue
+		}
+		signature := c.GetResolvedSignature(node)
+		rows = append(rows, []any{4, nodeIDs[node], qid(signature), tid(c.GetReturnTypeOfSignature(signature))})
+		count := 1
+		if ast.IsCallExpression(node) || ast.IsNewExpression(node) {
+			count = len(node.Arguments())
+		}
+		for i := 0; i <= count; i++ {
+			rows = append(rows, []any{5, nodeIDs[node], i, tid(c.GetContextualTypeForArgumentAtIndex(node, i))})
+		}
+		for _, argumentCount := range []int{0, count, count + 1} {
+			selected, candidates := GetResolvedSignatureForSignatureHelp(node, argumentCount, c)
+			rows = append(rows, []any{6, nodeIDs[node], argumentCount, qid(selected), qids(candidates)})
+		}
+		if ast.IsCallExpression(node) || ast.IsNewExpression(node) {
+			for _, argument := range node.Arguments() {
+				if ast.IsStringLiteral(argument) {
+					rows = append(rows, []any{7, nodeIDs[node], nodeIDs[argument], qids(c.GetCandidateSignaturesForStringLiteralCompletions(node, argument))})
+				}
+			}
+		}
+	}
+	for i := 0; i < len(queue); i++ {
+		s := queue[i]
+		generic := []int{}
+		for _, parameter := range s.typeParameters {
+			generic = append(generic, tid(parameter))
+		}
+		receiver := sid(s.thisParameter)
+		parameters := []any{}
+		for _, parameter := range s.parameters {
+			parameters = append(parameters, []any{sid(parameter), tid(c.getTypeOfSymbol(parameter))})
+		}
+		result := tid(c.GetReturnTypeOfSignature(s))
+		target := qid(s.target)
+		var union any
+		var parts []int
+		if s.composite != nil {
+			union = s.composite.isUnion
+			parts = qids(s.composite.signatures)
+		}
+		var predicate any
+		if p := s.resolvedTypePredicate; p != nil {
+			predicate = []any{p.kind, p.parameterIndex, p.parameterName, tid(p.t)}
+		}
+		graph = append(graph, []any{s.flags, nodeIDs[s.declaration], s.minArgumentCount, s.resolvedMinArgumentCount, generic, receiver, parameters, result, target, union, parts, predicate})
+	}
+	return rows, graph
+}
+
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool, symbolLocations bool, documentationSymbols bool, scopeServices bool, contextQueries bool) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -217,6 +313,10 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 				nodeIDs[c.getTypeOnlyAliasDeclaration(symbol)], nodeIDs[c.getTypeOnlyAliasDeclarationEx(symbol, ast.SymbolFlagsValue)],
 			})
 		}
+	}
+	var contextRows, contextSignatures []any
+	if contextQueries {
+		contextRows, contextSignatures = c.csharpContextQueries(nodes, nodeIDs, tid, sid)
 	}
 	serviceQueries := []any{}
 	if scopeServices {
@@ -943,6 +1043,9 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	}
 	if scopeServices {
 		result["serviceQueries"] = serviceQueries
+	}
+	if contextQueries {
+		result["contextQueries"], result["querySignatureGraph"] = contextRows, contextSignatures
 	}
 	if documentationSymbols {
 		result["documentationSymbolQueries"] = documentationQueries

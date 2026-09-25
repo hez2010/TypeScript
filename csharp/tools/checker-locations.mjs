@@ -14,7 +14,8 @@ import { referenceRevision } from "./common.mjs";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const symbolLocations = process.argv.includes("--symbols");
 const scopeServices = process.argv.includes("--scopes");
-const output = path.join(root, `built/csharp/checker-${scopeServices ? "scope-services" : symbolLocations ? "symbol-locations" : "locations"}`);
+const contextQueries = process.argv.includes("--contexts");
+const output = path.join(root, `built/csharp/checker-${contextQueries ? "context-queries" : scopeServices ? "scope-services" : symbolLocations ? "symbol-locations" : "locations"}`);
 const option = name => process.argv[process.argv.indexOf(name) + 1];
 const dotnet = process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, "dotnet.exe") : "dotnet";
 const dll = path.join(root, "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll");
@@ -111,12 +112,32 @@ declare const optional:{value?:number}; optional.value; optional.value=1; option
 declare const c:C; c.value; c.count;`,
     });
 }
+if (contextQueries) {
+    Object.assign(fixtures, {
+        contextGeneric: `declare function choose<T>(value:T, callback:(x:T)=>T):T; choose("a",x=>x);
+declare function select<T,K extends keyof T>(object:T,key:K):T[K]; select({left:1,right:"x"},"left");`,
+        contextBlocked: `declare function color<T extends "red"|"blue">(value:T):T; color("red"); color("missing");
+declare function pair<T>(first:T,second:T):T[]; pair("red","blue");`,
+        contextOverloads: `declare function f(value:string):string; declare function f(value:number,extra?:number):number;
+f("text"); f(true); f(1,2); f(1,2,3);`,
+        contextCallbacks: `declare function map<T,U>(items:T[],callback:(value:T)=>U):U[];
+const values:number[]=map([1,2],value=>value+1); const functions:Array<(value:number)=>number>=[value=>value+1];`,
+        contextTuples: `const tuple:[number,...string[],boolean]=[1,...["x"],true]; const array:number[]=[1,2];
+declare function tupleCall(...values:[number,string?,...boolean[]]):void; tupleCall(1,"x",true);`,
+        contextTemplates: `interface TemplateStringsArray extends ReadonlyArray<string> { readonly raw:readonly string[]; }
+declare function tag<T>(strings:TemplateStringsArray,value:T):T; tag\`text \${1}\`;`,
+        jsxContexts: `declare namespace JSX { interface Element {} interface IntrinsicElements {div:{title?:string};} }
+function Component(props:{value:"yes"|"no",onChange:(value:number)=>void}){return <div/>;}
+const element=<Component value="yes" onChange={value=>{value;}}/>;`,
+        contextImports: `interface ImportCallOptions {with?:{type:string};} const module=import("./dep",{with:{type:"json"}});`,
+    });
+}
 const inputs = [];
 for (const [name, source] of Object.entries(fixtures)) {
     for (const strict of [false, true]) {
         for (const concurrency of [1, 4]) {
-            const files = { "/project/globals.d.ts": library, [`/project/main.${name === "jsx" ? "tsx" : name.startsWith("jsdoc") ? "js" : "ts"}`]: source, "/project/dep.ts": "export interface Shape {value:number;} export const named=1; export default class Default { value=1; }" };
-            inputs.push({ name: `${name}:${strict}:${concurrency}`, files: Object.fromEntries(Object.entries(files).map(([name, text]) => [name, Buffer.from(text).toString("base64")])), roots: Object.keys(files), options: { strict, target: "esnext", module: "esnext", moduleResolution: "bundler", jsx: "preserve", ...name.startsWith("jsdoc") ? { allowJs: true, checkJs: true } : {} }, typeNodes: true, ...scopeServices ? { scopeServices: true } : symbolLocations ? { symbolLocations: true, ...name.startsWith("jsdoc") ? { documentationSymbols: true } : {} } : { locations: true }, concurrency });
+            const files = { "/project/globals.d.ts": library, [`/project/main.${name.startsWith("jsx") ? "tsx" : name.startsWith("jsdoc") ? "js" : "ts"}`]: source, "/project/dep.ts": "export interface Shape {value:number;} export const named=1; export default class Default { value=1; }" };
+            inputs.push({ name: `${name}:${strict}:${concurrency}`, files: Object.fromEntries(Object.entries(files).map(([name, text]) => [name, Buffer.from(text).toString("base64")])), roots: Object.keys(files), options: { strict, target: "esnext", module: "esnext", moduleResolution: "bundler", jsx: "preserve", ...name.startsWith("jsdoc") ? { allowJs: true, checkJs: true } : {} }, typeNodes: true, ...contextQueries ? { contextQueries: true } : scopeServices ? { scopeServices: true } : symbolLocations ? { symbolLocations: true, ...name.startsWith("jsdoc") ? { documentationSymbols: true } : {} } : { locations: true }, concurrency });
         }
     }
 }
@@ -177,13 +198,13 @@ for (const input of selected) {
         candidateError = String(error);
         candidateFailures++;
     }
-    if (candidate) queries += (candidate.serviceQueries ?? candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
+    if (candidate) queries += (candidate.contextQueries ?? candidate.serviceQueries ?? candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
     results.push({ input, reference, candidate, referenceError, candidateError });
     if (referenceError || candidateError) {
         failures.push({ name: input.name, referenceError, candidateError });
         continue;
     }
-    comparedQueries += (candidate.serviceQueries ?? candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
+    comparedQueries += (candidate.contextQueries ?? candidate.serviceQueries ?? candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
     try {
         assert.deepStrictEqual(candidate, reference);
     }
@@ -217,6 +238,20 @@ if (scopeServices) {
         localExportTargets: counts[4],
         shorthandValues: counts[5],
         parameterPropertyPairs: counts[6],
+    };
+}
+if (contextQueries) {
+    const counts = Array(8).fill(0);
+    for (const result of results) for (const record of result.candidate?.contextQueries ?? []) counts[record[0]]++;
+    summary.contextRecords = {
+        expressionTypes: counts[0],
+        objectElements: counts[1],
+        arrayPositions: counts[2],
+        jsxAttributes: counts[3],
+        resolvedSignaturesAndReturns: counts[4],
+        argumentTypes: counts[5],
+        signatureHelp: counts[6],
+        stringCompletions: counts[7],
     };
 }
 await writeFile(path.join(output, "summary.json"), JSON.stringify(summary, null, 2));

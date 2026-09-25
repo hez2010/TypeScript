@@ -47,7 +47,8 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
 
     public async ValueTask<Type?> OtherContextAsync(SyntaxNode node, ContextFlags flags, CancellationToken cancellation)
     {
-        if (node is JsxAttributesNode || node.Parent is JsxExpressionNode or JsxAttributeNode or JsxSpreadAttributeNode or JsxElementNode)
+        if (node is JsxAttributesNode || node.Parent is JsxExpressionNode or JsxAttributeNode or JsxSpreadAttributeNode or JsxElementNode
+            or JsxOpeningElementNode or JsxSelfClosingElementNode)
             return await JsxContextAsync(node, flags, cancellation);
         while (node.Parent is ParenthesizedExpressionNode or NonNullExpressionNode)
             node = node.Parent;

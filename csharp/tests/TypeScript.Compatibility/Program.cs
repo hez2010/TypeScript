@@ -131,6 +131,12 @@ internal static class Program
                     $"{CheckerQueryTests.ScopeSafety().GetAwaiter().GetResult()} scope/symbol-type query identity/cancellation assertions");
                 return 0;
             }
+            if (args is ["--checker-context-query-safety"])
+            {
+                Console.WriteLine(
+                    $"{CheckerContextQueryTests.Safety().GetAwaiter().GetResult()} context/signature query cache/cancellation assertions");
+                return 0;
+            }
             if (args is ["--checker-program-safety"])
             {
                 CheckerProgramTests.Safety().GetAwaiter().GetResult();

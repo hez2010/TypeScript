@@ -61,12 +61,19 @@ internal sealed class SignatureInstantiation(TypeContext context, TypeInstantiat
         var key = (signature, new TypeCacheKey(arguments.ToArray()));
         if (cache.TryGetValue(key, out var result))
             return result;
-        result = await instantiation.SignatureAsync(signature,
-            TypeMapper.Create((await ParametersAsync(signature, cancellation).ConfigureAwait(false)).ToArray(), arguments.ToArray()),
-            true,
-            cancellation).ConfigureAwait(false);
+        result = await CreateAsync(signature, arguments, cancellation).ConfigureAwait(false);
         cancellation.ThrowIfCancellationRequested();
         return cache[key] = result;
+    }
+
+    internal async ValueTask<Signature> CreateAsync(Signature signature, IReadOnlyList<Type> arguments,
+        CancellationToken cancellation = default)
+    {
+        foreach (var argument in arguments)
+            context.RequireOwned(argument);
+        return await instantiation.SignatureAsync(signature,
+            TypeMapper.Create((await ParametersAsync(signature, cancellation).ConfigureAwait(false)).ToArray(), arguments.ToArray()),
+            true, cancellation).ConfigureAwait(false);
     }
 
     private async ValueTask<Signature?> SingleAsync(Type type, CancellationToken cancellation)

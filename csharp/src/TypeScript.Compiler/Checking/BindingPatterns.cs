@@ -114,7 +114,7 @@ internal sealed class BindingPatterns(TypeContext context, CheckerLinks links, T
         var infos = new TupleElementInfo[elements.Count];
         for (int i = 0; i < elements.Count; i++)
         {
-            types[i] = elements[i] is BindingElementNode element
+            types[i] = elements[i] is BindingElementNode { Name: not null } element
                 ? await ElementAsync(element, includePattern, reportErrors, cancellation).ConfigureAwait(false) : context.AnyType;
             infos[i] = new(elements[i] == rest ? ElementFlags.Rest : i >= minLength ? ElementFlags.Optional : ElementFlags.Required);
         }

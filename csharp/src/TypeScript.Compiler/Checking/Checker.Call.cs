@@ -48,17 +48,18 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
         int index = arguments.ToList().IndexOf(argument);
         if (index < 0)
             return null;
-        if (JsxOpening(call))
-        {
-            var resolved = links.Signatures.Get(call).ResolvedSignature == CallSignatures.Resolving ? CallSignatures.Resolving
-                : await CallResolution.GetAsync(call, cancellation: cancellation);
-            return index == 0 ? await JsxPropsAsync(resolved, call, cancellation) : context.AnyType;
-        }
+        return await ContextualArgumentAtIndexAsync(call, index, cancellation);
+    }
+
+    private async ValueTask<Type?> ContextualArgumentAtIndexAsync(SyntaxNode call, int index, CancellationToken cancellation)
+    {
         if (call is CallExpressionNode import && IsImportCall(import))
             return index == 0 ? context.StringType : index == 1
                 ? importCallOptionsType ?? await program.Globals.GetAsync("ImportCallOptions", 0, false, cancellation) : context.AnyType;
         var signature = links.Signatures.Get(call).ResolvedSignature == CallSignatures.Resolving
             ? CallSignatures.Resolving : await CallResolution.GetAsync(call, cancellation: cancellation);
+        if (JsxOpening(call) && index == 0)
+            return await JsxPropsAsync(signature, call, cancellation);
         int restIndex = signature.Parameters.Count - 1;
         return signature.HasRestParameter && index >= restIndex
             ? await Indexed.GetAsync(
