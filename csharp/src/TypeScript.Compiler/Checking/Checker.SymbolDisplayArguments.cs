@@ -55,7 +55,8 @@ internal sealed partial class Checker
         TypeSyntaxContext state, CancellationToken cancellation)
     {
         if (TypeConstraints.ConstraintDeclaration(parameter) is { } annotation
-            && await Nodes.FromNodeAsync(annotation, cancellation) == constraint
+            && await Instantiation.Engine.InstantiateAsync(await Nodes.FromNodeAsync(annotation, cancellation), state.Mapper,
+                cancellation: cancellation) == constraint
             && await ReuseTypeAnnotationSyntaxAsync(annotation, state, cancellation) is { } reused)
             return reused;
         return await TypeSyntaxAsync(constraint, state, cancellation);
@@ -64,12 +65,18 @@ internal sealed partial class Checker
     private async ValueTask<SyntaxNode?> ReuseTypeAnnotationSyntaxAsync(SyntaxNode annotation, TypeSyntaxContext state,
         CancellationToken cancellation)
     {
+        Dictionary<SyntaxNode, TypeParameter>? parameters = state.ParameterNames is not null
+            || annotation.DescendantsAndSelf().Any(n => n is TypeQueryNode) ? [] : null;
         foreach (var node in annotation.DescendantsAndSelf())
         {
             cancellation.ThrowIfCancellationRequested();
-            if (node is ImportTypeNode or TypeQueryNode or ThisTypeNode or ComputedPropertyNameNode
+            if (node is ImportTypeNode or ThisTypeNode or ComputedPropertyNameNode
+                || node is TypeQueryNode && parameters is null
                 || node.Kind is >= Syntax.SyntaxKind.FirstJSDocNode and <= Syntax.SyntaxKind.LastJSDocNode)
                 return null;
+            if (parameters is not null && node is TypeParameterDeclarationNode { Name: { } parameterName } declaration
+                && program.Symbols.Declaration(declaration) is { } parameterSymbol)
+                parameters[parameterName] = program.Scopes.Parameter(parameterSymbol);
             if (node is not TypeReferenceNode reference)
                 continue;
             var first = reference.TypeName;
@@ -81,7 +88,16 @@ internal sealed partial class Checker
             var original = await program.EntityNames.ResolveAsync(identifier, meaning, true, true, cancellation: cancellation);
             if (original is null)
                 return null;
-            if ((original.Flags & SymbolFlags.TypeParameter) != 0 || state.Symbols.Enclosing is null)
+            if ((original.Flags & SymbolFlags.TypeParameter) != 0)
+            {
+                var parameter = program.Scopes.Parameter(original);
+                if (state.Mapper is not null && await state.Mapper.MapAsync(parameter, cancellation) != parameter)
+                    return null;
+                if (parameters is not null)
+                    parameters[identifier] = parameter;
+                continue;
+            }
+            if (state.Symbols.Enclosing is null)
                 continue;
             var current = await program.EntityNames.ResolveAsync(identifier, meaning, true, true, state.Symbols.Enclosing, cancellation);
             if (current is null || !await SameSymbolReferenceAsync(current, original, cancellation)
@@ -89,7 +105,9 @@ internal sealed partial class Checker
                     != SymbolAccessibility.Accessible)
                 return null;
         }
+        var result = parameters is null ? CloneSyntaxBindingName(annotation, state, typeAnnotation: true)
+            : await ReuseGeneratedAnnotationSyntaxAsync(annotation, parameters, state, cancellation);
         AddReusedSyntaxLength(annotation, state);
-        return CloneSyntaxBindingName(annotation, state, typeAnnotation: true);
+        return result;
     }
 }

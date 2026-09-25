@@ -1,0 +1,15 @@
+{
+    "configurations": 24,
+    "queries": 1280,
+    "comparedQueries": 1280,
+    "exact": 24,
+    "failed": 0,
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "referenceFailures": 0,
+    "candidateFailures": 0,
+    "oracleHash": "35e0b95016932cd53ec173a210dd5819b509352c3d9f5472564292233d72d5fb",
+    "candidateHash": "c356728d063d32d04f51f282477f9c3e484d034e14574839aa5a9f47f7d69002",
+    "inputHash": "0fb5d40db8653694d30d2122eda123a8123c6465a51f17f2b57710aa12ce3c5e",
+    "resultHash": "71f159275faac2467c93561332efcb2dd7aab7ea9b6fba31459ad2191859670b",
+    "managed": true
+}

@@ -26,6 +26,8 @@ internal sealed partial class Checker
         internal TypeSyntaxLength? Length { get; init; }
         internal bool ExpressionNames { get; init; }
         internal TokenFlags StringLiteralFlags { get; init; }
+        internal bool FullyQualified { get; set; }
+        internal bool ForbidIndexedAccess { get; init; }
         internal HashSet<(Symbol, SymbolFlags)> Parents { get; } = [];
         internal Dictionary<(Symbol, ReferenceResolutionMode), string> Modules { get; } = [];
     }

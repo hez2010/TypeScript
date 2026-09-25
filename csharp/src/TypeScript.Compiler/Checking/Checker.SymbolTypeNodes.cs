@@ -30,7 +30,8 @@ internal sealed partial class Checker
         SymbolDisplayContext state, bool forbidIndexed, CancellationToken cancellation)
     {
         var factory = new NodeFactory();
-        List<Symbol> chain = state.Enclosing is null || (symbol.Flags & SymbolFlags.TypeParameter) != 0 ? [symbol]
+        forbidIndexed |= state.ForbidIndexedAccess;
+        List<Symbol> chain = state.Enclosing is null && !state.FullyQualified || (symbol.Flags & SymbolFlags.TypeParameter) != 0 ? [symbol]
             : (await DisplaySymbolChainAsync(symbol, meaning, true, state, cancellation,
                 (state.Flags & SymbolFormatFlags.UseAliasDefinedOutsideCurrentScope) == 0))!;
         bool typeOf = meaning == SymbolFlags.Value;

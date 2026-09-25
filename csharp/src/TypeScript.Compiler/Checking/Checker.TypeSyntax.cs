@@ -17,12 +17,15 @@ internal sealed partial class Checker
             NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation)
         {
             Flags = flags;
+            ParameterNames = (flags & NodeBuilderFlags.GenerateNamesForShadowedTypeParams) != 0 ? new() : null;
             Length = new((flags & NodeBuilderFlags.NoTruncation) != 0);
             Symbols = new(enclosing,
                 (aliasesOutsideScope ? SymbolFormatFlags.UseAliasDefinedOutsideCurrentScope : SymbolFormatFlags.None)
                     | (externalAliasesOnly ? SymbolFormatFlags.UseOnlyExternalAliasing : SymbolFormatFlags.None))
             {
                 Length = Length,
+                FullyQualified = (flags & NodeBuilderFlags.UseFullyQualifiedType) != 0,
+                ForbidIndexedAccess = (flags & NodeBuilderFlags.ForbidIndexedAccessSymbolReferences) != 0,
                 StringLiteralFlags = (flags & NodeBuilderFlags.UseSingleQuotesForStringLiteralType) != 0
                     ? TokenFlags.SingleQuote
                     : TokenFlags.None
@@ -30,6 +33,8 @@ internal sealed partial class Checker
         }
 
         internal NodeBuilderFlags Flags { get; }
+        internal TypeSyntaxNames? ParameterNames { get; }
+        internal TypeMapper? Mapper { get; set; }
         internal TypeSyntaxLength Length { get; }
         internal NodeFactory Factory { get; } = new();
         internal SymbolDisplayContext Symbols { get; }
@@ -52,7 +57,8 @@ internal sealed partial class Checker
             | NodeBuilderFlags.WriteArrayAsGenericType | NodeBuilderFlags.UseOnlyExternalAliasing
             | NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope | NodeBuilderFlags.UseSingleQuotesForStringLiteralType
             | NodeBuilderFlags.NoTypeReduction | NodeBuilderFlags.OmitThisParameter | NodeBuilderFlags.AllowUniqueESSymbolType
-            | NodeBuilderFlags.InTypeAlias;
+            | NodeBuilderFlags.InTypeAlias | NodeBuilderFlags.UseFullyQualifiedType | NodeBuilderFlags.ForbidIndexedAccessSymbolReferences
+            | NodeBuilderFlags.GenerateNamesForShadowedTypeParams;
         if ((flags & ~supported) != 0)
             throw new NotSupportedException("The requested node-builder options are not implemented");
         context.RequireOwned(type);
@@ -225,6 +231,13 @@ internal sealed partial class Checker
                 return f.NewInferTypeNode(await TypeParameterSyntaxAsync(inferredParameter, constraintNode, state, cancellation));
             }
             if (type is TypeParameter || (type.ObjectFlags & ObjectFlags.ClassOrInterface) != 0)
+            {
+                if (type is TypeParameter parameter && state.ParameterNames is not null)
+                {
+                    string name = TypeSyntaxParameterName(parameter, state, cancellation);
+                    state.Length.Add(name);
+                    return f.NewTypeReferenceNode(f.NewIdentifier(name), null);
+                }
                 return type.Symbol is { } symbol ? await SymbolTypeNodeAsync(
                     symbol,
                     SymbolFlags.Type,
@@ -233,6 +246,7 @@ internal sealed partial class Checker
                     false,
                     cancellation)
                     : f.NewTypeReferenceNode(f.NewIdentifier("?"), null);
+            }
             if (type is UnionType { Origin: { } origin })
                 type = origin;
             if (type is UnionOrIntersectionType composite)
@@ -299,6 +313,8 @@ internal sealed partial class Checker
                 state.Length.Add(15);
                 if (check is ConditionalTypeNode or FunctionTypeNode or ConstructorTypeNode)
                     check = f.NewParenthesizedTypeNode(check);
+                if (state.ParameterNames is not null && conditional.Root.IsDistributive && conditional.CheckType is not TypeParameter)
+                    return await DistributiveConditionalSyntaxAsync(conditional, check, state, cancellation);
                 var previous = state.InferParameters;
                 SyntaxNode extends;
                 try
@@ -358,6 +374,7 @@ internal sealed partial class Checker
                     ElidedTypeSyntax(state, types.Count - 2, false), await TypeSyntaxAsync(types[^1], state, cancellation)]);
         }
         var nodes = new List<SyntaxNode>();
+        Dictionary<string, List<(Type Type, int Index)>>? names = state.Symbols.FullyQualified ? null : new(StringComparer.Ordinal);
         for (int i = 0; i < types.Count; i++)
         {
             if (state.Length.Truncated() && i + 3 < types.Count - 1)
@@ -367,9 +384,35 @@ internal sealed partial class Checker
                 break;
             }
             state.Length.Add(2);
-            nodes.Add(await TypeSyntaxAsync(types[i], state, cancellation));
+            var node = await TypeSyntaxAsync(types[i], state, cancellation);
+            nodes.Add(node);
+            if (names is not null && node is TypeReferenceNode { TypeName: IdentifierNode identifier })
+            {
+                if (!names.TryGetValue(identifier.Text, out var entries))
+                    names.Add(identifier.Text, entries = []);
+                entries.Add((types[i], nodes.Count - 1));
+            }
+        }
+        if (names is not null)
+        {
+            bool previous = state.Symbols.FullyQualified;
+            state.Symbols.FullyQualified = true;
+            try
+            {
+                foreach (var entries in names.Values)
+                    if (entries.Any(e => !SameTypeReference(entries[0].Type, e.Type)))
+                        foreach (var entry in entries)
+                            nodes[entry.Index] = await TypeSyntaxAsync(entry.Type, state, cancellation);
+            }
+            finally
+            {
+                state.Symbols.FullyQualified = previous;
+            }
         }
         return new(nodes.ToArray());
+
+        static bool SameTypeReference(Type first, Type second) => first == second
+            || first.Symbol is not null && first.Symbol == second.Symbol || first.Alias is not null && first.Alias == second.Alias;
     }
 
     private async ValueTask<SyntaxNode> MappedTypeSyntaxAsync(MappedType type, TypeSyntaxContext state, CancellationToken cancellation)
@@ -378,15 +421,56 @@ internal sealed partial class Checker
         var declaration = type.Declaration!;
         var template = await Instantiation.Mapped.TemplateAsync(type, cancellation);
         var parameter = await Instantiation.Mapped.ParameterAsync(type, cancellation);
-        SyntaxNode constraint = MappedMembers.HasKeyofConstraint(type)
-            ? f.NewTypeOperatorNode(K.KeyOfKeyword, ParenthesizeType(
-                await TypeSyntaxAsync(await Instantiation.Members.ModifiersTypeAsync(type, cancellation), state, cancellation), f))
-            : await TypeSyntaxAsync(await Instantiation.Mapped.ConstraintAsync(type, cancellation), state, cancellation);
-        var parameterNode = await TypeParameterSyntaxAsync(parameter, constraint, state, cancellation);
-        var name = await Instantiation.Mapped.NameAsync(type, cancellation);
-        var nameNode = name is null ? null : await TypeSyntaxAsync(name, state, cancellation);
-        var templateNode = await TypeSyntaxAsync(
-            Values.NonMissing(template, (MappedTypes.Modifiers(type) & MappedTypeModifiers.IncludeOptional) != 0), state, cancellation);
+        bool keyOf = MappedMembers.HasKeyofConstraint(type);
+        bool preserveModifiers = !keyOf
+            && ((await Instantiation.Members.ModifiersTypeAsync(type, cancellation)).Flags & TypeFlags.Unknown) == 0
+            && state.ParameterNames is not null
+            && !(await Instantiation.Mapped.ConstraintAsync(type, cancellation) is TypeParameter keyParameter
+                && await Instantiation.Constraints.ConstraintAsync(keyParameter, cancellation) is IndexType);
+        bool preserveHomomorphic = state.ParameterNames is not null && type.Target is MappedType target
+            && await Instantiation.Mapped.HomomorphicVariableAsync(type, cancellation) is null
+            && await Instantiation.Mapped.HomomorphicVariableAsync(target, cancellation) is not null;
+        TypeReferenceNode? newVariable = null;
+        SyntaxNode constraint;
+        if (keyOf)
+        {
+            if (preserveHomomorphic)
+            {
+                var variable = context.NewTypeParameter(new Symbol(SymbolFlags.TypeParameter, "T"));
+                newVariable = f.NewTypeReferenceNode(f.NewIdentifier(TypeSyntaxParameterName(variable, state, cancellation)), null);
+                var targetMap = (MappedType)type.Target!;
+                var mapper = TypeMapper.Create([await Instantiation.Mapped.ParameterAsync(targetMap, cancellation),
+                    await Instantiation.Members.ModifiersTypeAsync(targetMap, cancellation)], [parameter, variable]);
+                template = (await Instantiation.Engine.InstantiateAsync(await Instantiation.Mapped.TemplateAsync(targetMap, cancellation),
+                    mapper, cancellation: cancellation))!;
+            }
+            var operand = newVariable ?? await TypeSyntaxAsync(
+                await Instantiation.Members.ModifiersTypeAsync(type, cancellation),
+                state,
+                cancellation);
+            constraint = f.NewTypeOperatorNode(K.KeyOfKeyword, ParenthesizeType(operand, f));
+        }
+        else if (preserveModifiers)
+        {
+            var variable = context.NewTypeParameter(new Symbol(SymbolFlags.TypeParameter, "T"));
+            constraint = newVariable = f.NewTypeReferenceNode(
+                f.NewIdentifier(TypeSyntaxParameterName(variable, state, cancellation)),
+                null);
+        }
+        else
+            constraint = await TypeSyntaxAsync(await Instantiation.Mapped.ConstraintAsync(type, cancellation), state, cancellation);
+        TypeParameterDeclarationNode parameterNode;
+        SyntaxNode? nameNode;
+        SyntaxNode templateNode;
+        using (state.ParameterNames?.EnterScope())
+        using (EnterGeneratedParameterScope(declaration, [parameter], state, cancellation))
+        {
+            parameterNode = await TypeParameterSyntaxAsync(parameter, constraint, state, cancellation);
+            var name = await Instantiation.Mapped.NameAsync(type, cancellation);
+            nameNode = name is null ? null : await TypeSyntaxAsync(name, state, cancellation);
+            templateNode = await TypeSyntaxAsync(
+                Values.NonMissing(template, (MappedTypes.Modifiers(type) & MappedTypeModifiers.IncludeOptional) != 0), state, cancellation);
+        }
         var result = f.NewMappedTypeNode(
             declaration.ReadonlyToken is { } readOnly ? f.NewToken(readOnly.Kind) : null,
             parameterNode, nameNode,
@@ -394,7 +478,76 @@ internal sealed partial class Checker
             templateNode, null);
         state.Length.Add(10);
         state.SingleLine.Add(result);
+        if (preserveHomomorphic)
+        {
+            Type rawConstraint = context.UnknownType;
+            if (declaration.TypeParameter?.Constraint is ITypedNode { Type: { } raw })
+            {
+                var rawType = (await Instantiation.Engine.InstantiateAsync(await Nodes.FromNodeAsync(raw, cancellation),
+                    state.Mapper, cancellation: cancellation))!;
+                if (rawType is TypeParameter rawParameter)
+                    rawConstraint = await Instantiation.Constraints.ConstraintAsync(rawParameter, cancellation) ?? context.UnknownType;
+            }
+            var originalConstraint = (await Instantiation.Engine.InstantiateAsync(rawConstraint, type.Mapper, cancellation: cancellation))!;
+            var constraintNode = (originalConstraint.Flags & TypeFlags.Unknown) != 0 ? null
+                : await TypeSyntaxAsync(originalConstraint, state, cancellation);
+            return f.NewConditionalTypeNode(
+                await TypeSyntaxAsync(await Instantiation.Members.ModifiersTypeAsync(type, cancellation), state, cancellation),
+                f.NewInferTypeNode(f.NewTypeParameterDeclaration(null, (IdentifierNode)newVariable!.TypeName!, constraintNode, null, null)),
+                result, f.NewKeywordTypeNode(K.NeverKeyword));
+        }
+        if (preserveModifiers)
+            return f.NewConditionalTypeNode(
+                await TypeSyntaxAsync(await Instantiation.Mapped.ConstraintAsync(type, cancellation), state, cancellation),
+                f.NewInferTypeNode(f.NewTypeParameterDeclaration(null, (IdentifierNode)newVariable!.TypeName!,
+                    f.NewTypeOperatorNode(K.KeyOfKeyword, ParenthesizeType(
+                        await TypeSyntaxAsync(await Instantiation.Members.ModifiersTypeAsync(type, cancellation), state, cancellation),
+                        f)),
+                    null,
+                    null)),
+                result, f.NewKeywordTypeNode(K.NeverKeyword));
         return result;
+    }
+
+    private async ValueTask<SyntaxNode> DistributiveConditionalSyntaxAsync(ConditionalType type, SyntaxNode check,
+        TypeSyntaxContext state, CancellationToken cancellation)
+    {
+        var f = state.Factory;
+        var parameter = context.NewTypeParameter(new Symbol(SymbolFlags.TypeParameter, "T"));
+        string name = TypeSyntaxParameterName(parameter, state, cancellation);
+        state.Length.Add(37);
+        var mapper = TypeMapper.Prepend(type.Root.CheckType, parameter, type.Mapper);
+        var previous = state.InferParameters;
+        SyntaxNode extends;
+        try
+        {
+            state.InferParameters = type.Root.InferTypeParameters;
+            extends = await TypeSyntaxAsync((await Instantiation.Engine.InstantiateAsync(type.Root.ExtendsType, mapper,
+                cancellation: cancellation))!, state, cancellation);
+        }
+        finally
+        {
+            state.InferParameters = previous;
+        }
+        var whenTrue = await Branch(type.Root.Node.TrueType!);
+        var whenFalse = await Branch(type.Root.Node.FalseType!);
+        var inner = f.NewConditionalTypeNode(Reference(), extends is ConditionalTypeNode ? f.NewParenthesizedTypeNode(extends) : extends,
+            whenTrue, whenFalse);
+        return f.NewConditionalTypeNode(check,
+            f.NewInferTypeNode(f.NewTypeParameterDeclaration(null, f.NewIdentifier(name), null, null, null)),
+            f.NewConditionalTypeNode(Reference(), CloneSyntaxBindingName(check, state), inner, f.NewKeywordTypeNode(K.NeverKeyword)),
+            f.NewKeywordTypeNode(K.NeverKeyword));
+
+        TypeReferenceNode Reference() => f.NewTypeReferenceNode(f.NewIdentifier(name), null);
+        async ValueTask<SyntaxNode> Branch(SyntaxNode node)
+        {
+            var source = await Instantiation.Engine.InstantiateAsync(await Nodes.FromNodeAsync(node, cancellation), state.Mapper,
+                cancellation: cancellation);
+            return await TypeSyntaxAsync(
+                (await Instantiation.Engine.InstantiateAsync(source, mapper, cancellation: cancellation))!,
+                state,
+                cancellation);
+        }
     }
 
     private async ValueTask<TypeParameterDeclarationNode> TypeParameterSyntaxAsync(TypeParameter parameter, SyntaxNode? constraint,
@@ -405,9 +558,7 @@ internal sealed partial class Checker
         foreach (var kind in new[] { K.ConstKeyword, K.InKeyword, K.OutKeyword })
             if (parameter.Symbol?.Declarations.Any(d => SemanticSyntax.HasModifier(d, kind)) == true)
                 modifiers.Add(f.NewToken(kind));
-        string name = parameter.Symbol is { } symbol
-            ? DisplayNameAsWritten(symbol, state.Symbols, true, cancellation)
-            : "(Missing type parameter)";
+        string name = TypeSyntaxParameterName(parameter, state, cancellation);
         var defaultType = await Instantiation.Constraints.DefaultAsync(parameter, cancellation);
         return f.NewTypeParameterDeclaration(
             modifiers.Count == 0 ? null : new(modifiers.ToArray()),

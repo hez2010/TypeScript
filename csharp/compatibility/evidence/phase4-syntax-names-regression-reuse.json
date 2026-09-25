@@ -1,0 +1,42 @@
+{
+    "candidateHash": "c356728d063d32d04f51f282477f9c3e484d034e14574839aa5a9f47f7d69002",
+    "records": [
+        {
+            "mode": "signature-syntax",
+            "configurations": 48,
+            "retainedCandidates": 24,
+            "replayedCandidates": 24,
+            "retainedReferences": 48,
+            "affected": [
+                "signatureSyntaxGeneric",
+                "signatureSyntaxTuples",
+                "signatureSyntaxShadows",
+                "signatureSyntaxMethods",
+                "signatureSyntaxInstantiation",
+                "signatureSyntaxScopeValues"
+            ]
+        },
+        {
+            "mode": "mapped-syntax",
+            "configurations": 24,
+            "retainedCandidates": 20,
+            "replayedCandidates": 4,
+            "retainedReferences": 24,
+            "affected": [
+                "mappedSyntaxConstraints"
+            ]
+        },
+        {
+            "mode": "syntax-options",
+            "configurations": 45,
+            "retainedCandidates": 37,
+            "replayedCandidates": 8,
+            "retainedReferences": 45,
+            "affected": [
+                "syntaxOptionsSignatures",
+                "syntaxOptionsQueries"
+            ]
+        }
+    ],
+    "reason": "Replay parameter-scope reuse, generic constraint/mapping and typeof-annotation paths changed by generated-name support. The remaining cases have no relevant scope shadowing or mapper-dependent reuse, and do not enable generated names or contain colliding reference names. The reference executable is unchanged."
+}

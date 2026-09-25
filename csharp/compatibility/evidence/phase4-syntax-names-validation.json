@@ -1,0 +1,146 @@
+{
+    "timestamp": "2026-09-25T10:47:40.671Z",
+    "configuration": "Release",
+    "managed": true,
+    "scope": "Qualification/collision handling, generated parameter scopes and dependent conditional/mapped rewrites",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-syntax-names-build.log",
+        "sha256": "80a457873e512b9e62ba69cb6931f68bef4fbd78920e934a06c8b1ca5cb01222"
+    },
+    "candidateSha256": "b2c01f6630a083b97122e54d4717676dcb3468081662ea09bbae258290ee11ab",
+    "compilerSha256": "79b8718141ba5c840a4b306566f9cb438960326499d888ebaf4479b0ec12e956",
+    "qualificationComparisons": {
+        "configurations": 24,
+        "queries": 4800,
+        "comparedQueries": 4800,
+        "exact": 24,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "35e0b95016932cd53ec173a210dd5819b509352c3d9f5472564292233d72d5fb",
+        "candidateHash": "e4ec165edb168970c6d213716f3b26fae472130b45470aebb05025a892b77041",
+        "inputHash": "1a740d3915f2332284a94adff85dda665eb284d2c53da10945df4f8818901818",
+        "resultHash": "c8f56b3f3d69a632eb864c88f1d312a4d6321ec3bebb3404384d3a467ed55676",
+        "managed": true
+    },
+    "generatedComparisons": {
+        "configurations": 40,
+        "queries": 3584,
+        "comparedQueries": 3584,
+        "exact": 40,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "35e0b95016932cd53ec173a210dd5819b509352c3d9f5472564292233d72d5fb",
+        "candidateHash": "7e912aa9cc4e8a0ea4ba149d8caf754c4845bff5dc63d33a6382e8b3433f7f30",
+        "inputHash": "fa138e554a4d067694970b0061f66826fe8ef19b7f3c25701e56b39169a3db9b",
+        "resultHash": "05229883ce448f796c1a41f9614e0649d1b278bae456dc6b29f69f30232b1619",
+        "managed": true
+    },
+    "regressions": [
+        {
+            "mode": "signature",
+            "configurations": 48,
+            "queries": 2496,
+            "comparedQueries": 2496,
+            "exact": 48,
+            "failed": 0,
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "referenceFailures": 0,
+            "candidateFailures": 0,
+            "oracleHash": "35e0b95016932cd53ec173a210dd5819b509352c3d9f5472564292233d72d5fb",
+            "candidateHash": "c356728d063d32d04f51f282477f9c3e484d034e14574839aa5a9f47f7d69002",
+            "inputHash": "63ebe3a59fd6479734fa22ac874383b8fc8a1a97358c4dd4cc33099e6bf25a6d",
+            "resultHash": "dca60b6faab5a8b23748371762fb271c281625f3f35bd8842e8556435c7adcd5",
+            "managed": true
+        },
+        {
+            "mode": "mapped",
+            "configurations": 24,
+            "queries": 1280,
+            "comparedQueries": 1280,
+            "exact": 24,
+            "failed": 0,
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "referenceFailures": 0,
+            "candidateFailures": 0,
+            "oracleHash": "35e0b95016932cd53ec173a210dd5819b509352c3d9f5472564292233d72d5fb",
+            "candidateHash": "c356728d063d32d04f51f282477f9c3e484d034e14574839aa5a9f47f7d69002",
+            "inputHash": "0fb5d40db8653694d30d2122eda123a8123c6465a51f17f2b57710aa12ce3c5e",
+            "resultHash": "71f159275faac2467c93561332efcb2dd7aab7ea9b6fba31459ad2191859670b",
+            "managed": true
+        },
+        {
+            "mode": "options",
+            "configurations": 45,
+            "queries": 13064,
+            "comparedQueries": 13064,
+            "exact": 45,
+            "failed": 0,
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "referenceFailures": 0,
+            "candidateFailures": 0,
+            "oracleHash": "35e0b95016932cd53ec173a210dd5819b509352c3d9f5472564292233d72d5fb",
+            "candidateHash": "c356728d063d32d04f51f282477f9c3e484d034e14574839aa5a9f47f7d69002",
+            "inputHash": "f56128d1ec4d24baf4e7e0c40c9f98c8ca5010e2806218b0b6ba35afe6db1e60",
+            "resultHash": "2992128230c5bee7c72f587ddca36441deee87460ac7096f13d4f58c338d0e7a",
+            "managed": true
+        }
+    ],
+    "safety": {
+        "assertions": 10,
+        "nestedSignatures": 120,
+        "maximumTemporaryScopes": 2,
+        "log": "logs/csharp-phase4-syntax-names-safety.log"
+    },
+    "reference": {
+        "revision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "frozenSourcesMatch": true,
+        "nodeBuilderBlob": "5cd58f6ec95f0fe53386fe46d2b3ecf0d2d46d83",
+        "nodeCopyBlob": "822a68634fdb00ae6f49d1e239cf4c608048f775",
+        "scopeBlob": "59b5fcd479b551b8d8116c07c9c54e0c0b189279"
+    },
+    "reuse": {
+        "record": "phase4-generated-names-reuse.json",
+        "regressionRecord": "phase4-syntax-names-regression-reuse.json",
+        "retainedQualificationCandidates": 24,
+        "retainedGeneratedCandidates": 28,
+        "replayedGeneratedCandidates": 8,
+        "addedGeneratedConfigurations": 4,
+        "retainedGeneratedReferences": 36,
+        "retainedRegressionCandidates": 81,
+        "replayedRegressionCandidates": 36,
+        "retainedRegressionReferences": 117,
+        "finalComparisonsRetained": true,
+        "reason": "After the final generated-name comparison, only safety tests/dispatch, formatting and documentation changed. The earlier qualification matrix has no generic signature scopes or generated-name options and remains applicable. Every affected earlier scope/mapper/reuse family is replayed against its retained reference output.",
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "semanticCorpus": "Retained; existing semantic diagnostic callers do not use these node-building helpers"
+    },
+    "formatting": {
+        "tokensCommentsAndSyntaxIdentical": true,
+        "csharpFiles": 8,
+        "libraryConfigurations": 2,
+        "inputsUnchanged": true,
+        "dotnetWhitespaceExitCode": 0,
+        "log": "logs/csharp-phase4-syntax-names-format.log",
+        "proofSha256": "3d2866ce787a0888f039e370898d42ff95bbe5aec87a37d1707484b75586ab44"
+    },
+    "syntaxCheck": {
+        "exitCode": 0,
+        "command": "node --check csharp/tools/checker-locations.mjs"
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "phase4Complete": false
+}

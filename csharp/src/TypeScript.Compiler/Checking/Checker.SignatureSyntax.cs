@@ -93,43 +93,25 @@ internal sealed partial class Checker
         var f = state.Factory;
         var allocated = new List<Symbol>();
         var previous = state.Symbols.Enclosing;
-        SyntaxNode? scope = null;
+        var previousMapper = state.Mapper;
+        GeneratedParameterScope? valueScope = null;
+        using var names = state.ParameterNames?.EnterScope();
+        GeneratedParameterScope? generatedScope = null;
         try
         {
+            state.Mapper = signature.Mapper ?? previousMapper;
             var expanded = await ExpandedSyntaxParametersAsync(signature, allocated, cancellation);
             state.Length.Add(3);
-            if (previous is not null && signature.Declaration is not null && expanded.Count != 0)
-            {
-                var locals = new Dictionary<string, Symbol>(StringComparer.Ordinal);
-                for (int i = 0; i < expanded.Count; i++)
-                {
-                    var parameter = expanded[i];
-                    var original = i < signature.Parameters.Count ? signature.Parameters[i] : null;
-                    if (parameter != original)
-                    {
-                        if (original is not null)
-                            locals[original.Name] = original;
-                    }
-                    else if (parameter.Declarations.OfType<ParameterDeclarationNode>().FirstOrDefault()?.Name is BindingPatternNode pattern)
-                    {
-                        foreach (var element in pattern.DescendantsAndSelf().OfType<BindingElementNode>())
-                            if (element.Name is IdentifierNode && program.Symbols.Declaration(element) is { } symbol)
-                                locals[symbol.Name] = symbol;
-                    }
-                    else
-                        locals[parameter.Name] = parameter;
-                }
-                scope = f.NewBlock(new([]), false);
-                scope.Parent = previous;
-                typeSyntaxScopes.Add(scope, locals);
-                state.Symbols.Enclosing = scope;
-            }
+            valueScope = EnterValueParameterScope(signature.Declaration, expanded, signature.Parameters, state, cancellation);
+            generatedScope = EnterGeneratedParameterScope(signature.Declaration, signature.TypeParameters, state, cancellation);
             var typeParameters = new List<SyntaxNode>();
             foreach (var parameter in signature.TypeParameters)
             {
                 var constraint = await Instantiation.Constraints.ConstraintAsync(parameter, cancellation);
                 typeParameters.Add(await TypeParameterSyntaxAsync(parameter,
-                    constraint is null ? null : await TypeSyntaxAsync(constraint, state, cancellation), state, cancellation));
+                    constraint is null ? null : await ConstraintSyntaxAsync(parameter, constraint, state, cancellation),
+                    state,
+                    cancellation));
             }
             var parameters = new List<SyntaxNode>();
             if ((state.Flags & NodeBuilderFlags.OmitThisParameter) == 0 && signature.ThisParameter is { } thisParameter)
@@ -172,9 +154,10 @@ internal sealed partial class Checker
         }
         finally
         {
+            generatedScope?.Dispose();
+            valueScope?.Dispose();
+            state.Mapper = previousMapper;
             state.Symbols.Enclosing = previous;
-            if (scope is not null)
-                typeSyntaxScopes.Remove(scope);
             foreach (var symbol in allocated)
                 links.Values.Remove(symbol);
         }
@@ -312,7 +295,8 @@ internal sealed partial class Checker
     private async ValueTask<SyntaxNode?> ReuseTypeQuerySyntaxAsync(
         TypeQueryNode query,
         TypeSyntaxContext state,
-        CancellationToken cancellation)
+        CancellationToken cancellation,
+        bool countLength = true)
     {
         var left = query.ExprName;
         while (left is QualifiedNameNode qualified)
@@ -355,7 +339,8 @@ internal sealed partial class Checker
             && (current is null || (await SymbolAccessibilityAsync(current, state.Symbols.Enclosing,
                 SymbolFlags.Value, false, true, cancellation)).Accessibility == SymbolAccessibility.Accessible))
         {
-            AddReusedSyntaxLength(query, state);
+            if (countLength)
+                AddReusedSyntaxLength(query, state);
             if (query.TypeArguments is null)
                 return CloneSyntaxBindingName(query, state);
             return state.Factory.NewTypeQueryNode(CloneSyntaxBindingName(query.ExprName!, state), argumentNodes);
@@ -364,8 +349,10 @@ internal sealed partial class Checker
         if (symbol is null || symbol == UnknownSymbol || (await SymbolAccessibilityAsync(symbol, state.Symbols.Enclosing,
             SymbolFlags.Value, false, true, cancellation)).Accessibility != SymbolAccessibility.Accessible)
             return null;
-        AddReusedSyntaxLength(query, state);
         // The pinned builder drops type arguments when this fallback returns a typeof query.
-        return await SymbolTypeNodeAsync(symbol, SymbolFlags.Value, argumentNodes, state.Symbols, false, cancellation);
+        var result = await SymbolTypeNodeAsync(symbol, SymbolFlags.Value, argumentNodes, state.Symbols, false, cancellation);
+        if (countLength)
+            AddReusedSyntaxLength(query, state);
+        return result;
     }
 }

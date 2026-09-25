@@ -1,0 +1,17 @@
+{
+    "prior": {
+        "previousCandidateHash": "8ffba6f46150db66a1f762976f35ce42b2eac0fb09c4b62b3617137678f1f581",
+        "candidateHash": "f68cc16ea52457e7476356337bac8a847ecf14ceea1bb114fedd41a5074fca6f",
+        "retainedCandidates": 12,
+        "replayedCandidates": 24,
+        "retainedReferences": 36,
+        "reason": "Replay signatures, reused annotations and mapped parameter scopes after marking temporary blocks synthesized and reusing value-scope tables. The 12 retained conditional/infer/homomorphic cases have no value scopes; their mapped names are either cached before entering a temporary scope or do not shadow an enclosing function parameter."
+    },
+    "previousCandidateHash": "f68cc16ea52457e7476356337bac8a847ecf14ceea1bb114fedd41a5074fca6f",
+    "candidateHash": "7e912aa9cc4e8a0ea4ba149d8caf754c4845bff5dc63d33a6382e8b3433f7f30",
+    "retainedCandidates": 28,
+    "replayedCandidates": 8,
+    "retainedReferences": 36,
+    "addedConfigurations": 4,
+    "reason": "Replay the two families containing reused typeof annotations after correcting nested reuse length accounting. Other generated cases do not contain typeof annotations. Four new default-mode configurations check scoped reuse without generated names."
+}

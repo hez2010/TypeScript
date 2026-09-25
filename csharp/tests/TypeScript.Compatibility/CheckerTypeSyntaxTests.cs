@@ -12,6 +12,84 @@ namespace TypeScript.Compatibility;
 
 internal static class CheckerTypeSyntaxTests
 {
+    internal static async Task<int> NamesSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Type syntax names assertion {checks + 1}");
+            checks++;
+        }
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        string deep = string.Concat(Enumerable.Repeat("<T>(x:T)=>", 120)) + "typeof globalThis.globalValue";
+        string text = "namespace Left{export interface Value{a:number}export interface Other{x:number}}"
+            + "namespace Right{export interface Value{b:string}}type Collision=[[Left.Value,Right.Value],Left.Other];"
+            + "type A=<T>(x:T)=><T>(y:T)=>[T,typeof x];type Siblings={a:<T>()=>T;b:<T>()=>T};"
+            + "declare var globalValue:number;type Deep=" + deep + ";class Scope<T>{}";
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        {
+            ["/project/main.ts"] = Wtf8.Encode(text)
+        }), "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var source = program.GetFile("/project/main.ts")!.Syntax;
+        var declarations = source.Statements!.OfType<TypeAliasDeclarationNode>().ToArray();
+        var collision = await checker.Nodes.FromNodeAsync(declarations[0].Type!);
+        var a = await checker.Nodes.FromNodeAsync(declarations[1].Type!);
+        var siblings = await checker.Nodes.FromNodeAsync(declarations[2].Type!);
+        var nested = await checker.Nodes.FromNodeAsync(declarations[3].Type!);
+        var scope = source.Statements!.OfType<ClassDeclarationNode>().Single();
+        var snapshot = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
+        const NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation | NodeBuilderFlags.InTypeAlias;
+        const NodeBuilderFlags generated = flags | NodeBuilderFlags.GenerateNamesForShadowedTypeParams;
+        Check(await checker.SerializeTypeSyntaxAsync(collision, null, flags) == "[[Left.Value, Right.Value], Other]");
+        string renamed = await checker.SerializeTypeSyntaxAsync(a, scope, generated);
+        Check(renamed == "<T_1>(x: T_1) => <T_2>(y: T_2) => [T_2, typeof x]");
+        Check(await checker.SerializeTypeSyntaxAsync(siblings, scope, generated) == "{ a: <T_1>() => T_1; b: <T_1>() => T_1; }");
+        Check(await checker.SerializeTypeSyntaxAsync(a, scope, flags) == "<T>(x: T) => <T>(y: T) => [T, typeof x]");
+        using var stop = new CancellationTokenSource();
+        checker.BeforeSymbolChainTable = _ =>
+        {
+            if (checker.TypeSyntaxScopeCount != 0)
+            {
+                stop.Cancel();
+                stop.Token.ThrowIfCancellationRequested();
+            }
+        };
+        try
+        {
+            await checker.SerializeTypeSyntaxAsync(nested, scope, generated, stop.Token);
+            throw new InvalidOperationException("Generated-scope cancellation was not observed");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        finally
+        {
+            checker.BeforeSymbolChainTable = null;
+        }
+        Check(checker.TypeSyntaxScopeCount == 0);
+        int maximumScopes = 0;
+        checker.BeforeSymbolChainTable = _ => maximumScopes = Math.Max(maximumScopes, checker.TypeSyntaxScopeCount);
+        string nestedResult;
+        try
+        {
+            nestedResult = await checker.SerializeTypeSyntaxAsync(nested, scope, generated);
+        }
+        finally
+        {
+            checker.BeforeSymbolChainTable = null;
+        }
+        Check(nestedResult.Contains("T_120", StringComparison.Ordinal)
+            && nestedResult.EndsWith("typeof globalThis.globalValue", StringComparison.Ordinal));
+        Check(maximumScopes == 2 && checker.TypeSyntaxScopeCount == 0);
+        Check(await checker.SerializeTypeSyntaxAsync(a, scope, generated) == renamed);
+        Check(snapshot.All(p => p.Parent == p.Node.Parent && p.Pos == p.Node.Pos && p.End == p.Node.End && p.Flags == p.Node.Flags));
+        return checks;
+    }
+
     internal static async Task<int> OptionsSafety()
     {
         int checks = 0;
@@ -75,7 +153,7 @@ internal static class CheckerTypeSyntaxTests
         Check(checker.TypeSyntaxScopeCount == 0);
         try
         {
-            await checker.SerializeTypeSyntaxAsync(a, source, flags | NodeBuilderFlags.GenerateNamesForShadowedTypeParams);
+            await checker.SerializeTypeSyntaxAsync(a, source, flags | NodeBuilderFlags.UseInstantiationExpressions);
             throw new InvalidOperationException("An unimplemented node-builder option was accepted");
         }
         catch (NotSupportedException)
