@@ -1,0 +1,11 @@
+{
+    "retainedCandidates": 16224,
+    "replayedCandidates": 16,
+    "retainedReferences": 16240,
+    "decodedEndingArrays": 12960,
+    "previousOracleHash": "77ce8d438da2d1efde73c0f21e156df87aab70e1f25a2339a1aab75f46ad2494",
+    "currentOracleHash": "b8839365f4892ab26741d7af6680d3e46281fba59314efb497678fcddb855d96",
+    "previousCandidateHash": "5eceb3a7533f4bf5685c0dd95ff90d38723d8550f91ab963cc95a50d3796be54",
+    "currentCandidateHash": "11c033126cba62a4b633acfb0e9dea4ef7499d5c6752d582059a064b7d9d054a",
+    "reason": "The reference wrapper now serializes uint8 ending enums as integer arrays. Cached base64 bytes were decoded without rerunning the unchanged Go algorithm. Candidate changes affect only .d.mts/.d.cts preference cases; pre-canceled request checks are inert for these uncanceled inputs."
+}

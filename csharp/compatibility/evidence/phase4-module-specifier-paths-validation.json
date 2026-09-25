@@ -1,0 +1,79 @@
+{
+    "timestamp": "2026-09-25T04:27:19.883Z",
+    "configuration": "Release",
+    "managed": true,
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "scope": "Module-specifier ending, root-directory and reverse-path-mapping algorithms; full generation and symbol-name formatting remain incomplete",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-module-paths-build.log",
+        "sha256": "44e9c38803bdeab6f70800ee8b9fcef655a93f2749e361618092a575698e0320"
+    },
+    "candidateSha256": "0869218bb0e84b4a2768116f31ab876d0dc3537f49986f8d53d69db97e78c56f",
+    "compilerSha256": "38528e48bb40f4ba55ce2924bc86f5be0151cc101ddabdfce13492cec1c58fdb",
+    "comparisons": {
+        "cases": 16240,
+        "exact": 16240,
+        "failed": 0,
+        "byOperation": {
+            "endings": 12960,
+            "process": 920,
+            "non-js": 8,
+            "roots": 1008,
+            "paths": 1344
+        },
+        "candidateExecuted": 16,
+        "candidateReused": 16224,
+        "referenceExecuted": 0,
+        "referenceReused": 16240,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "oracleHash": "b8839365f4892ab26741d7af6680d3e46281fba59314efb497678fcddb855d96",
+        "candidateHash": "11c033126cba62a4b633acfb0e9dea4ef7499d5c6752d582059a064b7d9d054a",
+        "inputHash": "20031cb209f56c5f87ac073b63d82fce2d91db3232ebb4797186cc5e10501e98",
+        "referenceHash": "bd8f2349ebe791dd6afee0fd6068bad6ad2a2cb9b5bdc3e1cc151846de086d7e",
+        "outputHash": "bd8f2349ebe791dd6afee0fd6068bad6ad2a2cb9b5bdc3e1cc151846de086d7e",
+        "managed": true
+    },
+    "safety": {
+        "assertions": 20,
+        "log": "logs/csharp-phase4-module-paths-safety.log"
+    },
+    "formatting": {
+        "csharpFiles": 3,
+        "libraryConfigurations": 2,
+        "tokensCommentsAndSyntaxIdentical": true,
+        "log": "logs/csharp-phase4-module-paths-format.log",
+        "dotnetWhitespaceExitCode": 0,
+        "proofSha256": "7fa6d80e9e74923b8937c69835cbd56240d01bc2fe44946a4c048ac8a0200faf",
+        "inputsUnchanged": true
+    },
+    "reference": {
+        "revision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "preferencesBlob": "6d68486cad8823cdcb783e987132d7732f0f78f3",
+        "specifiersBlob": "5418ca371aa3a9e64e0631aa4b37a6e7201b9d89",
+        "frozenSourcesMatch": true
+    },
+    "reuse": {
+        "record": "phase4-module-specifier-paths-reuse.json",
+        "retainedCandidates": 16224,
+        "replayedCandidates": 16,
+        "retainedReferences": 16240,
+        "existingChecker": "New helpers are not called by existing source-checking or query paths; prior evidence is retained.",
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ]
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "phase4Complete": false,
+    "syntaxCheck": {
+        "command": "node --check csharp/tools/module-specifier-paths.mjs",
+        "exitCode": 0
+    }
+}

@@ -1,0 +1,23 @@
+{
+    "cases": 16240,
+    "exact": 16240,
+    "failed": 0,
+    "byOperation": {
+        "endings": 12960,
+        "process": 920,
+        "non-js": 8,
+        "roots": 1008,
+        "paths": 1344
+    },
+    "candidateExecuted": 16,
+    "candidateReused": 16224,
+    "referenceExecuted": 0,
+    "referenceReused": 16240,
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "oracleHash": "b8839365f4892ab26741d7af6680d3e46281fba59314efb497678fcddb855d96",
+    "candidateHash": "11c033126cba62a4b633acfb0e9dea4ef7499d5c6752d582059a064b7d9d054a",
+    "inputHash": "20031cb209f56c5f87ac073b63d82fce2d91db3232ebb4797186cc5e10501e98",
+    "referenceHash": "bd8f2349ebe791dd6afee0fd6068bad6ad2a2cb9b5bdc3e1cc151846de086d7e",
+    "outputHash": "bd8f2349ebe791dd6afee0fd6068bad6ad2a2cb9b5bdc3e1cc151846de086d7e",
+    "managed": true
+}

@@ -1049,6 +1049,16 @@ Release comparison matches **all 156 configurations and 125,544 records**: **19,
 
 Evidence: [accessibility comparisons](../csharp/compatibility/evidence/phase4-accessibility.json), [retained results](../csharp/compatibility/evidence/phase4-accessibility-reuse.json), and [Release validation](../csharp/compatibility/evidence/phase4-accessibility-validation.json). The managed runner is `node csharp/tools/checker-locations.mjs --accessibility`. Diagnostic-name formatting, the remaining node-builder and emit-resolver services, and whole-phase gates remain open. NativeAOT verification remains deferred until final phase-4 completion.
 
+## Module-specifier ending and path rules
+
+Symbol-name formatting exposed a missing dependency: module-specifier generation. Its extension and path layer now implements ending preferences, Node ESM/CJS rules, existing-import style, TypeScript-extension permissions, declaration/non-JavaScript extension remapping, `index` filename collisions, `rootDirs` projection and reverse `paths` mappings. Mapping order, wildcard matching, case sensitivity and extension priority follow the pinned implementation. The helpers accept cancellation during input-dependent searches. They are building blocks for the generator; package discovery, package exports/imports, redirects and final candidate selection are not yet implemented by this layer.
+
+Release comparison passes **all 16,240 cases**: **12,960 ending-preference combinations**, **920 filename-ending cases**, **eight non-JavaScript declaration mappings**, **1,008 root-directory cases**, and **1,344 path-mapping cases**. Coverage includes strict extension ordering, `.d.mts`/`.d.cts` preservation, JSX output, ambiguous `index` paths, case-sensitive/insensitive hosts, multiple roots and drive/share paths. Twenty focused path/extension/cancellation assertions pass. The Release build has zero warnings and errors.
+
+The first run found sixteen declaration-extension precedence differences. After the correction, only those sixteen candidate cases were replayed; **16,224 candidate results and all 16,240 reference results were reused**. A reference-wrapper correction changed byte-enum output from base64 to integer arrays; the saved bytes were decoded losslessly rather than rerunning the unchanged Go algorithms. Formatting preserves tokens, comments and syntax in three C# files. Existing checker and repository validations remain applicable because no existing production path calls the new naming helpers yet.
+
+Evidence: [path/ending comparisons](../csharp/compatibility/evidence/phase4-module-specifier-paths.json), [reuse provenance](../csharp/compatibility/evidence/phase4-module-specifier-paths-reuse.json), and [Release validation](../csharp/compatibility/evidence/phase4-module-specifier-paths-validation.json). The managed runner is `node csharp/tools/module-specifier-paths.mjs`, using the prepared module-specifier oracle and Release harness. This does not complete module-specifier generation or formatted symbol-accessibility results. NativeAOT verification remains deferred until phase-4 completion.
+
 ## Remaining completion work
 
 The following phase-4 requirements remain open:

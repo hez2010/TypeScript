@@ -13,6 +13,16 @@ internal static class Program
     {
         try
         {
+            if (args is ["--module-specifiers-lines"])
+            {
+                ModuleSpecifierTests.Lines();
+                return 0;
+            }
+            if (args is ["--module-specifiers-safety"])
+            {
+                Console.WriteLine($"{ModuleSpecifierTests.Safety()} module naming/path/extension/cancellation assertions");
+                return 0;
+            }
             if (args is ["--checker-corpus-lines", var reusedBlobDirectory, "--reuse-syntax"])
             {
                 CheckerCorpusTests.Lines(reusedBlobDirectory, true);
