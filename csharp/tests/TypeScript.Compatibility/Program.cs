@@ -54,6 +54,12 @@ internal static class Program
                 CheckerCorpusTests.Lines(blobDirectory);
                 return 0;
             }
+            if (args is ["--checker-symbol-display-safety"])
+            {
+                Console.WriteLine(
+                    $"Symbol display/accessibility safety: {CheckerSymbolDisplayTests.Safety().GetAwaiter().GetResult()} assertions passed");
+                return 0;
+            }
             if (args is ["--checker-access-safety"])
             {
                 CheckerAccessTests.Safety().GetAwaiter().GetResult();

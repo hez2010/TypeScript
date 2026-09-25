@@ -1,0 +1,79 @@
+{
+    "timestamp": "2026-09-25T06:01:26.0414285Z",
+    "configuration": "Release",
+    "managed": true,
+    "scope": "Diagnostic AllowAnyNodeKind symbol names and complete formatted accessibility results; general symbol-format flags and type/node serialization remain incomplete",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "sha256": "91f5fa169e03e45ae3f13a8fad2c5fac9232d262aee8aefe4c6b6bb7445c577d",
+        "log": "logs/csharp-phase4-symbol-display-build.log"
+    },
+    "candidateSha256": "b5faf80391530c4438330c65d561e74344e7ad1d19f3b98c0219085009d791d4",
+    "compilerSha256": "5656294f588f8920ec83ba9e52814ac220da38e3f2e9d98e4b4646524b79e17f",
+    "comparisons": {
+        "configurations": 172,
+        "queries": 122012,
+        "comparedQueries": 122012,
+        "exact": 172,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "3898e7c9c0d3407c7b98a8607557a82ea32dcb210001f62bc78f1f4352b62a83",
+        "candidateHash": "065399d85d1108945ac722f13c760cb66951e7c0d194eeb2c464f3078dd7a56a",
+        "inputHash": "ba123b64cdae9651326bb1ccd33cb16d35a53963a0ae6c98889689c55199b70e",
+        "resultHash": "8593fcf5040b5a988143d2bbb7b826fab3099ca81af77ac59004b263931eb5c4",
+        "managed": true,
+        "symbolDisplayRecords": {
+            "names": 27116,
+            "accessibilityResults": 94896
+        }
+    },
+    "safety": {
+        "assertions": 17,
+        "log": "logs/csharp-phase4-symbol-display-safety.log"
+    },
+    "reference": {
+        "frozenSourcesMatch": true,
+        "revision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "printerBlob": "234e3e4b0818dc0af2dd474e7babf88da3480f76",
+        "accessibilityBlob": "d19806d50599d98d89e0908aa8ac60db15dbc369",
+        "wrapperRelocation": "The completed probe function was moved unchanged into the existing bridge. Existing setup scripts copy that bridge; no reference algorithms or probe statements changed and no comparison was repeated.",
+        "nodeBuilderBlob": "5cd58f6ec95f0fe53386fe46d2b3ecf0d2d46d83"
+    },
+    "reuse": {
+        "semanticCorpus": "Existing semantic diagnostic callers keep their previous display service. New formatting entry points do not change source-checking execution.",
+        "newCandidates": 8,
+        "newReferences": 8,
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "earlierQueries": "Accessibility decisions retain the additional formatting meaning without changing prior exported fields. Existing chain/container algorithms are unchanged.",
+        "replayedExistingCandidates": 24,
+        "retainedReferences": 164,
+        "retainedCandidates": 140,
+        "validatedCommit": "00d370e5b0",
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "record": "phase4-symbol-display-reuse.json"
+    },
+    "formatting": {
+        "dotnetWhitespaceExitCode": 0,
+        "proofSha256": "5cc15b6240dba5972e73f3d3dec0ca5faef1fad5e9102658f9e832f57b6ccf3c",
+        "csharpFiles": 6,
+        "tokensCommentsAndSyntaxIdentical": true,
+        "log": "logs/csharp-phase4-symbol-display-format.log",
+        "libraryConfigurations": 2,
+        "inputsUnchanged": true
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "phase4Complete": false,
+    "syntaxCheck": {
+        "command": "node --check csharp/tools/checker-locations.mjs",
+        "exitCode": 0
+    }
+}

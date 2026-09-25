@@ -17,8 +17,9 @@ const scopeServices = process.argv.includes("--scopes");
 const contextQueries = process.argv.includes("--contexts");
 const declarationVisibility = process.argv.includes("--visibility");
 const symbolChains = process.argv.includes("--chains");
-const accessibility = process.argv.includes("--accessibility");
-const output = path.join(root, `built/csharp/checker-${accessibility ? "accessibility" : symbolChains ? "symbol-chains" : declarationVisibility ? "declaration-visibility" : contextQueries ? "context-queries" : scopeServices ? "scope-services" : symbolLocations ? "symbol-locations" : "locations"}`);
+const symbolDisplay = process.argv.includes("--symbol-display");
+const accessibility = process.argv.includes("--accessibility") || symbolDisplay;
+const output = path.join(root, `built/csharp/checker-${symbolDisplay ? "symbol-display" : accessibility ? "accessibility" : symbolChains ? "symbol-chains" : declarationVisibility ? "declaration-visibility" : contextQueries ? "context-queries" : scopeServices ? "scope-services" : symbolLocations ? "symbol-locations" : "locations"}`);
 const option = name => process.argv[process.argv.indexOf(name) + 1];
 const dotnet = process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, "dotnet.exe") : "dotnet";
 const dll = path.join(root, "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll");
@@ -189,6 +190,20 @@ export type Key=typeof SymbolLike.key; namespace N {export interface I {field:nu
         accessibilityExportEquals: `import Root=require("./exported"); export const value:Root.Item=new Root.Item();`,
     });
 }
+if (symbolDisplay) {
+    Object.assign(fixtures, {
+        displayNames: `namespace Names { export class C { "with space"=1; 'é'=2; ["computed"]=3; [-1]=4; 0x10=5; #private=6; }
+export enum E { "some-key", "中", Numeric=0x10 } } const anonymous=class { "line\\n"=1; }; const fn=()=>1;
+export default function Named() { return Names.C; }`,
+        displayComputed: `declare const key:unique symbol; export class Outer { [key]=1; ["a-b"]=2; [1e3]=3; }
+export namespace Nested { export const literal={ "nul\\0":1, "slash\\\\name":2 }; }
+const other=function(){}; const missing=class {}; export {other,missing};`,
+        displayAssigned: `const values={"with space":function(){}, method:class {}, ["computed"]:()=>1};
+let assigned:any; assigned=function(){}; assigned.member=class {}; assigned["element"]=()=>1; export {values,assigned};`,
+        jsdocDisplayNames: `function C(){this["field-name"]=1;this.named=2;} C.prototype["method-name"]=function(){};
+exports["exported-name"]=C; Object.defineProperty(exports,"defined-name",{value:C}); const values={"a-b":function(){}};`,
+    });
+}
 const inputs = [];
 for (const [name, source] of Object.entries(fixtures)) {
     for (const strict of [false, true]) {
@@ -199,7 +214,7 @@ for (const [name, source] of Object.entries(fixtures)) {
                 files["/project/barrel2.ts"] = "export * as next from './barrel';";
             }
             if (name === "accessibilityExportEquals") files["/project/exported.ts"] = "class Root {} namespace Root {export class Item {value=1;}} export=Root;";
-            inputs.push({ name: `${name}:${strict}:${concurrency}`, files: Object.fromEntries(Object.entries(files).map(([name, text]) => [name, Buffer.from(text).toString("base64")])), roots: Object.keys(files), options: { strict, target: "esnext", module: "esnext", moduleResolution: "bundler", jsx: "preserve", ...name.startsWith("jsdoc") ? { allowJs: true, checkJs: true } : {} }, typeNodes: true, ...accessibility ? { accessibility: true } : symbolChains ? { symbolChains: true } : declarationVisibility ? { declarationVisibility: true } : contextQueries ? { contextQueries: true } : scopeServices ? { scopeServices: true } : symbolLocations ? { symbolLocations: true, ...name.startsWith("jsdoc") ? { documentationSymbols: true } : {} } : { locations: true }, concurrency });
+            inputs.push({ name: `${name}:${strict}:${concurrency}`, files: Object.fromEntries(Object.entries(files).map(([name, text]) => [name, Buffer.from(text).toString("base64")])), roots: Object.keys(files), options: { strict, target: "esnext", module: "esnext", moduleResolution: "bundler", jsx: "preserve", ...name.startsWith("jsdoc") ? { allowJs: true, checkJs: true } : {} }, typeNodes: true, ...symbolDisplay ? { symbolDisplay: true } : accessibility ? { accessibility: true } : symbolChains ? { symbolChains: true } : declarationVisibility ? { declarationVisibility: true } : contextQueries ? { contextQueries: true } : scopeServices ? { scopeServices: true } : symbolLocations ? { symbolLocations: true, ...name.startsWith("jsdoc") ? { documentationSymbols: true } : {} } : { locations: true }, concurrency });
         }
     }
 }
@@ -260,13 +275,13 @@ for (const input of selected) {
         candidateError = String(error);
         candidateFailures++;
     }
-    if (candidate) queries += (candidate.accessibilityQueries ?? candidate.symbolChainQueries ?? candidate.visibilityQueries ?? candidate.contextQueries ?? candidate.serviceQueries ?? candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
+    if (candidate) queries += (candidate.symbolDisplayQueries ?? candidate.accessibilityQueries ?? candidate.symbolChainQueries ?? candidate.visibilityQueries ?? candidate.contextQueries ?? candidate.serviceQueries ?? candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
     results.push({ input, reference, candidate, referenceError, candidateError });
     if (referenceError || candidateError) {
         failures.push({ name: input.name, referenceError, candidateError });
         continue;
     }
-    comparedQueries += (candidate.accessibilityQueries ?? candidate.symbolChainQueries ?? candidate.visibilityQueries ?? candidate.contextQueries ?? candidate.serviceQueries ?? candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
+    comparedQueries += (candidate.symbolDisplayQueries ?? candidate.accessibilityQueries ?? candidate.symbolChainQueries ?? candidate.visibilityQueries ?? candidate.contextQueries ?? candidate.serviceQueries ?? candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
     try {
         assert.deepStrictEqual(candidate, reference);
     }
@@ -320,7 +335,7 @@ if (symbolChains) {
     }
     summary.chains = { found, absent, longest };
 }
-if (accessibility) {
+if (accessibility && !symbolDisplay) {
     const counts = Array(5).fill(0), states = Array(4).fill(0);
     for (const result of results) {
         for (const record of result.candidate?.accessibilityQueries ?? []) {
@@ -331,6 +346,11 @@ if (accessibility) {
     summary.accessibilityRecords = { containers: counts[0], decisions: counts[1], flagQueries: counts[2], typeAndValueQueries: counts[3], entityNames: counts[4], decisionStates: states };
     summary.symbolDiagnosticNamesCompared = false;
     summary.entityNameVisibilityComparedCompletely = true;
+}
+if (symbolDisplay) {
+    let names = 0, accessibilityResults = 0;
+    for (const entry of results) for (const row of entry.candidate?.symbolDisplayQueries ?? []) row[0] === 0 ? names++ : accessibilityResults++;
+    summary.symbolDisplayRecords = { names, accessibilityResults };
 }
 if (contextQueries) {
     const counts = Array(8).fill(0);

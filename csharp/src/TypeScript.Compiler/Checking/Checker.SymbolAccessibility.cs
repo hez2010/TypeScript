@@ -23,10 +23,25 @@ internal sealed record SymbolAccessibilityDecision(
     IReadOnlyList<SyntaxNode>? AliasesToMakeVisible = null,
     Symbol? ErrorSymbol = null,
     Symbol? ErrorModule = null,
-    SyntaxNode? ErrorNode = null);
+    SyntaxNode? ErrorNode = null,
+    SymbolFlags ErrorMeaning = SymbolFlags.None);
 
 internal sealed partial class Checker
 {
+    internal ValueTask<SymbolAccessibilityResult> GetSymbolAccessibilityAsync(Symbol? symbol, SyntaxNode? enclosing,
+        SymbolFlags meaning, bool computeAliases = false, bool allowModules = true, CancellationToken cancellation = default) =>
+        VisibilityQueryAsync(enclosing, () => ChainOperationAsync(() => ContainerOperationAsync(async () =>
+        {
+            var result = await SymbolAccessibilityAsync(symbol, enclosing, meaning, computeAliases, allowModules, cancellation);
+            string name = result.ErrorSymbol is null
+                ? ""
+                : await SymbolDisplayNameAsync(result.ErrorSymbol, enclosing, result.ErrorMeaning, cancellation);
+            string module = result.ErrorModule is null ? "" : await SymbolDisplayNameAsync(result.ErrorModule,
+                result.Accessibility == SymbolAccessibility.CannotBeNamed ? null : enclosing,
+                result.Accessibility == SymbolAccessibility.CannotBeNamed ? SymbolFlags.All : SymbolFlags.Namespace, cancellation);
+            return new SymbolAccessibilityResult(result.Accessibility, result.AliasesToMakeVisible, name, module, result.ErrorNode);
+        }, cancellation), cancellation), cancellation);
+
     internal ValueTask<SymbolAccessibilityResult> GetEntityNameVisibilityAsync(
         SyntaxNode entityName,
         SyntaxNode enclosing,
@@ -127,8 +142,8 @@ internal sealed partial class Checker
         var external = symbol.Declarations.Select(ExternalModuleContainer).FirstOrDefault(s => s is not null);
         if (external is not null && external != ExternalModuleContainer(enclosing))
             return new(SymbolAccessibility.CannotBeNamed, ErrorSymbol: symbol, ErrorModule: external,
-                ErrorNode: (enclosing.Flags & NodeFlags.JavaScriptFile) != 0 ? enclosing : null);
-        return new(SymbolAccessibility.NotAccessible, ErrorSymbol: symbol);
+                ErrorNode: (enclosing.Flags & NodeFlags.JavaScriptFile) != 0 ? enclosing : null, ErrorMeaning: meaning);
+        return new(SymbolAccessibility.NotAccessible, ErrorSymbol: symbol, ErrorMeaning: meaning);
     }
 
     private async ValueTask<SymbolAccessibilityDecision?> AnySymbolAccessibleAsync(IReadOnlyList<Symbol> symbols, SyntaxNode enclosing,
@@ -166,6 +181,6 @@ internal sealed partial class Checker
             : new(
                 SymbolAccessibility.NotAccessible,
                 ErrorSymbol: initial,
-                ErrorModule: accessibleChain == initial ? null : accessibleChain);
+                ErrorModule: accessibleChain == initial ? null : accessibleChain, ErrorMeaning: meaning);
     }
 }

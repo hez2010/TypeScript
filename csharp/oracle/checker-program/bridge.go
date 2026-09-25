@@ -291,7 +291,7 @@ func (c *Checker) csharpContextQueries(nodes []*ast.Node, nodeIDs map[*ast.Node]
 	return rows, graph
 }
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool, symbolLocations bool, documentationSymbols bool, scopeServices bool, contextQueries bool, declarationVisibility bool, symbolChains bool, accessibility bool) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool, symbolLocations bool, documentationSymbols bool, scopeServices bool, contextQueries bool, declarationVisibility bool, symbolChains bool, accessibility bool, symbolDisplay bool) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -497,6 +497,10 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 		}
 	}
 	var accessibilityRows []any
+	var symbolDisplayRows []any
+	if symbolDisplay {
+		symbolDisplayRows = c.csharpSymbolDisplayQueries(nodes, nodeIDs, sid)
+	}
 	if accessibility {
 		accessibilityRows = c.csharpAccessibilityQueries(nodes, nodeIDs, sid)
 	}
@@ -1250,6 +1254,9 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	if accessibility {
 		result["accessibilityQueries"] = accessibilityRows
 	}
+	if symbolDisplay {
+		result["symbolDisplayQueries"] = symbolDisplayRows
+	}
 	if documentationSymbols {
 		result["documentationSymbolQueries"] = documentationQueries
 	}
@@ -1352,4 +1359,52 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 		result["suggestions"] = suggestions
 	}
 	return result
+}
+
+func (c *Checker) csharpSymbolDisplayQueries(nodes []*ast.Node, nodeIDs map[*ast.Node]int, sid func(*ast.Symbol) int) []any {
+	targets := []*ast.Symbol{}
+	seen := map[*ast.Symbol]bool{}
+	locations := []*ast.Node{nil}
+	for _, node := range nodes {
+		file := ast.GetSourceFileOfNode(node)
+		if file.FileName() != "/project/globals.d.ts" && ast.IsDeclaration(node) {
+			if s := c.getSymbolOfDeclaration(node); s != nil && !seen[s] {
+				seen[s] = true
+				targets = append(targets, s)
+			}
+		}
+		if strings.HasPrefix(file.FileName(), "/project/main.") {
+			switch node.Kind {
+			case ast.KindSourceFile, ast.KindModuleDeclaration, ast.KindClassDeclaration, ast.KindClassExpression, ast.KindFunctionDeclaration:
+				locations = append(locations, node)
+			}
+		}
+	}
+	rows := []any{}
+	for _, location := range locations {
+		for _, target := range targets {
+			meanings := []ast.SymbolFlags{ast.SymbolFlagsValue, ast.SymbolFlagsType, ast.SymbolFlagsNamespace}
+			if location == nil {
+				meanings = []ast.SymbolFlags{ast.SymbolFlagsAll}
+			}
+			for _, meaning := range meanings {
+				rows = append(rows, []any{0, nodeIDs[location], sid(target), uint32(meaning), c.symbolToStringEx(target, location, meaning, SymbolFormatFlagsAllowAnyNodeKind)})
+				if location == nil {
+					continue
+				}
+				for _, aliases := range []bool{false, true} {
+					for _, modules := range []bool{false, true} {
+						result := c.isSymbolAccessibleWorker(target, location, meaning, aliases, modules)
+						ids := []int{}
+						for _, alias := range result.AliasesToMakeVisible {
+							ids = append(ids, nodeIDs[alias])
+						}
+						slices.Sort(ids)
+						rows = append(rows, []any{1, nodeIDs[location], sid(target), uint32(meaning), aliases, modules, int(result.Accessibility), ids, result.ErrorSymbolName, result.ErrorModuleName, nodeIDs[result.ErrorNode]})
+					}
+				}
+			}
+		}
+	}
+	return rows
 }
