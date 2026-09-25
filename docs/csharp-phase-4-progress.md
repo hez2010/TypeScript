@@ -12,7 +12,7 @@ These comparisons cover source graphs and diagnostic codes. **94.9% matching on 
 | --- | --- |
 | Execute active corpus and match source graphs | Complete: 13,446 configurations |
 | Match semantic diagnostic codes | 12,757 match; 689 differ |
-| Match diagnostic text, locations and related information | Incomplete: detailed records match in 1,767 of 3,113 selected configurations, including 1,151 with nonempty semantic diagnostics; the remaining corpus has not been compared at this level |
+| Match diagnostic text, locations and related information | Incomplete: detailed records match in 1,827 of 3,169 selected configurations, including 1,211 with nonempty semantic diagnostics; the remaining corpus has not been compared at this level |
 | Complete type/symbol comparisons, type display, node builders, accessibility and emit-resolver APIs | Incomplete |
 | Validate actual parallel checker scheduling | Incomplete; reference-mode corpus agreement is a narrower check |
 | Meet complete semantic workload memory/performance budgets | Incomplete |
@@ -948,6 +948,16 @@ Release validation covers **523 configurations per reference mode**. Graph/code 
 A focused fixture matches **10 complete pinned-reference records**. Safety passes **64 access/member/spelling assertions**, **127 program assertions** and **81 expression assertions**. The Release build has zero warnings and errors. Cached reference results and unchanged repository validation were reused; affected candidate configurations were run once per reference mode. Formatting preserves tokens, comments and syntax in three C# files. NativeAOT remains deferred until final phase-4 completion.
 
 Evidence: [single-mode corpus](../csharp/compatibility/evidence/phase4-property-diagnostics-corpus-single.json), [reference-default corpus](../csharp/compatibility/evidence/phase4-property-diagnostics-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-property-diagnostics-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-property-diagnostics-validation.json).
+
+## Element and index diagnostic details
+
+Element/index errors now retain receiver and index types, tuple lengths and positions, spelling/static suggestions, and receiver-qualified `get`/`set` hints. Implicit-`any` index errors retain the specific missing-property or missing-index-signature explanation, including enum and unique-symbol keys. Reporting is asynchronous so type display can use the existing checker services; cancellation removes the in-progress deduplication key and permits retry without publishing a partial diagnostic. This does not complete all indexed-access validation or symbol qualification.
+
+Release validation covers **594 configurations per reference mode**. Graph/code matches remain **517**, with no regressions or checker failures. Detailed records match in **249 configurations**, all with semantic diagnostics. Within the 538 configurations previously checked at this level, matches increase from **189 to 217**; 32 additional matches are newly measured. Both modes agree on every final record. Cumulative detailed matches reach **1,827/3,169**, including **1,211 with semantic diagnostics** and 616 with empty semantic diagnostics. The cumulative graph/code result remains **12,757/13,446**.
+
+A focused fixture matches **18 complete pinned-reference records**. Safety passes **51 indexed-type assertions**, including cancellation/retry checks, **127 program assertions** and **64 access assertions**. The Release build has zero warnings and errors. Cached reference results and unchanged repository validation were reused; affected candidate configurations were run once per reference mode. Formatting preserves tokens, comments and syntax in five C# files. NativeAOT remains deferred until final phase-4 completion.
+
+Evidence: [single-mode corpus](../csharp/compatibility/evidence/phase4-index-diagnostics-corpus-single.json), [reference-default corpus](../csharp/compatibility/evidence/phase4-index-diagnostics-corpus-default.json), [mode comparison](../csharp/compatibility/evidence/phase4-index-diagnostics-mode-parity.json), and [Release validation](../csharp/compatibility/evidence/phase4-index-diagnostics-validation.json).
 
 ## Remaining completion work
 

@@ -116,7 +116,87 @@ internal static class CheckerIndexTests
         Check(TypeKeys.KeyIncluded(deepKeys, TypeFlags.String));
         Check(!TypeKeys.KeyIncluded(deepKeys, TypeFlags.Number));
         checks += await ComputedIndexSafety();
+        checks += await IndexDiagnosticSafety();
         Console.WriteLine($"Checker indexed type safety: {checks} assertions; 20,000-level simplification and key traversal");
+    }
+
+    private static async Task<int> IndexDiagnosticSafety()
+    {
+        string source = "\n" + """
+            interface Array<T> { length: number; [n: number]: T; }
+            interface Shape { length: number; }
+            declare const shape: Shape;
+            shape['missing'];
+            shape['lenght'];
+            declare const key: string;
+            shape[key];
+            declare const numeric: number;
+            shape[numeric];
+            declare const tuple: [number, string];
+            tuple[3]; tuple[-1];
+            declare const objectKey: {};
+            shape[objectKey];
+            shape[true];
+            declare const array: number[];
+            array['missing'];
+            class Static { static value = 1; }
+            declare const instance: Static;
+            instance['value'];
+            declare const container: { api: { get(key: string): number; set(key: string, value: number): void } };
+            container.api[key];
+            container.api[key] = 1;
+            declare const symbol: unique symbol;
+            shape[symbol];
+            enum E { A = 'a', B = 'b' }
+            declare const member: E.A;
+            shape[member];
+            const literal = { value: 1 };
+            literal['missing'];
+            type Bad = Shape['missing'];
+            type Invalid = Shape[{}];
+            type Numeric = Shape[number];
+            """.Replace("\r\n", "\n", StringComparison.Ordinal) + "\n";
+        const string reference = """
+            [{"arguments":["\"missing\"","Shape"],"category":1,"chain":[{"arguments":["missing","Shape"],"category":1,"chain":[],"code":2339,"file":"/project/main.ts","key":"Property_0_does_not_exist_on_type_1_2339","length":16,"related":[],"start":120}],"code":7053,"file":"/project/main.ts","key":"Element_implicitly_has_an_any_type_because_expression_of_type_0_can_t_be_used_to_index_type_1_7053","length":16,"related":[],"start":120},{"arguments":["lenght","Shape","length"],"category":1,"chain":[],"code":2551,"file":"/project/main.ts","key":"Property_0_does_not_exist_on_type_1_Did_you_mean_2_2551","length":8,"related":[],"start":144},{"arguments":["string","Shape"],"category":1,"chain":[{"arguments":["string","Shape"],"category":1,"chain":[],"code":7054,"file":"/project/main.ts","key":"No_index_signature_with_a_parameter_of_type_0_was_found_on_type_1_7054","length":10,"related":[],"start":182}],"code":7053,"file":"/project/main.ts","key":"Element_implicitly_has_an_any_type_because_expression_of_type_0_can_t_be_used_to_index_type_1_7053","length":10,"related":[],"start":182},{"arguments":["number","Shape"],"category":1,"chain":[{"arguments":["number","Shape"],"category":1,"chain":[],"code":7054,"file":"/project/main.ts","key":"No_index_signature_with_a_parameter_of_type_0_was_found_on_type_1_7054","length":14,"related":[],"start":225}],"code":7053,"file":"/project/main.ts","key":"Element_implicitly_has_an_any_type_because_expression_of_type_0_can_t_be_used_to_index_type_1_7053","length":14,"related":[],"start":225},{"arguments":["[number, string]","2","3"],"category":1,"chain":[],"code":2493,"file":"/project/main.ts","key":"Tuple_type_0_of_length_1_has_no_element_at_index_2_2493","length":1,"related":[],"start":286},{"arguments":[],"category":1,"chain":[],"code":2514,"file":"/project/main.ts","key":"A_tuple_type_cannot_be_indexed_with_a_negative_value_2514","length":2,"related":[],"start":296},{"arguments":["{}"],"category":1,"chain":[],"code":2538,"file":"/project/main.ts","key":"Type_0_cannot_be_used_as_an_index_type_2538","length":9,"related":[],"start":336},{"arguments":["true"],"category":1,"chain":[],"code":2538,"file":"/project/main.ts","key":"Type_0_cannot_be_used_as_an_index_type_2538","length":4,"related":[],"start":354},{"arguments":[],"category":1,"chain":[],"code":7015,"file":"/project/main.ts","key":"Element_implicitly_has_an_any_type_because_index_expression_is_not_of_type_number_7015","length":9,"related":[],"start":398},{"arguments":["value","Static","Static['value']"],"category":1,"chain":[],"code":2576,"file":"/project/main.ts","key":"Property_0_does_not_exist_on_type_1_Did_you_mean_to_access_the_static_member_2_instead_2576","length":17,"related":[],"start":477},{"arguments":["{ get(key: string): number; set(key: string, value: number): void; }","container.api.get"],"category":1,"chain":[],"code":7052,"file":"/project/main.ts","key":"Element_implicitly_has_an_any_type_because_type_0_has_no_index_signature_Did_you_mean_to_call_1_7052","length":18,"related":[],"start":599},{"arguments":["{ get(key: string): number; set(key: string, value: number): void; }","container.api.set"],"category":1,"chain":[],"code":7052,"file":"/project/main.ts","key":"Element_implicitly_has_an_any_type_because_type_0_has_no_index_signature_Did_you_mean_to_call_1_7052","length":18,"related":[],"start":619},{"arguments":["unique symbol","Shape"],"category":1,"chain":[{"arguments":["[symbol]","Shape"],"category":1,"chain":[],"code":2339,"file":"/project/main.ts","key":"Property_0_does_not_exist_on_type_1_2339","length":13,"related":[],"start":680}],"code":7053,"file":"/project/main.ts","key":"Element_implicitly_has_an_any_type_because_expression_of_type_0_can_t_be_used_to_index_type_1_7053","length":13,"related":[],"start":680},{"arguments":["E.A","Shape"],"category":1,"chain":[{"arguments":["[E.A]","Shape"],"category":1,"chain":[],"code":2339,"file":"/project/main.ts","key":"Property_0_does_not_exist_on_type_1_2339","length":13,"related":[],"start":750}],"code":7053,"file":"/project/main.ts","key":"Element_implicitly_has_an_any_type_because_expression_of_type_0_can_t_be_used_to_index_type_1_7053","length":13,"related":[],"start":750},{"arguments":["\"missing\"","{ value: number; }"],"category":1,"chain":[{"arguments":["missing","{ value: number; }"],"category":1,"chain":[],"code":2339,"file":"/project/main.ts","key":"Property_0_does_not_exist_on_type_1_2339","length":18,"related":[],"start":795}],"code":7053,"file":"/project/main.ts","key":"Element_implicitly_has_an_any_type_because_expression_of_type_0_can_t_be_used_to_index_type_1_7053","length":18,"related":[],"start":795},{"arguments":["missing","Shape"],"category":1,"chain":[],"code":2339,"file":"/project/main.ts","key":"Property_0_does_not_exist_on_type_1_2339","length":9,"related":[],"start":832},{"arguments":["{}"],"category":1,"chain":[],"code":2538,"file":"/project/main.ts","key":"Type_0_cannot_be_used_as_an_index_type_2538","length":2,"related":[],"start":865},{"arguments":["Shape","number"],"category":1,"chain":[],"code":2537,"file":"/project/main.ts","key":"Type_0_has_no_matching_index_signature_for_type_1_2537","length":6,"related":[],"start":891}]
+            """;
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        options.SetRaw("noErrorTruncation", "true");
+        options.SetRaw("target", "\"esnext\"");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
+            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        await checker.CheckProgramAsync();
+        var file = program.GetFile("/project/main.ts")!.Syntax;
+        using var stream = new MemoryStream();
+        using (var writer = new Utf8JsonWriter(stream))
+            CheckerCorpusTests.WriteDiagnostics(writer, checker.DetailedDiagnosticsForFile(file).OrderBy(d => d.Start));
+        using var actual = JsonDocument.Parse(stream.ToArray());
+        using var expected = JsonDocument.Parse(reference);
+        if (actual.RootElement.GetArrayLength() != expected.RootElement.GetArrayLength())
+            throw new InvalidOperationException("Index diagnostic count");
+        for (int i = 0; i < actual.RootElement.GetArrayLength(); i++)
+            if (!JsonElement.DeepEquals(actual.RootElement[i], expected.RootElement[i]))
+                throw new InvalidOperationException($"Index diagnostic {i}: {actual.RootElement[i].GetRawText()}");
+        int count = checker.DetailedDiagnosticsForFile(file).Count;
+        var node = file.DescendantsAndSelf().OfType<ElementAccessExpressionNode>().First();
+        var type = await checker.Declared.GetAsync(checker.Symbols.Globals["Shape"]);
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+        try
+        {
+            await checker.InvalidIndexAsync(node, type, checker.Context.BooleanType, 2538, cancellation.Token);
+            throw new InvalidOperationException("Cancelled index diagnostic succeeded");
+        }
+        catch (OperationCanceledException) { }
+        if (checker.DetailedDiagnosticsForFile(file).Count != count)
+            throw new InvalidOperationException("Cancelled index diagnostic was published");
+        await checker.InvalidIndexAsync(node, type, checker.Context.BooleanType, 2538, default);
+        if (checker.DetailedDiagnosticsForFile(file).Count != count + 1)
+            throw new InvalidOperationException("Cancelled index diagnostic could not be retried");
+        return actual.RootElement.GetArrayLength() + 2;
     }
 
     private static async Task<int> ComputedIndexSafety()

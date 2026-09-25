@@ -27,7 +27,14 @@ internal interface IIndexedTypeHost
 
     ValueTask<Type> SimplifyAsync(Type type, bool writing, CancellationToken cancellation);
 
-    void InvalidIndex(SyntaxNode node, Type objectType, Type indexType, int code);
+    ValueTask InvalidIndexAsync(
+        SyntaxNode node,
+        Type objectType,
+        Type indexType,
+        int code,
+        CancellationToken cancellation,
+        Type? fullIndex = null,
+        string? suggestion = null);
 }
 
 // Type-level indexed access. Expression access additionally needs reference
@@ -158,13 +165,13 @@ internal sealed class IndexedTypes(TypeContext context, TypeAlgebra algebra, Typ
                     {
                         if (position < 0)
                         {
-                            host.InvalidIndex(IndexNode(node), objectType, indexType, 2514);
+                            await host.InvalidIndexAsync(IndexNode(node), objectType, indexType, 2514, cancellation).ConfigureAwait(false);
                             return context.UndefinedType;
                         }
-                        host.InvalidIndex(IndexNode(node), objectType, indexType, 2493);
+                        await host.InvalidIndexAsync(IndexNode(node), objectType, indexType, 2493, cancellation).ConfigureAwait(false);
                     }
                     else
-                        host.InvalidIndex(IndexNode(node), objectType, indexType, 2339);
+                        await host.InvalidIndexAsync(IndexNode(node), objectType, indexType, 2339, cancellation).ConfigureAwait(false);
                 }
                 if (position >= 0)
                 {
@@ -194,14 +201,19 @@ internal sealed class IndexedTypes(TypeContext context, TypeAlgebra algebra, Typ
                 if ((flags & AccessFlags.NoIndexSignatures) != 0 && index.KeyType != context.NumberType)
                 {
                     if (element is not null)
-                        host.InvalidIndex(element, original, indexType, (flags & AccessFlags.Writing) != 0 ? 2862 : 2536);
+                        await host.InvalidIndexAsync(
+                            element,
+                            original,
+                            indexType,
+                            (flags & AccessFlags.Writing) != 0 ? 2862 : 2536,
+                            cancellation).ConfigureAwait(false);
                     return null;
                 }
                 if (node is not null
                     && index.KeyType == context.StringType
                     && !await KeyKindAsync(indexType, false, cancellation).ConfigureAwait(false))
                 {
-                    host.InvalidIndex(IndexNode(node), objectType, indexType, 2538);
+                    await host.InvalidIndexAsync(IndexNode(node), objectType, indexType, 2538, cancellation).ConfigureAwait(false);
                     return await IncludeMissingAsync(index.ValueType, flags, cancellation).ConfigureAwait(false);
                 }
                 host.ReadonlyIndex(index, objectType, element);
@@ -233,7 +245,7 @@ internal sealed class IndexedTypes(TypeContext context, TypeAlgebra algebra, Typ
             var indexNode = IndexNode(node);
             int code = indexNode is not BigIntLiteralNode && (indexType.Flags & TypeFlags.StringOrNumberLiteral) != 0 ? 2339
                 : (indexType.Flags & (TypeFlags.String | TypeFlags.Number)) != 0 ? 2537 : 2538;
-            host.InvalidIndex(indexNode, objectType, indexType, code);
+            await host.InvalidIndexAsync(indexNode, objectType, indexType, code, cancellation).ConfigureAwait(false);
         }
         return (indexType.Flags & TypeFlags.Any) != 0 ? indexType : null;
     }

@@ -1,0 +1,99 @@
+{
+    "timestamp": "2026-09-25T01:02:50.9539920+00:00",
+    "configuration": "Release",
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "managed": true,
+    "scope": "Index diagnostics with type arguments, tuple bounds, implicit-any chains, static/spelling/get/set suggestions and cancellation rollback; phase 4 remains incomplete",
+    "candidateSha256": "85fa82dec9e5765398c2aa6d1f32299667c7d4e79ad93bc78eb6bc940f5bc583",
+    "compilerSha256": "6672a84b88075f96a8a754b0b8927f3f3332a02fdbc5f0813ef3aa5a47a062f5",
+    "build": {
+        "exitCode": 0,
+        "errors": 0,
+        "sha256": "d2d3681db57e1e363f466482bc8a4a05dab949076e5cfcff168861d3d84c85af",
+        "log": "logs/csharp-phase4-index-diagnostics-build.log",
+        "warnings": 0
+    },
+    "fixture": {
+        "exactRecords": 18,
+        "candidateSha256": "3c4b63b1282a1815cb1e4a95eea47dff36a6748e3362f5628491da59c7e1fecd",
+        "referenceSha256": "5c25930d4a1173ffc9346b90807a5bbd43b8f8995471767077c59df4586314fd",
+        "referenceOracleSha256": "f5c03c77e3074463e10144d9a9028daf58b2f4f93c9b5c5278dd7d13bc5a1a7a",
+        "retainedAssertions": "csharp/tests/TypeScript.Compatibility/CheckerIndexTests.cs",
+        "diagnosticRecords": 18,
+        "inputSha256": "d958fafaa550c26bd37a21ecc74806932694141c28fabda5740e7ef088490239"
+    },
+    "safety": {
+        "indexAssertions": 51,
+        "accessAssertions": 64,
+        "logs": [
+            "logs/csharp-phase4-index-diagnostics-safety.log",
+            "logs/csharp-phase4-index-diagnostics-program-safety.log",
+            "logs/csharp-phase4-index-diagnostics-access-safety.log"
+        ],
+        "checks": [
+            "literal and dynamic index types",
+            "tuple bounds and invalid keys",
+            "static/spelling/get/set suggestions",
+            "enum and symbol explanations",
+            "type-level indexed access errors",
+            "cancelled diagnostic is not published",
+            "cancelled deduplication entry can be retried"
+        ],
+        "programAssertions": 127,
+        "newAssertions": 20
+    },
+    "corpus": {
+        "remainingDetailedDifferences": 345,
+        "single": "phase4-index-diagnostics-corpus-single.json",
+        "currentDetailedMatchesWithinPreviousCoverage": 217,
+        "detailedDiagnosticMatches": 249,
+        "graphAndCodeMatches": 517,
+        "selectedConfigurationsPerMode": 594,
+        "candidateFailures": [],
+        "previousGraphAndCodeMatches": 517,
+        "newlyMeasuredDetailedMatches": 32,
+        "previousDetailedMatches": 189,
+        "previousDetailedCoverage": 538,
+        "regressions": [],
+        "cumulative": {
+            "activeConfigurations": 13446,
+            "matches": 12757,
+            "remaining": 689,
+            "failed": 0,
+            "diagnosticMismatches": 689,
+            "graphMismatches": 0,
+            "detailedConfigurations": 3169,
+            "detailedMatches": 1827,
+            "nonemptyDetailedMatches": 1211,
+            "detailedDifferences": 1342
+        },
+        "parity": "phase4-index-diagnostics-mode-parity.json",
+        "referenceDefault": "phase4-index-diagnostics-corpus-default.json"
+    },
+    "formatting": {
+        "libraryConfigurations": 2,
+        "dotnetWhitespaceExitCode": 0,
+        "proofLog": "logs/csharp-phase4-index-diagnostics-format.log",
+        "csharpFiles": 5,
+        "proofSha256": "44cc3ab2722546aafa4973e8dfc3d84dd52ba29da4d3b741c918bb76d0a73c1a",
+        "tokensCommentsAndSyntaxIdentical": true
+    },
+    "reusedValidation": {
+        "repositoryExitCode": 0,
+        "reason": "Cached oracle outputs and unchanged repository validation were reused. Affected candidate configurations were run once per reference mode; formatting preserved tokens/comments/syntax.",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "repositoryCommand": "npx hereby validate --all",
+        "validatedCommit": "00d370e5b0"
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "parallelCheckerGateComplete": false,
+    "phase4Complete": false
+}

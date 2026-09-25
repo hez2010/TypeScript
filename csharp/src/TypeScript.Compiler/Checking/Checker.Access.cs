@@ -259,7 +259,19 @@ internal sealed partial class Checker : IAccessExpressionHost, IIndexedAccessVal
         var signatures = await SignaturesAsync(await Values.GetAsync(property, cancellation), false, cancellation);
         if (signatures is [var signature] && await Parameters.MinimumAsync(signature, cancellation: cancellation) >= 1
             && await AssignableAsync(index, await Parameters.AtAsync(signature, 0, cancellation), cancellation))
-            return name;
+        {
+            var parts = new Stack<string>();
+            SyntaxNode? receiver = node.Expression;
+            while (receiver is PropertyAccessExpressionNode access && access.Name is IdentifierNode member)
+            {
+                parts.Push(member.Text);
+                receiver = access.Expression;
+            }
+            if (receiver is not IdentifierNode identifier)
+                return name;
+            parts.Push(identifier.Text);
+            return string.Join(".", parts) + "." + name;
+        }
         return null;
     }
 

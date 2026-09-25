@@ -15,7 +15,14 @@ internal interface IElementAccessErrorHost
 
     ValueTask<string?> IndexSuggestionAsync(Type type, ElementAccessExpressionNode node, Type index, CancellationToken cancellation);
 
-    void InvalidIndex(SyntaxNode node, Type objectType, Type indexType, int code);
+    ValueTask InvalidIndexAsync(
+        SyntaxNode node,
+        Type objectType,
+        Type indexType,
+        int code,
+        CancellationToken cancellation,
+        Type? fullIndex = null,
+        string? suggestion = null);
 }
 
 internal sealed class ElementAccessErrors(TypeContext context, TypeAlgebra algebra, CheckerSymbols symbols, TypeProperties properties,
@@ -29,7 +36,7 @@ internal sealed class ElementAccessErrors(TypeContext context, TypeAlgebra algeb
         {
             if (host.NoImplicitAny && (index.Flags & TypeFlags.StringOrNumberLiteral) != 0)
             {
-                host.InvalidIndex(node, type, index, 2339);
+                await host.InvalidIndexAsync(node, type, index, 2339, cancellation).ConfigureAwait(false);
                 return context.UndefinedType;
             }
             if ((index.Flags & (TypeFlags.Number | TypeFlags.String)) != 0)
@@ -43,24 +50,34 @@ internal sealed class ElementAccessErrors(TypeContext context, TypeAlgebra algeb
         }
         if (type.Symbol == symbols.GlobalThisSymbol && name is not null
             && symbols.GlobalThisSymbol.Exports.GetValueOrDefault(name) is { Flags: var globalFlags } && (globalFlags & SymbolFlags.BlockScoped) != 0)
-            host.InvalidIndex(node, type, index, 2339);
+            await host.InvalidIndexAsync(node, type, index, 2339, cancellation).ConfigureAwait(false);
         else if (host.NoImplicitAny && (flags & AccessFlags.SuppressNoImplicitAnyError) == 0)
         {
             if (name is not null && await host.StaticPropertyAsync(name, type, cancellation).ConfigureAwait(false))
-                host.InvalidIndex(node, type, index, 2576);
+                await host.InvalidIndexAsync(node, type, index, 2576, cancellation).ConfigureAwait(false);
             else if ((await host.IndexesAsync(type, cancellation).ConfigureAwait(false)).Any(i => i.KeyType == context.NumberType))
-                host.InvalidIndex(node.ArgumentExpression!, type, index, 7015);
+                await host.InvalidIndexAsync(node.ArgumentExpression!, type, index, 7015, cancellation).ConfigureAwait(false);
             else
             {
                 string? suggestion = name is not null
                     ? await host.PropertySuggestionAsync(name, type, cancellation).ConfigureAwait(false)
                     : null;
                 if (!string.IsNullOrEmpty(suggestion))
-                    host.InvalidIndex(node.ArgumentExpression!, type, index, 2551);
-                else if (!string.IsNullOrEmpty(await host.IndexSuggestionAsync(type, node, index, cancellation).ConfigureAwait(false)))
-                    host.InvalidIndex(node, type, index, 7052);
+                    await host.InvalidIndexAsync(
+                        node.ArgumentExpression!,
+                        type,
+                        index,
+                        2551,
+                        cancellation,
+                        suggestion: suggestion).ConfigureAwait(false);
+                else if (await host.IndexSuggestionAsync(
+                    type,
+                    node,
+                    index,
+                    cancellation).ConfigureAwait(false) is { Length: > 0 } indexSuggestion)
+                    await host.InvalidIndexAsync(node, type, index, 7052, cancellation, suggestion: indexSuggestion).ConfigureAwait(false);
                 else
-                    host.InvalidIndex(node, type, fullIndex, 7053);
+                    await host.InvalidIndexAsync(node, type, index, 7053, cancellation, fullIndex).ConfigureAwait(false);
             }
         }
         return null;
