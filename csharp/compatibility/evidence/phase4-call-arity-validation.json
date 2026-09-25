@@ -1,0 +1,96 @@
+{
+    "timestamp": "2026-09-25T00:18:28.1266953+00:00",
+    "configuration": "Release",
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "managed": true,
+    "scope": "Call value/type argument counts, spans, missing-parameter notes and Promise resolve hints; phase 4 remains incomplete",
+    "candidateSha256": "cb140eb6d96ffefb414412e009e02c6360aee838173d0ed1b78bf46dde46a9ce",
+    "compilerSha256": "1408cb077d57afa34e164025b788c6a24a2eb10eac069c561b5262b7500d2f7e",
+    "build": {
+        "log": "logs/csharp-phase4-call-arity-build.log",
+        "exitCode": 0,
+        "warnings": 0,
+        "sha256": "08b9e082f0df5dc640f71dc7d8fbe85f1379bf176c9cef5e5591ecc8e59320c2",
+        "errors": 0
+    },
+    "fixture": {
+        "exactRecords": 12,
+        "referenceSha256": "dd066e5b02380367306041460b943eb9a081566196818c1a8a254b89fb861845",
+        "referenceOracleSha256": "f5c03c77e3074463e10144d9a9028daf58b2f4f93c9b5c5278dd7d13bc5a1a7a",
+        "diagnosticRecords": 12,
+        "retainedAssertions": "csharp/tests/TypeScript.Compatibility/CheckerSignatureTests.cs",
+        "candidateSha256": "5d384b81b0190ff661b992c5b1c236c281463b2af37d409fadfbcb9c1700af15",
+        "inputSha256": "1c3f7005aea3d9248c3ab848547f95632fae181b3ac4e699b9d4b1a4a5486e00"
+    },
+    "safety": {
+        "checks": [
+            "value argument count ranges and overload gaps",
+            "type argument ranges and overload gaps",
+            "callee and excess-argument spans",
+            "missing named/binding/rest parameters",
+            "this-parameter offset",
+            "Promise resolve void hint"
+        ],
+        "programAssertions": 127,
+        "newAssertions": 12,
+        "signatureAssertions": 141,
+        "logs": [
+            "logs/csharp-phase4-call-arity-safety.log",
+            "logs/csharp-phase4-call-arity-program-safety.log"
+        ]
+    },
+    "corpus": {
+        "detailedDiagnosticMatches": 74,
+        "previousDetailedMatches": 1,
+        "parity": "phase4-call-arity-mode-parity.json",
+        "remainingDetailedDifferences": 63,
+        "cumulative": {
+            "activeConfigurations": 13446,
+            "matches": 12755,
+            "remaining": 691,
+            "failed": 0,
+            "diagnosticMismatches": 691,
+            "graphMismatches": 0,
+            "detailedConfigurations": 2723,
+            "detailedMatches": 1509,
+            "nonemptyDetailedMatches": 893,
+            "detailedDifferences": 1214
+        },
+        "recoveredCodeConfigurations": 3,
+        "previousGraphAndCodeMatches": 120,
+        "currentDetailedMatchesWithinPreviousCoverage": 26,
+        "previousDetailedCoverage": 66,
+        "single": "phase4-call-arity-corpus-single.json",
+        "candidateFailures": [],
+        "selectedConfigurationsPerMode": 137,
+        "referenceDefault": "phase4-call-arity-corpus-default.json",
+        "graphAndCodeMatches": 123,
+        "regressions": []
+    },
+    "formatting": {
+        "proofLog": "logs/csharp-phase4-call-arity-format.log",
+        "libraryConfigurations": 2,
+        "proofSha256": "7fa6d80e9e74923b8937c69835cbd56240d01bc2fe44946a4c048ac8a0200faf",
+        "dotnetWhitespaceExitCode": 0,
+        "tokensCommentsAndSyntaxIdentical": true,
+        "csharpFiles": 3
+    },
+    "reusedValidation": {
+        "validatedCommit": "00d370e5b0",
+        "repositoryExitCode": 0,
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "repositoryCommand": "npx hereby validate --all",
+        "reason": "Cached oracle outputs and unchanged repository validation were reused. Affected candidate configurations were run once per reference mode; formatting preserved tokens/comments/syntax.",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ]
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "fullSemanticCorpusGateComplete": false,
+    "fullSemanticMemoryPerformanceGateComplete": false,
+    "parallelCheckerGateComplete": false,
+    "phase4Complete": false
+}

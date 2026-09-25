@@ -371,7 +371,7 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
         }
         if (state.ArgumentArityError is { } arity)
         {
-            await ArityAsync([arity]);
+            await ReportArgumentArityAsync(state, [arity], cancellation);
             return;
         }
         if (state.TypeArgumentError is { } typeError)
@@ -382,28 +382,9 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
         var correct = original.Where(s => Checking.CallSignatures.TypeArity(s, state.TypeArguments)).ToArray();
         if (correct.Length == 0)
         {
-            Error(state.Node, 2558);
+            ReportTypeArgumentArity(state, original);
             return;
         }
-        await ArityAsync(correct);
-
-        async ValueTask ArityAsync(IReadOnlyList<Signature> signatures)
-        {
-            int spread = Checking.CallArguments.SpreadIndex(state.Arguments);
-            if (spread >= 0)
-            {
-                Error(state.Arguments[spread], 2556);
-                return;
-            }
-            int minimum = int.MaxValue, maximum = 0;
-            bool rest = false;
-            foreach (var signature in signatures)
-            {
-                minimum = Math.Min(minimum, await Parameters.MinimumAsync(signature, cancellation: cancellation));
-                maximum = Math.Max(maximum, await Parameters.CountAsync(signature, cancellation));
-                rest |= await Parameters.HasRestAsync(signature, cancellation);
-            }
-            Error(state.Node, minimum < state.Arguments.Count && state.Arguments.Count < maximum ? 2575 : rest ? 2555 : 2554);
-        }
+        await ReportArgumentArityAsync(state, correct, cancellation);
     }
 }

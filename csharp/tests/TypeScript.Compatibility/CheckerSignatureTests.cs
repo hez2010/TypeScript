@@ -220,8 +220,66 @@ internal static class CheckerSignatureTests
         checks += await VarianceSafety();
         checks += await PredicateSafety();
         checks += await SignatureDiagnosticSafety();
+        checks += await CallArityDiagnosticSafety();
         Console.WriteLine(
             $"{checks} signature/function/call/iteration/inference/context/cancellation assertions; binding and return traversal depth 20000");
+    }
+
+    private static async Task<int> CallArityDiagnosticSafety()
+    {
+        string source = "\n" + """
+            interface Array<T> { length: number; [n: number]: T; }
+            declare function range(a: number, b?: string): void;
+            range(); range(1, '', true, false);
+            declare const object: { method(a: number): void };
+            object.method();
+            declare function receiver(this: {}, value: number): void;
+            receiver();
+            declare function binding({ x }: { x: number }): void;
+            binding();
+            declare function rest(...items: [number, string]): void;
+            rest();
+            declare function unbounded(a: number, ...items: string[]): void;
+            unbounded();
+            declare function overload(a: number): void;
+            declare function overload(a: number, b: number, c: number): void;
+            overload(1, 2);
+            declare function generic<T, U = string>(): void;
+            generic<number, string, boolean>();
+            range<number>(1);
+            declare function typeOverload<T>(): void;
+            declare function typeOverload<T, U, V>(): void;
+            typeOverload<number, string>();
+            interface Promise<T> { then(cb: (value: T) => unknown): unknown; }
+            interface PromiseConstructor { new <T>(executor: (resolve: (value: T) => void) => void): Promise<T>; }
+            declare var Promise: PromiseConstructor;
+            new Promise(resolve => { resolve(); });
+            """.Replace("\r\n", "\n", StringComparison.Ordinal) + "\n";
+        // Counts, spans and related parameters are captured from the pinned checker.
+        const string reference = """
+            [{"arguments":["1-2","0"],"category":1,"chain":[],"code":2554,"file":"/project/main.ts","key":"Expected_0_arguments_but_got_1_2554","length":5,"related":[{"arguments":["a"],"category":3,"chain":[],"code":6210,"file":"/project/main.ts","key":"An_argument_for_0_was_not_provided_6210","length":9,"related":[],"start":79}],"start":109},{"arguments":["1-2","4"],"category":1,"chain":[],"code":2554,"file":"/project/main.ts","key":"Expected_0_arguments_but_got_1_2554","length":11,"related":[],"start":131},{"arguments":["1","0"],"category":1,"chain":[],"code":2554,"file":"/project/main.ts","key":"Expected_0_arguments_but_got_1_2554","length":6,"related":[{"arguments":["a"],"category":3,"chain":[],"code":6210,"file":"/project/main.ts","key":"An_argument_for_0_was_not_provided_6210","length":9,"related":[],"start":176}],"start":203},{"arguments":["1","0"],"category":1,"chain":[],"code":2554,"file":"/project/main.ts","key":"Expected_0_arguments_but_got_1_2554","length":8,"related":[{"arguments":["value"],"category":3,"chain":[],"code":6210,"file":"/project/main.ts","key":"An_argument_for_0_was_not_provided_6210","length":13,"related":[],"start":249}],"start":271},{"arguments":["1","0"],"category":1,"chain":[],"code":2554,"file":"/project/main.ts","key":"Expected_0_arguments_but_got_1_2554","length":7,"related":[{"arguments":[],"category":3,"chain":[],"code":6211,"file":"/project/main.ts","key":"An_argument_matching_this_binding_pattern_was_not_provided_6211","length":20,"related":[],"start":308}],"start":337},{"arguments":["2","0"],"category":1,"chain":[],"code":2554,"file":"/project/main.ts","key":"Expected_0_arguments_but_got_1_2554","length":4,"related":[{"arguments":["items"],"category":1,"chain":[],"code":6236,"file":"/project/main.ts","key":"Arguments_for_the_rest_parameter_0_were_not_provided_6236","length":26,"related":[],"start":370}],"start":405},{"arguments":["1","0"],"category":1,"chain":[],"code":2555,"file":"/project/main.ts","key":"Expected_at_least_0_arguments_but_got_1_2555","length":9,"related":[{"arguments":["a"],"category":3,"chain":[],"code":6210,"file":"/project/main.ts","key":"An_argument_for_0_was_not_provided_6210","length":9,"related":[],"start":440}],"start":478},{"arguments":["2","1","3"],"category":1,"chain":[],"code":2575,"file":"/project/main.ts","key":"No_overload_expects_0_arguments_but_overloads_do_exist_that_expect_either_1_or_2_arguments_2575","length":8,"related":[],"start":601},{"arguments":["1-2","3"],"category":1,"chain":[],"code":2558,"file":"/project/main.ts","key":"Expected_0_type_arguments_but_got_1_2558","length":23,"related":[],"start":674},{"arguments":["0","1"],"category":1,"chain":[],"code":2558,"file":"/project/main.ts","key":"Expected_0_type_arguments_but_got_1_2558","length":6,"related":[],"start":708},{"arguments":["2","1","3"],"category":1,"chain":[],"code":2743,"file":"/project/main.ts","key":"No_overload_expects_0_type_arguments_but_overloads_do_exist_that_expect_either_1_or_2_type_arguments_2743","length":14,"related":[],"start":823},{"arguments":["1","0"],"category":1,"chain":[],"code":2794,"file":"/project/main.ts","key":"Expected_0_arguments_but_got_1_Did_you_forget_to_include_void_in_your_type_argument_to_Promise_2794","length":7,"related":[{"arguments":["value"],"category":3,"chain":[],"code":6210,"file":"/project/main.ts","key":"An_argument_for_0_was_not_provided_6210","length":8,"related":[],"start":969}],"start":1078}]
+            """;
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        options.SetRaw("noErrorTruncation", "true");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        { ["/project/main.ts"] = Wtf8.Encode(source) }), "/project",
+            new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        await checker.CheckProgramAsync();
+        var file = program.GetFile("/project/main.ts")!.Syntax;
+        using var stream = new MemoryStream();
+        using (var writer = new System.Text.Json.Utf8JsonWriter(stream))
+            CheckerCorpusTests.WriteDiagnostics(writer, checker.DetailedDiagnosticsForFile(file).OrderBy(d => d.Start));
+        using var actual = System.Text.Json.JsonDocument.Parse(stream.ToArray());
+        using var expected = System.Text.Json.JsonDocument.Parse(reference);
+        if (actual.RootElement.GetArrayLength() != expected.RootElement.GetArrayLength())
+            throw new InvalidOperationException("Call arity diagnostic count");
+        for (int i = 0; i < actual.RootElement.GetArrayLength(); i++)
+            if (!System.Text.Json.JsonElement.DeepEquals(actual.RootElement[i], expected.RootElement[i]))
+                throw new InvalidOperationException($"Call arity diagnostic {i}: {actual.RootElement[i].GetRawText()}");
+        return actual.RootElement.GetArrayLength();
     }
 
     private static async Task<int> SignatureDiagnosticSafety()
