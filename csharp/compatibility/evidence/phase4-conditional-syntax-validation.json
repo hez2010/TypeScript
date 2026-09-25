@@ -1,0 +1,73 @@
+{
+    "timestamp": "2026-09-25T08:43:12.257116Z",
+    "configuration": "Release",
+    "managed": true,
+    "scope": "Default untruncated conditional/infer and ordinary property/index-signature syntax construction; general signatures, mapped construction and reuse policies remain incomplete",
+    "build": {
+        "exitCode": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-conditional-syntax-build.log",
+        "sha256": "e0af1ecb29d9bbee58f9a3deee8de6c43fe0fa389722e73fd031623ccb6ef46b",
+        "warnings": 0
+    },
+    "candidateSha256": "bb5c4ad60d0b7ada190e33684bd8f4e632bcaa8ec9a7d629db823166cf78d04e",
+    "compilerSha256": "c98f5e87ca265313a191a7114f81cc2b8a2a709e724c75c5bfeae713d39e3c15",
+    "comparisons": {
+        "configurations": 28,
+        "queries": 1344,
+        "comparedQueries": 1344,
+        "exact": 28,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "76546edfa152dceaa137af5ee0ec2bd93c451361054e38e4b955dc588dba816f",
+        "candidateHash": "a14b7958eb81bb53ec0e01549a0bf6ed34b7c1d2d1f9b67ad956c427fd7eb3db",
+        "inputHash": "2d651fa59427b689aa9298f8d6e8d9f7ba2c42261c69412705eba964fabefd8c",
+        "resultHash": "ec6aa1c8272d02ba194e7f9628c5a29d2ca12b2d5d4ce8f17e74ffc1898e49a7",
+        "managed": true
+    },
+    "safety": {
+        "assertions": 9,
+        "log": "logs/csharp-phase4-conditional-syntax-safety.log"
+    },
+    "reference": {
+        "nodeBuilderBlob": "5cd58f6ec95f0fe53386fe46d2b3ecf0d2d46d83",
+        "frozenSourcesMatch": true,
+        "revision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "pseudoTypeBuilderBlob": "9daf4b686fc4354d5ca447b5599de82be2b99d2d",
+        "nodeCopyBlob": "822a68634fdb00ae6f49d1e239cf4c608048f775"
+    },
+    "reuse": {
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "retainedCandidates": 24,
+        "validatedCommit": "00d370e5b0",
+        "coreRecord": "phase4-type-syntax-core-validation.json",
+        "finalMatrixRetained": true,
+        "record": "phase4-conditional-syntax-reuse.json",
+        "replayedCandidates": 4,
+        "reason": "After the final passing comparison, only safety tests and their dispatch were added. Previous core inputs have no conditional/infer or nonempty property-object construction, and their earlier results are retained.",
+        "retainedReferences": 28,
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ]
+    },
+    "formatting": {
+        "dotnetWhitespaceExitCode": 0,
+        "log": "logs/csharp-phase4-conditional-syntax-format.log",
+        "tokensCommentsAndSyntaxIdentical": true,
+        "proofSha256": "f4071583f5e9081876d122070b65d9231300fa23ee43f6e544db47b6b204b098",
+        "csharpFiles": 3,
+        "libraryConfigurations": 2,
+        "inputsUnchanged": true
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "phase4Complete": false,
+    "syntaxCheck": {
+        "exitCode": 0,
+        "command": "node --check csharp/tools/checker-locations.mjs"
+    }
+}

@@ -12,6 +12,56 @@ namespace TypeScript.Compatibility;
 
 internal static class CheckerTypeSyntaxTests
 {
+    internal static async Task<int> ConditionalSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Conditional syntax assertion {checks + 1}");
+            checks++;
+        }
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        {
+            ["/project/main.ts"] = Wtf8.Encode(
+                "type A<T>=T extends (infer U)[] ? U : never;type B<T>=T extends {value:infer V extends string} ? V : never;type C={x?:'a'|'b'};"),
+            ["/project/globals.d.ts"] = Wtf8.Encode(
+                "interface Array<T>{length:number;[n:number]:T;}interface ReadonlyArray<T>{readonly length:number;readonly [n:number]:T;}")
+        }), "/project", new("/project/tsconfig.json", options, ["/project/main.ts", "/project/globals.d.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var source = program.GetFile("/project/main.ts")!.Syntax;
+        var declarations = source.Statements!.OfType<TypeAliasDeclarationNode>().ToArray();
+        var a = await checker.Nodes.FromNodeAsync(declarations[0].Type!);
+        var b = await checker.Nodes.FromNodeAsync(declarations[1].Type!);
+        var c = await checker.Nodes.FromNodeAsync(declarations[2].Type!);
+        var snapshot = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
+        Check(await checker.SerializeTypeSyntaxAsync(a, source, true) == "T extends (infer U)[] ? U : never");
+        Check(await checker.SerializeTypeSyntaxAsync(b, source, true) == "T extends { value: infer V extends string; } ? V : never");
+        Check(await checker.SerializeTypeSyntaxAsync(c, source, true) == "{ x?: 'a' | 'b'; }");
+        Check(await checker.SerializeTypeSyntaxAsync(c, null, true) == "{ x?: \"a\" | \"b\" | undefined; }");
+        Check(snapshot.All(p => p.Parent == p.Node.Parent && p.Pos == p.Node.Pos && p.End == p.Node.End && p.Flags == p.Node.Flags));
+        var inferredNode = source.DescendantsAndSelf().OfType<InferTypeNode>().First().TypeParameter!;
+        var inferred = await checker.Declared.GetAsync(checker.Symbols.Declaration(inferredNode)!);
+        Check(await checker.SerializeTypeSyntaxAsync(inferred, source) == "U");
+        using var stop = new CancellationTokenSource();
+        stop.Cancel();
+        try
+        {
+            await checker.SerializeTypeSyntaxAsync(b, source, true, cancellation: stop.Token);
+            throw new InvalidOperationException("Canceled conditional syntax completed");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        Check(await checker.SerializeTypeSyntaxAsync(a, source, true) == "T extends (infer U)[] ? U : never");
+        Check(snapshot.All(p => p.Parent == p.Node.Parent && p.Pos == p.Node.Pos && p.End == p.Node.End && p.Flags == p.Node.Flags));
+        return checks;
+    }
+
     internal static async Task<int> Safety()
     {
         int checks = 0;

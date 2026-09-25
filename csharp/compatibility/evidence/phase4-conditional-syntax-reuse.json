@@ -1,0 +1,24 @@
+{
+    "retainedCandidates": 16,
+    "replayedCandidates": 8,
+    "retainedReferences": 24,
+    "previousCandidateHash": "66195bf6ce4961def2058570ec326177935c5945c7c5e51d0d1d433972781d16",
+    "candidateHash": "de0a8ba5052af6b6878acfebc483481e0e66ee8be5efa9fd9aa63f3f622efcdc",
+    "reason": "Corrections parenthesize inferred array elements and compare optional annotations after filtering undefined. Other fixtures either contain no affected form or have identical annotation/property types, which bypass the new filtering path. All expected reference outputs are retained.",
+    "annotations": {
+        "retainedCandidates": 24,
+        "retainedReferences": 24,
+        "newConfigurations": 4,
+        "previousCandidateHash": "de0a8ba5052af6b6878acfebc483481e0e66ee8be5efa9fd9aa63f3f622efcdc",
+        "candidateHash": "1758c64b1018c35a096f3c164dbb3f452913b328fc7025077b1274ac439fe421",
+        "reason": "The added literal/keyword annotation reuse preserves original literal spelling. Existing annotation nodes accepted by this new path are keywords or canonical unions whose spelling is identical to their constructed forms. Infer/object/array annotations continue through the previous path. New cases cover noncanonical literal spellings."
+    },
+    "literalCorrection": {
+        "retainedCandidates": 24,
+        "replayedCandidates": 4,
+        "retainedReferences": 28,
+        "previousCandidateHash": "1758c64b1018c35a096f3c164dbb3f452913b328fc7025077b1274ac439fe421",
+        "candidateHash": "a14b7958eb81bb53ec0e01549a0bf6ed34b7c1d2d1f9b67ad956c427fd7eb3db",
+        "reason": "Reused annotation clones now have detached parents, matching factory-produced reference nodes. This affects literal source-spelling reuse in the four new cases. Previously retained reusable annotations are keywords, whose text is independent of parent links."
+    }
+}

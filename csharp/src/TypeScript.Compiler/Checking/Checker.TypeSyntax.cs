@@ -3,6 +3,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Semantics;
 using TypeScript.Compiler.Syntax;
 using K = TypeScript.Compiler.Syntax.SyntaxKind;
 
@@ -18,6 +19,7 @@ internal sealed partial class Checker
         internal HashSet<SyntaxNode> NoAsciiEscape { get; } = [];
         internal HashSet<SyntaxNode> SingleLine { get; } = [];
         internal HashSet<Type> Active { get; } = [];
+        internal IReadOnlyList<TypeParameter>? InferParameters { get; set; }
     }
 
     internal ValueTask<string> SerializeTypeSyntaxAsync(Type type, SyntaxNode? enclosing = null, bool expandAlias = false,
@@ -149,6 +151,21 @@ internal sealed partial class Checker
         {
             if (type is TypeReference reference && (type.ObjectFlags & ObjectFlags.Reference) != 0)
                 return await ReferenceTypeSyntaxAsync(reference, state, cancellation);
+            if (type is TypeParameter inferredParameter && state.InferParameters?.Contains(inferredParameter) == true)
+            {
+                SyntaxNode? constraintNode = null;
+                if (await Instantiation.Constraints.ConstraintAsync(inferredParameter, cancellation) is { } constraint)
+                {
+                    var inferred = await InferredConstraints.GetAsync(inferredParameter, omitReferences: true, cancellation);
+                    if (inferred is null || !await Relations.RelatedAsync(constraint, inferred, RelationKind.Identity, cancellation))
+                    {
+                        constraintNode = await TypeSyntaxAsync(constraint, state, cancellation);
+                        if (constraintNode is ConditionalTypeNode)
+                            constraintNode = f.NewParenthesizedTypeNode(constraintNode);
+                    }
+                }
+                return f.NewInferTypeNode(await TypeParameterSyntaxAsync(inferredParameter, constraintNode, state, cancellation));
+            }
             if (type is TypeParameter || (type.ObjectFlags & ObjectFlags.ClassOrInterface) != 0)
                 return type.Symbol is { } symbol ? await SymbolTypeNodeAsync(
                     symbol,
@@ -209,16 +226,41 @@ internal sealed partial class Checker
                 return substitution.Constraint == context.UnknownType && program.Symbols.Globals.GetValueOrDefault("NoInfer") is { } noInfer
                     ? await SymbolTypeNodeAsync(noInfer, SymbolFlags.Type, new([node]), state.Symbols, false, cancellation) : node;
             }
+            if (type is ConditionalType conditional)
+            {
+                var check = await TypeSyntaxAsync(conditional.CheckType, state, cancellation);
+                if (check is ConditionalTypeNode or FunctionTypeNode or ConstructorTypeNode)
+                    check = f.NewParenthesizedTypeNode(check);
+                var previous = state.InferParameters;
+                SyntaxNode extends;
+                try
+                {
+                    state.InferParameters = conditional.Root.InferTypeParameters;
+                    extends = await TypeSyntaxAsync(conditional.ExtendsType, state, cancellation);
+                }
+                finally
+                {
+                    state.InferParameters = previous;
+                }
+                if (extends is ConditionalTypeNode)
+                    extends = f.NewParenthesizedTypeNode(extends);
+                var whenTrue = await TypeSyntaxAsync(
+                    await Instantiation.Constraints.ConditionalTrueAsync(conditional, cancellation: cancellation),
+                    state,
+                    cancellation);
+                var whenFalse = await TypeSyntaxAsync(
+                    await Instantiation.Constraints.ConditionalFalseAsync(conditional, cancellation),
+                    state,
+                    cancellation);
+                return f.NewConditionalTypeNode(check, extends, whenTrue, whenFalse);
+            }
             if (type is ObjectType objectType)
             {
                 var resolved = await Members.ResolveAsync(objectType, cancellation);
-                if (resolved.Properties is null or { Count: 0 } && resolved.CallSignatures.Count == 0
-                    && resolved.ConstructSignatures.Count == 0 && resolved.IndexInfos.Count == 0)
-                {
-                    var empty = f.NewTypeLiteralNode(new([]));
-                    state.SingleLine.Add(empty);
-                    return empty;
-                }
+                if (resolved.CallSignatures.Count == 0 && resolved.ConstructSignatures.Count == 0
+                    && type is not MappedType && (type.Symbol is null
+                        || (type.Symbol.Flags & (SymbolFlags.TypeLiteral | SymbolFlags.ObjectLiteral)) != 0))
+                    return await ObjectPropertySyntaxAsync(resolved, state, cancellation);
             }
             throw new NotSupportedException($"Type syntax construction is not yet implemented for {type.GetType().Name}");
         }
@@ -239,6 +281,140 @@ internal sealed partial class Checker
         for (int i = 0; i < nodes.Length; i++)
             nodes[i] = await TypeSyntaxAsync(types[i], state, cancellation);
         return new(nodes);
+    }
+
+    private async ValueTask<TypeParameterDeclarationNode> TypeParameterSyntaxAsync(TypeParameter parameter, SyntaxNode? constraint,
+        TypeSyntaxContext state, CancellationToken cancellation)
+    {
+        var f = state.Factory;
+        var modifiers = new List<SyntaxNode>();
+        foreach (var kind in new[] { K.ConstKeyword, K.InKeyword, K.OutKeyword })
+            if (parameter.Symbol?.Declarations.Any(d => SemanticSyntax.HasModifier(d, kind)) == true)
+                modifiers.Add(f.NewToken(kind));
+        string name = parameter.Symbol is { } symbol
+            ? DisplayNameAsWritten(symbol, state.Symbols, true, cancellation)
+            : "(Missing type parameter)";
+        var defaultType = await Instantiation.Constraints.DefaultAsync(parameter, cancellation);
+        return f.NewTypeParameterDeclaration(
+            modifiers.Count == 0 ? null : new(modifiers.ToArray()),
+            f.NewIdentifier(name),
+            constraint,
+            null,
+            defaultType is null ? null : await TypeSyntaxAsync(defaultType, state, cancellation));
+    }
+
+    private async ValueTask<SyntaxNode> ObjectPropertySyntaxAsync(
+        StructuredType type,
+        TypeSyntaxContext state,
+        CancellationToken cancellation)
+    {
+        var f = state.Factory;
+        var members = new List<SyntaxNode>();
+        foreach (var index in type.IndexInfos)
+        {
+            string name = index.Declaration is IndexSignatureDeclarationNode { Parameters: { Count: > 0 } parameters }
+                && SemanticSyntax.Name(parameters[0]) is IdentifierNode id ? id.Text : "x";
+            var parameter = f.NewParameterDeclaration(
+                null,
+                null,
+                f.NewIdentifier(name),
+                null,
+                await TypeSyntaxAsync(index.KeyType, state, cancellation),
+                null);
+            members.Add(f.NewIndexSignatureDeclaration(index.IsReadonly ? new([f.NewToken(K.ReadonlyKeyword)]) : null, new([parameter]),
+                await TypeSyntaxAsync(index.ValueType, state, cancellation)));
+        }
+        foreach (var property in type.Properties ?? [])
+        {
+            cancellation.ThrowIfCancellationRequested();
+            if ((property.Flags & (SymbolFlags.Accessor | SymbolFlags.Method | SymbolFlags.Function)) != 0)
+                throw new NotSupportedException("Callable/accessor property syntax requires signature construction");
+            if ((property.CheckFlags & Binding.CheckFlags.ReverseMapped) != 0)
+                throw new NotSupportedException("Reverse-mapped property syntax requires recovery handling");
+            var value = Values.NonMissing(await Values.GetAsync(property, cancellation), (property.Flags & SymbolFlags.Optional) != 0);
+            SyntaxNode? reusedType = null;
+            var declaration = property.ValueDeclaration ?? property.Declarations.FirstOrDefault();
+            if (state.Symbols.Enclosing is not null && declaration is ITypedNode { Type: { } annotation }
+                && (value.ObjectFlags & ObjectFlags.RequiresWidening) == 0)
+            {
+                var annotated = await Nodes.FromNodeAsync(annotation, cancellation);
+                if (annotated != value)
+                {
+                    bool optional = declaration is PropertyDeclarationNode { PostfixToken.Kind: K.QuestionToken }
+                        or PropertySignatureDeclarationNode { PostfixToken.Kind: K.QuestionToken };
+                    var comparable = optional ? await Facts.FilterAsync(value, TypeFacts.NEUndefined, cancellation) : value;
+                    if (annotated == comparable || annotated is UnionType && comparable is UnionType
+                        && await Relations.RelatedAsync(annotated, comparable, RelationKind.Identity, cancellation))
+                        value = annotated;
+                }
+                if (annotated == value)
+                    reusedType = ReuseLiteralTypeSyntax(annotation, state, cancellation);
+            }
+            var nameType = links.Values.TryGet(property)?.NameType;
+            if (nameType is UniqueSymbolType || nameType is { Flags: var flags } && (flags & TypeFlags.EnumLiteral) != 0)
+                throw new NotSupportedException("Symbol-named properties require computed reference tracking");
+            string name = property.Name;
+            if (nameType is LiteralType { Value: string text })
+                name = text;
+            else if (nameType is LiteralType { Value: double number })
+                name = TokenFacts.NumberText(number);
+            bool stringNamed = property.Declarations.Count != 0;
+            bool singleQuote = property.Declarations.Count != 0;
+            foreach (var propertyDeclaration in property.Declarations)
+            {
+                var declarationName = DisplayDeclarationName(propertyDeclaration);
+                singleQuote &= declarationName is StringLiteralNode quoted && (quoted.TokenFlags & TokenFlags.SingleQuote) != 0;
+                stringNamed &= declarationName is StringLiteralNode
+                    || declarationName is ComputedPropertyNameNode computed
+                        && ((await ExpressionTypeForQueryAsync(computed.Expression!, cancellation)).Flags & TypeFlags.StringLike) != 0;
+            }
+            SyntaxNode propertyName;
+            if (SemanticSyntax.Name(property.ValueDeclaration) is PrivateIdentifierNode privateName)
+                propertyName = f.NewPrivateIdentifier(privateName.Text);
+            else if (IdentifierName(name))
+                propertyName = f.NewIdentifier(name);
+            else if (!stringNamed && TokenFacts.NumberText(JsNumber.FromString(name)) == name && JsNumber.FromString(name) >= 0)
+                propertyName = f.NewNumericLiteral(name, TokenFlags.None);
+            else if (nameType is LiteralType && name.StartsWith('-') && TokenFacts.NumberText(JsNumber.FromString(name)) == name)
+                propertyName = f.NewComputedPropertyName(
+                    f.NewPrefixUnaryExpression(K.MinusToken, f.NewNumericLiteral(name[1..], TokenFlags.None)));
+            else
+                propertyName = f.NewStringLiteral(name, singleQuote ? TokenFlags.SingleQuote : TokenFlags.None);
+            bool readOnly = (property.CheckFlags & Binding.CheckFlags.Readonly) != 0
+                || property.Declarations.Any(d => SemanticSyntax.HasModifier(d, K.ReadonlyKeyword));
+            members.Add(f.NewPropertySignatureDeclaration(readOnly ? new([f.NewToken(K.ReadonlyKeyword)]) : null, propertyName,
+                (property.Flags & SymbolFlags.Optional) != 0 ? f.NewToken(K.QuestionToken) : null,
+                reusedType ?? await TypeSyntaxAsync(value, state, cancellation),
+                null));
+        }
+        var result = f.NewTypeLiteralNode(new(members.ToArray()));
+        state.SingleLine.Add(result);
+        return result;
+    }
+
+    private static SyntaxNode? ReuseLiteralTypeSyntax(SyntaxNode node, TypeSyntaxContext state, CancellationToken cancellation)
+    {
+        foreach (var child in node.DescendantsAndSelf())
+        {
+            cancellation.ThrowIfCancellationRequested();
+            if (child is not (KeywordTypeNode or LiteralTypeNode or StringLiteralNode or NumericLiteralNode or BigIntLiteralNode
+                or KeywordExpressionNode or PrefixUnaryExpressionNode or UnionTypeNode or IntersectionTypeNode or ParenthesizedTypeNode))
+                return null;
+        }
+        var clone = node.DeepClone<SyntaxNode>(state.Factory);
+        bool sameFile = SemanticSyntax.Source(node) == SemanticSyntax.Source(state.Symbols.Enclosing!);
+        foreach (var child in clone.DescendantsAndSelf())
+        {
+            child.Parent = null;
+            if (!sameFile)
+            {
+                child.Pos = -1;
+                child.End = -1;
+            }
+            if (child is StringLiteralNode)
+                state.NoAsciiEscape.Add(child);
+        }
+        return clone;
     }
 
     private async ValueTask<SyntaxNode> ReferenceTypeSyntaxAsync(
@@ -293,7 +469,7 @@ internal sealed partial class Checker
 
     private static SyntaxNode ParenthesizeType(SyntaxNode node, NodeFactory f, bool postfix = false) =>
         node is UnionTypeNode or IntersectionTypeNode or ConditionalTypeNode or FunctionTypeNode or ConstructorTypeNode
-            || postfix && node is TypeOperatorNode or TypeQueryNode ? f.NewParenthesizedTypeNode(node) : node;
+            || postfix && node is TypeOperatorNode or TypeQueryNode or InferTypeNode ? f.NewParenthesizedTypeNode(node) : node;
 
     private async ValueTask<IReadOnlyList<Type>> SyntaxUnionTypesAsync(IReadOnlyList<Type> types, CancellationToken cancellation)
     {
