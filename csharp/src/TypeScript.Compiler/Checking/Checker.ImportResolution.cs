@@ -10,7 +10,7 @@ internal sealed partial class Checker
 {
     internal async ValueTask<Symbol?> ResolveImportModuleAsync(SyntaxNode location, SyntaxNode? specifier, Type? attributes,
         CancellationToken cancellation, bool implicitImport = false, int missingModuleCode = 2307, bool ignoreErrors = false,
-        ReferenceResolutionMode? resolutionMode = null)
+        ReferenceResolutionMode? resolutionMode = null, bool reportUnresolved = true)
     {
         cancellation.ThrowIfCancellationRequested();
         string? name = specifier switch
@@ -74,7 +74,7 @@ internal sealed partial class Checker
                     ? program.Symbols.PatternAugmentations.GetValueOrDefault(name) ?? target : target;
             }
         }
-        if (module is null && !ignoreErrors)
+        if (module is null && !ignoreErrors && reportUnresolved)
             ReportUnresolvedImport(implicitImport ? location : specifier!, name, file, reference, missingModuleCode);
         return program.Symbols.Merger.GetMergedSymbol(module);
     }

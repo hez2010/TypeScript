@@ -579,3 +579,20 @@ public enum NodeBuilderFlags : uint
     InTypeAlias = 1u << 23,
     InInitialEntityName = 1u << 24,
 }
+
+// ../printer/emitresolver.go SHA256 fca5be1776634a74e643e565ea599876be2c88c0bb5ac47bac70ddfdb19031c4
+public enum TypeReferenceSerializationKind : int
+{
+    Unknown = 0,
+    TypeWithConstructSignatureAndValue = 1,
+    VoidNullableOrNeverType = 2,
+    NumberLikeType = 3,
+    BigIntLikeType = 4,
+    StringLikeType = 5,
+    BooleanType = 6,
+    ArrayLikeType = 7,
+    ESSymbolType = 8,
+    Promise = 9,
+    TypeWithCallSignature = 10,
+    ObjectType = 11,
+}

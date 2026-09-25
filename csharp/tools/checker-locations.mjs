@@ -27,6 +27,9 @@ const generatedNames = process.argv.includes("--generated-names");
 const functionOptions = process.argv.includes("--function-options");
 const classOptions = process.argv.includes("--class-options");
 const signatureDeclarations = process.argv.includes("--signature-declarations");
+const emitQueries = process.argv.includes("--emit-queries");
+const emitReferences = process.argv.includes("--emit-references");
+const emitSerialization = process.argv.includes("--emit-serialization");
 const typeSyntax = process.argv.includes("--type-syntax") || conditionalSyntax || mappedSyntax || signatureSyntax || anonymousSyntax || syntaxOptions || syntaxNames || generatedNames || functionOptions || classOptions;
 const symbolTypeNodes = process.argv.includes("--symbol-type-nodes");
 const computedSymbols = process.argv.includes("--computed-symbols");
@@ -34,7 +37,10 @@ const symbolTypeArguments = process.argv.includes("--symbol-type-arguments");
 const symbolFormats = process.argv.includes("--symbol-formats") || computedSymbols || symbolTypeArguments;
 const symbolDisplay = process.argv.includes("--symbol-display") || symbolFormats || symbolTypeNodes;
 const accessibility = process.argv.includes("--accessibility") || symbolDisplay;
-const output = path.join(root, `built/csharp/checker-${signatureDeclarations ? "signature-declarations" : classOptions ? "class-options" : functionOptions ? "function-options" : generatedNames ? "generated-names" : syntaxNames ? "syntax-names" : syntaxOptions ? "syntax-options" : symbolTypeArguments ? "symbol-type-arguments" : anonymousSyntax ? "anonymous-syntax" : signatureSyntax ? "signature-syntax" : mappedSyntax ? "mapped-syntax" : conditionalSyntax ? "conditional-syntax" : typeSyntax ? "type-syntax" : symbolTypeNodes ? "symbol-type-nodes" : computedSymbols ? "computed-symbols" : symbolFormats ? "symbol-formats" : symbolDisplay ? "symbol-display" : accessibility ? "accessibility" : symbolChains ? "symbol-chains" : declarationVisibility ? "declaration-visibility" : contextQueries ? "context-queries" : scopeServices ? "scope-services" : symbolLocations ? "symbol-locations" : "locations"}`);
+const output = path.join(
+    root,
+    `built/csharp/checker-${emitSerialization ? "emit-serialization" : emitReferences ? "emit-references" : emitQueries ? "emit-queries" : signatureDeclarations ? "signature-declarations" : classOptions ? "class-options" : functionOptions ? "function-options" : generatedNames ? "generated-names" : syntaxNames ? "syntax-names" : syntaxOptions ? "syntax-options" : symbolTypeArguments ? "symbol-type-arguments" : anonymousSyntax ? "anonymous-syntax" : signatureSyntax ? "signature-syntax" : mappedSyntax ? "mapped-syntax" : conditionalSyntax ? "conditional-syntax" : typeSyntax ? "type-syntax" : symbolTypeNodes ? "symbol-type-nodes" : computedSymbols ? "computed-symbols" : symbolFormats ? "symbol-formats" : symbolDisplay ? "symbol-display" : accessibility ? "accessibility" : symbolChains ? "symbol-chains" : declarationVisibility ? "declaration-visibility" : contextQueries ? "context-queries" : scopeServices ? "scope-services" : symbolLocations ? "symbol-locations" : "locations"}`,
+);
 const option = name => process.argv[process.argv.indexOf(name) + 1];
 const dotnet = process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, "dotnet.exe") : "dotnet";
 const dll = path.join(root, "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll");
@@ -220,6 +226,41 @@ exports["exported-name"]=C; Object.defineProperty(exports,"defined-name",{value:
     });
 }
 const inputs = [];
+if (emitSerialization) {
+    Object.assign(fixtures, {
+        emitSerializationPrimitives: `type Num=number;type Str=string;type Bool=boolean;type Big=bigint;type Sym=symbol;type Void=void;type Null=null;type Never=never;type Any=any;type Unknown=unknown;let a:Num,b:Str,c:Bool,d:Big,e:Sym,f:Void,g:Null,h:Never,i:Any,j:Unknown;class Scope{}`,
+        emitSerializationObjects: `interface I{x:number}class C{x=1}type Arr=number[];type Tuple=[number,string];type Fn=(x:number)=>string;type Union=number|string;type Both={x:number}&{y:string};let a:I,b:C,c:Arr,d:Tuple,e:Fn,f:Union,g:Both;class Scope<C>{}function location<C>(){}`,
+        emitSerializationImports: `import Default from './dep';import type {Shape} from './dep';import type TypeDefault from './dep';import * as ns from './dep';let a:Default,b:TypeDefault,c:Shape,d:ns.Shape;class Scope<Default>{}function location(Default:number){}`,
+        emitSerializationMissing: `import type {Missing} from './missing';let a:Missing,b:Unresolved;namespace N{export interface Shape{x:number}}let c:N.Shape;class Scope{}`,
+        emitSerializationPromise: `interface Promise<T>{then():T}declare var Promise:{new<T>():Promise<T>};class C{}type P=Promise<number>;let a:Promise<number>,b:P,c:C;class Scope{}`,
+        emitSerializationGenerics: `interface Fn{(x:number):string}type Num<T extends number>=T;type Box<T>={value:T};function f<T extends new(...args:any[])=>any,U extends Fn>(a:T,b:U,c:Num<1>,d:Box<T>){return a}class Scope{}`,
+    });
+}
+if (emitReferences) {
+    Object.assign(fixtures, {
+        emitReferencesImports: `import Default,{named as value,type Shape} from './dep';import * as ns from './dep';const instance=new Default();value;ns.named;instance.value;type T=Shape;export {value};`,
+        emitReferencesExports: `export const value=1;export function f(){return value}export class C{field=value;method(){return value}}namespace N{export let value=1;export function f(){return value}}enum E{A=1,B=A+1}N.f();E.A;`,
+        emitReferencesElements: `const key='field';const numeric=1;declare const object:{field:number;1:string;other:boolean};object[key];object[numeric];object['other'];object[0x1];let dynamic='field';object[dynamic];`,
+        emitReferencesBindings: `const source={value:1,other:'x'};const {value:renamed,other}=source;renamed;other;function f({x}:{x:number},...rest:[number,string]){x;rest;return x}const arrow=(x:number)=>x;f({x:1},1,'x');`,
+        emitReferencesTypeOnly: `import type Default from './dep';import type * as ns from './dep';import type {Shape} from './dep';type T=Default;type U=ns.Shape;type V=Shape;export type {Shape};`,
+        jsdocEmitReferences: `function f(x){return x}f.value=1;f.other='x';const arrow=x=>x;arrow.member=true;exports.fn=f;module.exports=f;f.value;arrow.member;`,
+    });
+}
+if (emitQueries) {
+    Object.assign(fixtures, {
+        emitQueriesOverloads: `function f(x:string):string;function f(x:number):number;function f(x:any){return x}function single(x:string):void;function single(x:any){}function ordinary(x:number){return x}class C{method(x:string):string;method(x:any){return x}get value(){return 1}set value(v:number){}constructor(x:string);constructor(x:any){}}`,
+        emitQueriesParameters: `function f(x:number=1,y:string,z?:boolean,...rest:number[]){}class C{constructor(public value:number=1,y:string,readonly optional?:string){}readonly field=1;optional?:number}interface I{readonly field:'x';optional?:string}function location<T>(){}`,
+        emitQueriesLiterals: `const a=1,b='é',c=true,d=12n,e=-1;let mutable=1;const widened:number=1;const literal:1=1;const object={x:1};class C{readonly value=1;readonly named:number=2;static readonly text='x';field=1}enum E{A=1,B}const enum CE{A=1}`,
+        emitQueriesAliases: `import Default,{named,type Shape} from './dep';import * as ns from './dep';import Alias=ns;export {named,Shape};export {named as renamed} from './dep';export * as values from './dep';export default named;named;ns.named;type T=Shape;`,
+        emitQueriesConstAliases: `namespace N{export const enum E{A=1}export namespace Only{export const enum E{A=1}}export const value=1}import E=N.E;import Only=N.Only;export import Value=N.value;E.A;type T=typeof Only;`,
+        emitQueriesVerbatim: `import {named,type Shape} from './dep';import * as ns from './dep';export {named,Shape};export * as values from './dep';type T=Shape;`,
+        emitQueriesSymbols: `declare const Symbol:{iterator:unique symbol};Symbol.iterator;globalThis.Symbol.iterator;function local(Symbol:{iterator:number}){Symbol.iterator;globalThis.Symbol.iterator}function shadow(globalThis:any){globalThis.Symbol.iterator}const object={Symbol};object.Symbol.iterator;`,
+        emitQueriesComputed: `declare const key:unique symbol;class C{[key]=1;['plain']=2;[1]=3}interface I{[key]:string}type Map<T>={[K in keyof T]:T[K]};`,
+        emitQueriesAugmentation: `import './augment';export interface Value{x:number}import {named} from './dep';export {named};`,
+        emitQueriesMissing: `import {Missing} from './missing';import MissingEq=require('./missing');export {Missing};type T=import('./missing').Value;declare module './missing'{interface Value{x:number}}`,
+        jsdocEmitQueries: `const value=1;function f(x){return x}exports.value=value;exports.fn=f;module.exports=f;function nested(){exports.inner=value}const local={exports:{}};local.exports=value;`,
+    });
+}
 if (signatureDeclarations) {
     Object.assign(fixtures, {
         signatureDeclarationsFunctions: `function serializePlain(x:number,y?:string):any{return x}function serializeGeneric<T extends string>(x:T):T{return x}function location<T>(){}`,
@@ -405,6 +446,24 @@ for (const [name, source] of Object.entries(fixtures)) {
                 delete inputs.at(-1).locations;
                 inputs.at(-1).signatureSyntax = true;
             }
+            if (emitQueries) {
+                const input = inputs.at(-1);
+                delete input.locations;
+                input.emitQueries = true;
+                if (name === "emitQueriesVerbatim") input.options.verbatimModuleSyntax = true;
+                if (name === "emitQueriesConstAliases" && strict) input.options.preserveConstEnums = true;
+                if (name === "emitQueriesAugmentation") input.files["/project/augment.ts"] = Buffer.from(`import './main';declare module './main'{interface Value{extra:string}}`).toString("base64");
+            }
+            if (emitReferences) {
+                const input = inputs.at(-1);
+                delete input.locations;
+                input.emitReferences = true;
+            }
+            if (emitSerialization) {
+                const input = inputs.at(-1);
+                delete input.locations;
+                input.emitSerialization = true;
+            }
         }
     }
 }
@@ -412,7 +471,7 @@ const formatFixtures = new Set(["namespaces", "imports", "typeImports", "classes
 const computedFixtures = new Set(["displayNames", "displayComputed", "displayAssigned", "jsdocDisplayNames", "classes", "visibilityExports", "accessibilityInstances", "chainClassNames"]);
 const typeNodeFixtures = new Set(["namespaces", "imports", "typeImports", "classes", "importsCommonJs", "visibilityAliases", "visibilityAmbient", "visibilityExports", "chainShadow", "chainReexports", "chainTypeOnly", "displayNames", "displayComputed", "accessibilityExportEquals", "accessibilityInstances", "symbolTypeModes", "symbolTypeAttributes"]);
 if (symbolTypeNodes) { for (const input of inputs) if (input.name.startsWith("symbolTypeModes:")) Object.assign(input.options, { module: "nodenext", moduleResolution: "nodenext" }); }
-const eligible = signatureDeclarations ? inputs.filter(input => input.name.startsWith("signatureDeclarations")) : classOptions ? inputs.filter(input => input.name.startsWith("classOptions")) : functionOptions ? inputs.filter(input => input.name.startsWith("functionOptions")) : generatedNames ? inputs.filter(input => input.name.startsWith("generatedNames"))
+const eligible = emitSerialization ? inputs.filter(input => input.name.startsWith("emitSerialization")) : emitReferences ? inputs.filter(input => input.name.startsWith("emitReferences") || input.name.startsWith("jsdocEmitReferences")) : emitQueries ? inputs.filter(input => input.name.startsWith("emitQueries") || input.name.startsWith("jsdocEmitQueries")) : signatureDeclarations ? inputs.filter(input => input.name.startsWith("signatureDeclarations")) : classOptions ? inputs.filter(input => input.name.startsWith("classOptions")) : functionOptions ? inputs.filter(input => input.name.startsWith("functionOptions")) : generatedNames ? inputs.filter(input => input.name.startsWith("generatedNames"))
     : syntaxNames ? inputs.filter(input => input.name.startsWith("syntaxNames")) : syntaxOptions ? inputs.filter(input => input.name.startsWith("syntaxOptions")) : symbolTypeArguments ? inputs.filter(input => input.name.startsWith("symbolArguments") || formatFixtures.has(input.name.split(":")[0])) : anonymousSyntax ? inputs.filter(input => input.name.startsWith("anonymousSyntax")) : signatureSyntax ? inputs.filter(input => input.name.startsWith("signatureSyntax")) : mappedSyntax ? inputs.filter(input => input.name.startsWith("mappedSyntax")) : conditionalSyntax ? inputs.filter(input => input.name.startsWith("conditionalSyntax")) : typeSyntax ? inputs.filter(input => input.name.startsWith("typeSyntax")) : symbolTypeNodes ? inputs.filter(input => typeNodeFixtures.has(input.name.split(":")[0])) : computedSymbols ? inputs.filter(input => computedFixtures.has(input.name.split(":")[0])) : symbolFormats ? inputs.filter(input => formatFixtures.has(input.name.split(":")[0])) : inputs;
 const selected = process.argv.includes("--filter") ? eligible.filter(input => input.name.includes(option("--filter"))) : eligible;
 await writeFile(path.join(output, "inputs.json"), JSON.stringify(selected, null, 2));
@@ -471,13 +530,13 @@ for (const input of selected) {
         candidateError = String(error);
         candidateFailures++;
     }
-    if (candidate) queries += (candidate.typeSyntaxQueries ?? candidate.symbolTypeNodeQueries ?? candidate.symbolFormatQueries ?? candidate.symbolDisplayQueries ?? candidate.accessibilityQueries ?? candidate.symbolChainQueries ?? candidate.visibilityQueries ?? candidate.contextQueries ?? candidate.serviceQueries ?? candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
+    if (candidate) queries += (candidate.emitQueries ?? candidate.typeSyntaxQueries ?? candidate.symbolTypeNodeQueries ?? candidate.symbolFormatQueries ?? candidate.symbolDisplayQueries ?? candidate.accessibilityQueries ?? candidate.symbolChainQueries ?? candidate.visibilityQueries ?? candidate.contextQueries ?? candidate.serviceQueries ?? candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
     results.push({ input, reference, candidate, referenceError, candidateError });
     if (referenceError || candidateError) {
         failures.push({ name: input.name, referenceError, candidateError });
         continue;
     }
-    comparedQueries += (candidate.typeSyntaxQueries ?? candidate.symbolTypeNodeQueries ?? candidate.symbolFormatQueries ?? candidate.symbolDisplayQueries ?? candidate.accessibilityQueries ?? candidate.symbolChainQueries ?? candidate.visibilityQueries ?? candidate.contextQueries ?? candidate.serviceQueries ?? candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
+    comparedQueries += (candidate.emitQueries ?? candidate.typeSyntaxQueries ?? candidate.symbolTypeNodeQueries ?? candidate.symbolFormatQueries ?? candidate.symbolDisplayQueries ?? candidate.accessibilityQueries ?? candidate.symbolChainQueries ?? candidate.visibilityQueries ?? candidate.contextQueries ?? candidate.serviceQueries ?? candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
     try {
         assert.deepStrictEqual(candidate, reference);
     }

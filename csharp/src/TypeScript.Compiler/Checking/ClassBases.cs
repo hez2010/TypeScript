@@ -120,7 +120,7 @@ internal sealed class ClassBases(TypeContext context, DeclaredTypes declared, Ty
         => type.OuterTypeParameterCount == 0 || type.AllTypeParameters[type.OuterTypeParameterCount - 1].Symbol
             != (await references.TypeArgumentsAsync(type, cancellation).ConfigureAwait(false))[type.OuterTypeParameterCount - 1].Symbol;
 
-    private async ValueTask<bool> IsConstructorAsync(Type type, CancellationToken cancellation)
+    internal async ValueTask<bool> IsConstructorAsync(Type type, CancellationToken cancellation)
     {
         if ((await host.SignaturesAsync(type, true, cancellation).ConfigureAwait(false)).Count != 0)
             return true;

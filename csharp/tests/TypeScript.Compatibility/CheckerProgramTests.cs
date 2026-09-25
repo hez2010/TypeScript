@@ -1012,6 +1012,12 @@ internal static class CheckerProgramTests
                     ? syntaxFlags.EnumerateArray().Select(v => (NodeBuilderFlags)v.GetUInt32()).ToArray() : null);
         if (input.TryGetProperty("signatureSyntax", out var signatureSyntaxOption) && signatureSyntaxOption.GetBoolean())
             await CheckerTypeSyntaxTests.WriteSignaturesAsync(writer, nodes, typeHost!, Node);
+        if (input.TryGetProperty("emitQueries", out var emitQueriesOption) && emitQueriesOption.GetBoolean())
+            await CheckerEmitQueryTests.WriteAsync(writer, nodes, typeHost!, Node);
+        if (input.TryGetProperty("emitReferences", out var emitReferencesOption) && emitReferencesOption.GetBoolean())
+            await CheckerEmitQueryTests.WriteReferencesAsync(writer, nodes, typeHost!, Node, SymbolId);
+        if (input.TryGetProperty("emitSerialization", out var emitSerializationOption) && emitSerializationOption.GetBoolean())
+            await CheckerEmitQueryTests.WriteSerializationAsync(writer, nodes, typeHost!, Node);
         if (input.TryGetProperty("symbolTypeNodes", out var symbolTypeNodesOption) && symbolTypeNodesOption.GetBoolean())
             await CheckerSymbolDisplayTests.WriteAsync(writer, nodes, typeHost!, SymbolId, Node, typeNodes: true);
         if (input.TryGetProperty("symbolFormats", out var symbolFormatsOption) && symbolFormatsOption.GetBoolean())

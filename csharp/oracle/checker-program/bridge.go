@@ -293,7 +293,7 @@ func (c *Checker) csharpContextQueries(nodes []*ast.Node, nodeIDs map[*ast.Node]
 	return rows, graph
 }
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool, symbolLocations bool, documentationSymbols bool, scopeServices bool, contextQueries bool, declarationVisibility bool, symbolChains bool, accessibility bool, symbolDisplay bool, symbolFormats bool, symbolFormatValues []SymbolFormatFlags, symbolTypeNodes bool, typeSyntax bool, signatureSyntax bool, typeSyntaxFlags ...nodebuilder.Flags) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool, symbolLocations bool, documentationSymbols bool, scopeServices bool, contextQueries bool, declarationVisibility bool, symbolChains bool, accessibility bool, symbolDisplay bool, symbolFormats bool, symbolFormatValues []SymbolFormatFlags, symbolTypeNodes bool, typeSyntax bool, signatureSyntax bool, emitQueries bool, emitReferences bool, emitSerialization bool, typeSyntaxFlags ...nodebuilder.Flags) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -506,6 +506,16 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	}
 	if signatureSyntax {
 		typeSyntaxRows = c.csharpSignatureSyntax(nodes, nodeIDs)
+	}
+	var emitRows []any
+	if emitQueries {
+		emitRows = c.csharpEmitQueries(nodes, nodeIDs)
+	}
+	if emitReferences {
+		emitRows = c.csharpEmitReferences(nodes, nodeIDs, sid)
+	}
+	if emitSerialization {
+		emitRows = c.csharpEmitSerialization(nodes, nodeIDs)
 	}
 	var symbolTypeNodeRows []any
 	if symbolTypeNodes {
@@ -1277,6 +1287,9 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	if typeSyntax || signatureSyntax {
 		result["typeSyntaxQueries"] = typeSyntaxRows
 	}
+	if emitQueries || emitReferences || emitSerialization {
+		result["emitQueries"] = emitRows
+	}
 	if symbolTypeNodes {
 		result["symbolTypeNodeQueries"] = symbolTypeNodeRows
 	}
@@ -1510,6 +1523,109 @@ func (c *Checker) csharpSymbolTypeNodes(nodes []*ast.Node, nodeIDs map[*ast.Node
 						rows = append(rows, []any{nodeIDs[location], sid(target), uint32(meaning), mode, arguments, text})
 					}
 				}
+			}
+		}
+	}
+	return rows
+}
+
+func (c *Checker) csharpEmitSerialization(nodes []*ast.Node, nodeIDs map[*ast.Node]int) []any {
+	rows := []any{}
+	locations := []*ast.Node{nil}
+	for _, n := range nodes {
+		if strings.HasPrefix(ast.GetSourceFileOfNode(n).FileName(), "/project/main.") && (n.Kind == ast.KindSourceFile || n.Kind == ast.KindClassDeclaration || n.Kind == ast.KindFunctionDeclaration) {
+			locations = append(locations, n)
+		}
+	}
+	for _, n := range nodes {
+		if strings.HasPrefix(ast.GetSourceFileOfNode(n).FileName(), "/project/main.") && n.Kind == ast.KindTypeReference {
+			for _, location := range locations {
+				rows = append(rows, []any{nodeIDs[n], nodeIDs[location], int(c.GetEmitResolver().GetTypeReferenceSerializationKind(n.AsTypeReferenceNode().TypeName, location))})
+			}
+		}
+	}
+	return rows
+}
+
+func (c *Checker) csharpEmitReferences(nodes []*ast.Node, nodeIDs map[*ast.Node]int, sid func(*ast.Symbol) int) []any {
+	r := c.GetEmitResolver()
+	rows := []any{}
+	for _, n := range nodes {
+		if !strings.HasPrefix(ast.GetSourceFileOfNode(n).FileName(), "/project/main.") {
+			continue
+		}
+		if n.Kind == ast.KindIdentifier {
+			values := []int{}
+			for _, d := range r.GetReferencedValueDeclarations(n) {
+				values = append(values, nodeIDs[d])
+			}
+			rows = append(rows, []any{0, nodeIDs[n], nodeIDs[r.GetReferencedExportContainer(n, false)], nodeIDs[r.GetReferencedExportContainer(n, true)], nodeIDs[r.GetReferencedImportDeclaration(n)], nodeIDs[r.GetReferencedValueDeclaration(n)], values})
+		}
+		if n.Kind == ast.KindPropertyAccessExpression || n.Kind == ast.KindElementAccessExpression || n.Kind == ast.KindQualifiedName {
+			before := r.GetReferencedMemberValueDeclaration(n)
+			c.GetSymbolAtLocation(n)
+			after := r.GetReferencedMemberValueDeclaration(n)
+			rows = append(rows, []any{1, nodeIDs[n], nodeIDs[before], nodeIDs[after]})
+		}
+		if n.Kind == ast.KindElementAccessExpression {
+			rows = append(rows, []any{2, nodeIDs[n], r.GetElementAccessExpressionName(n.AsElementAccessExpression())})
+		}
+		if ast.IsFunctionLikeDeclaration(n) {
+			props := []int{}
+			for _, p := range r.GetPropertiesOfContainerFunction(n) {
+				props = append(props, sid(p))
+			}
+			rows = append(rows, []any{3, nodeIDs[n], props, r.IsExpandoFunctionDeclaration(n)})
+		}
+	}
+	return rows
+}
+
+func (c *Checker) csharpEmitQueries(nodes []*ast.Node, nodeIDs map[*ast.Node]int) []any {
+	r := c.GetEmitResolver()
+	rows := []any{}
+	locations := []*ast.Node{nil}
+	for _, n := range nodes {
+		if strings.HasPrefix(ast.GetSourceFileOfNode(n).FileName(), "/project/main.") && (n.Kind == ast.KindSourceFile || n.Kind == ast.KindFunctionDeclaration || n.Kind == ast.KindClassDeclaration) {
+			locations = append(locations, n)
+		}
+	}
+	for _, n := range nodes {
+		if !strings.HasPrefix(ast.GetSourceFileOfNode(n).FileName(), "/project/main.") {
+			continue
+		}
+		if ast.IsDeclaration(n) || ast.IsBinaryExpression(n) && ast.IsInJSFile(n) {
+			rows = append(rows, []any{0, nodeIDs[n], r.IsLateBound(n), r.IsLiteralConstDeclaration(n), r.IsReferencedAliasDeclaration(n), r.IsValueAliasDeclaration(n), r.IsTopLevelValueImportEqualsWithEntityName(n)})
+		}
+		if ast.IsFunctionLike(n) {
+			rows = append(rows, []any{1, nodeIDs[n], r.IsImplementationOfOverload(n)})
+		}
+		if n.Kind == ast.KindParameter {
+			rows = append(rows, []any{2, nodeIDs[n], r.IsOptionalParameter(n)})
+		}
+		if n.Kind == ast.KindPropertyAccessExpression {
+			rows = append(rows, []any{3, nodeIDs[n], r.IsDefinitelyReferenceToGlobalSymbolObject(n)})
+		}
+		if (n.Kind == ast.KindImportDeclaration || n.Kind == ast.KindExportDeclaration || n.Kind == ast.KindImportEqualsDeclaration || n.Kind == ast.KindImportType || n.Kind == ast.KindModuleDeclaration) && ast.GetExternalModuleName(n) != nil {
+			file := r.GetExternalModuleFileFromDeclaration(n)
+			name := ""
+			if file != nil {
+				name = file.FileName()
+			}
+			required := false
+			if n.Kind == ast.KindImportDeclaration {
+				required = r.IsImportRequiredByAugmentation(n.AsImportDeclaration())
+			}
+			rows = append(rows, []any{4, nodeIDs[n], name, required})
+		}
+		if n.Kind == ast.KindParameter || n.Kind == ast.KindPropertyDeclaration || n.Kind == ast.KindPropertySignature {
+			for _, location := range locations {
+				rows = append(rows, []any{5, nodeIDs[n], nodeIDs[location], r.RequiresAddingImplicitUndefined(n, nil, location)})
+			}
+		}
+		if n.Kind == ast.KindSourceFile || n.Kind == ast.KindFunctionDeclaration || n.Kind == ast.KindClassDeclaration {
+			for _, name := range []string{"Symbol", "globalThis", "value", "T", "Missing"} {
+				rows = append(rows, []any{6, nodeIDs[n], name, r.IsNameResolvable(n, name)})
 			}
 		}
 	}

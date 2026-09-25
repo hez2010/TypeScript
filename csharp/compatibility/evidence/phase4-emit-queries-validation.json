@@ -1,0 +1,123 @@
+{
+    "timestamp": "2026-09-25T11:43:18.420Z",
+    "configuration": "Release",
+    "managed": true,
+    "scope": "Emit declaration facts, aliases, augmentation imports, declaration references, element names, expando properties and decorator-metadata classification",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-emit-queries-final-build.log",
+        "sha256": "21a3ce79ed30d9960589c7eed163997f9e75ec32e2a5567947c9d388ba9b55be"
+    },
+    "candidateSha256": "650d7f569e20257deedcef210d1e23bf832a2726db2968bd13337ba973a010a4",
+    "compilerSha256": "374f9ccdef6fd354ef50b43e1731f1ebf6f3cb10aedc1ccf5673c663a5100ad8",
+    "factComparisons": {
+        "configurations": 40,
+        "queries": 2136,
+        "comparedQueries": 2136,
+        "exact": 40,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "e1a6ef525c2095eebebbfb6300cb3212173d507f469f47682899b36ad2424031",
+        "candidateHash": "ee628787f2fbd50b62e45c41a8016549d777e97aeaa915956dc3213e60f34d55",
+        "inputHash": "c86757ab3706b9285c02188271c606cfc894456f1551be2409a622d6cabeca7c",
+        "resultHash": "ac9cb661d5564efe8a6b087a50676312ba49090c22da29ecdf7a117d840ebfce",
+        "managed": true
+    },
+    "commonJsComparisons": {
+        "configurations": 4,
+        "queries": 164,
+        "comparedQueries": 164,
+        "exact": 4,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "cefdd180f9de18583ce611a74e72c894f1069ace316a584069e3a0d626da8c69",
+        "candidateHash": "3336da0fbf136497f00c13bf4619b1dba313d5e591b3d862f3087cf6be461be6",
+        "inputHash": "3b1c616bf0a9c3138d9aae210e21f1aade9aedc44ba8b2529e4e856a3fc740b2",
+        "resultHash": "8e14359c140ee8fb95926aaeb67fe8df5159806842410179c0a6a61988be4217",
+        "managed": true
+    },
+    "referenceComparisons": {
+        "configurations": 24,
+        "queries": 528,
+        "comparedQueries": 528,
+        "exact": 24,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "6d1d26004f13fe9dc1ed1ce7de0211717ace40d118cb1c09ca753f06e32d8a52",
+        "candidateHash": "4415cef0fec0a04362475d1d84f9daf65c875624e96ea9e886d322d71b48b0b1",
+        "inputHash": "b88fd3f42ef00ae34389a8fbb5f8c3ac8613bf1977d6bf65872880334f86b7ed",
+        "resultHash": "587a53ae5877097dcf91f48b33c10f3a70b5d241c1977079f52ebe2b23736ac6",
+        "managed": true
+    },
+    "metadataComparisons": {
+        "configurations": 24,
+        "queries": 600,
+        "comparedQueries": 600,
+        "exact": 24,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "99f45c79c1cba78a6ac11deda660f56167f373bbd3ab1e9a80dafcd444ab8e71",
+        "candidateHash": "2f22a3ec5233c85032453e98d3d51f3784ea2ee32263db2e8452d9d22947cdaa",
+        "inputHash": "08d11649d6ccac357204b3914e63549fd6f049cfcdf8faa63efcd9c2513660fc",
+        "resultHash": "50963a323ab0e06adc2fffb19b39acee620879b9558ab78baa129401f45c53f5",
+        "managed": true
+    },
+    "safety": {
+        "assertions": 18,
+        "log": "logs/csharp-phase4-emit-queries-safety.log"
+    },
+    "reference": {
+        "revision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "frozenSourcesMatch": true,
+        "emitResolverBlob": "9bc590fd179bfb8f44b75350ac296adf55709945",
+        "printerContractBlob": "f9b98dba994ced02d64af7945c0a4a34edd5dd77",
+        "probeFormattingEquivalent": true
+    },
+    "reuse": {
+        "record": "phase4-emit-queries-reuse.json",
+        "retainedFactCandidatesAfterFinalFix": 36,
+        "replayedFactCandidatesAfterFinalFix": 4,
+        "retainedFactReferences": 40,
+        "addedCommonJsConfigurations": 4,
+        "finalComparisonsRetained": true,
+        "reason": "After passing reference/metadata comparisons, product changes only correct CommonJS value-alias classification. Those existing matrices do not call that fact query. The four new CommonJS fact inputs validate the correction; earlier 40 fact inputs are TypeScript and remain unchanged. Later safety tests, probe-only JavaScript rows and formatting do not alter those outputs. The module resolver reporting option defaults to previous behavior for every existing caller.",
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "semanticCorpus": "Retained: the new emit-query wrappers are not called by existing semantic diagnostic paths"
+    },
+    "formatting": {
+        "tokensCommentsAndSyntaxIdentical": true,
+        "csharpFiles": 9,
+        "libraryConfigurations": 2,
+        "inputsUnchanged": true,
+        "dotnetWhitespaceExitCode": 0,
+        "log": "logs/csharp-phase4-emit-queries-final-format.log",
+        "proofSha256": "99f5ab2955594a423b1005aca82eb269e967ae096b245a5b2c8681735c4afa4b"
+    },
+    "generation": {
+        "exitCode": 0,
+        "command": "node csharp/tools/generate-checker.mjs --check"
+    },
+    "syntaxCheck": {
+        "exitCode": 0,
+        "command": "node --check csharp/tools/checker-locations.mjs"
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "phase4Complete": false
+}

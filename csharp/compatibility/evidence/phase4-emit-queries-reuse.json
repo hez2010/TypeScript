@@ -1,0 +1,24 @@
+{
+    "prior": {
+        "prior": {
+            "candidateHash": "346731c3e9de26c396f52cc97d5e679375ea691649127cab3dd19f531ce85459",
+            "oracleHash": "e1a6ef525c2095eebebbfb6300cb3212173d507f469f47682899b36ad2424031",
+            "retainedCandidates": 20,
+            "retainedReferences": 20,
+            "replayedConfigurations": 20,
+            "reason": "The initial probe called GetExternalModuleFileFromDeclaration on exports/internal aliases/namespaces without module specifiers, which violates the reference precondition and panics. Restrict that operation to declarations carrying an external module name. The 20 passing inputs have no such invalid calls and retain their results; the remaining 20 are replayed."
+        },
+        "candidateHash": "66f2639a47924ca8ffa14160a7ec0422bf9ad999ccf22c8bb6d327a4ead8bec3",
+        "oracleHash": "e1a6ef525c2095eebebbfb6300cb3212173d507f469f47682899b36ad2424031",
+        "retainedCandidates": 32,
+        "retainedReferences": 40,
+        "replayedConfigurations": 8,
+        "reason": "Replay augmentation-import queries against the original bound module symbol and use the augmentation-specific unresolved-module diagnostic. The other 32 configurations neither augment an imported module nor query an unresolved augmentation."
+    },
+    "candidateHash": "ee628787f2fbd50b62e45c41a8016549d777e97aeaa915956dc3213e60f34d55",
+    "oracleHash": "e1a6ef525c2095eebebbfb6300cb3212173d507f469f47682899b36ad2424031",
+    "retainedCandidates": 36,
+    "retainedReferences": 40,
+    "replayedConfigurations": 4,
+    "reason": "The module-file query supplies no missing-module diagnostic in the reference. Suppress only unresolved-module reporting for this query, preserving other resolver diagnostics and all existing callers defaults. Replay four missing-module configurations; the other 36 have no unresolved emit lookup."
+}
