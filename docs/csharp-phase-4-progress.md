@@ -20,6 +20,8 @@ These comparisons cover source graphs and diagnostic codes. **94.9% matching on 
 
 Phase 4 is not nearly complete, and the evidence does not yet support a reliable completion estimate. Completed results are retained: each implementation checkpoint replays affected inputs against cached oracle results. A failed check is repeated after a relevant fix; unchanged checks are reused.
 
+**Current implementation focus:** finish module-specifier candidate discovery and selection, then connect it to symbol formatting and complete formatted accessibility results. The recent query/accessibility/naming commits add missing functionality but have not closed that API gate or reduced the 689 corpus differences. After API integration, remaining diagnostic differences and the unmeasured detailed corpus still need work; parallel scheduling and performance/memory gates follow. Updates should identify which requirement changed, rather than treating component test counts as a completion estimate.
+
 The next implementation priorities are missing diagnostic arguments and relation chains, remaining declaration/expression checks, and the unfinished checker APIs. The sections below are historical implementation checkpoints; their individual passing counts do not represent whole-phase completion.
 
 **Validation policy, updated 2026-09-24.** At the user's request, all further execution and validation use the normal Release build. NativeAOT publishing is deferred until the final completion check, when it must finish without warnings or errors. NativeAOT binaries are no longer executed for validation. Earlier NativeAOT results below remain historical evidence.
@@ -1068,6 +1070,14 @@ Release comparison passes **all 24,455 cases**: **21,504 raw map combinations**,
 The completed matrix was retained after adding safety tests. Earlier ending/path, checker and repository evidence remains applicable; no existing production caller invokes the new package-naming layer. Formatting preserves tokens, comments and syntax in four C# files. The pinned map and output-path sources match blobs `5418ca371aa3a9e64e0631aa4b37a6e7201b9d89` and `83a098654063fa6a9ba27e523cb9e48d9a1be65f`.
 
 Evidence: [package-map comparisons](../csharp/compatibility/evidence/phase4-module-package-maps.json) and [Release validation](../csharp/compatibility/evidence/phase4-module-package-maps-validation.json). Run the prepared managed harness and reference oracle with `node csharp/tools/module-specifier-paths.mjs --packages`. Candidate module-path discovery, final specifier selection and integration with symbol formatting remain open. NativeAOT verification remains deferred until phase-4 completion.
+
+## Node-module package naming
+
+The package-naming layer now combines ending preferences and reverse export/path maps to name files under `node_modules`. It handles package entry points, scoped and nested packages, `@types` names, version-specific paths, target-extension import modes, redirects and global-typings-cache restrictions. The pinned implementation retries the same package root for each directory component; the C# implementation performs that stable cached lookup once.
+
+Release comparison passes **1,674 new cases**, and **10 safety assertions** cover public/private exports, redirects, cache exclusions, cancellation/retry and a **20,000-directory** path. The Release build has zero warnings and errors. An attempted UNC importing-root fixture failed in the reference virtual filesystem before comparison; UNC-root naming is not claimed as validated by this checkpoint. Completed reference rows were retained while correcting fixture setup, and every candidate comparison ran once. Earlier path/package-map/checker results remain retained because their algorithms and callers did not change.
+
+Evidence: [node-module comparisons](../csharp/compatibility/evidence/phase4-node-module-specifiers.json) and [Release validation](../csharp/compatibility/evidence/phase4-node-module-specifiers-validation.json). The managed runner is `node csharp/tools/module-specifier-paths.mjs --node-modules`. Candidate-path discovery, final selection and symbol-formatter integration remain incomplete; the overall corpus counts above are unchanged. NativeAOT remains deferred until final phase completion.
 
 ## Remaining completion work
 

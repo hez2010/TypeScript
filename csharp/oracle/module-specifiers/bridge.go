@@ -13,13 +13,24 @@ import (
 
 type CSharpPathHost struct {
 	ModuleSpecifierGenerationHost
-	Directory        string
-	Sensitive        bool
-	DefaultMode      core.ResolutionMode
-	Exists           func(string) bool
-	Read             func(string) (string, bool)
-	CommonDirectory  string
-	MapperExtensions []string
+	Directory          string
+	Sensitive          bool
+	DefaultMode        core.ResolutionMode
+	Exists             func(string) bool
+	Read               func(string) (string, bool)
+	CommonDirectory    string
+	MapperExtensions   []string
+	GlobalTypingsCache string
+}
+
+func (h *CSharpPathHost) GetGlobalTypingsCacheLocation() string { return h.GlobalTypingsCache }
+
+func CSharpNodeModuleSpecifier(file *ast.SourceFile, options *core.CompilerOptions, host *CSharpPathHost,
+	target, preference string, mode core.ResolutionMode, packageNameOnly, redirect bool,
+) string {
+	return tryGetModuleNameAsNodeModule(ModulePath{FileName: target, IsInNodeModules: true, IsRedirect: redirect},
+		getInfo(file.FileName(), host), file, host, options,
+		UserPreferences{ImportModuleSpecifierEnding: ImportModuleSpecifierEndingPreference(preference)}, packageNameOnly, mode)
 }
 
 func (h *CSharpPathHost) CommonSourceDirectory() string     { return h.CommonDirectory }
@@ -36,6 +47,7 @@ func (h *CSharpPathHost) GetNearestAncestorDirectoryWithPackageJson(directory st
 		directory = parent
 	}
 }
+
 func (h *CSharpPathHost) GetPackageJsonInfo(path string) *packagejson.InfoCacheEntry {
 	text, ok := h.Read(path)
 	if !ok {
@@ -46,7 +58,8 @@ func (h *CSharpPathHost) GetPackageJsonInfo(path string) *packagejson.InfoCacheE
 }
 
 func CSharpPackageSpecifiers(operation string, options *core.CompilerOptions, host *CSharpPathHost, target, directory, name, sourceDirectory string,
-	value packagejson.ExportsOrImports, conditions []string, mode MatchingMode, imports, preferTypeScript bool, importMode core.ResolutionMode) any {
+	value packagejson.ExportsOrImports, conditions []string, mode MatchingMode, imports, preferTypeScript bool, importMode core.ResolutionMode,
+) any {
 	switch operation {
 	case "package-map":
 		return tryGetModuleNameFromExportsOrImports(options, host, target, directory, name, value, conditions, mode, imports, preferTypeScript)
@@ -71,7 +84,8 @@ func (h *CSharpPathHost) GetDefaultResolutionModeForFile(file ast.HasFileName) c
 
 func CSharpSpecifierPaths(operation string, file *ast.SourceFile, options *core.CompilerOptions, host *CSharpPathHost,
 	mode core.ResolutionMode, preference, oldSpecifier, target, sourceDirectory, baseDirectory string,
-	roots []string, endings []ModuleSpecifierEnding, paths *collections.OrderedMap[string, []string]) any {
+	roots []string, endings []ModuleSpecifierEnding, paths *collections.OrderedMap[string, []string],
+) any {
 	switch operation {
 	case "endings":
 		endings := GetAllowedEndingsInPreferredOrder(UserPreferences{ImportModuleSpecifierEnding: ImportModuleSpecifierEndingPreference(preference)}, host, options, file, oldSpecifier, mode)

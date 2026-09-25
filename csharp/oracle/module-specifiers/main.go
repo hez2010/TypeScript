@@ -3,6 +3,8 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"os"
+
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/collections"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
@@ -11,7 +13,6 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/parser"
 	"github.com/microsoft/TypeScript/tsc/internal/tsoptions"
 	"github.com/microsoft/TypeScript/tsc/internal/tsoptions/tsoptionstest"
-	"os"
 )
 
 func main() {
@@ -33,6 +34,8 @@ func main() {
 			Conditions, MapperExtensions                                                                             []string
 			MatchMode                                                                                                modulespecifiers.MatchingMode
 			Imports, PreferTypeScript                                                                                bool
+			PackageNameOnly, Redirect                                                                                bool
+			GlobalTypingsCache                                                                                       string
 		}
 		if err := json.Unmarshal(lines.Bytes(), &input); err != nil {
 			panic(err)
@@ -46,6 +49,19 @@ func main() {
 		input.Files[configPath] = string(config)
 		host := tsoptionstest.NewVFSParseConfigHost(input.Files, input.Directory, input.Sensitive)
 		parsed, _ := tsoptions.GetParsedCommandLineOfConfigFile(configPath, nil, nil, host, nil)
+		if input.Operation == "node-modules" {
+			file := parser.ParseSourceFile(ast.SourceFileParseOptions{FileName: input.FileName}, input.Source, core.EnsureScriptKindFromFileName(input.FileName))
+			result := modulespecifiers.CSharpNodeModuleSpecifier(file, parsed.CompilerOptions(),
+				&modulespecifiers.CSharpPathHost{
+					Directory: input.Directory, Sensitive: input.Sensitive, DefaultMode: input.DefaultMode,
+					Exists: host.FS().FileExists, Read: host.FS().ReadFile, GlobalTypingsCache: input.GlobalTypingsCache,
+				},
+				input.Target, input.Preference, input.Mode, input.PackageNameOnly, input.Redirect)
+			if err := output.Encode(result); err != nil {
+				panic(err)
+			}
+			continue
+		}
 		if input.Operation == "package-map" || input.Operation == "package-exports" || input.Operation == "package-imports" || input.Operation == "package-conditions" || input.Operation == "output-paths" {
 			valueText := input.PackageMap
 			if len(valueText) == 0 {

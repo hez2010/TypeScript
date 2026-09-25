@@ -12,7 +12,7 @@ internal enum PackageSpecifierMatch
     Pattern
 }
 
-internal sealed class ModuleSpecifierPackages(IFileSystem fileSystem, CompilerOptions options, string currentDirectory,
+internal sealed partial class ModuleSpecifierPackages(IFileSystem fileSystem, CompilerOptions options, string currentDirectory,
     string commonSourceDirectory, IReadOnlyList<string>? contentMapperExtensions = null, SemanticVersion? compilerVersion = null)
 {
     private readonly PackageJsonCache packages = new(fileSystem, currentDirectory);

@@ -13,7 +13,8 @@ import {
 } from "./common.mjs";
 
 const packageMaps = process.argv.includes("--packages");
-const output = path.join(root, `built/csharp/module-specifier-${packageMaps ? "packages" : "paths"}`);
+const nodeModules = process.argv.includes("--node-modules");
+const output = path.join(root, `built/csharp/module-specifier-${nodeModules ? "node-modules" : packageMaps ? "packages" : "paths"}`);
 const hash = value => createHash("sha256").update(value).digest("hex");
 const dotnet = process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, "dotnet.exe") : "dotnet";
 const oracle = path.join(root, "built/csharp/module-specifier-oracle.exe");
@@ -57,6 +58,28 @@ if (packageMaps) {
     for (const imports of [{ "#item": "./lib/item.js" }, { "#*": "./lib/*.js" }, { "#/items/*": "./lib/*.js" }, { "#": "./lib/item.js", "#/": "./lib/item.js", "plain": "./lib/item.js", "#valid": "./lib/item.js" }, { "#item": { types: "./types/item.d.ts", import: "./lib/item.js", require: "./lib/item.cjs" } }, { "#item": [null, "./types/item.d.ts", "./lib/item.js"] }, "./lib/item.js", null]) for (const target of targets) for (const resolution of ["bundler", "node16", "nodenext"]) for (const mode of [0, 1, 99]) for (const preferTypeScript of [false, true]) add("package-imports", { target, mode, preferTypeScript, sourceDirectory: "/project/src/nested", commonDirectory: "/project/src", options: { outDir: "lib", declarationDir: "types", moduleResolution: resolution }, files: { "/project/package.json": JSON.stringify({ imports }) } });
     for (const options of optionSets) for (const target of [...targets, "/project/src/style.module.css", "/project/src/noextension", "/project/src/item.d.css.ts"]) for (const sensitive of [true, false]) add("output-paths", { options, target, sensitive, commonDirectory: "/project/src", mapperExtensions: [".module.css", ".css", ".vue"] });
     for (const options of [{}, { moduleResolution: "node16" }, { moduleResolution: "nodenext" }, { module: "node20" }, { moduleResolution: "bundler", customConditions: ["custom", "custom"] }]) for (const mode of [0, 1, 99]) add("package-conditions", { options, mode });
+}
+if (nodeModules) {
+    cases.length = 0;
+    const manifests = [undefined, "{", {}, { name: "wrong-name", types: "lib/main.d.ts" }, { typings: "lib/main.d.ts", types: "other.d.ts", main: "index.js" }, { typings: "", types: "lib/main.d.ts" }, { main: "lib" }, { type: "module", main: "lib" }, { main: "./LIB/main.js" }, { exports: null }, { name: "wrong-name", exports: { ".": "./lib/main.js", "./features/*": "./lib/*.js" } }, { exports: { ".": { import: "./lib/main.mjs", require: "./lib/main.cjs", types: "./lib/main.d.ts" } } }, { exports: { "./first": "./lib/main.js", "./second": "./lib/main.js" } }, { main: "index.js", typesVersions: { "*": { "*": ["lib/*"] } } }, { main: "index.js", typesVersions: { "*": { "index.js": ["lib/main.d.ts"] } } }, { types: "lib/main.d.ts", typesVersions: { "*": { "lib/*": ["hidden/*"] } } }, { typesVersions: { "bad-version": {}, "<7": { "*": ["old/*"] }, "*": { "feature": ["lib/main"], "*": ["lib/*"] } } }, { typesVersions: { "*": { bad: false, valid: [null, false, "lib/main.d.ts"] } } }, {
+        typesVersions: { "*": false, ">=7": { "*": ["lib/*"] } },
+    }];
+    const targets = ["index.d.ts", "index.js", "index.tsx", "index.mts", "lib/main.d.ts", "lib/main.ts", "lib/main.d.mts", "lib/main.cts", "lib/index.d.ts", "lib/index.mts", "lib/feature.d.css.ts", "lib/data.json"];
+    for (const manifest of manifests) {
+        for (const suffix of targets) {
+            for (const sensitive of [true, false]) {
+                for (const mode of [1, 99]) {
+                    const packageRoot = "/project/node_modules/pkg";
+                    add("node-modules", { target: packageRoot + "/" + suffix, sensitive, mode, defaultMode: mode, options: { moduleResolution: "nodenext" }, files: manifest === undefined ? {} : { [packageRoot + "/package.json"]: typeof manifest === "string" ? manifest : JSON.stringify(manifest) } });
+                }
+            }
+        }
+    }
+    for (const packagePath of ["pkg", "@scope/pkg", "@types/pkg", "@types/scope__pkg", "outer/node_modules/inner", "@scope/outer/node_modules/@types/a__b"]) for (const suffix of ["index.d.ts", "lib/main.d.ts"]) for (const fileName of ["/project/main.ts", "/project/sub/main.ts", "/other/main.ts", "/PROJECT/main.ts"]) for (const sensitive of [true, false]) for (const packageNameOnly of [true, false]) for (const redirect of [true, false]) add("node-modules", { target: "/project/node_modules/" + packagePath + "/" + suffix, fileName, sensitive, packageNameOnly, redirect });
+    for (const options of [{}, { allowImportingTsExtensions: true }, { resolvePackageJsonExports: false }, { moduleResolution: "node16" }, { moduleResolution: "bundler" }]) for (const preference of ["", "minimal", "index", "js"]) for (const defaultMode of [0, 1, 99]) for (const mode of [0, 1, 99]) for (const target of ["/project/node_modules/pkg/lib/main.d.ts", "/project/node_modules/pkg/lib/main.d.mts"]) add("node-modules", { target, options, preference, defaultMode, mode, files: { "/project/node_modules/pkg/package.json": JSON.stringify({ exports: { "./import": { import: "./lib/main.js" }, "./require": { require: "./lib/main.js" }, "./esm": "./lib/main.mjs" } }) } });
+    for (const globalTypingsCache of ["", "/project/cache", "/elsewhere/cache"]) for (const redirect of [true, false]) for (const files of [{}, { "/project/node_modules/pkg/package.json": JSON.stringify({ exports: { ".": "./index.js" } }) }]) add("node-modules", { target: "/project/node_modules/pkg/index.d.ts", globalTypingsCache, redirect, files });
+    // The reference VFS cannot represent UNC roots; these need a different host fixture.
+    for (const target of ["/project/src/file.ts", "/project/node_modules", "/project/node_modules/pkg", "/project/node_modules/@scope/pkg", "/project/node_modules/pkg/lib/item.ts", "C:/project/node_modules/pkg/index.d.ts"]) add("node-modules", { target, directory: target.startsWith("C:") ? "c:/project" : "/project", fileName: target.startsWith("C:") ? "c:/project/main.ts" : "/project/main.ts" });
 }
 const selected = process.argv.includes("--filter") ? cases.filter(c => c.operation === option("--filter")) : cases;
 await writeFile(path.join(output, "inputs.json"), JSON.stringify(selected));

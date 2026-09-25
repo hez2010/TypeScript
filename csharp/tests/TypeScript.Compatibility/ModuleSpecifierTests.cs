@@ -11,6 +11,51 @@ namespace TypeScript.Compatibility;
 
 internal static class ModuleSpecifierTests
 {
+    internal static int NodeModuleSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Node module specifier assertion {checks + 1}");
+            checks++;
+        }
+        var source = Parser.ParseSourceFile(new("/project/main.ts"), new SourceText(""));
+        var fs = new MemoryFileSystem(new Dictionary<string, byte[]>
+        {
+            ["/project/node_modules/pkg/package.json"] = Wtf8.Encode("{\"exports\":{\"./public\":\"./lib/item.js\"}}")
+        });
+        var naming = new ModuleSpecifierPackages(fs, new(), "/project", "/project");
+        Check(naming.FromNodeModules("/project/node_modules/pkg/lib/item.ts", source, 0) == "pkg/public");
+        Check(naming.FromNodeModules("/project/node_modules/pkg/lib/private.ts", source, 0) == "");
+        Check(naming.FromNodeModules("/project/node_modules/@types/scope__pkg/index.d.ts", source, 0) == "@scope/pkg");
+        Check(naming.FromNodeModules("/project/node_modules/other/lib/item.ts", source, 0, isRedirect: true) == "");
+        Check(naming.FromNodeModules("/project/node_modules/other/index.d.ts", source, 0, isRedirect: true) == "other");
+        Check(naming.FromNodeModules("/project/node_modules/other/index.d.ts", source, 0, globalTypingsCache: "/project/cache") == "");
+        Check(
+            naming.FromNodeModules(
+                "/project/node_modules/pkg/lib/item.ts",
+                source,
+                0,
+                isRedirect: true,
+                globalTypingsCache: "/project/cache") == "pkg/public");
+        string deep = "/project/node_modules/other/" + string.Concat(Enumerable.Repeat("sub/", 20_000)) + "item.ts";
+        Check(naming.FromNodeModules(deep, source, 0) == deep["/project/node_modules/".Length..^3]);
+        using var stop = new CancellationTokenSource();
+        stop.Cancel();
+        try
+        {
+            naming.FromNodeModules(deep, source, 0, cancellation: stop.Token);
+            throw new InvalidOperationException("Canceled node module naming query completed");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        Check(naming.FromNodeModules("/project/node_modules/pkg/lib/item.ts", source, 0) == "pkg/public");
+        return checks;
+    }
+
     internal static int PackageSafety()
     {
         int checks = 0;
@@ -200,6 +245,15 @@ internal static class ModuleSpecifierTests
         var endings = input.TryGetProperty("endings", out var suppliedEndings)
             ? suppliedEndings.EnumerateArray().Select(v => (ModuleSpecifierEnding)v.GetInt32()).ToArray() : [];
         string target = Text("target"), directory = Text("directory");
+        if (Text("operation") == "node-modules")
+        {
+            var naming = new ModuleSpecifierPackages(fs, options, directory, directory);
+            writer.WriteStringValue(naming.FromNodeModules(target, source,
+                (ReferenceResolutionMode)Number("defaultMode"), (ReferenceResolutionMode)Number("mode"), Text("preference"),
+                input.TryGetProperty("packageNameOnly", out var nameOnly) && nameOnly.GetBoolean(),
+                input.TryGetProperty("redirect", out var redirect) && redirect.GetBoolean(), Text("globalTypingsCache")));
+            return;
+        }
         if (Text("operation") is "package-map" or "package-exports" or "package-imports" or "package-conditions" or "output-paths")
         {
             var naming = new ModuleSpecifierPackages(

@@ -1,0 +1,19 @@
+{
+    "cases": 1674,
+    "exact": 1674,
+    "failed": 0,
+    "byOperation": {
+        "node-modules": 1674
+    },
+    "candidateExecuted": 1674,
+    "candidateReused": 0,
+    "referenceExecuted": 0,
+    "referenceReused": 1674,
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "oracleHash": "797c46fa03e78213fb93c26425141eba1e812bfe125ff14df10346759a7e30b8",
+    "candidateHash": "8a3f4e689722c7bb3354e10a77c02b14994abdf1a6a9273514ba916b92d55935",
+    "inputHash": "c2182389ea882369f307125a1c5233437be05a661f806295daa748f0338210c2",
+    "referenceHash": "070b97b5501d078d7fbe75a14e56e83a111616725a82f177af2bb2210cf99e9b",
+    "outputHash": "070b97b5501d078d7fbe75a14e56e83a111616725a82f177af2bb2210cf99e9b",
+    "managed": true
+}

@@ -1,0 +1,76 @@
+{
+    "timestamp": "2026-09-25T04:57:31.6974518Z",
+    "configuration": "Release",
+    "managed": true,
+    "scope": "Node-module package naming; candidate paths, full specifier generation and formatted accessibility remain incomplete",
+    "build": {
+        "warnings": 0,
+        "log": "logs/csharp-phase4-node-module-build.log",
+        "errors": 0,
+        "exitCode": 0,
+        "sha256": "47088379441e78c631598c42c09a6c077e6d118b01354b131594a12d3924e8e9"
+    },
+    "candidateSha256": "8b542ab21e0bb3d57752442d7f6c024a63efeeb7a528754375122801a743db5b",
+    "compilerSha256": "71c6efcc75bcc0f2ebd8c0320b1df5615e1451f8a7ba16905cdb46b25ef02622",
+    "comparisons": {
+        "cases": 1674,
+        "exact": 1674,
+        "failed": 0,
+        "byOperation": {
+            "node-modules": 1674
+        },
+        "candidateExecuted": 1674,
+        "candidateReused": 0,
+        "referenceExecuted": 0,
+        "referenceReused": 1674,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "oracleHash": "797c46fa03e78213fb93c26425141eba1e812bfe125ff14df10346759a7e30b8",
+        "candidateHash": "8a3f4e689722c7bb3354e10a77c02b14994abdf1a6a9273514ba916b92d55935",
+        "inputHash": "c2182389ea882369f307125a1c5233437be05a661f806295daa748f0338210c2",
+        "referenceHash": "070b97b5501d078d7fbe75a14e56e83a111616725a82f177af2bb2210cf99e9b",
+        "outputHash": "070b97b5501d078d7fbe75a14e56e83a111616725a82f177af2bb2210cf99e9b",
+        "managed": true
+    },
+    "safety": {
+        "log": "logs/csharp-phase4-node-module-safety.log",
+        "assertions": 10,
+        "directoryDepth": 20000
+    },
+    "reference": {
+        "specifiersBlob": "5418ca371aa3a9e64e0631aa4b37a6e7201b9d89",
+        "revision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "frozenSourceMatches": true
+    },
+    "fixtureLimitations": [
+        "The initial Windows fixture mixed a POSIX configuration directory with a Windows source path; corrected to a Windows directory.",
+        "The reference VFS rejects UNC source roots and package reads. The attempted UNC fixture is excluded from these 1674 comparisons; UNC-root naming remains unvalidated here."
+    ],
+    "reuse": {
+        "candidateExecutionsPerCase": 1,
+        "validatedCommit": "00d370e5b0",
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "reason": "Reference rows completed before fixture-host failures were cached and retained. Previous path/package-map/checker algorithms and callers are unchanged.",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "retainedReferences": 1674
+    },
+    "formatting": {
+        "libraryConfigurations": 2,
+        "log": "logs/csharp-phase4-node-module-format.log",
+        "proofSha256": "264325fda1656819651d9396c8e86f9e86eec4c56c2b8032913a07775d4004cc",
+        "tokensCommentsAndSyntaxIdentical": true,
+        "csharpFiles": 4,
+        "dotnetWhitespaceExitCode": 0,
+        "inputsUnchanged": true
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "phase4Complete": false,
+    "syntaxCheck": {
+        "exitCode": 0,
+        "command": "node --check csharp/tools/module-specifier-paths.mjs"
+    }
+}
