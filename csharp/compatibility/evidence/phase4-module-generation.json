@@ -1,0 +1,22 @@
+{
+    "cases": 927,
+    "exact": 927,
+    "failed": 0,
+    "byOperation": {
+        "all-paths": 110,
+        "local": 564,
+        "select": 217,
+        "generate": 36
+    },
+    "candidateExecuted": 1,
+    "candidateReused": 926,
+    "referenceExecuted": 0,
+    "referenceReused": 927,
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "oracleHash": "ea328b757c11431e09a48bf7df4c62810862f581eb14ae1e0e561ecf66042b9a",
+    "candidateHash": "e89862486c28d3f68ec49e250fc59e469df9e85bfc7dd5cbe597d8399ec5e974",
+    "inputHash": "527baeaaf408849fa31e226bf5fee306465e69e2144ae3b5626bceee89b0b422",
+    "referenceHash": "82b1b433b741f0e8953c3571ae1df47a89bf5827f12a8e87af83daf7ee4c3575",
+    "outputHash": "82b1b433b741f0e8953c3571ae1df47a89bf5827f12a8e87af83daf7ee4c3575",
+    "managed": true
+}

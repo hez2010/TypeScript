@@ -2,12 +2,16 @@
 package modulespecifiers
 
 import (
+	"regexp"
+
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/collections"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/module"
 	"github.com/microsoft/TypeScript/tsc/internal/outputpaths"
 	"github.com/microsoft/TypeScript/tsc/internal/packagejson"
+	"github.com/microsoft/TypeScript/tsc/internal/symlinks"
+	"github.com/microsoft/TypeScript/tsc/internal/tsoptions"
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 )
 
@@ -21,6 +25,67 @@ type CSharpPathHost struct {
 	CommonDirectory    string
 	MapperExtensions   []string
 	GlobalTypingsCache string
+	ReferenceOutput    string
+	Redirects          []string
+	Links              *symlinks.KnownSymlinks
+	OriginalSource     string
+	ImportTargets      map[string]string
+	ImportModes        map[string]core.ResolutionMode
+}
+
+func (h *CSharpPathHost) GetProjectReferenceFromSource(path tspath.Path) *tsoptions.SourceOutputAndProjectReference {
+	if h.ReferenceOutput == "" {
+		return nil
+	}
+	return &tsoptions.SourceOutputAndProjectReference{OutputDts: h.ReferenceOutput}
+}
+func (h *CSharpPathHost) GetRedirectTargets(path tspath.Path) []string { return h.Redirects }
+func (h *CSharpPathHost) GetSymlinkCache() *symlinks.KnownSymlinks     { return h.Links }
+func (h *CSharpPathHost) GetSourceOfProjectReferenceIfOutputIncluded(file ast.HasFileName) string {
+	if h.OriginalSource != "" {
+		return h.OriginalSource
+	}
+	return file.FileName()
+}
+
+func (h *CSharpPathHost) GetResolvedModuleFromModuleSpecifier(file ast.HasFileName, specifier *ast.StringLiteralLike) *module.ResolvedModule {
+	return &module.ResolvedModule{ResolvedFileName: h.ImportTargets[specifier.Text()]}
+}
+
+func (h *CSharpPathHost) GetModeForUsageLocation(file ast.HasFileName, specifier *ast.StringLiteralLike) core.ResolutionMode {
+	if mode, ok := h.ImportModes[specifier.Text()]; ok {
+		return mode
+	}
+	return h.DefaultMode
+}
+
+func CSharpGeneration(operation string, file *ast.SourceFile, options *core.CompilerOptions, host *CSharpPathHost,
+	target, relative, ending, excludedPrefix string, mode core.ResolutionMode, pathsOnly, forAutoImport bool, paths []ModulePath,
+) any {
+	prefs := UserPreferences{ImportModuleSpecifierPreference: ImportModuleSpecifierPreference(relative), ImportModuleSpecifierEnding: ImportModuleSpecifierEndingPreference(ending)}
+	if excludedPrefix != "" {
+		prefs.AutoImportSpecifierExcludeRegexes = []string{"^" + regexp.QuoteMeta(excludedPrefix)}
+	}
+	if operation == "all-paths" {
+		return getAllModulePathsWorker(getInfo(file.FileName(), host), target, host, options, ModuleSpecifierOptions{})
+	}
+	if operation == "local" {
+		return getLocalModuleSpecifier(target, getInfo(file.FileName(), host), options, host, mode, getModuleSpecifierPreferences(prefs, host, options, file, ""), pathsOnly)
+	}
+	var specifiers []string
+	var kind ResultKind
+	if operation == "select" {
+		specifiers, kind = computeModuleSpecifiers(paths, options, file, host, prefs, ModuleSpecifierOptions{OverrideImportMode: mode}, forAutoImport)
+	} else {
+		specifiers, kind = GetModuleSpecifiersForFileWithInfo(file, target, options, host, prefs, ModuleSpecifierOptions{OverrideImportMode: mode}, forAutoImport)
+	}
+	if specifiers == nil {
+		specifiers = []string{}
+	}
+	return struct {
+		Specifiers []string
+		Kind       ResultKind
+	}{specifiers, kind}
 }
 
 func (h *CSharpPathHost) GetGlobalTypingsCacheLocation() string { return h.GlobalTypingsCache }

@@ -1,0 +1,84 @@
+{
+    "timestamp": "2026-09-25T05:14:08.0985587Z",
+    "configuration": "Release",
+    "managed": true,
+    "scope": "Candidate path discovery, local naming and final module-specifier selection through an explicit fixture host; production program adapter and symbol formatting remain incomplete",
+    "build": {
+        "exitCode": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-module-generation-build.log",
+        "warnings": 0,
+        "sha256": "924ec7cde4df90ecceb72e3a1323476b19da2899260c23adbef23393a439c420"
+    },
+    "candidateSha256": "ca12f3098c68af02abf7379a7d1c21898309b0bc2367f420341ccf2367dc5a2b",
+    "compilerSha256": "82eabe25fe557f54aa0e9f2ea393458fddd86c150606cf453b367c1b8fe43e9a",
+    "comparisons": {
+        "cases": 927,
+        "exact": 927,
+        "failed": 0,
+        "byOperation": {
+            "all-paths": 110,
+            "local": 564,
+            "select": 217,
+            "generate": 36
+        },
+        "candidateExecuted": 1,
+        "candidateReused": 926,
+        "referenceExecuted": 0,
+        "referenceReused": 927,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "oracleHash": "ea328b757c11431e09a48bf7df4c62810862f581eb14ae1e0e561ecf66042b9a",
+        "candidateHash": "e89862486c28d3f68ec49e250fc59e469df9e85bfc7dd5cbe597d8399ec5e974",
+        "inputHash": "527baeaaf408849fa31e226bf5fee306465e69e2144ae3b5626bceee89b0b422",
+        "referenceHash": "82b1b433b741f0e8953c3571ae1df47a89bf5827f12a8e87af83daf7ee4c3575",
+        "outputHash": "82b1b433b741f0e8953c3571ae1df47a89bf5827f12a8e87af83daf7ee4c3575",
+        "managed": true
+    },
+    "safety": {
+        "candidateHash": "594a75cb874011b7a804c12257be9805b2d14ea18cf53cd725eaed50bfcae2ab",
+        "assertions": 12,
+        "log": "logs/csharp-phase4-module-generation-safety.log",
+        "retained": true,
+        "reason": "Review corrections affect empty imports, invalid/empty path maps with custom base directories and Unicode case handling. Safety inputs use ASCII paths with no imports or mappings. The original assertion count proves the callback threw, satisfying the strengthened assertion."
+    },
+    "reference": {
+        "revision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "specifiersBlob": "5418ca371aa3a9e64e0631aa4b37a6e7201b9d89",
+        "pathBlob": "a8a15b88feda045e60151b6fecb2557a9c69d9a6",
+        "frozenSourcesMatch": true
+    },
+    "scopeLimitations": [
+        "The production compiler-program host and formatter integration remain incomplete.",
+        "Exclusion tests provide an equivalent prefix predicate and reference regex; general regex compilation is outside this selection comparison."
+    ],
+    "reuse": {
+        "retainedReferences": 927,
+        "validatedCommit": "00d370e5b0",
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "retainedCandidates": 926,
+        "record": "phase4-module-generation-reuse.json",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "replayedCandidates": 1,
+        "earlierNaming": "Earlier path/package helpers and existing checker callers are unchanged."
+    },
+    "formatting": {
+        "libraryConfigurations": 2,
+        "proofSha256": "0b97e14a300eeb76ae7a73c970e3539f0f40c9c09ab8e73a48ce5afac95d0adf",
+        "dotnetWhitespaceExitCode": 0,
+        "log": "logs/csharp-phase4-module-generation-format.log",
+        "tokensCommentsAndSyntaxIdentical": true,
+        "csharpFiles": 5,
+        "inputsUnchanged": true
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "phase4Complete": false,
+    "syntaxCheck": {
+        "command": "node --check csharp/tools/module-specifier-paths.mjs",
+        "exitCode": 0
+    }
+}

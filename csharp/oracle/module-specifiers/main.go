@@ -11,8 +11,10 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/modulespecifiers"
 	"github.com/microsoft/TypeScript/tsc/internal/packagejson"
 	"github.com/microsoft/TypeScript/tsc/internal/parser"
+	"github.com/microsoft/TypeScript/tsc/internal/symlinks"
 	"github.com/microsoft/TypeScript/tsc/internal/tsoptions"
 	"github.com/microsoft/TypeScript/tsc/internal/tsoptions/tsoptionstest"
+	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 )
 
 func main() {
@@ -36,6 +38,13 @@ func main() {
 			Imports, PreferTypeScript                                                                                bool
 			PackageNameOnly, Redirect                                                                                bool
 			GlobalTypingsCache                                                                                       string
+			ReferenceOutput, OriginalSource, Relative, ExcludedPrefix                                                string
+			Redirects                                                                                                []string
+			Symlinks                                                                                                 map[string][]string
+			ImportTargets                                                                                            map[string]string
+			ImportModes                                                                                              map[string]core.ResolutionMode
+			ModulePaths                                                                                              []modulespecifiers.ModulePath
+			PathsOnly, ForAutoImport                                                                                 bool
 		}
 		if err := json.Unmarshal(lines.Bytes(), &input); err != nil {
 			panic(err)
@@ -49,6 +58,29 @@ func main() {
 		input.Files[configPath] = string(config)
 		host := tsoptionstest.NewVFSParseConfigHost(input.Files, input.Directory, input.Sensitive)
 		parsed, _ := tsoptions.GetParsedCommandLineOfConfigFile(configPath, nil, nil, host, nil)
+		if input.Operation == "all-paths" || input.Operation == "local" || input.Operation == "select" || input.Operation == "generate" {
+			file := parser.ParseSourceFile(ast.SourceFileParseOptions{FileName: input.FileName}, input.Source, core.EnsureScriptKindFromFileName(input.FileName))
+			links := symlinks.NewKnownSymlink(input.Directory, input.Sensitive)
+			for real, names := range input.Symlinks {
+				for _, name := range names {
+					links.SetDirectory(name, tspath.ToPath(name, input.Directory, input.Sensitive).EnsureTrailingDirectorySeparator(), &symlinks.KnownDirectoryLink{Real: tspath.EnsureTrailingDirectorySeparator(real), RealPath: tspath.ToPath(real, input.Directory, input.Sensitive).EnsureTrailingDirectorySeparator()})
+				}
+			}
+			common := input.CommonDirectory
+			if common == "" {
+				common = input.Directory
+			}
+			result := modulespecifiers.CSharpGeneration(input.Operation, file, parsed.CompilerOptions(), &modulespecifiers.CSharpPathHost{
+				Directory: input.Directory, Sensitive: input.Sensitive, DefaultMode: input.DefaultMode, Exists: host.FS().FileExists, Read: host.FS().ReadFile,
+				CommonDirectory: common, MapperExtensions: input.MapperExtensions, GlobalTypingsCache: input.GlobalTypingsCache, ReferenceOutput: input.ReferenceOutput,
+				Redirects: input.Redirects, Links: links, OriginalSource: input.OriginalSource, ImportTargets: input.ImportTargets, ImportModes: input.ImportModes,
+			},
+				input.Target, input.Relative, input.Preference, input.ExcludedPrefix, input.Mode, input.PathsOnly, input.ForAutoImport, input.ModulePaths)
+			if err := output.Encode(result); err != nil {
+				panic(err)
+			}
+			continue
+		}
 		if input.Operation == "node-modules" {
 			file := parser.ParseSourceFile(ast.SourceFileParseOptions{FileName: input.FileName}, input.Source, core.EnsureScriptKindFromFileName(input.FileName))
 			result := modulespecifiers.CSharpNodeModuleSpecifier(file, parsed.CompilerOptions(),

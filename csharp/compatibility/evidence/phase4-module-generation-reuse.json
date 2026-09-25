@@ -1,0 +1,15 @@
+{
+    "retainedCandidates": 922,
+    "previousCandidateHash": "594a75cb874011b7a804c12257be9805b2d14ea18cf53cd725eaed50bfcae2ab",
+    "candidateHash": "14775dea75a82220a5ef43219a0c4bf0269457d83025f2ea5358186f85cb26e6",
+    "compilerHash": "c0e5355934ce31f4c0ee770ccfc080491c3d20a490766104b27e861ed7a1a714",
+    "reason": "Review fixes change empty existing imports, invalid paths shapes, non-current pathsBasePath with empty paths, and Unicode simple lowercase. The 922 completed inputs have none of those affected conditions; their Unicode path scalars have identical old/new lowercase. Five new fixtures cover empty-import selection and non-ASCII case handling. The strengthened callback-failure assertion retains its prior success because the recorded count already proves the callback threw.",
+    "correction": {
+        "retainedCandidates": 926,
+        "replayedCandidates": 1,
+        "retainedReferences": 927,
+        "previousCandidateHash": "14775dea75a82220a5ef43219a0c4bf0269457d83025f2ea5358186f85cb26e6",
+        "candidateHash": "e89862486c28d3f68ec49e250fc59e469df9e85bfc7dd5cbe597d8399ec5e974",
+        "reason": "The reference preserves dotted I in canonical file identity but uses simple lowercase for sort order. Only the insensitive existing-import case was affected; all other identities lack dotted I or use case-sensitive comparison. Sorting is unchanged."
+    }
+}

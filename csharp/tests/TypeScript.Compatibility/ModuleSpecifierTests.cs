@@ -245,6 +245,11 @@ internal static class ModuleSpecifierTests
         var endings = input.TryGetProperty("endings", out var suppliedEndings)
             ? suppliedEndings.EnumerateArray().Select(v => (ModuleSpecifierEnding)v.GetInt32()).ToArray() : [];
         string target = Text("target"), directory = Text("directory");
+        if (Text("operation") is "all-paths" or "local" or "select" or "generate")
+        {
+            ModuleSpecifierGenerationTests.Write(input, writer, fs, source, options);
+            return;
+        }
         if (Text("operation") == "node-modules")
         {
             var naming = new ModuleSpecifierPackages(fs, options, directory, directory);

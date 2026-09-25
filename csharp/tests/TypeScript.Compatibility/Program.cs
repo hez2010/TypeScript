@@ -23,6 +23,11 @@ internal static class Program
                 Console.WriteLine($"{ModuleSpecifierTests.Safety()} module naming/path/extension/cancellation assertions");
                 return 0;
             }
+            if (args is ["--module-generation-safety"])
+            {
+                Console.WriteLine($"Module generation safety: {ModuleSpecifierGenerationTests.Safety()} assertions passed");
+                return 0;
+            }
             if (args is ["--module-node-specifiers-safety"])
             {
                 Console.WriteLine($"Node module specifier safety: {ModuleSpecifierTests.NodeModuleSafety()} assertions passed");

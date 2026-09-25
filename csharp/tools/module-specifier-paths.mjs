@@ -14,7 +14,8 @@ import {
 
 const packageMaps = process.argv.includes("--packages");
 const nodeModules = process.argv.includes("--node-modules");
-const output = path.join(root, `built/csharp/module-specifier-${nodeModules ? "node-modules" : packageMaps ? "packages" : "paths"}`);
+const generation = process.argv.includes("--generation");
+const output = path.join(root, `built/csharp/module-specifier-${generation ? "generation" : nodeModules ? "node-modules" : packageMaps ? "packages" : "paths"}`);
 const hash = value => createHash("sha256").update(value).digest("hex");
 const dotnet = process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, "dotnet.exe") : "dotnet";
 const oracle = path.join(root, "built/csharp/module-specifier-oracle.exe");
@@ -80,6 +81,46 @@ if (nodeModules) {
     for (const globalTypingsCache of ["", "/project/cache", "/elsewhere/cache"]) for (const redirect of [true, false]) for (const files of [{}, { "/project/node_modules/pkg/package.json": JSON.stringify({ exports: { ".": "./index.js" } }) }]) add("node-modules", { target: "/project/node_modules/pkg/index.d.ts", globalTypingsCache, redirect, files });
     // The reference VFS cannot represent UNC roots; these need a different host fixture.
     for (const target of ["/project/src/file.ts", "/project/node_modules", "/project/node_modules/pkg", "/project/node_modules/@scope/pkg", "/project/node_modules/pkg/lib/item.ts", "C:/project/node_modules/pkg/index.d.ts"]) add("node-modules", { target, directory: target.startsWith("C:") ? "c:/project" : "/project", fileName: target.startsWith("C:") ? "c:/project/main.ts" : "/project/main.ts" });
+}
+if (generation) {
+    cases.length = 0;
+    const pathScenarios = [
+        { target: "/project/lib/item.ts" },
+        { target: "/project/lib/item.ts", referenceOutput: "/project/dist/item.d.ts", redirects: ["/project/lib/item.ts", "/other/item.ts", "/project/near/item.ts"] },
+        { target: "/store/pkg/lib/item.d.ts", symlinks: { "/store/pkg": ["/project/node_modules/pkg", "/project/sub/node_modules/pkg", "/other/node_modules/pkg"] } },
+        { target: "/project/node_modules/.pnpm/pkg/index.d.ts", symlinks: { "/project/node_modules/.pnpm/pkg": ["/project/node_modules/pkg"] } },
+        { target: "/project/node_modules/.pnpm/pkg/index.d.ts", redirects: ["/project/.git/pkg/index.d.ts", "/project/.#pkg/index.d.ts"] },
+        { target: "/project/node_modules/.pnpm/pkg/index.d.ts", redirects: ["/project/pkg/index.d.ts"] },
+        { target: "/store/pkg/src/item.ts", referenceOutput: "/store/pkg/dist/item.d.ts", symlinks: { "/store/pkg": ["/project/node_modules/pkg"], "/store": ["/project/node_modules/store"] } },
+        { target: "/project/lib/item.ts", redirects: ["/project/lib/😀.ts", "/project/lib/\ue000.ts", "/project/lib/A.ts", "/project/lib/z.ts"] },
+        { target: "/PROJECT/lib/item.ts", symlinks: { "/project/lib": ["/project/sub/node_modules/pkg"] } },
+    ];
+    for (const scenario of pathScenarios) for (const fileName of ["/project/main.ts", "/project/sub/main.ts", "/store/pkg/own.ts"]) for (const sensitive of [true, false]) for (const globalTypingsCache of ["", "/store/pkg"]) add("all-paths", { ...scenario, fileName, sensitive, globalTypingsCache });
+    const optionsSets = [{}, { resolvePackageJsonImports: false }, { rootDirs: ["src", "generated"] }, { paths: { "@lib/*": ["./lib/*"], "@src/*": ["./src/*"], "@outside/*": ["../outside/*"] } }, { paths: { "long/path/*": ["./src/*"] }, moduleResolution: "nodenext" }, { paths: { "../alias/*": ["./src/*"] }, rewriteRelativeImportExtensions: true }, { paths: {}, rootDirs: ["src", "generated"], allowImportingTsExtensions: true }];
+    for (const options of optionsSets) for (const target of ["/project/src/item.ts", "/project/generated/item.ts", "/project/lib/item.d.ts", "/outside/item.ts", "/project/lib/index.d.ts"]) for (const relative of ["shortest", "relative", "non-relative", "project-relative"]) for (const mode of [1, 99]) for (const pathsOnly of [true, false]) add("local", { target, options, relative, mode, defaultMode: mode, pathsOnly, fileName: "/project/src/main.ts", files: { "/project/package.json": JSON.stringify({ imports: { "#lib/*": "./lib/*.js" } }), "/outside/package.json": "{}" } });
+    for (const excludedPrefix of ["./", "@", "#", "unmatched"]) add("local", { target: "/project/src/item.ts", fileName: "/project/src/main.ts", options: { paths: { "@deep/path/*": ["src/*"] } }, excludedPrefix });
+    const modulePaths = [
+        [{ FileName: "/project/src/item.ts", IsInNodeModules: false, IsRedirect: false }],
+        [{ FileName: "/project/node_modules/pkg/index.d.ts", IsInNodeModules: true, IsRedirect: true }, { FileName: "/project/src/item.ts", IsInNodeModules: false, IsRedirect: false }],
+        [{ FileName: "/project/node_modules/pkg/lib/item.d.ts", IsInNodeModules: true, IsRedirect: false }, { FileName: "/project/src/item.ts", IsInNodeModules: false, IsRedirect: false }],
+        [{ FileName: "/other/node_modules/pkg/lib/item.d.ts", IsInNodeModules: true, IsRedirect: false }, { FileName: "/project/src/item.ts", IsInNodeModules: false, IsRedirect: false }],
+        [{ FileName: "/project/dist/item.d.ts", IsInNodeModules: false, IsRedirect: true }, { FileName: "/project/src/item.ts", IsInNodeModules: false, IsRedirect: false }],
+    ];
+    for (const paths of modulePaths) for (const relative of ["shortest", "relative", "non-relative", "project-relative"]) for (const forAutoImport of [false, true]) for (const excludedPrefix of ["", "pkg", "@", "./"]) add("select", { modulePaths: paths, relative, forAutoImport, excludedPrefix, options: { paths: { "@src/*": ["src/*"], "@out/*": ["dist/*"] } } });
+    for (const mode of [0, 1, 99]) for (const defaultMode of [0, 1, 99]) for (const existingMode of [0, 1, 99]) for (const relative of ["shortest", "non-relative"]) add("select", { modulePaths: modulePaths[0], mode, defaultMode, relative, source: "import './existing'; import 'alternative';", importTargets: { "./existing": "/project/src/item.ts", "alternative": "/project/src/item.ts" }, importModes: { "./existing": existingMode, "alternative": mode } });
+    for (const scenario of pathScenarios) for (const relative of ["shortest", "project-relative"]) for (const mode of [1, 99]) add("generate", { ...scenario, relative, mode, defaultMode: mode, originalSource: "/project/src/main.ts", options: { moduleResolution: "nodenext", paths: { "@lib/*": ["lib/*"] } } });
+    add("select", {
+        source: "import ''; import 'other';",
+        importTargets: { "": "/project/first.ts", "other": "/project/second.ts" },
+        modulePaths: [
+            { FileName: "/project/first.ts", IsInNodeModules: false, IsRedirect: false },
+            { FileName: "/project/second.ts", IsInNodeModules: false, IsRedirect: false },
+        ],
+    });
+    for (const sensitive of [true, false]) {
+        add("all-paths", { target: "/project/İ.ts", redirects: ["/project/😀.ts", "/project/𐐀.ts", "/project/\ue000.ts", "/project/K.ts", "/project/Z.ts"], sensitive });
+        add("select", { source: "import 'existing';", importTargets: { existing: "/project/İ.ts" }, sensitive, modulePaths: [{ FileName: "/project/i.ts", IsInNodeModules: false, IsRedirect: false }] });
+    }
 }
 const selected = process.argv.includes("--filter") ? cases.filter(c => c.operation === option("--filter")) : cases;
 await writeFile(path.join(output, "inputs.json"), JSON.stringify(selected));
