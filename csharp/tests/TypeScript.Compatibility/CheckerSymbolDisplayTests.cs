@@ -172,7 +172,8 @@ internal static class CheckerSymbolDisplayTests
     }
 
     internal static async Task WriteAsync(Utf8JsonWriter writer, SyntaxNode[] nodes, Checker checker,
-        Func<Symbol?, int> symbolId, Func<SyntaxNode?, int> nodeId, bool formats = false, IReadOnlyList<int>? formatFlags = null)
+        Func<Symbol?, int> symbolId, Func<SyntaxNode?, int> nodeId, bool formats = false, IReadOnlyList<int>? formatFlags = null,
+        bool typeNodes = false)
     {
         var targets = new List<Symbol>();
         var seen = new HashSet<Symbol>();
@@ -182,7 +183,8 @@ internal static class CheckerSymbolDisplayTests
                 targets.Add(symbol);
         SyntaxNode?[] locations = [null, .. nodes.Where(
             n => SemanticSyntax.Source(n)?.FileName.StartsWith("/project/main.", StringComparison.Ordinal) == true
-            && n is SourceFileNode or ModuleDeclarationNode or ClassDeclarationNode or ClassExpressionNode or FunctionDeclarationNode)];
+            && (n is SourceFileNode or ModuleDeclarationNode or ClassDeclarationNode or ClassExpressionNode or FunctionDeclarationNode
+                || typeNodes && n is ImportDeclarationNode or ExportDeclarationNode or ImportTypeNode))];
         void Start(int operation, SyntaxNode? location, Symbol target, SymbolFlags meaning)
         {
             writer.WriteStartArray();
@@ -191,13 +193,48 @@ internal static class CheckerSymbolDisplayTests
             writer.WriteNumberValue(symbolId(target));
             writer.WriteNumberValue((uint)meaning);
         }
-        writer.WriteStartArray(formats ? "symbolFormatQueries" : "symbolDisplayQueries");
+        writer.WriteStartArray(typeNodes ? "symbolTypeNodeQueries" : formats ? "symbolFormatQueries" : "symbolDisplayQueries");
         foreach (var location in locations)
             foreach (var target in targets)
-                foreach (var meaning in location is null
+                foreach (var meaning in location is null && !typeNodes
                     ? new[] { SymbolFlags.All }
                     : new[] { SymbolFlags.Value, SymbolFlags.Type, SymbolFlags.Namespace })
                 {
+                    if (typeNodes)
+                    {
+                        var factory = new NodeFactory();
+                        for (int mode = 0; mode < 8; mode++)
+                            for (int arguments = 0; arguments < 3; arguments++)
+                            {
+                                SyntaxNode[]? args = arguments switch
+                                {
+                                    1 => [factory.NewKeywordTypeNode(SyntaxKind.NumberKeyword)],
+                                    2 =>
+                                        [
+                                            factory.NewArrayTypeNode(factory.NewKeywordTypeNode(SyntaxKind.NumberKeyword)),
+                                            factory.NewLiteralTypeNode(factory.NewStringLiteral("é", TokenFlags.None))
+                                        ],
+                                    _ => null
+                                };
+                                string result = await checker.GetSymbolTypeReferenceAsync(
+                                    target,
+                                    location,
+                                    meaning,
+                                    args,
+                                    (mode & 1) != 0,
+                                    (mode & 2) != 0,
+                                    (mode & 4) != 0);
+                                writer.WriteStartArray();
+                                writer.WriteNumberValue(nodeId(location));
+                                writer.WriteNumberValue(symbolId(target));
+                                writer.WriteNumberValue((uint)meaning);
+                                writer.WriteNumberValue(mode);
+                                writer.WriteNumberValue(arguments);
+                                writer.WriteStringValue(result);
+                                writer.WriteEndArray();
+                            }
+                        continue;
+                    }
                     if (formats)
                     {
                         foreach (var flags in formatFlags ?? [0, 1, 2, 6, 8, 10, 12, 14, 16, 17, 32, 34, 36, 38, 40, 42, 44, 46, 64])

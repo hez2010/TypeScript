@@ -30,7 +30,7 @@ internal sealed partial class Checker
         internal SyntaxNode? Enclosing { get; } = enclosing;
         internal SymbolFormatFlags Flags { get; } = flags;
         internal HashSet<(Symbol, SymbolFlags)> Parents { get; } = [];
-        internal Dictionary<Symbol, string> Modules { get; } = [];
+        internal Dictionary<(Symbol, ReferenceResolutionMode), string> Modules { get; } = [];
     }
 
     private async ValueTask<string> SymbolDisplayNameAsync(Symbol symbol, SyntaxNode? enclosing, SymbolFlags meaning,
@@ -89,7 +89,7 @@ internal sealed partial class Checker
     }
 
     private async ValueTask<List<Symbol>?> DisplaySymbolChainAsync(Symbol symbol, SymbolFlags meaning, bool last,
-        SymbolDisplayContext state, CancellationToken cancellation)
+        SymbolDisplayContext state, CancellationToken cancellation, bool yieldModule = false)
     {
         await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
             ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
@@ -128,7 +128,13 @@ internal sealed partial class Checker
                 });
                 foreach (var (parent, _, _) in named)
                 {
-                    var parentChain = await DisplaySymbolChainAsync(parent, QualifiedLeftMeaning(meaning), false, state, cancellation);
+                    var parentChain = await DisplaySymbolChainAsync(
+                        parent,
+                        QualifiedLeftMeaning(meaning),
+                        false,
+                        state,
+                        cancellation,
+                        yieldModule);
                     if (parentChain is null)
                         continue;
                     if (parent.Exports.GetValueOrDefault("export=") is { } exported
@@ -145,7 +151,7 @@ internal sealed partial class Checker
                 return [.. accessible];
             return last
                 || (symbol.Flags & (SymbolFlags.TypeLiteral | SymbolFlags.ObjectLiteral)) == 0
-                    && !symbol.Declarations.Any(NonGlobalExternalModule)
+                    && (yieldModule || !symbol.Declarations.Any(NonGlobalExternalModule))
                 ? [symbol] : null;
         }
         finally

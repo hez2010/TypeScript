@@ -1,0 +1,70 @@
+{
+    "timestamp": "2026-09-25T07:45:39.9651272Z",
+    "configuration": "Release",
+    "managed": true,
+    "scope": "Symbol-to-type-reference AST construction, explicit argument syntax, indexed accesses and import types; conversion of arbitrary argument types and parameter declarations remains incomplete",
+    "build": {
+        "errors": 0,
+        "log": "logs/csharp-phase4-symbol-type-nodes-build.log",
+        "warnings": 0,
+        "sha256": "5f87d0958750de4f0923444d55a68ffe56098593e824938e94b8b0104f3a155b",
+        "exitCode": 0
+    },
+    "candidateSha256": "7ab996750bf411756dce4f1aa197c36d8dbe80029e91716d4844cdc1c2494867",
+    "compilerSha256": "65bbe29f85cfcb693db1ae127f48badca3e2a31dcee1b40ec64092a68aaf4051",
+    "comparisons": {
+        "configurations": 68,
+        "queries": 490752,
+        "comparedQueries": 490752,
+        "exact": 68,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "cb31a116c3b97bded0a5ac240c8e40d1516bf317650dc351a6c742601633fcaa",
+        "candidateHash": "fbaf6369dfddbb2c2383b9a3f9679640307be5c64799591c95daa0aa75d4b058",
+        "inputHash": "6fd684bd322350d99d9da928cfbc79dd013d606c5d0928ef6be8d69f506b9479",
+        "resultHash": "18ccdcf3783dc40d823895f1d00550de981e4b864de88f73950bbea00938ece5",
+        "managed": true
+    },
+    "safety": {
+        "log": "logs/csharp-phase4-symbol-type-nodes-safety.log",
+        "fixtureCorrection": "A private foreign declaration is written as a local name in this mode. A focused reference/candidate probe confirmed that behavior; the safety expectation was corrected, with a separate exported declaration exercising import-type output.",
+        "assertions": 14
+    },
+    "reference": {
+        "frozenSourceMatches": true,
+        "revision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "nodeBuilderBlob": "5cd58f6ec95f0fe53386fe46d2b3ecf0d2d46d83"
+    },
+    "reuse": {
+        "retainedComparisonConfigurations": 68,
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "earlierDisplay": "Diagnostic/expression display calls retain yieldModule=false and overrideMode=0. Their cache identity and outputs remain unchanged.",
+        "semanticCorpus": "Existing source checking does not invoke this new symbol-to-type-reference entry point.",
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "reason": "After the first passing comparison, only safety tests and their command dispatch changed. Product code and comparison logic are unchanged."
+    },
+    "formatting": {
+        "tokensCommentsAndSyntaxIdentical": true,
+        "originalLineEndingsPreserved": true,
+        "libraryConfigurations": 2,
+        "proofSha256": "52d9990b18a92153349add80e77d5b6b5d703a4ea5d1eda5f819dfd6c673d3b4",
+        "csharpFiles": 7,
+        "log": "logs/csharp-phase4-symbol-type-nodes-format.log",
+        "dotnetWhitespaceExitCode": 0,
+        "inputsUnchanged": true
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "phase4Complete": false,
+    "syntaxCheck": {
+        "exitCode": 0,
+        "command": "node --check csharp/tools/checker-locations.mjs"
+    }
+}

@@ -65,6 +65,12 @@ internal static class Program
                 CheckerCorpusTests.Lines(blobDirectory);
                 return 0;
             }
+            if (args is ["--checker-symbol-type-nodes-safety"])
+            {
+                Console.WriteLine(
+                    $"Symbol type node safety: {CheckerSymbolTypeNodeTests.Safety().GetAwaiter().GetResult()} assertions passed");
+                return 0;
+            }
             if (args is ["--checker-symbol-formats-safety"])
             {
                 Console.WriteLine(

@@ -11,6 +11,8 @@ import (
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/jsnum"
+	"github.com/microsoft/TypeScript/tsc/internal/nodebuilder"
+	"github.com/microsoft/TypeScript/tsc/internal/printer"
 )
 
 func (c *Checker) csharpAccessibilityQueries(nodes []*ast.Node, nodeIDs map[*ast.Node]int, sid func(*ast.Symbol) int) []any {
@@ -291,7 +293,7 @@ func (c *Checker) csharpContextQueries(nodes []*ast.Node, nodeIDs map[*ast.Node]
 	return rows, graph
 }
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool, symbolLocations bool, documentationSymbols bool, scopeServices bool, contextQueries bool, declarationVisibility bool, symbolChains bool, accessibility bool, symbolDisplay bool, symbolFormats bool, symbolFormatValues []SymbolFormatFlags) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool, symbolLocations bool, documentationSymbols bool, scopeServices bool, contextQueries bool, declarationVisibility bool, symbolChains bool, accessibility bool, symbolDisplay bool, symbolFormats bool, symbolFormatValues []SymbolFormatFlags, symbolTypeNodes bool) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -498,6 +500,10 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	}
 	var accessibilityRows []any
 	var symbolDisplayRows []any
+	var symbolTypeNodeRows []any
+	if symbolTypeNodes {
+		symbolTypeNodeRows = c.csharpSymbolTypeNodes(nodes, nodeIDs, sid)
+	}
 	var symbolFormatRows []any
 	if symbolFormats {
 		symbolFormatRows = c.csharpSymbolDisplayQueries(nodes, nodeIDs, sid, true, symbolFormatValues)
@@ -1261,6 +1267,9 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	if symbolDisplay {
 		result["symbolDisplayQueries"] = symbolDisplayRows
 	}
+	if symbolTypeNodes {
+		result["symbolTypeNodeQueries"] = symbolTypeNodeRows
+	}
 	if symbolFormats {
 		result["symbolFormatQueries"] = symbolFormatRows
 	}
@@ -1418,6 +1427,70 @@ func (c *Checker) csharpSymbolDisplayQueries(nodes []*ast.Node, nodeIDs map[*ast
 						}
 						slices.Sort(ids)
 						rows = append(rows, []any{1, nodeIDs[location], sid(target), uint32(meaning), aliases, modules, int(result.Accessibility), ids, result.ErrorSymbolName, result.ErrorModuleName, nodeIDs[result.ErrorNode]})
+					}
+				}
+			}
+		}
+	}
+	return rows
+}
+
+func (c *Checker) csharpSymbolTypeNodes(nodes []*ast.Node, nodeIDs map[*ast.Node]int, sid func(*ast.Symbol) int) []any {
+	targets := []*ast.Symbol{}
+	seen := map[*ast.Symbol]bool{}
+	locations := []*ast.Node{nil}
+	for _, node := range nodes {
+		file := ast.GetSourceFileOfNode(node)
+		if file.FileName() != "/project/globals.d.ts" && ast.IsDeclaration(node) {
+			if s := c.getSymbolOfDeclaration(node); s != nil && !seen[s] {
+				seen[s] = true
+				targets = append(targets, s)
+			}
+		}
+		if strings.HasPrefix(file.FileName(), "/project/main.") {
+			switch node.Kind {
+			case ast.KindSourceFile, ast.KindModuleDeclaration, ast.KindClassDeclaration, ast.KindClassExpression, ast.KindFunctionDeclaration, ast.KindImportDeclaration, ast.KindExportDeclaration, ast.KindImportType:
+				locations = append(locations, node)
+			}
+		}
+	}
+	rows := []any{}
+	for _, location := range locations {
+		for _, target := range targets {
+			for _, meaning := range []ast.SymbolFlags{ast.SymbolFlagsValue, ast.SymbolFlagsType, ast.SymbolFlagsNamespace} {
+				for mode := 0; mode < 8; mode++ {
+					for arguments := 0; arguments < 3; arguments++ {
+						b, release := c.getNodeBuilder()
+						flags := nodebuilder.FlagsIgnoreErrors
+						if mode&1 != 0 {
+							flags |= nodebuilder.FlagsUseOnlyExternalAliasing
+						}
+						if mode&2 != 0 {
+							flags |= nodebuilder.FlagsUseAliasDefinedOutsideCurrentScope
+						}
+						if mode&4 != 0 {
+							flags |= nodebuilder.FlagsForbidIndexedAccessSymbolReferences
+						}
+						b.enterContext(location, flags, nodebuilder.InternalFlagsNone, nil)
+						f := b.impl.f
+						var args *ast.NodeList
+						if arguments == 1 {
+							args = f.NewNodeList([]*ast.Node{f.NewKeywordTypeNode(ast.KindNumberKeyword)})
+						}
+						if arguments == 2 {
+							args = f.NewNodeList([]*ast.Node{f.NewArrayTypeNode(f.NewKeywordTypeNode(ast.KindNumberKeyword)), f.NewLiteralTypeNode(f.NewStringLiteral("é", ast.TokenFlagsNone))})
+						}
+						result := b.exitContext(b.impl.symbolToTypeNode(target, meaning, args))
+						text := ""
+						if result != nil {
+							writer, put := printer.GetSingleLineStringWriter()
+							p := printer.NewPrinter(printer.PrinterOptions{RemoveComments: true, OmitTrailingSemicolon: true, NeverAsciiEscape: location != nil && location.Kind == ast.KindSourceFile}, printer.PrintHandlers{}, b.EmitContext())
+							p.Write(result, ast.GetSourceFileOfNode(location), writer, nil)
+							text = writer.String()
+							put()
+						}
+						release()
+						rows = append(rows, []any{nodeIDs[location], sid(target), uint32(meaning), mode, arguments, text})
 					}
 				}
 			}

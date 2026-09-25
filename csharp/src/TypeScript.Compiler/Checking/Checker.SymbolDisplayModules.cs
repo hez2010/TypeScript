@@ -7,9 +7,14 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
-    private async ValueTask<string> DisplayModuleSpecifierAsync(Symbol symbol, SymbolDisplayContext state, CancellationToken cancellation)
+    private async ValueTask<string> DisplayModuleSpecifierAsync(
+        Symbol symbol,
+        SymbolDisplayContext state,
+        CancellationToken cancellation,
+        ReferenceResolutionMode overrideMode = 0)
     {
-        if (state.Modules.TryGetValue(symbol, out string? cached))
+        var key = (symbol, overrideMode);
+        if (state.Modules.TryGetValue(key, out string? cached))
             return cached;
         var file = symbol.Declarations.OfType<SourceFileNode>().FirstOrDefault();
         if (file is null)
@@ -23,9 +28,9 @@ internal sealed partial class Checker
         if (file is null)
         {
             if (symbol.Declarations.OfType<ModuleDeclarationNode>().FirstOrDefault(d => d.Name is StringLiteralNode) is { Name: StringLiteralNode name })
-                return state.Modules[symbol] = name.Text;
+                return state.Modules[key] = name.Text;
             if (Quoted(symbol.Name))
-                return state.Modules[symbol] = symbol.Name[1..^1];
+                return state.Modules[key] = symbol.Name[1..^1];
             foreach (var declaration in symbol.Declarations.OfType<ModuleDeclarationNode>())
                 if (DeclarationOrder.Ancestor(
                     declaration,
@@ -33,19 +38,21 @@ internal sealed partial class Checker
                     { Name: StringLiteralNode ambient, Parent: SourceFileNode } container
                     && program.Symbols.Declaration(container)?.Exports.GetValueOrDefault("export=") is { } exported
                     && await SameSymbolReferenceAsync(exported, symbol, cancellation))
-                    return state.Modules[symbol] = ambient.Text;
+                    return state.Modules[key] = ambient.Text;
         }
         var enclosingFile = state.Enclosing is null ? null : SemanticSyntax.Source(state.Enclosing);
         if (enclosingFile is null)
-            return state.Modules[symbol] = Quoted(symbol.Name) ? symbol.Name[1..^1]
+            return state.Modules[key] = Quoted(symbol.Name) ? symbol.Name[1..^1]
                 : file?.FileName ?? throw new InvalidOperationException("Module has no source file");
         if (file is null)
             throw new InvalidOperationException("Module has no source file or ambient name");
         var original = DisplayOriginalSpecifier(state.Enclosing!);
-        var mode = program.Symbols.Program.ResolutionModeForUsage(enclosingFile, original);
+        var mode = overrideMode != 0 ? overrideMode : program.Symbols.Program.ResolutionModeForUsage(enclosingFile, original);
         var result = program.Symbols.Program.GetModuleSpecifiers(enclosingFile, file.FileName,
-            new(Relative: "project-relative", Ending: mode == ReferenceResolutionMode.Import ? "js" : ""), cancellation: cancellation);
-        return state.Modules[symbol] = result.Specifiers.Count != 0 ? result.Specifiers[0]
+            new(Relative: "project-relative", Ending: mode == ReferenceResolutionMode.Import ? "js" : ""),
+            mode: overrideMode,
+            cancellation: cancellation);
+        return state.Modules[key] = result.Specifiers.Count != 0 ? result.Specifiers[0]
             : throw new InvalidOperationException("No module specifier can name this source file");
     }
 
