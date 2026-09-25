@@ -58,6 +58,7 @@ func main() {
 			ContextQueries        bool
 			DeclarationVisibility bool
 			SymbolChains          bool
+			Accessibility         bool
 			NumberStrings         []string
 		}
 		if err := json.Unmarshal(lines.Bytes(), &input); err != nil {
@@ -121,7 +122,7 @@ func main() {
 			}
 			continue
 		}
-		result := c.CSharpProgramScopeProbe(input.Aliases, input.TypeNodes, input.Members, input.Values, input.Properties, input.Signatures, input.Identity, input.Assignability, input.Indexing, input.Constants, input.Expressions, input.Awaited, input.References, input.Flow, input.Identifiers, input.Access, input.Calls, input.Assertions, input.Locations, input.SymbolLocations, input.DocumentationSymbols, input.ScopeServices, input.ContextQueries, input.DeclarationVisibility, input.SymbolChains).(map[string]any)
+		result := c.CSharpProgramScopeProbe(input.Aliases, input.TypeNodes, input.Members, input.Values, input.Properties, input.Signatures, input.Identity, input.Assignability, input.Indexing, input.Constants, input.Expressions, input.Awaited, input.References, input.Flow, input.Identifiers, input.Access, input.Calls, input.Assertions, input.Locations, input.SymbolLocations, input.DocumentationSymbols, input.ScopeServices, input.ContextQueries, input.DeclarationVisibility, input.SymbolChains, input.Accessibility).(map[string]any)
 		if input.NumberStrings != nil {
 			rows := []string{}
 			for _, text := range input.NumberStrings {

@@ -1,0 +1,85 @@
+{
+    "timestamp": "2026-09-25T04:08:58.338Z",
+    "configuration": "Release",
+    "managed": true,
+    "runtime": ".NET 11.0.0-rc.2.26470.103 CoreCLR",
+    "scope": "Accessibility decisions, container discovery and complete entity-name visibility; formatted symbol-accessibility diagnostic names remain unimplemented",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-accessibility-build.log",
+        "sha256": "9001584c271d91531c898d35364a0a3e06ade59ca69eb54f905b4ed1f255913a"
+    },
+    "candidateSha256": "a2395804d348d151b2210e57aa9e0ad2e53f4775ac5d715fa3b22b2b20d6e154",
+    "compilerSha256": "fc31136152ce1276884ed6053b7d70a7dab06b7c354843ba06be4e6fa44910e0",
+    "comparisons": {
+        "configurations": 156,
+        "queries": 125544,
+        "comparedQueries": 125544,
+        "exact": 156,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "9111f62fac1a624602261bd566e532e0bb7fc244d480c5996397d0c0920886a1",
+        "candidateHash": "84bf42f9530ebc59e606e38b134303f158049c32b818d5e71a2c554922cb2647",
+        "inputHash": "877c6c3ffe48dcc29fcd87366800dc2290d7afcef94cb9caba6bbaa56109490f",
+        "resultHash": "b18a73d367feb754d56994b7ad9305480336dea83dc64718bc44205743448912",
+        "managed": true,
+        "accessibilityRecords": {
+            "containers": 19452,
+            "decisions": 77808,
+            "flagQueries": 19452,
+            "typeAndValueQueries": 6484,
+            "entityNames": 2348,
+            "decisionStates": [
+                49616,
+                12808,
+                15384,
+                0
+            ]
+        },
+        "symbolDiagnosticNamesCompared": false,
+        "entityNameVisibilityComparedCompletely": true
+    },
+    "safety": {
+        "newAssertions": 24,
+        "chainAssertions": 18,
+        "logs": [
+            "logs/csharp-phase4-accessibility-safety.log",
+            "logs/csharp-phase4-accessibility-chain-safety.log"
+        ]
+    },
+    "formatting": {
+        "csharpFiles": 8,
+        "libraryConfigurations": 2,
+        "tokensCommentsAndSyntaxIdentical": true,
+        "log": "logs/csharp-phase4-accessibility-format.log",
+        "dotnetWhitespaceExitCode": 0,
+        "proofSha256": "c82e22b4d70a83c963ae9a60794d9b6e3f587734edacbeddfb2b8523cd335534",
+        "queryInputsUnchanged": true
+    },
+    "reuse": {
+        "record": "phase4-accessibility-reuse.json",
+        "retainedConfigurations": 112,
+        "replayedConfigurations": 44,
+        "afterComparison": "Only safety tests and their command dispatch changed after the complete comparison. Product code and query serialization are unchanged.",
+        "priorCorpusRecord": "phase4-context-queries-validation.json",
+        "semanticCorpus": "New accessibility services do not run during source checking. Existing import resolver calls keep the default null resolution-mode override; existing builder resolution-mode algorithms are unchanged.",
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ]
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "phase4Complete": false,
+    "syntaxCheck": {
+        "command": "node --check csharp/tools/checker-locations.mjs",
+        "exitCode": 0
+    }
+}

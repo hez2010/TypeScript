@@ -9,6 +9,14 @@ namespace TypeScript.Compiler.Programs;
 
 public sealed partial class CompilerProgram
 {
+    internal ReferenceResolutionMode ResolutionModeForUsage(SourceFileNode source, SyntaxNode? specifier)
+    {
+        var file = GetFile(source.FileName) ?? throw new ArgumentException("Source belongs to another program", nameof(source));
+        return specifier is null
+            ? Builder.DefaultMode(source.FileName, Configuration.Options, file.ImpliedFormat, file.PackageType)
+            : Builder.UsageMode(specifier, source.FileName, Configuration.Options, file.ImpliedFormat, file.PackageType);
+    }
+
     private sealed partial class Builder
     {
         private bool SupportedSource(string path, ParsedConfig project)
@@ -93,7 +101,7 @@ public sealed partial class CompilerProgram
             || options.String("moduleResolution") is not "bundler" && ModuleKind(options) is "node16" or "node18" or "node20" or "nodenext"
             || options.Boolean("resolvePackageJsonExports") != false || options.Boolean("resolvePackageJsonImports") != false;
 
-        private static ReferenceResolutionMode DefaultMode(
+        internal static ReferenceResolutionMode DefaultMode(
             string path,
             CompilerOptions options,
             ReferenceResolutionMode implied,
@@ -122,7 +130,7 @@ public sealed partial class CompilerProgram
             return 0;
         }
 
-        private static ReferenceResolutionMode UsageMode(
+        internal static ReferenceResolutionMode UsageMode(
             SyntaxNode? node,
             string path,
             CompilerOptions options,

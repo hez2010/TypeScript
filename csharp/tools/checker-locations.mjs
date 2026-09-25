@@ -17,7 +17,8 @@ const scopeServices = process.argv.includes("--scopes");
 const contextQueries = process.argv.includes("--contexts");
 const declarationVisibility = process.argv.includes("--visibility");
 const symbolChains = process.argv.includes("--chains");
-const output = path.join(root, `built/csharp/checker-${symbolChains ? "symbol-chains" : declarationVisibility ? "declaration-visibility" : contextQueries ? "context-queries" : scopeServices ? "scope-services" : symbolLocations ? "symbol-locations" : "locations"}`);
+const accessibility = process.argv.includes("--accessibility");
+const output = path.join(root, `built/csharp/checker-${accessibility ? "accessibility" : symbolChains ? "symbol-chains" : declarationVisibility ? "declaration-visibility" : contextQueries ? "context-queries" : scopeServices ? "scope-services" : symbolLocations ? "symbol-locations" : "locations"}`);
 const option = name => process.argv[process.argv.indexOf(name) + 1];
 const dotnet = process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, "dotnet.exe") : "dotnet";
 const dll = path.join(root, "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll");
@@ -134,7 +135,7 @@ const element=<Component value="yes" onChange={value=>{value;}}/>;`,
         contextImports: `interface ImportCallOptions {with?:{type:string};} const module=import("./dep",{with:{type:"json"}});`,
     });
 }
-if (declarationVisibility) {
+if (declarationVisibility || accessibility) {
     Object.assign(fixtures, {
         visibilityExports: `const hidden=1; export const visible=hidden; class Hidden {} export class Public { private secret=1; protected member=1;
 public field=1; #private=1; constructor(value:number){} get property(){return this.field;} set property(value:number){this.field=value;} }
@@ -161,7 +162,7 @@ function f(value){return value;}
 class C { /** @private */ secret=1; /** @protected */ field=1; public=1; }`,
     });
 }
-if (symbolChains) {
+if (symbolChains || accessibility) {
     Object.assign(fixtures, {
         chainAliases: `import * as Long from "./dep"; import {Deep} from "./dep"; import Root=require("./dep");
 import Local=Deep; import Short=Deep.Member; let value:Deep.Member; function f(Short:number){let value:Deep.Member;}`,
@@ -179,16 +180,26 @@ function f<Shape>(value:Shape){let other:Types.Shape;} let member:Alias.Member;`
 let value=Surface.next.nested.named; function shadow(next:number,nested:number){return Surface.next.nested.named;}`,
     });
 }
+if (accessibility) {
+    Object.assign(fixtures, {
+        accessibilityObjects: `const value={nested:{field:1}}; declare const typed:{property:string}; export type Result=typeof value.nested;
+function local(){const hidden={field:1};return hidden;}`,
+        accessibilityInstances: `interface Constants {readonly key:unique symbol; method():number;} declare const SymbolLike:Constants;
+export type Key=typeof SymbolLike.key; namespace N {export interface I {field:number;} } declare const instance:N.I;`,
+        accessibilityExportEquals: `import Root=require("./exported"); export const value:Root.Item=new Root.Item();`,
+    });
+}
 const inputs = [];
 for (const [name, source] of Object.entries(fixtures)) {
     for (const strict of [false, true]) {
         for (const concurrency of [1, 4]) {
-            const files = { "/project/globals.d.ts": library + (symbolChains ? "declare const globalValue:number;" : ""), [`/project/main.${name === "visibilityDts" ? "d.ts" : name.startsWith("jsx") ? "tsx" : name.startsWith("jsdoc") ? "js" : "ts"}`]: source, "/project/dep.ts": "export interface Shape {value:number;} export const named=1; export default class Default { value=1; }" + (symbolChains ? " export namespace Deep {export class Member {value=1;}}" : "") };
+            const files = { "/project/globals.d.ts": library + (symbolChains || accessibility ? "declare const globalValue:number;" : ""), [`/project/main.${name === "visibilityDts" ? "d.ts" : name.startsWith("jsx") ? "tsx" : name.startsWith("jsdoc") ? "js" : "ts"}`]: source, "/project/dep.ts": "export interface Shape {value:number;} export const named=1; export default class Default { value=1; }" + (symbolChains || accessibility ? " export namespace Deep {export class Member {value=1;}}" : "") };
             if (name === "chainDeepReexports") {
                 files["/project/barrel.ts"] = "export * as nested from './dep'; export * as loop from './barrel2';";
                 files["/project/barrel2.ts"] = "export * as next from './barrel';";
             }
-            inputs.push({ name: `${name}:${strict}:${concurrency}`, files: Object.fromEntries(Object.entries(files).map(([name, text]) => [name, Buffer.from(text).toString("base64")])), roots: Object.keys(files), options: { strict, target: "esnext", module: "esnext", moduleResolution: "bundler", jsx: "preserve", ...name.startsWith("jsdoc") ? { allowJs: true, checkJs: true } : {} }, typeNodes: true, ...symbolChains ? { symbolChains: true } : declarationVisibility ? { declarationVisibility: true } : contextQueries ? { contextQueries: true } : scopeServices ? { scopeServices: true } : symbolLocations ? { symbolLocations: true, ...name.startsWith("jsdoc") ? { documentationSymbols: true } : {} } : { locations: true }, concurrency });
+            if (name === "accessibilityExportEquals") files["/project/exported.ts"] = "class Root {} namespace Root {export class Item {value=1;}} export=Root;";
+            inputs.push({ name: `${name}:${strict}:${concurrency}`, files: Object.fromEntries(Object.entries(files).map(([name, text]) => [name, Buffer.from(text).toString("base64")])), roots: Object.keys(files), options: { strict, target: "esnext", module: "esnext", moduleResolution: "bundler", jsx: "preserve", ...name.startsWith("jsdoc") ? { allowJs: true, checkJs: true } : {} }, typeNodes: true, ...accessibility ? { accessibility: true } : symbolChains ? { symbolChains: true } : declarationVisibility ? { declarationVisibility: true } : contextQueries ? { contextQueries: true } : scopeServices ? { scopeServices: true } : symbolLocations ? { symbolLocations: true, ...name.startsWith("jsdoc") ? { documentationSymbols: true } : {} } : { locations: true }, concurrency });
         }
     }
 }
@@ -249,13 +260,13 @@ for (const input of selected) {
         candidateError = String(error);
         candidateFailures++;
     }
-    if (candidate) queries += (candidate.symbolChainQueries ?? candidate.visibilityQueries ?? candidate.contextQueries ?? candidate.serviceQueries ?? candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
+    if (candidate) queries += (candidate.accessibilityQueries ?? candidate.symbolChainQueries ?? candidate.visibilityQueries ?? candidate.contextQueries ?? candidate.serviceQueries ?? candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
     results.push({ input, reference, candidate, referenceError, candidateError });
     if (referenceError || candidateError) {
         failures.push({ name: input.name, referenceError, candidateError });
         continue;
     }
-    comparedQueries += (candidate.symbolChainQueries ?? candidate.visibilityQueries ?? candidate.contextQueries ?? candidate.serviceQueries ?? candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
+    comparedQueries += (candidate.accessibilityQueries ?? candidate.symbolChainQueries ?? candidate.visibilityQueries ?? candidate.contextQueries ?? candidate.serviceQueries ?? candidate.symbolLocationQueries ?? candidate.locationQueries).length + (candidate.documentationSymbolQueries?.length ?? 0);
     try {
         assert.deepStrictEqual(candidate, reference);
     }
@@ -308,6 +319,18 @@ if (symbolChains) {
         }
     }
     summary.chains = { found, absent, longest };
+}
+if (accessibility) {
+    const counts = Array(5).fill(0), states = Array(4).fill(0);
+    for (const result of results) {
+        for (const record of result.candidate?.accessibilityQueries ?? []) {
+            counts[record[0]]++;
+            if (record[0] === 1) states[record[6]]++;
+        }
+    }
+    summary.accessibilityRecords = { containers: counts[0], decisions: counts[1], flagQueries: counts[2], typeAndValueQueries: counts[3], entityNames: counts[4], decisionStates: states };
+    summary.symbolDiagnosticNamesCompared = false;
+    summary.entityNameVisibilityComparedCompletely = true;
 }
 if (contextQueries) {
     const counts = Array(8).fill(0);

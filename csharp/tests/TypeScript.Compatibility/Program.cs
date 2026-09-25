@@ -149,6 +149,12 @@ internal static class Program
                     $"{CheckerSymbolChainTests.Safety().GetAwaiter().GetResult()} accessible-chain identity/qualification/rollback assertions; depth 20000");
                 return 0;
             }
+            if (args is ["--checker-accessibility-safety"])
+            {
+                Console.WriteLine(
+                    $"{CheckerAccessibilityTests.Safety().GetAwaiter().GetResult()} accessibility/container/entity-visibility/rollback assertions");
+                return 0;
+            }
             if (args is ["--checker-program-safety"])
             {
                 CheckerProgramTests.Safety().GetAwaiter().GetResult();

@@ -47,11 +47,17 @@ internal sealed partial class Checker
         using var query = await EnterQueryAsync(enclosingDeclaration, cancellation).ConfigureAwait(false);
         if (symbol is null)
             return null;
+        return await ChainOperationAsync(() => AccessibleChainAsync(
+            new(symbol, enclosingDeclaration, meaning, useOnlyExternalAliasing, []), cancellation), cancellation);
+    }
+
+    private async ValueTask<T> ChainOperationAsync<T>(Func<ValueTask<T>> action, CancellationToken cancellation)
+    {
         var changes = new ChainChanges();
         chainChanges = changes;
         try
         {
-            var result = await AccessibleChainAsync(new(symbol, enclosingDeclaration, meaning, useOnlyExternalAliasing, []), cancellation);
+            var result = await action();
             cancellation.ThrowIfCancellationRequested();
             return result;
         }

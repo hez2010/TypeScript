@@ -13,6 +13,63 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/jsnum"
 )
 
+func (c *Checker) csharpAccessibilityQueries(nodes []*ast.Node, nodeIDs map[*ast.Node]int, sid func(*ast.Symbol) int) []any {
+	targets := []*ast.Symbol{}
+	seen := map[*ast.Symbol]bool{}
+	locations := []*ast.Node{}
+	for _, node := range nodes {
+		file := ast.GetSourceFileOfNode(node)
+		if file.FileName() != "/project/globals.d.ts" && ast.IsDeclaration(node) {
+			if s := c.getSymbolOfDeclaration(node); s != nil && !seen[s] {
+				seen[s] = true
+				targets = append(targets, s)
+			}
+		}
+		if strings.HasPrefix(file.FileName(), "/project/main.") {
+			switch node.Kind {
+			case ast.KindSourceFile, ast.KindModuleDeclaration, ast.KindClassDeclaration, ast.KindClassExpression, ast.KindFunctionDeclaration:
+				locations = append(locations, node)
+			}
+		}
+	}
+	nids := func(nodes []*ast.Node) []int {
+		ids := []int{}
+		for _, node := range nodes {
+			ids = append(ids, nodeIDs[node])
+		}
+		slices.Sort(ids)
+		return ids
+	}
+	rows := []any{}
+	for _, location := range locations {
+		for _, target := range targets {
+			targetID := sid(target)
+			for _, meaning := range []ast.SymbolFlags{ast.SymbolFlagsValue, ast.SymbolFlagsType, ast.SymbolFlagsNamespace} {
+				containers := []int{}
+				for _, container := range c.getContainersOfSymbol(target, location, meaning) {
+					containers = append(containers, sid(container))
+				}
+				rows = append(rows, []any{0, nodeIDs[location], targetID, uint32(meaning), containers})
+				for _, aliases := range []bool{false, true} {
+					for _, modules := range []bool{false, true} {
+						result := c.isSymbolAccessibleWorker(target, location, meaning, aliases, modules)
+						rows = append(rows, []any{1, nodeIDs[location], targetID, uint32(meaning), aliases, modules, int(result.Accessibility), nids(result.AliasesToMakeVisible), nodeIDs[result.ErrorNode]})
+					}
+				}
+				rows = append(rows, []any{2, nodeIDs[location], targetID, uint32(meaning), c.IsSymbolAccessibleByFlags(target, location, meaning)})
+			}
+			rows = append(rows, []any{3, nodeIDs[location], targetID, c.IsTypeSymbolAccessible(target, location), c.IsValueSymbolAccessible(target, location)})
+		}
+	}
+	for _, node := range nodes {
+		if strings.HasPrefix(ast.GetSourceFileOfNode(node).FileName(), "/project/main.") && (ast.IsEntityName(node) || ast.IsEntityNameExpression(node)) {
+			result := c.GetEmitResolver().IsEntityNameVisible(node, node)
+			rows = append(rows, []any{4, nodeIDs[node], int(result.Accessibility), nids(result.AliasesToMakeVisible), result.ErrorSymbolName, result.ErrorModuleName, nodeIDs[result.ErrorNode]})
+		}
+	}
+	return rows
+}
+
 func (c *Checker) csharpSymbolChains(nodes []*ast.Node, nodeIDs map[*ast.Node]int, sid func(*ast.Symbol) int) []any {
 	targets := []*ast.Symbol{}
 	seen := map[*ast.Symbol]bool{}
@@ -234,7 +291,7 @@ func (c *Checker) csharpContextQueries(nodes []*ast.Node, nodeIDs map[*ast.Node]
 	return rows, graph
 }
 
-func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool, symbolLocations bool, documentationSymbols bool, scopeServices bool, contextQueries bool, declarationVisibility bool, symbolChains bool) any {
+func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, memberQueries bool, valueQueries bool, propertyQueries bool, signatureQueries bool, identityQueries bool, assignabilityQueries bool, indexingQueries bool, constantQueries bool, expressionQueries bool, awaitedQueries bool, referenceQueries bool, flowQueries bool, identifierQueries bool, accessQueries bool, callQueries bool, assertionQueries bool, locations bool, symbolLocations bool, documentationSymbols bool, scopeServices bool, contextQueries bool, declarationVisibility bool, symbolChains bool, accessibility bool) any {
 	nodes := []*ast.Node{}
 	nodeIDs := map[*ast.Node]int{nil: 0}
 	files := []any{}
@@ -438,6 +495,10 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 				nodeIDs[c.getTypeOnlyAliasDeclaration(symbol)], nodeIDs[c.getTypeOnlyAliasDeclarationEx(symbol, ast.SymbolFlagsValue)],
 			})
 		}
+	}
+	var accessibilityRows []any
+	if accessibility {
+		accessibilityRows = c.csharpAccessibilityQueries(nodes, nodeIDs, sid)
 	}
 	var chainRows []any
 	if symbolChains {
@@ -1185,6 +1246,9 @@ func (c *Checker) CSharpProgramScopeProbe(aliasQueries bool, typeNodes bool, mem
 	}
 	if symbolChains {
 		result["symbolChainQueries"] = chainRows
+	}
+	if accessibility {
+		result["accessibilityQueries"] = accessibilityRows
 	}
 	if documentationSymbols {
 		result["documentationSymbolQueries"] = documentationQueries

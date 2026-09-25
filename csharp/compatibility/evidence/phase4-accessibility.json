@@ -1,0 +1,30 @@
+{
+    "configurations": 156,
+    "queries": 125544,
+    "comparedQueries": 125544,
+    "exact": 156,
+    "failed": 0,
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "referenceFailures": 0,
+    "candidateFailures": 0,
+    "oracleHash": "9111f62fac1a624602261bd566e532e0bb7fc244d480c5996397d0c0920886a1",
+    "candidateHash": "84bf42f9530ebc59e606e38b134303f158049c32b818d5e71a2c554922cb2647",
+    "inputHash": "877c6c3ffe48dcc29fcd87366800dc2290d7afcef94cb9caba6bbaa56109490f",
+    "resultHash": "b18a73d367feb754d56994b7ad9305480336dea83dc64718bc44205743448912",
+    "managed": true,
+    "accessibilityRecords": {
+        "containers": 19452,
+        "decisions": 77808,
+        "flagQueries": 19452,
+        "typeAndValueQueries": 6484,
+        "entityNames": 2348,
+        "decisionStates": [
+            49616,
+            12808,
+            15384,
+            0
+        ]
+    },
+    "symbolDiagnosticNamesCompared": false,
+    "entityNameVisibilityComparedCompletely": true
+}

@@ -9,7 +9,8 @@ namespace TypeScript.Compiler.Checking;
 internal sealed partial class Checker
 {
     internal async ValueTask<Symbol?> ResolveImportModuleAsync(SyntaxNode location, SyntaxNode? specifier, Type? attributes,
-        CancellationToken cancellation, bool implicitImport = false, int missingModuleCode = 2307, bool ignoreErrors = false)
+        CancellationToken cancellation, bool implicitImport = false, int missingModuleCode = 2307, bool ignoreErrors = false,
+        ReferenceResolutionMode? resolutionMode = null)
     {
         cancellation.ThrowIfCancellationRequested();
         string? name = specifier switch
@@ -24,7 +25,8 @@ internal sealed partial class Checker
             Error(specifier!, 6137);
         var file = program.Symbols.Binding(location)!.SourceFile;
         var reference = program.Symbols.Program.GetFile(file.FileName)!.Resolutions.FirstOrDefault(
-            r => implicitImport ? r.Node is null && r.Specifier == name : r.Node == specifier);
+            r => resolutionMode is { } mode ? r.Specifier == name && r.Mode == mode
+                : implicitImport ? r.Node is null && r.Specifier == name : r.Node == specifier);
         var module = program.Symbols.Globals.GetValueOrDefault('"' + name + '"');
         if (module is null && reference?.Resolution.IsResolved == true
             && !(reference.Resolution.IsArbitraryExtension && !file.IsDeclarationFile
