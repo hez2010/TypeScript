@@ -581,6 +581,8 @@ internal sealed partial class Checker
                 case TypeLiteralNode literal:
                     Push(Braces(literal.Members, " "));
                     break;
+                case NotEmittedTypeElementNode:
+                    break;
                 case ArrayTypeNode array:
                     Push(N(array.ElementType), T("[]"));
                     break;

@@ -23,6 +23,9 @@ internal sealed partial class Checker
     {
         internal SyntaxNode? Enclosing { get; set; } = enclosing;
         internal SymbolFormatFlags Flags { get; } = flags;
+        internal TypeSyntaxLength? Length { get; init; }
+        internal bool ExpressionNames { get; init; }
+        internal TokenFlags StringLiteralFlags { get; init; }
         internal HashSet<(Symbol, SymbolFlags)> Parents { get; } = [];
         internal Dictionary<(Symbol, ReferenceResolutionMode), string> Modules { get; } = [];
     }
@@ -51,13 +54,18 @@ internal sealed partial class Checker
             == (SymbolFormatFlags.AllowAnyNodeKind | SymbolFormatFlags.WriteTypeParametersOrArguments))
         {
             var types = new TypeSyntaxContext(enclosing, (flags & SymbolFormatFlags.UseAliasDefinedOutsideCurrentScope) != 0,
-                (flags & SymbolFormatFlags.UseOnlyExternalAliasing) != 0);
-            for (int i = chain.Count - 2; i >= 0; i--)
+                (flags & SymbolFormatFlags.UseOnlyExternalAliasing) != 0, NodeBuilderFlags.IgnoreErrors);
+            for (int i = chain.Count - 1; i >= 0; i--)
             {
-                var nodes = await SymbolDisplayArgumentsAsync(chain[i], chain[i + 1], types, cancellation);
-                if (nodes.Count != 0)
-                    arguments[i] = "<" + string.Join(", ", nodes.Select(n => PrintDiagnosticNode(n, !ascii, cancellation,
-                        enclosing is null ? null : SemanticSyntax.Source(enclosing), types.NoAsciiEscape, types.SingleLine))) + ">";
+                if (i < chain.Count - 1)
+                {
+                    var nodes = await SymbolDisplayArgumentsAsync(chain[i], chain[i + 1], types, cancellation);
+                    if (nodes.Count != 0)
+                        arguments[i] = "<" + string.Join(", ", nodes.Select(n => PrintDiagnosticNode(n, !ascii, cancellation,
+                            enclosing is null ? null : SemanticSyntax.Source(enclosing), types.NoAsciiEscape, types.SingleLine))) + ">";
+                }
+                AddExpressionNameLength(types.Length, DisplayNameAsWritten(chain[i], state, i == 0, cancellation), i == 0,
+                    (chain[i].Flags & SymbolFlags.EnumMember) != 0);
             }
         }
         var output = new StringBuilder();

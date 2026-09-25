@@ -1,0 +1,75 @@
+using System.Globalization;
+using System.Text;
+using TypeScript.Compiler.Ast;
+using TypeScript.Compiler.Syntax;
+using K = TypeScript.Compiler.Syntax.SyntaxKind;
+
+namespace TypeScript.Compiler.Checking;
+
+internal sealed partial class Checker
+{
+    private sealed class TypeSyntaxLength(bool noTruncation)
+    {
+        internal long Value { get; set; }
+        internal bool NoTruncation { get; } = noTruncation;
+        private bool truncating;
+
+        internal void Add(long count) => Value += count;
+
+        internal void Add(string text, int extra = 0) => Add(Encoding.UTF8.GetByteCount(text) + extra);
+
+        internal bool Truncated() => truncating |= Value > (NoTruncation ? 1_000_000 : 160);
+    }
+
+    private static int IntrinsicSyntaxLength(Type type)
+    {
+        if ((type.Flags & TypeFlags.Any) != 0)
+            return type.Alias is null ? 3 : 0;
+        if ((type.Flags & (TypeFlags.String | TypeFlags.Number | TypeFlags.BigInt | TypeFlags.ESSymbol | TypeFlags.NonPrimitive)) != 0)
+            return 6;
+        if ((type.Flags & TypeFlags.Boolean) != 0 && type.Alias is null)
+            return 7;
+        if (type is LiteralType literal && (type.Flags & TypeFlags.EnumLike) == 0)
+            return literal.Value switch
+            {
+                string value => Encoding.UTF8.GetByteCount(value) + 2,
+                double value => TokenFacts.NumberText(value).Length,
+                System.Numerics.BigInteger value => value.ToString(CultureInfo.InvariantCulture).Length + 1,
+                bool value => value ? 4 : 5,
+                _ => 0
+            };
+        if ((type.Flags & (TypeFlags.Void | TypeFlags.Null)) != 0 || type is TypeParameter { IsThisType: true })
+            return 4;
+        if ((type.Flags & TypeFlags.Undefined) != 0)
+            return 9;
+        return (type.Flags & TypeFlags.Never) != 0 ? 5 : 0;
+    }
+
+    private static SyntaxNode ElidedTypeSyntax(TypeSyntaxContext state, int? count = null, bool countLength = true)
+    {
+        if (countLength)
+            state.Length.Add(3);
+        return state.Length.NoTruncation ? state.Factory.NewKeywordTypeNode(K.AnyKeyword)
+            : state.Factory.NewTypeReferenceNode(state.Factory.NewIdentifier(count is { } n
+                ? "... " + n.ToString(CultureInfo.InvariantCulture) + " more ..." : "..."), null);
+    }
+
+    private static void AddReusedSyntaxLength(SyntaxNode node, TypeSyntaxContext state)
+    {
+        if (node.Pos >= 0 && node.End >= node.Pos)
+            state.Length.Add((long)node.End - node.Pos);
+    }
+
+    private static void AddExpressionNameLength(TypeSyntaxLength length, string name, bool first, bool enumMember)
+    {
+        if (first || IdentifierName(name.StartsWith('#') ? name[1..] : name))
+            length.Add(name, 1);
+        else
+        {
+            if (name.StartsWith('['))
+                name = name[1..^1];
+            bool quoted = Quoted(name) && !enumMember;
+            length.Add(quoted ? UnquoteSymbolText(name) : name, quoted ? 4 : 2);
+        }
+    }
+}

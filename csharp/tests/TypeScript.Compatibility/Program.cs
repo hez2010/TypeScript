@@ -65,6 +65,12 @@ internal static class Program
                 CheckerCorpusTests.Lines(blobDirectory);
                 return 0;
             }
+            if (args is ["--checker-syntax-options-safety"])
+            {
+                Console.WriteLine(
+                    $"Type syntax options safety: {CheckerTypeSyntaxTests.OptionsSafety().GetAwaiter().GetResult()} assertions passed");
+                return 0;
+            }
             if (args is ["--checker-symbol-type-arguments-safety"])
             {
                 Console.WriteLine(

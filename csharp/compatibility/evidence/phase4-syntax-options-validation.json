@@ -1,0 +1,155 @@
+{
+    "timestamp": "2026-09-25T10:11:35.065Z",
+    "configuration": "Release",
+    "managed": true,
+    "scope": "Reference length accounting, bounded/untruncated elision and supported type-construction flags; generated names and other options remain incomplete",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/csharp-phase4-syntax-options-final-build.log",
+        "sha256": "d1e964d3997daae19043ab41b0c9f29185b664e237249212e29c23de95ad4353"
+    },
+    "candidateSha256": "ceb761e8467f8ab00c8de6ce2a59cbd818de9e63c7fb000f9d65b6ea7b111b45",
+    "compilerSha256": "9501e6c6effcfdf8dc3a797d55f6b934f282e787291e1ccef815c161a3f5a6bd",
+    "comparisons": {
+        "configurations": 45,
+        "queries": 13064,
+        "comparedQueries": 13064,
+        "exact": 45,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "35e0b95016932cd53ec173a210dd5819b509352c3d9f5472564292233d72d5fb",
+        "candidateHash": "00e7ded549cf23837cf806e6db4f19f0052d0bbc446db12db1b6d9fe3c73bd56",
+        "inputHash": "f56128d1ec4d24baf4e7e0c40c9f98c8ca5010e2806218b0b6ba35afe6db1e60",
+        "resultHash": "2992128230c5bee7c72f587ddca36441deee87460ac7096f13d4f58c338d0e7a",
+        "managed": true
+    },
+    "symbolComparisons": {
+        "configurations": 88,
+        "queries": 347200,
+        "comparedQueries": 347200,
+        "exact": 88,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "35e0b95016932cd53ec173a210dd5819b509352c3d9f5472564292233d72d5fb",
+        "candidateHash": "00e7ded549cf23837cf806e6db4f19f0052d0bbc446db12db1b6d9fe3c73bd56",
+        "inputHash": "30fad4b1c15904d9832c0d59d2bd8e1406038b0624f19337cac6bd5b0abb3b02",
+        "resultHash": "f36a5fac37ae4dedf945348904af5bbb5c3b95b85392a65b9576bac60dc3214b",
+        "managed": true,
+        "symbolFormatFlags": [
+            5,
+            7,
+            13,
+            15,
+            21,
+            23,
+            29,
+            31,
+            37,
+            39,
+            45,
+            47,
+            53,
+            55,
+            61,
+            63
+        ]
+    },
+    "signatureRegression": {
+        "configurations": 48,
+        "queries": 2496,
+        "comparedQueries": 2496,
+        "exact": 48,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "35e0b95016932cd53ec173a210dd5819b509352c3d9f5472564292233d72d5fb",
+        "candidateHash": "b85b6a2452e0826ed4feda24e0628aa76808fbcc0f4cb4392b264872afc134b8",
+        "inputHash": "63ebe3a59fd6479734fa22ac874383b8fc8a1a97358c4dd4cc33099e6bf25a6d",
+        "resultHash": "dca60b6faab5a8b23748371762fb271c281625f3f35bd8842e8556435c7adcd5",
+        "managed": true
+    },
+    "annotationRegression": {
+        "configurations": 44,
+        "queries": 2448,
+        "comparedQueries": 2448,
+        "exact": 44,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "35e0b95016932cd53ec173a210dd5819b509352c3d9f5472564292233d72d5fb",
+        "candidateHash": "b85b6a2452e0826ed4feda24e0628aa76808fbcc0f4cb4392b264872afc134b8",
+        "inputHash": "09eb7fdf9b133b0453d90bdbb3133251dcae819c635890611ab2ee44cfaf967f",
+        "resultHash": "f8fc52d96f37b61966b748c7bc35be422d2972ef0b7dee606a10ec9ffa2ad6d4",
+        "managed": true
+    },
+    "safety": {
+        "assertions": 10,
+        "log": "logs/csharp-phase4-syntax-options-safety.log",
+        "scope": "Fresh length budgets, preserved final members, output modes, cancellation and retry, unsupported-option rejection and source ownership"
+    },
+    "reference": {
+        "revision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "frozenSourcesMatch": true,
+        "nodeBuilderBlob": "5cd58f6ec95f0fe53386fe46d2b3ecf0d2d46d83",
+        "nodeCopyBlob": "822a68634fdb00ae6f49d1e239cf4c608048f775",
+        "nodeBuilderFlagsBlob": "92f3d36d1144f1c33c04d3c0e7b645e592c680f5",
+        "oracleLog": "logs/csharp-phase4-syntax-options-oracle.log"
+    },
+    "reuse": {
+        "record": "phase4-syntax-options-reuse.json",
+        "symbolRecord": "phase4-syntax-options-symbol-reuse.json",
+        "annotationRecord": "phase4-syntax-options-annotation-reuse.json",
+        "retainedOptionCandidates": 36,
+        "replayedOptionCandidates": 4,
+        "addedOptionConfigurations": 5,
+        "retainedOptionReferences": 40,
+        "retainedSymbolCandidates": 80,
+        "replayedSymbolCandidates": 4,
+        "addedSymbolConfigurations": 4,
+        "retainedSymbolReferences": 84,
+        "retainedAnnotationCandidates": 72,
+        "replayedAnnotationCandidates": 20,
+        "retainedAnnotationReferences": 92,
+        "finalComparisonsRetained": true,
+        "reason": "After passing comparisons, only safety tests, formatting and a source-proven enum-name length correction changed. The correction affects quoted enum members followed by generic ancestor formatting; no retained symbol query combines an enum member with generic qualification, and type-syntax queries do not call that counter. Input hashes remain unchanged after formatting. Earlier reference requests omit the new option list and retain their previous behavior.",
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "semanticCorpus": "Retained; existing semantic diagnostic paths do not call these node-building helpers"
+    },
+    "formatting": {
+        "tokensCommentsAndSyntaxIdentical": true,
+        "csharpFiles": 11,
+        "libraryConfigurations": 2,
+        "inputsUnchanged": true,
+        "dotnetWhitespaceExitCode": 0,
+        "log": "logs/csharp-phase4-syntax-options-format.log",
+        "proofSha256": "09ff14d70283085d73876ac87258c1977f0c482e2540cf07b7f422b8def9723c"
+    },
+    "generation": {
+        "exitCode": 0,
+        "command": "node csharp/tools/generate-checker.mjs --check"
+    },
+    "syntaxChecks": {
+        "exitCode": 0,
+        "files": [
+            "csharp/tools/checker-locations.mjs",
+            "csharp/tools/generate-checker.mjs"
+        ]
+    },
+    "nativeAotVerification": "Deferred until phase 4 final completion; no NativeAOT build or execution",
+    "phase4Complete": false
+}

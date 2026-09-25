@@ -16,6 +16,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/compiler"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/jsnum"
+	"github.com/microsoft/TypeScript/tsc/internal/nodebuilder"
 	"github.com/microsoft/TypeScript/tsc/internal/tsoptions"
 	"github.com/microsoft/TypeScript/tsc/internal/tsoptions/tsoptionstest"
 )
@@ -27,6 +28,7 @@ func main() {
 	for lines.Scan() {
 		var input struct {
 			TypeSyntax            bool
+			TypeSyntaxFlags       []nodebuilder.Flags
 			SymbolTypeNodes       bool
 			SymbolFormatFlags     []checker.SymbolFormatFlags
 			Files                 map[string]string
@@ -127,7 +129,7 @@ func main() {
 			}
 			continue
 		}
-		result := c.CSharpProgramScopeProbe(input.Aliases, input.TypeNodes, input.Members, input.Values, input.Properties, input.Signatures, input.Identity, input.Assignability, input.Indexing, input.Constants, input.Expressions, input.Awaited, input.References, input.Flow, input.Identifiers, input.Access, input.Calls, input.Assertions, input.Locations, input.SymbolLocations, input.DocumentationSymbols, input.ScopeServices, input.ContextQueries, input.DeclarationVisibility, input.SymbolChains, input.Accessibility, input.SymbolDisplay, input.SymbolFormats, input.SymbolFormatFlags, input.SymbolTypeNodes, input.TypeSyntax).(map[string]any)
+		result := c.CSharpProgramScopeProbe(input.Aliases, input.TypeNodes, input.Members, input.Values, input.Properties, input.Signatures, input.Identity, input.Assignability, input.Indexing, input.Constants, input.Expressions, input.Awaited, input.References, input.Flow, input.Identifiers, input.Access, input.Calls, input.Assertions, input.Locations, input.SymbolLocations, input.DocumentationSymbols, input.ScopeServices, input.ContextQueries, input.DeclarationVisibility, input.SymbolChains, input.Accessibility, input.SymbolDisplay, input.SymbolFormats, input.SymbolFormatFlags, input.SymbolTypeNodes, input.TypeSyntax, input.TypeSyntaxFlags...).(map[string]any)
 		if input.NumberStrings != nil {
 			rows := []string{}
 			for _, text := range input.NumberStrings {

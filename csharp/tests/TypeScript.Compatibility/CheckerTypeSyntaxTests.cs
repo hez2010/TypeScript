@@ -12,6 +12,80 @@ namespace TypeScript.Compatibility;
 
 internal static class CheckerTypeSyntaxTests
 {
+    internal static async Task<int> OptionsSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Type syntax options assertion {checks + 1}");
+            checks++;
+        }
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        string entries = string.Join(",", Enumerable.Range(0, 40).Select(i => $"\"value{i}\""));
+        string prefix = new('x', 180);
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        {
+            ["/project/main.ts"] = Wtf8.Encode(
+                $"interface Name{{value:number}}type A=[{entries}];type B=[\"{prefix}\",Name];type R=readonly number[];declare const key:unique symbol;type U=typeof key;"),
+            ["/project/globals.d.ts"] = Wtf8.Encode(
+                "interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly [n:number]:T}")
+        }), "/project", new("/project/tsconfig.json", options, ["/project/main.ts", "/project/globals.d.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var source = program.GetFile("/project/main.ts")!.Syntax;
+        var declarations = source.Statements!.OfType<TypeAliasDeclarationNode>().ToArray();
+        var a = await checker.Nodes.FromNodeAsync(declarations[0].Type!);
+        var b = await checker.Nodes.FromNodeAsync(declarations[1].Type!);
+        var array = await checker.Nodes.FromNodeAsync(declarations[2].Type!);
+        var unique = await checker.Nodes.FromNodeAsync(declarations[3].Type!);
+        var snapshot = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
+        const NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.InTypeAlias;
+        string shortened = await checker.SerializeTypeSyntaxAsync(a, source, flags);
+        Check(shortened.Contains(" more ...", StringComparison.Ordinal) && shortened.EndsWith("\"value39\"]", StringComparison.Ordinal));
+        string full = await checker.SerializeTypeSyntaxAsync(a, source, flags | NodeBuilderFlags.NoTruncation);
+        Check(!full.Contains("...", StringComparison.Ordinal) && full.Contains("\"value20\"", StringComparison.Ordinal));
+        Check(await checker.SerializeTypeSyntaxAsync(a, source, flags) == shortened);
+        Check(
+            await checker.SerializeTypeSyntaxAsync(
+                array,
+                source,
+                flags | NodeBuilderFlags.WriteArrayAsGenericType) == "ReadonlyArray<number>");
+        Check(await checker.SerializeTypeSyntaxAsync(unique, source, flags | NodeBuilderFlags.AllowUniqueESSymbolType) == "unique symbol");
+        using var stop = new CancellationTokenSource();
+        checker.BeforeSymbolChainTable = _ =>
+        {
+            stop.Cancel();
+            stop.Token.ThrowIfCancellationRequested();
+        };
+        try
+        {
+            await checker.SerializeTypeSyntaxAsync(b, source, flags, stop.Token);
+            throw new InvalidOperationException("Cancellation after crossing the length threshold was not observed");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        finally
+        {
+            checker.BeforeSymbolChainTable = null;
+        }
+        Check(await checker.SerializeTypeSyntaxAsync(a, source, flags | NodeBuilderFlags.NoTruncation) == full);
+        Check(checker.TypeSyntaxScopeCount == 0);
+        try
+        {
+            await checker.SerializeTypeSyntaxAsync(a, source, flags | NodeBuilderFlags.GenerateNamesForShadowedTypeParams);
+            throw new InvalidOperationException("An unimplemented node-builder option was accepted");
+        }
+        catch (NotSupportedException)
+        {
+            checks++;
+        }
+        Check(snapshot.All(p => p.Parent == p.Node.Parent && p.Pos == p.Node.Pos && p.End == p.Node.End && p.Flags == p.Node.Flags));
+        return checks;
+    }
+
     internal static async Task<int> SignatureSafety()
     {
         int checks = 0;
@@ -182,7 +256,8 @@ internal static class CheckerTypeSyntaxTests
         return checks;
     }
 
-    internal static async Task WriteAsync(Utf8JsonWriter writer, SyntaxNode[] nodes, Checker checker, Func<SyntaxNode?, int> nodeId)
+    internal static async Task WriteAsync(Utf8JsonWriter writer, SyntaxNode[] nodes, Checker checker, Func<SyntaxNode?, int> nodeId,
+        IReadOnlyList<NodeBuilderFlags>? configuredFlags = null)
     {
         var main = nodes.Where(
             n => SemanticSyntax.Source(n)?.FileName.StartsWith("/project/main.", StringComparison.Ordinal) == true).ToArray();
@@ -195,16 +270,22 @@ internal static class CheckerTypeSyntaxTests
             foreach (var location in locations)
                 foreach (bool expand in new[] { false, true })
                     foreach (bool outside in new[] { false, true })
-                    {
-                        string value = await checker.SerializeTypeSyntaxAsync(type, location, expand, outside);
-                        writer.WriteStartArray();
-                        writer.WriteNumberValue(nodeId(target));
-                        writer.WriteNumberValue(nodeId(location));
-                        writer.WriteBooleanValue(expand);
-                        writer.WriteBooleanValue(outside);
-                        writer.WriteStringValue(value);
-                        writer.WriteEndArray();
-                    }
+                        foreach (var configured in configuredFlags ?? [NodeBuilderFlags.NoTruncation])
+                        {
+                            string value = await checker.SerializeTypeSyntaxAsync(type, location, configured | NodeBuilderFlags.IgnoreErrors
+                                | (expand
+                                    ? NodeBuilderFlags.InTypeAlias
+                                    : 0) | (outside ? NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope : 0));
+                            writer.WriteStartArray();
+                            writer.WriteNumberValue(nodeId(target));
+                            writer.WriteNumberValue(nodeId(location));
+                            writer.WriteBooleanValue(expand);
+                            writer.WriteBooleanValue(outside);
+                            if (configuredFlags is not null)
+                                writer.WriteNumberValue((uint)configured);
+                            writer.WriteStringValue(value);
+                            writer.WriteEndArray();
+                        }
         }
         writer.WriteEndArray();
     }

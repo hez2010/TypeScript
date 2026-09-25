@@ -540,3 +540,42 @@ public enum RelationComparisonResult : uint
     ReportsMask = ReportsUnmeasurable | ReportsUnreliable,
     Overflow = ComplexityOverflow,
 }
+
+// ../nodebuilder/types.go SHA256 1cbbf774332b79f7747e71b20bffac1095f16a5cb4a8db87c6031cbd5707ea2e
+[Flags]
+public enum NodeBuilderFlags : uint
+{
+    None = 0,
+    NoTruncation = 1u << 0,
+    WriteArrayAsGenericType = 1u << 1,
+    GenerateNamesForShadowedTypeParams = 1u << 2,
+    UseStructuralFallback = 1u << 3,
+    ForbidIndexedAccessSymbolReferences = 1u << 4,
+    WriteTypeArgumentsOfSignature = 1u << 5,
+    UseFullyQualifiedType = 1u << 6,
+    UseOnlyExternalAliasing = 1u << 7,
+    SuppressAnyReturnType = 1u << 8,
+    WriteTypeParametersInQualifiedName = 1u << 9,
+    MultilineObjectLiterals = 1u << 10,
+    WriteClassExpressionAsTypeLiteral = 1u << 11,
+    UseTypeOfFunction = 1u << 12,
+    OmitParameterModifiers = 1u << 13,
+    UseAliasDefinedOutsideCurrentScope = 1u << 14,
+    UseSingleQuotesForStringLiteralType = 1u << 28,
+    NoTypeReduction = 1u << 29,
+    UseInstantiationExpressions = 1u << 30,
+    OmitThisParameter = 1u << 25,
+    WriteCallStyleSignature = 1u << 27,
+    AllowThisInObjectLiteral = 1u << 15,
+    AllowQualifiedNameInPlaceOfIdentifier = 1u << 16,
+    AllowAnonymousIdentifier = 1u << 17,
+    AllowEmptyUnionOrIntersection = 1u << 18,
+    AllowEmptyTuple = 1u << 19,
+    AllowUniqueESSymbolType = 1u << 20,
+    AllowEmptyIndexInfoType = 1u << 21,
+    AllowNodeModulesRelativePaths = 1u << 26,
+    IgnoreErrors = AllowThisInObjectLiteral | AllowQualifiedNameInPlaceOfIdentifier | AllowAnonymousIdentifier | AllowEmptyUnionOrIntersection | AllowEmptyTuple | AllowEmptyIndexInfoType | AllowNodeModulesRelativePaths,
+    InObjectTypeLiteral = 1u << 22,
+    InTypeAlias = 1u << 23,
+    InInitialEntityName = 1u << 24,
+}

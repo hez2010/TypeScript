@@ -1,0 +1,9 @@
+{
+    "candidateHash": "00e7ded549cf23837cf806e6db4f19f0052d0bbc446db12db1b6d9fe3c73bd56",
+    "oracleHash": "35e0b95016932cd53ec173a210dd5819b509352c3d9f5472564292233d72d5fb",
+    "retainedCandidates": 80,
+    "replayedCandidates": 4,
+    "addedConfigurations": 4,
+    "retainedReferences": 84,
+    "reason": "New length accounting changes bounded symbol argument construction. Replay the complex constrained-generic family and add an over-budget generic default family. The remaining 80 cases have no printed generic arguments or have short simple arguments below the reference threshold. The reference probe changes only type-syntax option handling, which these symbol queries do not request."
+}

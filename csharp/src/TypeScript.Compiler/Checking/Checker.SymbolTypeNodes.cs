@@ -48,7 +48,8 @@ internal sealed partial class Checker
                 mode = ReferenceResolutionMode.Import;
             string specifier = await DisplayModuleSpecifierAsync(chain[0], state, cancellation, mode);
             var attributes = await TypeImportAttributesAsync(chain[0], specifier, mode, state, factory, cancellation);
-            var argument = factory.NewLiteralTypeNode(factory.NewStringLiteral(specifier, TokenFlags.None));
+            var argument = factory.NewLiteralTypeNode(factory.NewStringLiteral(specifier, state.StringLiteralFlags));
+            state.Length?.Add(specifier, 10);
             if (qualifier is null or IdentifierNode or QualifiedNameNode)
                 return factory.NewImportTypeNode(typeOf, argument, attributes, qualifier, arguments);
             if (qualifier is not IndexedAccessTypeNode indexed)
@@ -76,6 +77,8 @@ internal sealed partial class Checker
         var symbol = chain[index];
         var parent = index > 0 ? chain[index - 1] : null;
         string name = index == 0 ? DisplayNameAsWritten(symbol, state, true, cancellation) : "";
+        if (index == 0 && !state.ExpressionNames)
+            state.Length?.Add(name, 1);
         if (index > 0 && parent is not null)
         {
             var exports = await ExportsAsync(parent, cancellation);
@@ -118,13 +121,14 @@ internal sealed partial class Checker
             }
             name = DisplayNameAsWritten(symbol, state, false, cancellation);
         }
+        state.Length?.Add(name, 1);
         if (!forbidIndexed && parent is not null && (await MembersAsync(parent, cancellation)).GetValueOrDefault(symbol.Name) is { } member
             && await SameSymbolReferenceAsync(member, symbol, cancellation))
         {
             var left = await TypeAccessFromChainAsync(chain, index - 1, stopper, arguments, state, forbidIndexed, factory, cancellation);
             return factory.NewIndexedAccessTypeNode(
                 left is IndexedAccessTypeNode ? left : factory.NewTypeReferenceNode(left, index == chain.Count - 1 ? arguments : null),
-                factory.NewLiteralTypeNode(factory.NewStringLiteral(name, TokenFlags.None)));
+                factory.NewLiteralTypeNode(factory.NewStringLiteral(name, state.StringLiteralFlags)));
         }
         var identifier = factory.NewIdentifier(name);
         return index > stopper
@@ -149,14 +153,24 @@ internal sealed partial class Checker
         }
         var entries = new List<SyntaxNode>();
         if (mode != 0)
-            entries.Add(factory.NewImportAttribute(factory.NewStringLiteral("resolution-mode", TokenFlags.None),
-                factory.NewStringLiteral(mode == ReferenceResolutionMode.Import ? "import" : "require", TokenFlags.None)));
+        {
+            entries.Add(factory.NewImportAttribute(factory.NewStringLiteral("resolution-mode", state.StringLiteralFlags),
+                factory.NewStringLiteral(mode == ReferenceResolutionMode.Import ? "import" : "require", state.StringLiteralFlags)));
+            state.Length?.Add("resolution-mode", (mode == ReferenceResolutionMode.Import ? 6 : 7) + 6);
+        }
         var properties = (await PropertiesAsync(attributes, cancellation)).ToList();
         properties.Sort((a, b) => TypeOrder.CompareText(a.Name, b.Name));
         foreach (var property in properties)
             if (await Values.GetAsync(property, cancellation) is LiteralType { Value: string value })
+            {
                 entries.Add(factory.NewImportAttribute(IdentifierName(property.Name) ? factory.NewIdentifier(property.Name)
-                    : factory.NewStringLiteral(property.Name, TokenFlags.None), factory.NewStringLiteral(value, TokenFlags.None)));
+                    : factory.NewStringLiteral(property.Name, state.StringLiteralFlags),
+                    factory.NewStringLiteral(value, state.StringLiteralFlags)));
+                state.Length?.Add(property.Name, IdentifierName(property.Name) ? 4 : 6);
+                state.Length?.Add(value);
+            }
+        if (entries.Count != 0)
+            state.Length?.Add(16 + 2 * (entries.Count - 1));
         return entries.Count == 0 ? null : factory.NewImportAttributes(SyntaxKind.WithKeyword, new(entries.ToArray()), false);
     }
 

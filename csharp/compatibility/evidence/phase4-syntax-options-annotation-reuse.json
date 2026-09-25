@@ -1,0 +1,30 @@
+{
+    "candidateHash": "b85b6a2452e0826ed4feda24e0628aa76808fbcc0f4cb4392b264872afc134b8",
+    "oracleHash": "35e0b95016932cd53ec173a210dd5819b509352c3d9f5472564292233d72d5fb",
+    "records": [
+        {
+            "mode": "signature-syntax",
+            "configurations": 48,
+            "retainedCandidates": 32,
+            "replayedCandidates": 16,
+            "retainedReferences": 48,
+            "affected": [
+                "signatureSyntaxGeneric",
+                "signatureSyntaxConstruct",
+                "signatureSyntaxBindings",
+                "signatureSyntaxPredicates"
+            ]
+        },
+        {
+            "mode": "anonymous-syntax",
+            "configurations": 44,
+            "retainedCandidates": 40,
+            "replayedCandidates": 4,
+            "retainedReferences": 44,
+            "affected": [
+                "anonymousSyntaxDefaults"
+            ]
+        }
+    ],
+    "reason": "Replay nested/generic and constructor return annotations, binding/this parameters and destructured defaults after broader parameter/return syntax reuse. Other inputs use primitive annotations, mismatched instantiated annotations or previously supported reuse paths; their untruncated output remains below the one-million-byte budget. Earlier probe inputs omit the new option list and retain their exact previous reference behavior."
+}

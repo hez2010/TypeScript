@@ -11,12 +11,28 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
-    private sealed class TypeSyntaxContext(SyntaxNode? enclosing, bool aliasesOutsideScope, bool externalAliasesOnly = false)
+    private sealed class TypeSyntaxContext
     {
+        internal TypeSyntaxContext(SyntaxNode? enclosing, bool aliasesOutsideScope, bool externalAliasesOnly = false,
+            NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation)
+        {
+            Flags = flags;
+            Length = new((flags & NodeBuilderFlags.NoTruncation) != 0);
+            Symbols = new(enclosing,
+                (aliasesOutsideScope ? SymbolFormatFlags.UseAliasDefinedOutsideCurrentScope : SymbolFormatFlags.None)
+                    | (externalAliasesOnly ? SymbolFormatFlags.UseOnlyExternalAliasing : SymbolFormatFlags.None))
+            {
+                Length = Length,
+                StringLiteralFlags = (flags & NodeBuilderFlags.UseSingleQuotesForStringLiteralType) != 0
+                    ? TokenFlags.SingleQuote
+                    : TokenFlags.None
+            };
+        }
+
+        internal NodeBuilderFlags Flags { get; }
+        internal TypeSyntaxLength Length { get; }
         internal NodeFactory Factory { get; } = new();
-        internal SymbolDisplayContext Symbols { get; } = new(enclosing,
-            (aliasesOutsideScope ? SymbolFormatFlags.UseAliasDefinedOutsideCurrentScope : SymbolFormatFlags.None)
-                | (externalAliasesOnly ? SymbolFormatFlags.UseOnlyExternalAliasing : SymbolFormatFlags.None));
+        internal SymbolDisplayContext Symbols { get; }
         internal HashSet<SyntaxNode> NoAsciiEscape { get; } = [];
         internal HashSet<SyntaxNode> SingleLine { get; } = [];
         internal HashSet<Type> Active { get; } = [];
@@ -24,13 +40,27 @@ internal sealed partial class Checker
     }
 
     internal ValueTask<string> SerializeTypeSyntaxAsync(Type type, SyntaxNode? enclosing = null, bool expandAlias = false,
-        bool aliasesOutsideScope = false, CancellationToken cancellation = default)
+        bool aliasesOutsideScope = false, CancellationToken cancellation = default) =>
+        SerializeTypeSyntaxAsync(type, enclosing, NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation
+            | (expandAlias ? NodeBuilderFlags.InTypeAlias : 0)
+            | (aliasesOutsideScope ? NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope : 0), cancellation);
+
+    internal ValueTask<string> SerializeTypeSyntaxAsync(Type type, SyntaxNode? enclosing, NodeBuilderFlags flags,
+        CancellationToken cancellation = default)
     {
+        const NodeBuilderFlags supported = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation
+            | NodeBuilderFlags.WriteArrayAsGenericType | NodeBuilderFlags.UseOnlyExternalAliasing
+            | NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope | NodeBuilderFlags.UseSingleQuotesForStringLiteralType
+            | NodeBuilderFlags.NoTypeReduction | NodeBuilderFlags.OmitThisParameter | NodeBuilderFlags.AllowUniqueESSymbolType
+            | NodeBuilderFlags.InTypeAlias;
+        if ((flags & ~supported) != 0)
+            throw new NotSupportedException("The requested node-builder options are not implemented");
         context.RequireOwned(type);
         return VisibilityQueryAsync(enclosing, () => ChainOperationAsync(() => ContainerOperationAsync(async () =>
         {
-            var state = new TypeSyntaxContext(enclosing, aliasesOutsideScope);
-            var node = await TypeSyntaxAsync(type, state, cancellation, expandAlias);
+            var state = new TypeSyntaxContext(enclosing, (flags & NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope) != 0,
+                (flags & NodeBuilderFlags.UseOnlyExternalAliasing) != 0, flags);
+            var node = await TypeSyntaxAsync(type, state, cancellation, (flags & NodeBuilderFlags.InTypeAlias) != 0);
             return PrintDiagnosticNode(
                 node,
                 enclosing is SourceFileNode,
@@ -52,7 +82,9 @@ internal sealed partial class Checker
         context.RequireOwned(type);
         if (type is TypeParameter distributed)
             type = distributed.NonDistributed;
-        type = await Views.ReducedAsync(type, cancellation);
+        if ((state.Flags & NodeBuilderFlags.NoTypeReduction) == 0)
+            type = await Views.ReducedAsync(type, cancellation);
+        state.Length.Add(IntrinsicSyntaxLength(type));
         var f = state.Factory;
         if ((type.Flags & TypeFlags.Any) != 0)
             return type.Alias is { } anyAlias
@@ -88,13 +120,14 @@ internal sealed partial class Checker
                 throw new InvalidOperationException("Enum type has no named reference");
             return f.NewIndexedAccessTypeNode(
                 parentNode,
-                f.NewLiteralTypeNode(f.NewStringLiteral(Symbol.EscapeName(enumeration.Name), TokenFlags.None)));
+                f.NewLiteralTypeNode(f.NewStringLiteral(Symbol.EscapeName(enumeration.Name), state.Symbols.StringLiteralFlags)));
         }
         if (type is LiteralType literal)
         {
             SyntaxNode value = literal.Value switch
             {
-                string text => f.NewStringLiteral(text, TokenFlags.None),
+                string text => f.NewStringLiteral(text, (state.Flags & NodeBuilderFlags.UseSingleQuotesForStringLiteralType) != 0
+                    ? TokenFlags.SingleQuote : TokenFlags.None),
                 double number when number < 0 => f.NewPrefixUnaryExpression(
                     K.MinusToken,
                     f.NewNumericLiteral(TokenFacts.NumberText(number)[1..], TokenFlags.None)),
@@ -108,15 +141,21 @@ internal sealed partial class Checker
             return f.NewLiteralTypeNode(value);
         }
         if (type is UniqueSymbolType unique)
-            return (await SymbolAccessibilityAsync(
+        {
+            if ((state.Flags & NodeBuilderFlags.AllowUniqueESSymbolType) == 0 && (await SymbolAccessibilityAsync(
                 unique.Symbol,
                 state.Symbols.Enclosing,
                 SymbolFlags.Value,
                 false,
                 true,
-                cancellation)).Accessibility == SymbolAccessibility.Accessible
-                ? await SymbolTypeNodeAsync(unique.Symbol!, SymbolFlags.Value, null, state.Symbols, false, cancellation)
-                : f.NewTypeOperatorNode(K.UniqueKeyword, f.NewKeywordTypeNode(K.SymbolKeyword));
+                cancellation)).Accessibility == SymbolAccessibility.Accessible)
+            {
+                state.Length.Add(6);
+                return await SymbolTypeNodeAsync(unique.Symbol!, SymbolFlags.Value, null, state.Symbols, false, cancellation);
+            }
+            state.Length.Add(13);
+            return f.NewTypeOperatorNode(K.UniqueKeyword, f.NewKeywordTypeNode(K.SymbolKeyword));
+        }
         if ((type.Flags & TypeFlags.Void) != 0)
             return f.NewKeywordTypeNode(K.VoidKeyword);
         if ((type.Flags & TypeFlags.Undefined) != 0)
@@ -170,12 +209,14 @@ internal sealed partial class Checker
                 return await ReferenceTypeSyntaxAsync(reference, state, cancellation);
             if (type is TypeParameter inferredParameter && state.InferParameters?.Contains(inferredParameter) == true)
             {
+                state.Length.Add(inferredParameter.Symbol?.Name ?? "", 6);
                 SyntaxNode? constraintNode = null;
                 if (await Instantiation.Constraints.ConstraintAsync(inferredParameter, cancellation) is { } constraint)
                 {
                     var inferred = await InferredConstraints.GetAsync(inferredParameter, omitReferences: true, cancellation);
                     if (inferred is null || !await Relations.RelatedAsync(constraint, inferred, RelationKind.Identity, cancellation))
                     {
+                        state.Length.Add(9);
                         constraintNode = await TypeSyntaxAsync(constraint, state, cancellation);
                         if (constraintNode is ConditionalTypeNode)
                             constraintNode = f.NewParenthesizedTypeNode(constraintNode);
@@ -201,7 +242,7 @@ internal sealed partial class Checker
                     : composite.Types;
                 if (types.Count == 1)
                     return await TypeSyntaxAsync(types[0], state, cancellation);
-                var nodes = await TypeSyntaxListAsync(types, state, cancellation);
+                var nodes = await TypeSyntaxListAsync(types, state, cancellation, bareList: true);
                 if (nodes is null)
                     return f.NewKeywordTypeNode(K.AnyKeyword);
                 var parenthesized = new NodeList(nodes.Select(n => n is FunctionTypeNode or ConstructorTypeNode or ConditionalTypeNode
@@ -209,11 +250,17 @@ internal sealed partial class Checker
                 return type is UnionType ? f.NewUnionTypeNode(parenthesized) : f.NewIntersectionTypeNode(parenthesized);
             }
             if (type is IndexType index)
+            {
+                state.Length.Add(6);
                 return f.NewTypeOperatorNode(K.KeyOfKeyword, ParenthesizeType(await TypeSyntaxAsync(index.Target, state, cancellation), f));
+            }
             if (type is IndexedAccessType indexed)
+            {
+                state.Length.Add(2);
                 return f.NewIndexedAccessTypeNode(
                     ParenthesizeType(await TypeSyntaxAsync(indexed.ObjectType, state, cancellation), f, postfix: true),
                     await TypeSyntaxAsync(indexed.IndexType, state, cancellation));
+            }
             if (type is TemplateLiteralType template)
             {
                 var head = f.NewTemplateHead(template.Texts[0], "", TokenFlags.None);
@@ -227,6 +274,7 @@ internal sealed partial class Checker
                     state.NoAsciiEscape.Add(text);
                     spans.Add(f.NewTemplateLiteralTypeSpan(await TypeSyntaxAsync(template.Types[i], state, cancellation), text));
                 }
+                state.Length.Add(2);
                 return f.NewTemplateLiteralTypeNode(head, new(spans.ToArray()));
             }
             if (type is StringMappingType mapping)
@@ -245,7 +293,10 @@ internal sealed partial class Checker
             }
             if (type is ConditionalType conditional)
             {
+                if (state.Length.Truncated())
+                    return ElidedTypeSyntax(state);
                 var check = await TypeSyntaxAsync(conditional.CheckType, state, cancellation);
+                state.Length.Add(15);
                 if (check is ConditionalTypeNode or FunctionTypeNode or ConstructorTypeNode)
                     check = f.NewParenthesizedTypeNode(check);
                 var previous = state.InferParameters;
@@ -293,14 +344,32 @@ internal sealed partial class Checker
     private async ValueTask<NodeList?> TypeSyntaxListAsync(
         IReadOnlyList<Type> types,
         TypeSyntaxContext state,
-        CancellationToken cancellation)
+        CancellationToken cancellation,
+        bool bareList = false)
     {
         if (types.Count == 0)
             return null;
-        var nodes = new SyntaxNode[types.Count];
-        for (int i = 0; i < nodes.Length; i++)
-            nodes[i] = await TypeSyntaxAsync(types[i], state, cancellation);
-        return new(nodes);
+        if (state.Length.Truncated())
+        {
+            if (!bareList)
+                return new([ElidedTypeSyntax(state, countLength: false)]);
+            if (types.Count > 2)
+                return new([await TypeSyntaxAsync(types[0], state, cancellation),
+                    ElidedTypeSyntax(state, types.Count - 2, false), await TypeSyntaxAsync(types[^1], state, cancellation)]);
+        }
+        var nodes = new List<SyntaxNode>();
+        for (int i = 0; i < types.Count; i++)
+        {
+            if (state.Length.Truncated() && i + 3 < types.Count - 1)
+            {
+                nodes.Add(ElidedTypeSyntax(state, types.Count - i - 1, false));
+                nodes.Add(await TypeSyntaxAsync(types[^1], state, cancellation));
+                break;
+            }
+            state.Length.Add(2);
+            nodes.Add(await TypeSyntaxAsync(types[i], state, cancellation));
+        }
+        return new(nodes.ToArray());
     }
 
     private async ValueTask<SyntaxNode> MappedTypeSyntaxAsync(MappedType type, TypeSyntaxContext state, CancellationToken cancellation)
@@ -323,6 +392,7 @@ internal sealed partial class Checker
             parameterNode, nameNode,
             declaration.QuestionToken is { } question ? f.NewToken(question.Kind) : null,
             templateNode, null);
+        state.Length.Add(10);
         state.SingleLine.Add(result);
         return result;
     }
@@ -354,6 +424,13 @@ internal sealed partial class Checker
     {
         var f = state.Factory;
         var members = new List<SyntaxNode>();
+        if (type.CallSignatures.Count + type.ConstructSignatures.Count + type.IndexInfos.Count + (type.Properties?.Count ?? 0) != 0
+            && state.Length.Truncated())
+        {
+            members.Add(state.Length.NoTruncation ? f.NewNotEmittedTypeElement()
+                : f.NewPropertySignatureDeclaration(null, f.NewIdentifier("..."), null, null, null));
+            return Finish();
+        }
         foreach (var signature in type.CallSignatures)
             members.Add(await SignatureSyntaxAsync(signature, K.CallSignature, state, cancellation));
         foreach (var signature in type.ConstructSignatures)
@@ -371,10 +448,22 @@ internal sealed partial class Checker
                 null);
             members.Add(f.NewIndexSignatureDeclaration(index.IsReadonly ? new([f.NewToken(K.ReadonlyKeyword)]) : null, new([parameter]),
                 await TypeSyntaxAsync(index.ValueType, state, cancellation)));
+            state.Length.Add(name, 4 + (index.IsReadonly ? 9 : 0));
         }
-        foreach (var property in type.Properties ?? [])
+        var properties = type.Properties ?? [];
+        for (int propertyIndex = 0; propertyIndex < properties.Count; propertyIndex++)
         {
             cancellation.ThrowIfCancellationRequested();
+            if (state.Length.Truncated() && propertyIndex + 3 < properties.Count - 1)
+            {
+                if (!state.Length.NoTruncation)
+                    members.Add(f.NewPropertySignatureDeclaration(null,
+                        f.NewIdentifier(
+                            "... " + (properties.Count - propertyIndex - 1).ToString(CultureInfo.InvariantCulture) + " more ..."),
+                        null, null, null));
+                propertyIndex = properties.Count - 1;
+            }
+            var property = properties[propertyIndex];
             if ((property.CheckFlags & Binding.CheckFlags.ReverseMapped) != 0)
                 throw new NotSupportedException("Reverse-mapped property syntax requires recovery handling");
             var value = Values.NonMissing(await Values.GetAsync(property, cancellation), (property.Flags & SymbolFlags.Optional) != 0);
@@ -404,7 +493,8 @@ internal sealed partial class Checker
             {
                 if (nameType is UniqueSymbolType)
                 {
-                    var sourceScope = new SymbolDisplayContext(declaration ?? state.Symbols.Enclosing, state.Symbols.Flags);
+                    var sourceScope = new SymbolDisplayContext(declaration ?? state.Symbols.Enclosing, state.Symbols.Flags)
+                    { Length = state.Length, ExpressionNames = true };
                     if (await SymbolTypeNodeAsync(
                         nameSymbol,
                         SymbolFlags.Value,
@@ -457,6 +547,7 @@ internal sealed partial class Checker
                     f.NewPrefixUnaryExpression(K.MinusToken, f.NewNumericLiteral(name[1..], TokenFlags.None)));
             else
                 propertyName = f.NewStringLiteral(name, singleQuote ? TokenFlags.SingleQuote : TokenFlags.None);
+            state.Length.Add(Symbol.EscapeName(property.Name), 1);
             bool readOnly = (property.CheckFlags & Binding.CheckFlags.Readonly) != 0
                 || property.Declarations.Any(d => SemanticSyntax.HasModifier(d, K.ReadonlyKeyword))
                 || (property.Flags & SymbolFlags.GetAccessor) != 0 && (property.Flags & SymbolFlags.SetAccessor) == 0;
@@ -490,19 +581,28 @@ internal sealed partial class Checker
                 if (signatures.Count != 0 || question is null)
                     continue;
             }
+            var propertyTypeNode = reusedType ?? ((property.Flags & SymbolFlags.Accessor) != 0
+                ? await DeclarationTypeSyntaxAsync(value,
+                    property.Declarations.OfType<GetAccessorDeclarationNode>().FirstOrDefault() as SyntaxNode
+                        ?? property.Declarations.OfType<SetAccessorDeclarationNode>().FirstOrDefault()?.Parameters?.LastOrDefault(),
+                    false, state, cancellation)
+                : await TypeSyntaxAsync(value, state, cancellation));
+            if (readOnly)
+                state.Length.Add(9);
             members.Add(f.NewPropertySignatureDeclaration(readOnly ? new([f.NewToken(K.ReadonlyKeyword)]) : null, propertyName,
                 question,
-                reusedType ?? ((property.Flags & SymbolFlags.Accessor) != 0
-                    ? await DeclarationTypeSyntaxAsync(value,
-                        property.Declarations.OfType<GetAccessorDeclarationNode>().FirstOrDefault() as SyntaxNode
-                            ?? property.Declarations.OfType<SetAccessorDeclarationNode>().FirstOrDefault()?.Parameters?.LastOrDefault(),
-                        false, state, cancellation)
-                    : await TypeSyntaxAsync(value, state, cancellation)),
+                propertyTypeNode,
                 null));
         }
-        var result = f.NewTypeLiteralNode(new(members.ToArray()));
-        state.SingleLine.Add(result);
-        return result;
+        return Finish();
+
+        SyntaxNode Finish()
+        {
+            var result = f.NewTypeLiteralNode(new(members.ToArray()));
+            state.Length.Add(2);
+            state.SingleLine.Add(result);
+            return result;
+        }
     }
 
     private static SyntaxNode? ReuseLiteralTypeSyntax(SyntaxNode node, TypeSyntaxContext state, CancellationToken cancellation)
@@ -524,9 +624,13 @@ internal sealed partial class Checker
                 child.Pos = -1;
                 child.End = -1;
             }
-            if (child is StringLiteralNode)
+            if (child is StringLiteralNode literal)
+            {
+                literal.TokenFlags |= state.Symbols.StringLiteralFlags;
                 state.NoAsciiEscape.Add(child);
+            }
         }
+        AddReusedSyntaxLength(node, state);
         return clone;
     }
 
@@ -539,17 +643,22 @@ internal sealed partial class Checker
         var arguments = await References.TypeArgumentsAsync(reference, cancellation);
         if (IsArray(reference) && arguments.Count != 0)
         {
+            if ((state.Flags & NodeBuilderFlags.WriteArrayAsGenericType) != 0)
+                return f.NewTypeReferenceNode(f.NewIdentifier(IsReadonlyArray(reference) ? "ReadonlyArray" : "Array"),
+                    new([await TypeSyntaxAsync(arguments[0], state, cancellation)]));
             var array = f.NewArrayTypeNode(ParenthesizeType(await TypeSyntaxAsync(arguments[0], state, cancellation), f, postfix: true));
             return IsReadonlyArray(reference) ? f.NewTypeOperatorNode(K.ReadonlyKeyword, array) : array;
         }
         if (reference.Target is TupleType tuple)
         {
             var elements = new List<SyntaxNode>();
-            for (int i = 0; i < tuple.ElementInfos.Count; i++)
+            var types = arguments.Select((value, i) => Values.NonMissing(value,
+                i < tuple.ElementInfos.Count && (tuple.ElementInfos[i].Flags & ElementFlags.Optional) != 0)).ToArray();
+            var tupleNodes = await TypeSyntaxListAsync(types.Take(tuple.ElementInfos.Count).ToArray(), state, cancellation);
+            for (int i = 0; i < (tupleNodes?.Count ?? 0); i++)
             {
                 var info = tuple.ElementInfos[i];
-                var value = Values.NonMissing(arguments[i], (info.Flags & ElementFlags.Optional) != 0);
-                SyntaxNode node = await TypeSyntaxAsync(value, state, cancellation);
+                SyntaxNode node = tupleNodes![i];
                 if ((info.Flags & ElementFlags.Rest) != 0)
                     node = f.NewArrayTypeNode(ParenthesizeType(node, f, postfix: true));
                 if (info.LabeledDeclaration is NamedTupleMemberNode label)

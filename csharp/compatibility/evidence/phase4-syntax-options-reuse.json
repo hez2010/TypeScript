@@ -1,0 +1,18 @@
+{
+    "prior": {
+        "previousCandidateHash": "c0c7e053c034a5f155c881ede4f63c13fcef4dc30fe8babdc6e054642c49a889",
+        "candidateHash": "b7f2ed44e81de14faff656abe29820ef517922e9e433eff19eac660325e45f9d",
+        "retainedCandidates": 24,
+        "replayedCandidates": 8,
+        "retainedReferences": 32,
+        "addedConfigurations": 8,
+        "reason": "Replay function-signature and explicit-this cases after broadening parameter/return annotation reuse. The other 24 inputs do not reach that path or the changed generic typeof/import/enum quoting paths. Add eight configurations for those newly covered paths."
+    },
+    "previousCandidateHash": "b7f2ed44e81de14faff656abe29820ef517922e9e433eff19eac660325e45f9d",
+    "candidateHash": "00e7ded549cf23837cf806e6db4f19f0052d0bbc446db12db1b6d9fe3c73bd56",
+    "retainedCandidates": 36,
+    "replayedCandidates": 4,
+    "retainedReferences": 40,
+    "addedConfigurations": 5,
+    "reason": "Only the four signature configurations reuse double-quoted literal annotations affected by the fix. Reused literals in the Unicode/property and generic typeof fixtures already use single quotes, and the other passing cases do not reach that changed path. Add quoted-name annotations and one case crossing the one-million-byte untruncated limit."
+}

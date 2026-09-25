@@ -89,6 +89,7 @@ internal sealed partial class Checker
                     != SymbolAccessibility.Accessible)
                 return null;
         }
-        return CloneSyntaxBindingName(annotation, state);
+        AddReusedSyntaxLength(annotation, state);
+        return CloneSyntaxBindingName(annotation, state, typeAnnotation: true);
     }
 }

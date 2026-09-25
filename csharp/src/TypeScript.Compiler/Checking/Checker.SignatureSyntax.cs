@@ -84,7 +84,7 @@ internal sealed partial class Checker
             if (named)
                 return await SymbolTypeNodeAsync(symbol, SymbolFlags.Value, null, state.Symbols, false, cancellation);
         }
-        return state.Factory.NewKeywordTypeNode(K.AnyKeyword);
+        return ElidedTypeSyntax(state);
     }
 
     private async ValueTask<SyntaxNode> SignatureSyntaxAsync(Signature signature, K kind, TypeSyntaxContext state,
@@ -97,6 +97,7 @@ internal sealed partial class Checker
         try
         {
             var expanded = await ExpandedSyntaxParametersAsync(signature, allocated, cancellation);
+            state.Length.Add(3);
             if (previous is not null && signature.Declaration is not null && expanded.Count != 0)
             {
                 var locals = new Dictionary<string, Symbol>(StringComparer.Ordinal);
@@ -131,7 +132,7 @@ internal sealed partial class Checker
                     constraint is null ? null : await TypeSyntaxAsync(constraint, state, cancellation), state, cancellation));
             }
             var parameters = new List<SyntaxNode>();
-            if (signature.ThisParameter is { } thisParameter)
+            if ((state.Flags & NodeBuilderFlags.OmitThisParameter) == 0 && signature.ThisParameter is { } thisParameter)
                 parameters.Add(await ParameterSyntaxAsync(thisParameter, state, cancellation));
             var selected = expanded.Take(Math.Max(0, expanded.Count - 1)).Any(p => (p.CheckFlags & Binding.CheckFlags.RestParameter) != 0)
                 ? signature.Parameters : expanded;
@@ -244,6 +245,7 @@ internal sealed partial class Checker
                 original is QualifiedNameNode qualified ? qualified.Right! : original,
                 state) : f.NewIdentifier(symbol.Name);
         state.NoAsciiEscape.Add(name);
+        state.Length.Add(symbol.Name, 3);
         return f.NewParameterDeclaration(null,
             declaration?.DotDotDotToken is not null || (symbol.CheckFlags & Binding.CheckFlags.RestParameter) != 0
                 ? f.NewToken(K.DotDotDotToken)
@@ -264,7 +266,7 @@ internal sealed partial class Checker
             && Signatures.Invoked(parameter.Parent!) is { } invoked && index >= (invoked.Arguments?.Count ?? 0);
     }
 
-    private static SyntaxNode CloneSyntaxBindingName(SyntaxNode name, TypeSyntaxContext state)
+    private static SyntaxNode CloneSyntaxBindingName(SyntaxNode name, TypeSyntaxContext state, bool typeAnnotation = false)
     {
         var result = name.DeepClone<SyntaxNode>(state.Factory);
         foreach (var node in result.DescendantsAndSelf())
@@ -272,6 +274,8 @@ internal sealed partial class Checker
             node.Parent = null;
             if (node is BindingElementNode element)
                 element.Initializer = null;
+            if (typeAnnotation && node is StringLiteralNode literal)
+                literal.TokenFlags |= state.Symbols.StringLiteralFlags;
             state.NoAsciiEscape.Add(node);
             state.SingleLine.Add(node);
         }
@@ -296,6 +300,8 @@ internal sealed partial class Checker
             {
                 if (ReuseLiteralTypeSyntax(annotation, state, cancellation) is { } reused)
                     return reused;
+                if (await ReuseTypeAnnotationSyntaxAsync(annotation, state, cancellation) is { } reusableAnnotation)
+                    return reusableAnnotation;
                 if (annotation is TypeQueryNode query && await ReuseTypeQuerySyntaxAsync(query, state, cancellation) is { } reusedQuery)
                     return reusedQuery;
             }
@@ -331,14 +337,25 @@ internal sealed partial class Checker
         var arguments = new List<SyntaxNode>();
         if (query.TypeArguments is { } typeArguments)
             foreach (var argument in typeArguments)
-                arguments.Add(ReuseLiteralTypeSyntax(argument, state, cancellation)
-                    ?? await TypeSyntaxAsync(await Nodes.FromNodeAsync(argument, cancellation), state, cancellation));
+            {
+                long previousLength = state.Length.Value;
+                var reused = ReuseLiteralTypeSyntax(argument, state, cancellation)
+                    ?? await ReuseTypeAnnotationSyntaxAsync(argument, state, cancellation);
+                if (reused is not null)
+                {
+                    state.Length.Value = previousLength;
+                    arguments.Add(reused);
+                }
+                else
+                    arguments.Add(await TypeSyntaxAsync(await Nodes.FromNodeAsync(argument, cancellation), state, cancellation));
+            }
         NodeList? argumentNodes = query.TypeArguments is null ? null : new(arguments.ToArray());
         if (current != UnknownSymbol && (original is null || current is not null
             && await SameSymbolReferenceAsync(current.ExportSymbol ?? current, original.ExportSymbol ?? original, cancellation))
             && (current is null || (await SymbolAccessibilityAsync(current, state.Symbols.Enclosing,
                 SymbolFlags.Value, false, true, cancellation)).Accessibility == SymbolAccessibility.Accessible))
         {
+            AddReusedSyntaxLength(query, state);
             if (query.TypeArguments is null)
                 return CloneSyntaxBindingName(query, state);
             return state.Factory.NewTypeQueryNode(CloneSyntaxBindingName(query.ExprName!, state), argumentNodes);
@@ -347,6 +364,7 @@ internal sealed partial class Checker
         if (symbol is null || symbol == UnknownSymbol || (await SymbolAccessibilityAsync(symbol, state.Symbols.Enclosing,
             SymbolFlags.Value, false, true, cancellation)).Accessibility != SymbolAccessibility.Accessible)
             return null;
+        AddReusedSyntaxLength(query, state);
         // The pinned builder drops type arguments when this fallback returns a typeof query.
         return await SymbolTypeNodeAsync(symbol, SymbolFlags.Value, argumentNodes, state.Symbols, false, cancellation);
     }
