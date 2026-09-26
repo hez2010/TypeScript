@@ -208,7 +208,7 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
         TypeReferenceChecks = new(context, links, References, Declared, program.Scopes, Instantiation.Constraints,
             Instantiation.Engine, Relations, this);
         IndexDeclarationChecks = new(program.Symbols, Nodes, Members, Properties, Values, IndexSignatures, Bases, Relations,
-            PropertyNameTypeAsync, (node, code) => Error(node, code));
+            PropertyNameTypeAsync, (node, code) => Error(node, code), this);
         program.CallSignature = async (symbol, token) => (await SignaturesAsync(
             await Values.GetAsync(symbol, token),
             false,
@@ -422,6 +422,8 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
     {
         if (reported.Add((node, code)))
         {
+            if (code == 2300 && arguments.Length == 0)
+                arguments = [AliasTargets.Text(node) ?? CheckerDiagnostic.DeclarationName(node)];
             Diagnostics.Add(code);
             TrackDiagnostic(node, code, arguments);
         }

@@ -4,15 +4,15 @@
 
 ## Current overall status
 
-The complete Release import baseline plus subsequent affected-case results record **12,867 matches out of 13,446 active compiler configurations**, up from 12,778 before the module/declaration-grammar batch and 9,365 at the original Release baseline. **All 13,446 configurations now finish execution and match source graphs.** **579 configurations still have diagnostic-code differences.** One exported input was corrected to reproduce the reference harness's duplicate-filename overwrite order; the reference's expected graph and diagnostics were unchanged.
+The complete Release import baseline plus subsequent affected-case results record **12,923 matches out of 13,446 active compiler configurations**, up from 12,867 before the indexed-access/declaration-diagnostics batch and 9,365 at the original Release baseline. **All 13,446 configurations now finish execution and match source graphs.** **523 configurations still have diagnostic-code differences.** One exported input was corrected to reproduce the reference harness's duplicate-filename overwrite order; the reference's expected graph and diagnostics were unchanged.
 
-These comparisons cover source graphs and diagnostic codes. **95.7% matching on this measure is not a Phase-4 completion percentage.** The remaining gates are:
+These comparisons cover source graphs and diagnostic codes. **96.1% matching on this measure is not a Phase-4 completion percentage.** The remaining gates are:
 
 | Completion requirement | Current status |
 | --- | --- |
 | Execute active corpus and match source graphs | Complete: 13,446 configurations |
-| Match semantic diagnostic codes | 12,867 match; 579 differ |
-| Match diagnostic text, locations and related information | Incomplete: detailed records match in 2,381 of 3,802 selected configurations, including 1,609 with nonempty semantic diagnostics; the remaining corpus has not been compared at this level |
+| Match semantic diagnostic codes | 12,923 match; 523 differ |
+| Match diagnostic text, locations and related information | Incomplete: detailed records match in 3,597 of 6,194 selected configurations, including 2,496 with nonempty semantic diagnostics; the remaining corpus has not been compared at this level |
 | Complete type/symbol comparisons, type display, node builders, accessibility and emit-resolver APIs | Incomplete; query families, visibility, formatted accessibility and symbol-format flags have fixture comparisons; remaining node-builder policies, type display and emit-resolver coverage remain open |
 | Validate actual parallel checker scheduling | Incomplete; reference-mode corpus agreement is a narrower check |
 | Meet complete semantic workload memory/performance budgets | Incomplete |
@@ -20,7 +20,7 @@ These comparisons cover source graphs and diagnostic codes. **95.7% matching on 
 
 Phase 4 is not nearly complete, and the evidence does not yet support a reliable completion estimate. Completed results are retained: each implementation checkpoint replays affected inputs against cached oracle results. A failed check is repeated after a relevant fix; unchanged checks are reused.
 
-**Current implementation focus:** continue grouped semantic and diagnostic fixes, then complete inferred-return recovery and full display/emit integration. The latest module/declaration batch closes 89 semantic configurations through quoted export names, shorthand ambient modules, helper requests, shadowing checks, JSDoc/tuple/heritage grammar and property-assertion parsing. Parallel scheduling and performance/memory gates remain open.
+**Current implementation focus:** continue grouped semantic and diagnostic fixes, then complete inferred-return recovery and full display/emit integration. The latest batch closes 56 semantic configurations through indexed-access validation, merged declaration and overload checks, circular-return reporting, index diagnostics and duplicate diagnostic removal. Parallel scheduling and performance/memory gates remain open.
 
 The next implementation priorities are missing diagnostic arguments and relation chains, remaining declaration/expression checks, and the unfinished checker APIs. The sections below are historical implementation checkpoints; their individual passing counts do not represent whole-phase completion.
 
@@ -1272,6 +1272,18 @@ Declaration checking now rejects `let` binding names in let/const declarations a
 Release comparisons cover **292 distinct configurations in each reference mode** across an initial 113-case module/grammar group, a 178-case tuple/heritage group and ten affected follow-up cases. Unchanged results and all Go reference records are retained. **89 previously failing configurations now match diagnostic codes**, reducing the retained full-corpus difference count from 668 to **579**, with no code or previously measured detailed regressions in the selected cases. Detailed coverage grows by 205 configurations to **2,381 exact out of 3,802 measured**; 13 previously measured detailed mismatches become exact. Remaining selected failures are recorded, including unrelated malformed-parser and contextual-tuple differences.
 
 Twelve focused safety assertions cover quoted and empty-string imports, helper diagnostic arguments, reserved/shadowed variables, optional tuple ordering, parser token placement, repeated checking and source-tree ownership. The Release build has zero warnings and errors. Evidence: [semantic/detail rollup](../csharp/compatibility/evidence/phase4-module-grammar-semantics.json) and [validation and reuse](../csharp/compatibility/evidence/phase4-module-grammar-validation.json). Formatting preserves C# syntax and is not followed by redundant runtime tests. NativeAOT remains deferred until the final whole-phase check.
+
+## Indexed access, declaration consistency and diagnostic identity
+
+Type annotations now invoke the existing indexed-access validator. Interface/type-literal methods participate in overload consistency checks, and variable-like declarations check optionality and the reference's selected modifier flags across merged declarations. Circular return inference distinguishes annotated cycles from unannotated implicit-any returns, including assigned names of anonymous functions.
+
+Index checking shares computed-member handling with ordinary members. It retains distinct property/index failures at the same declaration, writes their type/name arguments and adds related declaration information. The former duplicate computed-member path is removed. Type-member lookahead prevents malformed statement tokens from becoming phantom properties during type recovery.
+
+Final diagnostic collections use content equality for argument arrays, message chains and related information, matching the reference's diagnostic identity rules. The comparer uses an explicit stack for nested records; ordinary record equality would compare the arrays by identity. Checker duplicate-identifier reports now include the identifier argument, allowing identical binder/checker reports to combine without dropping distinct errors.
+
+Release validation covers **2,617 distinct configurations in each reference mode**. The initial 269-case comparison exposed five regressions; affected replays corrected all five. A subsequent 2,367-case comparison covered known duplicate records, older records with repeated codes but no detailed evidence, duplicate declarations and parser recovery. **56 configurations become diagnostic-code matches**, reducing the retained full baseline from 579 differences to **523**, with no observed code or previously measured detailed regressions. Detailed coverage grows by 2,392 configurations to **3,597 exact out of 6,194 measured**; 20 previously measured detailed mismatches become exact. Unchanged reference/candidate records remain retained, and remaining selected failures are recorded.
+
+Twenty safety assertions cover structural diagnostic equality, distinct arguments and related records, ordered related information, message-chain identity, 20,000-level chain comparison, multiple index-property errors at one location, overload modifiers, parser recovery and repeat-check stability. The Release build has zero warnings and errors. Evidence: [semantic/detail rollup](../csharp/compatibility/evidence/phase4-index-declarations-semantics.json) and [validation and reuse](../csharp/compatibility/evidence/phase4-index-declarations-validation.json). Formatting is verified without another runtime replay; NativeAOT remains deferred until the final whole-phase check.
 
 ## Remaining completion work
 

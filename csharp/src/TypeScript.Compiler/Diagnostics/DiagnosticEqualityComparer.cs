@@ -1,0 +1,59 @@
+namespace TypeScript.Compiler.Diagnostics;
+
+// Record equality compares argument arrays by identity. Diagnostic collections
+// instead compare their contents, including nested message and related records.
+internal sealed class DiagnosticEqualityComparer : IEqualityComparer<Diagnostic>
+{
+    internal static DiagnosticEqualityComparer Instance { get; } = new();
+
+    public bool Equals(Diagnostic? left, Diagnostic? right)
+    {
+        if (ReferenceEquals(left, right))
+            return true;
+        if (left is null || right is null)
+            return false;
+        var pending = new Stack<(Diagnostic Left, Diagnostic Right, bool Chain)>();
+        pending.Push((left, right, false));
+        while (pending.TryPop(out var pair))
+        {
+            var a = pair.Left;
+            var b = pair.Right;
+            if (ReferenceEquals(a, b))
+                continue;
+            if (a.Code != b.Code || !a.Arguments.AsSpan().SequenceEqual(b.Arguments)
+                || a.MessageChain.Count != b.MessageChain.Count)
+                return false;
+            if (!pair.Chain)
+            {
+                if ((a.FileName ?? "") != (b.FileName ?? "") || a.Start != b.Start || a.Length != b.Length
+                    || a.Message.Category != b.Message.Category || (a.Source ?? "") != (b.Source ?? "")
+                    || Identity(a) != Identity(b) || a.RelatedInformation.Count != b.RelatedInformation.Count)
+                    return false;
+                for (int i = 0; i < a.RelatedInformation.Count; i++)
+                    pending.Push((a.RelatedInformation[i], b.RelatedInformation[i], false));
+            }
+            for (int i = 0; i < a.MessageChain.Count; i++)
+                pending.Push((a.MessageChain[i], b.MessageChain[i], true));
+        }
+        return true;
+    }
+
+    public int GetHashCode(Diagnostic diagnostic)
+    {
+        var hash = new HashCode();
+        hash.Add(diagnostic.FileName ?? "", StringComparer.Ordinal);
+        hash.Add(diagnostic.Start);
+        hash.Add(diagnostic.Length);
+        hash.Add(diagnostic.Code);
+        hash.Add(diagnostic.Message.Category);
+        hash.Add(diagnostic.Source ?? "", StringComparer.Ordinal);
+        hash.Add(Identity(diagnostic), StringComparer.Ordinal);
+        foreach (string argument in diagnostic.Arguments)
+            hash.Add(argument, StringComparer.Ordinal);
+        hash.Add(diagnostic.MessageChain.Count);
+        hash.Add(diagnostic.RelatedInformation.Count);
+        return hash.ToHashCode();
+    }
+
+    private static string Identity(Diagnostic diagnostic) => diagnostic.Code == -1 ? diagnostic.Message.Text : diagnostic.Message.Key;
+}

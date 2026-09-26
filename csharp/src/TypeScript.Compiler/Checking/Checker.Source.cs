@@ -369,6 +369,8 @@ internal sealed partial class Checker
                 case MethodSignatureDeclarationNode or CallSignatureDeclarationNode or ConstructSignatureDeclarationNode:
                     await FunctionDeclarations.GrammarAsync(node, cancellation).ConfigureAwait(false);
                     await FunctionDeclarations.CheckAsync(node, cancellation).ConfigureAwait(false);
+                    if (node is MethodSignatureDeclarationNode)
+                        await CheckFunctionOverloadsAsync(node, cancellation);
                     break;
                 case IndexSignatureDeclarationNode index:
                     await CheckIndexSignatureSourceAsync(index, cancellation).ConfigureAwait(false);

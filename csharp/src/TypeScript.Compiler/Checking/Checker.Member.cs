@@ -49,7 +49,48 @@ internal sealed partial class Checker : ISignatureHost, IStructuredMemberHost, I
     public ValueTask<int> ParameterCountAsync(Signature signature, CancellationToken cancellation) =>
         Parameters.CountAsync(signature, cancellation);
 
-    public void CircularReturn(Signature signature) => Error(signature.Declaration!, 2577);
+    public void CircularReturn(Signature signature)
+    {
+        if (signature.Declaration is not { } declaration)
+            return;
+        if (declaration is ITypedNode { Type: { } annotation })
+            Error(annotation, 2577);
+        else if (NoImplicitAny)
+        {
+            if ((SemanticSyntax.Name(declaration) ?? AssignedDeclarationName(declaration)) is { } name)
+                Error(name, 7023, CheckerDiagnostic.DeclarationName(name));
+            else
+                Error(declaration, 7024);
+        }
+    }
+
+    private static SyntaxNode? AssignedDeclarationName(SyntaxNode node)
+    {
+        if (node is not (FunctionExpressionNode or ArrowFunctionNode or ClassExpressionNode))
+            return null;
+        return node.Parent switch
+        {
+            PropertyAssignmentNode property => property.Name,
+            BindingElementNode element => element.Name,
+            VariableDeclarationNode { Name: IdentifierNode name } => name,
+            BinaryExpressionNode binary when binary.Right == node => binary.Left switch
+            {
+                IdentifierNode name => name,
+                PropertyAccessExpressionNode access => access.Name,
+                ElementAccessExpressionNode access => StripParentheses(access.ArgumentExpression!) is
+                    StringLiteralNode or NumericLiteralNode or NoSubstitutionTemplateLiteralNode ? StripParentheses(access.ArgumentExpression!) : null,
+                _ => null
+            },
+            _ => null
+        };
+
+        static SyntaxNode StripParentheses(SyntaxNode expression)
+        {
+            while (expression is ParenthesizedExpressionNode parentheses)
+                expression = parentheses.Expression!;
+            return expression;
+        }
+    }
 
     public ValueTask<IReadOnlyDictionary<string, Symbol>> ExportsAsync(Symbol symbol, CancellationToken cancellation) =>
         LateMembers.TableAsync(symbol, true, cancellation);

@@ -4,9 +4,20 @@ using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
 
+internal interface IIndexDeclarationHost
+{
+    ValueTask<bool> BindableNameAsync(SyntaxNode node, CancellationToken cancellation);
+
+    ValueTask<Type> ComputedKeyAsync(SyntaxNode node, CancellationToken cancellation);
+
+    ValueTask IndexPropertyErrorAsync(SyntaxNode node, Symbol property, Type value, IndexInfo index, CancellationToken cancellation);
+
+    ValueTask IndexSignatureErrorAsync(SyntaxNode node, IndexInfo source, IndexInfo target, CancellationToken cancellation);
+}
+
 internal sealed class IndexDeclarationChecks(CheckerSymbols symbols, TypeNodes nodes, StructuredMembers members,
     TypeProperties properties, SymbolTypes values, IndexSignatures indexes, BaseTypes bases, TypeRelations relations,
-    Func<Symbol, CancellationToken, ValueTask<Type>> propertyName, Action<SyntaxNode, int> error)
+    Func<Symbol, CancellationToken, ValueTask<Type>> propertyName, Action<SyntaxNode, int> error, IIndexDeclarationHost host)
 {
     internal async ValueTask TypeLiteralAsync(TypeLiteralNode node, CancellationToken cancellation = default)
     {
@@ -51,13 +62,27 @@ internal sealed class IndexDeclarationChecks(CheckerSymbols symbols, TypeNodes n
         {
             if (isStatic && (property.Flags & SymbolFlags.Prototype) != 0)
                 continue;
-            var declaration = property.ValueDeclaration;
-            if (declaration is INamedNode { Name: PrivateIdentifierNode })
-                continue;
             var name = await propertyName(property, cancellation).ConfigureAwait(false);
             var value = values.NonMissing(
                 await values.GetAsync(property, cancellation).ConfigureAwait(false),
                 (property.Flags & SymbolFlags.Optional) != 0);
+            await CheckPropertyAsync(property, name, value).ConfigureAwait(false);
+        }
+        if (type.Symbol?.ValueDeclaration is ClassDeclarationNode or ClassExpressionNode)
+            foreach (var member in PropertyInitialization.Members(type.Symbol.ValueDeclaration))
+                if (SemanticSyntax.IsStatic(member) == isStatic && !await host.BindableNameAsync(member, cancellation).ConfigureAwait(false)
+                    && symbols.Declaration(member) is { } symbol)
+                    await CheckPropertyAsync(symbol, await host.ComputedKeyAsync(member, cancellation).ConfigureAwait(false),
+                        values.NonMissing(
+                            await values.GetAsync(symbol, cancellation).ConfigureAwait(false),
+                            (symbol.Flags & SymbolFlags.Optional) != 0))
+                        .ConfigureAwait(false);
+
+        async ValueTask CheckPropertyAsync(Symbol property, Type name, Type value)
+        {
+            var declaration = property.ValueDeclaration;
+            if (declaration is INamedNode { Name: PrivateIdentifierNode })
+                return;
             foreach (var index in resolved.IndexInfos)
             {
                 if (!await indexes.ApplicableTypeAsync(name, index.KeyType, cancellation).ConfigureAwait(false))
@@ -84,7 +109,7 @@ internal sealed class IndexDeclarationChecks(CheckerSymbols symbols, TypeNodes n
                 }
                 if (location is not null
                     && !await relations.RelatedAsync(value, index.ValueType, RelationKind.Assignable, cancellation).ConfigureAwait(false))
-                    error(location, 2411);
+                    await host.IndexPropertyErrorAsync(location, property, value, index, cancellation).ConfigureAwait(false);
             }
         }
         foreach (var check in resolved.IndexInfos)
@@ -115,7 +140,7 @@ internal sealed class IndexDeclarationChecks(CheckerSymbols symbols, TypeNodes n
                         index.ValueType,
                         RelationKind.Assignable,
                         cancellation).ConfigureAwait(false))
-                    error(location, 2413);
+                    await host.IndexSignatureErrorAsync(location, check, index, cancellation).ConfigureAwait(false);
             }
     }
 

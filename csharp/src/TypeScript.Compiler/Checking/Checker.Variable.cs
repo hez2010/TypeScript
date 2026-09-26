@@ -11,6 +11,37 @@ internal sealed partial class Checker : IVariableTypeHost
     internal PropertyInitialization PropertyInitializers { get; }
     internal Action<SyntaxNode>? BeforeInitializer { get; set; }
 
+    public void CheckDeclarationFlags(SyntaxNode node, Symbol symbol, CancellationToken cancellation)
+    {
+        bool Same(SyntaxNode left, SyntaxNode right)
+        {
+            if (left is ParameterDeclarationNode && right is VariableDeclarationNode
+                || left is VariableDeclarationNode && right is ParameterDeclarationNode)
+                return true;
+            const ModifierFlags mask = ModifierFlags.Private | ModifierFlags.Protected | ModifierFlags.Async
+                | ModifierFlags.Abstract | ModifierFlags.Readonly | ModifierFlags.Static;
+            return VariableTypes.Optional(left) == VariableTypes.Optional(right)
+                && (SyntacticFlags(left) & mask) == (SyntacticFlags(right) & mask);
+        }
+        bool mismatch = false;
+        if (node == symbol.ValueDeclaration)
+            foreach (var declaration in symbol.Declarations)
+            {
+                cancellation.ThrowIfCancellationRequested();
+                if (declaration != node && declaration is VariableDeclarationNode or ParameterDeclarationNode or PropertyDeclarationNode
+                    or PropertySignatureDeclarationNode or BindingElementNode or PropertyAssignmentNode or ShorthandPropertyAssignmentNode
+                    && !Same(declaration, node))
+                {
+                    mismatch = true;
+                    break;
+                }
+            }
+        else if (symbol.ValueDeclaration is { } first)
+            mismatch = !Same(node, first);
+        if (mismatch && SemanticSyntax.Name(node) is { } name)
+            Error(name, 2687, CheckerDiagnostic.DeclarationName(name));
+    }
+
     public void CheckVariableShadowing(SyntaxNode node, CancellationToken cancellation)
     {
         var root = SemanticSyntax.RootDeclaration(node);

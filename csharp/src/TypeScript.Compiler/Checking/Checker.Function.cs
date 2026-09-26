@@ -41,6 +41,8 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
             {
                 if (item.Node is TypeReferenceNode reference)
                     await TypeReferenceChecks.CheckAsync(reference, cancellation);
+                else if (item.Node is IndexedAccessTypeNode indexed)
+                    await IndexValidation.CheckAsync(await Nodes.FromNodeAsync(indexed, cancellation), indexed, cancellation);
                 else if (item.Node is TypeOperatorNode operation)
                     TypeOperatorGrammar(operation);
                 else if (item.Node is TupleTypeNode tuple)
@@ -72,6 +74,8 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
                 {
                     await FunctionDeclarations.GrammarAsync(item.Node, cancellation).ConfigureAwait(false);
                     await FunctionDeclarations.CheckAsync(item.Node, cancellation).ConfigureAwait(false);
+                    if (item.Node is MethodSignatureDeclarationNode)
+                        await CheckFunctionOverloadsAsync(item.Node, cancellation);
                 }
             }
             else

@@ -138,17 +138,6 @@ internal sealed partial class Checker
         await IndexDeclarationChecks.CheckAsync(type, false, cancellation).ConfigureAwait(false);
         if (staticType is StructuredType structured)
             await IndexDeclarationChecks.CheckAsync(structured, true, cancellation).ConfigureAwait(false);
-        foreach (var member in PropertyInitialization.Members(node))
-            if (SemanticSyntax.Name(member) is ComputedPropertyNameNode computed && !await BindableNameAsync(member, cancellation))
-            {
-                var property = program.Symbols.Declaration(member)!;
-                var key = await ComputedNameAsync(computed, cancellation);
-                var value = Values.NonMissing(await Values.GetAsync(property, cancellation), (property.Flags & SymbolFlags.Optional) != 0);
-                foreach (var index in await IndexesAsync(SemanticSyntax.IsStatic(member) ? staticType : type, cancellation))
-                    if (await IndexSignatures.ApplicableTypeAsync(key, index.KeyType, cancellation)
-                        && !await AssignableAsync(value, index.ValueType, cancellation))
-                        Error(member, 2411);
-            }
         await IndexDeclarationChecks.DuplicateIndexesAsync(node, cancellation).ConfigureAwait(false);
         await PropertyInitializers.CheckAsync(node, cancellation).ConfigureAwait(false);
         if (expression)

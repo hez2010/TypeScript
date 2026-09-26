@@ -48,6 +48,8 @@ internal interface IFunctionDeclarationHost : IConstraintCheckHost
     void RegisterUnused(SyntaxNode node);
 
     void CheckVariableShadowing(SyntaxNode node, CancellationToken cancellation);
+
+    void CheckDeclarationFlags(SyntaxNode node, Symbol symbol, CancellationToken cancellation);
 }
 
 internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols symbols, TypeParameterScopes scopes,
@@ -322,6 +324,7 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
             return;
         }
         var symbol = symbols.Declaration(node)!;
+        host.CheckDeclarationFlags(node, symbol, cancellation);
         var type = await values.GetAsync(symbol, cancellation).ConfigureAwait(false);
         if (type == context.AutoType)
             type = context.AnyType;

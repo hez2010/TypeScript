@@ -278,7 +278,10 @@ public sealed partial class Parser
                 if (IsMappedType())
                     return await MappedTypeCore().ConfigureAwait(false);
                 Next();
-                NodeList members = await ListCore(K.CloseBraceToken, () => TypeMemberCore(false)).ConfigureAwait(false);
+                NodeList members = await ListCore(
+                    K.CloseBraceToken,
+                    () => TypeMemberCore(false),
+                    stop: () => !Peek(ScanTypeMemberStart)).ConfigureAwait(false);
                 Expected(K.CloseBraceToken);
                 return Finish(factory.NewTypeLiteralNode(members), start);
             case K.AsteriskToken:
@@ -619,7 +622,10 @@ public sealed partial class Parser
             question = OptionalToken(K.QuestionToken);
         SyntaxNode? type = await AnnotationCore().ConfigureAwait(false);
         Semicolon();
-        NodeList members = await ListCore(K.CloseBraceToken, () => TypeMemberCore(false)).ConfigureAwait(false);
+        NodeList members = await ListCore(
+            K.CloseBraceToken,
+            () => TypeMemberCore(false),
+            stop: () => !Peek(ScanTypeMemberStart)).ConfigureAwait(false);
         Expected(K.CloseBraceToken);
         return Finish(factory.NewMappedTypeNode(readOnly, parameter, nameType, question, type, members), start);
     }

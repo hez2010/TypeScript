@@ -15,7 +15,8 @@ internal sealed partial class Checker
         => diagnosticFiles.Concat(program.DiagnosticFiles)
             .Where(d => SemanticSyntax.Source(d.Node) == file)
             .Select(d => WithRelatedInformation(d.Node, d.Diagnostic))
-            .Concat(sourceDiagnostics.Where(d => d.File == file).Select(d => d.Diagnostic)).ToArray();
+            .Concat(sourceDiagnostics.Where(d => d.File == file).Select(d => d.Diagnostic))
+            .Distinct(DiagnosticEqualityComparer.Instance).ToArray();
 
     private Diagnostic WithRelatedInformation(SyntaxNode? node, Diagnostic diagnostic)
     {
@@ -88,6 +89,7 @@ internal sealed partial class Checker
             && (file.CheckJsDirective?.Enabled ?? program.Symbols.Program.Configuration.Options.Boolean("checkJs") ?? false))
             foreach (var diagnostic in file.JSDocDiagnostics)
                 diagnostics.Add(diagnostic with { FileName = file.FileName });
+        diagnostics = diagnostics.Distinct(DiagnosticEqualityComparer.Instance).ToList();
         bool plainJavaScript = (file.Flags & NodeFlags.JavaScriptFile) != 0 && file.CheckJsDirective?.Enabled != true
             && program.Symbols.Program.Configuration.Options.Boolean("checkJs") != true;
         if (plainJavaScript)

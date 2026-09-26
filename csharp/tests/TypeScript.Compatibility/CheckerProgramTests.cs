@@ -17,6 +17,70 @@ namespace TypeScript.Compatibility;
 
 internal static class CheckerProgramTests
 {
+    internal static async Task<int> DiagnosticIdentitySafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Diagnostic identity assertion {checks + 1}");
+            checks++;
+        }
+        var comparer = DiagnosticEqualityComparer.Instance;
+        Diagnostic Make(string argument = "name") =>
+            new(Messages.Duplicate_identifier_0, 1, 4, [argument]) { FileName = "/project/main.ts" };
+        var first = Make();
+        var copy = Make();
+        Check(comparer.Equals(first, copy) && comparer.GetHashCode(first) == comparer.GetHashCode(copy));
+        Check(!comparer.Equals(first, Make("other")));
+        Check(!comparer.Equals(first, copy with { Start = 2 }));
+        Check(!comparer.Equals(first, copy with { FileName = "/project/other.ts" }));
+        Check(comparer.Equals(first, copy with { Source = "" }));
+        Check(!comparer.Equals(first, copy with { Source = "other" }));
+        var related = first with { RelatedInformation = [Make("related")] };
+        Check(comparer.Equals(related, copy with { RelatedInformation = [Make("related")] }));
+        Check(!comparer.Equals(related, copy with { RelatedInformation = [Make("different")] }));
+        Check(!comparer.Equals(first with { RelatedInformation = [Make("one"), Make("two")] },
+            copy with { RelatedInformation = [Make("two"), Make("one")] }));
+        var chained = first with { MessageChain = [Make("child")] };
+        Check(comparer.Equals(chained, copy with { MessageChain = [Make("child") with { Start = 8, FileName = null }] }));
+        Check(!comparer.Equals(chained, copy with { MessageChain = [Make("different")] }));
+        Diagnostic deep = Make(), sameDeep = Make(), otherDeep = Make("different");
+        for (int i = 0; i < 20_000; i++)
+        {
+            deep = Make() with { MessageChain = [deep] };
+            sameDeep = Make() with { MessageChain = [sameDeep] };
+            otherDeep = Make() with { MessageChain = [otherDeep] };
+        }
+        Check(comparer.Equals(deep, sameDeep) && !comparer.Equals(deep, otherDeep));
+        Check(new[] { first, copy, Make("other"), related }.Distinct(comparer).Count() == 3);
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        {
+            ["/project/main.ts"] = Wtf8.Encode(
+                "class B{x!:number;y!:number}interface I extends B{[key:string]:string}class C{p:number;p:string}interface O{m(x:number):void;m?(x:string):void}"),
+            ["/project/recovery.ts"] = Wtf8.Encode("const f: () => { return 1; };")
+        }), "/project", new("/project/tsconfig.json", options, ["/project/main.ts", "/project/recovery.ts"], [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var source = program.GetFile("/project/main.ts")!.Syntax;
+        var recovery = program.GetFile("/project/recovery.ts")!.Syntax;
+        Check(
+            recovery.ParseDiagnostics.Count != 0
+                && recovery.DescendantsAndSelf().OfType<TypeLiteralNode>().All(n => n.Members?.Count == 0));
+        await checker.CheckProgramAsync();
+        var diagnostics = checker.DetailedDiagnosticsForProgramFile(source);
+        Check(diagnostics.Count(d => d.Code == 2300) == 2);
+        var properties = diagnostics.Where(d => d.Code == 2411).ToArray();
+        Check(properties.Length == 2 && properties.Select(d => d.Arguments[0]).Order().SequenceEqual(["x", "y"]));
+        Check(properties[0].Start == properties[1].Start && properties[0].Length == properties[1].Length);
+        Check(diagnostics.Count(d => d.Code == 2386) == 1);
+        Check(checker.DetailedDiagnosticsForProgramFile(recovery).All(d => d.Code != 7008));
+        await checker.CheckProgramAsync();
+        Check(checker.DetailedDiagnosticsForProgramFile(source).Count == diagnostics.Count);
+        return checks;
+    }
+
     internal static async Task<int> ModuleGrammarSafety()
     {
         int checks = 0;

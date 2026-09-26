@@ -1,10 +1,55 @@
 using TypeScript.Compiler.Ast;
+using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
 
-internal sealed partial class Checker
+internal sealed partial class Checker : IIndexDeclarationHost
 {
+    private readonly HashSet<(SyntaxNode Node, int Code, string First, string Second, string Third, string Fourth)> indexConstraintDiagnostics = [];
+
+    public async ValueTask IndexPropertyErrorAsync(
+        SyntaxNode node,
+        Symbol property,
+        Type value,
+        IndexInfo index,
+        CancellationToken cancellation)
+    {
+        string name = await SymbolDisplayNameAsync(property, null, SymbolFlags.All, cancellation);
+        string valueText = await TypeDisplay.GetAsync(value, cancellation);
+        string keyText = await TypeDisplay.GetAsync(index.KeyType, cancellation);
+        string indexText = await TypeDisplay.GetAsync(index.ValueType, cancellation);
+        if (!indexConstraintDiagnostics.Add((node, 2411, name, valueText, keyText, indexText)))
+            return;
+        var diagnostic = CheckerDiagnostic.Create(node, Messages.Property_0_of_type_1_is_not_assignable_to_2_index_type_3,
+            name, valueText, keyText, indexText);
+        if (property.ValueDeclaration is { } declaration && declaration != node
+            && (declaration is BinaryExpressionNode || SemanticSyntax.Name(declaration) is ComputedPropertyNameNode))
+            diagnostic = diagnostic with
+            {
+                RelatedInformation = [CheckerDiagnostic.Create(
+                declaration,
+                Messages.X_0_is_declared_here,
+                name)]
+            };
+        Diagnostics.Add(2411);
+        diagnosticFiles.Add((node, diagnostic));
+    }
+
+    public async ValueTask IndexSignatureErrorAsync(SyntaxNode node, IndexInfo source, IndexInfo target, CancellationToken cancellation)
+    {
+        string sourceKey = await TypeDisplay.GetAsync(source.KeyType, cancellation);
+        string sourceValue = await TypeDisplay.GetAsync(source.ValueType, cancellation);
+        string targetKey = await TypeDisplay.GetAsync(target.KeyType, cancellation);
+        string targetValue = await TypeDisplay.GetAsync(target.ValueType, cancellation);
+        if (indexConstraintDiagnostics.Add((node, 2413, sourceKey, sourceValue, targetKey, targetValue)))
+        {
+            Diagnostics.Add(2413);
+            TrackDiagnostic(node, 2413, sourceKey, sourceValue, targetKey, targetValue);
+        }
+    }
+
     private async ValueTask CheckIndexSignatureSourceAsync(IndexSignatureDeclarationNode node, CancellationToken cancellation)
     {
         ClassMemberModifiers(node);

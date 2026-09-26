@@ -690,7 +690,7 @@ public sealed partial class Parser
         Expected(K.OpenBraceToken);
         var members = (await ListCore(
             K.CloseBraceToken,
-            async () => (await TypeMemberCore(false).ConfigureAwait(false))).ConfigureAwait(false));
+            async () => (await TypeMemberCore(false).ConfigureAwait(false)), stop: () => !Peek(ScanTypeMemberStart)).ConfigureAwait(false));
         Expected(K.CloseBraceToken);
         return Finish(factory.NewInterfaceDeclaration(modifiers, name, parameters, heritage, members), start);
     }
@@ -739,6 +739,28 @@ public sealed partial class Parser
         {
             context = saved;
         }
+    }
+
+    private bool ScanTypeMemberStart()
+    {
+        if (Token is K.OpenParenToken or K.LessThanToken or K.GetKeyword or K.SetKeyword)
+            return true;
+        bool identifier = false;
+        while (IsModifierKind(Token))
+        {
+            identifier = true;
+            Next();
+        }
+        if (Token == K.OpenBracketToken)
+            return true;
+        if (IsIdentifier || Token is >= K.FirstKeyword and <= K.LastKeyword
+            or K.StringLiteral or K.NumericLiteral or K.BigIntLiteral)
+        {
+            identifier = true;
+            Next();
+        }
+        return identifier && (Token is K.OpenParenToken or K.LessThanToken or K.QuestionToken or K.ColonToken or K.CommaToken
+            || IsSemicolon());
     }
 
     private async ValueTask<SyntaxNode> TypeMemberWorkerCore(bool inClass)
