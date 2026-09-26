@@ -29,7 +29,8 @@ internal sealed partial class Checker
     }
 
     internal ValueTask<IReadOnlyList<string>> SerializeLateBoundIndexesForEmitAsync(SyntaxNode container, SyntaxNode? enclosing,
-        NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation, CancellationToken cancellation = default) =>
+        NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation, CancellationToken cancellation = default,
+        INodeBuilderSymbolTracker? tracker = null) =>
         EmitSyntaxQueryAsync<IReadOnlyList<string>>(container, enclosing, flags, async state =>
         {
             var symbol = program.Symbols.Binding(container)?.Get(container)?.Symbol ?? program.Symbols.Declaration(container);
@@ -41,7 +42,7 @@ internal sealed partial class Checker
                 ? await IndexInfosAsync(indexSymbol, members.Values.ToArray(), cancellation) : [];
             var results = new List<string>();
             TypeSyntaxContext FreshContext() => new(enclosing, (flags & NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope) != 0,
-                (flags & NodeBuilderFlags.UseOnlyExternalAliasing) != 0, flags);
+                (flags & NodeBuilderFlags.UseOnlyExternalAliasing) != 0, flags, tracker);
             foreach (var (infos, isStatic) in new[] { (staticInfos, true), (instanceInfos, false) })
                 foreach (var info in infos)
                 {
@@ -74,20 +75,16 @@ internal sealed partial class Checker
                             var node = state.Factory.NewPropertyDeclaration(IndexModifiers(info, isStatic, state), name,
                                 postfix?.Kind == K.QuestionToken ? state.Factory.NewToken(K.QuestionToken) : null,
                                 await TypeSyntaxAsync(type, state, cancellation), null);
-                            results.Add(PrintEmitSyntax(node, enclosing, state, cancellation));
+                            results.Add(FinishTypeSyntax(state) ? PrintEmitSyntax(node, enclosing, state, cancellation) : "");
                         }
                         continue;
                     }
                     state = FreshContext();
-                    results.Add(
-                        PrintEmitSyntax(
-                            await IndexSignatureSyntaxAsync(info, state, cancellation, isStatic),
-                            enclosing,
-                            state,
-                            cancellation));
+                    var index = await IndexSignatureSyntaxAsync(info, state, cancellation, isStatic);
+                    results.Add(FinishTypeSyntax(state) ? PrintEmitSyntax(index, enclosing, state, cancellation) : "");
                 }
             return results;
-        }, cancellation);
+        }, [], cancellation);
 
     private static NodeList? IndexModifiers(IndexInfo info, bool isStatic, TypeSyntaxContext state)
     {

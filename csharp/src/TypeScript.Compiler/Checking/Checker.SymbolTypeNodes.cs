@@ -7,9 +7,24 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
+    private void TrackComputedName(SyntaxNode expression, TypeSyntaxContext state, bool existing, CancellationToken cancellation)
+    {
+        var first = expression;
+        while (first is QualifiedNameNode or PropertyAccessExpressionNode)
+            first = first is QualifiedNameNode qualified ? qualified.Left! : ((PropertyAccessExpressionNode)first).Expression!;
+        if (first is not IdentifierNode identifier)
+            return;
+        var resolver = program.Symbols.NameResolver(cancellation);
+        var meaning = SymbolFlags.Value | SymbolFlags.ExportValue;
+        var symbol = resolver.Resolve(state.Symbols.Enclosing, identifier.Text, meaning, isUse: true)
+            ?? resolver.Resolve(identifier, identifier.Text, meaning, isUse: true);
+        if (symbol is not null)
+            state.Tracker.TrackSymbol(symbol, state.Symbols.Enclosing, existing ? meaning : SymbolFlags.Value);
+    }
+
     internal async ValueTask<string> GetSymbolTypeReferenceAsync(Symbol symbol, SyntaxNode? enclosing, SymbolFlags meaning,
         IReadOnlyList<SyntaxNode>? typeArguments = null, bool externalAliasesOnly = false, bool aliasesOutsideScope = false,
-        bool forbidIndexedAccess = false, CancellationToken cancellation = default)
+        bool forbidIndexedAccess = false, CancellationToken cancellation = default, INodeBuilderSymbolTracker? tracker = null)
     {
         using var query = await EnterQueryAsync(enclosing, cancellation).ConfigureAwait(false);
         var flags = (externalAliasesOnly ? SymbolFormatFlags.UseOnlyExternalAliasing : 0)
@@ -17,7 +32,18 @@ internal sealed partial class Checker
         var arguments = typeArguments is null ? null : new NodeList(typeArguments.ToArray());
         return await ChainOperationAsync(() => ContainerOperationAsync(async () =>
         {
-            var node = await SymbolTypeNodeAsync(symbol, meaning, arguments, new(enclosing, flags), forbidIndexedAccess, cancellation);
+            var types = tracker is null
+                ? null
+                : new TypeSyntaxContext(enclosing, aliasesOutsideScope, externalAliasesOnly, tracker: tracker);
+            var node = await SymbolTypeNodeAsync(
+                symbol,
+                meaning,
+                arguments,
+                types?.Symbols ?? new(enclosing, flags),
+                forbidIndexedAccess,
+                cancellation);
+            if (types is not null && !FinishTypeSyntax(types))
+                return "";
             return PrintDiagnosticNode(
                 node,
                 enclosing is SourceFileNode,
@@ -30,6 +56,7 @@ internal sealed partial class Checker
         SymbolDisplayContext state, bool forbidIndexed, CancellationToken cancellation)
     {
         var factory = new NodeFactory();
+        state.Types?.Tracker.TrackSymbol(symbol, state.Enclosing, meaning);
         forbidIndexed |= state.ForbidIndexedAccess;
         List<Symbol> chain = state.Enclosing is null && !state.FullyQualified || (symbol.Flags & SymbolFlags.TypeParameter) != 0 ? [symbol]
             : (await DisplaySymbolChainAsync(symbol, meaning, true, state, cancellation,
@@ -49,6 +76,27 @@ internal sealed partial class Checker
                 && program.Symbols.Program.ResolutionModeForUsage(contextFile, null) != ReferenceResolutionMode.Import)
                 mode = ReferenceResolutionMode.Import;
             string specifier = await DisplayModuleSpecifierAsync(chain[0], state, cancellation, mode);
+            if (state.Types is { } types && (types.Flags & NodeBuilderFlags.AllowNodeModulesRelativePaths) == 0
+                && specifier.Contains("/node_modules/", StringComparison.Ordinal))
+            {
+                string original = specifier;
+                if (program.Symbols.Program.ModuleResolutionKind is "node16" or "nodenext" && contextFile is not null)
+                {
+                    var swapped = program.Symbols.Program.ResolutionModeForUsage(contextFile, null) == ReferenceResolutionMode.Import
+                        ? ReferenceResolutionMode.Require : ReferenceResolutionMode.Import;
+                    var alternate = await DisplayModuleSpecifierAsync(chain[0], state, cancellation, swapped);
+                    if (!alternate.Contains("/node_modules/", StringComparison.Ordinal))
+                    {
+                        specifier = alternate;
+                        mode = swapped;
+                    }
+                }
+                if (mode == 0)
+                {
+                    types.EncounteredError = true;
+                    types.Tracker.ReportLikelyUnsafeImportRequiredError(original, symbol.Name);
+                }
+            }
             var attributes = await TypeImportAttributesAsync(chain[0], specifier, mode, state, factory, cancellation);
             var argument = factory.NewLiteralTypeNode(factory.NewStringLiteral(specifier, state.StringLiteralFlags));
             state.Length?.Add(specifier, 10);

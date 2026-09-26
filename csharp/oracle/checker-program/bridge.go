@@ -16,6 +16,83 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/printer"
 )
 
+type csharpSymbolTracker struct{ events []string }
+
+func (t *csharpSymbolTracker) TrackSymbol(s *ast.Symbol, enclosing *ast.Node, meaning ast.SymbolFlags) bool {
+	pos := -1
+	if enclosing != nil {
+		pos = enclosing.Pos()
+	}
+	t.events = append(t.events, fmt.Sprintf("symbol:%s:%d:%d", ast.SymbolName(s), pos, uint32(meaning)))
+	return false
+}
+func (t *csharpSymbolTracker) ReportInaccessibleThisError() { t.events = append(t.events, "this") }
+func (t *csharpSymbolTracker) ReportPrivateInBaseOfClassExpression(name string) {
+	t.events = append(t.events, "private:"+name)
+}
+func (t *csharpSymbolTracker) ReportInaccessibleUniqueSymbolError() {
+	t.events = append(t.events, "unique")
+}
+func (t *csharpSymbolTracker) ReportCyclicStructureError() { t.events = append(t.events, "cycle") }
+func (t *csharpSymbolTracker) ReportLikelyUnsafeImportRequiredError(specifier string, name string) {
+	t.events = append(t.events, "unsafe:"+specifier+":"+name)
+}
+func (t *csharpSymbolTracker) ReportTruncationError() { t.events = append(t.events, "truncation") }
+func (t *csharpSymbolTracker) ReportNonlocalAugmentation(file *ast.SourceFile, parent *ast.Symbol, augmenting *ast.Symbol) {
+	t.events = append(t.events, "augmentation:"+file.FileName()+":"+parent.Name+":"+augmenting.Name)
+}
+func (t *csharpSymbolTracker) ReportNonSerializableProperty(name string) {
+	t.events = append(t.events, "property:"+name)
+}
+func (t *csharpSymbolTracker) ReportInferenceFallback(n *ast.Node) {
+	t.events = append(t.events, fmt.Sprintf("inference:%d:%d", n.Pos(), n.Kind))
+}
+func (t *csharpSymbolTracker) PushErrorFallbackNode(n *ast.Node) {
+	t.events = append(t.events, fmt.Sprintf("push:%d:%d", n.Pos(), n.Kind))
+}
+func (t *csharpSymbolTracker) PopErrorFallbackNode() { t.events = append(t.events, "pop") }
+
+func (c *Checker) CSharpNodeBuilderTracking(file *ast.SourceFile, flags []nodebuilder.Flags) map[string]any {
+	rows := [][]any{}
+	var visit func(*ast.Node) bool
+	visit = func(n *ast.Node) bool {
+		if ast.IsVariableDeclaration(n) && ast.IsIdentifier(n.Name()) && strings.HasPrefix(n.Name().Text(), "show") {
+			typ := c.getTypeOfSymbol(c.getSymbolOfDeclaration(n))
+			if n.Type() != nil {
+				typ = c.getTypeFromTypeNode(n.Type())
+			}
+			for scope, enclosing := range []*ast.Node{nil, file.AsNode(), n} {
+				for _, flag := range flags {
+					for _, operation := range []string{"type", "declaration"} {
+						tracker := &csharpSymbolTracker{events: []string{}}
+						b, release := c.getNodeBuilder()
+						var node *ast.Node
+						if operation == "type" {
+							node = b.TypeToTypeNode(typ, enclosing, flag, nodebuilder.InternalFlagsNone, tracker)
+						} else {
+							node = b.SerializeTypeForDeclaration(n, c.getSymbolOfDeclaration(n), enclosing, flag|nodebuilder.FlagsMultilineObjectLiterals, nodebuilder.InternalFlagsNone, tracker)
+						}
+						value := ""
+						if node != nil {
+							writer, put := printer.GetSingleLineStringWriter()
+							p := printer.NewPrinter(printer.PrinterOptions{RemoveComments: true, OmitTrailingSemicolon: true, NeverAsciiEscape: enclosing != nil && enclosing.Kind == ast.KindSourceFile}, printer.PrintHandlers{}, b.EmitContext())
+							p.Write(node, ast.GetSourceFileOfNode(enclosing), writer, nil)
+							value = writer.String()
+							put()
+						}
+						release()
+						rows = append(rows, []any{n.Name().Text(), operation, scope, uint32(flag), value, tracker.events})
+					}
+				}
+			}
+		}
+		n.ForEachChild(visit)
+		return false
+	}
+	visit(file.AsNode())
+	return map[string]any{"tracking": rows}
+}
+
 func (c *Checker) CSharpFormatProbe(file *ast.SourceFile, flags []TypeFormatFlags) map[string]any {
 	rows := [][]any{}
 	pending := []*ast.Node{file.AsNode()}

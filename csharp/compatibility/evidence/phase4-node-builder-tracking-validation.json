@@ -1,0 +1,183 @@
+{
+    "timestamp": "2026-09-26T23:45:14.549Z",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "configuration": "Release",
+    "managed": true,
+    "scope": "Node-builder symbol tracking, inference fallback reports, serializer failure states, scoped serialized-node caching and callback/cancellation rollback",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/phase4-node-tracking-final-build.log",
+        "sha256": "4e7f04cdd6ca3062e2785c3f520d690fd258f1810ca7004e711912a67f83ec8e"
+    },
+    "candidateSha256": "f36831312faf9ae0d2cc616fdfcd423ed060cab985add59be3876a58369ef073",
+    "compilerSha256": "692c979f8ad0fa7932d09f3374eefef751d23371815f28c305f84eaef67107c9",
+    "tracking": {
+        "configurations": 26,
+        "queries": 2436,
+        "exact": 26,
+        "record": "phase4-node-builder-tracking.json",
+        "sha256": "d4df845bedf820373f78d547184d6e9d3324f842dd6626b114932ba227344083"
+    },
+    "emitRegression": {
+        "configurations": 136,
+        "queries": 20188,
+        "exact": 136,
+        "oracleSha256": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "retainedConfigurations": 132,
+        "replayedConfigurations": 4,
+        "log": "logs/phase4-node-tracking-emit-regression.log",
+        "followupLog": "logs/phase4-node-tracking-emit-followup.log",
+        "resultLedgerSha256": "496f1539d999fa843c35b08b6daf1a20010fcc176ee596ee7db11287cc3bf349",
+        "reason": "Four ReturnMoreMembers configurations exposed cloned parent pointers changing canonical numeric text to source spelling. Clone parent-state preservation repaired those cases; other results were retained."
+    },
+    "recoveryRegression": {
+        "configurations": 56,
+        "queries": 3672,
+        "comparedQueries": 3672,
+        "exact": 56,
+        "failed": 0,
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "referenceFailures": 0,
+        "candidateFailures": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "f72b69e317813083c5da66c011121ccb1d88401ee5f19b89d885bf18c1ef50dd",
+        "inputHash": "d965845ae5589f096acf2209fe60523963047c5501bd5f1ea876c4b9d465dc09",
+        "resultHash": "ee2e25148e4ce8cc05fc896805ce217b6372b2d6a08ecde63b976877d7a19bc4",
+        "managed": true
+    },
+    "formatRegressions": {
+        "configurations": 80,
+        "queries": 28320,
+        "runs": [
+            {
+                "timestamp": "2026-09-26T23:26:05.567Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "managed": true,
+                "cases": 40,
+                "queries": 22656,
+                "differences": [],
+                "oracleSha256": "785894724ead124508017a88d085b253ad3571c40222d65b8c64087949e68195",
+                "candidateSha256": "f72b69e317813083c5da66c011121ccb1d88401ee5f19b89d885bf18c1ef50dd",
+                "referenceExecuted": 0,
+                "referenceReused": 40,
+                "candidateExecuted": 40,
+                "candidateReused": 0
+            },
+            {
+                "timestamp": "2026-09-26T23:26:34.263Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "managed": true,
+                "cases": 40,
+                "queries": 5664,
+                "differences": [],
+                "oracleSha256": "785894724ead124508017a88d085b253ad3571c40222d65b8c64087949e68195",
+                "candidateSha256": "f72b69e317813083c5da66c011121ccb1d88401ee5f19b89d885bf18c1ef50dd",
+                "referenceExecuted": 0,
+                "referenceReused": 40,
+                "candidateExecuted": 40,
+                "candidateReused": 0
+            }
+        ]
+    },
+    "safety": {
+        "assertions": 106,
+        "checks": [
+            {
+                "name": "node-tracking",
+                "assertions": 17,
+                "log": "logs/phase4-node-tracking-safety.log",
+                "sha256": "3c248011af9e0f6ccaa5f9becd5a0828f8ded4f56e966de17203daafb131e508"
+            },
+            {
+                "name": "renderer",
+                "assertions": 52,
+                "log": "logs/phase4-node-tracking-renderer-safety.log",
+                "sha256": "649470e3a61e23e2ebce9c05117f5dce98024b4a06de81ad152cee2d8d58f305"
+            },
+            {
+                "name": "emit",
+                "assertions": 13,
+                "log": "logs/phase4-node-tracking-emit-syntax-safety.log",
+                "sha256": "dc6948573c4c5808468091aca964113bff392e0f216aa67c2b86be3fd719880c"
+            },
+            {
+                "name": "return",
+                "assertions": 14,
+                "log": "logs/phase4-node-tracking-return-syntax-safety.log",
+                "sha256": "2b00ecd8a4ff8040eedf67c281eab9b3d102ae176a4dbf406a4fcb4ee643c0c3"
+            },
+            {
+                "name": "recovery",
+                "assertions": 10,
+                "log": "logs/phase4-node-tracking-recovery-safety.log",
+                "sha256": "1b2b2e001d01b29b486aea2d4ab0d5611459e11fda70328e5df0072039ab77c1"
+            }
+        ]
+    },
+    "referenceSources": [
+        {
+            "path": "tsc/internal/checker/nodebuilder.go",
+            "expected": "e6ccb962191f7c9da3744ac40a387a8231d57020",
+            "actual": "e6ccb962191f7c9da3744ac40a387a8231d57020"
+        },
+        {
+            "path": "tsc/internal/checker/nodebuilderimpl.go",
+            "expected": "5cd58f6ec95f0fe53386fe46d2b3ecf0d2d46d83",
+            "actual": "5cd58f6ec95f0fe53386fe46d2b3ecf0d2d46d83"
+        },
+        {
+            "path": "tsc/internal/checker/symboltracker.go",
+            "expected": "1a1b7ad28bec873e6916f4030527af14a0bc344f",
+            "actual": "1a1b7ad28bec873e6916f4030527af14a0bc344f"
+        },
+        {
+            "path": "tsc/internal/checker/nodecopy.go",
+            "expected": "822a68634fdb00ae6f49d1e239cf4c608048f775",
+            "actual": "822a68634fdb00ae6f49d1e239cf4c608048f775"
+        },
+        {
+            "path": "tsc/internal/checker/nodebuilderscopes.go",
+            "expected": "59b5fcd479b551b8d8116c07c9c54e0c0b189279",
+            "actual": "59b5fcd479b551b8d8116c07c9c54e0c0b189279"
+        },
+        {
+            "path": "tsc/internal/checker/pseudotypenodebuilder.go",
+            "expected": "9daf4b686fc4354d5ca447b5599de82be2b99d2d",
+            "actual": "9daf4b686fc4354d5ca447b5599de82be2b99d2d"
+        },
+        {
+            "path": "tsc/internal/pseudochecker/lookup.go",
+            "expected": "c2693a7ab1552ac2a5aff86f53c40c4af6c242ed",
+            "actual": "c2693a7ab1552ac2a5aff86f53c40c4af6c242ed"
+        }
+    ],
+    "formatting": {
+        "csharpFiles": 15,
+        "libraryConfigurations": 2,
+        "tokensCommentsAndSyntaxIdentical": true,
+        "dotnetWhitespaceExitCode": 0,
+        "log": "logs/phase4-node-tracking-format.log",
+        "sha256": "264d51deb6d107754e4302b4842ca6145c3d252babb490684c7457a3d4e9d1e9"
+    },
+    "reuse": {
+        "referencesReused": true,
+        "reason": "Unchanged oracle queries and passing fixture results were retained across focused fixes. Final cache-key normalization folds existing effective symbol-format flags into the key; it does not change the validated fixture configurations. The final inferred-template/synthesized-node guards were checked with two new template fixtures. Formatting was token-equivalent and did not trigger runtime replay.",
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ],
+        "semanticCorpus": "Retained prior 13,202 code matches and 12,351 exact detailed matches; no semantic checker or program-graph algorithm change in this batch"
+    },
+    "limitations": [
+        "Comparisons cover the recorded serialization queries, not complete emit-resolver integration or every node-builder flag/recovery case.",
+        "Remaining semantic differences and complete workload memory/performance gates still prevent phase 4 completion."
+    ],
+    "nativeAotVerification": "Deferred until whole phase 4 completion; no NativeAOT build or execution",
+    "phase4Complete": false
+}

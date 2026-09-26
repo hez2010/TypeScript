@@ -12,21 +12,31 @@ internal sealed partial class Checker
     internal int TypeSyntaxScopeCount => typeSyntaxScopes.Count;
 
     internal ValueTask<string> SerializeSignatureSyntaxAsync(Signature signature, K kind, SyntaxNode? enclosing,
-        NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation, CancellationToken cancellation = default)
+        NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation, CancellationToken cancellation = default,
+        INodeBuilderSymbolTracker? tracker = null)
     {
         if (signature.Context != context)
             throw new ArgumentException("Signature belongs to another checker", nameof(signature));
         return VisibilityQueryAsync(enclosing, () => ChainOperationAsync(() => ContainerOperationAsync(async () =>
         {
             var state = new TypeSyntaxContext(enclosing, (flags & NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope) != 0,
-                (flags & NodeBuilderFlags.UseOnlyExternalAliasing) != 0, flags);
+                (flags & NodeBuilderFlags.UseOnlyExternalAliasing) != 0, flags, tracker);
             var node = await SignatureSyntaxAsync(signature, kind, state, cancellation);
+            if (!FinishTypeSyntax(state))
+                return "";
             return PrintDiagnosticNode(node, enclosing is SourceFileNode, cancellation,
                 enclosing is null ? null : SemanticSyntax.Source(enclosing), state.NoAsciiEscape, state.SingleLine);
         }, cancellation), cancellation), cancellation);
     }
 
     private async ValueTask<SyntaxNode> ObjectTypeSyntaxAsync(StructuredType type, TypeSyntaxContext state, CancellationToken cancellation)
+        => type.Symbol is null ? await ObjectTypeSyntaxWorkerAsync(type, state, cancellation)
+            : await CachedTypeSyntaxAsync(type, state, () => ObjectTypeSyntaxWorkerAsync(type, state, cancellation), cancellation);
+
+    private async ValueTask<SyntaxNode> ObjectTypeSyntaxWorkerAsync(
+        StructuredType type,
+        TypeSyntaxContext state,
+        CancellationToken cancellation)
     {
         if ((type.Properties?.Count ?? 0) == 0 && type.IndexInfos.Count == 0)
         {
@@ -58,11 +68,25 @@ internal sealed partial class Checker
             }
             return await TypeSyntaxAsync(await Algebra.IntersectionAsync(types, cancellation: cancellation), state, cancellation);
         }
-        return await ObjectPropertySyntaxAsync(type, state, cancellation);
+        var flags = state.Flags;
+        state.Flags |= NodeBuilderFlags.InObjectTypeLiteral;
+        try
+        {
+            return await ObjectPropertySyntaxAsync(type, state, cancellation);
+        }
+        finally
+        {
+            state.Flags = flags;
+        }
     }
 
     private async ValueTask<SyntaxNode> RecursiveTypeSyntaxAsync(Type type, TypeSyntaxContext state, CancellationToken cancellation)
     {
+        if (type is UnionType && (state.Flags & NodeBuilderFlags.AllowAnonymousIdentifier) == 0)
+        {
+            state.EncounteredError = true;
+            state.Tracker.ReportCyclicStructureError();
+        }
         if (type is ObjectType { Symbol: { } symbol } && (type.ObjectFlags & ObjectFlags.InstantiationExpressionType) == 0)
         {
             if ((symbol.Flags & SymbolFlags.TypeLiteral) != 0 && symbol.Declarations.FirstOrDefault() is { } literal)
@@ -332,6 +356,12 @@ internal sealed partial class Checker
         TypeSyntaxContext state, CancellationToken cancellation)
     {
         var flags = state.Flags;
+        bool suppressed = state.SuppressInferenceFallback;
+        if (value != context.ErrorType && declaration is not null && state.Symbols.Enclosing is not null && state.HasTracker)
+        {
+            ReportInferenceFallbacks(declaration, false, state, cancellation);
+            state.SuppressInferenceFallback = true;
+        }
         try
         {
             if (state.Symbols.Enclosing is not null && declaration is GetAccessorDeclarationNode or SetAccessorDeclarationNode
@@ -368,6 +398,7 @@ internal sealed partial class Checker
         finally
         {
             state.Flags = flags;
+            state.SuppressInferenceFallback = suppressed;
         }
     }
 
@@ -420,6 +451,8 @@ internal sealed partial class Checker
         {
             if (countLength)
                 AddReusedSyntaxLength(query, state);
+            if (current is not null)
+                state.Tracker.TrackSymbol(current, state.Symbols.Enclosing, SymbolFlags.Value | SymbolFlags.ExportValue);
             if (query.TypeArguments is null)
                 return CloneSyntaxBindingName(query, state);
             return state.Factory.NewTypeQueryNode(CloneSyntaxBindingName(query.ExprName!, state), argumentNodes);
@@ -427,7 +460,15 @@ internal sealed partial class Checker
         var symbol = await program.EntityNames.ResolveAsync(query.ExprName, SymbolFlags.Value, true, cancellation: cancellation);
         if (symbol is null || symbol == UnknownSymbol || (await SymbolAccessibilityAsync(symbol, state.Symbols.Enclosing,
             SymbolFlags.Value, false, true, cancellation)).Accessibility != SymbolAccessibility.Accessible)
-            return null;
+        {
+            state.Tracker.ReportInferenceFallback(query.ExprName!);
+            int diagnostics = state.DiagnosticCount;
+            bool error = state.EncounteredError;
+            var fallback = await TypeSyntaxAsync(await Nodes.FromNodeAsync(query, cancellation), state, cancellation);
+            bool reusable = state.DiagnosticCount == diagnostics && state.EncounteredError == error;
+            state.EncounteredError = error;
+            return reusable ? fallback : null;
+        }
         // The pinned builder drops type arguments when this fallback returns a typeof query.
         var result = await SymbolTypeNodeAsync(symbol, SymbolFlags.Value, argumentNodes, state.Symbols, false, cancellation);
         if (countLength)

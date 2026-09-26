@@ -10,13 +10,21 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
-    private ValueTask<T> EmitSyntaxQueryAsync<T>(SyntaxNode node, SyntaxNode? enclosing, NodeBuilderFlags flags,
-        Func<TypeSyntaxContext, ValueTask<T>> action, CancellationToken cancellation) =>
-        VisibilityQueryAsync(enclosing, () => ChainOperationAsync(() => ContainerOperationAsync(() =>
+    private ValueTask<T> EmitSyntaxQueryAsync<T>(
+        SyntaxNode node,
+        SyntaxNode? enclosing,
+        NodeBuilderFlags flags,
+        Func<TypeSyntaxContext, ValueTask<T>> action,
+        T failure,
+        CancellationToken cancellation,
+        INodeBuilderSymbolTracker? tracker = null) =>
+        VisibilityQueryAsync(enclosing, () => ChainOperationAsync(() => ContainerOperationAsync(async () =>
         {
             RequireNode(node);
-            return action(new(enclosing, (flags & NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope) != 0,
-                (flags & NodeBuilderFlags.UseOnlyExternalAliasing) != 0, flags));
+            var state = new TypeSyntaxContext(enclosing, (flags & NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope) != 0,
+                (flags & NodeBuilderFlags.UseOnlyExternalAliasing) != 0, flags, tracker);
+            var result = await action(state);
+            return FinishTypeSyntax(state) ? result : failure;
         }, cancellation), cancellation), cancellation);
 
     private static string PrintEmitSyntax(SyntaxNode? node, SyntaxNode? enclosing, TypeSyntaxContext state,
@@ -24,7 +32,8 @@ internal sealed partial class Checker
             enclosing is null ? null : SemanticSyntax.Source(enclosing), state.NoAsciiEscape, state.SingleLine);
 
     internal ValueTask<string> SerializeExpressionTypeForEmitAsync(SyntaxNode expression, SyntaxNode? enclosing,
-        NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation, CancellationToken cancellation = default)
+        NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation, CancellationToken cancellation = default,
+        INodeBuilderSymbolTracker? tracker = null)
     {
         if (!EmitParseNode(expression))
             return ValueTask.FromResult("any");
@@ -34,11 +43,12 @@ internal sealed partial class Checker
                 QuerySyntax.RightSide(expression) ? expression.Parent! : expression, cancellation), cancellation);
             return PrintEmitSyntax(await TypeSyntaxAsync(await Widening.GetAsync(type, cancellation), state, cancellation),
                 enclosing, state, cancellation);
-        }, cancellation);
+        }, "", cancellation, tracker);
     }
 
     internal ValueTask<string> SerializeDeclarationTypeForEmitAsync(SyntaxNode declaration, SyntaxNode? enclosing,
-        NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation, CancellationToken cancellation = default)
+        NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation, CancellationToken cancellation = default,
+        INodeBuilderSymbolTracker? tracker = null)
     {
         if (!EmitParseNode(declaration))
             return ValueTask.FromResult("any");
@@ -71,7 +81,7 @@ internal sealed partial class Checker
                 state,
                 cancellation);
             return PrintEmitSyntax(node, enclosing, state, cancellation);
-        }, cancellation);
+        }, "", cancellation, tracker);
     }
 
     private async ValueTask<SyntaxNode?> ReuseInitializerTypeSyntaxAsync(Type type, SyntaxNode expression, TypeSyntaxContext state,
@@ -195,7 +205,8 @@ internal sealed partial class Checker
     }
 
     internal ValueTask<string> SerializeReturnTypeForEmitAsync(SyntaxNode declaration, SyntaxNode? enclosing,
-        NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation, CancellationToken cancellation = default)
+        NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation, CancellationToken cancellation = default,
+        INodeBuilderSymbolTracker? tracker = null)
     {
         if (!EmitParseNode(declaration))
             return ValueTask.FromResult("any");
@@ -218,17 +229,23 @@ internal sealed partial class Checker
                 foreach (var symbol in allocated)
                     links.Values.Remove(symbol);
             }
-        }, cancellation);
+        }, "", cancellation, tracker);
     }
 
     private async ValueTask<SyntaxNode?> ReturnTypeSyntaxAsync(Signature signature, TypeSyntaxContext state,
         CancellationToken cancellation)
     {
         var flags = state.Flags;
+        bool suppressed = state.SuppressInferenceFallback;
         try
         {
             state.Flags &= ~NodeBuilderFlags.SuppressAnyReturnType;
             var type = await Signatures.ReturnAsync(signature, cancellation);
+            if (type != context.ErrorType && signature.Declaration is { } source)
+            {
+                ReportInferenceFallbacks(source, true, state, cancellation);
+                state.SuppressInferenceFallback = true;
+            }
             if (signature.Declaration is { } declaration && (declaration.Flags & NodeFlags.Synthesized) == 0)
                 type = (await Instantiation.Engine.InstantiateAsync(type, state.Mapper, cancellation: cancellation))!;
             if ((flags & NodeBuilderFlags.SuppressAnyReturnType) != 0 && (type.Flags & TypeFlags.Any) != 0)
@@ -236,6 +253,7 @@ internal sealed partial class Checker
             var predicate = await Signatures.PredicateAsync(signature, cancellation);
             if (await RecoverReturnSyntaxAsync(signature, type, predicate, state, cancellation) is { } recovered)
                 return recovered;
+            state.SuppressInferenceFallback = true;
             if (predicate is not null)
             {
                 if (predicate.Type is { } narrowed && state.Mapper is not null)
@@ -248,6 +266,7 @@ internal sealed partial class Checker
         finally
         {
             state.Flags = flags;
+            state.SuppressInferenceFallback = suppressed;
         }
     }
 
@@ -264,7 +283,8 @@ internal sealed partial class Checker
     }
 
     internal ValueTask<IReadOnlyList<string>> SerializeTypeParametersForEmitAsync(SyntaxNode declaration, SyntaxNode? enclosing,
-        NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation, CancellationToken cancellation = default)
+        NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation, CancellationToken cancellation = default,
+        INodeBuilderSymbolTracker? tracker = null)
     {
         if (!EmitParseNode(declaration))
             return ValueTask.FromResult<IReadOnlyList<string>>([]);
@@ -294,10 +314,11 @@ internal sealed partial class Checker
                 result.Add(PrintEmitSyntax(node, enclosing, state, cancellation));
             }
             return result;
-        }, cancellation);
+        }, [], cancellation, tracker);
     }
 
-    internal ValueTask<string?> SerializeLiteralConstForEmitAsync(SyntaxNode declaration, CancellationToken cancellation = default) =>
+    internal ValueTask<string?> SerializeLiteralConstForEmitAsync(SyntaxNode declaration, CancellationToken cancellation = default,
+        INodeBuilderSymbolTracker? tracker = null) =>
         EmitSyntaxQueryAsync<string?>(declaration, declaration, NodeBuilderFlags.None, async state =>
         {
             if (program.Symbols.Declaration(declaration) is not { } symbol)
@@ -330,5 +351,5 @@ internal sealed partial class Checker
             else
                 node = null;
             return node is null ? null : PrintEmitSyntax(node, null, state, cancellation);
-        }, cancellation);
+        }, null, cancellation, tracker);
 }

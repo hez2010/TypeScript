@@ -9,11 +9,12 @@ namespace TypeScript.Compiler.Checking;
 internal sealed partial class Checker
 {
     internal ValueTask<string> SerializeJsTypeForEmitAsync(SyntaxNode annotation, SyntaxNode? enclosing,
-        NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation, CancellationToken cancellation = default) =>
+        NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation, CancellationToken cancellation = default,
+        INodeBuilderSymbolTracker? tracker = null) =>
         EmitSyntaxQueryAsync(annotation, enclosing, flags, async state =>
         {
             return PrintEmitSyntax(await RecoverAnnotationSyntaxAsync(annotation, state, cancellation), enclosing, state, cancellation);
-        }, cancellation);
+        }, "", cancellation, tracker);
 
     private async ValueTask<SyntaxNode> RecoverAnnotationSyntaxAsync(
         SyntaxNode annotation,
@@ -33,6 +34,9 @@ internal sealed partial class Checker
             ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
         cancellation.ThrowIfCancellationRequested();
         var f = state.Factory;
+        if (node is ComputedPropertyNameNode { Expression: { } computed }
+            && TypeScript.Compiler.Semantics.ConstantEvaluator.EntityName(computed))
+            TrackComputedName(computed, state, true, cancellation);
         switch (node)
         {
             case JSDocTypeExpressionNode expression:
@@ -173,8 +177,11 @@ internal sealed partial class Checker
                 arguments.Add(await RecoverTypeSyntaxAsync(argument, state, cancellation));
         NodeList? argumentList = reference.TypeArguments is null ? null : new(arguments.ToArray());
         if ((symbol.Flags & SymbolFlags.TypeParameter) != 0)
+        {
+            state.Tracker.TrackSymbol(symbol, state.Symbols.Enclosing, SymbolFlags.Type);
             return state.Factory.NewTypeReferenceNode(state.Factory.NewIdentifier(
                 TypeSyntaxParameterName(program.Scopes.Parameter(symbol), state, cancellation)), argumentList);
+        }
         var first = reference.TypeName;
         while (first is QualifiedNameNode qualified)
             first = qualified.Left;
@@ -185,7 +192,11 @@ internal sealed partial class Checker
             var current = await program.EntityNames.ResolveAsync(identifier, meaning, true, true, state.Symbols.Enclosing, cancellation);
             if (current == original
                 || current is not null && original is not null && await SameSymbolReferenceAsync(current, original, cancellation))
+            {
+                if (current is not null)
+                    state.Tracker.TrackSymbol(current, state.Symbols.Enclosing, meaning);
                 return state.Factory.NewTypeReferenceNode(CloneSyntaxBindingName(reference.TypeName!, state), argumentList);
+            }
         }
         return await SymbolTypeNodeAsync(symbol, SymbolFlags.Type, argumentList, state.Symbols, false, cancellation);
     }

@@ -115,6 +115,8 @@ internal sealed partial class Checker
         var names = state.ParameterNames;
         if (names?.Names.TryGetValue(parameter, out string? cached) == true)
             return cached;
+        if (parameter.Symbol is { } tracked)
+            state.Tracker.TrackSymbol(tracked, state.Symbols.Enclosing, SymbolFlags.Type);
         string original = parameter.Symbol is { } symbol ? DisplayNameAsWritten(symbol, state.Symbols, true, cancellation)
             : "(Missing type parameter)";
         if (names is null)
@@ -214,14 +216,32 @@ internal sealed partial class Checker
         cancellation.ThrowIfCancellationRequested();
         if (parameters.TryGetValue(node, out var parameter))
         {
+            if (parameter.Symbol is { } symbol)
+                state.Tracker.TrackSymbol(symbol, state.Symbols.Enclosing, SymbolFlags.Type);
             var identifier = state.Factory.NewIdentifier(TypeSyntaxParameterName(parameter, state, cancellation));
             state.NoAsciiEscape.Add(identifier);
             return identifier;
         }
+        if (node is TypeReferenceNode reference)
+        {
+            var first = reference.TypeName;
+            while (first is QualifiedNameNode qualified)
+                first = qualified.Left;
+            if (first is IdentifierNode identifier && !parameters.ContainsKey(identifier))
+            {
+                var meaning = reference.TypeName is QualifiedNameNode ? SymbolFlags.Namespace : SymbolFlags.Type;
+                if (await program.EntityNames.ResolveAsync(identifier, meaning, true, true, cancellation: cancellation) is { } symbol)
+                    state.Tracker.TrackSymbol(symbol, state.Symbols.Enclosing, meaning);
+            }
+        }
         if (node is TypeQueryNode query)
-            return await ReuseTypeQuerySyntaxAsync(query, state, cancellation, countLength: false)
-                ?? await TypeSyntaxAsync((await Instantiation.Engine.InstantiateAsync(await Nodes.FromNodeAsync(node, cancellation),
-                    state.Mapper, cancellation: cancellation))!, state, cancellation);
+        {
+            if (await ReuseTypeQuerySyntaxAsync(query, state, cancellation, countLength: false) is { } reused)
+                return reused;
+            state.Tracker.ReportInferenceFallback(query);
+            return await TypeSyntaxAsync((await Instantiation.Engine.InstantiateAsync(await Nodes.FromNodeAsync(node, cancellation),
+                state.Mapper, cancellation: cancellation))!, state, cancellation);
+        }
         var copies = new Dictionary<SyntaxNode, SyntaxNode>();
         if (node is ConditionalTypeNode conditional)
         {

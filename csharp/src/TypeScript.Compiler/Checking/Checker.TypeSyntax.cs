@@ -81,10 +81,16 @@ internal sealed partial class Checker
 
     private sealed class TypeSyntaxContext
     {
-        internal TypeSyntaxContext(SyntaxNode? enclosing, bool aliasesOutsideScope, bool externalAliasesOnly = false,
-            NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation)
+        internal TypeSyntaxContext(
+            SyntaxNode? enclosing,
+            bool aliasesOutsideScope,
+            bool externalAliasesOnly = false,
+            NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation,
+            INodeBuilderSymbolTracker? tracker = null)
         {
             Flags = flags;
+            Tracker = new NodeBuilderTracker(this, tracker);
+            HasTracker = tracker is not null;
             ParameterNames = (flags & NodeBuilderFlags.GenerateNamesForShadowedTypeParams) != 0 ? new() : null;
             Length = new((flags & NodeBuilderFlags.NoTruncation) != 0);
             Symbols = new(enclosing,
@@ -103,6 +109,15 @@ internal sealed partial class Checker
         }
 
         internal NodeBuilderFlags Flags { get; set; }
+        internal INodeBuilderSymbolTracker Tracker { get; }
+        internal bool HasTracker { get; }
+        internal bool EncounteredError { get; set; }
+        internal int DiagnosticCount { get; set; }
+        internal bool ReportedDiagnostic => DiagnosticCount != 0;
+        internal List<TrackedTypeSymbol> TrackedSymbols { get; set; } = [];
+        internal Dictionary<SerializedTypeKey, SerializedType> PendingTypes { get; } = [];
+        internal Dictionary<SyntaxNode, (bool NoAscii, bool SingleLine)> PendingPrinting { get; } = [];
+        internal bool SuppressInferenceFallback { get; set; }
         internal TypeSyntaxNames? ParameterNames { get; }
         internal TypeMapper? Mapper { get; set; }
         internal QualifiedTypeParameterNames QualifiedNames { get; } = new();
@@ -123,7 +138,7 @@ internal sealed partial class Checker
             | (aliasesOutsideScope ? NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope : 0), cancellation);
 
     internal ValueTask<string> SerializeTypeSyntaxAsync(Type type, SyntaxNode? enclosing, NodeBuilderFlags flags,
-        CancellationToken cancellation = default)
+        CancellationToken cancellation = default, INodeBuilderSymbolTracker? tracker = null)
     {
         const NodeBuilderFlags supported = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation
             | NodeBuilderFlags.WriteArrayAsGenericType | NodeBuilderFlags.UseOnlyExternalAliasing
@@ -142,8 +157,10 @@ internal sealed partial class Checker
         return VisibilityQueryAsync(enclosing, () => ChainOperationAsync(() => ContainerOperationAsync(async () =>
         {
             var state = new TypeSyntaxContext(enclosing, (flags & NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope) != 0,
-                (flags & NodeBuilderFlags.UseOnlyExternalAliasing) != 0, flags);
+                (flags & NodeBuilderFlags.UseOnlyExternalAliasing) != 0, flags, tracker);
             var node = await TypeSyntaxAsync(type, state, cancellation, (flags & NodeBuilderFlags.InTypeAlias) != 0);
+            if (!FinishTypeSyntax(state))
+                return "";
             return PrintDiagnosticNode(
                 node,
                 enclosing is SourceFileNode,
@@ -151,6 +168,17 @@ internal sealed partial class Checker
                 enclosing is null ? null : SemanticSyntax.Source(enclosing),
                 state.NoAsciiEscape, state.SingleLine);
         }, cancellation), cancellation), cancellation);
+    }
+
+    private bool FinishTypeSyntax(TypeSyntaxContext state)
+    {
+        if (state.Length.WasTruncated && (state.Flags & NodeBuilderFlags.NoTruncation) != 0)
+            state.Tracker.ReportTruncationError();
+        if (!state.EncounteredError && !state.ReportedDiagnostic)
+            foreach (var entry in state.PendingTypes)
+                if (entry.Key.Enclosing.Pos >= 0)
+                    serializedTypeSyntax[entry.Key] = entry.Value;
+        return !state.EncounteredError;
     }
 
     private async ValueTask<SyntaxNode> TypeSyntaxAsync(
@@ -238,6 +266,8 @@ internal sealed partial class Checker
                 state.Length.Add(6);
                 return await SymbolTypeNodeAsync(unique.Symbol!, SymbolFlags.Value, null, state.Symbols, false, cancellation);
             }
+            if ((state.Flags & NodeBuilderFlags.AllowUniqueESSymbolType) == 0)
+                state.Tracker.ReportInaccessibleUniqueSymbolError();
             state.Length.Add(13);
             return f.NewTypeOperatorNode(K.UniqueKeyword, f.NewKeywordTypeNode(K.SymbolKeyword));
         }
@@ -254,7 +284,14 @@ internal sealed partial class Checker
         if ((type.Flags & TypeFlags.NonPrimitive) != 0)
             return f.NewKeywordTypeNode(K.ObjectKeyword);
         if (type is TypeParameter { IsThisType: true })
+        {
+            if ((state.Flags & NodeBuilderFlags.InObjectTypeLiteral) != 0)
+            {
+                state.EncounteredError |= (state.Flags & NodeBuilderFlags.AllowThisInObjectLiteral) == 0;
+                state.Tracker.ReportInaccessibleThisError();
+            }
             return f.NewThisTypeNode();
+        }
         if (!expandAlias && type.Alias is { } alias && ((state.Symbols.Flags & SymbolFormatFlags.UseAliasDefinedOutsideCurrentScope) != 0
             || (await SymbolAccessibilityAsync(
                 alias.Symbol,
@@ -308,7 +345,9 @@ internal sealed partial class Checker
                     && (await SymbolAccessibilityAsync(classSymbol, state.Symbols.Enclosing, SymbolFlags.Value, false, true,
                         cancellation)).Accessibility != SymbolAccessibility.Accessible)
                     return await ObjectTypeSyntaxAsync(await Members.ResolveAsync(reference, cancellation), state, cancellation);
-                return await ReferenceTypeSyntaxAsync(reference, state, cancellation);
+                return reference.Node is null ? await ReferenceTypeSyntaxAsync(reference, state, cancellation)
+                    : await CachedTypeSyntaxAsync(reference, state,
+                        () => ReferenceTypeSyntaxAsync(reference, state, cancellation), cancellation);
             }
             if (type is TypeParameter inferredParameter && state.InferParameters?.Contains(inferredParameter) == true)
             {
@@ -355,7 +394,10 @@ internal sealed partial class Checker
                     return await TypeSyntaxAsync(types[0], state, cancellation);
                 var nodes = await TypeSyntaxListAsync(types, state, cancellation, bareList: true);
                 if (nodes is null)
+                {
+                    state.EncounteredError |= (state.Flags & NodeBuilderFlags.AllowEmptyUnionOrIntersection) == 0;
                     return f.NewKeywordTypeNode(K.AnyKeyword);
+                }
                 var parenthesized = new NodeList(nodes.Select(n => n is FunctionTypeNode or ConstructorTypeNode or ConditionalTypeNode
                     or UnionTypeNode or IntersectionTypeNode ? f.NewParenthesizedTypeNode(n) : n).ToArray());
                 return type is UnionType ? f.NewUnionTypeNode(parenthesized) : f.NewIntersectionTypeNode(parenthesized);
@@ -403,38 +445,39 @@ internal sealed partial class Checker
                     ? await SymbolTypeNodeAsync(noInfer, SymbolFlags.Type, new([node]), state.Symbols, false, cancellation) : node;
             }
             if (type is ConditionalType conditional)
-            {
-                if (state.Length.Truncated())
-                    return ElidedTypeSyntax(state);
-                var check = await TypeSyntaxAsync(conditional.CheckType, state, cancellation);
-                state.Length.Add(15);
-                if (check is ConditionalTypeNode or FunctionTypeNode or ConstructorTypeNode)
-                    check = f.NewParenthesizedTypeNode(check);
-                if (state.ParameterNames is not null && conditional.Root.IsDistributive && conditional.CheckType is not TypeParameter)
-                    return await DistributiveConditionalSyntaxAsync(conditional, check, state, cancellation);
-                var previous = state.InferParameters;
-                SyntaxNode extends;
-                try
+                return await CachedTypeSyntaxAsync(conditional, state, async () =>
                 {
-                    state.InferParameters = conditional.Root.InferTypeParameters;
-                    extends = await TypeSyntaxAsync(conditional.ExtendsType, state, cancellation);
-                }
-                finally
-                {
-                    state.InferParameters = previous;
-                }
-                if (extends is ConditionalTypeNode)
-                    extends = f.NewParenthesizedTypeNode(extends);
-                var whenTrue = await TypeSyntaxAsync(
-                    await Instantiation.Constraints.ConditionalTrueAsync(conditional, cancellation: cancellation),
-                    state,
-                    cancellation);
-                var whenFalse = await TypeSyntaxAsync(
-                    await Instantiation.Constraints.ConditionalFalseAsync(conditional, cancellation),
-                    state,
-                    cancellation);
-                return f.NewConditionalTypeNode(check, extends, whenTrue, whenFalse);
-            }
+                    if (state.Length.Truncated())
+                        return ElidedTypeSyntax(state);
+                    var check = await TypeSyntaxAsync(conditional.CheckType, state, cancellation);
+                    state.Length.Add(15);
+                    if (check is ConditionalTypeNode or FunctionTypeNode or ConstructorTypeNode)
+                        check = f.NewParenthesizedTypeNode(check);
+                    if (state.ParameterNames is not null && conditional.Root.IsDistributive && conditional.CheckType is not TypeParameter)
+                        return await DistributiveConditionalSyntaxAsync(conditional, check, state, cancellation);
+                    var previous = state.InferParameters;
+                    SyntaxNode extends;
+                    try
+                    {
+                        state.InferParameters = conditional.Root.InferTypeParameters;
+                        extends = await TypeSyntaxAsync(conditional.ExtendsType, state, cancellation);
+                    }
+                    finally
+                    {
+                        state.InferParameters = previous;
+                    }
+                    if (extends is ConditionalTypeNode)
+                        extends = f.NewParenthesizedTypeNode(extends);
+                    var whenTrue = await TypeSyntaxAsync(
+                        await Instantiation.Constraints.ConditionalTrueAsync(conditional, cancellation: cancellation),
+                        state,
+                        cancellation);
+                    var whenFalse = await TypeSyntaxAsync(
+                        await Instantiation.Constraints.ConditionalFalseAsync(conditional, cancellation),
+                        state,
+                        cancellation);
+                    return f.NewConditionalTypeNode(check, extends, whenTrue, whenFalse);
+                }, cancellation);
             if (type is ObjectType objectType)
             {
                 if (type is InstantiationExpressionType { Node: TypeQueryNode query }
@@ -710,13 +753,27 @@ internal sealed partial class Checker
                 propertyIndex = properties.Count - 1;
             }
             var property = properties[propertyIndex];
+            if (LateName(property.Name) && property.Declarations.Count == 0)
+                state.Tracker.ReportNonSerializableProperty(TypeDisplay.SymbolName(property));
             if ((state.Flags & NodeBuilderFlags.WriteClassExpressionAsTypeLiteral) != 0 && (property.Flags & SymbolFlags.Prototype) != 0)
                 continue;
+            if ((state.Flags & NodeBuilderFlags.WriteClassExpressionAsTypeLiteral) != 0)
+            {
+                if (property.Declarations.Any(d => SemanticSyntax.HasModifier(d, K.PrivateKeyword)
+                    || SemanticSyntax.HasModifier(d, K.ProtectedKeyword)))
+                    state.Tracker.ReportPrivateInBaseOfClassExpression(property.Name);
+                if (SemanticSyntax.Name(property.ValueDeclaration) is PrivateIdentifierNode privateIdentifier)
+                    state.Tracker.ReportPrivateInBaseOfClassExpression(privateIdentifier.Text);
+            }
             bool placeholder = ReverseMappedPlaceholder(property, state);
             var value = placeholder ? context.AnyType
                 : Values.NonMissing(await Values.GetAsync(property, cancellation), (property.Flags & SymbolFlags.Optional) != 0);
             SyntaxNode? reusedType = null;
             var declaration = property.ValueDeclaration ?? property.Declarations.FirstOrDefault();
+            if (LateName(property.Name)
+                && SemanticSyntax.Name(declaration) is ComputedPropertyNameNode { Expression: { } computedExpression }
+                && ConstantEvaluator.EntityName(computedExpression))
+                TrackComputedName(computedExpression, state, false, cancellation);
             if ((property.Flags & (SymbolFlags.Accessor | SymbolFlags.Method | SymbolFlags.Function)) == 0
                 && state.Symbols.Enclosing is not null && declaration is ITypedNode { Type: { } annotation }
                 && (value.ObjectFlags & ObjectFlags.RequiresWidening) == 0)
@@ -923,6 +980,8 @@ internal sealed partial class Checker
         }
         if (reference.Target is TupleType tuple)
         {
+            if (arguments.Count == 0 && (state.Flags & NodeBuilderFlags.AllowEmptyTuple) == 0)
+                state.EncounteredError = true;
             var elements = new List<SyntaxNode>();
             var types = arguments.Select((value, i) => Values.NonMissing(value,
                 i < tuple.ElementInfos.Count && (tuple.ElementInfos[i].Flags & ElementFlags.Optional) != 0)).ToArray();

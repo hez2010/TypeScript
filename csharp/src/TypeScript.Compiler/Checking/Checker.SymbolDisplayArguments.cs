@@ -65,8 +65,7 @@ internal sealed partial class Checker
     private async ValueTask<SyntaxNode?> ReuseTypeAnnotationSyntaxAsync(SyntaxNode annotation, TypeSyntaxContext state,
         CancellationToken cancellation)
     {
-        Dictionary<SyntaxNode, TypeParameter>? parameters = state.ParameterNames is not null
-            || annotation.DescendantsAndSelf().Any(n => n is TypeQueryNode) ? [] : null;
+        Dictionary<SyntaxNode, TypeParameter> parameters = [];
         foreach (var node in annotation.DescendantsAndSelf())
         {
             cancellation.ThrowIfCancellationRequested();
@@ -86,10 +85,9 @@ internal sealed partial class Checker
                     return null;
             }
             if (node is ImportTypeNode or ThisTypeNode or ComputedPropertyNameNode
-                || node is TypeQueryNode && parameters is null
                 || node.Kind is >= Syntax.SyntaxKind.FirstJSDocNode and <= Syntax.SyntaxKind.LastJSDocNode)
                 return null;
-            if (parameters is not null && node is TypeParameterDeclarationNode { Name: { } parameterName } declaration
+            if (node is TypeParameterDeclarationNode { Name: { } parameterName } declaration
                 && program.Symbols.Declaration(declaration) is { } parameterSymbol)
                 parameters[parameterName] = program.Scopes.Parameter(parameterSymbol);
             if (node is not TypeReferenceNode reference)
@@ -106,8 +104,7 @@ internal sealed partial class Checker
                 var parameter = program.Scopes.Parameter(original);
                 if (state.Mapper is not null && await state.Mapper.MapAsync(parameter, cancellation) != parameter)
                     return null;
-                if (parameters is not null)
-                    parameters[identifier] = parameter;
+                parameters[identifier] = parameter;
                 continue;
             }
             if (state.Symbols.Enclosing is null)
@@ -125,8 +122,7 @@ internal sealed partial class Checker
                     != SymbolAccessibility.Accessible)
                 return null;
         }
-        var result = parameters is null ? CloneSyntaxBindingName(annotation, state, typeAnnotation: true)
-            : await ReuseGeneratedAnnotationSyntaxAsync(annotation, parameters, state, cancellation);
+        var result = await ReuseGeneratedAnnotationSyntaxAsync(annotation, parameters, state, cancellation);
         AddReusedSyntaxLength(annotation, state);
         return result;
     }

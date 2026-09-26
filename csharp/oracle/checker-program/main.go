@@ -27,6 +27,7 @@ func main() {
 	output := json.NewEncoder(os.Stdout)
 	for lines.Scan() {
 		var input struct {
+			NodeBuilderTracking   bool
 			TypeSyntax            bool
 			SignatureSyntax       bool
 			EmitQueries           bool
@@ -104,6 +105,12 @@ func main() {
 		}
 		program := compiler.NewProgram(options)
 		c, _ := checker.NewChecker(program, nil)
+		if input.NodeBuilderTracking {
+			if err := output.Encode(c.CSharpNodeBuilderTracking(program.GetSourceFile("/project/main.ts"), input.TypeSyntaxFlags)); err != nil {
+				panic(err)
+			}
+			continue
+		}
 		if input.DisplayFormats {
 			if err := output.Encode(c.CSharpFormatProbe(program.GetSourceFile("/project/main.ts"), input.TypeFormatFlags)); err != nil {
 				panic(err)
