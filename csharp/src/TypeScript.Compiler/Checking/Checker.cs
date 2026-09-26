@@ -302,16 +302,9 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
         Assertions = new(context, Algebra, Widening, ObjectLiterals, Relations, RelationDiagnostics, this);
         TypeDisplay = new(
             context,
-            Algebra,
-            Members,
-            Instantiation.Constraints,
-            References,
-            Values,
-            Signatures,
-            Parameters,
-            Nodes,
-            Instantiation.Mapped,
-            InferredConstraints, Relations, links, program.Symbols.Program.Configuration.Options.Boolean("noErrorTruncation") == true);
+            links,
+            program.Symbols.Program.Configuration.Options.Boolean("noErrorTruncation") == true,
+            DiagnosticTypeSyntaxAsync, DiagnosticSignatureSyntaxAsync, DiagnosticPredicateSyntaxAsync);
         ValueExpressions = new(context, links, program.Symbols, Values, Facts, this);
         InstantiationExpressions = new(context, Algebra, Instantiation.Constraints, Members, CallSignatures, SignatureInstantiation, this);
         ConstructorAccess = new(program.Symbols, Declared, Bases, Composites, this);
@@ -416,10 +409,7 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
         CancellationToken cancellation)
     {
         string name = (symbol.Flags & SymbolFlags.TypeAlias) != 0 ? TypeDisplay.SymbolName(symbol)
-            : symbol.Name is "Array" or "ReadonlyArray"
-                ? await SymbolDisplayNameAsync(symbol, null, SymbolFlags.Type, cancellation,
-                    SymbolFormatFlags.AllowAnyNodeKind | SymbolFormatFlags.WriteTypeParametersOrArguments)
-                : await TypeDisplay.GetAsync(type, cancellation);
+            : await TypeDisplay.GetAsync(type, NodeBuilderFlags.WriteArrayAsGenericType, cancellation);
         Error(node, missingAugments ? minimum == maximum ? 8026 : 8027 : minimum == maximum ? 2314 : 2707,
             name,
             minimum.ToString(System.Globalization.CultureInfo.InvariantCulture),

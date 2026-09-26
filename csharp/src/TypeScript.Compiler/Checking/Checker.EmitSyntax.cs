@@ -210,21 +210,25 @@ internal sealed partial class Checker
             if ((flags & NodeBuilderFlags.SuppressAnyReturnType) != 0 && (type.Flags & TypeFlags.Any) != 0)
                 return null;
             if (await Signatures.PredicateAsync(signature, cancellation) is { } predicate)
-            {
-                SyntaxNode name = predicate.Kind is TypePredicateKind.This or TypePredicateKind.AssertsThis
-                    ? state.Factory.NewThisTypeNode() : state.Factory.NewIdentifier(predicate.ParameterName);
-                state.NoAsciiEscape.Add(name);
-                return state.Factory.NewTypePredicateNode(
-                    predicate.Kind is TypePredicateKind.AssertsThis or TypePredicateKind.AssertsIdentifier
-                        ? state.Factory.NewToken(K.AssertsKeyword) : null,
-                    name, predicate.Type is null ? null : await TypeSyntaxAsync(predicate.Type, state, cancellation));
-            }
+                return await PredicateTypeSyntaxAsync(predicate, state, cancellation);
             return await DeclarationTypeSyntaxAsync(type, signature.Declaration, false, state, cancellation);
         }
         finally
         {
             state.Flags = flags;
         }
+    }
+
+    private async ValueTask<SyntaxNode> PredicateTypeSyntaxAsync(TypePredicate predicate, TypeSyntaxContext state,
+        CancellationToken cancellation)
+    {
+        SyntaxNode name = predicate.Kind is TypePredicateKind.This or TypePredicateKind.AssertsThis
+            ? state.Factory.NewThisTypeNode() : state.Factory.NewIdentifier(predicate.ParameterName);
+        state.NoAsciiEscape.Add(name);
+        return state.Factory.NewTypePredicateNode(
+            predicate.Kind is TypePredicateKind.AssertsThis or TypePredicateKind.AssertsIdentifier
+                ? state.Factory.NewToken(K.AssertsKeyword) : null,
+            name, predicate.Type is null ? null : await TypeSyntaxAsync(predicate.Type, state, cancellation));
     }
 
     internal ValueTask<IReadOnlyList<string>> SerializeTypeParametersForEmitAsync(SyntaxNode declaration, SyntaxNode? enclosing,

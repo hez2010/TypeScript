@@ -180,6 +180,12 @@ internal static class Program
                 Console.WriteLine($"Type syntax core safety: {CheckerTypeSyntaxTests.Safety().GetAwaiter().GetResult()} assertions passed");
                 return 0;
             }
+            if (args is ["--checker-type-renderer-safety"])
+            {
+                Console.WriteLine(
+                    $"Diagnostic renderer safety: {CheckerTypeSyntaxTests.DiagnosticSafety().GetAwaiter().GetResult()} assertions passed; array depth 5000");
+                return 0;
+            }
             if (args is ["--checker-symbol-type-nodes-safety"])
             {
                 Console.WriteLine(

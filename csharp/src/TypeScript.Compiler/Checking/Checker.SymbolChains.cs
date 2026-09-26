@@ -53,6 +53,8 @@ internal sealed partial class Checker
 
     private async ValueTask<T> ChainOperationAsync<T>(Func<ValueTask<T>> action, CancellationToken cancellation)
     {
+        if (chainChanges is not null)
+            return await action();
         var changes = new ChainChanges();
         chainChanges = changes;
         try

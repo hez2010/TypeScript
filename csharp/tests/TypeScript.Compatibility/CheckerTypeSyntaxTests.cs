@@ -12,6 +12,91 @@ namespace TypeScript.Compatibility;
 
 internal static class CheckerTypeSyntaxTests
 {
+    internal static async Task<int> DiagnosticSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Diagnostic renderer assertion {checks + 1}");
+            checks++;
+        }
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        var files = new Dictionary<string, byte[]>
+        {
+            ["/project/globals.d.ts"] = Wtf8.Encode(
+                "interface Object{}interface Function{}interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T}"),
+            ["/project/main.ts"] = Wtf8.Encode(
+                "class C{value=1}class D{text=''}namespace N{export const value=1}enum E{A}let ctor:typeof C;let module:typeof N;let enumeration:E;function f(value:C):D{return new D()}function g(value:D):D{return value}function guard(value:unknown):value is number{return true}function assertS(値:unknown):asserts 値 is string{}")
+        };
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
+            new("/project/tsconfig.json", options, files.Keys.ToArray(), [], [], []));
+        var source = program.GetFile("/project/main.ts")!.Syntax;
+        var before = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
+        var checker = await program.CreateCheckerAsync();
+        foreach (var (name, expected) in new[] { ("ctor", "typeof C"), ("module", "typeof N"), ("enumeration", "E") })
+        {
+            var declaration = source.DescendantsAndSelf().OfType<VariableDeclarationNode>().Single(n => n.Name is IdentifierNode i
+                && i.Text == name);
+            var type = await checker.GetTypeFromTypeNodeAsync(declaration.Type!);
+            Check(await checker.TypeDisplay.GetAsync(type) == expected);
+        }
+        var functions = source.Statements!.OfType<FunctionDeclarationNode>().ToDictionary(n => n.Name!.Text);
+        var guard = await checker.Signatures.FromDeclarationAsync(functions["guard"]);
+        Check(await checker.TypeDisplay.GetSignatureAsync(guard) == "(value: unknown): value is number");
+        Check(await checker.TypeDisplay.GetPredicateAsync((await checker.Signatures.PredicateAsync(guard))!) == "value is number");
+        var assertion = await checker.Signatures.FromDeclarationAsync(functions["assertS"]);
+        Check(await checker.TypeDisplay.GetSignatureAsync(assertion) == "(値: unknown): asserts 値 is string");
+        Check(await checker.TypeDisplay.GetPredicateAsync((await checker.Signatures.PredicateAsync(assertion))!) == "asserts 値 is string");
+        var f = await checker.Signatures.FromDeclarationAsync(functions["f"]);
+        var g = await checker.Signatures.FromDeclarationAsync(functions["g"]);
+        var caches = (checker.AccessibleChainCacheCount, checker.SymbolTableAliasCacheCount, checker.SymbolContainerCacheCount,
+            checker.DeclarationVisibilityCount, checker.TypeSyntaxScopeCount);
+        bool nested = false;
+        using var stop = new CancellationTokenSource();
+        checker.BeforeSymbolChainTable = _ =>
+        {
+            if (!nested)
+            {
+                nested = true;
+                Check(checker.TypeDisplay.GetSignatureAsync(g).GetAwaiter().GetResult() == "(value: D): D");
+                return;
+            }
+            stop.Cancel();
+            stop.Token.ThrowIfCancellationRequested();
+        };
+        try
+        {
+            await checker.SerializeSignatureSyntaxAsync(f, SyntaxKind.CallSignature, source, NodeBuilderFlags.IgnoreErrors, stop.Token);
+            throw new InvalidOperationException("Expected nested-render cancellation");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        finally
+        {
+            checker.BeforeSymbolChainTable = null;
+        }
+        Check(nested);
+        Check(caches == (checker.AccessibleChainCacheCount, checker.SymbolTableAliasCacheCount, checker.SymbolContainerCacheCount,
+            checker.DeclarationVisibilityCount, checker.TypeSyntaxScopeCount));
+        Check(await checker.TypeDisplay.GetSignatureAsync(f) == "(value: C): D");
+        TypeScript.Compiler.Checking.Type deep = checker.Context.NumberType;
+        var array = (InterfaceType)checker.Environment.Globals.Types["Array"];
+        for (int i = 0; i < 5000; i++)
+            deep = checker.Context.CreateTypeReference(array, [deep]);
+        string shortened = await checker.TypeDisplay.GetAsync(deep);
+        Check(shortened.Length == 320 && shortened.EndsWith("...", StringComparison.Ordinal));
+        Check(
+            await checker.TypeDisplay.GetAsync(
+                deep,
+                NodeBuilderFlags.NoTruncation) == "number" + string.Concat(Enumerable.Repeat("[]", 5000)));
+        Check(before.All(n => n.Node.Parent == n.Parent && n.Node.Pos == n.Pos && n.Node.End == n.End && n.Node.Flags == n.Flags));
+        return checks + await CheckerDisplayTests.Safety();
+    }
+
     internal static async Task<int> DeclarationSafety()
     {
         int checks = 0;

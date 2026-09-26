@@ -20,6 +20,8 @@ internal sealed partial class Checker
 
     private async ValueTask<T> ContainerOperationAsync<T>(Func<ValueTask<T>> action, CancellationToken cancellation)
     {
+        if (containerChanges is not null)
+            return await action();
         var changes = new ContainerChanges();
         containerChanges = changes;
         try

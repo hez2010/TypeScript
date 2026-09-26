@@ -22,6 +22,13 @@ internal sealed partial class Checker
     private async ValueTask<T> VisibilityQueryAsync<T>(SyntaxNode? node, Func<ValueTask<T>> action, CancellationToken cancellation)
     {
         using var query = await EnterQueryAsync(node, cancellation).ConfigureAwait(false);
+        return await VisibilityOperationAsync(action, cancellation);
+    }
+
+    private async ValueTask<T> VisibilityOperationAsync<T>(Func<ValueTask<T>> action, CancellationToken cancellation)
+    {
+        if (visibilityChanges is not null)
+            return await action();
         var changes = new VisibilityChanges();
         visibilityChanges = changes;
         try

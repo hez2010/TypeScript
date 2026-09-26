@@ -11,6 +11,35 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
+    private ValueTask<string> DiagnosticTypeSyntaxAsync(Type type, NodeBuilderFlags flags, CancellationToken cancellation)
+        => DiagnosticSyntaxAsync(flags, false, state => TypeSyntaxAsync(type, state, cancellation), cancellation);
+
+    private ValueTask<string> DiagnosticSignatureSyntaxAsync(Signature signature, CancellationToken cancellation)
+        => DiagnosticSyntaxAsync(NodeBuilderFlags.WriteTypeParametersInQualifiedName, true,
+            state => SignatureSyntaxAsync(
+                signature,
+                (signature.Flags & SignatureFlags.Construct) != 0 ? K.ConstructSignature : K.CallSignature,
+                state, cancellation), cancellation);
+
+    private ValueTask<string> DiagnosticPredicateSyntaxAsync(TypePredicate predicate, CancellationToken cancellation)
+        => DiagnosticSyntaxAsync(NodeBuilderFlags.WriteTypeParametersInQualifiedName | NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope,
+            false, state => PredicateTypeSyntaxAsync(predicate, state, cancellation), cancellation);
+
+    private ValueTask<string> DiagnosticSyntaxAsync(NodeBuilderFlags flags, bool neverAsciiEscape,
+        Func<TypeSyntaxContext, ValueTask<SyntaxNode>> build, CancellationToken cancellation)
+        => VisibilityOperationAsync(() => ChainOperationAsync(() => ContainerOperationAsync(async () =>
+        {
+            var state = new TypeSyntaxContext(null, (flags & NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope) != 0,
+                flags: flags | NodeBuilderFlags.IgnoreErrors);
+            var node = await build(state);
+            return PrintDiagnosticNode(
+                node,
+                neverAsciiEscape,
+                cancellation,
+                noAsciiEscape: state.NoAsciiEscape,
+                singleLine: state.SingleLine);
+        }, cancellation), cancellation), cancellation);
+
     private sealed class TypeSyntaxContext
     {
         internal TypeSyntaxContext(SyntaxNode? enclosing, bool aliasesOutsideScope, bool externalAliasesOnly = false,
@@ -843,11 +872,12 @@ internal sealed partial class Checker
         var arguments = await References.TypeArgumentsAsync(reference, cancellation);
         if (IsArray(reference) && arguments.Count != 0)
         {
+            bool readOnly = reference.Target != program.Globals.Types["Array"];
             if ((state.Flags & NodeBuilderFlags.WriteArrayAsGenericType) != 0)
-                return f.NewTypeReferenceNode(f.NewIdentifier(IsReadonlyArray(reference) ? "ReadonlyArray" : "Array"),
+                return f.NewTypeReferenceNode(f.NewIdentifier(readOnly ? "ReadonlyArray" : "Array"),
                     new([await TypeSyntaxAsync(arguments[0], state, cancellation)]));
             var array = f.NewArrayTypeNode(ParenthesizeType(await TypeSyntaxAsync(arguments[0], state, cancellation), f, postfix: true));
-            return IsReadonlyArray(reference) ? f.NewTypeOperatorNode(K.ReadonlyKeyword, array) : array;
+            return readOnly ? f.NewTypeOperatorNode(K.ReadonlyKeyword, array) : array;
         }
         if (reference.Target is TupleType tuple)
         {

@@ -155,7 +155,8 @@ internal sealed partial class Checker
                                 .FirstOrDefault(p => p.ValueDeclaration is null && (p.CheckFlags & CheckFlags.ContainsPrivate) != 0);
                         }
                         if (conflict is not null)
-                            chain = Report(code, await TypeDisplay.GetAsync(type, cancellation), TypeDisplay.SymbolName(conflict));
+                            chain = Report(code, await TypeDisplay.GetAsync(type, NodeBuilderFlags.NoTypeReduction, cancellation),
+                                TypeDisplay.SymbolName(conflict));
                     }
                     diagnostic = Report(
                         await EmptyDomTypeAsync(type, cancellation).ConfigureAwait(false) ? 2812 : 2339,
