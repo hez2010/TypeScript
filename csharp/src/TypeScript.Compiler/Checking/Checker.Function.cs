@@ -41,6 +41,9 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
             {
                 if (item.Node is TypeReferenceNode reference)
                     await TypeReferenceChecks.CheckAsync(reference, cancellation);
+                else if (item.Node.Kind == SyntaxKind.ThisType
+                    && !(item.Node.Parent is TypePredicateNode thisPredicate && thisPredicate.ParameterName == item.Node))
+                    await Nodes.FromNodeAsync(item.Node, cancellation);
                 else if (item.Node is IndexedAccessTypeNode indexed)
                     await IndexValidation.CheckAsync(await Nodes.FromNodeAsync(indexed, cancellation), indexed, cancellation);
                 else if (item.Node is TypeOperatorNode operation)
@@ -366,6 +369,20 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
         if (node.PropertyName is ComputedPropertyNameNode computed)
             await ObjectLiterals.ComputedAsync(computed, cancellation);
         return false;
+    }
+
+    public async ValueTask<bool> VariableAliasAsync(SyntaxNode node, Symbol symbol, CancellationToken cancellation)
+    {
+        var declaration = node is BindingElementNode ? node.Parent?.Parent : node;
+        if ((symbol.Flags & SymbolFlags.Alias) == 0 || (node.Flags & NodeFlags.JavaScriptFile) == 0
+            || declaration is not VariableDeclarationNode { Type: null, Initializer: CallExpressionNode call }
+            || !SemanticSyntax.RequireCall(call)
+            || call.Arguments is not { Count: 1 } arguments
+            || arguments[0] is not (StringLiteralNode or NoSubstitutionTemplateLiteralNode)
+            || SemanticSyntax.HasModifier(declaration.Parent!.Parent!, SyntaxKind.ExportKeyword))
+            return false;
+        await CheckAliasSourceAsync(node, cancellation);
+        return true;
     }
 
     public async ValueTask NonNullBindingAsync(Type type, SyntaxNode node, CancellationToken cancellation)

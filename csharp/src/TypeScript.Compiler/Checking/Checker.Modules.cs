@@ -7,7 +7,7 @@ namespace TypeScript.Compiler.Checking;
 internal sealed partial class Checker
 {
     private readonly HashSet<Symbol> checkedModuleExports = [];
-    private int ModuleKind => (int?)program.Symbols.Program.Configuration.Options.Number("module") ?? program.Symbols.Program.Configuration.Options.String("module") switch
+    internal int ModuleKind => (int?)program.Symbols.Program.Configuration.Options.Number("module") ?? program.Symbols.Program.Configuration.Options.String("module") switch
     {
         "commonjs" => 1,
         "amd" => 2,
@@ -96,7 +96,7 @@ internal sealed partial class Checker
     private async ValueTask CheckNamespaceSourceAsync(ModuleDeclarationNode node, CancellationToken cancellation)
     {
         CheckDeclarationName(node);
-        DecoratorGrammar(node);
+        DeclarationModifiers(node);
         if (node.Body is not null)
             await CheckSourceElementAsync(node.Body, cancellation).ConfigureAwait(false);
         bool global = node.Keyword == SyntaxKind.GlobalKeyword, ambient = (node.Flags & NodeFlags.Ambient) != 0;

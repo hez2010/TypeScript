@@ -17,6 +17,60 @@ namespace TypeScript.Compatibility;
 
 internal static class CheckerProgramTests
 {
+    internal static async Task<int> PrivateDeclarationSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Private/declaration assertion {checks + 1}");
+            checks++;
+        }
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        options.SetRaw("allowJs", "true");
+        options.SetRaw("checkJs", "true");
+        options.SetRaw("module", "\"commonjs\"");
+        var files = new Dictionary<string, byte[]>
+        {
+            ["/project/globals.d.ts"] = Wtf8.Encode(
+                "interface Object{}interface Function{}interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T}"),
+            ["/project/main.ts"] = Wtf8.Encode(
+                "class C{static #x=1;test(c:C){return c.#x;}}type Bad=intrinsic;type Nested={p:this};let restricted:{private p:number};const obj={is():this is C{return true;}};class Overload{'a'():void;'b'() {}};declare const key:symbol;class Dynamic{[key]():void;};"),
+            ["/project/ambient.d.ts"] = Wtf8.Encode("namespace A{declare namespace B{}}var first:number;var second:number;"),
+            ["/project/module.js"] = Wtf8.Encode("function run(){}function hidden(){}module.exports=run;module.exports.hidden=hidden;"),
+            ["/project/use.js"] = Wtf8.Encode("const {hidden}=require('./module');hidden();"),
+            ["/project/exports.ts"] = Wtf8.Encode("const local=1;export {local as renamed};"),
+            ["/project/import.ts"] = Wtf8.Encode("import {local} from './exports';")
+        };
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
+            new("/project/tsconfig.json", options, files.Keys.ToArray(), [], [], []));
+        var source = program.GetFile("/project/main.ts")!.Syntax;
+        Check(source.ParseDiagnostics.Count == 0);
+        var before = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
+        var checker = await program.CreateCheckerAsync();
+        await checker.CheckProgramAsync();
+        var diagnostics = checker.DetailedDiagnosticsForProgramFile(source);
+        foreach (int code in new[] { 2339, 2795, 2526, 1070, 2389 })
+            Check(diagnostics.Count(d => d.Code == code) == 1);
+        Check(diagnostics.All(d => d.Code != 2391));
+        Check(diagnostics.Single(d => d.Code == 2389).Arguments.SequenceEqual(["'a'"]));
+        var ambient = checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/ambient.d.ts")!.Syntax);
+        Check(ambient.Count(d => d.Code == 1046) == 1);
+        Check(ambient.Count(d => d.Code == 1038) == 1);
+        var aliases = checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/use.js")!.Syntax);
+        Check(aliases.Count == 1 && aliases[0].Code == 2305);
+        Check(aliases[0].Arguments.SequenceEqual(["\"./module\"", "hidden"]));
+        var renamed = checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/import.ts")!.Syntax).Single(d => d.Code == 2460);
+        Check(renamed.Arguments.SequenceEqual(["\"./exports\"", "local", "renamed"]));
+        Check(renamed.RelatedInformation.Count == 1 && renamed.RelatedInformation[0].Code == 2728);
+        await checker.CheckProgramAsync();
+        Check(checker.DetailedDiagnosticsForProgramFile(source).Count == diagnostics.Count);
+        Check(before.All(p => p.Parent == p.Node.Parent && p.Pos == p.Node.Pos && p.End == p.Node.End && p.Flags == p.Node.Flags));
+        return checks;
+    }
+
     internal static async Task<int> MappedExportSafety()
     {
         int checks = 0;

@@ -35,6 +35,8 @@ internal sealed partial class Checker
 
     private void PropertySignatureGrammar(PropertySignatureDeclarationNode node)
     {
+        if (DeclarationModifiers(node))
+            return;
         if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count != 0 || MappedMemberGrammar(node))
             return;
         if (node.Name is ComputedPropertyNameNode computed
@@ -47,6 +49,22 @@ internal sealed partial class Checker
         }
         if (node.Initializer is not null)
             Error(node.Initializer, node.Parent is InterfaceDeclarationNode ? 1246 : 1247);
+    }
+
+    private void SourceFileGrammar(SourceFileNode file)
+    {
+        if ((file.Flags & NodeFlags.Ambient) == 0 || file.ParseDiagnostics.Count != 0)
+            return;
+        foreach (var node in file.Statements!)
+            if (node is VariableStatementNode or FunctionDeclarationNode or ClassDeclarationNode or EnumDeclarationNode
+                or ModuleDeclarationNode
+                && !SemanticSyntax.HasModifier(node, K.DeclareKeyword)
+                && !SemanticSyntax.HasModifier(node, K.ExportKeyword)
+                && !SemanticSyntax.HasModifier(node, K.DefaultKeyword))
+            {
+                ErrorOnFirstToken(node, 1046);
+                break;
+            }
     }
 
     private bool MappedMemberGrammar(SyntaxNode node)

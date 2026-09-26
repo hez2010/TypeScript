@@ -9,6 +9,8 @@ internal static class SyntaxNameText
     {
         if (node is IdentifierNode identifier)
             return identifier.Text;
+        if (node is PrivateIdentifierNode privateIdentifier)
+            return privateIdentifier.Text;
         if (node is null)
             return "";
         var text = new StringBuilder();
@@ -22,6 +24,9 @@ internal static class SyntaxNameText
                     text.Append('.');
                     break;
                 case IdentifierNode name:
+                    text.Append(name.Text);
+                    break;
+                case PrivateIdentifierNode name:
                     text.Append(name.Text);
                     break;
                 case QualifiedNameNode name:

@@ -180,19 +180,51 @@ internal sealed partial class CheckerEnvironment
                 (await ModuleExports.ResolveAsync(target, cancellation).ConfigureAwait(false)).Values,
                 S.ModuleMember,
                 cancellation).ConfigureAwait(false) : null;
+        string moduleName = SemanticChecker is { } checker
+            ? await checker.FullyQualifiedNameAsync(module, specifier, cancellation) : module.Name;
+        string declarationName = CheckerDiagnostic.DeclarationName(nameNode);
         int code = suggestion is not null ? 2724 : module.Exports.ContainsKey("default") ? 2614 : 2305;
+        string[] arguments = suggestion is null ? [moduleName, declarationName] : [moduleName, declarationName, suggestion.Name];
+        var related = new List<Diagnostic>();
+        if (suggestion?.ValueDeclaration is { } suggestedDeclaration)
+            related.Add(CheckerDiagnostic.Create(suggestedDeclaration, Messages.X_0_is_declared_here, suggestion.Name));
         if (code == 2305 && module.ValueDeclaration is { } declaration
             && Symbols.Binding(declaration)?.Get(declaration)?.Locals.GetValueOrDefault(name) is { } local)
         {
-            code = 2459;
-            foreach (var exported in module.Exports.Values)
-                if (await Aliases.SymbolAsync(exported, cancellation: cancellation).ConfigureAwait(false) == local)
+            if (module.Exports.TryGetValue("export=", out var assignment))
+            {
+                if (await SameReferenceAsync(assignment, local))
                 {
-                    code = 2460;
-                    break;
+                    code = SemanticChecker?.ModuleKind >= 5 ? 2595 : (nameNode.Flags & NodeFlags.JavaScriptFile) != 0 ? 2597 : 2616;
+                    arguments = code == 2616 ? [declarationName, declarationName, moduleName] : [declarationName];
                 }
+            }
+            else
+            {
+                code = 2459;
+                foreach (var exported in module.Exports.Values)
+                    if (await SameReferenceAsync(exported, local))
+                    {
+                        code = 2460;
+                        arguments = [moduleName, declarationName, exported.Name];
+                        break;
+                    }
+                foreach (var localDeclaration in local.Declarations)
+                    related.Add(CheckerDiagnostic.Create(localDeclaration,
+                        related.Count == 0 ? Messages.X_0_is_declared_here : Messages.X_and_here, declarationName));
+            }
         }
-        AliasDiagnostic(code, nameNode!);
+        if (reported.Add((nameNode, code, "")))
+        {
+            Diagnostics.Add(code);
+            DiagnosticFiles.Add((nameNode, CheckerDiagnostic.Create(nameNode, DiagnosticLocalization.GetMessage(code), arguments) with
+            { RelatedInformation = related }));
+        }
+
+        async ValueTask<bool> SameReferenceAsync(Symbol left, Symbol right) =>
+            Symbols.Merger.GetMergedSymbol(await Aliases.SymbolAsync(Symbols.Merger.GetMergedSymbol(left), cancellation: cancellation))
+                == Symbols.Merger.GetMergedSymbol(
+                    await Aliases.SymbolAsync(Symbols.Merger.GetMergedSymbol(right), cancellation: cancellation));
     }
 
     public async ValueTask<Symbol?> AliasExpressionAsync(SyntaxNode expression, CancellationToken cancellation)

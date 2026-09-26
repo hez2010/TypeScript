@@ -40,6 +40,7 @@ internal sealed partial class Checker
             RequireUsable();
             if (checkedFiles.Contains(file))
                 return;
+            SourceFileGrammar(file);
             foreach (var statement in file.Statements!)
                 await CheckSourceElementAsync(statement, cancellation).ConfigureAwait(false);
             if (deferredSourceNodes.TryGetValue(file, out var deferred))
@@ -313,6 +314,14 @@ internal sealed partial class Checker
                     if (alias.TypeParameters is not null)
                         foreach (TypeParameterDeclarationNode parameter in alias.TypeParameters)
                             await FunctionDeclarations.TypeParameterAsync(parameter, cancellation).ConfigureAwait(false);
+                    if (alias.Type?.Kind == SyntaxKind.IntrinsicKeyword)
+                    {
+                        int count = alias.TypeParameters?.Count ?? 0;
+                        if (!(count == 0 && alias.Name.Text == "BuiltinIteratorReturn"
+                            || count == 1 && alias.Name.Text is "Uppercase" or "Lowercase" or "Capitalize" or "Uncapitalize" or "NoInfer"))
+                            Error(alias.Type, 2795);
+                        break;
+                    }
                     await Declared.GetAsync(program.Symbols.Declaration(alias)!, cancellation).ConfigureAwait(false);
                     await CheckedFunctionTypeAsync(alias.Type!, cancellation).ConfigureAwait(false);
                     break;
@@ -359,7 +368,6 @@ internal sealed partial class Checker
                     // Namespace-export declarations are handled by the binder and alias resolver.
                     break;
                 case PropertySignatureDeclarationNode property:
-                    DeclarationModifiers(property);
                     PropertySignatureGrammar(property);
                     if (property.Name is PrivateIdentifierNode)
                         Error(property, 18016);

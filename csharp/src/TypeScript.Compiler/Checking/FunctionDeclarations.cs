@@ -33,6 +33,8 @@ internal interface IFunctionDeclarationHost : IConstraintCheckHost
 
     ValueTask<bool> BindingEnvironmentAsync(BindingElementNode node, CancellationToken cancellation);
 
+    ValueTask<bool> VariableAliasAsync(SyntaxNode node, Symbol symbol, CancellationToken cancellation);
+
     ValueTask NonNullBindingAsync(Type type, SyntaxNode node, CancellationToken cancellation);
 
     ValueTask<Type> BindingIterationAsync(Type type, SyntaxNode? node, bool outOfBounds, CancellationToken cancellation);
@@ -340,6 +342,8 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
             return;
         }
         var symbol = symbols.Declaration(node)!;
+        if (await host.VariableAliasAsync(node, symbol, cancellation).ConfigureAwait(false))
+            return;
         host.CheckDeclarationFlags(node, symbol, cancellation);
         var type = await values.GetAsync(symbol, cancellation).ConfigureAwait(false);
         if (type == context.AutoType)

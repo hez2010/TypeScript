@@ -10,6 +10,20 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
+    internal async ValueTask<string> FullyQualifiedNameAsync(Symbol symbol, SyntaxNode? location, CancellationToken cancellation)
+    {
+        var names = new Stack<string>();
+        while (symbol.Parent is { } parent)
+        {
+            cancellation.ThrowIfCancellationRequested();
+            names.Push(await SymbolDisplayNameAsync(symbol, null, SymbolFlags.All, cancellation));
+            symbol = parent;
+        }
+        names.Push(await SymbolDisplayNameAsync(symbol, location, SymbolFlags.All, cancellation,
+            SymbolFormatFlags.DoNotIncludeSymbolChain | SymbolFormatFlags.AllowAnyNodeKind));
+        return string.Join('.', names);
+    }
+
     internal ValueTask<string> GetSymbolDisplayNameAsync(Symbol symbol, SyntaxNode? enclosing = null,
         SymbolFlags meaning = SymbolFlags.All, CancellationToken cancellation = default) =>
         GetSymbolDisplayNameAsync(symbol, enclosing, meaning, SymbolFormatFlags.AllowAnyNodeKind, cancellation);

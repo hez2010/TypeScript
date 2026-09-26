@@ -88,6 +88,12 @@ internal static class Program
                     $"Mapped/export safety: {CheckerProgramTests.MappedExportSafety().GetAwaiter().GetResult()} assertions passed");
                 return 0;
             }
+            if (args is ["--checker-private-declarations-safety"])
+            {
+                Console.WriteLine(
+                    $"Private/declaration safety: {CheckerProgramTests.PrivateDeclarationSafety().GetAwaiter().GetResult()} assertions passed");
+                return 0;
+            }
             if (args is ["--checker-diagnostic-identity-safety"])
             {
                 Console.WriteLine(

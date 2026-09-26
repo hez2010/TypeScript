@@ -163,7 +163,11 @@ internal sealed partial class Checker
                         names.Count == 0 ? meaning : SymbolFlags.Namespace);
                 if (next is null)
                 {
-                    Error(current, 2694);
+                    Error(
+                        current,
+                        2694,
+                        await FullyQualifiedNameAsync(target, null, cancellation),
+                        CheckerDiagnostic.DeclarationName(current));
                     return data.ResolvedType = context.ErrorType;
                 }
                 links.SymbolNodes.Get(current).ResolvedSymbol = next;

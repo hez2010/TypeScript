@@ -4,15 +4,15 @@
 
 ## Current overall status
 
-The complete Release import baseline plus subsequent affected-case results record **13,022 matches out of 13,446 active compiler configurations**, up from 12,981 before the mapped-type/export/initializer batch and 9,365 at the original Release baseline. **All 13,446 configurations now finish execution and match source graphs.** **424 configurations still have diagnostic-code differences.** One exported input was corrected to reproduce the reference harness's duplicate-filename overwrite order; the reference's expected graph and diagnostics were unchanged.
+The complete Release import baseline plus subsequent affected-case results record **13,072 matches out of 13,446 active compiler configurations**, up from 13,022 before the private/declaration/import batch and 9,365 at the original Release baseline. **All 13,446 configurations now finish execution and match source graphs.** **374 configurations still have diagnostic-code differences.** One exported input was corrected to reproduce the reference harness's duplicate-filename overwrite order; the reference's expected graph and diagnostics were unchanged.
 
-These comparisons cover source graphs and diagnostic codes. **96.8% matching on this measure is not a Phase-4 completion percentage.** The remaining gates are:
+These comparisons cover source graphs and diagnostic codes. **97.2% matching on this measure is not a Phase-4 completion percentage.** The remaining gates are:
 
 | Completion requirement | Current status |
 | --- | --- |
 | Execute active corpus and match source graphs | Complete: 13,446 configurations |
-| Match semantic diagnostic codes | 13,022 match; 424 differ |
-| Match diagnostic text, locations and related information | Incomplete: detailed records match in 4,218 of 6,865 selected configurations, including 2,676 with nonempty semantic diagnostics; the remaining corpus has not been compared at this level |
+| Match semantic diagnostic codes | 13,072 match; 374 differ |
+| Match diagnostic text, locations and related information | Incomplete: detailed records match in 4,966 of 7,685 selected configurations, including 2,849 with nonempty semantic diagnostics; the remaining corpus has not been compared at this level |
 | Complete type/symbol comparisons, type display, node builders, accessibility and emit-resolver APIs | Incomplete; query families, visibility, formatted accessibility and symbol-format flags have fixture comparisons; remaining node-builder policies, type display and emit-resolver coverage remain open |
 | Validate actual parallel checker scheduling | Incomplete; reference-mode corpus agreement is a narrower check |
 | Meet complete semantic workload memory/performance budgets | Incomplete |
@@ -20,7 +20,7 @@ These comparisons cover source graphs and diagnostic codes. **96.8% matching on 
 
 Phase 4 is not nearly complete, and the evidence does not yet support a reliable completion estimate. Completed results are retained: each implementation checkpoint replays affected inputs against cached oracle results. A failed check is repeated after a relevant fix; unchanged checks are reused.
 
-**Current implementation focus:** continue grouped semantic and diagnostic fixes, then complete inferred-return recovery and full display/emit integration. The latest batch closes 41 semantic configurations through mapped/infer/template checks, generic parameter validation, exports, initializer typing and computed-member grammar. Parallel scheduling and performance/memory gates remain open.
+**Current implementation focus:** continue grouped semantic and diagnostic fixes, then complete inferred-return recovery and full display/emit integration. The latest batch closes 50 semantic configurations through private names, overloads, declaration grammar, import recovery and CommonJS alias checking. Parallel scheduling and performance/memory gates remain open.
 
 The next implementation priorities are missing diagnostic arguments and relation chains, remaining declaration/expression checks, and the unfinished checker APIs. The sections below are historical implementation checkpoints; their individual passing counts do not represent whole-phase completion.
 
@@ -1318,3 +1318,13 @@ The following phase-4 requirements remain open:
 7. All active checker/compiler type/symbol/diagnostic comparisons at single and reference-default concurrency; audits of intentional differences; complete semantic workload memory/performance measurements.
 
 The next integration work is semantic finalization, remaining expression/declaration services, complete diagnostics and the remaining module dependencies. Production source traversal does not yet supply complete program checking. Component comparison counts and validation of the existing Go backend do not measure full C# checker completion. The original Go backend remains the product backend. The full checker completion gate and retained-platform release gates are unchanged.
+
+## Private names, declaration checks and import recovery
+
+Private identifiers now retain their names through shared access diagnostics. Overload checking compares literal names, ignores unbindable computed methods, distinguishes missing recovery bodies and reports the expected implementation name. Nested `this` types receive validation while predicate parameter names retain their separate semantics. Intrinsic aliases, nested property modifiers, ambient namespaces and required top-level declaration modifiers now receive their reference checks.
+
+Import attributes preserve recovery tokens and stop when the opening object is missing. CommonJS require bindings use alias checking before ordinary variable comparison. Missing module members distinguish export assignments from renamed exports and retain qualified names, suggestions and related declaration locations.
+
+Release validation covers **1,552 distinct configurations in each reference mode** across three affected groups. The retained baseline gains **50 diagnostic-code matches**, reducing differences from 424 to **374**, with **no code or previously measured detailed regressions**. Detailed coverage reaches **4,966 exact out of 7,685 measured**; 61 previously measured detailed mismatches become exact. One nested-this-predicate regression was corrected and only the affected group replayed.
+
+Sixteen focused assertions cover private access, intrinsic/this types, literal and computed overloads, ambient declarations, CommonJS and renamed-export diagnostics, repeat checking and AST ownership. The Release build has zero warnings and errors; formatting preserves tokens, comments and syntax in both library configurations. Existing reference outputs and unaffected validation records are retained. Evidence: [semantic/detail rollup](../csharp/compatibility/evidence/phase4-private-declarations-semantics.json) and [validation and reuse](../csharp/compatibility/evidence/phase4-private-declarations-validation.json). NativeAOT remains deferred until whole-phase completion.

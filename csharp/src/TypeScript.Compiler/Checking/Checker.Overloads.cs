@@ -145,9 +145,7 @@ internal sealed partial class Checker
                                 await ComputedNameAsync(computed, cancellation).ConfigureAwait(false),
                                 await ComputedNameAsync(other, cancellation).ConfigureAwait(false),
                                 cancellation).ConfigureAwait(false)
-                        || name is IdentifierNode or StringLiteralNode or NumericLiteralNode
-                            && nextName is IdentifierNode or StringLiteralNode or NumericLiteralNode
-                            && SyntaxNameText.Get(name) == SyntaxNameText.Get(nextName));
+                        || OverloadNameText(name) is { } text && text == OverloadNameText(nextName));
                     if (same)
                     {
                         if (node is MethodDeclarationNode or MethodSignatureDeclarationNode
@@ -155,9 +153,9 @@ internal sealed partial class Checker
                             Error(nextName ?? next, SemanticSyntax.IsStatic(node) ? 2387 : 2388);
                         return;
                     }
-                    if (SemanticSyntax.Body(next) is not null)
+                    if (SemanticSyntax.Body(next) is { } nextBody && nextBody.End > nextBody.Pos)
                     {
-                        Error(nextName ?? next, 2389);
+                        Error(nextName ?? next, 2389, name is null ? "" : CheckerDiagnostic.DeclarationName(name));
                         return;
                     }
                 }
@@ -196,8 +194,22 @@ internal sealed partial class Checker
         _ => false
     };
 
+    private static string? OverloadNameText(SyntaxNode node) => node switch
+    {
+        IdentifierNode identifier => identifier.Text,
+        StringLiteralNode literal => literal.Text,
+        NoSubstitutionTemplateLiteralNode literal => literal.Text,
+        NumericLiteralNode literal => literal.Text,
+        _ => null
+    };
+
     private async ValueTask CheckFunctionOverloadsAsync(SyntaxNode node, CancellationToken cancellation)
     {
+        if (SemanticSyntax.Name(node) is ComputedPropertyNameNode computed
+            && computed.Expression is not (StringLiteralNode or NumericLiteralNode or NoSubstitutionTemplateLiteralNode
+                or PrefixUnaryExpressionNode { Operator: SyntaxKind.PlusToken or SyntaxKind.MinusToken, Operand: NumericLiteralNode })
+            && !await LateMembers.BindableAsync(node, cancellation))
+            return;
         var symbol = program.Symbols.Declaration(node)!;
         if ((node.Flags & NodeFlags.JavaScriptFile) == 0)
             await CheckOverloadDeclarationsAsync(

@@ -1093,13 +1093,18 @@ public sealed partial class Parser
     {
         await ParseStack;
         int start = originalStart ?? Pos;
-        Expected(K.OpenBraceToken);
+        if (!Expected(K.OpenBraceToken))
+            return Finish(factory.NewImportAttributes(token, new NodeList([], Pos, Pos), false), start);
         bool multiline = LineBreak;
         var attributes = (await DelimitedCore(K.CloseBraceToken, async () =>
         {
             int at = Pos;
-            var name = (await NameCore().ConfigureAwait(false));
-            Expected(K.ColonToken);
+            SyntaxNode? name = Token == K.StringLiteral ? Literal()
+                : Token == K.Identifier || Token is >= K.FirstKeyword and <= K.LastKeyword ? Identifier(true) : null;
+            if (name is not null)
+                Expected(K.ColonToken);
+            else
+                Error(Messages.Identifier_or_string_literal_expected);
             return Finish(factory.NewImportAttribute(name, (await ExpressionCore(2).ConfigureAwait(false))), at);
         }).ConfigureAwait(false));
         Expected(K.CloseBraceToken);

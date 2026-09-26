@@ -644,7 +644,10 @@ public sealed partial class Parser
             K token = Token;
             if (token == K.AssertKeyword)
                 Error(Messages.Import_assertions_have_been_replaced_by_import_attributes_Use_with_instead_of_assert);
-            Next();
+            if (token is K.WithKeyword or K.AssertKeyword)
+                Next();
+            else
+                Error(Messages.X_0_expected, "with");
             Expected(K.ColonToken);
             attributes = await ImportAttributesCore(token).ConfigureAwait(false);
             Take(K.CommaToken);
