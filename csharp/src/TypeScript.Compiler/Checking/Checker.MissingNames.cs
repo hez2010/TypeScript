@@ -11,6 +11,60 @@ internal sealed partial class Checker
     private readonly Dictionary<string, Symbol> primitiveSuggestions = new(StringComparer.Ordinal);
     internal Dictionary<SyntaxNode, Symbol> SuggestedNameDeclarations { get; } = [];
 
+    internal async ValueTask MissingQualifiedAsync(
+        SyntaxNode name,
+        SyntaxNode right,
+        Symbol parent,
+        S meaning,
+        CancellationToken cancellation)
+    {
+        string namespaceName = await FullyQualifiedNameAsync(parent, null, cancellation);
+        string memberName = CheckerDiagnostic.DeclarationName(right);
+        var exports = await ExportsAsync(parent, cancellation);
+        if (await SymbolSuggestions.FindAsync(memberName, exports.Values, S.ModuleMember, cancellation) is { } suggestion)
+        {
+            Error(right, 2724, namespaceName, memberName, TypeDisplay.SymbolName(suggestion));
+            return;
+        }
+        if (name is QualifiedNameNode)
+        {
+            var containing = name;
+            while (containing.Parent is QualifiedNameNode outer)
+                containing = outer;
+            if (program.Globals.Types.ContainsKey("Object")
+                && (meaning & S.Type) != 0
+                && containing.Parent?.Kind != SyntaxKind.TypeOfExpression
+                && await QualifiedNameValueAsync(containing, cancellation) is not null)
+            {
+                Error(containing, 2749, SyntaxNameText.Get(containing));
+                return;
+            }
+        }
+        if ((meaning & S.Namespace) != 0 && name.Parent is QualifiedNameNode qualified
+            && program.Symbols.Lookup(exports, memberName, S.Type) is { } exportedType)
+        {
+            Error(qualified.Right!, 2713, TypeDisplay.SymbolName(exportedType), SyntaxNameText.Get(qualified.Right!));
+            return;
+        }
+        Error(right, 2694, namespaceName, memberName);
+    }
+
+    private async ValueTask<Symbol?> QualifiedNameValueAsync(SyntaxNode node, CancellationToken cancellation)
+    {
+        while (node is QualifiedNameNode qualified)
+            node = qualified.Left!;
+        if (node is not IdentifierNode identifier)
+            return null;
+        var symbol = program.Symbols.NameResolver(cancellation).Resolve(identifier, identifier.Text, S.Value, isUse: true);
+        while (symbol is not null && node.Parent is QualifiedNameNode parent)
+        {
+            symbol = await Properties.PropertyAsync(await Values.GetAsync(symbol, cancellation),
+                SyntaxNameText.Get(parent.Right!), cancellation: cancellation);
+            node = parent;
+        }
+        return symbol;
+    }
+
     internal async ValueTask FailedNameAsync(SyntaxNode? location, string name, S meaning, DiagnosticMessage message)
     {
         if (location is not null)
@@ -57,7 +111,7 @@ internal sealed partial class Checker
                 && await Properties.PropertyAsync(
                     await Declared.GetAsync(typeSymbol).ConfigureAwait(false),
                     ((IdentifierNode)qualified.Right!).Text).ConfigureAwait(false) is not null)
-                Error(qualified, 2713);
+                Error(qualified, 2713, name, SyntaxNameText.Get(qualified.Right!));
             else
                 Error(location, 2702, name);
             return true;

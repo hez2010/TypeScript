@@ -6,6 +6,10 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed class SymbolSuggestions(AliasResolver aliases, TypeOrder order)
 {
+    internal ValueTask<LiteralType?> StringLiteralAsync(string name, UnionType target, CancellationToken cancellation)
+        => SpellingSuggestions.FindAsync(name, target.Types.OfType<LiteralType>().Where(t => (t.Flags & TypeFlags.StringLiteral) != 0),
+            type => ValueTask.FromResult(type.Value as string), order.Compare, 1000, cancellation);
+
     internal ValueTask<Symbol?> FindAsync(
         string name,
         IEnumerable<Symbol> symbols,

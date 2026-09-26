@@ -1,0 +1,118 @@
+{
+    "timestamp": "2026-09-26T22:49:21.060Z",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "managed": true,
+    "scope": "Retained full baseline plus qualified namespace failures and string-literal/identically-named relation diagnostics",
+    "modes": [
+        {
+            "mode": "single",
+            "before": {
+                "active": 13446,
+                "codeMatches": 13190,
+                "codeDifferences": 256,
+                "detailedMeasured": 9517,
+                "detailedMatches": 8521,
+                "nonemptyDetailedMatches": 5317
+            },
+            "after": {
+                "active": 13446,
+                "codeMatches": 13202,
+                "codeDifferences": 244,
+                "detailedMeasured": 9520,
+                "detailedMatches": 8541,
+                "nonemptyDetailedMatches": 5335
+            },
+            "affectedConfigurations": 200,
+            "fixed": [
+                "conformance/importClause_namespaceImport.ts",
+                "compiler/thislessFunctionsNotContextSensitive1.ts",
+                "compiler/jsEnumCrossFileExport.ts",
+                "compiler/incompatibleAssignmentOfIdenticallyNamedTypes.ts",
+                "compiler/genericFunduleInModule2.ts",
+                "compiler/genericFunduleInModule.ts",
+                "compiler/didYouMeanStringLiteral.ts",
+                "compiler/moduleVisibilityTest4.ts",
+                "compiler/moduleVisibilityTest3.ts",
+                "compiler/errorsForCallAndAssignmentAreSimilar.ts",
+                "compiler/errorForUsingPropertyOfTypeAsType03.ts",
+                "compiler/errorForUsingPropertyOfTypeAsType01.ts"
+            ],
+            "regressions": [],
+            "detailsFixed": [
+                "conformance/moduleExportNestedNamespaces.ts",
+                "conformance/exportNestedNamespaces.ts",
+                "conformance/importClause_namespaceImport.ts",
+                "compiler/thislessFunctionsNotContextSensitive1.ts",
+                "compiler/internalAliasInterfaceInsideLocalModuleWithoutExportAccessError.ts",
+                "compiler/incompatibleAssignmentOfIdenticallyNamedTypes.ts",
+                "compiler/genericFunduleInModule2.ts",
+                "compiler/genericFunduleInModule.ts",
+                "compiler/didYouMeanStringLiteral.ts",
+                "compiler/moduleVisibilityTest4.ts",
+                "compiler/moduleVisibilityTest3.ts",
+                "compiler/errorsForCallAndAssignmentAreSimilar.ts",
+                "compiler/bluebirdStaticThis.ts",
+                "compiler/errorForUsingPropertyOfTypeAsType03.ts",
+                "compiler/errorForUsingPropertyOfTypeAsType02.ts",
+                "compiler/internalAliasUninitializedModuleInsideLocalModuleWithoutExportAccessError.ts",
+                "compiler/errorForUsingPropertyOfTypeAsType01.ts"
+            ],
+            "detailsRegressed": []
+        },
+        {
+            "mode": "default",
+            "before": {
+                "active": 13446,
+                "codeMatches": 13190,
+                "codeDifferences": 256,
+                "detailedMeasured": 13446,
+                "detailedMatches": 12334,
+                "nonemptyDetailedMatches": 5808
+            },
+            "after": {
+                "active": 13446,
+                "codeMatches": 13202,
+                "codeDifferences": 244,
+                "detailedMeasured": 13446,
+                "detailedMatches": 12351,
+                "nonemptyDetailedMatches": 5825
+            },
+            "affectedConfigurations": 200,
+            "fixed": [
+                "conformance/importClause_namespaceImport.ts",
+                "compiler/thislessFunctionsNotContextSensitive1.ts",
+                "compiler/moduleVisibilityTest4.ts",
+                "compiler/moduleVisibilityTest3.ts",
+                "compiler/genericFunduleInModule2.ts",
+                "compiler/errorForUsingPropertyOfTypeAsType03.ts",
+                "compiler/errorForUsingPropertyOfTypeAsType01.ts",
+                "compiler/didYouMeanStringLiteral.ts",
+                "compiler/genericFunduleInModule.ts",
+                "compiler/incompatibleAssignmentOfIdenticallyNamedTypes.ts",
+                "compiler/jsEnumCrossFileExport.ts",
+                "compiler/errorsForCallAndAssignmentAreSimilar.ts"
+            ],
+            "regressions": [],
+            "detailsFixed": [
+                "conformance/moduleExportNestedNamespaces.ts",
+                "conformance/importClause_namespaceImport.ts",
+                "conformance/exportNestedNamespaces.ts",
+                "compiler/thislessFunctionsNotContextSensitive1.ts",
+                "compiler/moduleVisibilityTest4.ts",
+                "compiler/moduleVisibilityTest3.ts",
+                "compiler/genericFunduleInModule2.ts",
+                "compiler/internalAliasUninitializedModuleInsideLocalModuleWithoutExportAccessError.ts",
+                "compiler/internalAliasInterfaceInsideLocalModuleWithoutExportAccessError.ts",
+                "compiler/errorForUsingPropertyOfTypeAsType03.ts",
+                "compiler/errorForUsingPropertyOfTypeAsType02.ts",
+                "compiler/errorForUsingPropertyOfTypeAsType01.ts",
+                "compiler/didYouMeanStringLiteral.ts",
+                "compiler/genericFunduleInModule.ts",
+                "compiler/incompatibleAssignmentOfIdenticallyNamedTypes.ts",
+                "compiler/errorsForCallAndAssignmentAreSimilar.ts",
+                "compiler/bluebirdStaticThis.ts"
+            ],
+            "detailsRegressed": []
+        }
+    ]
+}

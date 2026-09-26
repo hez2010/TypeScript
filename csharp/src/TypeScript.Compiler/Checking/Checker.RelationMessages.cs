@@ -76,6 +76,7 @@ internal sealed partial class Checker
             }
             diagnostic = await ConstraintReasonAsync(diagnostic, originalSource, source, target, sourceText, targetText, cancellation);
         }
+        diagnostic = await RelationMessageKindAsync(diagnostic, originalSource, target, sourceText, targetText, cancellation);
         diagnostic = SelectRelationDiagnostic(diagnostic, originalSource, target, sourceText, targetText);
         Report(StripRelationMarkers(diagnostic));
 
@@ -166,6 +167,7 @@ internal sealed partial class Checker
             }
             diagnostic = diagnostic with { Arguments = [sourceText, targetText] };
             diagnostic = await ConstraintReasonAsync(diagnostic, originalSource, source, target, sourceText, targetText, cancellation);
+            diagnostic = await RelationMessageKindAsync(diagnostic, originalSource, target, sourceText, targetText, cancellation);
             return SelectRelationDiagnostic(diagnostic, originalSource, target, sourceText, targetText);
         }
         if (explanation.Arguments is { } supplied)
@@ -240,6 +242,23 @@ internal sealed partial class Checker
     }
 
     private static string PropertyPath(string name) => name.Length != 0 && name[0] is '\'' or '"' or '`' ? "[" + name + "]" : name;
+
+    private async ValueTask<Diagnostic> RelationMessageKindAsync(Diagnostic diagnostic, Type source, Type target,
+        string sourceText, string targetText, CancellationToken cancellation)
+    {
+        if (diagnostic.Code != 2322)
+            return diagnostic;
+        if (sourceText == targetText)
+            return diagnostic with { Message = DiagnosticLocalization.GetMessage(2719) };
+        if (source is LiteralType { Value: string text } && target is UnionType union
+            && await SymbolSuggestions.StringLiteralAsync(text, union, cancellation) is { } suggestion)
+            return diagnostic with
+            {
+                Message = DiagnosticLocalization.GetMessage(2820),
+                Arguments = [sourceText, targetText, await TypeDisplay.GetAsync(suggestion, cancellation)]
+            };
+        return diagnostic;
+    }
 
     private async ValueTask<(string Source, string Target)> RelationTypeNamesAsync(Type source, Type target, CancellationToken cancellation)
     {

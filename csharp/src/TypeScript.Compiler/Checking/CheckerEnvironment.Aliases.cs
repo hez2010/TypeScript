@@ -42,9 +42,10 @@ internal sealed partial class CheckerEnvironment
         S meaning,
         CancellationToken cancellation)
     {
-        string namespaceName = SemanticChecker is { } checker
-            ? await checker.FullyQualifiedNameAsync(parent, name, cancellation) : parent.Name;
-        Error(right, Messages.Namespace_0_has_no_exported_member_1, namespaceName, CheckerDiagnostic.DeclarationName(right));
+        if (SemanticChecker is { } checker)
+            await checker.MissingQualifiedAsync(name, right, parent, meaning, cancellation);
+        else
+            Error(right, Messages.Namespace_0_has_no_exported_member_1, parent.Name, CheckerDiagnostic.DeclarationName(right));
     }
 
     public async ValueTask<Symbol?> ExternalModuleAsync(
