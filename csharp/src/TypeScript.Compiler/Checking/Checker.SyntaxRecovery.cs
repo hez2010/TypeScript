@@ -55,7 +55,8 @@ internal sealed partial class Checker
                         tag.TypeExpression is null ? null : await Visit(tag.TypeExpression), null));
                 }
                 var result = f.NewTypeLiteralNode(new(properties.ToArray()));
-                state.SingleLine.Add(result);
+                if ((state.Flags & NodeBuilderFlags.MultilineObjectLiterals) == 0)
+                    state.SingleLine.Add(result);
                 return result;
             case TypeReferenceNode reference:
                 return await RecoverTypeReferenceSyntaxAsync(reference, state, cancellation);
@@ -131,7 +132,8 @@ internal sealed partial class Checker
         if (clone is StringLiteralNode text)
             text.TokenFlags |= state.Symbols.StringLiteralFlags;
         state.NoAsciiEscape.Add(clone);
-        state.SingleLine.Add(clone);
+        if (clone is not TypeLiteralNode || (state.Flags & NodeBuilderFlags.MultilineObjectLiterals) == 0)
+            state.SingleLine.Add(clone);
         return clone;
 
         ValueTask<SyntaxNode> Visit(SyntaxNode child) => RecoverTypeSyntaxAsync(child, state, cancellation);

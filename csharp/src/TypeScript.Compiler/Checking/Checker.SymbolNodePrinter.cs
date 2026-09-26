@@ -9,18 +9,21 @@ namespace TypeScript.Compiler.Checking;
 internal sealed partial class Checker
 {
     internal static string PrintDiagnosticNode(SyntaxNode node, bool neverAsciiEscape = false, CancellationToken cancellation = default,
-        SourceFileNode? sourceFile = null, IReadOnlySet<SyntaxNode>? noAsciiEscape = null, IReadOnlySet<SyntaxNode>? singleLine = null) =>
-        new SymbolNodePrinter(neverAsciiEscape, cancellation, sourceFile, noAsciiEscape, singleLine).Print(node);
+        SourceFileNode? sourceFile = null, IReadOnlySet<SyntaxNode>? noAsciiEscape = null, IReadOnlySet<SyntaxNode>? singleLine = null,
+        bool multiline = false) =>
+        new SymbolNodePrinter(neverAsciiEscape, cancellation, sourceFile, noAsciiEscape, singleLine, multiline).Print(node);
 
-    // Single-line, comment-free AST output used by symbol and type serialization.
+    // Comment-free AST output used by symbol and type serialization.
     // The explicit work stack also handles input-shaped expression/function nesting.
     private sealed class SymbolNodePrinter(bool neverAsciiEscape, CancellationToken cancellation, SourceFileNode? sourceFile,
-        IReadOnlySet<SyntaxNode>? noAsciiEscape, IReadOnlySet<SyntaxNode>? singleLine)
+        IReadOnlySet<SyntaxNode>? noAsciiEscape, IReadOnlySet<SyntaxNode>? singleLine, bool multiline)
     {
-        private readonly record struct Part(SyntaxNode? Node = null, string? Text = null, IReadOnlyList<Part>? Parts = null);
+        private readonly record struct Part(SyntaxNode? Node = null, string? Text = null, IReadOnlyList<Part>? Parts = null,
+            int IndentationChange = 0, bool NewLine = false);
 
         private readonly Stack<Part> pending = [];
         private readonly StringBuilder output = new();
+        private int indentation;
 
         internal string Print(SyntaxNode node)
         {
@@ -28,7 +31,10 @@ internal sealed partial class Checker
             while (pending.TryPop(out var part))
             {
                 cancellation.ThrowIfCancellationRequested();
-                if (part.Text is { } text)
+                indentation += part.IndentationChange;
+                if (part.NewLine)
+                    output.Append('\n').Append(' ', indentation * 4);
+                else if (part.Text is { } text)
                     output.Append(text);
                 else if (part.Parts is { } parts)
                     for (int i = parts.Count - 1; i >= 0; i--)
@@ -84,6 +90,21 @@ internal sealed partial class Checker
                     ? List(nodes, "{ ", separator, " }") : T(spaceWhenEmpty ? "{ }" : "{}");
 
         private static Part Body(SyntaxNode? body) => body is null ? T(";") : S(T(" "), N(body));
+
+        private Part TypeMembers(TypeLiteralNode node)
+        {
+            if (!multiline || singleLine?.Contains(node) == true || node.Members is not { Count: > 0 } members)
+                return Braces(node.Members, " ");
+            var parts = new List<Part> { T("{"), new(IndentationChange: 1) };
+            foreach (var member in members)
+            {
+                parts.Add(new(NewLine: true));
+                parts.Add(N(member));
+            }
+            parts.Add(new(IndentationChange: -1, NewLine: true));
+            parts.Add(T("}"));
+            return new(Parts: parts);
+        }
 
         private void Emit(SyntaxNode node)
         {
@@ -583,7 +604,7 @@ internal sealed partial class Checker
                     Push(T("typeof "), N(query.ExprName), TypeArguments(query.TypeArguments));
                     break;
                 case TypeLiteralNode literal:
-                    Push(Braces(literal.Members, " "));
+                    Push(TypeMembers(literal));
                     break;
                 case NotEmittedTypeElementNode:
                     break;

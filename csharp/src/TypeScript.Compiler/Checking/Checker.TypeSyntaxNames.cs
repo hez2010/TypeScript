@@ -262,7 +262,8 @@ internal sealed partial class Checker
         if (clone is StringLiteralNode literal)
             literal.TokenFlags |= state.Symbols.StringLiteralFlags;
         state.NoAsciiEscape.Add(clone);
-        state.SingleLine.Add(clone);
+        if (clone is not TypeLiteralNode || (state.Flags & NodeBuilderFlags.MultilineObjectLiterals) == 0)
+            state.SingleLine.Add(clone);
         return clone;
 
         ValueTask<SyntaxNode> Visit(SyntaxNode child) => ReuseGeneratedAnnotationSyntaxAsync(child, parameters, state, cancellation);

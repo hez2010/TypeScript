@@ -11,33 +11,72 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
-    private ValueTask<string> DiagnosticTypeSyntaxAsync(Type type, NodeBuilderFlags flags, CancellationToken cancellation)
-        => DiagnosticSyntaxAsync(flags, false, state => TypeSyntaxAsync(type, state, cancellation), cancellation);
+    internal async ValueTask<string> GetTypeDisplayAsync(Type type, SyntaxNode? enclosing = null,
+        TypeFormatFlags flags = TypeFormatFlags.AllowUniqueESSymbolType | TypeFormatFlags.UseAliasDefinedOutsideCurrentScope,
+        CancellationToken cancellation = default)
+    {
+        using var query = await EnterQueryAsync(enclosing, cancellation);
+        context.RequireOwned(type);
+        return await TypeDisplay.GetAsync(type, enclosing, flags, cancellation);
+    }
 
-    private ValueTask<string> DiagnosticSignatureSyntaxAsync(Signature signature, CancellationToken cancellation)
-        => DiagnosticSyntaxAsync(NodeBuilderFlags.WriteTypeParametersInQualifiedName, true,
-            state => SignatureSyntaxAsync(
-                signature,
-                (signature.Flags & SignatureFlags.Construct) != 0 ? K.ConstructSignature : K.CallSignature,
-                state, cancellation), cancellation);
+    internal async ValueTask<string> GetSignatureDisplayAsync(Signature signature, SyntaxNode? enclosing = null,
+        TypeFormatFlags flags = TypeFormatFlags.None, CancellationToken cancellation = default)
+    {
+        using var query = await EnterQueryAsync(enclosing, cancellation);
+        return await TypeDisplay.GetSignatureAsync(signature, enclosing, flags, cancellation);
+    }
 
-    private ValueTask<string> DiagnosticPredicateSyntaxAsync(TypePredicate predicate, CancellationToken cancellation)
-        => DiagnosticSyntaxAsync(NodeBuilderFlags.WriteTypeParametersInQualifiedName | NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope,
+    internal async ValueTask<string> GetPredicateDisplayAsync(TypePredicate predicate, SyntaxNode? enclosing = null,
+        TypeFormatFlags flags = TypeFormatFlags.UseAliasDefinedOutsideCurrentScope, CancellationToken cancellation = default)
+    {
+        using var query = await EnterQueryAsync(enclosing, cancellation);
+        if (predicate.Type is { } type)
+            context.RequireOwned(type);
+        return await TypeDisplay.GetPredicateAsync(predicate, enclosing, flags, cancellation);
+    }
+
+    private ValueTask<string> DiagnosticTypeSyntaxAsync(
+        Type type,
+        SyntaxNode? enclosing,
+        NodeBuilderFlags flags,
+        CancellationToken cancellation)
+        => DiagnosticSyntaxAsync(enclosing, flags, false,
+            state => TypeSyntaxAsync(type, state, cancellation, (flags & NodeBuilderFlags.InTypeAlias) != 0), cancellation);
+
+    private ValueTask<string> DiagnosticSignatureSyntaxAsync(Signature signature, SyntaxNode? enclosing, TypeFormatFlags flags,
+        CancellationToken cancellation)
+    {
+        bool construct = (signature.Flags & SignatureFlags.Construct) != 0 && (flags & TypeFormatFlags.WriteCallStyleSignature) == 0;
+        var kind = (flags & TypeFormatFlags.WriteArrowStyleSignature) != 0
+            ? construct ? K.ConstructorType : K.FunctionType : construct ? K.ConstructSignature : K.CallSignature;
+        return DiagnosticSyntaxAsync(enclosing, (NodeBuilderFlags)(flags & TypeFormatFlags.NodeBuilderFlagsMask)
+            | NodeBuilderFlags.WriteTypeParametersInQualifiedName, true,
+            state => SignatureSyntaxAsync(signature, kind, state, cancellation), cancellation);
+    }
+
+    private ValueTask<string> DiagnosticPredicateSyntaxAsync(TypePredicate predicate, SyntaxNode? enclosing, TypeFormatFlags flags,
+        CancellationToken cancellation)
+        => DiagnosticSyntaxAsync(
+            enclosing,
+            (NodeBuilderFlags)(flags & TypeFormatFlags.NodeBuilderFlagsMask) | NodeBuilderFlags.WriteTypeParametersInQualifiedName,
             false, state => PredicateTypeSyntaxAsync(predicate, state, cancellation), cancellation);
 
-    private ValueTask<string> DiagnosticSyntaxAsync(NodeBuilderFlags flags, bool neverAsciiEscape,
+    private ValueTask<string> DiagnosticSyntaxAsync(SyntaxNode? enclosing, NodeBuilderFlags flags, bool neverAsciiEscape,
         Func<TypeSyntaxContext, ValueTask<SyntaxNode>> build, CancellationToken cancellation)
         => VisibilityOperationAsync(() => ChainOperationAsync(() => ContainerOperationAsync(async () =>
         {
-            var state = new TypeSyntaxContext(null, (flags & NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope) != 0,
+            var state = new TypeSyntaxContext(enclosing, (flags & NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope) != 0,
                 flags: flags | NodeBuilderFlags.IgnoreErrors);
             var node = await build(state);
             return PrintDiagnosticNode(
                 node,
                 neverAsciiEscape,
                 cancellation,
+                enclosing is null ? null : SemanticSyntax.Source(enclosing),
                 noAsciiEscape: state.NoAsciiEscape,
-                singleLine: state.SingleLine);
+                singleLine: state.SingleLine,
+                multiline: (flags & NodeBuilderFlags.MultilineObjectLiterals) != 0);
         }, cancellation), cancellation), cancellation);
 
     private sealed class TypeSyntaxContext
@@ -124,6 +163,8 @@ internal sealed partial class Checker
             ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
         cancellation.ThrowIfCancellationRequested();
         context.RequireOwned(type);
+        expandAlias |= (state.Flags & NodeBuilderFlags.InTypeAlias) != 0;
+        state.Flags &= ~NodeBuilderFlags.InTypeAlias;
         if (type is TypeParameter distributed)
             type = distributed.NonDistributed;
         if ((state.Flags & NodeBuilderFlags.NoTypeReduction) == 0)
@@ -829,7 +870,8 @@ internal sealed partial class Checker
         {
             var result = f.NewTypeLiteralNode(new(members.ToArray()));
             state.Length.Add(2);
-            state.SingleLine.Add(result);
+            if ((state.Flags & NodeBuilderFlags.MultilineObjectLiterals) == 0)
+                state.SingleLine.Add(result);
             return result;
         }
     }

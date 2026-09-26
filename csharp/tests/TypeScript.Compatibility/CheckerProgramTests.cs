@@ -1073,6 +1073,12 @@ internal static class CheckerProgramTests
         var links = typeHost?.Links ?? new CheckerLinks();
         var host = typeHost?.Environment ?? new CheckerEnvironment(context, links);
         var environment = typeHost?.Symbols ?? await CheckerSymbols.CreateAsync(program, links, host);
+        if (input.TryGetProperty("displayFormats", out var formatOption) && formatOption.GetBoolean())
+        {
+            await CheckerDisplayTests.FormatsAsync(typeHost!, program.GetFile("/project/main.ts")!.Syntax,
+                input.GetProperty("typeFormatFlags").EnumerateArray().Select(v => (TypeFormatFlags)v.GetUInt32()).ToArray(), writer);
+            return;
+        }
         if (input.TryGetProperty("typeDisplays", out var displayOption) && displayOption.GetBoolean())
         {
             writer.WriteStartObject();

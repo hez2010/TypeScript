@@ -5,11 +5,169 @@ using TypeScript.Compiler.Configuration;
 using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.Programs;
 using TypeScript.Compiler.Text;
+using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compatibility;
 
 internal static class CheckerDisplayTests
 {
+    internal static async Task<int> FormatSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Display format assertion {checks + 1}");
+            checks++;
+        }
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        var files = new Dictionary<string, byte[]>
+        {
+            ["/project/main.ts"] = Wtf8.Encode(
+                "interface Object{}interface Function{}type A={p:{q:number}};declare let value:A;class C{}class D{}function f(value:C):D{return new D()}function guard(value:unknown):value is A{return true}")
+        };
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
+            new("/project/tsconfig.json", options, files.Keys.ToArray(), [], [], []));
+        var source = program.SourceFiles[0].Syntax;
+        var snapshot = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
+        var checker = await program.CreateCheckerAsync();
+        var declaration = source.Statements!.OfType<VariableStatementNode>().Single().DeclarationList!.Declarations![0] as VariableDeclarationNode;
+        var type = await checker.GetTypeFromTypeNodeAsync(declaration!.Type!);
+        const string expanded = "{\n    p: {\n        q: number;\n    };\n}";
+        var flags = TypeFormatFlags.InTypeAlias | TypeFormatFlags.MultilineObjectLiterals;
+        Check(await checker.GetTypeDisplayAsync(type) == "A");
+        Check(await checker.GetTypeDisplayAsync(type, source, flags) == expanded);
+        Check(await checker.GetTypeDisplayAsync(type, source, (TypeFormatFlags)(1u << 31)) == "A");
+        var functions = source.Statements!.OfType<FunctionDeclarationNode>().ToDictionary(n => n.Name!.Text);
+        var signature = await checker.Signatures.FromDeclarationAsync(functions["f"]);
+        Check(await checker.GetSignatureDisplayAsync(signature, flags: TypeFormatFlags.WriteArrowStyleSignature) == "(value: C) => D");
+        var guard = await checker.Signatures.FromDeclarationAsync(functions["guard"]);
+        var predicate = (await checker.Signatures.PredicateAsync(guard))!;
+        Check(await checker.GetPredicateDisplayAsync(predicate, source, flags) == "value is " + expanded);
+        var originalCaches = (checker.AccessibleChainCacheCount, checker.SymbolTableAliasCacheCount, checker.SymbolContainerCacheCount);
+        using var stop = new CancellationTokenSource();
+        checker.BeforeSymbolChainTable = _ =>
+        {
+            stop.Cancel();
+            stop.Token.ThrowIfCancellationRequested();
+        };
+        try
+        {
+            await checker.GetSignatureDisplayAsync(signature, source, cancellation: stop.Token);
+            throw new InvalidOperationException("Expected render cancellation");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        finally
+        {
+            checker.BeforeSymbolChainTable = null;
+        }
+        Check(originalCaches == (checker.AccessibleChainCacheCount, checker.SymbolTableAliasCacheCount, checker.SymbolContainerCacheCount));
+        Check(await checker.GetSignatureDisplayAsync(signature, source) == "(value: C): D");
+        try
+        {
+            await checker.GetTypeDisplayAsync(type, cancellation: stop.Token);
+            throw new InvalidOperationException("Expected cancelled entry");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        var other = await program.CreateCheckerAsync();
+        try
+        {
+            await checker.GetTypeDisplayAsync(other.Context.NumberType);
+            throw new InvalidOperationException("Expected foreign type rejection");
+        }
+        catch (ArgumentException)
+        {
+            checks++;
+        }
+        var otherSignature = await other.Signatures.FromDeclarationAsync(functions["guard"]);
+        try
+        {
+            await checker.GetSignatureDisplayAsync(otherSignature);
+            throw new InvalidOperationException("Expected foreign signature rejection");
+        }
+        catch (ArgumentException)
+        {
+            checks++;
+        }
+        try
+        {
+            await checker.GetPredicateDisplayAsync((await other.Signatures.PredicateAsync(otherSignature))!);
+            throw new InvalidOperationException("Expected foreign predicate rejection");
+        }
+        catch (ArgumentException)
+        {
+            checks++;
+        }
+        var foreignSource = Parser.ParseSourceFile(new("/foreign.ts"), new SourceText("const x=0"));
+        try
+        {
+            await checker.GetTypeDisplayAsync(type, foreignSource);
+            throw new InvalidOperationException("Expected foreign scope rejection");
+        }
+        catch (ArgumentException)
+        {
+            checks++;
+        }
+        var repeated = await Task.WhenAll(Enumerable.Range(0, 8).Select(_ => checker.GetTypeDisplayAsync(type, source, flags).AsTask()));
+        Check(repeated.All(text => text == expanded));
+        Check(snapshot.All(n => n.Node.Parent == n.Parent && n.Node.Pos == n.Pos && n.Node.End == n.End && n.Node.Flags == n.Flags));
+        return checks;
+    }
+
+    internal static async Task FormatsAsync(Checker checker, SourceFileNode source, TypeFormatFlags[] formats, Utf8JsonWriter writer)
+    {
+        writer.WriteStartObject();
+        writer.WriteStartArray("formats");
+        foreach (var declaration in source.DescendantsAndSelf().OfType<VariableDeclarationNode>())
+            if (declaration.Name is IdentifierNode name
+                && name.Text.StartsWith("show", StringComparison.Ordinal)
+                && declaration.Type is not null)
+            {
+                var type = await checker.GetTypeFromTypeNodeAsync(declaration.Type);
+                var enclosings = new SyntaxNode?[] { null, source, declaration };
+                for (int scope = 0; scope < enclosings.Length; scope++)
+                    foreach (var format in formats)
+                    {
+                        Write("type", await checker.GetTypeDisplayAsync(type, enclosings[scope], format));
+                        for (int kind = 0; kind < 2; kind++)
+                        {
+                            var signatures = await checker.SignaturesAsync(type, kind != 0, default);
+                            for (int i = 0; i < signatures.Count; i++)
+                            {
+                                string key = kind + ":" + i;
+                                Write("signature:" + key, await checker.GetSignatureDisplayAsync(signatures[i], enclosings[scope], format));
+                                if (await checker.Signatures.PredicateAsync(signatures[i]) is { } predicate)
+                                    Write("predicate:" + key, await checker.GetPredicateDisplayAsync(predicate, enclosings[scope], format));
+                            }
+                        }
+                        void Write(string kind, string text)
+                        {
+                            writer.WriteStartArray();
+                            writer.WriteStringValue(name.Text);
+                            writer.WriteStringValue(kind);
+                            writer.WriteNumberValue(scope);
+                            writer.WriteNumberValue((uint)format);
+                            writer.WriteStringValue(text);
+                            writer.WriteEndArray();
+                        }
+                    }
+            }
+        writer.WriteEndArray();
+        await checker.CheckSourceFileAsync(source);
+        writer.WriteStartArray("diagnostics");
+        foreach (int code in checker.DiagnosticCodesForFile(source))
+            writer.WriteNumberValue(code);
+        writer.WriteEndArray();
+        writer.WriteEndObject();
+    }
+
     internal static async Task<int> Safety()
     {
         const string source = """

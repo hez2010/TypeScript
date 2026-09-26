@@ -2,6 +2,7 @@
 package checker
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"math"
@@ -14,6 +15,43 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/nodebuilder"
 	"github.com/microsoft/TypeScript/tsc/internal/printer"
 )
+
+func (c *Checker) CSharpFormatProbe(file *ast.SourceFile, flags []TypeFormatFlags) map[string]any {
+	rows := [][]any{}
+	pending := []*ast.Node{file.AsNode()}
+	for len(pending) != 0 {
+		node := pending[len(pending)-1]
+		pending = pending[:len(pending)-1]
+		if ast.IsVariableDeclaration(node) && ast.IsIdentifier(node.Name()) && strings.HasPrefix(node.Name().Text(), "show") && node.Type() != nil {
+			t := c.getTypeFromTypeNode(node.Type())
+			for scope, enclosing := range []*ast.Node{nil, file.AsNode(), node} {
+				for _, format := range flags {
+					rows = append(rows, []any{node.Name().Text(), "type", scope, uint32(format), c.TypeToStringEx(t, enclosing, format, nil)})
+					for _, kind := range []SignatureKind{SignatureKindCall, SignatureKindConstruct} {
+						for i, signature := range c.getSignaturesOfType(t, kind) {
+							name := fmt.Sprintf("%d:%d", kind, i)
+							rows = append(rows, []any{node.Name().Text(), "signature:" + name, scope, uint32(format), c.SignatureToStringEx(signature, enclosing, format, nil)})
+							if predicate := c.getTypePredicateOfSignature(signature); predicate != nil {
+								rows = append(rows, []any{node.Name().Text(), "predicate:" + name, scope, uint32(format), c.typePredicateToStringEx(predicate, enclosing, format)})
+							}
+						}
+					}
+				}
+			}
+		}
+		children := []*ast.Node{}
+		node.ForEachChild(func(child *ast.Node) bool { children = append(children, child); return false })
+		for i := len(children) - 1; i >= 0; i-- {
+			pending = append(pending, children[i])
+		}
+	}
+	codes := []int{}
+	for _, diagnostic := range c.GetDiagnostics(context.Background(), file) {
+		codes = append(codes, int(diagnostic.Code()))
+	}
+	slices.Sort(codes)
+	return map[string]any{"formats": rows, "diagnostics": codes}
+}
 
 func (c *Checker) csharpAccessibilityQueries(nodes []*ast.Node, nodeIDs map[*ast.Node]int, sid func(*ast.Symbol) int) []any {
 	targets := []*ast.Symbol{}

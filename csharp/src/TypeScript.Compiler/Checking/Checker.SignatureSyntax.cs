@@ -321,7 +321,8 @@ internal sealed partial class Checker
             if (typeAnnotation && node is StringLiteralNode literal)
                 literal.TokenFlags |= state.Symbols.StringLiteralFlags;
             state.NoAsciiEscape.Add(node);
-            state.SingleLine.Add(node);
+            if (node is not TypeLiteralNode || (state.Flags & NodeBuilderFlags.MultilineObjectLiterals) == 0)
+                state.SingleLine.Add(node);
         }
         return result;
     }
@@ -329,33 +330,41 @@ internal sealed partial class Checker
     private async ValueTask<SyntaxNode> DeclarationTypeSyntaxAsync(Type value, SyntaxNode? declaration, bool optional,
         TypeSyntaxContext state, CancellationToken cancellation)
     {
-        if (state.Symbols.Enclosing is not null && declaration is ITypedNode { Type: { } annotation }
-            && annotation is not TypePredicateNode && (value.ObjectFlags & ObjectFlags.RequiresWidening) == 0)
+        var flags = state.Flags;
+        try
         {
-            var annotated = await Nodes.FromNodeAsync(annotation, cancellation);
-            if (annotated != value)
+            if (state.Symbols.Enclosing is not null && declaration is ITypedNode { Type: { } annotation }
+                && annotation is not TypePredicateNode && (value.ObjectFlags & ObjectFlags.RequiresWidening) == 0)
             {
-                var comparable = optional ? await Facts.FilterAsync(value, TypeFacts.NEUndefined, cancellation) : value;
-                if (annotated == comparable || annotated is UnionType && comparable is UnionType
-                    && await Relations.RelatedAsync(annotated, comparable, RelationKind.Identity, cancellation))
-                    value = annotated;
+                var annotated = await Nodes.FromNodeAsync(annotation, cancellation);
+                if (annotated != value)
+                {
+                    var comparable = optional ? await Facts.FilterAsync(value, TypeFacts.NEUndefined, cancellation) : value;
+                    if (annotated == comparable || annotated is UnionType && comparable is UnionType
+                        && await Relations.RelatedAsync(annotated, comparable, RelationKind.Identity, cancellation))
+                        value = annotated;
+                }
+                if (annotated == value)
+                {
+                    if (ReuseLiteralTypeSyntax(annotation, state, cancellation) is { } reused)
+                        return reused;
+                    if (await ReuseTypeAnnotationSyntaxAsync(annotation, state, cancellation) is { } reusableAnnotation)
+                        return reusableAnnotation;
+                    if (annotation is TypeQueryNode query && await ReuseTypeQuerySyntaxAsync(query, state, cancellation) is { } reusedQuery)
+                        return reusedQuery;
+                    return await RecoverAnnotationSyntaxAsync(annotation, state, cancellation);
+                }
             }
-            if (annotated == value)
-            {
-                if (ReuseLiteralTypeSyntax(annotation, state, cancellation) is { } reused)
-                    return reused;
-                if (await ReuseTypeAnnotationSyntaxAsync(annotation, state, cancellation) is { } reusableAnnotation)
-                    return reusableAnnotation;
-                if (annotation is TypeQueryNode query && await ReuseTypeQuerySyntaxAsync(query, state, cancellation) is { } reusedQuery)
-                    return reusedQuery;
-                return await RecoverAnnotationSyntaxAsync(annotation, state, cancellation);
-            }
+            if (state.Symbols.Enclosing is not null
+                && declaration is ITypedNode { Type: null } and IInitializedNode { Initializer: { } initializer }
+                && await ReuseInitializerTypeSyntaxAsync(value, initializer, state, cancellation) is { } inferred)
+                return inferred;
+            return await TypeSyntaxAsync(value, state, cancellation);
         }
-        if (state.Symbols.Enclosing is not null
-            && declaration is ITypedNode { Type: null } and IInitializedNode { Initializer: { } initializer }
-            && await ReuseInitializerTypeSyntaxAsync(value, initializer, state, cancellation) is { } inferred)
-            return inferred;
-        return await TypeSyntaxAsync(value, state, cancellation);
+        finally
+        {
+            state.Flags = flags;
+        }
     }
 
     private async ValueTask<SyntaxNode?> ReuseTypeQuerySyntaxAsync(

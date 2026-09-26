@@ -186,6 +186,12 @@ internal static class Program
                     $"Diagnostic renderer safety: {CheckerTypeSyntaxTests.DiagnosticSafety().GetAwaiter().GetResult()} assertions passed; array depth 5000");
                 return 0;
             }
+            if (args is ["--checker-display-formats-safety"])
+            {
+                Console.WriteLine(
+                    $"Display format safety: {CheckerDisplayTests.FormatSafety().GetAwaiter().GetResult()} assertions passed");
+                return 0;
+            }
             if (args is ["--checker-symbol-type-nodes-safety"])
             {
                 Console.WriteLine(

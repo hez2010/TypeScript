@@ -1,0 +1,133 @@
+{
+    "timestamp": "2026-09-26T21:04:00.802Z",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "configuration": "Release",
+    "managed": true,
+    "cases": 80,
+    "queries": 28320,
+    "scope": "Type/signature/predicate formatting APIs, all TypeFormatFlags bits and combinations, enclosing scopes, multiline output, alias expansion and generic instantiations",
+    "records": [
+        {
+            "timestamp": "2026-09-26T20:54:21.713Z",
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "managed": true,
+            "cases": 32,
+            "queries": 18816,
+            "differences": [],
+            "oracleSha256": "785894724ead124508017a88d085b253ad3571c40222d65b8c64087949e68195",
+            "candidateSha256": "04de1acc32da9f46652a41f2b6dac3dd5a37c6fb55ee3b7470b5baddf6ba1a49",
+            "referenceExecuted": 0,
+            "referenceReused": 32,
+            "candidateExecuted": 32,
+            "candidateReused": 0
+        },
+        {
+            "timestamp": "2026-09-26T20:56:50.824Z",
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "managed": true,
+            "cases": 4,
+            "queries": 2304,
+            "differences": [],
+            "oracleSha256": "785894724ead124508017a88d085b253ad3571c40222d65b8c64087949e68195",
+            "candidateSha256": "04de1acc32da9f46652a41f2b6dac3dd5a37c6fb55ee3b7470b5baddf6ba1a49",
+            "referenceExecuted": 4,
+            "referenceReused": 0,
+            "candidateExecuted": 4,
+            "candidateReused": 0
+        },
+        {
+            "timestamp": "2026-09-26T20:56:51.791Z",
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "managed": true,
+            "cases": 36,
+            "queries": 5280,
+            "differences": [],
+            "oracleSha256": "785894724ead124508017a88d085b253ad3571c40222d65b8c64087949e68195",
+            "candidateSha256": "04de1acc32da9f46652a41f2b6dac3dd5a37c6fb55ee3b7470b5baddf6ba1a49",
+            "referenceExecuted": 36,
+            "referenceReused": 0,
+            "candidateExecuted": 36,
+            "candidateReused": 0
+        },
+        {
+            "timestamp": "2026-09-26T20:59:13.942Z",
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "managed": true,
+            "cases": 4,
+            "queries": 1536,
+            "differences": [],
+            "oracleSha256": "785894724ead124508017a88d085b253ad3571c40222d65b8c64087949e68195",
+            "candidateSha256": "04de1acc32da9f46652a41f2b6dac3dd5a37c6fb55ee3b7470b5baddf6ba1a49",
+            "referenceExecuted": 4,
+            "referenceReused": 0,
+            "candidateExecuted": 4,
+            "candidateReused": 0
+        },
+        {
+            "timestamp": "2026-09-26T20:59:14.561Z",
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "managed": true,
+            "cases": 4,
+            "queries": 384,
+            "differences": [],
+            "oracleSha256": "785894724ead124508017a88d085b253ad3571c40222d65b8c64087949e68195",
+            "candidateSha256": "04de1acc32da9f46652a41f2b6dac3dd5a37c6fb55ee3b7470b5baddf6ba1a49",
+            "referenceExecuted": 4,
+            "referenceReused": 0,
+            "candidateExecuted": 4,
+            "candidateReused": 0
+        }
+    ],
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/phase4-display-format-safety-build.log",
+        "sha256": "885c20a7367dfd4a3db7f0a0d231ae93933f9348f00b2b7fbe4c66d6881b8575"
+    },
+    "candidateSha256": "b1d5805bfb0ed8dda15f27d3bfafa2380e889428bf041bbb327eceb33aed1f33",
+    "compilerSha256": "d1dd691a914b8f2bf347cae5595ff9dd3f27849ddfba50f7aee712bcfc6b9301",
+    "safety": [
+        {
+            "assertions": 15,
+            "log": "logs/phase4-display-format-safety.log",
+            "sha256": "967622aa8e490520fac6ad8c2890e7b9a1070f0721ec6bb442a25fccdd584892",
+            "scope": "Multiline and alias policies, signature style, predicates, ignored flag bits, cancellation rollback, foreign types/signatures/predicates/scopes, concurrent queries and AST ownership"
+        },
+        {
+            "assertions": 52,
+            "arrayDepth": 5000,
+            "log": "logs/phase4-display-format-renderer-regression.log",
+            "sha256": "649470e3a61e23e2ebce9c05117f5dce98024b4a06de81ad152cee2d8d58f305",
+            "scope": "Existing shared-renderer displays, nested rendering rollback, truncation and deep arrays"
+        }
+    ],
+    "reuse": {
+        "semanticCorpusRetainedFrom": "phase4-type-renderer-validation.json",
+        "reason": "New formatting options do not change default diagnostic flags, null enclosing scope or single-line printer behavior. The shared-renderer regression passes; prior full-corpus records are retained. Original reference results were reused after the annotation/alias flag corrections; additional fixtures and combinations add new queries. Test-only additions and token-equivalent formatting do not require replay of completed comparisons.",
+        "fixtureRewriteIdenticalInputs": 32,
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ]
+    },
+    "referenceSources": {
+        "types": "1ec80b0a26f62516bb9b51742cfdf4c8ec8cfd62",
+        "printer": "234e3e4b0818dc0af2dd474e7babf88da3480f76"
+    },
+    "formatting": {
+        "csharpFiles": 10,
+        "libraryConfigurations": 2,
+        "tokensCommentsAndSyntaxIdentical": true,
+        "dotnetWhitespaceExitCode": 0,
+        "log": "logs/phase4-display-format-format.log",
+        "proofSha256": "bf970b338c9b36149a86de86b77ff8e7c920ca7a90b826691a9364619e989b3a",
+        "generatedFlagsCheck": true
+    },
+    "nativeAotVerification": "Deferred until whole phase 4 completion; no NativeAOT build or execution",
+    "phase4Complete": false
+}

@@ -65,6 +65,8 @@ func main() {
 			Semantic              bool
 			SemanticDetails       bool
 			TypeDisplays          bool
+			DisplayFormats        bool
+			TypeFormatFlags       []checker.TypeFormatFlags
 			Locations             bool
 			SymbolLocations       bool
 			DocumentationSymbols  bool
@@ -102,6 +104,12 @@ func main() {
 		}
 		program := compiler.NewProgram(options)
 		c, _ := checker.NewChecker(program, nil)
+		if input.DisplayFormats {
+			if err := output.Encode(c.CSharpFormatProbe(program.GetSourceFile("/project/main.ts"), input.TypeFormatFlags)); err != nil {
+				panic(err)
+			}
+			continue
+		}
 		if input.TypeDisplays {
 			rows := [][]string{}
 			pending := []*ast.Node{program.GetSourceFile("/project/main.ts").AsNode()}
