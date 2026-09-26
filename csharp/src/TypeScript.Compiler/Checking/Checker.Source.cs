@@ -26,7 +26,7 @@ internal sealed partial class Checker
         }
     }
 
-    private bool SkipProgramFile(SourceFileNode file) => NoCheck || file.CheckJsDirective?.Enabled == false
+    internal bool SkipProgramFile(SourceFileNode file) => NoCheck || file.CheckJsDirective?.Enabled == false
         || file.IsDeclarationFile && program.Symbols.Program.Configuration.Options.Boolean("skipLibCheck") == true
         || program.Symbols.Program.GetFile(file.FileName)!.Library
             && program.Symbols.Program.Configuration.Options.Boolean("skipDefaultLibCheck") == true;

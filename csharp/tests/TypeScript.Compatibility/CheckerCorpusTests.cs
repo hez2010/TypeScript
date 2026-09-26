@@ -87,19 +87,20 @@ internal static class CheckerCorpusTests
             stage = "create-checker";
             if (program.SourceFiles.Count != 0)
             {
-                var checker = await program.CreateCheckerAsync();
+                var pool = await program.CreateCheckerPoolAsync(input.GetProperty("singleThreaded").GetBoolean());
                 stage = "check-program";
-                await checker.CheckProgramAsync();
+                var checkedDiagnostics = await pool.GetDiagnosticsAsync();
                 stage = "diagnostics";
                 foreach (var file in program.SourceFiles)
                 {
-                    diagnostics.Add((file.Syntax.FileName, checker.DiagnosticCodesForProgramFile(file.Syntax)));
+                    diagnostics.Add((file.Syntax.FileName, checkedDiagnostics.Semantic.Where(d => d.FileName == file.Syntax.FileName)
+                        .Select(d => d.Code).Order().ToArray()));
                     if (includeDetails)
-                        semanticDetails.AddRange(checker.DetailedDiagnosticsForProgramFile(file.Syntax));
+                        semanticDetails.AddRange(checkedDiagnostics.Semantic.Where(d => d.FileName == file.Syntax.FileName));
                 }
-                globals = checker.DiagnosticCodesForFile(null);
+                globals = checkedDiagnostics.Global.Select(d => d.Code).Order().ToArray();
                 if (includeDetails)
-                    globalDetails = checker.DetailedDiagnosticsForFile(null);
+                    globalDetails = checkedDiagnostics.Global;
             }
         }
         catch (Exception exception)

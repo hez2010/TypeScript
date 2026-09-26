@@ -1,0 +1,13 @@
+{
+    "timestamp": "2026-09-26T19:57:17.541Z",
+    "sourceFirst": true,
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "managed": true,
+    "cases": 511,
+    "assignments": 35712,
+    "inputSha256": "2fe176db98563a23683b5a974594d780df887adda3cba3a7ce49fda407ae4dee",
+    "oracleSha256": "81e7fe96e7ab2485fd16d476ac1322d7b2072f911ac7cccf635ce68bc2b94a07",
+    "candidateSha256": "94805c833794866431f4236a54f44a54d592919b4df3ae173ed459be1d581c73",
+    "compilerSha256": "a2eecb957e4af632ab8b56808f0dbd4939425678c5c1e33ec419a683dd3308b1",
+    "resultSha256": "7e797f19be988001473384b5ad4f111e61e1d47afe68b6ea655d00e1b1689f20"
+}

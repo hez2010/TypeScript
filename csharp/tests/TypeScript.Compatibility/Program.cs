@@ -94,6 +94,22 @@ internal static class Program
                     $"Private/declaration safety: {CheckerProgramTests.PrivateDeclarationSafety().GetAwaiter().GetResult()} assertions passed");
                 return 0;
             }
+            if (args is ["--checker-pool-safety"])
+            {
+                Console.WriteLine($"Checker pool safety: {CheckerPoolTests.Safety().GetAwaiter().GetResult()} assertions passed");
+                return 0;
+            }
+            if (args is ["--checker-pool-cancellation"])
+            {
+                Console.WriteLine(
+                    $"Checker pool cancellation: {CheckerPoolTests.CancellationSafety().GetAwaiter().GetResult()} assertions passed");
+                return 0;
+            }
+            if (args is ["--checker-pool-partitions", var poolInput, var poolOutput])
+            {
+                CheckerPoolTests.Partitions(poolInput, poolOutput);
+                return 0;
+            }
             if (args is ["--checker-diagnostic-identity-safety"])
             {
                 Console.WriteLine(

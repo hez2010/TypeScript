@@ -182,6 +182,7 @@ public sealed partial class Parser
         file.ScriptKind = options.ScriptKind;
         file.IsDeclarationFile = CompilerPath.IsDeclarationFile(options.FileName);
         ProcessSourceMetadata(file);
+        file.NodeCount = factory.NodeCount;
         // Source positions remain bytes at the public AST boundary; scanning uses UTF-16.
         foreach (SyntaxNode node in file.DescendantsAndSelf())
             node.ConvertPositions(source.ToBytePosition);

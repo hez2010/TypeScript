@@ -96,6 +96,8 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
                 for (int i = item.Node.ChildCount - 1; i >= 0; i--)
                 {
                     var child = item.Node.GetChild(i);
+                    if (item.Node is ImportTypeNode import && child != import.Argument)
+                        continue;
                     if (item.Node is not MappedTypeNode mapped || mapped.Members?.Contains(child) != true)
                         pending.Push((child, false));
                 }
