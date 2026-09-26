@@ -27,8 +27,7 @@ internal sealed partial class Checker
         await FunctionDeclarations.GrammarAsync(node, cancellation).ConfigureAwait(false);
         await CheckFunctionDeclarationAsync(node, cancellation).ConfigureAwait(false);
         await CheckFunctionOverloadsAsync(node, cancellation).ConfigureAwait(false);
-        if (node.Name is ComputedPropertyNameNode computed)
-            await ComputedNameAsync(computed, cancellation).ConfigureAwait(false);
+        await CheckMethodNameAsync(node, cancellation);
         if (node.Name is IdentifierNode { Text: "constructor" } && node.AsteriskToken is not null)
             Error(node.Name, 1368);
         await CheckSourceElementAsync(node.Body, cancellation).ConfigureAwait(false);
@@ -55,8 +54,7 @@ internal sealed partial class Checker
         var name = SemanticSyntax.Name(node)!;
         if (name is IdentifierNode { Text: "constructor" } && SemanticSyntax.ClassLike(node.Parent))
             Error(name, 1341);
-        if (name is ComputedPropertyNameNode computed)
-            await ComputedNameAsync(computed, cancellation).ConfigureAwait(false);
+        await CheckMethodNameAsync(node, cancellation);
         var flags = node.Flags | (program.Symbols.Binding(node)?.Get(node)?.Flags ?? 0);
         if (node is GetAccessorDeclarationNode && (flags & NodeFlags.Ambient) == 0 && SemanticSyntax.Body(node) is not null
             && (flags & NodeFlags.HasImplicitReturn) != 0 && (flags & NodeFlags.HasExplicitReturn) == 0)
@@ -93,6 +91,8 @@ internal sealed partial class Checker
     private async ValueTask PropertyGrammarAsync(PropertyDeclarationNode node, CancellationToken cancellation)
     {
         if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count != 0)
+            return;
+        if (MappedMemberGrammar(node))
             return;
         if (node.Name is StringLiteralNode { Text: "constructor" })
         {

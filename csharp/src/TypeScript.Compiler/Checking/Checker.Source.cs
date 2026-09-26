@@ -360,6 +360,7 @@ internal sealed partial class Checker
                     break;
                 case PropertySignatureDeclarationNode property:
                     DeclarationModifiers(property);
+                    PropertySignatureGrammar(property);
                     if (property.Name is PrivateIdentifierNode)
                         Error(property, 18016);
                     if (property.Name is ComputedPropertyNameNode computed)
@@ -370,7 +371,10 @@ internal sealed partial class Checker
                     await FunctionDeclarations.GrammarAsync(node, cancellation).ConfigureAwait(false);
                     await FunctionDeclarations.CheckAsync(node, cancellation).ConfigureAwait(false);
                     if (node is MethodSignatureDeclarationNode)
+                    {
+                        await CheckMethodNameAsync(node, cancellation);
                         await CheckFunctionOverloadsAsync(node, cancellation);
+                    }
                     break;
                 case IndexSignatureDeclarationNode index:
                     await CheckIndexSignatureSourceAsync(index, cancellation).ConfigureAwait(false);
@@ -417,6 +421,16 @@ internal sealed partial class Checker
         if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count != 0)
             return;
         var flags = node.Flags | (node.Parent is VariableDeclarationListNode list ? list.Flags : 0);
+        if (EmitModuleKind(node) < 4 && node.Parent?.Parent is VariableStatementNode statement
+            && (statement.Flags & NodeFlags.Ambient) == 0 && SemanticSyntax.HasModifier(statement, SyntaxKind.ExportKeyword)
+            && program.Symbols.Program.Configuration.Options.Boolean("noEmit") != true)
+        {
+            var marker = node.Name;
+            while (marker is BindingPatternNode pattern)
+                marker = pattern.Elements?.OfType<BindingElementNode>().FirstOrDefault(e => e.Name is not null)?.Name;
+            if (marker is IdentifierNode { Text: "__esModule" })
+                Error(marker, 1216);
+        }
         if ((flags & (NodeFlags.Let | NodeFlags.Const)) != 0)
         {
             var names = new Stack<SyntaxNode>();

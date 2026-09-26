@@ -80,9 +80,8 @@ internal sealed partial class Checker : IVariableTypeHost
         cancellation.ThrowIfCancellationRequested();
         var node = ((IInitializedNode)declaration).Initializer!;
         Type type;
-        if (node is StringLiteralNode or NumericLiteralNode or BigIntLiteralNode or NoSubstitutionTemplateLiteralNode
-            || node.Kind is SyntaxKind.TrueKeyword or SyntaxKind.FalseKeyword)
-            type = await Expressions.CheckAsync(node, cancellation: cancellation);
+        if (await QuickExpressionTypeAsync(node, cancellation) is { } quick)
+            type = quick;
         else if (contextual is not null)
             type = await Contexts.CheckWithAsync(node, contextual, mode: mode, cancellation: cancellation);
         else if (mode != 0)

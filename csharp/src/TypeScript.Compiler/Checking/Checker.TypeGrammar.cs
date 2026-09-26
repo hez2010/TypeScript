@@ -8,6 +8,123 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
+    private readonly HashSet<Symbol> checkedInferParameters = [];
+
+    private async ValueTask CheckMethodNameAsync(SyntaxNode node, CancellationToken cancellation)
+    {
+        if (SemanticSyntax.Name(node) is not ComputedPropertyNameNode computed)
+            return;
+        if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0
+            && computed.Expression is not (StringLiteralNode or NumericLiteralNode or NoSubstitutionTemplateLiteralNode
+                or PrefixUnaryExpressionNode { Operator: K.PlusToken or K.MinusToken, Operand: NumericLiteralNode })
+            && !LateMembers.LateSyntax(computed))
+        {
+            int code = node.Parent switch
+            {
+                InterfaceDeclarationNode => 1169,
+                TypeLiteralNode => 1170,
+                ClassDeclarationNode or ClassExpressionNode when (node.Flags & NodeFlags.Ambient) != 0 => 1165,
+                ClassDeclarationNode or ClassExpressionNode when node is MethodDeclarationNode { Body: null } => 1168,
+                _ => 0
+            };
+            if (code != 0)
+                Error(computed, code);
+        }
+        await ComputedNameAsync(computed, cancellation);
+    }
+
+    private void PropertySignatureGrammar(PropertySignatureDeclarationNode node)
+    {
+        if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count != 0 || MappedMemberGrammar(node))
+            return;
+        if (node.Name is ComputedPropertyNameNode computed
+            && computed.Expression is not (StringLiteralNode or NumericLiteralNode or NoSubstitutionTemplateLiteralNode
+                or PrefixUnaryExpressionNode { Operator: K.PlusToken or K.MinusToken, Operand: NumericLiteralNode })
+            && !LateMembers.LateSyntax(computed))
+        {
+            Error(node.Name, node.Parent is InterfaceDeclarationNode ? 1169 : 1170);
+            return;
+        }
+        if (node.Initializer is not null)
+            Error(node.Initializer, node.Parent is InterfaceDeclarationNode ? 1246 : 1247);
+    }
+
+    private bool MappedMemberGrammar(SyntaxNode node)
+    {
+        if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count != 0
+            || SemanticSyntax.Name(node) is not ComputedPropertyNameNode { Expression: BinaryExpressionNode { OperatorToken.Kind: K.InKeyword } })
+            return false;
+        var members = node.Parent switch
+        {
+            ClassDeclarationNode declaration => declaration.Members,
+            ClassExpressionNode expression => expression.Members,
+            InterfaceDeclarationNode declaration => declaration.Members,
+            TypeLiteralNode literal => literal.Members,
+            _ => null
+        };
+        if (members is not { Count: > 0 })
+            return false;
+        Error(members[0], 7061);
+        return true;
+    }
+
+    private async ValueTask CheckInferTypeAsync(InferTypeNode node, CancellationToken cancellation)
+    {
+        bool valid = false;
+        for (var current = (SyntaxNode)node; current.Parent is { } parent; current = parent)
+            if (parent is ConditionalTypeNode conditional && conditional.ExtendsType == current)
+            {
+                valid = true;
+                break;
+            }
+        if (!valid && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
+            Error(node, 1338);
+        var declaration = node.TypeParameter!;
+        await FunctionDeclarations.TypeParameterAsync(declaration, cancellation);
+        var symbol = program.Symbols.Declaration(declaration)!;
+        if (symbol.Declarations.Count > 1 && !checkedInferParameters.Contains(symbol))
+        {
+            var parameter = program.Scopes.Parameter(symbol);
+            var constraint = await Instantiation.Constraints.ConstraintAsync(parameter, cancellation);
+            bool identical = true;
+            foreach (var other in symbol.Declarations.OfType<TypeParameterDeclarationNode>())
+                if (other.Constraint is { } annotation && constraint is not null
+                    && !await IdenticalAsync(await Nodes.FromNodeAsync(annotation, cancellation), constraint, cancellation))
+                {
+                    identical = false;
+                    break;
+                }
+            cancellation.ThrowIfCancellationRequested();
+            checkedInferParameters.Add(symbol);
+            if (!identical)
+                foreach (var other in symbol.Declarations.OfType<TypeParameterDeclarationNode>())
+                    Error(other.Name!, 2838, symbol.Name);
+        }
+        RegisterUnused(node);
+    }
+
+    private async ValueTask CheckTemplateTypeAsync(TemplateLiteralTypeNode node, CancellationToken cancellation)
+    {
+        foreach (TemplateLiteralTypeSpanNode span in node.TemplateSpans!)
+            await RelationDiagnostics.CheckAsync(await Nodes.FromNodeAsync(span.Type!, cancellation), context.TemplateConstraintType,
+                RelationKind.Assignable, span.Type, null, 2322, cancellation);
+        await Nodes.FromNodeAsync(node, cancellation);
+    }
+
+    private async ValueTask CheckMappedTypeAsync(MappedTypeNode node, CancellationToken cancellation)
+    {
+        if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0 && node.Members is { Count: > 0 })
+            Error(node.Members[0], 7061);
+        await FunctionDeclarations.TypeParameterAsync(node.TypeParameter!, cancellation);
+        if (node.Type is null && NoImplicitAny)
+            Error(node, 7039);
+        var type = (MappedType)await Nodes.FromNodeAsync(node, cancellation);
+        var nameType = await Instantiation.Mapped.NameAsync(type, cancellation);
+        var key = nameType ?? await Instantiation.Mapped.ConstraintAsync(type, cancellation);
+        await RelationDiagnostics.CheckAsync(key, context.StringNumberSymbolType, RelationKind.Assignable,
+            node.NameType ?? node.TypeParameter!.Constraint!, null, 2322, cancellation);
+    }
+
     private void HeritageGrammar(SyntaxNode node, NodeList? clauses, bool isInterface = false)
     {
         if (clauses is null || SemanticSyntax.Source(node) is not { ParseDiagnostics.Count: 0 } file)

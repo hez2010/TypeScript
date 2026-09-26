@@ -4,15 +4,15 @@
 
 ## Current overall status
 
-The complete Release import baseline plus subsequent affected-case results record **12,981 matches out of 13,446 active compiler configurations**, up from 12,923 before the program/JSX/relation batch and 9,365 at the original Release baseline. **All 13,446 configurations now finish execution and match source graphs.** **465 configurations still have diagnostic-code differences.** One exported input was corrected to reproduce the reference harness's duplicate-filename overwrite order; the reference's expected graph and diagnostics were unchanged.
+The complete Release import baseline plus subsequent affected-case results record **13,022 matches out of 13,446 active compiler configurations**, up from 12,981 before the mapped-type/export/initializer batch and 9,365 at the original Release baseline. **All 13,446 configurations now finish execution and match source graphs.** **424 configurations still have diagnostic-code differences.** One exported input was corrected to reproduce the reference harness's duplicate-filename overwrite order; the reference's expected graph and diagnostics were unchanged.
 
-These comparisons cover source graphs and diagnostic codes. **96.5% matching on this measure is not a Phase-4 completion percentage.** The remaining gates are:
+These comparisons cover source graphs and diagnostic codes. **96.8% matching on this measure is not a Phase-4 completion percentage.** The remaining gates are:
 
 | Completion requirement | Current status |
 | --- | --- |
 | Execute active corpus and match source graphs | Complete: 13,446 configurations |
-| Match semantic diagnostic codes | 12,981 match; 465 differ |
-| Match diagnostic text, locations and related information | Incomplete: detailed records match in 3,798 of 6,405 selected configurations, including 2,562 with nonempty semantic diagnostics; the remaining corpus has not been compared at this level |
+| Match semantic diagnostic codes | 13,022 match; 424 differ |
+| Match diagnostic text, locations and related information | Incomplete: detailed records match in 4,218 of 6,865 selected configurations, including 2,676 with nonempty semantic diagnostics; the remaining corpus has not been compared at this level |
 | Complete type/symbol comparisons, type display, node builders, accessibility and emit-resolver APIs | Incomplete; query families, visibility, formatted accessibility and symbol-format flags have fixture comparisons; remaining node-builder policies, type display and emit-resolver coverage remain open |
 | Validate actual parallel checker scheduling | Incomplete; reference-mode corpus agreement is a narrower check |
 | Meet complete semantic workload memory/performance budgets | Incomplete |
@@ -20,7 +20,7 @@ These comparisons cover source graphs and diagnostic codes. **96.5% matching on 
 
 Phase 4 is not nearly complete, and the evidence does not yet support a reliable completion estimate. Completed results are retained: each implementation checkpoint replays affected inputs against cached oracle results. A failed check is repeated after a relevant fix; unchanged checks are reused.
 
-**Current implementation focus:** continue grouped semantic and diagnostic fixes, then complete inferred-return recovery and full display/emit integration. The latest batch closes 58 semantic configurations through file-inclusion diagnostics, weak-type and missing-property reporting, JSX child contextual typing and private ambient parameter handling. Parallel scheduling and performance/memory gates remain open.
+**Current implementation focus:** continue grouped semantic and diagnostic fixes, then complete inferred-return recovery and full display/emit integration. The latest batch closes 41 semantic configurations through mapped/infer/template checks, generic parameter validation, exports, initializer typing and computed-member grammar. Parallel scheduling and performance/memory gates remain open.
 
 The next implementation priorities are missing diagnostic arguments and relation chains, remaining declaration/expression checks, and the unfinished checker APIs. The sections below are historical implementation checkpoints; their individual passing counts do not represent whole-phase completion.
 
@@ -1294,6 +1294,16 @@ Weak-type comparisons retain the specific no-common-properties explanation, incl
 Release validation covers **718 distinct configurations in each reference mode**: 136 program/relation cases, 457 JSX/relation cases, 169 property-diagnostic cases and 28 affected follow-ups. One intersection-diagnostic regression found in the property batch was corrected and replayed. The retained full baseline gains **58 diagnostic-code matches**, reducing differences from 523 to **465**, with no observed code or previously measured detailed regressions. Detailed coverage reaches **3,798 exact out of 6,405 measured**; 20 previously measured detailed mismatches become exact. Reference results and unchanged candidate records are retained.
 
 Twelve safety assertions cover multiple references to one missing file, independent include/checker directive filtering, self-references, weak-type call hints, JSX child parameter context, private ambient parameters, source ownership and repeat-check stability. The Release build has zero warnings and errors. Evidence: [semantic/detail rollup](../csharp/compatibility/evidence/phase4-program-relations-semantics.json) and [validation and reuse](../csharp/compatibility/evidence/phase4-program-relations-validation.json). NativeAOT remains deferred until the final whole-phase check.
+
+## Mapped types, exports and initializer queries
+
+Mapped-type checking now validates key/name constraints, missing template types and illegal extra members. Infer declarations check their conditional-type scope and merged constraints; template-literal spans check their allowed types. Type-parameter duplicate/default checks are shared across functions, classes, interfaces and aliases. Invalid extra mapped members are not checked as ordinary declarations after the mapped-type grammar error.
+
+Export checking recognizes global variables and binding elements through their declaration containers and reports reserved `__esModule` export bindings in applicable emit modes. Initializer inference uses the existing quick expression query before normal checking, preserving single-signature call/new and assertion types even when later expression validation reports an error. Full expression checks still run through the declaration checker. Property signatures and computed methods now receive their missing interface/type-literal/ambient grammar checks, including initializer restrictions and type-parameter references in computed names.
+
+Release validation covers **907 distinct configurations in each reference mode**, combining 161 mapped/export cases, 587 initializer/constructor cases, 169 declaration follow-ups and 18 computed-method cases. **41 configurations become diagnostic-code matches**, reducing the retained baseline from 465 differences to **424**, with no observed code or previously measured detailed regressions. Detailed coverage grows by 460 configurations to **4,218 exact out of 6,865 measured**; 12 previously measured detailed mismatches become exact. Cached references and unchanged candidate results are retained.
+
+Seventeen safety assertions cover global/reserved exports, duplicate and defaulted type parameters, invalid infer/mapped/template forms, private-constructor initializer types, property-signature restrictions, repeated checking and source ownership. The Release build has zero warnings and errors. Evidence: [semantic/detail rollup](../csharp/compatibility/evidence/phase4-mapped-exports-semantics.json) and [validation and reuse](../csharp/compatibility/evidence/phase4-mapped-exports-validation.json). NativeAOT remains deferred until the final whole-phase check.
 
 ## Remaining completion work
 

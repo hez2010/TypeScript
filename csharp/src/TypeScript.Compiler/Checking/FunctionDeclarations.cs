@@ -157,27 +157,10 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
         await host.SignatureEnvironmentAsync(node, cancellation).ConfigureAwait(false);
         var declaration = node as IFunctionSignature;
         var declaredParameters = node is IndexSignatureDeclarationNode index ? index.Parameters! : declaration!.Parameters!;
-        bool sawDefault = false;
         var typeParameters = declaration?.TypeParameters;
-        for (int i = 0; i < (typeParameters?.Count ?? 0); i++)
-        {
-            var parameter = (TypeParameterDeclarationNode)typeParameters![i];
-            await TypeParameterAsync(parameter, cancellation).ConfigureAwait(false);
-            if (parameter.DefaultType is { } defaultNode)
-            {
-                sawDefault = true;
-                foreach (var reference in defaultNode.DescendantsAndSelf().OfType<TypeReferenceNode>())
-                    if (await host.TypeFromNodeAsync(reference, cancellation).ConfigureAwait(false) is TypeParameter type)
-                        for (int j = i; j < typeParameters.Count; j++)
-                            if (type.Symbol == symbols.Declaration(typeParameters[j]))
-                                host.ExpressionError(reference, 2744);
-            }
-            else if (sawDefault)
-                host.ExpressionError(parameter, 2706);
-            for (int j = 0; j < i; j++)
-                if (symbols.Binding(typeParameters[j])?.Get(typeParameters[j])?.Symbol == symbols.Binding(parameter)?.Get(parameter)?.Symbol)
-                    host.ExpressionError(parameter.Name!, 2300);
-        }
+        if (typeParameters is not null)
+            foreach (TypeParameterDeclarationNode parameter in typeParameters)
+                await TypeParameterAsync(parameter, cancellation).ConfigureAwait(false);
         foreach (ParameterDeclarationNode parameter in declaredParameters)
         {
             await host.ParameterEnvironmentAsync(parameter, cancellation).ConfigureAwait(false);
@@ -217,6 +200,26 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
 
     internal async ValueTask TypeParameterAsync(TypeParameterDeclarationNode node, CancellationToken cancellation)
     {
+        NodeList? parameters = node.Parent switch
+        {
+            IFunctionSignature signature => signature.TypeParameters,
+            ClassDeclarationNode declaration => declaration.TypeParameters,
+            ClassExpressionNode expression => expression.TypeParameters,
+            InterfaceDeclarationNode declaration => declaration.TypeParameters,
+            TypeAliasDeclarationNode declaration => declaration.TypeParameters,
+            _ => null
+        };
+        if (parameters is not null)
+            foreach (var previous in parameters)
+            {
+                if (previous == node)
+                    break;
+                if (symbols.Declaration(previous) == symbols.Declaration(node))
+                {
+                    host.ExpressionError(node.Name!, 2300);
+                    break;
+                }
+            }
         await host.TypeParameterModifiersAsync(node, cancellation).ConfigureAwait(false);
         if (node.Expression is not null && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
             host.ExpressionError(node.Expression, 1110);
@@ -243,6 +246,19 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
             or "object" or "undefined")
             host.ExpressionError(node.Name, 2368);
         host.DeferExpression(node);
+        if (parameters is not null)
+        {
+            int index = parameters.ToList().IndexOf(node);
+            if (node.DefaultType is { } defaultAnnotation)
+                foreach (var reference in defaultAnnotation.DescendantsAndSelf().OfType<TypeReferenceNode>())
+                    if (await host.TypeFromNodeAsync(reference, cancellation).ConfigureAwait(false) is TypeParameter type)
+                        for (int i = index; i < parameters.Count; i++)
+                            if (type.Symbol == symbols.Declaration(parameters[i]))
+                                host.ExpressionError(reference, 2744);
+            if (node.DefaultType is null
+                && parameters.Take(index).OfType<TypeParameterDeclarationNode>().Any(p => p.DefaultType is not null))
+                host.ExpressionError(node, 2706);
+        }
     }
 
     internal async ValueTask VariableAsync(SyntaxNode node, CancellationToken cancellation)

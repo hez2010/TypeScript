@@ -17,6 +17,46 @@ namespace TypeScript.Compatibility;
 
 internal static class CheckerProgramTests
 {
+    internal static async Task<int> MappedExportSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Mapped/export assertion {checks + 1}");
+            checks++;
+        }
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        options.SetRaw("module", "\"commonjs\"");
+        var files = new Dictionary<string, byte[]>
+        {
+            ["/project/globals.d.ts"] = Wtf8.Encode(
+                "declare var globalValue:number;interface Object{constructor:Function}interface Function{readonly length:number}interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T}"),
+            ["/project/main.ts"] = Wtf8.Encode(
+                "export {globalValue};export const __esModule=1;type Dup<T,T>=T;interface Defaults<A=string,B>{}type Late<A=B,B=string>=A;type Bad<T>={[P in T]:number};type Rename<T>={[P in keyof T as {}]:T[P]};type Wrong=infer X;type Template<T>=`${T}`;type Extra<T>={[P in keyof T]:T[P];extra():void};class C{private constructor(){}}const blocked=new C();let fn:()=>void=blocked.constructor;interface Init{p:number=1}type InitType={p:number=1};class Param{constructor(public constructor:string){}}")
+        };
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
+            new("/project/tsconfig.json", options, files.Keys.ToArray(), [], [], []));
+        var source = program.GetFile("/project/main.ts")!.Syntax;
+        Check(source.ParseDiagnostics.Count == 0);
+        var before = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
+        var checker = await program.CreateCheckerAsync();
+        await checker.CheckProgramAsync();
+        var diagnostics = checker.DetailedDiagnosticsForProgramFile(source);
+        foreach (int code in new[] { 2661, 1216, 2300, 2706, 2744, 1338, 7061, 2673, 1246, 1247, 2398 })
+            Check(diagnostics.Any(d => d.Code == code));
+        Check(diagnostics.All(d => d.Code != 2391));
+        var blocked = source.DescendantsAndSelf().OfType<VariableDeclarationNode>().Single(n => n.Name is IdentifierNode { Text: "blocked" });
+        Check((await checker.GetTypeAtLocationAsync(blocked.Name!)).Symbol?.Name == "C");
+        Check(diagnostics.Count(d => d.Code == 2322) >= 3);
+        await checker.CheckProgramAsync();
+        Check(checker.DetailedDiagnosticsForProgramFile(source).Count == diagnostics.Count);
+        Check(before.All(p => p.Parent == p.Node.Parent && p.Pos == p.Node.Pos && p.End == p.Node.End && p.Flags == p.Node.Flags));
+        return checks;
+    }
+
     internal static async Task<int> ProgramRelationsSafety()
     {
         int checks = 0;

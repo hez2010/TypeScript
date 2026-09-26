@@ -82,6 +82,12 @@ internal static class Program
                     $"Program relation safety: {CheckerProgramTests.ProgramRelationsSafety().GetAwaiter().GetResult()} assertions passed");
                 return 0;
             }
+            if (args is ["--checker-mapped-exports-safety"])
+            {
+                Console.WriteLine(
+                    $"Mapped/export safety: {CheckerProgramTests.MappedExportSafety().GetAwaiter().GetResult()} assertions passed");
+                return 0;
+            }
             if (args is ["--checker-diagnostic-identity-safety"])
             {
                 Console.WriteLine(

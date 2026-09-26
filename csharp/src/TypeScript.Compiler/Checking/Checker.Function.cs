@@ -45,6 +45,10 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
                     await IndexValidation.CheckAsync(await Nodes.FromNodeAsync(indexed, cancellation), indexed, cancellation);
                 else if (item.Node is TypeOperatorNode operation)
                     TypeOperatorGrammar(operation);
+                else if (item.Node is MappedTypeNode mapped)
+                    await CheckMappedTypeAsync(mapped, cancellation);
+                else if (item.Node is TemplateLiteralTypeNode template)
+                    await CheckTemplateTypeAsync(template, cancellation);
                 else if (item.Node is TupleTypeNode tuple)
                     await TupleTypeGrammarAsync(tuple, cancellation);
                 else if (item.Node is NamedTupleMemberNode member)
@@ -63,26 +67,35 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
                 }
                 else if (item.Node is TypeLiteralNode literal)
                     await IndexDeclarationChecks.TypeLiteralAsync(literal, cancellation);
+                else if (item.Node is PropertySignatureDeclarationNode property)
+                    PropertySignatureGrammar(property);
                 else if (item.Node is IndexSignatureDeclarationNode index)
                     await CheckIndexSignatureSourceAsync(index, cancellation);
                 else if (item.Node is TypePredicateNode predicate)
                     await CheckTypePredicateAsync(predicate, cancellation);
                 if (item.Node is InferTypeNode)
-                    RegisterUnused(item.Node);
+                    await CheckInferTypeAsync((InferTypeNode)item.Node, cancellation);
                 else if (item.Node is FunctionTypeNode or ConstructorTypeNode or MethodSignatureDeclarationNode
                     or CallSignatureDeclarationNode or ConstructSignatureDeclarationNode)
                 {
                     await FunctionDeclarations.GrammarAsync(item.Node, cancellation).ConfigureAwait(false);
                     await FunctionDeclarations.CheckAsync(item.Node, cancellation).ConfigureAwait(false);
                     if (item.Node is MethodSignatureDeclarationNode)
+                    {
+                        await CheckMethodNameAsync(item.Node, cancellation);
                         await CheckFunctionOverloadsAsync(item.Node, cancellation);
+                    }
                 }
             }
             else
             {
                 pending.Push((item.Node, true));
                 for (int i = item.Node.ChildCount - 1; i >= 0; i--)
-                    pending.Push((item.Node.GetChild(i), false));
+                {
+                    var child = item.Node.GetChild(i);
+                    if (item.Node is not MappedTypeNode mapped || mapped.Members?.Contains(child) != true)
+                        pending.Push((child, false));
+                }
             }
         }
         return await Nodes.FromNodeAsync(node, cancellation);
@@ -309,6 +322,8 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
             ClassMemberModifiers(node);
             if (ParameterProperty(node))
             {
+                if (node.Parent is ConstructorDeclarationNode && node.Name is IdentifierNode { Text: "constructor" })
+                    Error(node.Name, 2398);
                 if (node.Parent is not ConstructorDeclarationNode { Body: not null })
                     Error(node, 2369);
                 if (node.Name is BindingPatternNode)

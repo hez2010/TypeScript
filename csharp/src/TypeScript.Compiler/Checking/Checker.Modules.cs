@@ -347,9 +347,10 @@ internal sealed partial class Checker
                         SymbolFlags.Value | SymbolFlags.Type | SymbolFlags.Namespace | SymbolFlags.Alias,
                         isUse: true);
                     if (symbol == program.Symbols.UndefinedSymbol || symbol == program.Symbols.GlobalThisSymbol
-                        || symbol?.Declarations.FirstOrDefault() is { Parent: SourceFileNode file }
+                        || symbol?.Declarations.FirstOrDefault() is { } declaration
+                            && SemanticSyntax.DeclarationContainer(declaration) is SourceFileNode file
                             && program.Symbols.Binding(file)?.IsModule != true)
-                        Error(name, 2661);
+                        Error(name, 2661, name.Text);
                     else if (symbol is not null && (symbol.Flags & SymbolFlags.Alias) != 0)
                         await AliasReferences.MarkAsync(symbol, name, cancellation).ConfigureAwait(false);
                 }
