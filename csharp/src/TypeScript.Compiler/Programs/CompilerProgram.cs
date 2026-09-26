@@ -50,6 +50,7 @@ public sealed partial class CompilerProgram
     public IReadOnlyList<ProgramFile> SourceFiles { get; }
     public IReadOnlyList<string> RootFileNames { get; }
     public IReadOnlyList<Diagnostic> Diagnostics { get; }
+    internal IReadOnlyList<Diagnostic> IncludeDiagnostics { get; }
     public IReadOnlyList<string> MissingFiles { get; }
     public IReadOnlyDictionary<string, IReadOnlyList<FileIncludeReason>> IncludeReasons { get; }
     public IReadOnlyDictionary<string, string> Redirects { get; }
@@ -85,6 +86,7 @@ public sealed partial class CompilerProgram
         CommonSourceDirectory = common.Length == 0 ? "" : CompilerPath.EnsureTrailingSeparator(common);
         Diagnostics = builder.diagnostics.Concat(ModulePathOptionDiagnostics()).OrderBy(
             d => d.FileName ?? "", StringComparer.Ordinal).ThenBy(d => d.Start).ThenBy(d => d.Code).ToArray();
+        IncludeDiagnostics = Array.AsReadOnly(builder.includeDiagnostics.ToArray());
     }
 
     public ProgramFile? GetFile(string path)
@@ -133,6 +135,15 @@ public sealed partial class CompilerProgram
         internal readonly Dictionary<string, string> redirects;
         internal readonly Dictionary<string, List<FileIncludeReason>> reasons;
         internal readonly List<Diagnostic> diagnostics = [];
+        internal readonly List<Diagnostic> includeDiagnostics = [];
+        private readonly List<(string Path, IReadOnlyList<Diagnostic> Diagnostics)> includeFailures = [];
+
+        private void AddIncludeDiagnostic(Diagnostic diagnostic)
+        {
+            diagnostics.Add(diagnostic);
+            includeDiagnostics.Add(diagnostic);
+        }
+
         internal readonly List<string> missing = [];
         internal int reused;
         private readonly Dictionary<string, ModuleResolver> resolvers;
@@ -310,10 +321,12 @@ public sealed partial class CompilerProgram
                     var reason = entry.Reason;
                     bool rootAfterReference = string.IsNullOrEmpty(reason?.ContainingFile)
                         && reasons.GetValueOrDefault(path)?.Any(r => r.ContainingFile.Length != 0) == true;
-                    diagnostics.Add(new(rootAfterReference ? Messages.Already_included_file_name_0_differs_from_file_name_1_only_in_casing
+                    AddIncludeDiagnostic(
+                        new(
+                        rootAfterReference ? Messages.Already_included_file_name_0_differs_from_file_name_1_only_in_casing
                             : Messages.File_name_0_differs_from_already_included_file_name_1_only_in_casing,
                         reason?.Position ?? 0, reason?.Length ?? 0, rootAfterReference ? [spelling, path] : [path, spelling])
-                    { FileName = string.IsNullOrEmpty(reason?.ContainingFile) ? null : reason.ContainingFile });
+                        { FileName = string.IsNullOrEmpty(reason?.ContainingFile) ? null : reason.ContainingFile });
                 }
                 else
                     spellings.TryAdd(path, path);
@@ -378,6 +391,17 @@ public sealed partial class CompilerProgram
                 return index < 0 ? libraryNames.Length + 2 : index + 1;
             }
             var ordered = order.Where(f => f.Library).OrderBy(Priority).Concat(order.Where(f => !f.Library)).ToArray();
+            foreach (var failure in includeFailures)
+                foreach (var (path, includes) in reasons)
+                    if (files.Comparer.Equals(redirects.GetValueOrDefault(path, path), failure.Path))
+                        foreach (var reason in includes)
+                            foreach (var diagnostic in failure.Diagnostics)
+                                AddIncludeDiagnostic(diagnostic with
+                                {
+                                    Start = reason.Position,
+                                    Length = reason.Length,
+                                    FileName = reason.ContainingFile.Length == 0 ? null : reason.ContainingFile
+                                });
             VerifyOutputPaths(ordered);
             return new(this, ordered);
         }
@@ -453,18 +477,14 @@ public sealed partial class CompilerProgram
                 {
                     var entry = batch[batchIndex];
                     var parsed = parsedBatch[batchIndex];
-                    if (parsed.Diagnostics is not null)
-                        diagnostics.AddRange(parsed.Diagnostics);
                     if (parsed.File is not { } syntax)
                     {
                         missing.Add(entry.Path);
-                        if (parsed.FailedLookup)
-                            continue;
-                        var reason = reasons.GetValueOrDefault(entry.Path)?.FirstOrDefault();
-                        diagnostics.Add(new(Messages.File_0_not_found, reason?.Position ?? 0, reason?.Length ?? 0, [entry.Path])
-                        { FileName = string.IsNullOrEmpty(reason?.ContainingFile) ? null : reason.ContainingFile });
+                        includeFailures.Add((entry.Path, parsed.Diagnostics ?? [new(Messages.File_0_not_found, 0, 0, [entry.Path])]));
                         continue;
                     }
+                    if (parsed.Diagnostics is not null)
+                        diagnostics.AddRange(parsed.Diagnostics);
                     int currentDepth = loadedDepth[entry.Path];
                     var dependencies = new List<string>();
                     var resolutions = new List<ModuleReference>();
@@ -489,7 +509,7 @@ public sealed partial class CompilerProgram
                         {
                             string path = RootPath(CompilerPath.Resolve(CompilerPath.DirectoryName(entry.Path), reference.FileName));
                             if (files.Comparer.Equals(path, entry.Path))
-                                diagnostics.Add(
+                                AddIncludeDiagnostic(
                                     new(
                                         Messages.A_file_cannot_have_a_reference_to_itself,
                                         reference.Pos,
@@ -519,7 +539,7 @@ public sealed partial class CompilerProgram
                                     package: resolved.PackageId,
                                     length: reference.End - reference.Pos);
                             else
-                                diagnostics.Add(
+                                AddIncludeDiagnostic(
                                     new(
                                         Messages.Cannot_find_type_definition_file_for_0,
                                         reference.Pos,

@@ -231,7 +231,7 @@ internal sealed class ExpressionContexts(TypeContext context, TypeAlgebra algebr
                     return export.Type is null ? null : await host.TypeFromNodeAsync(export.Type, cancellation).ConfigureAwait(false);
                 case ArrowFunctionNode or ReturnStatementNode or YieldExpressionNode or AwaitExpressionNode or CallExpressionNode
                     or NewExpressionNode or DecoratorNode or BinaryExpressionNode or TemplateSpanNode or JsxExpressionNode
-                    or JsxAttributeNode or JsxSpreadAttributeNode or JsxOpeningElementNode or JsxSelfClosingElementNode or ImportAttributeNode:
+                    or JsxAttributeNode or JsxSpreadAttributeNode or JsxOpeningElementNode or JsxSelfClosingElementNode or JsxElementNode or ImportAttributeNode:
                     return await host.OtherContextAsync(node, flags, cancellation).ConfigureAwait(false);
                 default:
                     return null;

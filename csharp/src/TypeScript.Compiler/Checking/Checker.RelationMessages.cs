@@ -54,7 +54,20 @@ internal sealed partial class Checker
         {
             var explanation = await Relations.ExplainAsync(originalSource, target, kind, cancellation);
             if (await RelationChainAsync(explanation?.Next, diagnostic, cancellation) is { } chain)
+            {
                 diagnostic = diagnostic with { MessageChain = [chain], RelatedInformation = chain.RelatedInformation };
+                if ((originalSource.ObjectFlags & ObjectFlags.JsxAttributes) != 0 && target is IntersectionType intersection)
+                {
+                    var intrinsic = await JsxTypeAsync("IntrinsicAttributes", node, cancellation);
+                    var classIntrinsic = await JsxTypeAsync("IntrinsicClassAttributes", node, cancellation);
+                    if (intrinsic != context.ErrorType && classIntrinsic != context.ErrorType
+                        && (intersection.Types.Contains(intrinsic) || intersection.Types.Contains(classIntrinsic)))
+                    {
+                        RelationError(node, StripRelationMarkers(chain));
+                        return;
+                    }
+                }
+            }
             diagnostic = await ConstraintReasonAsync(diagnostic, originalSource, source, target, sourceText, targetText, cancellation);
         }
         diagnostic = SelectRelationDiagnostic(diagnostic, originalSource, target, sourceText, targetText);
@@ -88,6 +101,7 @@ internal sealed partial class Checker
         bool matches = next.Code switch
         {
             4104 => next.Arguments.SequenceEqual(new[] { sourceText, targetText }),
+            2559 or 2560 => true,
             2741 when diagnostic.Code is not (2420 or 2720 or 2352) => next.Arguments is [_, var s, var t]
                 && s == sourceText
                 && t == targetText,

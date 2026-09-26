@@ -22,6 +22,18 @@ internal sealed partial class Checker
     {
         if (node is null)
             return diagnostic;
+        if (diagnostic.Code is 2322 or 2345 or 2559 or 2560 or 2739 or 2740 or 2741)
+        {
+            bool construct = AssignmentHints.Contains((node, true));
+            if (construct || AssignmentHints.Contains((node, false)))
+            {
+                var hint = CheckerDiagnostic.Create(node, construct ? Messages.Did_you_mean_to_use_new_with_this_expression
+                    : Messages.Did_you_mean_to_call_this_expression);
+                if (!diagnostic.RelatedInformation.Any(
+                    d => d.Code == hint.Code && d.FileName == hint.FileName && d.Start == hint.Start && d.Length == hint.Length))
+                    diagnostic = diagnostic with { RelatedInformation = [.. diagnostic.RelatedInformation, hint] };
+            }
+        }
         if (diagnostic.Code is 2552 or 2833 && SuggestedNameDeclarations.TryGetValue(node, out var suggestion))
             return diagnostic with
             {
@@ -94,48 +106,57 @@ internal sealed partial class Checker
             && program.Symbols.Program.Configuration.Options.Boolean("checkJs") != true;
         if (plainJavaScript)
             diagnostics.RemoveAll(d => !JavaScriptDiagnostics.IsPlainError(d.Code));
-        else if (file.CommentDirectives.Count != 0)
-        {
-            var directives = new Dictionary<int, CommentDirective>();
-            foreach (var directive in file.CommentDirectives)
-                directives[file.Source.GetLineAndCharacter(directive.Start).Line] = directive;
-            var filtered = new List<Diagnostic>();
-            foreach (var diagnostic in diagnostics)
-            {
-                bool ignored = false;
-                for (int line = file.Source.GetLineAndCharacter(diagnostic.Start).Line - 1; line >= 0; line--)
-                {
-                    if (directives.TryGetValue(line, out var directive))
-                    {
-                        directives[line] = directive with { ExpectError = false };
-                        ignored = true;
-                        break;
-                    }
-                    int offset = file.Source.LineStarts[line];
-                    var text = file.Source.Text;
-                    while (offset < text.Length && text[offset] is ' ' or '\t')
-                        offset++;
-                    if (!(offset == text.Length
-                        || text[offset] is '\r' or '\n'
-                        || offset + 1 < text.Length && text[offset] == '/' && text[offset + 1] == '/'))
-                        break;
-                }
-                if (!ignored)
-                    filtered.Add(diagnostic);
-            }
-            foreach (var directive in directives.Values)
-                if (directive.ExpectError)
-                    filtered.Add(new(DiagnosticLocalization.GetMessage(2578), directive.Start, directive.End - directive.Start, [])
-                    { FileName = file.FileName });
-            diagnostics = filtered;
-        }
+        else
+            diagnostics = FilterCommentDirectives(file, diagnostics, true);
+        var includes = FilterCommentDirectives(
+            file,
+            program.Symbols.Program.IncludeDiagnostics.Where(d => d.FileName == file.FileName).ToArray(),
+            false);
         if (program.Symbols.Program.GetFile(file.FileName)?.Mapping is not { } mapping)
-            return diagnostics;
+            return diagnostics.Concat(includes).Distinct(DiagnosticEqualityComparer.Instance).ToArray();
         IEnumerable<Diagnostic> mapped = diagnostics;
         if (!plainJavaScript)
             mapped = mapping.ApplyDiagnosticDirectives(mapped);
         return mapped.Where(d => !d.Message.ReportsUnnecessary || d.Source is not null
             || mapping.Map.VirtualToOriginalSpan(d.Start, d.Start + d.Length).Fidelity != MappingFidelity.None)
-            .ToArray();
+            .Concat(includes).Distinct(DiagnosticEqualityComparer.Instance).ToArray();
+    }
+
+    private static List<Diagnostic> FilterCommentDirectives(SourceFileNode file, IReadOnlyList<Diagnostic> diagnostics, bool reportUnused)
+    {
+        if (file.CommentDirectives.Count == 0)
+            return diagnostics.ToList();
+        var directives = new Dictionary<int, CommentDirective>();
+        foreach (var directive in file.CommentDirectives)
+            directives[file.Source.GetLineAndCharacter(directive.Start).Line] = directive;
+        var filtered = new List<Diagnostic>();
+        foreach (var diagnostic in diagnostics)
+        {
+            bool ignored = false;
+            for (int line = file.Source.GetLineAndCharacter(diagnostic.Start).Line - 1; line >= 0; line--)
+            {
+                if (directives.TryGetValue(line, out var directive))
+                {
+                    directives[line] = directive with { ExpectError = false };
+                    ignored = true;
+                    break;
+                }
+                int offset = file.Source.LineStarts[line];
+                var text = file.Source.Text;
+                while (offset < text.Length && text[offset] is ' ' or '\t')
+                    offset++;
+                if (!(offset == text.Length
+                    || text[offset] is '\r' or '\n'
+                    || offset + 1 < text.Length && text[offset] == '/' && text[offset + 1] == '/'))
+                    break;
+            }
+            if (!ignored)
+                filtered.Add(diagnostic);
+        }
+        foreach (var directive in directives.Values)
+            if (reportUnused && directive.ExpectError)
+                filtered.Add(new(DiagnosticLocalization.GetMessage(2578), directive.Start, directive.End - directive.Start, [])
+                { FileName = file.FileName });
+        return filtered;
     }
 }

@@ -14,6 +14,8 @@ internal sealed partial class Checker
     {
         if (source is not (ObjectType or IntersectionType) || target is not ObjectType)
             return null;
+        if (source is IntersectionType intersection && intersection.Types.Any(t => (t.Flags & TypeFlags.Primitive) != 0))
+            return null;
         if (source == GlobalObject || source is MappedType mapped && await Instantiation.Mapped.IsGenericAsync(mapped, cancellation))
             return null;
         if (await Normalization.GetAsync(source, false, cancellation) != source

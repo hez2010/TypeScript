@@ -9,6 +9,10 @@ internal interface IStructuralRelationHost
 
     Type GlobalObject { get; }
 
+    ValueTask<IReadOnlyList<Signature>> SignaturesAsync(Type type, bool construct, CancellationToken cancellation);
+
+    ValueTask<Type> ReturnTypeAsync(Signature signature, CancellationToken cancellation);
+
     ValueTask<Ternary?> VarianceAsync(RelationOperation operation, Type source, Type target, CancellationToken cancellation);
 
     ValueTask<Ternary?> AdvancedRelationAsync(
@@ -104,7 +108,25 @@ internal sealed class StructuralRelations(TypeContext context, TypeAlgebra algeb
                 target,
                 (source.ObjectFlags & ObjectFlags.JsxAttributes) != 0,
                 cancellation).ConfigureAwait(false))
+        {
+            if (operation.ReportErrors)
+            {
+                bool callable = false;
+                foreach (bool construct in new[] { false, true })
+                {
+                    var signatures = await host.SignaturesAsync(source, construct, cancellation).ConfigureAwait(false);
+                    if (signatures.Count != 0 && await operation.CompareWithoutErrorsAsync(
+                        await host.ReturnTypeAsync(signatures[0], cancellation).ConfigureAwait(false), target, RecursionFlags.Source,
+                        cancellation: cancellation).ConfigureAwait(false) != Ternary.False)
+                    {
+                        callable = true;
+                        break;
+                    }
+                }
+                operation.ExplainArguments(callable ? 2560 : 2559, source, target);
+            }
             return Ternary.False;
+        }
         bool skip = source is UnionType su && su.Types.Count < 4 && target is not UnionType
             || target is UnionType tu && tu.Types.Count < 4 && (source.Flags & TypeFlags.StructuredOrInstantiable) == 0;
         return skip ? await UnionIntersectionAsync(operation, source, target, intersection, cancellation).ConfigureAwait(false)

@@ -17,6 +17,56 @@ namespace TypeScript.Compatibility;
 
 internal static class CheckerProgramTests
 {
+    internal static async Task<int> ProgramRelationsSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Program relation assertion {checks + 1}");
+            checks++;
+        }
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        options.SetRaw("jsx", "\"preserve\"");
+        var files = new Dictionary<string, byte[]>
+        {
+            ["/project/a.ts"] = Wtf8.Encode("/// <reference path='./missing.ts' />\nexport const a=1;"),
+            ["/project/b.ts"] = Wtf8.Encode("/// <reference path='./missing.ts' />\nexport const b=1;"),
+            ["/project/ignore.ts"] = Wtf8.Encode("// @ts-ignore\n/// <reference path='./ignored.ts' />\nexport {};"),
+            ["/project/expect.ts"] = Wtf8.Encode("// @ts-expect-error\n/// <reference path='./expected.ts' />\nexport {};"),
+            ["/project/self.ts"] = Wtf8.Encode("/// <reference path='./self.ts' />\nexport {};"),
+            ["/project/weak.ts"] = Wtf8.Encode(
+                "interface Options{timeout?:number}const unrelated={other:1};const value:Options=unrelated;const fn:Options=()=>({timeout:1});"),
+            ["/project/main.tsx"] = Wtf8.Encode(
+                "namespace JSX{export interface Element{}export interface IntrinsicElements{div:{}}export interface ElementChildrenAttribute{children:{}}}declare function View(p:{children:(value:number)=>number}):JSX.Element;const element=<View>{value=>value+1}</View>;declare class Hidden{private method(value);}")
+        };
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
+            new("/project/tsconfig.json", options, files.Keys.ToArray(), [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var source = program.GetFile("/project/main.tsx")!.Syntax;
+        var snapshot = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
+        await checker.CheckProgramAsync();
+        IReadOnlyList<Diagnostic> Errors(string name) =>
+            checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/" + name)!.Syntax);
+        Check(Errors("a.ts").Count(d => d.Code == 6053) == 1 && Errors("b.ts").Count(d => d.Code == 6053) == 1);
+        Check(Errors("a.ts").Single(d => d.Code == 6053).Arguments.SequenceEqual(["/project/missing.ts"]));
+        Check(program.IncludeDiagnostics.Count(d => d.Code == 6053 && d.Arguments.SequenceEqual(["/project/missing.ts"])) == 2);
+        Check(Errors("ignore.ts").Count == 0);
+        Check(Errors("expect.ts").Select(d => d.Code).SequenceEqual([2578]));
+        Check(Errors("self.ts").Select(d => d.Code).SequenceEqual([1006]));
+        Check(Errors("weak.ts").Any(d => d.Code == 2559));
+        Check(Errors("weak.ts").Single(d => d.Code == 2560).RelatedInformation.Any(d => d.Code == 6212));
+        Check(Errors("main.tsx").All(d => d.Code != 7006));
+        var arrowParameter = source.DescendantsAndSelf().OfType<ArrowFunctionNode>().Single().Parameters![0];
+        Check(await checker.GetTypeAtLocationAsync(((ParameterDeclarationNode)arrowParameter).Name!) == checker.Context.NumberType);
+        Check(snapshot.All(p => p.Parent == p.Node.Parent && p.Pos == p.Node.Pos && p.End == p.Node.End && p.Flags == p.Node.Flags));
+        await checker.CheckProgramAsync();
+        Check(Errors("a.ts").Count(d => d.Code == 6053) == 1 && Errors("weak.ts").Count(d => d.Code == 2560) == 1);
+        return checks;
+    }
+
     internal static async Task<int> DiagnosticIdentitySafety()
     {
         int checks = 0;

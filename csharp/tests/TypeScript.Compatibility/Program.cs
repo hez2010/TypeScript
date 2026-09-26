@@ -76,6 +76,12 @@ internal static class Program
                     $"Module grammar safety: {CheckerProgramTests.ModuleGrammarSafety().GetAwaiter().GetResult()} assertions passed");
                 return 0;
             }
+            if (args is ["--checker-program-relations-safety"])
+            {
+                Console.WriteLine(
+                    $"Program relation safety: {CheckerProgramTests.ProgramRelationsSafety().GetAwaiter().GetResult()} assertions passed");
+                return 0;
+            }
             if (args is ["--checker-diagnostic-identity-safety"])
             {
                 Console.WriteLine(

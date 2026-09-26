@@ -204,6 +204,12 @@ internal sealed class VariableTypes(TypeContext context, TypeAlgebra algebra, Ty
     private static bool Exported(SyntaxNode node) => SemanticSyntax.HasModifier(node, SyntaxKind.ExportKeyword)
             || node.Parent?.Parent is VariableStatementNode statement && SemanticSyntax.HasModifier(statement, SyntaxKind.ExportKeyword);
 
-    private static bool PrivateAmbient(SyntaxNode node) => (node.Flags & NodeFlags.Ambient) != 0
-            && (SemanticSyntax.HasModifier(node, SyntaxKind.PrivateKeyword) || (node as INamedNode)?.Name is PrivateIdentifierNode);
+    private static bool PrivateAmbient(SyntaxNode node)
+    {
+        node = SemanticSyntax.RootDeclaration(node);
+        if (node is ParameterDeclarationNode)
+            node = node.Parent!;
+        return (node.Flags & NodeFlags.Ambient) != 0
+            && (SemanticSyntax.HasModifier(node, SyntaxKind.PrivateKeyword) || SemanticSyntax.Name(node) is PrivateIdentifierNode);
+    }
 }

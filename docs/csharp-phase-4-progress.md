@@ -4,15 +4,15 @@
 
 ## Current overall status
 
-The complete Release import baseline plus subsequent affected-case results record **12,923 matches out of 13,446 active compiler configurations**, up from 12,867 before the indexed-access/declaration-diagnostics batch and 9,365 at the original Release baseline. **All 13,446 configurations now finish execution and match source graphs.** **523 configurations still have diagnostic-code differences.** One exported input was corrected to reproduce the reference harness's duplicate-filename overwrite order; the reference's expected graph and diagnostics were unchanged.
+The complete Release import baseline plus subsequent affected-case results record **12,981 matches out of 13,446 active compiler configurations**, up from 12,923 before the program/JSX/relation batch and 9,365 at the original Release baseline. **All 13,446 configurations now finish execution and match source graphs.** **465 configurations still have diagnostic-code differences.** One exported input was corrected to reproduce the reference harness's duplicate-filename overwrite order; the reference's expected graph and diagnostics were unchanged.
 
-These comparisons cover source graphs and diagnostic codes. **96.1% matching on this measure is not a Phase-4 completion percentage.** The remaining gates are:
+These comparisons cover source graphs and diagnostic codes. **96.5% matching on this measure is not a Phase-4 completion percentage.** The remaining gates are:
 
 | Completion requirement | Current status |
 | --- | --- |
 | Execute active corpus and match source graphs | Complete: 13,446 configurations |
-| Match semantic diagnostic codes | 12,923 match; 523 differ |
-| Match diagnostic text, locations and related information | Incomplete: detailed records match in 3,597 of 6,194 selected configurations, including 2,496 with nonempty semantic diagnostics; the remaining corpus has not been compared at this level |
+| Match semantic diagnostic codes | 12,981 match; 465 differ |
+| Match diagnostic text, locations and related information | Incomplete: detailed records match in 3,798 of 6,405 selected configurations, including 2,562 with nonempty semantic diagnostics; the remaining corpus has not been compared at this level |
 | Complete type/symbol comparisons, type display, node builders, accessibility and emit-resolver APIs | Incomplete; query families, visibility, formatted accessibility and symbol-format flags have fixture comparisons; remaining node-builder policies, type display and emit-resolver coverage remain open |
 | Validate actual parallel checker scheduling | Incomplete; reference-mode corpus agreement is a narrower check |
 | Meet complete semantic workload memory/performance budgets | Incomplete |
@@ -20,7 +20,7 @@ These comparisons cover source graphs and diagnostic codes. **96.1% matching on 
 
 Phase 4 is not nearly complete, and the evidence does not yet support a reliable completion estimate. Completed results are retained: each implementation checkpoint replays affected inputs against cached oracle results. A failed check is repeated after a relevant fix; unchanged checks are reused.
 
-**Current implementation focus:** continue grouped semantic and diagnostic fixes, then complete inferred-return recovery and full display/emit integration. The latest batch closes 56 semantic configurations through indexed-access validation, merged declaration and overload checks, circular-return reporting, index diagnostics and duplicate diagnostic removal. Parallel scheduling and performance/memory gates remain open.
+**Current implementation focus:** continue grouped semantic and diagnostic fixes, then complete inferred-return recovery and full display/emit integration. The latest batch closes 58 semantic configurations through file-inclusion diagnostics, weak-type and missing-property reporting, JSX child contextual typing and private ambient parameter handling. Parallel scheduling and performance/memory gates remain open.
 
 The next implementation priorities are missing diagnostic arguments and relation chains, remaining declaration/expression checks, and the unfinished checker APIs. The sections below are historical implementation checkpoints; their individual passing counts do not represent whole-phase completion.
 
@@ -1284,6 +1284,16 @@ Final diagnostic collections use content equality for argument arrays, message c
 Release validation covers **2,617 distinct configurations in each reference mode**. The initial 269-case comparison exposed five regressions; affected replays corrected all five. A subsequent 2,367-case comparison covered known duplicate records, older records with repeated codes but no detailed evidence, duplicate declarations and parser recovery. **56 configurations become diagnostic-code matches**, reducing the retained full baseline from 579 differences to **523**, with no observed code or previously measured detailed regressions. Detailed coverage grows by 2,392 configurations to **3,597 exact out of 6,194 measured**; 20 previously measured detailed mismatches become exact. Unchanged reference/candidate records remain retained, and remaining selected failures are recorded.
 
 Twenty safety assertions cover structural diagnostic equality, distinct arguments and related records, ordered related information, message-chain identity, 20,000-level chain comparison, multiple index-property errors at one location, overload modifiers, parser recovery and repeat-check stability. The Release build has zero warnings and errors. Evidence: [semantic/detail rollup](../csharp/compatibility/evidence/phase4-index-declarations-semantics.json) and [validation and reuse](../csharp/compatibility/evidence/phase4-index-declarations-validation.json). Formatting is verified without another runtime replay; NativeAOT remains deferred until the final whole-phase check.
+
+## Program inclusion, JSX context and relation diagnostics
+
+File-inclusion diagnostics now reach per-file semantic results. The program retains missing-file, missing-type-reference, self-reference and casing diagnostics separately, and failed files report every recorded inclusion location. Include diagnostics follow their own comment-directive filtering, preserving the reference's distinction from unused `@ts-expect-error` reporting in checker diagnostics.
+
+Weak-type comparisons retain the specific no-common-properties explanation, including call/construct hints and literal types. JSX child expressions now enter the existing contextual-typing path instead of losing their context at the containing element. Missing-property diagnostics suppress the JSX intrinsic-attribute intersection header only under the reference's JSX-specific conditions; ordinary intersection errors retain their outer relation message. Primitive intersections keep their ordinary assignment error, and parameters/binding elements of private ambient members inherit the member's implicit-any exemption.
+
+Release validation covers **718 distinct configurations in each reference mode**: 136 program/relation cases, 457 JSX/relation cases, 169 property-diagnostic cases and 28 affected follow-ups. One intersection-diagnostic regression found in the property batch was corrected and replayed. The retained full baseline gains **58 diagnostic-code matches**, reducing differences from 523 to **465**, with no observed code or previously measured detailed regressions. Detailed coverage reaches **3,798 exact out of 6,405 measured**; 20 previously measured detailed mismatches become exact. Reference results and unchanged candidate records are retained.
+
+Twelve safety assertions cover multiple references to one missing file, independent include/checker directive filtering, self-references, weak-type call hints, JSX child parameter context, private ambient parameters, source ownership and repeat-check stability. The Release build has zero warnings and errors. Evidence: [semantic/detail rollup](../csharp/compatibility/evidence/phase4-program-relations-semantics.json) and [validation and reuse](../csharp/compatibility/evidence/phase4-program-relations-validation.json). NativeAOT remains deferred until the final whole-phase check.
 
 ## Remaining completion work
 
