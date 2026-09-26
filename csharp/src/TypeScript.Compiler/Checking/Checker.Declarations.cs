@@ -158,7 +158,7 @@ internal sealed partial class Checker
         checkedTypeParameterLists.Add(symbol);
         if (!identical)
             foreach (INamedNode declaration in declarations)
-                Error(declaration.Name!, 2428);
+                Error(declaration.Name!, 2428, TypeDisplay.SymbolName(symbol));
     }
 
     private static bool ReservedTypeName(string name) =>

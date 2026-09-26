@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Semantics;
 using TypeScript.Compiler.Syntax;
 
@@ -37,7 +38,10 @@ internal sealed partial class Checker : IBindingPatternHost, IExpressionContextH
         CancellationToken cancellation) =>
         await RelationDiagnostics.CheckAsync(source, target, RelationKind.Assignable, node, expression, cancellation: cancellation);
 
-    public void SpreadOverride(SyntaxNode node, Symbol property, SyntaxNode spread) => Error(node, 2783);
+    public void SpreadOverride(SyntaxNode node, Symbol property, SyntaxNode spread)
+        => Error(node, CheckerDiagnostic.Create(node, Messages.X_0_is_specified_more_than_once_so_this_usage_will_be_overwritten,
+            property.Name) with
+        { RelatedInformation = [CheckerDiagnostic.Create(spread, Messages.This_spread_always_overwrites_this_property)] });
 
     public bool ContextSensitive(SyntaxNode node) => program.IsContextSensitive(node);
 

@@ -46,6 +46,21 @@ internal sealed partial class Checker
         }
         if (note is null)
             return;
+        AddRelationNote(node, note);
+    }
+
+    public void ExpectedReturnInfo(ArrowFunctionNode node, Type target, bool suggestAsync)
+    {
+        if (target.Symbol?.Declarations.FirstOrDefault() is { } declaration)
+            AddRelationNote(
+                node.Body!,
+                CheckerDiagnostic.Create(declaration, Messages.The_expected_type_comes_from_the_return_type_of_this_signature));
+        if (suggestAsync)
+            AddRelationNote(node.Body!, CheckerDiagnostic.Create(node, Messages.Did_you_mean_to_mark_this_function_as_async));
+    }
+
+    private void AddRelationNote(SyntaxNode node, Diagnostic note)
+    {
         if (relationDiagnosticOutput is { } output)
         {
             for (int i = output.Count - 1; i >= 0; i--)

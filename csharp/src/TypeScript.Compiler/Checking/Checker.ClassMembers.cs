@@ -236,9 +236,11 @@ internal sealed partial class Checker
                     || abstractOrInterface)
                     continue;
                 if (baseFlags != SymbolFlags.Property && derivedFlags == SymbolFlags.Property)
-                    Error(at, 2610);
+                    Error(at, 2610, TypeDisplay.SymbolName(original), await TypeDisplay.GetAsync(baseType, cancellation),
+                        await TypeDisplay.GetAsync(type, cancellation));
                 else if (baseFlags == SymbolFlags.Property && derivedFlags != SymbolFlags.Property)
-                    Error(at, 2611);
+                    Error(at, 2611, TypeDisplay.SymbolName(original), await TypeDisplay.GetAsync(baseType, cancellation),
+                        await TypeDisplay.GetAsync(type, cancellation));
                 else if (UseDefineForClassFields && (derived.Flags & SymbolFlags.Transient) == 0 && !abstractBase
                     && !derived.Declarations.Any(
                         d => SemanticSyntax.HasModifier(d, SyntaxKind.AbstractKeyword) || (d.Flags & NodeFlags.Ambient) != 0)
@@ -284,11 +286,12 @@ internal sealed partial class Checker
                 if (SemanticSyntax.HasModifier(member, SyntaxKind.DeclareKeyword) || program.Symbols.Declaration(member) is not { } symbol)
                     continue;
                 bool hasOverride = SemanticSyntax.HasModifier(member, SyntaxKind.OverrideKeyword);
+                bool isJs = (node.Flags & NodeFlags.JavaScriptFile) != 0;
                 if (!hasOverride && program.Symbols.Program.Configuration.Options.Boolean("noImplicitOverride") != true)
                     continue;
                 if (hasOverride && symbol.Name == Symbol.InternalPrefix + "computed")
                 {
-                    Error(member, 4127);
+                    Error(member, isJs ? 4128 : 4127);
                     continue;
                 }
                 var thisType = SemanticSyntax.IsStatic(member) ? staticType : type;
@@ -305,7 +308,9 @@ internal sealed partial class Checker
                         await Properties.GetAsync(inheritedType, cancellation).ConfigureAwait(false),
                         SymbolFlags.ClassMember,
                         cancellation).ConfigureAwait(false);
-                    Error(member, suggestion is null ? 4113 : 4117);
+                    Error(member, suggestion is null ? isJs ? 4122 : 4113 : isJs ? 4123 : 4117,
+                        suggestion is null ? [await TypeDisplay.GetAsync(baseWithThis, cancellation)]
+                            : [await TypeDisplay.GetAsync(baseWithThis, cancellation), TypeDisplay.SymbolName(suggestion)]);
                 }
                 if (property is not null
                     && inherited is { Declarations.Count: > 0 }
@@ -314,9 +319,10 @@ internal sealed partial class Checker
                     && program.Symbols.Program.Configuration.Options.Boolean("noImplicitOverride") == true)
                 {
                     if (!inherited.Declarations.Any(d => SemanticSyntax.HasModifier(d, SyntaxKind.AbstractKeyword)))
-                        Error(member, ParameterProperty(member) ? 4115 : 4114);
+                        Error(member, ParameterProperty(member) ? isJs ? 4120 : 4115 : isJs ? 4119 : 4114,
+                            await TypeDisplay.GetAsync(baseWithThis, cancellation));
                     else if (SemanticSyntax.HasModifier(member, SyntaxKind.AbstractKeyword))
-                        Error(member, 4116);
+                        Error(member, 4116, await TypeDisplay.GetAsync(baseWithThis, cancellation));
                 }
             }
     }

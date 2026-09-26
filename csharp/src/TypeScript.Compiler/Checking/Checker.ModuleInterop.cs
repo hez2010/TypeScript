@@ -131,7 +131,11 @@ internal sealed partial class Checker
         if (result is null && !synthetic && !only)
         {
             if (node is ImportClauseNode clause)
-                Error(clause.Name!, module.Exports.ContainsKey(clause.Name!.Text) ? 2613 : 1192);
+            {
+                bool named = module.Exports.ContainsKey(clause.Name!.Text);
+                Error(clause.Name!, named ? 2613 : 1192,
+                    named ? [TypeDisplay.SymbolName(module), clause.Name.Text] : [TypeDisplay.SymbolName(module)]);
+            }
             else
                 await program.MissingModuleMemberAsync(
                     module,

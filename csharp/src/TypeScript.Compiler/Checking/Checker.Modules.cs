@@ -191,7 +191,7 @@ internal sealed partial class Checker
                         Error(first, 2437);
                 }
             }
-            if (node.IsTypeOnly)
+            if (node.IsTypeOnly && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
                 Error(node, 1392);
         }
         else if (ModuleKind is >= 5 and <= 99 && !node.IsTypeOnly && (node.Flags & NodeFlags.Ambient) == 0)
@@ -210,9 +210,7 @@ internal sealed partial class Checker
             return;
         if (node.ImportClause is { } clause)
         {
-            if (SemanticSyntax.TypeOnly(clause) && clause.Name is not null && clause.NamedBindings is not null)
-                Error(clause, 1363);
-            else
+            if (!ImportClauseGrammar(clause))
             {
                 if (clause.Name is not null)
                     await CheckAliasSourceAsync(clause, cancellation).ConfigureAwait(false);
@@ -252,6 +250,38 @@ internal sealed partial class Checker
         {
             await program.ExternalModuleAsync(node, node.ModuleSpecifier, node.Attributes, cancellation).ConfigureAwait(false);
         }
+    }
+
+    private bool ImportClauseGrammar(ImportClauseNode clause)
+    {
+        if (SemanticSyntax.Source(clause)?.ParseDiagnostics.Count != 0)
+            return false;
+        int code = 0;
+        if (clause.PhaseModifier == SyntaxKind.TypeKeyword)
+        {
+            if ((clause.Flags & NodeFlags.JSDoc) == 0 && clause.Name is not null && clause.NamedBindings is not null)
+                code = 1363;
+            else if (clause.NamedBindings is NamedImportsNode imports)
+                return TypeOnlyBindingsGrammar(imports.Elements!, 2206);
+        }
+        else if (clause.PhaseModifier == SyntaxKind.DeferKeyword)
+            code = clause.Name is not null ? 18058 : clause.NamedBindings is NamedImportsNode ? 18059
+                : ModuleKind is not (99 or 200) ? 18060 : 0;
+        if (code == 0)
+            return false;
+        Error(clause, code);
+        return true;
+    }
+
+    private bool TypeOnlyBindingsGrammar(NodeList bindings, int code)
+    {
+        foreach (var binding in bindings)
+            if (SemanticSyntax.TypeOnly(binding))
+            {
+                ErrorOnFirstToken(binding, code);
+                return true;
+            }
+        return false;
     }
 
     private async ValueTask CheckAliasSourceAsync(SyntaxNode node, CancellationToken cancellation)
@@ -304,6 +334,9 @@ internal sealed partial class Checker
             excluded |= SymbolFlags.Namespace;
         if ((flags & excluded) != 0)
             Error(node, node is ExportSpecifierNode ? 2484 : 2440, TypeDisplay.SymbolName(symbol));
+        else if (node is not ExportSpecifierNode && program.Symbols.Program.Configuration.Options.Boolean("isolatedModules") == true
+            && !AliasResolver.IsTypeOnly(node) && (symbol.Flags & (SymbolFlags.Value | SymbolFlags.ExportValue)) != 0)
+            Error(node, 2865, TypeDisplay.SymbolName(symbol), IsolatedModuleOptionName);
         bool typeOnly = AliasResolver.IsTypeOnly(node);
         if (IsolatedModules && !typeOnly && (node.Flags & NodeFlags.Ambient) == 0)
         {
@@ -315,16 +348,23 @@ internal sealed partial class Checker
                 if (node is ImportClauseNode or ImportSpecifierNode or ImportEqualsDeclarationNode)
                 {
                     if (verbatim)
-                        Error(
-                            node,
-                            node is ImportEqualsDeclarationNode { ModuleReference: not ExternalModuleReferenceNode }
-                                ? 1485
-                                : type ? 1484 : 1485);
+                    {
+                        string name = AliasTargets.Text(
+                            (node as ImportSpecifierNode)?.PropertyName ?? SemanticSyntax.Name(node)) ?? symbol.Name;
+                        int code = node is ImportEqualsDeclarationNode { ModuleReference: not ExternalModuleReferenceNode }
+                            ? 1288 : type ? 1484 : 1485;
+                        TypeOnlyAliasError(node, code, type ? null : typeOnlyDeclaration, name, name);
+                    }
                     if (type && node is ImportEqualsDeclarationNode && SemanticSyntax.HasModifier(node, SyntaxKind.ExportKeyword))
-                        Error(node, 1269);
+                        Error(node, 1269, IsolatedModuleOptionName);
                 }
-                else if (node is ExportSpecifierNode)
-                    Error(node, type ? 1205 : 1448);
+                else if (node is ExportSpecifierNode export && (verbatim
+                    || SemanticSyntax.Source(typeOnlyDeclaration) != SemanticSyntax.Source(node)))
+                {
+                    string name = AliasTargets.Text(export.PropertyName ?? export.Name) ?? symbol.Name;
+                    TypeOnlyAliasError(node, type ? 1205 : 1448, type ? null : typeOnlyDeclaration, name,
+                        type ? [IsolatedModuleOptionName] : [name, IsolatedModuleOptionName]);
+                }
             }
             if (verbatim
                 && node is not ImportEqualsDeclarationNode
@@ -334,6 +374,14 @@ internal sealed partial class Checker
             else if (ModuleKind == 200 && node is not (ImportEqualsDeclarationNode or VariableDeclarationNode or BindingElementNode)
                 && EmitModuleKind(node) == 1)
                 Error(node, 1293);
+            if (verbatim && (flags & SymbolFlags.ConstEnum) != 0 && target.ValueDeclaration is { } enumDeclaration
+                && (enumDeclaration.Flags & NodeFlags.Ambient) != 0)
+            {
+                var redirect = program.Symbols.Program.ProjectReferences.Outputs.GetValueOrDefault(SemanticSyntax.Source(enumDeclaration)!.FileName);
+                if (redirect is null || !(redirect.Project.Options.Boolean("preserveConstEnums") == true
+                    || redirect.Project.Options.Boolean("isolatedModules") == true || redirect.Project.Options.Boolean("verbatimModuleSyntax") == true))
+                    Error(node, 2748, IsolatedModuleOptionName);
+            }
         }
         if (node is ImportSpecifierNode import)
         {
@@ -350,6 +398,22 @@ internal sealed partial class Checker
         ".cts",
         StringComparison.OrdinalIgnoreCase)
         || SemanticSyntax.Source(node)!.FileName.EndsWith(".cjs", StringComparison.OrdinalIgnoreCase) ? 1286 : 1295;
+
+    private string IsolatedModuleOptionName => program.Symbols.Program.Configuration.Options.Boolean("verbatimModuleSyntax") == true
+        ? "verbatimModuleSyntax" : "isolatedModules";
+
+    private void TypeOnlyAliasError(SyntaxNode node, int code, SyntaxNode? typeOnlyDeclaration, string name, params string[] arguments)
+    {
+        var diagnostic = CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), arguments);
+        if (typeOnlyDeclaration is not null)
+            diagnostic = diagnostic with
+            {
+                RelatedInformation = [CheckerDiagnostic.Create(typeOnlyDeclaration,
+                    typeOnlyDeclaration is ExportSpecifierNode or ExportDeclarationNode or NamespaceExportNode
+                        ? Messages.X_0_was_exported_here : Messages.X_0_was_imported_here, name)]
+            };
+        Error(node, diagnostic);
+    }
 
     private void CheckModuleExportName(SyntaxNode? name, bool allowString)
     {
@@ -372,6 +436,8 @@ internal sealed partial class Checker
             return;
         if (node.ExportClause is NamedExportsNode exports)
         {
+            if (SemanticSyntax.TypeOnly(node) && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
+                TypeOnlyBindingsGrammar(exports.Elements!, 2207);
             foreach (ExportSpecifierNode binding in exports.Elements!)
             {
                 await CheckAliasSourceAsync(binding, cancellation).ConfigureAwait(false);

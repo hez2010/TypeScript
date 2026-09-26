@@ -59,9 +59,18 @@ internal sealed partial class Checker
                 foreach (var declaration in declarations)
                     Error(constructor ? declaration : SemanticSyntax.Name(declaration) ?? declaration, constructor ? 2392 : 2393);
             if (hasClass && !constructor && (symbol.Flags & SymbolFlags.Function) != 0)
+            {
+                var related = symbol.Declarations.OfType<ClassDeclarationNode>()
+                    .Select(d => CheckerDiagnostic.Create(d, Messages.Consider_adding_a_declare_modifier_to_this_class)).ToArray();
                 foreach (var declaration in symbol.Declarations)
                     if (declaration is ClassDeclarationNode or FunctionDeclarationNode)
-                        Error(SemanticSyntax.Name(declaration) ?? declaration, declaration is ClassDeclarationNode ? 2813 : 2814);
+                    {
+                        var location = SemanticSyntax.Name(declaration) ?? declaration;
+                        Error(location, CheckerDiagnostic.Create(location,
+                            DiagnosticLocalization.GetMessage(declaration is ClassDeclarationNode ? 2813 : 2814), symbol.Name) with
+                        { RelatedInformation = related });
+                    }
+            }
             if (lastNonAmbient is not null
                 && SemanticSyntax.Body(lastNonAmbient) is null
                 && !SemanticSyntax.HasModifier(lastNonAmbient, SyntaxKind.AbstractKeyword)

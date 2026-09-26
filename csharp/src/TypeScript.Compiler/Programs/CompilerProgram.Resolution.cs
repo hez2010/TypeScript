@@ -160,7 +160,7 @@ public sealed partial class CompilerProgram
             string module = ModuleKind(options);
             ReferenceResolutionMode format = ImpliedMode(path, options, implied, packageType);
             if (node?.Parent is CallExpressionNode call && (call.Expression?.Kind == K.ImportKeyword
-                || call.Expression is PropertyAccessExpressionNode { Expression.Kind: K.ImportKeyword }))
+                || call.Expression is MetaPropertyNode { KeywordToken: K.ImportKeyword, Name.Text: "defer" }))
                 return module is "node16" or "node18" or "node20" or "nodenext" or "preserve" ? ReferenceResolutionMode.Import
                     : format == ReferenceResolutionMode.Require || format == 0 && module is "commonjs" or "amd" or "system" or "umd"
                         ? ReferenceResolutionMode.Require

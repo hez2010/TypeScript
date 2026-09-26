@@ -168,7 +168,7 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
             this);
         FlowEffects = new(context, Views, Signatures, this);
         ExplicitValues = new(links, program.Symbols, program.ReferenceSymbols, program.Aliases, Values, Properties, this);
-        MissingNames = new(program.Symbols, Values, Declared, Properties, (node, code, symbol) => Error(node, code));
+        MissingNames = new(program.Symbols, Values, Declared, Properties, MissingNamePrefixError);
         program.MissingPrefixCheck = (node, name) => MissingNames.CheckAsync(node, name);
         program.ExtendingInterfaceCheck = node => ExtendingInterfaceAsync(node, default);
         AliasReferences = new(program.Symbols, links, program.ReferenceSymbols, program.Aliases);

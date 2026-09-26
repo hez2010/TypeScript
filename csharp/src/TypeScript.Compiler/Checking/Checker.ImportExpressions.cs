@@ -71,7 +71,7 @@ internal sealed partial class Checker
             return;
         if (program.Symbols.Program.Configuration.Options.Boolean("verbatimModuleSyntax") == true && ModuleKind == 1)
         {
-            Error(node, 1286);
+            Error(node, VerbatimModuleCode(node));
             return;
         }
         if (node.Expression is MetaPropertyNode && ModuleKind is not (99 or 200))

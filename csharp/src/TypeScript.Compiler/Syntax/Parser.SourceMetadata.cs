@@ -136,6 +136,7 @@ public sealed partial class Parser
                 else if (node is CallExpressionNode { Arguments: { Count: > 0 } args } call
                     && args[0].Kind is K.StringLiteral or K.NoSubstitutionTemplateLiteral &&
                     (call.Expression?.Kind == K.ImportKeyword
+                        || call.Expression is MetaPropertyNode { KeywordToken: K.ImportKeyword, Name.Text: "defer" }
                         || javascript
                             && args.Count == 1
                             && call.Expression is IdentifierNode { Text: "require" }) && seen.Add((args[0].Pos, args[0].End)))

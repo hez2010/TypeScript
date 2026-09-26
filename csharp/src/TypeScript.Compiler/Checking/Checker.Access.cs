@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -20,7 +21,17 @@ internal sealed partial class Checker : IAccessExpressionHost, IIndexedAccessVal
     public bool NoImplicitThis => program.Symbols.Program.Configuration.Options.StrictOption("noImplicitThis");
     public bool LegacyDecorators => program.Symbols.Program.Configuration.Options.Boolean("experimentalDecorators") == true;
 
-    public void ThisError(SyntaxNode node, int code, SyntaxNode? related = null) => Error(node, code);
+    public void ThisError(SyntaxNode node, int code, SyntaxNode? related = null)
+    {
+        var diagnostic = CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code));
+        if (code == 2683 && related is not null)
+            diagnostic = diagnostic with
+            {
+                RelatedInformation = [CheckerDiagnostic.Create(related,
+                Messages.An_outer_value_of_this_is_shadowed_by_this_container)]
+            };
+        Error(node, diagnostic);
+    }
 
     internal List<(SyntaxNode Node, Type Type, bool Suggestion)> DeferredMissingProperties { get; } = [];
     public bool StrictPropertyInitialization => program.Symbols.Program.Configuration.Options.StrictOption("strictPropertyInitialization");

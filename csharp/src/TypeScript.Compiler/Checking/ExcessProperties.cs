@@ -76,7 +76,11 @@ internal sealed class ExcessProperties(TypeContext context, TypeAlgebra algebra,
         return target;
     }
 
-    internal async ValueTask<Symbol?> UnknownPropertyAsync(Type source, Type target, RelationKind kind, TypeRelations relations,
+    internal async ValueTask<(Symbol Property, Type Target)?> UnknownPropertyAsync(
+        Type source,
+        Type target,
+        RelationKind kind,
+        TypeRelations relations,
         CancellationToken cancellation = default)
     {
         if ((source.ObjectFlags & (ObjectFlags.ObjectLiteral | ObjectFlags.FreshLiteral)) != (ObjectFlags.ObjectLiteral | ObjectFlags.FreshLiteral)
@@ -98,7 +102,10 @@ internal sealed class ExcessProperties(TypeContext context, TypeAlgebra algebra,
             if (property.ValueDeclaration is not null && source.Symbol?.ValueDeclaration is not null
                 && property.ValueDeclaration.Parent == source.Symbol.ValueDeclaration && !(jsx && property.Name.Contains('-'))
                 && !await KnownAsync(target, property.Name, jsx, cancellation).ConfigureAwait(false))
-                return property;
+                return (property, await algebra.FilterAsync(
+                    target,
+                    part => ValueTask.FromResult(Target(part)),
+                    cancellation).ConfigureAwait(false));
         return null;
     }
 

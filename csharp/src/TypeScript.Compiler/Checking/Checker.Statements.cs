@@ -191,7 +191,7 @@ internal sealed partial class Checker
                 right,
                 TypeFlags.NonPrimitive | TypeFlags.InstantiableNonPrimitive,
                 cancellation).ConfigureAwait(false))
-            Error(node.Expression!, 2407);
+            Error(node.Expression!, 2407, await TypeDisplay.GetAsync(right, cancellation));
         await CheckSourceElementAsync(node.Statement, cancellation).ConfigureAwait(false);
     }
 

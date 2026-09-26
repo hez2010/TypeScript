@@ -21,7 +21,24 @@ internal sealed partial class Checker
             return;
         bool ambient = (node.Flags & NodeFlags.Ambient) != 0;
         if (SemanticSyntax.ClassLike(node) && name.Text == "Object" && !ambient && EmitModuleKind(node) < 5)
-            Error(name, 2725);
+            Error(name, 2725, ModuleKind switch
+            {
+                0 => "None",
+                1 => "CommonJS",
+                2 => "AMD",
+                3 => "UMD",
+                4 => "System",
+                5 => "ES2015",
+                6 => "ES2020",
+                7 => "ES2022",
+                99 => "ESNext",
+                100 => "Node16",
+                101 => "Node18",
+                102 => "Node20",
+                199 => "NodeNext",
+                200 => "Preserve",
+                _ => "ModuleKind(" + ModuleKind.ToString(System.Globalization.CultureInfo.InvariantCulture) + ")"
+            });
         if (ambient || node is PropertyDeclarationNode or PropertySignatureDeclarationNode or MethodDeclarationNode
             or MethodSignatureDeclarationNode
             or GetAccessorDeclarationNode or SetAccessorDeclarationNode or PropertyAssignmentNode
@@ -36,7 +53,7 @@ internal sealed partial class Checker
             int module = EmitModuleKind(node);
             if (name.Text is "require" or "exports" && module < 5
                 || name.Text == "Object" && !SemanticSyntax.ClassLike(node) && module == 1)
-                Error(name, 2441, name.Text);
+                Error(name, 2441, name.Text, name.Text);
             if (name.Text == "Promise" && TargetYear < 2017
                 && file.DescendantsAndSelf().Any(n => SemanticSyntax.HasModifier(n, SyntaxKind.AsyncKeyword)))
                 Error(name, 2529);

@@ -21,13 +21,24 @@ public sealed partial class Parser
         K end,
         Func<ValueTask<SyntaxNode>> element,
         bool semicolons = false,
-        Func<bool>? stop = null)
+        Func<bool>? stop = null,
+        Func<bool>? startsElement = null,
+        DiagnosticMessage? elementExpected = null)
     {
         await ParseStack;
         int start = Pos;
         var nodes = new List<SyntaxNode>();
         while (Token != end && Token != K.EndOfFile && stop?.Invoke() != true)
         {
+            if (startsElement?.Invoke() == false)
+            {
+                Error(elementExpected!);
+                if (Token != K.SemicolonToken && StartsStatement()
+                    || Token is K.CloseBraceToken or K.CloseParenToken or K.CloseBracketToken)
+                    break;
+                Next();
+                continue;
+            }
             int before = Pos;
             nodes.Add(await element().ConfigureAwait(false));
             if (Token == end || stop?.Invoke() == true)

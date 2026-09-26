@@ -17,7 +17,8 @@ internal sealed partial class Checker
         CancellationToken cancellation,
         Diagnostic? head = null)
     {
-        if (code is not (2322 or 2344 or 2345 or 2352 or 2375 or 2412 or 2415 or 2430 or 2420 or 2678 or 2684 or 2720 or 2739 or 2740
+        if (code is not (2322 or 2344 or 2345 or 2352 or 2375 or 2412 or 2415 or 2417 or 2430 or 2420 or 2678 or 2684 or 2720 or 2739
+            or 2740
             or 2741
             or 2787 or 2788
             or 2789))
@@ -26,10 +27,12 @@ internal sealed partial class Checker
             return;
         }
         var originalSource = source;
+        var (sourceText, targetText) = await RelationTypeNamesAsync(source, target, cancellation);
         if ((target.Flags & TypeFlags.Never) == 0 && source.IsLiteral && !await CouldHaveSingletonTypesAsync(target, cancellation))
+        {
             source = await Widening.LiteralBaseAsync(source, cancellation);
-        string sourceText = await TypeDisplay.GetAsync(source, cancellation);
-        string targetText = await TypeDisplay.GetAsync(target, cancellation);
+            sourceText = await TypeDisplay.GetAsync(source, NodeBuilderFlags.UseFullyQualifiedType, cancellation);
+        }
         string[] arguments;
         if (code is 2787 or 2788 or 2789)
             arguments = [sourceText];
@@ -108,10 +111,10 @@ internal sealed partial class Checker
         {
             4104 => next.Arguments.SequenceEqual(new[] { sourceText, targetText }),
             2559 or 2560 => true,
-            2741 when diagnostic.Code is not (2415 or 2430 or 2420 or 2720 or 2352) => next.Arguments is [_, var s, var t]
+            2741 when diagnostic.Code is not (2415 or 2417 or 2430 or 2420 or 2720 or 2352) => next.Arguments is [_, var s, var t]
                 && s == sourceText
                 && t == targetText,
-            2739 or 2740 when diagnostic.Code is not (2415 or 2430 or 2420 or 2720 or 2352) => next.Arguments.Length >= 2
+            2739 or 2740 when diagnostic.Code is not (2415 or 2417 or 2430 or 2420 or 2720 or 2352) => next.Arguments.Length >= 2
                 && next.Arguments[0] == sourceText
                 && next.Arguments[1] == targetText,
             _ => false
@@ -155,10 +158,12 @@ internal sealed partial class Checker
             var source = explanation.Source!;
             var target = explanation.Target!;
             var originalSource = source;
+            var (sourceText, targetText) = await RelationTypeNamesAsync(source, target, cancellation);
             if ((target.Flags & TypeFlags.Never) == 0 && source.IsLiteral && !await CouldHaveSingletonTypesAsync(target, cancellation))
+            {
                 source = await Widening.LiteralBaseAsync(source, cancellation);
-            string sourceText = await TypeDisplay.GetAsync(source, cancellation);
-            string targetText = await TypeDisplay.GetAsync(target, cancellation);
+                sourceText = await TypeDisplay.GetAsync(source, NodeBuilderFlags.UseFullyQualifiedType, cancellation);
+            }
             diagnostic = diagnostic with { Arguments = [sourceText, targetText] };
             diagnostic = await ConstraintReasonAsync(diagnostic, originalSource, source, target, sourceText, targetText, cancellation);
             return SelectRelationDiagnostic(diagnostic, originalSource, target, sourceText, targetText);
@@ -235,6 +240,25 @@ internal sealed partial class Checker
     }
 
     private static string PropertyPath(string name) => name.Length != 0 && name[0] is '\'' or '"' or '`' ? "[" + name + "]" : name;
+
+    private async ValueTask<(string Source, string Target)> RelationTypeNamesAsync(Type source, Type target, CancellationToken cancellation)
+    {
+        async ValueTask<string> Name(Type type)
+        {
+            var enclosing = type.Symbol?.ValueDeclaration;
+            if (enclosing is null || !QuerySyntax.Expression(enclosing) || program.IsContextSensitive(enclosing))
+                enclosing = null;
+            return await TypeDisplay.GetAsync(type, enclosing,
+                TypeFormatFlags.AllowUniqueESSymbolType | TypeFormatFlags.UseAliasDefinedOutsideCurrentScope, cancellation);
+        }
+        string sourceText = await Name(source), targetText = await Name(target);
+        if (sourceText == targetText)
+        {
+            sourceText = await TypeDisplay.GetAsync(source, NodeBuilderFlags.UseFullyQualifiedType, cancellation);
+            targetText = await TypeDisplay.GetAsync(target, NodeBuilderFlags.UseFullyQualifiedType, cancellation);
+        }
+        return (sourceText, targetText);
+    }
 
     private async ValueTask<Diagnostic> ConstraintReasonAsync(Diagnostic diagnostic, Type originalSource, Type source, Type target,
         string sourceText, string targetText, CancellationToken cancellation)

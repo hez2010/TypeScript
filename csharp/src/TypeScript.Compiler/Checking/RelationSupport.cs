@@ -80,7 +80,7 @@ internal sealed class RelationSupport(
                 return Ternary.False;
             }
             var bound = await constraints.ConstraintAsync(source, cancellation).ConfigureAwait(false) ?? context.UnknownType;
-            var result = await operation.CompareAsync(
+            var result = await operation.CompareWithoutErrorsAsync(
                 bound,
                 target,
                 RecursionFlags.Source,
@@ -88,12 +88,15 @@ internal sealed class RelationSupport(
                 cancellation).ConfigureAwait(false);
             if (result != Ternary.False)
                 return result;
-            return await operation.CompareAsync(
-                await bases.WithThisAsync(bound, source, cancellation: cancellation).ConfigureAwait(false),
-                target,
-                RecursionFlags.Source,
-                intersection,
-                cancellation).ConfigureAwait(false);
+            var withThis = await bases.WithThisAsync(bound, source, cancellation: cancellation).ConfigureAwait(false);
+            return bound == context.UnknownType || target is TypeParameter
+                ? await operation.CompareWithoutErrorsAsync(
+                    withThis,
+                    target,
+                    RecursionFlags.Source,
+                    intersection,
+                    cancellation).ConfigureAwait(false)
+                : await operation.CompareAsync(withThis, target, RecursionFlags.Source, intersection, cancellation).ConfigureAwait(false);
         }
         return target is TypeParameter && (source.Flags & TypeFlags.Instantiable) == 0 && source is not MappedType ? Ternary.False : null;
     }

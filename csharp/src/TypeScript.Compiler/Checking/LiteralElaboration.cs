@@ -22,6 +22,8 @@ internal interface ILiteralElaborationHost
     ValueTask LiteralRelationErrorAsync(SyntaxNode node, int code, Type source, Type target, CancellationToken cancellation);
 
     ValueTask ExpectedPropertyInfoAsync(SyntaxNode node, Type target, Type key, Symbol? property, CancellationToken cancellation);
+
+    void ExpectedReturnInfo(ArrowFunctionNode node, Type target, bool suggestAsync);
 }
 
 internal sealed class LiteralElaboration(TypeContext context, CheckerSymbols symbols, TypeAlgebra algebra, TypeRelations relations,
@@ -122,13 +124,15 @@ internal sealed class LiteralElaboration(TypeContext context, CheckerSymbols sym
                 return true;
             if (!await host.ReportRelationAsync(sourceReturn, targetReturn, kind, arrow.Body, null, cancellation).ConfigureAwait(false))
             {
+                bool suggestAsync = false;
                 if (!SemanticSyntax.HasModifier(arrow, SyntaxKind.AsyncKeyword)
                     && await properties.PropertyAsync(sourceReturn, "then", cancellation: cancellation).ConfigureAwait(false) is null)
-                    await relations.RelatedAsync(
+                    suggestAsync = await relations.RelatedAsync(
                         await host.PromiseResultAsync(node, sourceReturn, false, cancellation).ConfigureAwait(false),
                         targetReturn,
                         kind,
                         cancellation).ConfigureAwait(false);
+                host.ExpectedReturnInfo(arrow, target, suggestAsync);
                 return true;
             }
         }

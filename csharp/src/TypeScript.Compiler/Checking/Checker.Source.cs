@@ -197,10 +197,15 @@ internal sealed partial class Checker
                 case WithStatementNode statement:
                     if (!AmbientStatement(statement) && (statement.Flags & NodeFlags.AwaitContext) != 0
                         && SemanticSyntax.Source(statement)?.ParseDiagnostics.Count == 0)
-                        Error(statement, 1300);
+                        ErrorOnFirstToken(statement, 1300);
                     await Expressions.CheckAsync(statement.Expression!, cancellation: cancellation).ConfigureAwait(false);
                     if (SemanticSyntax.Source(statement)?.ParseDiagnostics.Count == 0)
-                        Error(statement, 2410);
+                    {
+                        var diagnostic = CheckerDiagnostic.Create(
+                            statement,
+                            TypeScript.Compiler.Diagnostics.DiagnosticLocalization.GetMessage(2410));
+                        Error(statement, diagnostic with { Length = statement.Statement!.Pos - diagnostic.Start });
+                    }
                     break;
                 case WhileStatementNode loop:
                     AmbientStatement(loop);

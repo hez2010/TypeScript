@@ -197,7 +197,7 @@ internal sealed class InstantiationServices : ITypeInstantiationHost, ITupleType
     public void CircularConstraint(TypeParameter parameter, SyntaxNode declaration)
     {
         ConstraintDiagnostics.Add(2313);
-        checker.TrackDiagnostic(declaration, 2313);
+        checker.TrackDiagnostic(declaration, 2313, checker.TypeDisplay.SymbolName(parameter.Symbol!));
     }
 
     public void CircularProperty(Symbol symbol, MappedType type)

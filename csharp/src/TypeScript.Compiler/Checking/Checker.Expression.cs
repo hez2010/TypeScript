@@ -24,6 +24,7 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
             2564 => [CheckerDiagnostic.DeclarationName(node)],
             18046 or 18047 or 18048 or 18049 => [ExpressionChecks.EntityText(node)!],
             18050 => [node.Kind == SyntaxKind.NullKeyword ? "null" : "undefined"],
+            2748 => [IsolatedModuleOptionName],
             _ => []
         };
         Error(node, code, arguments);

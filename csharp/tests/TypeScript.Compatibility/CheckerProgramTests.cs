@@ -17,6 +17,54 @@ namespace TypeScript.Compatibility;
 
 internal static class CheckerProgramTests
 {
+    internal static async Task<int> RelationContextSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Relation context assertion {checks + 1}");
+            checks++;
+        }
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        var files = new Dictionary<string, byte[]>
+        {
+            ["/project/globals.d.ts"] = Wtf8.Encode(
+                "interface Object{}interface Function{readonly length:number}interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T}"),
+            ["/project/main.ts"] = Wtf8.Encode(
+                "interface Shape{value:number}let shape:Shape={vaule:1};const part={value:2};const dupe={value:1,...part};const result:()=>number=()=>'';class Base{get value(){return 1}}class Derived extends Base{value=1}interface Merge<T>{}interface Merge<T,U>{}function circ<T extends T>(){}abstract class Mod{static private x:number;abstract static m():void;}"),
+            ["/project/recovery.ts"] = Wtf8.Encode("enum E{#x}")
+        };
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
+            new("/project/tsconfig.json", options, files.Keys.ToArray(), [], [], []));
+        var source = program.GetFile("/project/main.ts")!.Syntax;
+        var before = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
+        var checker = await program.CreateCheckerAsync();
+        await checker.CheckProgramAsync();
+        var diagnostics = checker.DetailedDiagnosticsForProgramFile(source);
+        Check(diagnostics.Single(d => d.Code == 2561).Arguments.SequenceEqual(["vaule", "Shape", "value"]));
+        var spread = diagnostics.Single(d => d.Code == 2783);
+        Check(spread.Arguments.SequenceEqual(["value"]));
+        Check(spread.RelatedInformation is [var note] && note.Code == 2785);
+        var arrow = diagnostics.Single(d => d.Code == 2322);
+        Check(arrow.Arguments.SequenceEqual(["string", "number"]));
+        Check(arrow.RelatedInformation is [var returnNote] && returnNote.Code == 6502);
+        Check(diagnostics.Single(d => d.Code == 2610).Arguments.SequenceEqual(["value", "Base", "Derived"]));
+        Check(diagnostics.Count(d => d.Code == 2428) == 2);
+        Check(diagnostics.Where(d => d.Code == 2428).All(d => d.Arguments.SequenceEqual(["Merge"])));
+        Check(diagnostics.Single(d => d.Code == 2313).Arguments.SequenceEqual(["T"]));
+        Check(diagnostics.Single(d => d.Code == 1029).Arguments.SequenceEqual(["private", "static"]));
+        Check(diagnostics.Single(d => d.Code == 1243).Arguments.SequenceEqual(["static", "abstract"]));
+        var recovery = program.GetFile("/project/recovery.ts")!.Syntax;
+        Check(checker.DetailedDiagnosticsForProgramFile(recovery).Any(d => d.Code == 18024));
+        await checker.CheckProgramAsync();
+        Check(checker.DetailedDiagnosticsForProgramFile(source).SequenceEqual(diagnostics, DiagnosticEqualityComparer.Instance));
+        Check(before.All(n => n.Node.Parent == n.Parent && n.Node.Pos == n.Pos && n.Node.End == n.End && n.Node.Flags == n.Flags));
+        return checks;
+    }
+
     internal static async Task<int> DeclarationGrammarSafety()
     {
         int checks = 0;

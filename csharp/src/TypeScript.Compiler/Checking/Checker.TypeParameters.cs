@@ -40,7 +40,8 @@ internal sealed partial class Checker
             }
             if (code != 0)
             {
-                Error(modifier, code);
+                Error(modifier, code, code == 1029 ? ["in", "out"]
+                    : code is 1277 or 1274 or 1030 or 1273 ? [TokenFacts.Text(modifier.Kind)] : []);
                 return;
             }
         }

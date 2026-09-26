@@ -45,38 +45,43 @@ internal sealed partial class Checker
                 case SyntaxKind.PrivateKeyword:
                     if (parsed && seen.Any(k => k is SyntaxKind.OverrideKeyword or SyntaxKind.StaticKeyword or SyntaxKind.AccessorKeyword
                         or SyntaxKind.ReadonlyKeyword or SyntaxKind.AsyncKeyword))
-                        return Report(modifier, 1029);
+                        return Report(modifier, 1029, TokenFacts.Text(kind), Seen(SyntaxKind.OverrideKeyword, SyntaxKind.StaticKeyword,
+                            SyntaxKind.AccessorKeyword, SyntaxKind.ReadonlyKeyword, SyntaxKind.AsyncKeyword));
                     if (moduleElement)
                         return Report(modifier, 1044);
                     if (seen.Contains(SyntaxKind.AbstractKeyword))
                     {
                         if (kind == SyntaxKind.PrivateKeyword)
-                            return Report(modifier, 1243);
+                            return Report(modifier, 1243, "private", "abstract");
                         if (parsed)
-                            return Report(modifier, 1029);
+                            return Report(modifier, 1029, TokenFacts.Text(kind), "abstract");
                     }
                     if (SemanticSyntax.Name(node) is PrivateIdentifierNode)
                         return Report(modifier, 18010);
                     break;
                 case SyntaxKind.StaticKeyword:
                     if (parsed && seen.Any(k => k is SyntaxKind.ReadonlyKeyword or SyntaxKind.AsyncKeyword or SyntaxKind.AccessorKeyword))
-                        return Report(modifier, 1029);
+                        return Report(
+                            modifier,
+                            1029,
+                            "static",
+                            Seen(SyntaxKind.ReadonlyKeyword, SyntaxKind.AsyncKeyword, SyntaxKind.AccessorKeyword));
                     if (moduleElement)
                         return Report(modifier, 1044);
                     if (node is ParameterDeclarationNode)
                         return Report(modifier, 1090);
                     if (seen.Contains(SyntaxKind.AbstractKeyword))
-                        return Report(modifier, 1243);
+                        return Report(modifier, 1243, "static", "abstract");
                     if (parsed && seen.Contains(SyntaxKind.OverrideKeyword))
-                        return Report(modifier, 1029);
+                        return Report(modifier, 1029, "static", "override");
                     break;
                 case SyntaxKind.ConstKeyword:
                     if (node is not (EnumDeclarationNode or TypeParameterDeclarationNode))
-                        return Report(node, 1248);
+                        return Report(node, 1248, "const");
                     break;
                 case SyntaxKind.AccessorKeyword:
                     if (seen.Contains(SyntaxKind.ReadonlyKeyword) || seen.Contains(SyntaxKind.DeclareKeyword))
-                        return Report(modifier, 1243);
+                        return Report(modifier, 1243, "accessor", Seen(SyntaxKind.ReadonlyKeyword, SyntaxKind.DeclareKeyword));
                     if (node is not PropertyDeclarationNode)
                         return Report(modifier, 1275);
                     break;
@@ -85,7 +90,7 @@ internal sealed partial class Checker
                         or ParameterDeclarationNode))
                         return Report(modifier, 1024);
                     if (seen.Contains(SyntaxKind.AccessorKeyword))
-                        return Report(modifier, 1243);
+                        return Report(modifier, 1243, "readonly", "accessor");
                     break;
                 case SyntaxKind.ExportKeyword:
                     if ((node.Flags & NodeFlags.Ambient) == 0 && node.Parent is SourceFileNode
@@ -93,7 +98,11 @@ internal sealed partial class Checker
                         && program.Symbols.Program.Configuration.Options.Boolean("verbatimModuleSyntax") == true && EmitModuleKind(node) == 1)
                         return Report(modifier, 1287);
                     if (parsed && seen.Any(k => k is SyntaxKind.DeclareKeyword or SyntaxKind.AbstractKeyword or SyntaxKind.AsyncKeyword))
-                        return Report(modifier, 1029);
+                        return Report(
+                            modifier,
+                            1029,
+                            "export",
+                            Seen(SyntaxKind.DeclareKeyword, SyntaxKind.AbstractKeyword, SyntaxKind.AsyncKeyword));
                     if (SemanticSyntax.ClassLike(node.Parent))
                         return Report(modifier, 1031);
                     if (node is ParameterDeclarationNode)
@@ -104,11 +113,11 @@ internal sealed partial class Checker
                     if (container is ModuleDeclarationNode && !AmbientModule(container))
                         return Report(modifier, 1319);
                     if (parsed && !seen.Contains(SyntaxKind.ExportKeyword))
-                        return Report(modifier, 1029);
+                        return Report(modifier, 1029, "export", "default");
                     break;
                 case SyntaxKind.DeclareKeyword:
                     if (seen.Contains(SyntaxKind.AsyncKeyword) || seen.Contains(SyntaxKind.OverrideKeyword))
-                        return Report(modifier, 1040);
+                        return Report(modifier, 1040, Seen(SyntaxKind.AsyncKeyword, SyntaxKind.OverrideKeyword));
                     if (SemanticSyntax.ClassLike(node.Parent) && node is not PropertyDeclarationNode)
                         return Report(modifier, 1031);
                     if (node is ParameterDeclarationNode)
@@ -118,7 +127,7 @@ internal sealed partial class Checker
                     if (SemanticSyntax.Name(node) is PrivateIdentifierNode)
                         return Report(modifier, 18019);
                     if (seen.Contains(SyntaxKind.AccessorKeyword))
-                        return Report(modifier, 1243);
+                        return Report(modifier, 1243, "declare", "accessor");
                     break;
                 case SyntaxKind.AbstractKeyword:
                     if (node is not (ClassDeclarationNode or ConstructorTypeNode))
@@ -129,11 +138,11 @@ internal sealed partial class Checker
                         if (node.Parent is not ClassDeclarationNode || !SemanticSyntax.HasModifier(node.Parent, SyntaxKind.AbstractKeyword))
                             return Report(modifier, node is PropertyDeclarationNode ? 1253 : 1244);
                         if (seen.Contains(SyntaxKind.StaticKeyword) || seen.Contains(SyntaxKind.PrivateKeyword))
-                            return Report(modifier, 1243);
+                            return Report(modifier, 1243, Seen(SyntaxKind.StaticKeyword, SyntaxKind.PrivateKeyword), "abstract");
                         if (seen.Contains(SyntaxKind.AsyncKeyword))
-                            return Report(modifiers.First(m => m.Kind == SyntaxKind.AsyncKeyword), 1243);
+                            return Report(modifiers.First(m => m.Kind == SyntaxKind.AsyncKeyword), 1243, "async", "abstract");
                         if (parsed && (seen.Contains(SyntaxKind.OverrideKeyword) || seen.Contains(SyntaxKind.AccessorKeyword)))
-                            return Report(modifier, 1029);
+                            return Report(modifier, 1029, "abstract", Seen(SyntaxKind.OverrideKeyword, SyntaxKind.AccessorKeyword));
                     }
                     if (SemanticSyntax.Name(node) is PrivateIdentifierNode)
                         return Report(modifier, 18019);
@@ -144,13 +153,17 @@ internal sealed partial class Checker
                     if (node is ParameterDeclarationNode)
                         return Report(modifier, 1090);
                     if (seen.Contains(SyntaxKind.AbstractKeyword))
-                        return Report(modifier, 1243);
+                        return Report(modifier, 1243, "async", "abstract");
                     break;
                 case SyntaxKind.OverrideKeyword:
                     if (seen.Contains(SyntaxKind.DeclareKeyword))
-                        return Report(modifier, 1243);
+                        return Report(modifier, 1243, "override", "declare");
                     if (parsed && seen.Any(k => k is SyntaxKind.ReadonlyKeyword or SyntaxKind.AccessorKeyword or SyntaxKind.AsyncKeyword))
-                        return Report(modifier, 1029);
+                        return Report(
+                            modifier,
+                            1029,
+                            "override",
+                            Seen(SyntaxKind.ReadonlyKeyword, SyntaxKind.AccessorKeyword, SyntaxKind.AsyncKeyword));
                     break;
                 case SyntaxKind.InKeyword:
                 case SyntaxKind.OutKeyword:
@@ -177,10 +190,13 @@ internal sealed partial class Checker
             return Report(node, 1184);
         return false;
 
-        bool Report(SyntaxNode location, int code)
+        string Seen(params SyntaxKind[] kinds) => TokenFacts.Text(kinds.First(seen.Contains));
+
+        bool Report(SyntaxNode location, int code, params string[] arguments)
         {
-            Error(location, code, code is 1030 or 1040 or 1042 or 1044 or 1070 or 1071 or 1031 or 1090 or 1274 or 18019 or 1089
-                ? [TokenFacts.Text(location.Kind)] : []);
+            Error(location, code, arguments.Length != 0 ? arguments
+                : code is 1030 or 1040 or 1042 or 1044 or 1070 or 1071 or 1031 or 1090 or 1274 or 18019 or 1089 or 1079
+                    ? [TokenFacts.Text(location.Kind)] : []);
             return true;
         }
     }

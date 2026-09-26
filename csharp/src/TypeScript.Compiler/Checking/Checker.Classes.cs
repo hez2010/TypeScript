@@ -106,7 +106,8 @@ internal sealed partial class Checker
         else if (PropertyInitialization.Members(node).Any(m => SemanticSyntax.HasModifier(m, SyntaxKind.OverrideKeyword)))
             foreach (var member in PropertyInitialization.Members(node).Where(
                 m => SemanticSyntax.HasModifier(m, SyntaxKind.OverrideKeyword)))
-                Error(SemanticSyntax.Name(member) ?? member, 4112);
+                Error(SemanticSyntax.Name(member) ?? member, (node.Flags & NodeFlags.JavaScriptFile) != 0 ? 4121 : 4112,
+                    await TypeDisplay.GetAsync(type, cancellation));
         foreach (HeritageClauseNode clause in ((IEnumerable<SyntaxNode>?)(node is ClassDeclarationNode c
             ? c.HeritageClauses
             : ((ClassExpressionNode)node).HeritageClauses) ?? []).OfType<HeritageClauseNode>()
@@ -224,7 +225,7 @@ internal sealed partial class Checker
         && node is IModifiedNode { Modifiers: { } modifiers }
         && modifiers.Any(
             m => m.Kind is SyntaxKind.PublicKeyword or SyntaxKind.ProtectedKeyword or SyntaxKind.PrivateKeyword
-                or SyntaxKind.ReadonlyKeyword);
+                or SyntaxKind.ReadonlyKeyword or SyntaxKind.OverrideKeyword);
 
     private void CheckClassDuplicates(SyntaxNode node)
     {

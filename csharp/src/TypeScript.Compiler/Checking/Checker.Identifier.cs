@@ -39,9 +39,13 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
         ReferenceNarrowing.GetAsync(type, node, mode, cancellation);
 
     public void IdentifierError(SyntaxNode node, int code, Symbol symbol, Type? type = null)
-        => Error(node, code, code is 2454 or 2630 or 2631 ? [TypeDisplay.SymbolName(symbol)] : []);
+        => Error(node, code, code is 2454 or 2628 or 2629 or 2630 or 2631 or 2588 or 2540 ? [TypeDisplay.SymbolName(symbol)]
+            : code is 7034 or 7005 ? [TypeDisplay.SymbolName(symbol), type == context.AutoType ? "any" : "any[]"] : []);
 
     public void CircularInitializer(Symbol symbol) => CircularSymbol(symbol);
+
+    private void MissingNamePrefixError(SyntaxNode node, int code, Symbol? symbol)
+        => Error(node, code, code == 2662 ? [SyntaxNameText.Get(node), TypeDisplay.SymbolName(symbol!)] : [SyntaxNameText.Get(node)]);
 
     public ValueTask<Type?> ContextualReferenceAsync(SyntaxNode node, bool skipBindingPatterns, CancellationToken cancellation) =>
         Contexts.GetAsync(node, skipBindingPatterns ? ContextFlags.SkipBindingPatterns : 0, cancellation);
@@ -228,16 +232,22 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
         bool related = await Relations.RelatedAsync(source, target, kind, cancellation);
         if (!related && node is not null)
         {
-            if (await ExcessProperties.UnknownPropertyAsync(source, target, kind, Relations, cancellation) is { } excess)
+            if (await ExcessProperties.UnknownPropertyAsync(source, target, kind, Relations, cancellation) is { } unknown)
             {
+                var excess = unknown.Property;
                 if ((source.ObjectFlags & ObjectFlags.JsxAttributes) != 0)
                     await ReportRelationMessageAsync(node, relationDiagnosticHead ?? headCode ?? 2322, source, target, kind, cancellation);
                 else if (relationDiagnosticHead is null)
-                    RelationError(
-                        (excess.ValueDeclaration as INamedNode)?.Name ?? node,
-                        2353,
-                        TypeDisplay.SymbolName(excess),
-                        await TypeDisplay.GetAsync(target, cancellation));
+                {
+                    var location = (excess.ValueDeclaration as INamedNode)?.Name ?? node;
+                    var suggestion = location is IdentifierNode identifier ? await SymbolSuggestions.FindAsync(identifier.Text,
+                        await Properties.GetAsync(unknown.Target, cancellation), SymbolFlags.Value, cancellation) : null;
+                    string propertyName = TypeDisplay.SymbolName(excess), targetName = await TypeDisplay.GetAsync(
+                        unknown.Target,
+                        cancellation);
+                    RelationError(location, suggestion is null ? 2353 : 2561,
+                        suggestion is null ? [propertyName, targetName] : [propertyName, targetName, suggestion.Name]);
+                }
                 else
                     RelationError((excess.ValueDeclaration as INamedNode)?.Name ?? node, relationDiagnosticHead ?? 2353);
                 return false;

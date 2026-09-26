@@ -225,7 +225,9 @@ public sealed partial class Parser
                                 (await InitializerCore().ConfigureAwait(false))),
                             memberStart),
                         memberTrivia).ConfigureAwait(false);
-                }).ConfigureAwait(false));
+                }, startsElement: () => Token is K.OpenBracketToken or K.StringLiteral or K.NumericLiteral or K.BigIntLiteral
+                    || Token >= K.Identifier,
+                    elementExpected: Messages.Enum_member_expected).ConfigureAwait(false));
                 Expected(K.CloseBraceToken);
                 return Finish(factory.NewEnumDeclaration(modifiers, enumName, members), start);
             case K.NamespaceKeyword:

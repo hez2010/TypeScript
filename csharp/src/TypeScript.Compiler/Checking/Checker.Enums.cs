@@ -11,6 +11,8 @@ internal sealed partial class Checker
     private async ValueTask CheckEnumSourceAsync(EnumDeclarationNode node, CancellationToken cancellation)
     {
         CheckDeclarationName(node);
+        if (ReservedTypeName(node.Name!.Text))
+            Error(node.Name, 2431, node.Name.Text);
         ExportedDeclaration(node, true);
         await CheckMergedExportsAsync(node, cancellation).ConfigureAwait(false);
         foreach (var member in node.Members!)
