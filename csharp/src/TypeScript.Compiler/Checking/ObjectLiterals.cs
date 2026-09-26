@@ -25,6 +25,8 @@ internal interface IObjectLiteralHost
 
     void ExpressionError(SyntaxNode node, int code);
 
+    void DuplicateObjectProperty(SyntaxNode node, string name);
+
     void SpreadOverride(SyntaxNode node, Symbol property, SyntaxNode spread);
 
     void LiteralGrammar(SyntaxNode node);
@@ -423,7 +425,10 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
             else if ((kind & old & 2) != 0)
                 Error(name, 2300);
             else if ((kind & old & 1) != 0)
-                Error(name, 1117);
+            {
+                if (SemanticSyntax.Source(name)?.ParseDiagnostics.Count == 0)
+                    host.DuplicateObjectProperty(name, text);
+            }
             else if ((kind & 12) != 0 && (old & 12) != 0)
             {
                 if (old != 12 && kind != old)

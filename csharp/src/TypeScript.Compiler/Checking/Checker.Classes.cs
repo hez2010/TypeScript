@@ -11,7 +11,8 @@ internal sealed partial class Checker
 {
     private async ValueTask CheckClassSourceAsync(SyntaxNode node, bool expression, CancellationToken cancellation)
     {
-        if (!expression && SemanticSyntax.Name(node) is null && !SemanticSyntax.HasModifier(node, SyntaxKind.DefaultKeyword))
+        if (!expression && SemanticSyntax.Name(node) is null && !SemanticSyntax.HasModifier(node, SyntaxKind.DefaultKeyword)
+            && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
             Error(node, 1211);
         if (!CheckClassModifiers(node))
             HeritageGrammar(
@@ -106,9 +107,10 @@ internal sealed partial class Checker
             foreach (var member in PropertyInitialization.Members(node).Where(
                 m => SemanticSyntax.HasModifier(m, SyntaxKind.OverrideKeyword)))
                 Error(SemanticSyntax.Name(member) ?? member, 4112);
-        foreach (HeritageClauseNode clause in (IEnumerable<SyntaxNode>?)(node is ClassDeclarationNode c
+        foreach (HeritageClauseNode clause in ((IEnumerable<SyntaxNode>?)(node is ClassDeclarationNode c
             ? c.HeritageClauses
-            : ((ClassExpressionNode)node).HeritageClauses) ?? [])
+            : ((ClassExpressionNode)node).HeritageClauses) ?? []).OfType<HeritageClauseNode>()
+                .Where(h => h.Token == SyntaxKind.ImplementsKeyword).Take(1))
             if (clause.Token == SyntaxKind.ImplementsKeyword)
                 foreach (var reference in clause.Types!)
                 {

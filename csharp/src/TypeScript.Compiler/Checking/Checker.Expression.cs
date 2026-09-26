@@ -15,6 +15,8 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
     internal List<int> Suggestions { get; } = [];
     private readonly HashSet<(SyntaxNode, int)> suggestionLocations = [];
 
+    public void DuplicateObjectProperty(SyntaxNode node, string name) => Error(node, 1117, name);
+
     public void ExpressionError(SyntaxNode node, int code)
     {
         string[] arguments = code switch
@@ -103,7 +105,7 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
         {
             var type = (Type)synthetic.Type!;
             context.RequireOwned(type);
-            return type;
+            return synthetic.IsSpread ? await Indexed.GetAsync(type, context.NumberType, cancellation: cancellation) : type;
         }
         if (node is SpreadElementNode spread)
             return await SpreadElementAsync(

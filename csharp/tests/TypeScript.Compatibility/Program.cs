@@ -106,6 +106,12 @@ internal static class Program
                     $"Diagnostic value safety: {CheckerProgramTests.DiagnosticValueSafety().GetAwaiter().GetResult()} assertions passed");
                 return 0;
             }
+            if (args is ["--checker-declaration-grammar-safety"])
+            {
+                Console.WriteLine(
+                    $"Declaration grammar safety: {CheckerProgramTests.DeclarationGrammarSafety().GetAwaiter().GetResult()} assertions passed");
+                return 0;
+            }
             if (args is ["--checker-pool-safety"])
             {
                 Console.WriteLine($"Checker pool safety: {CheckerPoolTests.Safety().GetAwaiter().GetResult()} assertions passed");

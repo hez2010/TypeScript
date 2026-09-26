@@ -58,7 +58,8 @@ internal sealed class BaseTypes(TypeContext context, TypeAlgebra algebra, TypeCo
                 {
                     var result = (type.ResolvedBaseTypes ?? []).ToList();
                     foreach (var declaration in symbol.Declarations.OfType<InterfaceDeclarationNode>())
-                        foreach (var heritage in declaration.HeritageClauses?.OfType<HeritageClauseNode>() ?? [])
+                        foreach (var heritage in declaration.HeritageClauses?.OfType<HeritageClauseNode>()
+                            .Where(h => h.Token == SyntaxKind.ExtendsKeyword).Take(1) ?? [])
                             if (heritage.Token == SyntaxKind.ExtendsKeyword && heritage.Types is { } bases)
                                 foreach (var node in bases)
                                 {

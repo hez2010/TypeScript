@@ -12,6 +12,9 @@ internal sealed partial class Checker
 
     private async ValueTask CheckMethodNameAsync(SyntaxNode node, CancellationToken cancellation)
     {
+        if (SemanticSyntax.Name(node) is PrivateIdentifierNode
+            && DeclarationOrder.Ancestor(node, SemanticSyntax.ClassLike) is null)
+            Error(node, 18016);
         if (SemanticSyntax.Name(node) is not ComputedPropertyNameNode computed)
             return;
         if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0

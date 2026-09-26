@@ -15,7 +15,7 @@ internal interface IClassBaseHost
 
     ValueTask<Type?> ArrayElementAsync(Type type, CancellationToken cancellation);
 
-    void ClassBaseError(SyntaxNode node, int code, Type type);
+    ValueTask ClassBaseErrorAsync(SyntaxNode node, int code, Type type, CancellationToken cancellation);
 }
 
 internal sealed class ClassBases(TypeContext context, DeclaredTypes declared, TypeReferences references, BaseTypes bases,
@@ -46,13 +46,13 @@ internal sealed class ClassBases(TypeContext context, DeclaredTypes declared, Ty
             active = false;
             if (!resolved)
             {
-                host.ClassBaseError(type.Symbol!.ValueDeclaration!, 2506, type);
+                await host.ClassBaseErrorAsync(type.Symbol!.ValueDeclaration!, 2506, type, cancellation).ConfigureAwait(false);
                 return type.ResolvedBaseConstructorType ??= context.ErrorType;
             }
             if ((constructor.Flags & TypeFlags.Any) == 0 && constructor != context.NullWideningType
                 && !await IsConstructorAsync(constructor, cancellation).ConfigureAwait(false))
             {
-                host.ClassBaseError(node.Expression!, 2507, constructor);
+                await host.ClassBaseErrorAsync(node.Expression!, 2507, constructor, cancellation).ConfigureAwait(false);
                 if (constructor is TypeParameter parameter)
                 {
                     var constraint = await constraints.ConstraintAsync(parameter, cancellation).ConfigureAwait(false);
@@ -95,7 +95,7 @@ internal sealed class ClassBases(TypeContext context, DeclaredTypes declared, Ty
             var constructors = await ConstructorsAsync(constructor, node, cancellation).ConfigureAwait(false);
             if (constructors.Count == 0)
             {
-                host.ClassBaseError(node.Expression!, 2508, constructor);
+                await host.ClassBaseErrorAsync(node.Expression!, 2508, constructor, cancellation).ConfigureAwait(false);
                 return [];
             }
             baseType = await signatures.ReturnAsync(constructors[0], cancellation).ConfigureAwait(false);
@@ -105,12 +105,12 @@ internal sealed class ClassBases(TypeContext context, DeclaredTypes declared, Ty
         var reduced = await views.ReducedAsync(baseType, cancellation).ConfigureAwait(false);
         if (!await bases.ValidAsync(reduced, cancellation).ConfigureAwait(false))
         {
-            host.ClassBaseError(node.Expression!, 2509, reduced);
+            await host.ClassBaseErrorAsync(node.Expression!, 2509, reduced, cancellation).ConfigureAwait(false);
             return [];
         }
         if (type == reduced || await bases.HasBaseAsync(reduced, type, cancellation).ConfigureAwait(false))
         {
-            host.ClassBaseError(type.Symbol!.ValueDeclaration!, 2310, type);
+            await host.ClassBaseErrorAsync(type.Symbol!.ValueDeclaration!, 2310, type, cancellation).ConfigureAwait(false);
             return [];
         }
         return [reduced];

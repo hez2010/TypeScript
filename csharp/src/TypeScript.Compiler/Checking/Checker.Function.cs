@@ -274,6 +274,23 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
     public ValueTask FunctionGrammarAsync(SyntaxNode node, CancellationToken cancellation) =>
         FunctionDeclarations.GrammarAsync(node, cancellation);
 
+    private void GeneratorGrammar(SyntaxNode node)
+    {
+        var star = node switch
+        {
+            FunctionDeclarationNode declaration => declaration.AsteriskToken,
+            FunctionExpressionNode expression => expression.AsteriskToken,
+            MethodDeclarationNode method => method.AsteriskToken,
+            _ => null
+        };
+        if (star is null || SemanticSyntax.Source(node)?.ParseDiagnostics.Count != 0)
+            return;
+        if ((node.Flags & NodeFlags.Ambient) != 0)
+            Error(star, 1221);
+        else if (SemanticSyntax.Body(node) is null)
+            Error(star, 1222);
+    }
+
     public void RegisterUnused(SyntaxNode node) => UnusedIdentifierScopes.Add(node);
 
     public ValueTask FunctionNameAsync(SyntaxNode node, CancellationToken cancellation)
@@ -397,6 +414,7 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
     public ValueTask<bool> FunctionModifiersAsync(SyntaxNode node, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
+        GeneratorGrammar(node);
         return ValueTask.FromResult(DeclarationModifiers(node));
     }
 

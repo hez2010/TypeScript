@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 using Checking = TypeScript.Compiler.Checking;
 
@@ -214,22 +215,50 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
     public async ValueTask InvocationErrorAsync(SyntaxNode node, Type type, bool construct, CancellationToken cancellation)
     {
         var awaited = await Awaited.GetAsync(type, cancellation: cancellation);
-        if (awaited is not null)
-            await SignaturesAsync(awaited, construct, cancellation);
+        bool missingAwait = awaited is not null && (await SignaturesAsync(awaited, construct, cancellation)).Count != 0;
+        var location = node is PropertyAccessExpressionNode propertyAccess && node.Parent is CallExpressionNode
+            ? propertyAccess.Name!
+            : node;
+        Diagnostic? detail = null;
+        async ValueTask<Diagnostic> Detail(int code, Type value) => CheckerDiagnostic.Create(location,
+            DiagnosticLocalization.GetMessage(code), await TypeDisplay.GetAsync(value, cancellation));
         if (type is UnionType union)
         {
-            bool callable = false, missing = false;
+            bool callable = false;
             foreach (var part in union.Types)
             {
                 if ((await SignaturesAsync(part, construct, cancellation)).Count != 0)
                     callable = true;
-                else
-                    missing = true;
-                if (callable && missing)
+                else if (detail is null)
+                {
+                    var constituent = await Detail(construct ? 2761 : 2757, part);
+                    detail = await Detail(construct ? 2760 : 2756, type) with { MessageChain = [constituent] };
+                }
+                if (callable && detail is not null)
                     break;
             }
+            if (!callable)
+                detail = await Detail(construct ? 2759 : 2755, type);
+            detail ??= await Detail(construct ? 2762 : 2758, type);
         }
-        Error(node, construct ? 2351 : 2349);
+        else
+            detail = await Detail(construct ? 2761 : 2757, type);
+        int code = construct ? 2351 : 2349;
+        if (node.Parent is CallExpressionNode { Arguments.Count: 0 }
+            && links.SymbolNodes.TryGet(node)?.ResolvedSymbol is { } resolved && (resolved.Flags & SymbolFlags.GetAccessor) != 0)
+            code = 6234;
+        var related = new List<Diagnostic>();
+        if (missingAwait)
+            related.Add(CheckerDiagnostic.Create(node, Messages.Did_you_forget_to_use_await));
+        if (type.Symbol is { } symbol && links.ExportTypes.TryGet(symbol) is { OriginatingImport: { } import, Target: { } target }
+            && import is not CallExpressionNode && (await SignaturesAsync(
+                await Values.GetAsync(target, cancellation),
+                construct,
+                cancellation)).Count != 0)
+            related.Add(CheckerDiagnostic.Create(import,
+                Messages.Type_originates_at_this_import_A_namespace_style_import_cannot_be_called_or_constructed_and_will_cause_a_failure_at_runtime_Consider_using_a_default_import_or_import_require_here_instead));
+        Error(location, CheckerDiagnostic.Create(location, DiagnosticLocalization.GetMessage(code)) with
+        { MessageChain = [detail], RelatedInformation = related });
     }
 
     public async ValueTask<bool> ArgumentRelatedAsync(Type source, Type target, RelationKind relation, SyntaxNode? errorNode,

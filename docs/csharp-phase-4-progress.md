@@ -4,15 +4,15 @@
 
 ## Current overall status
 
-The Release corpus with actual parallel checker scheduling records **13,112 matches out of 13,446 active compiler configurations**, up from 13,111 before the shared-renderer batch and 9,365 at the original baseline. Default mode covers the full corpus with the pilot retained and an affected import-type follow-up; single mode reaches the same code total using its retained baseline and affected comparisons. **All 13,446 configurations now finish execution and match source graphs.** **334 configurations still have diagnostic-code differences.** One exported input was corrected to reproduce the reference harness's duplicate-filename overwrite order; the reference's expected graph and diagnostics were unchanged.
+The Release corpus with actual parallel checker scheduling records **13,151 matches out of 13,446 active compiler configurations**, up from 13,112 before the declaration/recovery batch and 9,365 at the original baseline. Default mode covers the full corpus with the pilot retained and an affected import-type follow-up; single mode reaches the same code total using its retained baseline and affected comparisons. **All 13,446 configurations now finish execution and match source graphs.** **295 configurations still have diagnostic-code differences.** One exported input was corrected to reproduce the reference harness's duplicate-filename overwrite order; the reference's expected graph and diagnostics were unchanged.
 
-These comparisons cover source graphs and diagnostic codes. **97.5% matching on this measure is not a Phase-4 completion percentage.** The remaining gates are:
+These comparisons cover source graphs and diagnostic codes. **97.8% matching on this measure is not a Phase-4 completion percentage.** The remaining gates are:
 
 | Completion requirement | Current status |
 | --- | --- |
 | Execute active corpus and match source graphs | Complete: 13,446 configurations |
-| Match semantic diagnostic codes | 13,112 match; 334 differ |
-| Match diagnostic text, locations and related information | Incomplete: default-mode detailed records match in 11,744 of 13,446 configurations, including 5,231 with nonempty semantic diagnostics; single-mode retained records match in 7,280 of 8,692 measured configurations |
+| Match semantic diagnostic codes | 13,151 match; 295 differ |
+| Match diagnostic text, locations and related information | Incomplete: default-mode detailed records match in 12,007 of 13,446 configurations, including 5,484 with nonempty semantic diagnostics; single-mode retained records match in 8,016 of 9,256 measured configurations |
 | Complete type/symbol comparisons, type display, node builders, accessibility and emit-resolver APIs | Incomplete; diagnostic type/signature/predicate rendering now shares the node builder. Query families, visibility, accessibility and symbol-format flags have fixture comparisons; formatting flag/scope APIs now have exact comparisons; full emit-resolver coverage remains open |
 | Validate actual parallel checker scheduling | Implemented and validated: actual default four-checker scheduling, explicit overrides, exclusive leases and full default corpus execution; semantic differences remain in the row above |
 | Meet complete semantic workload memory/performance budgets | Incomplete |
@@ -20,7 +20,7 @@ These comparisons cover source graphs and diagnostic codes. **97.5% matching on 
 
 Phase 4 is not nearly complete, and the evidence does not yet support a reliable completion estimate. Completed results are retained: each implementation checkpoint replays affected inputs against cached oracle results. A failed check is repeated after a relevant fix; unchanged checks are reused.
 
-**Current implementation focus:** continue grouped semantic and diagnostic fixes, then complete inferred-return recovery and full display/emit integration. The latest batch adds guarded inferred-return and accessor recovery, including tuples, returned functions/objects, predicates and assertions. Emit/node-builder comparisons pass across 469 configurations. Remaining semantic/diagnostic differences, emission callback/error tracking, remaining checker API coverage and performance/memory gates are open.
+**Current implementation focus:** continue grouped semantic and diagnostic fixes, then complete inferred-return recovery and full display/emit integration. The latest batch closes 39 code differences and 263 detailed diagnostic mismatches through declaration checks, spread arguments, invocation diagnostics and parser recovery. Remaining semantic/diagnostic differences, emission callback/error tracking, remaining checker API coverage and performance/memory gates are open.
 
 The next implementation priorities are missing diagnostic arguments and relation chains, remaining declaration/expression checks, and the unfinished checker APIs. The sections below are historical implementation checkpoints; their individual passing counts do not represent whole-phase completion.
 
@@ -1376,3 +1376,13 @@ Initializer/return recovery validates complete tuple, callable and object shapes
 **136 emit-syntax configurations and 20,188 queries match the reference**, including 92 new return-focused configurations and the 44 prior emit-syntax configurations. The shared changes also pass **253 older query configurations** across signatures, anonymous types, naming, options and emit recovery, plus **80 formatting configurations / 28,320 queries**. Reference outputs are cached; candidates are replayed only as their shared paths change. The semantic corpus totals above are retained from the prior corpus work.
 
 The batch passes **37 safety assertions**: 14 focused return assertions, 13 existing emit-syntax assertions and 10 syntax-recovery assertions. The Release build has zero warnings and errors. Five C# files preserve identical tokens/comments/syntax after formatting in both library configurations. Evidence: [return recovery, regressions and reuse](../csharp/compatibility/evidence/phase4-return-syntax-validation.json). Remaining semantic fidelity, complete emission callback/error tracking, checker API coverage and performance/memory validation still prevent Phase-4 completion. NativeAOT publishing remains deferred.
+
+## Declaration checks, spread arguments and statement recovery
+
+Private names are now accepted by type-member lookahead and rejected by the appropriate semantic declaration checks. Generators receive ambient/overload grammar checks, and JavaScript imports/exports reject type-only targets with the reference diagnostics and related export locations. Class/interface checking and base resolution use only the first applicable heritage clause after duplicate-clause grammar errors. Synthesized spread expressions yield their element type during argument checking.
+
+Invocation errors now retain constituent/signature chains, missing-await hints, namespace-import origins and getter-call diagnostics. Module, conflicting-export, class-base, duplicate-property and assignment diagnostics retain their arguments; incompatible overloads link to the implementation declaration. Interface inheritance conflicts retain the conflicting property/type chain.
+
+Statement recovery recognizes valid statement starts instead of constructing expressions from arbitrary punctuation. Variable lists and class-member lists retain their own recovery boundaries, and missing try-block braces produce missing blocks. Three malformed-input regressions found during validation were traced and repaired before retaining the results.
+
+**2,489 distinct configurations in each reference mode** were checked against cached references. The batch adds **39 code matches and 263 exact default-mode diagnostic matches**, with no retained code or detailed regressions. Totals are **13,151 code matches / 295 differences** and **12,007 exact diagnostic configurations** out of 13,446. The 13 focused safety assertions pass, as does the existing parser safety suite: **36 cases, 1,421,783 nodes and depth 21,000**, including source positions, parents and cancellation. The final Release build has zero warnings and errors; formatting preserves tokens/comments/syntax in both library configurations. Evidence: [semantic/detail rollup](../csharp/compatibility/evidence/phase4-declaration-grammar-semantics.json) and [validation/reuse](../csharp/compatibility/evidence/phase4-declaration-grammar-validation.json). Phase 4 remains incomplete, and NativeAOT publishing remains deferred.

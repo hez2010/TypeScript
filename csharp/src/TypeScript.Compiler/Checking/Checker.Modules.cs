@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -262,13 +263,47 @@ internal sealed partial class Checker
             return;
         symbol = program.Symbols.Merger.GetMergedSymbol(symbol.ExportSymbol ?? symbol)!;
         var flags = await program.Aliases.FlagsAsync(target, cancellation: cancellation).ConfigureAwait(false);
+        if ((node.Flags & NodeFlags.JavaScriptFile) != 0 && (flags & SymbolFlags.Value) == 0 && !AliasResolver.IsTypeOnly(node))
+        {
+            var name = node switch
+            {
+                ImportSpecifierNode imported => imported.PropertyName ?? imported.Name,
+                ExportSpecifierNode export => export.PropertyName ?? export.Name,
+                _ => SemanticSyntax.Name(node)
+            } ?? node;
+            if (node is ExportSpecifierNode)
+            {
+                var diagnostic = CheckerDiagnostic.Create(name, Messages.Types_cannot_appear_in_export_declarations_in_JavaScript_files);
+                var source = SemanticSyntax.Source(node)!;
+                if (program.Symbols.Declaration(source)?.Exports.GetValueOrDefault(SyntaxNameText.Get(name)) == target
+                    && target.Declarations.FirstOrDefault(d => d.Kind == SyntaxKind.JSTypeAliasDeclaration) is { } declaration)
+                    diagnostic = diagnostic with
+                    {
+                        RelatedInformation = [CheckerDiagnostic.Create(declaration,
+                        Messages.X_0_is_automatically_exported_here, target.Name)]
+                    };
+                Error(name, diagnostic);
+            }
+            else
+            {
+                var declaration = DeclarationOrder.Ancestor(node,
+                    n => n is ImportDeclarationNode or ImportEqualsDeclarationNode or VariableDeclarationNode);
+                var specifier = declaration is VariableDeclarationNode { Initializer: CallExpressionNode { Arguments: { Count: > 0 } arguments } }
+                    ? arguments[0] : declaration is null ? null : AliasTargets.Specifier(declaration);
+                string text = name is IdentifierNode identifier ? identifier.Text : symbol.Name;
+                string importText = "import(\"" + (AliasTargets.Text(specifier) ?? "...") + "\")"
+                    + (node is ImportSpecifierNode ? "." + text : "");
+                Error(name, 18042, text, importText);
+            }
+            return;
+        }
         var excluded = (symbol.Flags & (SymbolFlags.Value | SymbolFlags.ExportValue)) != 0 ? SymbolFlags.Value : 0;
         if ((symbol.Flags & SymbolFlags.Type) != 0)
             excluded |= SymbolFlags.Type;
         if ((symbol.Flags & SymbolFlags.Namespace) != 0)
             excluded |= SymbolFlags.Namespace;
         if ((flags & excluded) != 0)
-            Error(node, node is ExportSpecifierNode ? 2484 : 2440);
+            Error(node, node is ExportSpecifierNode ? 2484 : 2440, TypeDisplay.SymbolName(symbol));
         bool typeOnly = AliasResolver.IsTypeOnly(node);
         if (IsolatedModules && !typeOnly && (node.Flags & NodeFlags.Ambient) == 0)
         {
@@ -501,7 +536,7 @@ internal sealed partial class Checker
                 continue;
             if (count > 1 && !exported.Declarations.All(d => d is BinaryExpressionNode binary && ExportsPropertyAssignment(binary.Left!)))
                 foreach (var declaration in exported.Declarations.Where(NotOverload))
-                    Error(declaration, 2323);
+                    Error(declaration, 2323, TypeDisplay.SymbolName(exported));
         }
         cancellation.ThrowIfCancellationRequested();
         checkedModuleExports.Add(symbol);

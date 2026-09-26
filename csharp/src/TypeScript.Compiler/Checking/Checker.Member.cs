@@ -148,7 +148,9 @@ internal sealed partial class Checker : ISignatureHost, IStructuredMemberHost, I
     public ValueTask<IReadOnlyList<Type>> ClassBasesAsync(InterfaceType type, CancellationToken cancellation) =>
         ClassBases.GetAsync(type, cancellation);
 
-    public void ClassBaseError(SyntaxNode node, int code, Type type) => Error(node, code);
+    public async ValueTask ClassBaseErrorAsync(SyntaxNode node, int code, Type type, CancellationToken cancellation)
+        => Error(node, code, code == 2508 ? [] : [code is 2506 or 2310 && type.Symbol is { } symbol
+            ? TypeDisplay.SymbolName(symbol) : await TypeDisplay.GetAsync(type, cancellation)]);
 
     public ValueTask<Type> IndexedAccessAsync(Type objectType, Type indexType, CancellationToken cancellation) =>
             Instantiation.IndexedAccessAsync(objectType, indexType, 0, null, cancellation);

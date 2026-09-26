@@ -17,7 +17,8 @@ internal sealed partial class Checker
         CancellationToken cancellation,
         Diagnostic? head = null)
     {
-        if (code is not (2322 or 2344 or 2345 or 2352 or 2375 or 2412 or 2415 or 2430 or 2420 or 2684 or 2720 or 2739 or 2740 or 2741
+        if (code is not (2322 or 2344 or 2345 or 2352 or 2375 or 2412 or 2415 or 2430 or 2420 or 2678 or 2684 or 2720 or 2739 or 2740
+            or 2741
             or 2787 or 2788
             or 2789))
         {

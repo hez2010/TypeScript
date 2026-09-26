@@ -216,12 +216,13 @@ internal sealed partial class Checker
             && a.Value is StringLiteralNode { Text: "import" or "require" }) == true;
         if (!sync || mode)
             return;
-        Error(specifier, import switch
+        int code = import switch
         {
             ImportEqualsDeclarationNode => 1471,
             ImportTypeNode => 1542,
             ImportDeclarationNode { ImportClause: { } clause } when SemanticSyntax.TypeOnly(clause) => 1541,
             _ => 1479
-        });
+        };
+        Error(specifier, code, code is 1471 or 1479 ? [name] : []);
     }
 }

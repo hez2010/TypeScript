@@ -35,10 +35,16 @@ internal sealed partial class CheckerEnvironment
             && (declaration.Flags & NodeFlags.JavaScriptFile) != 0
             ? throw new InvalidOperationException("Checker requires CommonJS namespace normalization") : ValueTask.FromResult(symbol);
 
-    public ValueTask MissingQualifiedAsync(SyntaxNode name, SyntaxNode right, Symbol parent, S meaning, CancellationToken cancellation)
+    public async ValueTask MissingQualifiedAsync(
+        SyntaxNode name,
+        SyntaxNode right,
+        Symbol parent,
+        S meaning,
+        CancellationToken cancellation)
     {
-        AddDiagnostic(right, 2694);
-        return ValueTask.CompletedTask;
+        string namespaceName = SemanticChecker is { } checker
+            ? await checker.FullyQualifiedNameAsync(parent, name, cancellation) : parent.Name;
+        Error(right, Messages.Namespace_0_has_no_exported_member_1, namespaceName, CheckerDiagnostic.DeclarationName(right));
     }
 
     public async ValueTask<Symbol?> ExternalModuleAsync(

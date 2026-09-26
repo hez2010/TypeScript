@@ -585,7 +585,8 @@ public sealed partial class Parser
                 or K.SlashEqualsToken or K.PlusToken or K.MinusToken or K.TildeToken or K.ExclamationToken or K.DeleteKeyword
                 or K.TypeOfKeyword or K.VoidKeyword or K.PlusPlusToken or K.MinusMinusToken or K.LessThanToken or K.AwaitKeyword
                 or K.YieldKeyword or K.PrivateIdentifier or K.AtToken
-            || Token == K.ImportKeyword && Peek(() => Next() is K.OpenParenToken or K.LessThanToken or K.DotToken);
+            || Token == K.ImportKeyword && Peek(() => Next() is K.OpenParenToken or K.LessThanToken or K.DotToken)
+            || Precedence(Token) >= 4 && (Token != K.InKeyword || (context & NodeFlags.DisallowInContext) == 0);
 
     private async ValueTask<NodeList> ArgumentsCore()
     {

@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -110,7 +111,11 @@ internal sealed partial class Checker
                         true,
                         cancellation).ConfigureAwait(false))
                 {
-                    Error(overload.Declaration!, 2394);
+                    Error(overload.Declaration!, CheckerDiagnostic.Create(overload.Declaration!,
+                        Messages.This_overload_signature_is_not_compatible_with_its_implementation_signature) with
+                    {
+                        RelatedInformation = [CheckerDiagnostic.Create(body, Messages.The_implementation_signature_is_declared_here)]
+                    });
                     break;
                 }
             }

@@ -17,6 +17,56 @@ namespace TypeScript.Compatibility;
 
 internal static class CheckerProgramTests
 {
+    internal static async Task<int> DeclarationGrammarSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Declaration grammar assertion {checks + 1}");
+            checks++;
+        }
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("allowJs", "true");
+        options.SetRaw("checkJs", "true");
+        var files = new Dictionary<string, byte[]>
+        {
+            ["/project/globals.d.ts"] = Wtf8.Encode(
+                "interface Object{}interface Function{readonly length:number}interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T}"),
+            ["/project/main.ts"] = Wtf8.Encode(
+                "interface A extends MissingA extends MissingB{}class C implements MissingI implements MissingJ{}type Private={#value:number;#method():void};declare function* gen():void;declare const tuple:[number,...string[]];declare function takes(first:number,...rest:string[]):void;takes(...tuple);const object={get value(){return 1}};object.value();function overload(x:string):void;function overload(x:number){}"),
+            ["/project/types.ts"] = Wtf8.Encode("export interface Data{}"),
+            ["/project/import.js"] = Wtf8.Encode("import {Data} from './types';export {Data};"),
+            ["/project/recovery.ts"] = Wtf8.Encode(".missing;catch(error){error;}finally{}")
+        };
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
+            new("/project/tsconfig.json", options, files.Keys.ToArray(), [], [], []));
+        var source = program.GetFile("/project/main.ts")!.Syntax;
+        var before = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
+        var checker = await program.CreateCheckerAsync();
+        await checker.CheckProgramAsync();
+        var diagnostics = checker.DetailedDiagnosticsForProgramFile(source);
+        Check(diagnostics.Where(d => d.Code == 2304).SelectMany(d => d.Arguments).Order()
+            .SequenceEqual(new[] { "MissingA", "MissingI" }));
+        Check(diagnostics.Count(d => d.Code == 18016) == 2);
+        Check(diagnostics.Any(d => d.Code == 1221));
+        Check(diagnostics.All(d => d.Code != 2345));
+        Check(diagnostics.Single(d => d.Code == 6234).MessageChain is [var child] && child.Code == 2757);
+        Check(diagnostics.Single(d => d.Code == 2394).RelatedInformation is [var implementation] && implementation.Code == 2750);
+        var js = checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/import.js")!.Syntax);
+        Check(js.Count(d => d.Code == 18042) == 1 && js.Count(d => d.Code == 18043) == 1);
+        Check(js.Single(d => d.Code == 18042).Arguments.SequenceEqual(["Data", "import(\"./types\").Data"]));
+        var recovery = program.GetFile("/project/recovery.ts")!.Syntax;
+        Check(recovery.ParseDiagnostics.Count != 0);
+        Check(recovery.Statements!.OfType<TryStatementNode>().Single().CatchClause is not null);
+        Check(checker.DetailedDiagnosticsForProgramFile(recovery).Count(d => d.Code == 2304) == 1);
+        await checker.CheckProgramAsync();
+        Check(checker.DetailedDiagnosticsForProgramFile(source).SequenceEqual(diagnostics, DiagnosticEqualityComparer.Instance));
+        Check(before.All(n => n.Node.Parent == n.Parent && n.Node.Pos == n.Pos && n.Node.End == n.End && n.Node.Flags == n.Flags));
+        return checks;
+    }
+
     internal static async Task<int> DiagnosticValueSafety()
     {
         int checks = 0;

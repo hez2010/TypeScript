@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Semantics;
 using TypeScript.Compiler.Syntax;
 
@@ -56,7 +57,15 @@ internal sealed partial class Checker
                                 cancellation).ConfigureAwait(false) == Ternary.False)
                             {
                                 identical = false;
-                                Error(node.Name, 2320);
+                                string first = await TypeDisplay.GetAsync(existing.Owner, cancellation);
+                                string second = await TypeDisplay.GetAsync(baseType, cancellation);
+                                var detail = CheckerDiagnostic.Create(node.Name,
+                                    Messages.Named_property_0_of_types_1_and_2_are_not_identical,
+                                    TypeDisplay.SymbolName(property), first, second);
+                                Error(node.Name, CheckerDiagnostic.Create(node.Name,
+                                    Messages.Interface_0_cannot_simultaneously_extend_types_1_and_2,
+                                    await TypeDisplay.GetAsync(type, cancellation), first, second) with
+                                { MessageChain = [detail] });
                             }
                         }
                 }
@@ -77,7 +86,7 @@ internal sealed partial class Checker
             }
         }
         IndexDeclarationChecks.DuplicateProperties(node.Members!, cancellation);
-        foreach (HeritageClauseNode heritage in (IEnumerable<SyntaxNode>?)node.HeritageClauses ?? [])
+        if (node.HeritageClauses?.OfType<HeritageClauseNode>().FirstOrDefault(h => h.Token == SyntaxKind.ExtendsKeyword) is { } heritage)
             foreach (var element in heritage.Types!)
             {
                 if (element is ExpressionWithTypeArgumentsNode expression

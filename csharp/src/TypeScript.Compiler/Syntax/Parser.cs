@@ -154,6 +154,15 @@ public sealed partial class Parser
         else
             while (Token != K.EndOfFile)
             {
+                if (!StartsStatement())
+                {
+                    if (Token == K.DefaultKeyword)
+                        Error(Messages.X_0_expected, "export");
+                    else
+                        Error(Messages.Declaration_or_statement_expected);
+                    Next();
+                    continue;
+                }
                 int before = Pos;
                 NodeFlags statementContext = context;
                 if (topLevelAwait)

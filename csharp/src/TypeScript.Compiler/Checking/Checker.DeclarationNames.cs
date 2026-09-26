@@ -36,7 +36,7 @@ internal sealed partial class Checker
             int module = EmitModuleKind(node);
             if (name.Text is "require" or "exports" && module < 5
                 || name.Text == "Object" && !SemanticSyntax.ClassLike(node) && module == 1)
-                Error(name, 2441);
+                Error(name, 2441, name.Text);
             if (name.Text == "Promise" && TargetYear < 2017
                 && file.DescendantsAndSelf().Any(n => SemanticSyntax.HasModifier(n, SyntaxKind.AsyncKeyword)))
                 Error(name, 2529);
