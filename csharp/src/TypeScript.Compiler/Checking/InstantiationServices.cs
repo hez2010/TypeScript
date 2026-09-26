@@ -214,8 +214,12 @@ internal sealed class InstantiationServices : ITypeInstantiationHost, ITupleType
 
     public void TupleTooLarge()
     {
-        Diagnostics.Add(2800);
-        checker.TrackDiagnostic(checker.DiagnosticNode, 2800);
+        var node = checker.DiagnosticNode;
+        if (checker.Expressions.CurrentNode is null && node is ITypedNode { Type: { } annotation })
+            node = annotation;
+        int code = node is not null && QuerySyntax.PartOfType(node) ? 2799 : 2800;
+        Diagnostics.Add(code);
+        checker.TrackDiagnostic(node, code);
     }
 
     public void CrossProductTooLarge(long size)

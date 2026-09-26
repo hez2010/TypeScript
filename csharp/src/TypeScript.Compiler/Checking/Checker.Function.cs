@@ -43,6 +43,13 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
                     await TypeReferenceChecks.CheckAsync(reference, cancellation);
                 else if (item.Node is TypeOperatorNode operation)
                     TypeOperatorGrammar(operation);
+                else if (item.Node is TupleTypeNode tuple)
+                    await TupleTypeGrammarAsync(tuple, cancellation);
+                else if (item.Node is NamedTupleMemberNode member)
+                    NamedTupleMemberGrammar(member);
+                else if (item.Node is JSDocNullableTypeNode or JSDocNonNullableTypeNode or JSDocTypeLiteralNode
+                    || item.Node.Kind == SyntaxKind.JSDocAllType)
+                    await JsDocTypeGrammarAsync(item.Node, cancellation);
                 else if (item.Node is ImportTypeNode import)
                 {
                     ImportAttributeValues(import.Attributes);

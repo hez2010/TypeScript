@@ -404,6 +404,8 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
                 if (name is BigIntLiteralNode)
                     host.ExpressionError(name, 1539);
             }
+            else if (property is MethodDeclarationNode { PostfixToken: { } postfix })
+                Error(postfix, postfix.Kind == SyntaxKind.QuestionToken ? 1162 : 1255);
             if (destructuring)
                 continue;
             if (!effectiveNames.TryGetValue(name, out var text))

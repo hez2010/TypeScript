@@ -10,6 +10,32 @@ internal sealed partial class Checker : IVariableTypeHost
     internal WideningDiagnostics WideningDiagnostics { get; }
     internal PropertyInitialization PropertyInitializers { get; }
     internal Action<SyntaxNode>? BeforeInitializer { get; set; }
+
+    public void CheckVariableShadowing(SyntaxNode node, CancellationToken cancellation)
+    {
+        var root = SemanticSyntax.RootDeclaration(node);
+        if (root is ParameterDeclarationNode || ((root.Flags | (root.Parent?.Flags ?? 0)) & NodeFlags.BlockScoped) != 0
+            || SemanticSyntax.Name(node) is not IdentifierNode name
+            || program.Symbols.Declaration(node) is not { } symbol || (symbol.Flags & SymbolFlags.FunctionScopedVariable) == 0)
+            return;
+        var local = program.Symbols.NameResolver(cancellation).Resolve(node, name.Text, SymbolFlags.Variable);
+        if (local is null || local == symbol || (local.Flags & SymbolFlags.BlockScopedVariable) == 0)
+            return;
+        var declaration = local.ValueDeclaration;
+        while (declaration is not null && declaration is not VariableDeclarationListNode)
+            declaration = declaration.Parent;
+        if (declaration is null || (declaration.Flags & NodeFlags.BlockScoped) == 0)
+            return;
+        var container = declaration.Parent is VariableStatementNode statement ? statement.Parent : null;
+        bool sharedScope = container is SourceFileNode or ModuleBlockNode or ModuleDeclarationNode
+            || container is BlockNode { Parent: IFunctionSignature };
+        if (!sharedScope)
+        {
+            string text = TypeDisplay.SymbolName(local);
+            Error(node, 2481, text, text);
+        }
+    }
+
     public Type AutoArray => program.Globals.AutoArrayType!;
     public bool UseUnknownInCatchVariables => program.Symbols.Program.Configuration.Options.StrictOption("useUnknownInCatchVariables");
 

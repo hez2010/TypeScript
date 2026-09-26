@@ -216,7 +216,11 @@ internal sealed partial class Checker
                 if (clause.Name is not null)
                     await CheckAliasSourceAsync(clause, cancellation).ConfigureAwait(false);
                 if (clause.NamedBindings is NamespaceImportNode ns)
+                {
                     await CheckAliasSourceAsync(ns, cancellation).ConfigureAwait(false);
+                    if (EmitModuleKind(node) == 1)
+                        await ExternalHelpersAsync(node, ["__importStar"], cancellation);
+                }
                 else if (clause.NamedBindings is NamedImportsNode imports
                     && await program.ExternalModuleAsync(
                         node,
@@ -231,6 +235,8 @@ internal sealed partial class Checker
                     foreach (var binding in imports.Elements!)
                         await CheckAliasSourceAsync(binding, cancellation).ConfigureAwait(false);
                 }
+                if (clause.Name is not null && clause.NamedBindings is not NamespaceImportNode && EmitModuleKind(node) == 1)
+                    await ExternalHelpersAsync(node, ["__importDefault"], cancellation);
             }
             if (!SemanticSyntax.TypeOnly(clause) && ModuleKind is >= 101 and <= 199
                 && await ResolveImportModuleAsync(node, node.ModuleSpecifier,
@@ -291,6 +297,8 @@ internal sealed partial class Checker
         if (node is ImportSpecifierNode import)
         {
             CheckModuleExportName(import.PropertyName, true);
+            if (AliasTargets.Text(import.PropertyName ?? import.Name) == "default" && EmitModuleKind(import) == 1)
+                await ExternalHelpersAsync(import, ["__importDefault"], cancellation);
             var deprecated = await program.Aliases.WithDeprecationAsync(symbol, node, cancellation).ConfigureAwait(false);
             if (program.Deprecations.Symbol(deprecated))
                 program.Suggestion(node, 6385, deprecated.Name);
@@ -328,6 +336,9 @@ internal sealed partial class Checker
                 await CheckAliasSourceAsync(binding, cancellation).ConfigureAwait(false);
                 CheckModuleExportName(binding.PropertyName, node.ModuleSpecifier is not null);
                 CheckModuleExportName(binding.Name, true);
+                if (node.ModuleSpecifier is not null && AliasTargets.Text(binding.PropertyName ?? binding.Name) == "default"
+                    && EmitModuleKind(node) == 1)
+                    await ExternalHelpersAsync(binding, ["__importDefault"], cancellation);
                 if (node.ModuleSpecifier is null && (binding.PropertyName ?? binding.Name) is IdentifierNode name)
                 {
                     var symbol = program.Symbols.NameResolver(cancellation).Resolve(
@@ -361,6 +372,8 @@ internal sealed partial class Checker
                 await CheckAliasSourceAsync(ns, cancellation).ConfigureAwait(false);
                 CheckModuleExportName(ns.Name, true);
             }
+            if (EmitModuleKind(node) == 1)
+                await ExternalHelpersAsync(node, node.ExportClause is null ? ["__exportStar"] : ["__importStar"], cancellation);
         }
     }
 

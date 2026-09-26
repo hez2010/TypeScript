@@ -92,7 +92,7 @@ internal sealed partial class Checker
             var declaredDefault = await ResolveModuleExportAsync(module, "default", true, cancellation).ConfigureAwait(false);
             if (declaredDefault?.Declarations.Any(
                 d => d is ExportAssignmentNode { IsExportEquals: false } || SemanticSyntax.HasModifier(d, SyntaxKind.DefaultKeyword)
-                || d is ExportSpecifierNode export && SyntaxNameText.Get(export.Name) == "default") == true)
+                || d is ExportSpecifierNode export && AliasTargets.Text(export.Name) == "default") == true)
                 return false;
             return await ResolveModuleExportAsync(module, "__esModule", dontResolveAlias, cancellation).ConfigureAwait(false) is null;
         }
@@ -269,7 +269,11 @@ internal sealed partial class Checker
         bool dontResolveAlias,
         CancellationToken cancellation)
     {
-        string name = SyntaxNameText.Get(nameNode);
+        if (nameNode is not (IdentifierNode or StringLiteralNode) || nameNode is IdentifierNode { Text.Length: 0 })
+            return null;
+        string name = AliasTargets.Text(nameNode) ?? SyntaxNameText.Get(nameNode);
+        if (module.ValueDeclaration is ModuleDeclarationNode { Body: null })
+            return module;
         Symbol? value = null;
         bool exportEquals = module.Exports.ContainsKey("export=");
         if (exportEquals)

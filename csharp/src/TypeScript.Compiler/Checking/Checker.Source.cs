@@ -415,6 +415,25 @@ internal sealed partial class Checker
         if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count != 0)
             return;
         var flags = node.Flags | (node.Parent is VariableDeclarationListNode list ? list.Flags : 0);
+        if ((flags & (NodeFlags.Let | NodeFlags.Const)) != 0)
+        {
+            var names = new Stack<SyntaxNode>();
+            if (node.Name is { } rootName)
+                names.Push(rootName);
+            while (names.TryPop(out var name))
+            {
+                cancellation.ThrowIfCancellationRequested();
+                if (name is IdentifierNode { Text: "let" })
+                {
+                    Error(name, 2480);
+                    continue;
+                }
+                if (name is BindingPatternNode pattern)
+                    for (int i = pattern.Elements!.Count - 1; i >= 0; i--)
+                        if (pattern.Elements[i] is BindingElementNode { Name: { } bindingName })
+                            names.Push(bindingName);
+            }
+        }
         if ((flags & NodeFlags.Using) != 0 && node.Name is BindingPatternNode)
         {
             Error(node, 1492);

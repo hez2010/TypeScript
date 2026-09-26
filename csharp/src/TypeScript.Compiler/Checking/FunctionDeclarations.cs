@@ -46,6 +46,8 @@ internal interface IFunctionDeclarationHost : IConstraintCheckHost
     void DeferExpression(SyntaxNode node);
 
     void RegisterUnused(SyntaxNode node);
+
+    void CheckVariableShadowing(SyntaxNode node, CancellationToken cancellation);
 }
 
 internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols symbols, TypeParameterScopes scopes,
@@ -344,5 +346,7 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
                 node,
                 initializer,
                 cancellation).ConfigureAwait(false);
+        if (node is VariableDeclarationNode or BindingElementNode)
+            host.CheckVariableShadowing(node, cancellation);
     }
 }

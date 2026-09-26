@@ -17,6 +17,52 @@ namespace TypeScript.Compatibility;
 
 internal static class CheckerProgramTests
 {
+    internal static async Task<int> ModuleGrammarSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Module grammar assertion {checks + 1}");
+            checks++;
+        }
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("module", "\"commonjs\"");
+        options.SetRaw("importHelpers", "true");
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        {
+            ["/project/main.ts"] = Wtf8.Encode(
+                "import {'quoted' as first,'' as second} from './dep';export {default as chosen} from 'fs';const value=1;const object={value!};let let=1;function scoped(){var shadow=0;{let shadow=1;var shadow=2;}}type Bad=[x?:number,y:string];"),
+            ["/project/dep.ts"] = Wtf8.Encode("const a=1,b=2;export {a as 'quoted',b as ''};"),
+            ["/project/globals.d.ts"] = Wtf8.Encode("declare module 'fs';declare module 'tslib'{export {};}")
+        }),
+            "/project",
+            new("/project/tsconfig.json", options, ["/project/main.ts", "/project/dep.ts", "/project/globals.d.ts"], [], [], []));
+        var source = program.GetFile("/project/main.ts")!.Syntax;
+        Check(source.ParseDiagnostics.Count == 0);
+        var shorthand = source.DescendantsAndSelf().OfType<ShorthandPropertyAssignmentNode>().Single();
+        Check(shorthand.PostfixToken?.Kind == SyntaxKind.ExclamationToken && shorthand.Type is null);
+        var before = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
+        var checker = await program.CreateCheckerAsync();
+        await checker.CheckProgramAsync();
+        var diagnostics = checker.DetailedDiagnosticsForFile(source);
+        Check(diagnostics.Count(d => d.Code == 2343) == 1
+            && diagnostics.Single(d => d.Code == 2343).Arguments.SequenceEqual(["tslib", "__importDefault"]));
+        Check(diagnostics.Any(d => d.Code == 2480));
+        Check(diagnostics.Any(d => d.Code == 2481 && d.Arguments.SequenceEqual(["shadow", "shadow"])));
+        Check(diagnostics.Count(d => d.Code == 1255) == 1);
+        Check(diagnostics.Count(d => d.Code == 1257) == 1);
+        Check(diagnostics.All(d => d.Code != 2305));
+        var imports = source.DescendantsAndSelf().OfType<ImportSpecifierNode>().ToArray();
+        Check(await checker.GetTypeAtLocationAsync(imports[0].Name!) is LiteralType { Value: double first } && first == 1);
+        Check(await checker.GetTypeAtLocationAsync(imports[1].Name!) is LiteralType { Value: double second } && second == 2);
+        await checker.CheckProgramAsync();
+        Check(checker.DetailedDiagnosticsForFile(source).Count == diagnostics.Count);
+        Check(before.All(p => p.Parent == p.Node.Parent && p.Pos == p.Node.Pos && p.End == p.Node.End && p.Flags == p.Node.Flags));
+        return checks;
+    }
+
     internal static async Task Safety()
     {
         int checks = 0;

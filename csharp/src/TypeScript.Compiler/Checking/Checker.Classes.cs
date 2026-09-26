@@ -12,7 +12,10 @@ internal sealed partial class Checker
     {
         if (!expression && SemanticSyntax.Name(node) is null && !SemanticSyntax.HasModifier(node, SyntaxKind.DefaultKeyword))
             Error(node, 1211);
-        CheckClassModifiers(node);
+        if (!CheckClassModifiers(node))
+            HeritageGrammar(
+                node,
+                node is ClassDeclarationNode classNode ? classNode.HeritageClauses : ((ClassExpressionNode)node).HeritageClauses);
         CheckDeclarationName(node);
         MarkPrivateIdentifierScopes(node);
         ExportedDeclaration(node, true);
@@ -216,10 +219,7 @@ internal sealed partial class Checker
                 cancellation).ConfigureAwait(false);
     }
 
-    private void CheckClassModifiers(SyntaxNode node)
-    {
-        DeclarationModifiers(node);
-    }
+    private bool CheckClassModifiers(SyntaxNode node) => DeclarationModifiers(node);
 
     private static bool ParameterProperty(SyntaxNode node) => node is ParameterDeclarationNode
         && node is IModifiedNode { Modifiers: { } modifiers }

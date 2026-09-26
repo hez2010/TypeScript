@@ -63,7 +63,8 @@ internal sealed partial class Checker
             {
                 // Helpers with different names carry different diagnostic arguments, even at the same syntax location.
                 Diagnostics.Add(code);
-                TrackDiagnostic(node, code);
+                TrackDiagnostic(node, code, code == 2807
+                    ? ["tslib", name, name == "__classPrivateFieldGet" ? "4" : "5"] : ["tslib", name]);
             }
             checkedExternalHelpers.Add((file, name));
         }

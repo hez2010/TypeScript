@@ -171,7 +171,7 @@ internal sealed partial class CheckerEnvironment
     {
         if (Symbols.Program.Configuration.Options.Boolean("noCheck") == true)
             return;
-        string name = SyntaxNameText.Get(nameNode);
+        string name = AliasTargets.Text(nameNode) ?? SyntaxNameText.Get(nameNode);
         var suggestion = nameNode is IdentifierNode ? await new SymbolSuggestions(
             Aliases,
             new(Symbols.Program.SourceFiles.Select(f => f.Syntax)))

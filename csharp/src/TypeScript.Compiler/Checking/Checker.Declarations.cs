@@ -12,6 +12,7 @@ internal sealed partial class Checker
 
     private async ValueTask CheckInterfaceSourceAsync(InterfaceDeclarationNode node, CancellationToken cancellation)
     {
+        HeritageGrammar(node, node.HeritageClauses, isInterface: true);
         ExportedDeclaration(node, false);
         await CheckMergedExportsAsync(node, cancellation).ConfigureAwait(false);
         if (node.TypeParameters is not null)

@@ -667,8 +667,8 @@ public sealed partial class Parser
                 factory.NewPropertyAssignment(
                     modifiers,
                     name,
-                    postfix?.Kind == K.QuestionToken ? postfix : null,
-                    postfix?.Kind == K.ExclamationToken ? postfix : null,
+                    postfix,
+                    null,
                     (await ExpressionCore(2).ConfigureAwait(false))),
                 start);
         if (!shorthand)
@@ -679,8 +679,8 @@ public sealed partial class Parser
             factory.NewShorthandPropertyAssignment(
                 modifiers,
                 name,
-                postfix?.Kind == K.QuestionToken ? postfix : null,
-                postfix?.Kind == K.ExclamationToken ? postfix : null,
+                postfix,
+                null,
                 equals,
                 initializer),
             start);
