@@ -62,9 +62,11 @@ internal sealed partial class Checker : IIteratorProtocolHost, IIterationElement
     public void DeferIteratorDiagnostic(SyntaxNode node, Type type, bool async, IReadOnlyList<IterationDiagnostic> related) =>
         DeferredIterationDiagnostics.Add((node, type, async, related));
 
-    public void IterationError(SyntaxNode node, int code, bool missingAwait)
+    public async ValueTask IterationErrorAsync(SyntaxNode node, int code, bool missingAwait, Type type, Type? other,
+        CancellationToken cancellation)
     {
-        Error(node, code);
+        string text = await TypeDisplay.GetAsync(type, cancellation);
+        Error(node, code, other is null ? [text] : [text, await TypeDisplay.GetAsync(other, cancellation)]);
         if (missingAwait)
             IterationAwaitHints.Add((node, code));
     }

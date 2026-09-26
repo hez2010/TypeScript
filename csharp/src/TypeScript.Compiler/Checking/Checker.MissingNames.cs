@@ -59,13 +59,13 @@ internal sealed partial class Checker
                     ((IdentifierNode)qualified.Right!).Text).ConfigureAwait(false) is not null)
                 Error(qualified, 2713);
             else
-                Error(location, 2702);
+                Error(location, 2702, name);
             return true;
         }
         bool primitive = name is "any" or "string" or "number" or "boolean" or "never" or "unknown";
         if (primitive && location.Parent is ExportSpecifierNode)
         {
-            Error(location, 2661);
+            Error(location, 2661, name);
             return true;
         }
         if ((meaning & (S.Value & ~S.Type)) != 0)
@@ -73,13 +73,13 @@ internal sealed partial class Checker
             if (await Find(S.NamespaceModule) is not null)
             {
                 if (!ExportAssignmentName(location))
-                    Error(location, 2708);
+                    Error(location, 2708, name);
                 return true;
             }
         }
         else if ((meaning & (S.Type & ~S.Value)) != 0 && await Find(S.Module) is not null)
         {
-            Error(location, 2709);
+            Error(location, 2709, name);
             return true;
         }
         if ((meaning & S.Value) != 0)
@@ -94,7 +94,7 @@ internal sealed partial class Checker
                         Error(location, heritage.Token == SyntaxKind.ExtendsKeyword ? 2863 : 2864);
                 }
                 else
-                    Error(location, 2693);
+                    Error(location, 2693, name);
                 return true;
             }
             if (await Find(S.Type & ~S.Value) is { } symbol
@@ -115,14 +115,14 @@ internal sealed partial class Checker
                         && union.Types.All(t => (t.Flags & TypeFlags.StringOrNumberLiteral) != 0))
                         code = 2690;
                 }
-                Error(location, code);
+                Error(location, code, name);
                 return true;
             }
         }
         if ((meaning & (S.Type & ~S.Namespace)) != 0 && await Find(S.Value & ~S.Type) is { } valueSymbol
             && (valueSymbol.Flags & S.Namespace) == 0)
         {
-            Error(location, 2749);
+            Error(location, 2749, name);
             return true;
         }
         return false;

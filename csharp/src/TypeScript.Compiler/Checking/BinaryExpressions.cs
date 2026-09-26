@@ -30,7 +30,7 @@ internal interface IBinaryExpressionHost
 
     ValueTask<bool> GlobalNaNAsync(SyntaxNode node, CancellationToken cancellation);
 
-    void OperatorError(SyntaxNode? node, K op, Type left, Type right, bool suggestAwait);
+    ValueTask OperatorErrorAsync(SyntaxNode? node, K op, Type left, Type right, bool suggestAwait, CancellationToken cancellation);
 
     void ArithmeticError(SyntaxNode node, Type type, int code, bool suggestAwait);
 
@@ -327,7 +327,7 @@ internal sealed class BinaryExpressions(TypeContext context, TypeAlgebra algebra
             if (!await compatible(leftBase, rightBase).ConfigureAwait(false))
                 (left, right) = (leftBase, rightBase);
         }
-        host.OperatorError(node, op, left, right, withAwait);
+        await host.OperatorErrorAsync(node, op, left, right, withAwait, cancellation).ConfigureAwait(false);
     }
 
     private async ValueTask<bool> OrderedAsync(Type left, Type right, CancellationToken cancellation)

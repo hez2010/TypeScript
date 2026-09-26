@@ -17,6 +17,57 @@ namespace TypeScript.Compatibility;
 
 internal static class CheckerProgramTests
 {
+    internal static async Task<int> DiagnosticValueSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Diagnostic value assertion {checks + 1}");
+            checks++;
+        }
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        options.SetRaw("noUnusedLocals", "true");
+        options.SetRaw("noUnusedParameters", "true");
+        var files = new Dictionary<string, byte[]>
+        {
+            ["/project/globals.d.ts"] = Wtf8.Encode(
+                "interface Object{}interface Function{}interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T}"),
+            ["/project/main.ts"] = Wtf8.Encode(
+                "export class Base{p=1}export class Derived extends Base{p=''}export class Needs{value:number}let x:number;x;var duplicate:number;var duplicate:string;type Box<T>={value:T};let missing:Box;class Generic<T>{}let generic:Generic;let maybe:{p:number}|undefined;maybe.p;null.x;let implicit:{p};export function outer(unused:number){const local=1;return 2;}type Recursive=Recursive;")
+        };
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
+            new("/project/tsconfig.json", options, files.Keys.ToArray(), [], [], []));
+        var source = program.GetFile("/project/main.ts")!.Syntax;
+        Check(source.ParseDiagnostics.Count == 0);
+        var nodes = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
+        var checker = await program.CreateCheckerAsync();
+        await checker.CheckProgramAsync();
+        var diagnostics = checker.DetailedDiagnosticsForProgramFile(source);
+        Check(diagnostics.Single(d => d.Code == 2564).Arguments.SequenceEqual(["value"]));
+        Check(diagnostics.Single(d => d.Code == 2454).Arguments.SequenceEqual(["x"]));
+        Check(diagnostics.Single(d => d.Code == 18048).Arguments.SequenceEqual(["maybe"]));
+        Check(diagnostics.Single(d => d.Code == 18050).Arguments.SequenceEqual(["null"]));
+        Check(diagnostics.Single(d => d.Code == 7008).Arguments.SequenceEqual(["p", "any"]));
+        Check(diagnostics.Where(d => d.Code == 2314).Select(d => string.Join('|', d.Arguments)).Order()
+            .SequenceEqual(new[] { "Box|1|1", "Generic<T>|1|1" }));
+        Check(diagnostics.Single(d => d.Code == 2456).Arguments.SequenceEqual(["Recursive"]));
+        var conflict = diagnostics.Single(d => d.Code == 2403);
+        Check(conflict.Arguments.SequenceEqual(["duplicate", "number", "string"]));
+        Check(conflict.RelatedInformation is [var previous] && previous.Code == 6203 && previous.Arguments.SequenceEqual(["duplicate"]));
+        var inherited = diagnostics.Single(d => d.Code == 2416);
+        Check(inherited.Arguments.SequenceEqual(["p", "Derived", "Base"]));
+        Check(inherited.MessageChain is [var reason] && reason.Code == 2322 && reason.Arguments.SequenceEqual(["string", "number"]));
+        Check(diagnostics.Any(d => d.Code == 6133 && d.Arguments.SequenceEqual(["unused"])));
+        Check(diagnostics.Any(d => d.Code == 6133 && d.Arguments.SequenceEqual(["local"])));
+        await checker.CheckProgramAsync();
+        Check(checker.DetailedDiagnosticsForProgramFile(source).SequenceEqual(diagnostics, DiagnosticEqualityComparer.Instance));
+        Check(nodes.All(n => n.Node.Parent == n.Parent && n.Node.Pos == n.Pos && n.Node.End == n.End && n.Node.Flags == n.Flags));
+        return checks;
+    }
+
     internal static async Task<int> PrivateDeclarationSafety()
     {
         int checks = 0;

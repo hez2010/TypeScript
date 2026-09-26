@@ -52,6 +52,13 @@ internal interface IFunctionDeclarationHost : IConstraintCheckHost
     void CheckVariableShadowing(SyntaxNode node, CancellationToken cancellation);
 
     void CheckDeclarationFlags(SyntaxNode node, Symbol symbol, CancellationToken cancellation);
+
+    ValueTask VariableDeclarationConflictAsync(
+        SyntaxNode node,
+        Symbol symbol,
+        Type firstType,
+        Type nextType,
+        CancellationToken cancellation);
 }
 
 internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols symbols, TypeParameterScopes scopes,
@@ -359,7 +366,7 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
                 declarationType = host.AnyArray;
             if (type != context.ErrorType && declarationType != context.ErrorType && (symbol.Flags & SymbolFlags.Assignment) == 0
                 && !await relations.RelatedAsync(type, declarationType, RelationKind.Identity, cancellation).ConfigureAwait(false))
-                host.ExpressionError(name, node is PropertyDeclarationNode or PropertySignatureDeclarationNode ? 2717 : 2403);
+                await host.VariableDeclarationConflictAsync(node, symbol, type, declarationType, cancellation).ConfigureAwait(false);
             type = declarationType;
         }
         if (initializer is not null && node.Parent?.Parent?.Kind != SyntaxKind.ForInStatement)

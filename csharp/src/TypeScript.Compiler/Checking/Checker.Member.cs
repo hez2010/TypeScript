@@ -263,15 +263,15 @@ internal sealed partial class Checker : ISignatureHost, IStructuredMemberHost, I
         {
             if (declaration is ITypedNode { Type: not null })
             {
-                Error(declaration, 2502);
+                Error(declaration, 2502, TypeDisplay.SymbolName(symbol));
                 return context.ErrorType;
             }
             if (NoImplicitAny
                 && (declaration is not ParameterDeclarationNode || ((ParameterDeclarationNode)declaration).Initializer is not null))
-                Error(declaration, 7022);
+                Error(declaration, 7022, TypeDisplay.SymbolName(symbol));
         }
         else if ((symbol.Flags & SymbolFlags.Alias) != 0 && AliasResolver.Declaration(symbol) is { } alias)
-            Error(alias, 2303);
+            Error(alias, 2303, TypeDisplay.SymbolName(symbol));
         return context.AnyType;
     }
 
@@ -281,14 +281,16 @@ internal sealed partial class Checker : ISignatureHost, IStructuredMemberHost, I
             || (declaration as INamedNode)?.Name is PrivateIdentifierNode))
             return;
         if (program.Symbols.Program.Configuration.Options.StrictOption("noImplicitAny"))
-            Error(declaration, declaration is SetAccessorDeclarationNode ? 7032 : declaration is GetAccessorDeclarationNode ? 7033 : 7008);
+            Error(declaration, declaration is SetAccessorDeclarationNode ? 7032 : declaration is GetAccessorDeclarationNode ? 7033 : 7008,
+                declaration is SetAccessorDeclarationNode or GetAccessorDeclarationNode
+                    ? [TypeDisplay.SymbolName(symbol)] : [TypeDisplay.SymbolName(symbol), "any"]);
     }
 
     public void CircularAccessor(Symbol symbol, SyntaxNode? annotation, SyntaxNode? getter)
     {
         if (annotation is not null)
-            Error(annotation, 2502);
+            Error(annotation, 2502, TypeDisplay.SymbolName(symbol));
         else if (getter is not null && program.Symbols.Program.Configuration.Options.StrictOption("noImplicitAny"))
-            Error(getter, 7023);
+            Error(getter, 7023, TypeDisplay.SymbolName(symbol));
     }
 }

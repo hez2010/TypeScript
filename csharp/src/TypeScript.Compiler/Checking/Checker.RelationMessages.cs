@@ -14,9 +14,11 @@ internal sealed partial class Checker
         Type source,
         Type target,
         RelationKind kind,
-        CancellationToken cancellation)
+        CancellationToken cancellation,
+        Diagnostic? head = null)
     {
-        if (code is not (2322 or 2344 or 2345 or 2352 or 2375 or 2412 or 2420 or 2684 or 2720 or 2739 or 2740 or 2741 or 2787 or 2788
+        if (code is not (2322 or 2344 or 2345 or 2352 or 2375 or 2412 or 2415 or 2430 or 2420 or 2684 or 2720 or 2739 or 2740 or 2741
+            or 2787 or 2788
             or 2789))
         {
             RelationError(node, code);
@@ -63,7 +65,7 @@ internal sealed partial class Checker
                     if (intrinsic != context.ErrorType && classIntrinsic != context.ErrorType
                         && (intersection.Types.Contains(intrinsic) || intersection.Types.Contains(classIntrinsic)))
                     {
-                        RelationError(node, StripRelationMarkers(chain));
+                        Report(StripRelationMarkers(chain));
                         return;
                     }
                 }
@@ -71,7 +73,10 @@ internal sealed partial class Checker
             diagnostic = await ConstraintReasonAsync(diagnostic, originalSource, source, target, sourceText, targetText, cancellation);
         }
         diagnostic = SelectRelationDiagnostic(diagnostic, originalSource, target, sourceText, targetText);
-        RelationError(node, StripRelationMarkers(diagnostic));
+        Report(StripRelationMarkers(diagnostic));
+
+        void Report(Diagnostic detail) => RelationError(node, head is null ? detail
+            : head with { MessageChain = [detail], RelatedInformation = detail.RelatedInformation });
     }
 
     private bool ReadonlyAssignment(Type source, Type target) =>
@@ -102,10 +107,10 @@ internal sealed partial class Checker
         {
             4104 => next.Arguments.SequenceEqual(new[] { sourceText, targetText }),
             2559 or 2560 => true,
-            2741 when diagnostic.Code is not (2420 or 2720 or 2352) => next.Arguments is [_, var s, var t]
+            2741 when diagnostic.Code is not (2415 or 2430 or 2420 or 2720 or 2352) => next.Arguments is [_, var s, var t]
                 && s == sourceText
                 && t == targetText,
-            2739 or 2740 when diagnostic.Code is not (2420 or 2720 or 2352) => next.Arguments.Length >= 2
+            2739 or 2740 when diagnostic.Code is not (2415 or 2430 or 2420 or 2720 or 2352) => next.Arguments.Length >= 2
                 && next.Arguments[0] == sourceText
                 && next.Arguments[1] == targetText,
             _ => false

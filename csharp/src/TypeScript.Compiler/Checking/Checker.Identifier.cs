@@ -38,7 +38,8 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
     public ValueTask<Type> NarrowableReferenceAsync(Type type, SyntaxNode node, CheckMode mode, CancellationToken cancellation) =>
         ReferenceNarrowing.GetAsync(type, node, mode, cancellation);
 
-    public void IdentifierError(SyntaxNode node, int code, Symbol symbol, Type? type = null) => Error(node, code);
+    public void IdentifierError(SyntaxNode node, int code, Symbol symbol, Type? type = null)
+        => Error(node, code, code == 2454 ? [TypeDisplay.SymbolName(symbol)] : []);
 
     public void CircularInitializer(Symbol symbol) => CircularSymbol(symbol);
 

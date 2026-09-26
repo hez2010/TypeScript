@@ -157,7 +157,7 @@ internal sealed partial class Checker
                 Error(node, 2339);
         }
         else if (NoImplicitAny)
-            Error(node, 7026);
+            Error(node, 7026, "IntrinsicElements");
         links.SymbolNodes.Get(node).ResolvedSymbol = symbol ?? UnknownSymbol;
         return jsxIntrinsicTypes[node] = result;
     }

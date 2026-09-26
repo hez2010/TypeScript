@@ -177,7 +177,7 @@ internal sealed class ExpressionChecks(TypeContext context, TypeFactQueries fact
         }
     }
 
-    private static string? EntityText(SyntaxNode node)
+    internal static string? EntityText(SyntaxNode node)
     {
         if (!ConstantEvaluator.EntityName(node))
             return null;

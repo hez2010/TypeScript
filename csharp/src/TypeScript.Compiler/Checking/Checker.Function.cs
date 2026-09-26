@@ -70,8 +70,6 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
                 }
                 else if (item.Node is TypeLiteralNode literal)
                     await IndexDeclarationChecks.TypeLiteralAsync(literal, cancellation);
-                else if (item.Node is PropertySignatureDeclarationNode property)
-                    PropertySignatureGrammar(property);
                 else if (item.Node is IndexSignatureDeclarationNode index)
                     await CheckIndexSignatureSourceAsync(index, cancellation);
                 else if (item.Node is TypePredicateNode predicate)
@@ -90,6 +88,8 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
                     }
                 }
             }
+            else if (item.Node is PropertySignatureDeclarationNode)
+                await CheckSourceElementAsync(item.Node, cancellation);
             else
             {
                 pending.Push((item.Node, true));

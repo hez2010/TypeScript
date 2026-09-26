@@ -21,7 +21,8 @@ internal interface ITypeReferenceHost
 
     ValueTask<bool> IdenticalAsync(Type first, Type second, CancellationToken cancellation);
 
-    void TypeArgumentCount(SyntaxNode node, Symbol symbol, Type type, int minimum, int maximum, bool missingAugments);
+    ValueTask TypeArgumentCountAsync(SyntaxNode node, Symbol symbol, Type type, int minimum, int maximum, bool missingAugments,
+        CancellationToken cancellation);
 
     void NotGeneric(SyntaxNode node, Symbol symbol);
 
@@ -153,8 +154,9 @@ internal sealed class TypeReferences(TypeContext context, CheckerLinks links, Ch
         bool implicitAny = js && !symbols.Program.Configuration.Options.StrictOption("noImplicitAny");
         if (!implicitAny && (count < minimum || count > parameters.Length))
         {
-            host.TypeArgumentCount(node, symbol, type, minimum, parameters.Length,
-                js && node is ExpressionWithTypeArgumentsNode && node.Parent?.Kind != K.JSDocAugmentsTag);
+            await host.TypeArgumentCountAsync(node, symbol, type, minimum, parameters.Length,
+                js && node is ExpressionWithTypeArgumentsNode && node.Parent?.Kind != K.JSDocAugmentsTag,
+                cancellation).ConfigureAwait(false);
             if (!js)
                 return context.ErrorType;
         }
@@ -184,7 +186,7 @@ internal sealed class TypeReferences(TypeContext context, CheckerLinks links, Ch
         int count = Arguments(node)?.Count ?? 0, minimum = Minimum(parameters);
         if (count < minimum || count > parameters.Count)
         {
-            host.TypeArgumentCount(node, symbol, type, minimum, parameters.Count, false);
+            await host.TypeArgumentCountAsync(node, symbol, type, minimum, parameters.Count, false, cancellation).ConfigureAwait(false);
             return context.ErrorType;
         }
         var parentAlias = host.AliasSymbol(node);

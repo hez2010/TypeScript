@@ -291,8 +291,14 @@ internal sealed partial class Checker
                 else if (node is ExportSpecifierNode)
                     Error(node, type ? 1205 : 1448);
             }
-            if (verbatim && node is not ImportEqualsDeclarationNode && EmitModuleKind(node) == 1)
+            if (verbatim
+                && node is not ImportEqualsDeclarationNode
+                && (node.Flags & NodeFlags.JavaScriptFile) == 0
+                && EmitModuleKind(node) == 1)
                 Error(node, VerbatimModuleCode(node));
+            else if (ModuleKind == 200 && node is not (ImportEqualsDeclarationNode or VariableDeclarationNode or BindingElementNode)
+                && EmitModuleKind(node) == 1)
+                Error(node, 1293);
         }
         if (node is ImportSpecifierNode import)
         {

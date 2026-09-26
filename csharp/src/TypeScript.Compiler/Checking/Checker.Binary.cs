@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -53,11 +54,19 @@ internal sealed partial class Checker : IBinaryExpressionHost, IAwaitedTypeHost
                     ? Awaited.OfPromiseAsync(type, cancellation: cancellation)
                     : Awaited.NoAliasAsync(type, cancellation: cancellation);
 
-    public void OperatorError(SyntaxNode? node, SyntaxKind op, Type left, Type right, bool suggestAwait)
+    public async ValueTask OperatorErrorAsync(SyntaxNode? node, SyntaxKind op, Type left, Type right, bool suggestAwait,
+        CancellationToken cancellation)
     {
-        if (node is not null)
-            Error(node, op is SyntaxKind.EqualsEqualsToken or SyntaxKind.EqualsEqualsEqualsToken
-            or SyntaxKind.ExclamationEqualsToken or SyntaxKind.ExclamationEqualsEqualsToken ? 2367 : 2365);
+        if (node is null)
+            return;
+        bool comparison = op is SyntaxKind.EqualsEqualsToken or SyntaxKind.EqualsEqualsEqualsToken
+            or SyntaxKind.ExclamationEqualsToken or SyntaxKind.ExclamationEqualsEqualsToken;
+        string leftText = await TypeDisplay.GetAsync(left, cancellation), rightText = await TypeDisplay.GetAsync(right, cancellation);
+        var diagnostic = CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(comparison ? 2367 : 2365),
+            comparison ? [leftText, rightText] : [TokenFacts.Text(op), leftText, rightText]);
+        if (suggestAwait)
+            diagnostic = diagnostic with { RelatedInformation = [CheckerDiagnostic.Create(node, Messages.Did_you_forget_to_use_await)] };
+        Error(node, diagnostic);
     }
 
     public void ArithmeticError(SyntaxNode node, Type type, int code, bool suggestAwait) => Error(node, code);

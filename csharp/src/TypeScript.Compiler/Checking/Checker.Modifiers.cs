@@ -179,7 +179,8 @@ internal sealed partial class Checker
 
         bool Report(SyntaxNode location, int code)
         {
-            Error(location, code);
+            Error(location, code, code is 1030 or 1040 or 1042 or 1044 or 1070 or 1071 or 1031 or 1090 or 1274 or 18019 or 1089
+                ? [TokenFacts.Text(location.Kind)] : []);
             return true;
         }
     }

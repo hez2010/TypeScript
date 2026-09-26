@@ -50,7 +50,17 @@ internal sealed partial class Checker
         if (((declaration.Flags | (program.Symbols.Binding(declaration)?.Get(declaration)?.Flags ?? 0)) & (NodeFlags.Ambient | NodeFlags.ThisNodeOrAnySubNodesHasError)) != 0)
             return;
         if (program.Symbols.Program.Configuration.Options.Boolean(parameter ? "noUnusedParameters" : "noUnusedLocals") == true)
-            Error(location, code);
+        {
+            string[] arguments = [];
+            if (code is 6133 or 6138 or 6196)
+            {
+                var name = SemanticSyntax.Name(location) ?? location;
+                arguments = [name is IdentifierNode identifier ? identifier.Text
+                    : program.Symbols.Declaration(declaration) is { } symbol ? TypeDisplay.SymbolName(symbol)
+                    : CheckerDiagnostic.DeclarationName(name)];
+            }
+            Error(location, code, arguments);
+        }
         else
             ExpressionSuggestion(location, code);
     }

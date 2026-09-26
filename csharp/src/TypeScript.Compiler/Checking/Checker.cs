@@ -409,12 +409,24 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
 
     public void InvalidThisType(SyntaxNode node) => Error(node, 2526);
 
-    public void CircularTypeAlias(Symbol symbol, TypeAliasDeclarationNode declaration) => Error(declaration, 2456);
+    public void CircularTypeAlias(Symbol symbol, TypeAliasDeclarationNode declaration) =>
+        Error(declaration, 2456, TypeDisplay.SymbolName(symbol));
 
-    public void TypeArgumentCount(SyntaxNode node, Symbol symbol, Type type, int minimum, int maximum, bool missingAugments)
-            => Error(node, missingAugments ? minimum == maximum ? 8026 : 8027 : minimum == maximum ? 2314 : 2707);
+    public async ValueTask TypeArgumentCountAsync(SyntaxNode node, Symbol symbol, Type type, int minimum, int maximum, bool missingAugments,
+        CancellationToken cancellation)
+    {
+        string name = (symbol.Flags & SymbolFlags.TypeAlias) != 0 ? TypeDisplay.SymbolName(symbol)
+            : symbol.Name is "Array" or "ReadonlyArray"
+                ? await SymbolDisplayNameAsync(symbol, null, SymbolFlags.Type, cancellation,
+                    SymbolFormatFlags.AllowAnyNodeKind | SymbolFormatFlags.WriteTypeParametersOrArguments)
+                : await TypeDisplay.GetAsync(type, cancellation);
+        Error(node, missingAugments ? minimum == maximum ? 8026 : 8027 : minimum == maximum ? 2314 : 2707,
+            name,
+            minimum.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            maximum.ToString(System.Globalization.CultureInfo.InvariantCulture));
+    }
 
-    public void NotGeneric(SyntaxNode node, Symbol symbol) => Error(node, 2315);
+    public void NotGeneric(SyntaxNode node, Symbol symbol) => Error(node, 2315, TypeDisplay.SymbolName(symbol));
 
     public void CircularArguments(SyntaxNode? node, InterfaceType target) => Error(node!, target.Symbol is null ? 4110 : 4109);
 

@@ -13,7 +13,7 @@ internal interface IIterationElementHost
 
     ValueTask<Type?> NumberIndexAsync(Type type, CancellationToken cancellation);
 
-    void IterationError(SyntaxNode node, int code, bool missingAwait);
+    ValueTask IterationErrorAsync(SyntaxNode node, int code, bool missingAwait, Type type, Type? other, CancellationToken cancellation);
 }
 
 internal sealed class IterationElements(TypeContext context, TypeAlgebra algebra, IteratorProtocols protocols,
@@ -67,7 +67,7 @@ internal sealed class IterationElements(TypeContext context, TypeAlgebra algebra
                 if (code != 0
                     && !await relations.RelatedAsync(sent, next, RelationKind.Assignable, cancellation).ConfigureAwait(false)
                     && node is not null)
-                    host.IterationError(node, code, false);
+                    await host.IterationErrorAsync(node, code, false, sent, next, cancellation).ConfigureAwait(false);
             }
             if (types.Yield is not null || iterable)
                 return types.Yield is not null && outOfBounds
@@ -102,7 +102,7 @@ internal sealed class IterationElements(TypeContext context, TypeAlgebra algebra
                     : (use & IterationUse.AllowsStringInputFlag) != 0 && !hasString ? 2495 : 2461;
                 bool hint = types.Yield is null
                     && await awaited.OfPromiseAsync(array, cancellation: cancellation).ConfigureAwait(false) is not null;
-                host.IterationError(node, code, hint);
+                await host.IterationErrorAsync(node, code, hint, array, null, cancellation).ConfigureAwait(false);
             }
             return hasString
                 ? outOfBounds ? await IncludeMissingAsync(context.StringType, cancellation).ConfigureAwait(false) : context.StringType
@@ -136,6 +136,6 @@ internal sealed class IterationElements(TypeContext context, TypeAlgebra algebra
                     context.CreateTypeReference((InterfaceType)target, [context.AnyType, context.AnyType, context.AnyType]),
                     RelationKind.Assignable, cancellation).ConfigureAwait(false);
         }
-        host.IterationError(node, async ? 2504 : 2488, hint);
+        await host.IterationErrorAsync(node, async ? 2504 : 2488, hint, type, null, cancellation).ConfigureAwait(false);
     }
 }

@@ -15,7 +15,17 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
     internal List<int> Suggestions { get; } = [];
     private readonly HashSet<(SyntaxNode, int)> suggestionLocations = [];
 
-    public void ExpressionError(SyntaxNode node, int code) => Error(node, code);
+    public void ExpressionError(SyntaxNode node, int code)
+    {
+        string[] arguments = code switch
+        {
+            2564 => [CheckerDiagnostic.DeclarationName(node)],
+            18046 or 18047 or 18048 or 18049 => [ExpressionChecks.EntityText(node)!],
+            18050 => [node.Kind == SyntaxKind.NullKeyword ? "null" : "undefined"],
+            _ => []
+        };
+        Error(node, code, arguments);
+    }
 
     public void DeferExpression(SyntaxNode node)
     {

@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Semantics;
 using TypeScript.Compiler.Syntax;
 
@@ -193,7 +194,14 @@ internal sealed partial class Checker
                     await Values.GetAsync(inherited, cancellation).ConfigureAwait(false),
                     cancellation).ConfigureAwait(false))
             {
-                Error(SemanticSyntax.Name(member) ?? member, 2416);
+                var location = SemanticSyntax.Name(member) ?? member;
+                var head = CheckerDiagnostic.Create(location,
+                    Messages.Property_0_in_type_1_is_not_assignable_to_the_same_property_in_base_type_2,
+                    TypeDisplay.SymbolName(property),
+                    await TypeDisplay.GetAsync(source, cancellation),
+                    await TypeDisplay.GetAsync(target, cancellation));
+                await ReportRelationMessageAsync(location, 2322, await Values.GetAsync(property, cancellation),
+                    await Values.GetAsync(inherited, cancellation), RelationKind.Assignable, cancellation, head);
                 reported = true;
             }
         }

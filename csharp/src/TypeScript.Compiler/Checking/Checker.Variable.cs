@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -10,6 +11,25 @@ internal sealed partial class Checker : IVariableTypeHost
     internal WideningDiagnostics WideningDiagnostics { get; }
     internal PropertyInitialization PropertyInitializers { get; }
     internal Action<SyntaxNode>? BeforeInitializer { get; set; }
+
+    public async ValueTask VariableDeclarationConflictAsync(SyntaxNode node, Symbol symbol, Type firstType, Type nextType,
+        CancellationToken cancellation)
+    {
+        var name = SemanticSyntax.Name(node)!;
+        string text = CheckerDiagnostic.DeclarationName(name);
+        var diagnostic = CheckerDiagnostic.Create(name, DiagnosticLocalization.GetMessage(
+            node is PropertyDeclarationNode or PropertySignatureDeclarationNode ? 2717 : 2403),
+            text, await TypeDisplay.GetAsync(firstType, cancellation), await TypeDisplay.GetAsync(nextType, cancellation));
+        if (symbol.ValueDeclaration is { } first)
+            diagnostic = diagnostic with
+            {
+                RelatedInformation = [CheckerDiagnostic.Create(
+                first,
+                Messages.X_0_was_also_declared_here,
+                text)]
+            };
+        Error(name, diagnostic);
+    }
 
     public void CheckDeclarationFlags(SyntaxNode node, Symbol symbol, CancellationToken cancellation)
     {

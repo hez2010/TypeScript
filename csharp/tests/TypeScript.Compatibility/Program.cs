@@ -94,6 +94,12 @@ internal static class Program
                     $"Private/declaration safety: {CheckerProgramTests.PrivateDeclarationSafety().GetAwaiter().GetResult()} assertions passed");
                 return 0;
             }
+            if (args is ["--checker-diagnostic-values-safety"])
+            {
+                Console.WriteLine(
+                    $"Diagnostic value safety: {CheckerProgramTests.DiagnosticValueSafety().GetAwaiter().GetResult()} assertions passed");
+                return 0;
+            }
             if (args is ["--checker-pool-safety"])
             {
                 Console.WriteLine($"Checker pool safety: {CheckerPoolTests.Safety().GetAwaiter().GetResult()} assertions passed");
