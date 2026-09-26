@@ -113,7 +113,7 @@ internal sealed partial class Checker
     }
 
     private async ValueTask<SyntaxNode> SignatureSyntaxAsync(Signature signature, K kind, TypeSyntaxContext state,
-        CancellationToken cancellation, SyntaxNode? name = null, SyntaxNode? question = null)
+        CancellationToken cancellation, SyntaxNode? name = null, SyntaxNode? question = null, bool preserveParameters = false)
     {
         var f = state.Factory;
         var allocated = new List<Symbol>();
@@ -153,7 +153,8 @@ internal sealed partial class Checker
             var parameters = new List<SyntaxNode>();
             if ((state.Flags & NodeBuilderFlags.OmitThisParameter) == 0 && signature.ThisParameter is { } thisParameter)
                 parameters.Add(await ParameterSyntaxAsync(thisParameter, state, cancellation));
-            var selected = expanded.Take(Math.Max(0, expanded.Count - 1)).Any(p => (p.CheckFlags & Binding.CheckFlags.RestParameter) != 0)
+            var selected = preserveParameters
+                || expanded.Take(Math.Max(0, expanded.Count - 1)).Any(p => (p.CheckFlags & Binding.CheckFlags.RestParameter) != 0)
                 ? signature.Parameters : expanded;
             foreach (var parameter in selected)
                 parameters.Add(await ParameterSyntaxAsync(parameter, state, cancellation, preserveModifiers: kind == K.Constructor));
@@ -333,6 +334,9 @@ internal sealed partial class Checker
         var flags = state.Flags;
         try
         {
+            if (state.Symbols.Enclosing is not null && declaration is GetAccessorDeclarationNode or SetAccessorDeclarationNode
+                && await RecoverAccessorSyntaxAsync(declaration, value, state, cancellation) is { } accessor)
+                return accessor;
             if (state.Symbols.Enclosing is not null && declaration is ITypedNode { Type: { } annotation }
                 && annotation is not TypePredicateNode && (value.ObjectFlags & ObjectFlags.RequiresWidening) == 0)
             {

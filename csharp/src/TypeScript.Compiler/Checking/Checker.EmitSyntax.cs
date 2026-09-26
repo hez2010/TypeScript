@@ -76,6 +76,11 @@ internal sealed partial class Checker
 
     private async ValueTask<SyntaxNode?> ReuseInitializerTypeSyntaxAsync(Type type, SyntaxNode expression, TypeSyntaxContext state,
         CancellationToken cancellation)
+        => await RecoverableExpressionAsync(expression, type, cancellation)
+            ? await RecoveredExpressionSyntaxAsync(type, expression, state, cancellation) : null;
+
+    private async ValueTask<SyntaxNode?> RecoveredExpressionSyntaxAsync(Type type, SyntaxNode expression, TypeSyntaxContext state,
+        CancellationToken cancellation)
     {
         await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
             ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
@@ -88,13 +93,20 @@ internal sealed partial class Checker
                 TypeAssertionNode assertion => assertion.Expression!,
                 _ => throw new InvalidOperationException("Unexpected const assertion")
             };
-        if (type is LiteralType && expression is (StringLiteralNode or NumericLiteralNode or BigIntLiteralNode or PrefixUnaryExpressionNode
+        if (expression is AsExpressionNode or TypeAssertionNode)
+            return await RecoverAnnotationSyntaxAsync(((ITypedNode)expression).Type!, state, cancellation);
+        if (expression is (FunctionExpressionNode or ArrowFunctionNode or MethodDeclarationNode)
+            and IFullSignatureNode { FullSignature: { } fullSignature })
+            return await RecoverAnnotationSyntaxAsync(fullSignature, state, cancellation);
+        if (type is LiteralType && expression is (StringLiteralNode or NumericLiteralNode or BigIntLiteralNode
+            or PrefixUnaryExpressionNode { Operator: K.PlusToken or K.MinusToken, Operand: NumericLiteralNode or BigIntLiteralNode }
             or KeywordExpressionNode or NoSubstitutionTemplateLiteralNode))
         {
             var actual = await Algebra.RegularTypeAsync(await ExpressionTypeForQueryAsync(expression, cancellation), cancellation);
             if (actual == await Algebra.RegularTypeAsync(type, cancellation))
             {
-                var literal = CloneSyntaxBindingName(expression, state, typeAnnotation: true);
+                var literal = CloneSyntaxBindingName(expression is PrefixUnaryExpressionNode { Operator: K.PlusToken } positive
+                    ? positive.Operand! : expression, state, typeAnnotation: true);
                 AddReusedSyntaxLength(expression, state);
                 return state.Factory.NewLiteralTypeNode(literal);
             }
@@ -109,49 +121,59 @@ internal sealed partial class Checker
                 return null;
             var items = new List<SyntaxNode>();
             for (int i = 0; i < elements.Count; i++)
-                items.Add(await ReuseInitializerTypeSyntaxAsync(arguments[i], elements[i], state, cancellation)
+                items.Add(await RecoveredExpressionSyntaxAsync(arguments[i], elements[i], state, cancellation)
                     ?? await TypeSyntaxAsync(arguments[i], state, cancellation));
             var node = state.Factory.NewTupleTypeNode(new(items.ToArray()));
             state.SingleLine.Add(node);
             return state.Factory.NewTypeOperatorNode(K.ReadonlyKeyword, node);
         }
         if (expression is ObjectLiteralExpressionNode { Properties: { } properties }
-            && properties.All(p => p is PropertyAssignmentNode { Name: IdentifierNode or StringLiteralNode or NumericLiteralNode }))
+            && RecoverableObjectElements(properties) is { } objectElements)
         {
             var expected = await Properties.GetAsync(type, cancellation);
-            if (expected.Count != properties.Count)
-                return null;
             var members = new List<SyntaxNode>();
-            foreach (PropertyAssignmentNode property in properties)
+            bool constant = await Contexts.ConstAsync(expression, cancellation);
+            foreach (var property in objectElements)
             {
-                string? name = property.Name switch
-                {
-                    IdentifierNode identifier => identifier.Text,
-                    StringLiteralNode text => text.Text,
-                    NumericLiteralNode number => number.Text,
-                    _ => null
-                };
-                var symbol = expected.FirstOrDefault(p => p.Name == name);
+                var source = program.Symbols.Declaration(property);
+                var symbol = expected.FirstOrDefault(p => p.Name == source?.Name
+                    || SemanticSyntax.Name(p.ValueDeclaration) == SemanticSyntax.Name(property));
                 if (symbol is null || (symbol.Flags & SymbolFlags.Optional) != 0)
                     return null;
+                var name = RecoveredPropertyName(SemanticSyntax.Name(property)!, property is MethodDeclarationNode && !constant, state);
+                if (property is MethodDeclarationNode method)
+                {
+                    var node = await SignatureSyntaxAsync(await Signatures.FromDeclarationAsync(method, cancellation),
+                        constant ? K.FunctionType : K.MethodSignature, state, cancellation, name, preserveParameters: true);
+                    members.Add(constant ? state.Factory.NewPropertySignatureDeclaration(new([state.Factory.NewToken(K.ReadonlyKeyword)]),
+                        name, null, node, null) : node);
+                    continue;
+                }
+                if (property is GetAccessorDeclarationNode or SetAccessorDeclarationNode
+                    && objectElements.Any(other => other != property && other is GetAccessorDeclarationNode or SetAccessorDeclarationNode
+                        && program.Symbols.Declaration(other) == source))
+                {
+                    members.Add(await SignatureSyntaxAsync(await Signatures.FromDeclarationAsync(property, cancellation),
+                        property.Kind, state, cancellation, name, preserveParameters: true));
+                    continue;
+                }
                 var value = await Values.GetAsync(symbol, cancellation);
-                var observed = await ExpressionTypeForQueryAsync(property.Initializer!, cancellation);
-                var inferred = await Algebra.RegularTypeAsync(observed, cancellation);
-                var widened = await Widening.LiteralAsync(observed, cancellation);
-                if (await Algebra.RegularTypeAsync(value, cancellation) != inferred
-                    && !await Relations.RelatedAsync(value, widened, RelationKind.Identity, cancellation))
-                    return null;
-                var typeNode = await ReuseInitializerTypeSyntaxAsync(value, property.Initializer!, state, cancellation)
-                    ?? await TypeSyntaxAsync(value, state, cancellation);
-                members.Add(
-                    state.Factory.NewPropertySignatureDeclaration(
-                    IsReadonly(symbol) ? new([state.Factory.NewToken(K.ReadonlyKeyword)]) : null,
-                    CloneSyntaxBindingName(property.Name!, state), null, typeNode, null));
+                var typeNode = property is PropertyAssignmentNode assignment
+                    ? await RecoveredExpressionSyntaxAsync(value, assignment.Initializer!, state, cancellation)
+                    : await RecoverAccessorSyntaxAsync(property, value, state, cancellation);
+                typeNode ??= await TypeSyntaxAsync(value, state, cancellation);
+                members.Add(state.Factory.NewPropertySignatureDeclaration(
+                    constant || IsReadonly(symbol) ? new([state.Factory.NewToken(K.ReadonlyKeyword)]) : null,
+                    name, null, typeNode, null));
             }
             var result = state.Factory.NewTypeLiteralNode(new(members.ToArray()));
-            state.SingleLine.Add(result);
+            if ((state.Flags & NodeBuilderFlags.MultilineObjectLiterals) == 0)
+                state.SingleLine.Add(result);
             return result;
         }
+        if (expression is FunctionExpressionNode or ArrowFunctionNode)
+            return await SignatureSyntaxAsync(await Signatures.FromDeclarationAsync(expression, cancellation), K.FunctionType,
+                state, cancellation, preserveParameters: true);
         return null;
     }
 
@@ -207,11 +229,21 @@ internal sealed partial class Checker
         {
             state.Flags &= ~NodeBuilderFlags.SuppressAnyReturnType;
             var type = await Signatures.ReturnAsync(signature, cancellation);
+            if (signature.Declaration is { } declaration && (declaration.Flags & NodeFlags.Synthesized) == 0)
+                type = (await Instantiation.Engine.InstantiateAsync(type, state.Mapper, cancellation: cancellation))!;
             if ((flags & NodeBuilderFlags.SuppressAnyReturnType) != 0 && (type.Flags & TypeFlags.Any) != 0)
                 return null;
-            if (await Signatures.PredicateAsync(signature, cancellation) is { } predicate)
+            var predicate = await Signatures.PredicateAsync(signature, cancellation);
+            if (await RecoverReturnSyntaxAsync(signature, type, predicate, state, cancellation) is { } recovered)
+                return recovered;
+            if (predicate is not null)
+            {
+                if (predicate.Type is { } narrowed && state.Mapper is not null)
+                    predicate = new(predicate.Kind, predicate.ParameterIndex, predicate.ParameterName,
+                        await Instantiation.Engine.InstantiateAsync(narrowed, state.Mapper, cancellation: cancellation));
                 return await PredicateTypeSyntaxAsync(predicate, state, cancellation);
-            return await DeclarationTypeSyntaxAsync(type, signature.Declaration, false, state, cancellation);
+            }
+            return await TypeSyntaxAsync(type, state, cancellation);
         }
         finally
         {

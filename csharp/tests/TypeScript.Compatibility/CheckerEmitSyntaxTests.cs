@@ -12,6 +12,66 @@ namespace TypeScript.Compatibility;
 
 internal static class CheckerEmitSyntaxTests
 {
+    internal static async Task<int> ReturnSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Return recovery assertion {checks + 1}");
+            checks++;
+        }
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        var files = new Dictionary<string, byte[]>
+        {
+            ["/project/globals.d.ts"] = Wtf8.Encode(
+                "interface Object{}interface Function{}interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T}"),
+            ["/project/main.ts"] = Wtf8.Encode(
+                "function literal(){return 'é' as const}function tuple(){return [0x10,'é'] as const}function holes(){return [0x10,,'é'] as const}function callable(){return (...args:[first:number,second:string])=>'é' as const}function object(){return {['quoted']:'é' as 'é'}}function branch(x:boolean){if(x)return 'é' as const;return 'x' as const}function guard(x:unknown):x is 'é'{return x==='é'}class Values{get value(){return 'é' as const}set value(v:'é'){}}class Scope<T>{}")
+        };
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
+            new("/project/tsconfig.json", options, files.Keys.ToArray(), [], [], []));
+        var source = program.GetFile("/project/main.ts")!.Syntax;
+        var checker = await program.CreateCheckerAsync();
+        var nodes = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
+        var functions = source.Statements!.OfType<FunctionDeclarationNode>().ToDictionary(n => n.Name!.Text);
+        const NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation;
+        Check(await checker.SerializeReturnTypeForEmitAsync(functions["literal"], source, flags) == "'é'");
+        Check(await checker.SerializeReturnTypeForEmitAsync(functions["literal"], null, flags) == "\"é\"");
+        Check(await checker.SerializeReturnTypeForEmitAsync(functions["tuple"], source, flags) == "readonly [16, 'é']");
+        Check(await checker.SerializeReturnTypeForEmitAsync(functions["holes"], source, flags) == "readonly [16, undefined, 'é']");
+        Check(await checker.SerializeReturnTypeForEmitAsync(functions["callable"], source, flags)
+            == "(...args: [first: number, second: string]) => 'é'");
+        Check(await checker.SerializeReturnTypeForEmitAsync(functions["object"], source, flags) == "{ quoted: 'é'; }");
+        Check(await checker.SerializeReturnTypeForEmitAsync(functions["guard"], source, flags) == "x is 'é'");
+        var branch = await checker.SerializeReturnTypeForEmitAsync(functions["branch"], source, flags);
+        Check(
+            branch.Contains("\"é\"", StringComparison.Ordinal)
+                && branch.Contains("\"x\"", StringComparison.Ordinal)
+                && !branch.Contains('\''));
+        foreach (var accessor in source.DescendantsAndSelf().Where(n => n is GetAccessorDeclarationNode or SetAccessorDeclarationNode))
+            Check(await checker.SerializeDeclarationTypeForEmitAsync(accessor, source, flags) == "'é'");
+        using var stop = new CancellationTokenSource();
+        stop.Cancel();
+        try
+        {
+            await checker.SerializeReturnTypeForEmitAsync(functions["tuple"], source, flags, stop.Token);
+            throw new InvalidOperationException("Expected cancelled return query");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        var results = await Task.WhenAll(Enumerable.Range(0, 8)
+            .Select(_ => checker.SerializeReturnTypeForEmitAsync(functions["object"], source, flags).AsTask()));
+        Check(results.All(r => r == "{ quoted: 'é'; }"));
+        Check(checker.TypeSyntaxScopeCount == 0);
+        Check(nodes.All(n => n.Node.Parent == n.Parent && n.Node.Pos == n.Pos && n.Node.End == n.End && n.Node.Flags == n.Flags));
+        return checks;
+    }
+
     internal static async Task<int> RecoverySafety()
     {
         int checks = 0;

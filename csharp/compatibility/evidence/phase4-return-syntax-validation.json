@@ -1,0 +1,165 @@
+{
+    "timestamp": "2026-09-26T21:39:01.931Z",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "configuration": "Release",
+    "managed": true,
+    "scope": "Guarded inferred-return, accessor and initializer syntax recovery; tuple/function/object equivalence, rest parameters, predicates, assertions, computed names and mapper propagation",
+    "emit": {
+        "configurations": 136,
+        "queries": 20188,
+        "exact": 136,
+        "stages": [
+            {
+                "configurations": 132,
+                "queries": 19900,
+                "comparedQueries": 19900,
+                "exact": 132,
+                "failed": 0,
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "referenceFailures": 0,
+                "candidateFailures": 0,
+                "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                "candidateHash": "ff2d23879b3da5be4e48808531d7f3c48d8df70b5943492c244a0dfbcccf35bf",
+                "inputHash": "01dad73cfbe4d3b842b24061a8cd9b4bc3d28ecb784a21f296cfe5042ac77b20",
+                "resultHash": "2d95aa84e8f11b55deaeaf4723355bbdae28eaf7fcb405510c48a10359f8fc01",
+                "managed": true
+            },
+            {
+                "configurations": 4,
+                "queries": 288,
+                "comparedQueries": 288,
+                "exact": 4,
+                "failed": 0,
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "referenceFailures": 0,
+                "candidateFailures": 0,
+                "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                "candidateHash": "7a98b3d214a7d67b312bbac70982e43fa216a99a9af988b2ebc87923c0049ba0",
+                "inputHash": "7a731c072009bb1ccd1cf8954be66ab0d4db877a6c89de3efa32569cc0a16e57",
+                "resultHash": "0f54d2e8c9166d202d1ae2ba32ac80b5af99597de35d3d866b23957e49d8b1ef",
+                "managed": true
+            }
+        ]
+    },
+    "queryRegressions": {
+        "candidateHash": "ff2d23879b3da5be4e48808531d7f3c48d8df70b5943492c244a0dfbcccf35bf",
+        "configurations": 253,
+        "groups": [
+            {
+                "mode": "signature-syntax",
+                "replayed": 48
+            },
+            {
+                "mode": "signature-declarations",
+                "replayed": 20
+            },
+            {
+                "mode": "anonymous-syntax",
+                "replayed": 44
+            },
+            {
+                "mode": "syntax-options",
+                "replayed": 45
+            },
+            {
+                "mode": "generated-names",
+                "replayed": 40
+            },
+            {
+                "mode": "emit-recovery",
+                "replayed": 56
+            }
+        ],
+        "failures": [],
+        "cachedReferences": 253,
+        "queries": 38784
+    },
+    "formatRegressions": {
+        "configurations": 80,
+        "queries": 28320,
+        "records": [
+            {
+                "timestamp": "2026-09-26T21:34:00.335Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "managed": true,
+                "cases": 40,
+                "queries": 22656,
+                "differences": [],
+                "oracleSha256": "785894724ead124508017a88d085b253ad3571c40222d65b8c64087949e68195",
+                "candidateSha256": "4fe1b2776ca7968d36b688f295280ed2780c634ecaf983e87e6ce2987e24d512",
+                "referenceExecuted": 0,
+                "referenceReused": 40,
+                "candidateExecuted": 40,
+                "candidateReused": 0
+            },
+            {
+                "timestamp": "2026-09-26T21:34:01.310Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "managed": true,
+                "cases": 40,
+                "queries": 5664,
+                "differences": [],
+                "oracleSha256": "785894724ead124508017a88d085b253ad3571c40222d65b8c64087949e68195",
+                "candidateSha256": "4fe1b2776ca7968d36b688f295280ed2780c634ecaf983e87e6ce2987e24d512",
+                "referenceExecuted": 0,
+                "referenceReused": 40,
+                "candidateExecuted": 40,
+                "candidateReused": 0
+            }
+        ]
+    },
+    "safety": [
+        {
+            "log": "logs/phase4-return-safety.log",
+            "assertions": 14,
+            "sha256": "2b00ecd8a4ff8040eedf67c281eab9b3d102ae176a4dbf406a4fcb4ee643c0c3"
+        },
+        {
+            "log": "logs/phase4-return-emit-safety.log",
+            "assertions": 13,
+            "sha256": "dc6948573c4c5808468091aca964113bff392e0f216aa67c2b86be3fd719880c"
+        },
+        {
+            "log": "logs/phase4-return-recovery-safety.log",
+            "assertions": 10,
+            "sha256": "1b2b2e001d01b29b486aea2d4ab0d5611459e11fda70328e5df0072039ab77c1"
+        }
+    ],
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/phase4-return-final-build.log",
+        "sha256": "8bcf03d4a04228eb38059b64cc313c79e2fb06a9f3b0f24c7d03a183a3368837"
+    },
+    "candidateSha256": "c05ae3099faff05d3a1e2181fe3a5633724db700feb7d05997e98fd1cf0cccba",
+    "compilerSha256": "e9e1f4a864f5db39661a7e3bef07ea4d7c012e5996cb28b26c1db4425791c1f8",
+    "reuse": {
+        "semanticCorpusRetainedFrom": "phase4-type-renderer-validation.json",
+        "reason": "Validation covers the changed emit and scoped node-builder algorithms. Cached Go references were retained; candidate results were replayed for affected API families. The final unary guard only changes non-numeric prefix-expression recovery and is covered by four new configurations; previous successful fixtures contain no affected prefix form. Formatting preserves tokens/comments/syntax, so no runtime replay followed it.",
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ]
+    },
+    "referenceSources": {
+        "nodebuilder": "5cd58f6ec95f0fe53386fe46d2b3ecf0d2d46d83",
+        "pseudoNodebuilder": "9daf4b686fc4354d5ca447b5599de82be2b99d2d",
+        "pseudoLookup": "c2693a7ab1552ac2a5aff86f53c40c4af6c242ed",
+        "nodecopy": "822a68634fdb00ae6f49d1e239cf4c608048f775"
+    },
+    "formatting": {
+        "csharpFiles": 5,
+        "libraryConfigurations": 2,
+        "tokensCommentsAndSyntaxIdentical": true,
+        "dotnetWhitespaceExitCode": 0,
+        "log": "logs/phase4-return-format.log",
+        "proofSha256": "44cc3ab2722546aafa4973e8dfc3d84dd52ba29da4d3b741c918bb76d0a73c1a"
+    },
+    "nativeAotVerification": "Deferred until whole phase 4 completion; no NativeAOT build or execution",
+    "phase4Complete": false
+}
