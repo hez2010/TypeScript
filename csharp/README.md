@@ -6,6 +6,8 @@ Phases 2 and 3 are implemented and validated on Windows x64. The [phase-2 report
 
 Phase 4 is complete. The [checker completion report](../docs/csharp-phase-4-progress.md) records full semantic corpus parity, checker/query/emit-resolver coverage, provisional workload measurements, and warning-free NativeAOT publishing. Runtime validation uses Release CoreCLR; the NativeAOT artifact is build-verified only. Transformations/emission and full product integration remain later phases.
 
+The [Server GC and Satori comparison](../docs/csharp-phase-4-gc-performance.md) measures self-contained Release builds against Go using the current SDK and invariant globalization.
+
 Use an installed .NET 11 SDK; the SDK version is not pinned. The current validation uses `11.0.100-rtm.26473.115`, with C# 15, `OptimizationPreference=Speed`, NativeAOT/trimming analysis, warning errors, and NuGet lockfiles. `NuGet.Config` adds the public `dotnet11` feed for matching nightly packs. The final target is .NET 11 GA; upgrades require refreshing and revalidating the evidence. Node 24 and Go 1.27.1 are required for the reference tooling. The existing Go backend and JS clients remain untouched.
 
 Tools accept `--dotnet` where supported and otherwise use `DOTNET_ROOT` or `dotnet` from `PATH`. `InvariantGlobalization` removes the native globalization dependency. `--locale` validation uses registered language subtags generated from the pinned Go dependency by `generate-locales.mjs`; localized diagnostic resources remain available. JavaScript lone surrogates and malformed source bytes require the small WTF-8 compatibility boundary; ordinary text stays in .NET strings and BCL UTF-8 APIs handle valid encodings.

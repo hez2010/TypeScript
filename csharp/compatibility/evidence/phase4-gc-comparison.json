@@ -1,0 +1,732 @@
+{
+    "timestamp": "2026-09-27T11:18:38.470Z",
+    "sourceCommit": "35ca38f85a24d07cec4f5a4cf6f4667a84bd9ebf",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "sdk": "11.0.100-rtm.26473.115",
+    "go": "go1.27.1",
+    "machine": {
+        "platform": "win32",
+        "architecture": "x64",
+        "os": "Windows 11 Pro for Workstations",
+        "cpu": "13th Gen Intel(R) Core(TM) i7-13700K",
+        "availableMemoryBytes": 68399497216
+    },
+    "manifest": {
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "execution": "Paired Go and self-contained Release CoreCLR; stock Server GC then Satori runtime replacement; no NativeAOT execution",
+        "scope": "Fresh program construction, binding and complete semantic checking in warm processes; input decoding excluded",
+        "processorCount": 4,
+        "modes": [
+            "single",
+            "default"
+        ],
+        "warmups": 3,
+        "samples": 9,
+        "provisionalBudgets": {
+            "p95ElapsedMs": 5000,
+            "peakRssBytes": 536870912,
+            "releasedHeapGrowthBytes": 16777216
+        },
+        "budgetScope": "Existing Phase 4 operability budgets; timings compare runtime distributions, including their JIT and CoreLib, not an isolated collector substitution.",
+        "cases": [
+            "compiler/jsxComplexSignatureHasApplicabilityError.tsx",
+            "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+            "conformance/superInStaticMembers1.ts target=es2022",
+            "conformance/nodeModulesAllowJs1.ts module=node18",
+            "compiler/giant.ts"
+        ]
+    },
+    "scope": "Warm processes constructing a fresh program, binding and checking; excludes input decoding, forced cleanup and process startup.",
+    "runtimeSetup": {
+        "selfContained": true,
+        "publishAot": false,
+        "publishTrimmed": false,
+        "invariantGlobalization": true,
+        "serverGC": true,
+        "processorCount": 4,
+        "tieredCompilation": false,
+        "gcNameUsed": false,
+        "stockRuntime": ".NET 11.0.0-rtm.26473.115",
+        "satoriRuntime": ".NET 11.0.0-dev",
+        "satoriCommit": "07127280d42354eaaa358d8ea0c9f939d49ac6e0",
+        "replacedFiles": [
+            "coreclr.dll",
+            "clrjit.dll",
+            "System.Private.CoreLib.dll"
+        ],
+        "satoriArchive": "C:/Users/i/Downloads/Compressed/net11.0/windows_x64.zip",
+        "satoriArchiveSha256": "3c28876c584b849d353a84790edff574ed4ddb723e7729897c8ca03dd9b052db",
+        "applicationAndRuntimeConfigurationIdentical": true
+    },
+    "artifacts": [
+        {
+            "flavor": "server",
+            "name": "TypeScript.Compatibility.exe",
+            "sha256": "d481e63b932432e6235594efb8c2d9c5b14e8bd7b094b1410a48eabf9828daaf",
+            "bytes": 74240,
+            "version": "1.0.0+35ca38f85a24d07cec4f5a4cf6f4667a84bd9ebf"
+        },
+        {
+            "flavor": "server",
+            "name": "TypeScript.Compatibility.dll",
+            "sha256": "64a2322f9b502045a93c1713d8e97857de6465525e5c157e5b16c4064607ba00",
+            "bytes": 980992,
+            "version": "1.0.0+35ca38f85a24d07cec4f5a4cf6f4667a84bd9ebf"
+        },
+        {
+            "flavor": "server",
+            "name": "TypeScript.Compiler.dll",
+            "sha256": "2d72d8c088670229da4055442ef3041eba0f4662fdd9b2f81e74877ea1c6840f",
+            "bytes": 8721920,
+            "version": "1.0.0+35ca38f85a24d07cec4f5a4cf6f4667a84bd9ebf"
+        },
+        {
+            "flavor": "server",
+            "name": "TypeScript.Compatibility.runtimeconfig.json",
+            "sha256": "ec0a19e14f3487420fe00a635e70f8146102c64cd9a72753f5b5cce1bcfe079d",
+            "bytes": 672,
+            "version": null
+        },
+        {
+            "flavor": "server",
+            "name": "coreclr.dll",
+            "sha256": "dc3d45cc7601c3e6958403ee01bd18b2b1db44ab9fcf9fdef3b6a41d0506ead6",
+            "bytes": 4888360,
+            "version": "11,0,26,47415 @Commit: 64f19de49d35eb28f9d7cd895e8679d3e5c44f5e"
+        },
+        {
+            "flavor": "server",
+            "name": "clrjit.dll",
+            "sha256": "8cc8e98a26d3810b64d0d65b4c146cfe6b6f75f3489bd1759a5ba11255c139c5",
+            "bytes": 2416424,
+            "version": "11,0,26,47415 @Commit: 64f19de49d35eb28f9d7cd895e8679d3e5c44f5e"
+        },
+        {
+            "flavor": "server",
+            "name": "System.Private.CoreLib.dll",
+            "sha256": "febf061885c5d6f2d3534ae798fd256bcd97c7bae0c3e5665dba7e7278cabbd2",
+            "bytes": 18224936,
+            "version": "11.0.0-rtm.26473.115+64f19de49d35eb28f9d7cd895e8679d3e5c44f5e"
+        },
+        {
+            "flavor": "satori",
+            "name": "TypeScript.Compatibility.exe",
+            "sha256": "d481e63b932432e6235594efb8c2d9c5b14e8bd7b094b1410a48eabf9828daaf",
+            "bytes": 74240,
+            "version": "1.0.0+35ca38f85a24d07cec4f5a4cf6f4667a84bd9ebf"
+        },
+        {
+            "flavor": "satori",
+            "name": "TypeScript.Compatibility.dll",
+            "sha256": "64a2322f9b502045a93c1713d8e97857de6465525e5c157e5b16c4064607ba00",
+            "bytes": 980992,
+            "version": "1.0.0+35ca38f85a24d07cec4f5a4cf6f4667a84bd9ebf"
+        },
+        {
+            "flavor": "satori",
+            "name": "TypeScript.Compiler.dll",
+            "sha256": "2d72d8c088670229da4055442ef3041eba0f4662fdd9b2f81e74877ea1c6840f",
+            "bytes": 8721920,
+            "version": "1.0.0+35ca38f85a24d07cec4f5a4cf6f4667a84bd9ebf"
+        },
+        {
+            "flavor": "satori",
+            "name": "TypeScript.Compatibility.runtimeconfig.json",
+            "sha256": "ec0a19e14f3487420fe00a635e70f8146102c64cd9a72753f5b5cce1bcfe079d",
+            "bytes": 672,
+            "version": null
+        },
+        {
+            "flavor": "satori",
+            "name": "coreclr.dll",
+            "sha256": "2eaae907ea6d54be5447fa9d90378c6f4cb26b0cdcda3cd8e02f040d0de96961",
+            "bytes": 4396032,
+            "version": "42,42,42,42424 @Commit: 07127280d42354eaaa358d8ea0c9f939d49ac6e0"
+        },
+        {
+            "flavor": "satori",
+            "name": "clrjit.dll",
+            "sha256": "71d149ef52d113ed9cf9f54b8fb9604560d701d5c6caac12a76c27857f37b0bd",
+            "bytes": 2406400,
+            "version": "42,42,42,42424 @Commit: 07127280d42354eaaa358d8ea0c9f939d49ac6e0"
+        },
+        {
+            "flavor": "satori",
+            "name": "System.Private.CoreLib.dll",
+            "sha256": "5b2a04988d047dc78713a96d7fc049e295af9e6200ea32071327d409c1aee219",
+            "bytes": 18214912,
+            "version": "11.0.0-dev"
+        }
+    ],
+    "correctness": {
+        "sampleCount": 480,
+        "graphsAndDiagnosticCountsMatched": true,
+        "satoriFoundationAssertions": 4751,
+        "operabilityBudgetsPassed": true
+    },
+    "activity": {
+        "runs": [
+            {
+                "flavor": "server",
+                "elapsedSeconds": 34.862,
+                "lastInputUnchanged": false,
+                "exitCode": 0,
+                "observedBackgroundCpuSeconds": 13.53125
+            },
+            {
+                "flavor": "satori",
+                "elapsedSeconds": 30.864,
+                "lastInputUnchanged": false,
+                "exitCode": 0,
+                "observedBackgroundCpuSeconds": 18.09375
+            }
+        ],
+        "userInstruction": "Run anyway; do not discard or repeat runs because of keyboard and mouse activity.",
+        "interpretation": "Measurements were taken during ordinary machine use. They compare complete runtime packages, including different JIT and CoreLib builds, and do not isolate the collector or establish universal speedups.",
+        "cpuScope": "CPU time for processes present in both boundary snapshots with more than 0.2 seconds of CPU delta; not complete system CPU accounting."
+    },
+    "samplePath": "csharp/compatibility/evidence/phase4-gc-samples.jsonl",
+    "samplesSha256": "d0b4ba0b40de94245e8b7de95bd518ff8743d87cb1067a6ab4aa022387705dac",
+    "groups": [
+        {
+            "name": "compiler/jsxComplexSignatureHasApplicabilityError.tsx",
+            "label": "JSX signatures",
+            "mode": "single",
+            "goServerRun": {
+                "samples": 9,
+                "medianMs": 20.8721,
+                "medianProgramMs": 18.4059,
+                "medianCheckerMs": 2.188600000000001,
+                "p95Ms": 23.9062,
+                "medianCpuMs": 15.625,
+                "medianAllocatedBytes": 21996920,
+                "peakRssBytes": 46632960,
+                "releasedHeapGrowthBytes": 224
+            },
+            "server": {
+                "samples": 9,
+                "medianMs": 90.4467,
+                "medianProgramMs": 81.4089,
+                "medianCheckerMs": 9.323599999999999,
+                "p95Ms": 93.9213,
+                "medianCpuMs": 125,
+                "medianAllocatedBytes": 94867344,
+                "peakRssBytes": 152760320,
+                "releasedHeapGrowthBytes": 512
+            },
+            "goSatoriRun": {
+                "samples": 9,
+                "medianMs": 20.9289,
+                "medianProgramMs": 18.1525,
+                "medianCheckerMs": 2.7380999999999993,
+                "p95Ms": 22.241500000000002,
+                "medianCpuMs": 31.25,
+                "medianAllocatedBytes": 21996352,
+                "peakRssBytes": 46219264,
+                "releasedHeapGrowthBytes": 0
+            },
+            "satori": {
+                "samples": 9,
+                "medianMs": 78.4873,
+                "medianProgramMs": 69.988,
+                "medianCheckerMs": 8.3279,
+                "p95Ms": 80.7548,
+                "medianCpuMs": 93.75,
+                "medianAllocatedBytes": 94860856,
+                "peakRssBytes": 216092672,
+                "releasedHeapGrowthBytes": 512
+            },
+            "serverToGo": 4.333378050124329,
+            "satoriToGo": 3.750187539717807,
+            "satoriMedianReductionPercent": 13.222594080270477,
+            "satoriPeakRssIncreasePercent": 41.45864056844082,
+            "goMedianDriftPercent": 0.2721336137714969
+        },
+        {
+            "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+            "label": "Large conditional type",
+            "mode": "single",
+            "goServerRun": {
+                "samples": 9,
+                "medianMs": 63.5922,
+                "medianProgramMs": 18.088,
+                "medianCheckerMs": 45.4617,
+                "p95Ms": 65.845,
+                "medianCpuMs": 62.5,
+                "medianAllocatedBytes": 34389344,
+                "peakRssBytes": 58019840,
+                "releasedHeapGrowthBytes": 352
+            },
+            "server": {
+                "samples": 9,
+                "medianMs": 237.6333,
+                "medianProgramMs": 82.0464,
+                "medianCheckerMs": 154.62369999999999,
+                "p95Ms": 260.9422,
+                "medianCpuMs": 281.25,
+                "medianAllocatedBytes": 197217832,
+                "peakRssBytes": 222879744,
+                "releasedHeapGrowthBytes": 512
+            },
+            "goSatoriRun": {
+                "samples": 9,
+                "medianMs": 63.8473,
+                "medianProgramMs": 19.1056,
+                "medianCheckerMs": 45.0376,
+                "p95Ms": 65.611,
+                "medianCpuMs": 62.5,
+                "medianAllocatedBytes": 34389288,
+                "peakRssBytes": 58757120,
+                "releasedHeapGrowthBytes": 5384
+            },
+            "satori": {
+                "samples": 9,
+                "medianMs": 224.0802,
+                "medianProgramMs": 71.3028,
+                "medianCheckerMs": 152.3408,
+                "p95Ms": 229.623,
+                "medianCpuMs": 265.625,
+                "medianAllocatedBytes": 197219712,
+                "peakRssBytes": 261345280,
+                "releasedHeapGrowthBytes": 512
+            },
+            "serverToGo": 3.7368309320954456,
+            "satoriToGo": 3.5096268753729603,
+            "satoriMedianReductionPercent": 5.7033673310937445,
+            "satoriPeakRssIncreasePercent": 17.25842614033153,
+            "goMedianDriftPercent": 0.4011498265510616
+        },
+        {
+            "name": "conformance/superInStaticMembers1.ts target=es2022",
+            "label": "Static members",
+            "mode": "single",
+            "goServerRun": {
+                "samples": 9,
+                "medianMs": 19.7794,
+                "medianProgramMs": 18.3607,
+                "medianCheckerMs": 1.024799999999999,
+                "p95Ms": 24.592200000000002,
+                "medianCpuMs": 15.625,
+                "medianAllocatedBytes": 21001760,
+                "peakRssBytes": 45838336,
+                "releasedHeapGrowthBytes": 352
+            },
+            "server": {
+                "samples": 9,
+                "medianMs": 85.7035,
+                "medianProgramMs": 81.8394,
+                "medianCheckerMs": 3.702200000000005,
+                "p95Ms": 89.5772,
+                "medianCpuMs": 125,
+                "medianAllocatedBytes": 89379168,
+                "peakRssBytes": 145911808,
+                "releasedHeapGrowthBytes": 504
+            },
+            "goSatoriRun": {
+                "samples": 9,
+                "medianMs": 19.5786,
+                "medianProgramMs": 18.1542,
+                "medianCheckerMs": 1.0233000000000025,
+                "p95Ms": 21.4771,
+                "medianCpuMs": 15.625,
+                "medianAllocatedBytes": 21003872,
+                "peakRssBytes": 45158400,
+                "releasedHeapGrowthBytes": 64
+            },
+            "satori": {
+                "samples": 9,
+                "medianMs": 68.9878,
+                "medianProgramMs": 65.3201,
+                "medianCheckerMs": 3.8950000000000102,
+                "p95Ms": 71.2775,
+                "medianCpuMs": 109.375,
+                "medianAllocatedBytes": 89383248,
+                "peakRssBytes": 230146048,
+                "releasedHeapGrowthBytes": 504
+            },
+            "serverToGo": 4.332967632991902,
+            "satoriToGo": 3.523632946175926,
+            "satoriMedianReductionPercent": 19.50410426645354,
+            "satoriPeakRssIncreasePercent": 57.72955674704545,
+            "goMedianDriftPercent": -1.0151976298573118
+        },
+        {
+            "name": "conformance/nodeModulesAllowJs1.ts module=node18",
+            "label": "Node modules with JS",
+            "mode": "single",
+            "goServerRun": {
+                "samples": 9,
+                "medianMs": 19.3274,
+                "medianProgramMs": 18.261400000000002,
+                "medianCheckerMs": 1.5326000000000022,
+                "p95Ms": 20.235400000000002,
+                "medianCpuMs": 31.25,
+                "medianAllocatedBytes": 20622816,
+                "peakRssBytes": 44150784,
+                "releasedHeapGrowthBytes": 5272
+            },
+            "server": {
+                "samples": 9,
+                "medianMs": 84.8593,
+                "medianProgramMs": 82.9564,
+                "medianCheckerMs": 1.9333000000000027,
+                "p95Ms": 91.4103,
+                "medianCpuMs": 125,
+                "medianAllocatedBytes": 87829384,
+                "peakRssBytes": 141828096,
+                "releasedHeapGrowthBytes": 0
+            },
+            "goSatoriRun": {
+                "samples": 9,
+                "medianMs": 18.8556,
+                "medianProgramMs": 17.8174,
+                "medianCheckerMs": 1.0211000000000006,
+                "p95Ms": 20.7955,
+                "medianCpuMs": 15.625,
+                "medianAllocatedBytes": 20623192,
+                "peakRssBytes": 44347392,
+                "releasedHeapGrowthBytes": 352
+            },
+            "satori": {
+                "samples": 9,
+                "medianMs": 68.7824,
+                "medianProgramMs": 66.4553,
+                "medianCheckerMs": 2.6559999999999917,
+                "p95Ms": 69.4923,
+                "medianCpuMs": 109.375,
+                "medianAllocatedBytes": 87832384,
+                "peakRssBytes": 224919552,
+                "releasedHeapGrowthBytes": 0
+            },
+            "serverToGo": 4.3906216045613995,
+            "satoriToGo": 3.6478499756040645,
+            "satoriMedianReductionPercent": 18.94536014320176,
+            "satoriPeakRssIncreasePercent": 58.58603361635766,
+            "goMedianDriftPercent": -2.441093990914467
+        },
+        {
+            "name": "compiler/giant.ts",
+            "label": "Large diagnostic program",
+            "mode": "single",
+            "goServerRun": {
+                "samples": 9,
+                "medianMs": 17.2401,
+                "medianProgramMs": 16.177699999999998,
+                "medianCheckerMs": 1.0442,
+                "p95Ms": 20.9737,
+                "medianCpuMs": 15.625,
+                "medianAllocatedBytes": 19799520,
+                "peakRssBytes": 42872832,
+                "releasedHeapGrowthBytes": 5160
+            },
+            "server": {
+                "samples": 9,
+                "medianMs": 78.59,
+                "medianProgramMs": 75.5154,
+                "medianCheckerMs": 3.0746000000000038,
+                "p95Ms": 82.0036,
+                "medianCpuMs": 125,
+                "medianAllocatedBytes": 85219328,
+                "peakRssBytes": 139407360,
+                "releasedHeapGrowthBytes": 504
+            },
+            "goSatoriRun": {
+                "samples": 9,
+                "medianMs": 17.6819,
+                "medianProgramMs": 16.4666,
+                "medianCheckerMs": 1.5473,
+                "p95Ms": 19.0056,
+                "medianCpuMs": 15.625,
+                "medianAllocatedBytes": 19800272,
+                "peakRssBytes": 43114496,
+                "releasedHeapGrowthBytes": 112
+            },
+            "satori": {
+                "samples": 9,
+                "medianMs": 66.1209,
+                "medianProgramMs": 63.1759,
+                "medianCheckerMs": 3.1843999999999966,
+                "p95Ms": 67.8899,
+                "medianCpuMs": 109.375,
+                "medianAllocatedBytes": 85219680,
+                "peakRssBytes": 226537472,
+                "releasedHeapGrowthBytes": 504
+            },
+            "serverToGo": 4.55855824502178,
+            "satoriToGo": 3.739468043592601,
+            "satoriMedianReductionPercent": 15.866013487721077,
+            "satoriPeakRssIncreasePercent": 62.5003672689878,
+            "goMedianDriftPercent": 2.562630147156897
+        },
+        {
+            "name": "compiler/jsxComplexSignatureHasApplicabilityError.tsx",
+            "label": "JSX signatures",
+            "mode": "default",
+            "goServerRun": {
+                "samples": 9,
+                "medianMs": 17.7436,
+                "medianProgramMs": 15.6345,
+                "medianCheckerMs": 2.5131999999999977,
+                "p95Ms": 18.6634,
+                "medianCpuMs": 46.875,
+                "medianAllocatedBytes": 22713920,
+                "peakRssBytes": 48828416,
+                "releasedHeapGrowthBytes": 36680
+            },
+            "server": {
+                "samples": 9,
+                "medianMs": 89.6762,
+                "medianProgramMs": 80.5415,
+                "medianCheckerMs": 9.07220000000001,
+                "p95Ms": 93.8909,
+                "medianCpuMs": 171.875,
+                "medianAllocatedBytes": 96581192,
+                "peakRssBytes": 150843392,
+                "releasedHeapGrowthBytes": 8976
+            },
+            "goSatoriRun": {
+                "samples": 9,
+                "medianMs": 18.109099999999998,
+                "medianProgramMs": 15.5393,
+                "medianCheckerMs": 2.5615999999999985,
+                "p95Ms": 18.2657,
+                "medianCpuMs": 31.25,
+                "medianAllocatedBytes": 22714320,
+                "peakRssBytes": 48734208,
+                "releasedHeapGrowthBytes": 47472
+            },
+            "satori": {
+                "samples": 9,
+                "medianMs": 76.7143,
+                "medianProgramMs": 68.0267,
+                "medianCheckerMs": 8.4546,
+                "p95Ms": 80.5529,
+                "medianCpuMs": 125,
+                "medianAllocatedBytes": 96564216,
+                "peakRssBytes": 230215680,
+                "releasedHeapGrowthBytes": 8416
+            },
+            "serverToGo": 5.05400256994071,
+            "satoriToGo": 4.2362292990816774,
+            "satoriMedianReductionPercent": 14.454113800540169,
+            "satoriPeakRssIncreasePercent": 52.61900236239716,
+            "goMedianDriftPercent": 2.0598976532383295
+        },
+        {
+            "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+            "label": "Large conditional type",
+            "mode": "default",
+            "goServerRun": {
+                "samples": 9,
+                "medianMs": 60.4772,
+                "medianProgramMs": 15.5309,
+                "medianCheckerMs": 44.9463,
+                "p95Ms": 65.316,
+                "medianCpuMs": 62.5,
+                "medianAllocatedBytes": 35109816,
+                "peakRssBytes": 58830848,
+                "releasedHeapGrowthBytes": 24232
+            },
+            "server": {
+                "samples": 9,
+                "medianMs": 239.8342,
+                "medianProgramMs": 82.2788,
+                "medianCheckerMs": 158.7005,
+                "p95Ms": 248.1221,
+                "medianCpuMs": 312.5,
+                "medianAllocatedBytes": 198815784,
+                "peakRssBytes": 209801216,
+                "releasedHeapGrowthBytes": 4000
+            },
+            "goSatoriRun": {
+                "samples": 9,
+                "medianMs": 62.0955,
+                "medianProgramMs": 15.959999999999999,
+                "medianCheckerMs": 45.8232,
+                "p95Ms": 66.9115,
+                "medianCpuMs": 62.5,
+                "medianAllocatedBytes": 35106736,
+                "peakRssBytes": 59346944,
+                "releasedHeapGrowthBytes": 24080
+            },
+            "satori": {
+                "samples": 9,
+                "medianMs": 226.6178,
+                "medianProgramMs": 71.8787,
+                "medianCheckerMs": 155.4402,
+                "p95Ms": 249.1674,
+                "medianCpuMs": 312.5,
+                "medianAllocatedBytes": 198810520,
+                "peakRssBytes": 272584704,
+                "releasedHeapGrowthBytes": 5328
+            },
+            "serverToGo": 3.965696163182158,
+            "satoriToGo": 3.6495043924277923,
+            "satoriMedianReductionPercent": 5.510640267318012,
+            "satoriPeakRssIncreasePercent": 29.92522598153102,
+            "goMedianDriftPercent": 2.6758844655506486
+        },
+        {
+            "name": "conformance/superInStaticMembers1.ts target=es2022",
+            "label": "Static members",
+            "mode": "default",
+            "goServerRun": {
+                "samples": 9,
+                "medianMs": 16.485,
+                "medianProgramMs": 15.2953,
+                "medianCheckerMs": 1.044100000000002,
+                "p95Ms": 18.7792,
+                "medianCpuMs": 15.625,
+                "medianAllocatedBytes": 22018168,
+                "peakRssBytes": 48123904,
+                "releasedHeapGrowthBytes": 10864
+            },
+            "server": {
+                "samples": 9,
+                "medianMs": 84.588,
+                "medianProgramMs": 81.5414,
+                "medianCheckerMs": 2.9572000000000003,
+                "p95Ms": 98.5823,
+                "medianCpuMs": 125,
+                "medianAllocatedBytes": 91943304,
+                "peakRssBytes": 149688320,
+                "releasedHeapGrowthBytes": 4776
+            },
+            "goSatoriRun": {
+                "samples": 9,
+                "medianMs": 16.643,
+                "medianProgramMs": 15.6852,
+                "medianCheckerMs": 1.0031000000000034,
+                "p95Ms": 17.7304,
+                "medianCpuMs": 15.625,
+                "medianAllocatedBytes": 22019208,
+                "peakRssBytes": 47394816,
+                "releasedHeapGrowthBytes": 6616
+            },
+            "satori": {
+                "samples": 9,
+                "medianMs": 67.1055,
+                "medianProgramMs": 64.4258,
+                "medianCheckerMs": 2.7339999999999947,
+                "p95Ms": 73.0421,
+                "medianCpuMs": 156.25,
+                "medianAllocatedBytes": 91954400,
+                "peakRssBytes": 243093504,
+                "releasedHeapGrowthBytes": 9192
+            },
+            "serverToGo": 5.131210191082802,
+            "satoriToGo": 4.032055518836748,
+            "satoriMedianReductionPercent": 20.667825223435933,
+            "satoriPeakRssIncreasePercent": 62.39978109180462,
+            "goMedianDriftPercent": 0.9584470730967576
+        },
+        {
+            "name": "conformance/nodeModulesAllowJs1.ts module=node18",
+            "label": "Node modules with JS",
+            "mode": "default",
+            "goServerRun": {
+                "samples": 9,
+                "medianMs": 16.570700000000002,
+                "medianProgramMs": 15.732199999999999,
+                "medianCheckerMs": 1.0003000000000029,
+                "p95Ms": 16.9768,
+                "medianCpuMs": 62.5,
+                "medianAllocatedBytes": 21681880,
+                "peakRssBytes": 46600192,
+                "releasedHeapGrowthBytes": 3328
+            },
+            "server": {
+                "samples": 9,
+                "medianMs": 81.0692,
+                "medianProgramMs": 73.6853,
+                "medianCheckerMs": 7.483699999999999,
+                "p95Ms": 82.8357,
+                "medianCpuMs": 156.25,
+                "medianAllocatedBytes": 90247832,
+                "peakRssBytes": 143745024,
+                "releasedHeapGrowthBytes": 13328
+            },
+            "goSatoriRun": {
+                "samples": 9,
+                "medianMs": 16.723,
+                "medianProgramMs": 15.986500000000001,
+                "medianCheckerMs": 1.0001000000000015,
+                "p95Ms": 17.7226,
+                "medianCpuMs": 15.625,
+                "medianAllocatedBytes": 21667384,
+                "peakRssBytes": 46661632,
+                "releasedHeapGrowthBytes": 18920
+            },
+            "satori": {
+                "samples": 9,
+                "medianMs": 66.9762,
+                "medianProgramMs": 65.3953,
+                "medianCheckerMs": 1.5409999999999968,
+                "p95Ms": 68.4157,
+                "medianCpuMs": 125,
+                "medianAllocatedBytes": 90253552,
+                "peakRssBytes": 236171264,
+                "releasedHeapGrowthBytes": 9448
+            },
+            "serverToGo": 4.892321990018526,
+            "satoriToGo": 4.005034981761646,
+            "satoriMedianReductionPercent": 17.38391398952992,
+            "satoriPeakRssIncreasePercent": 64.29874052544595,
+            "goMedianDriftPercent": 0.9190921324988999
+        },
+        {
+            "name": "compiler/giant.ts",
+            "label": "Large diagnostic program",
+            "mode": "default",
+            "goServerRun": {
+                "samples": 9,
+                "medianMs": 16.0205,
+                "medianProgramMs": 14.8039,
+                "medianCheckerMs": 1.0284999999999975,
+                "p95Ms": 16.448999999999998,
+                "medianCpuMs": 15.625,
+                "medianAllocatedBytes": 20504688,
+                "peakRssBytes": 44953600,
+                "releasedHeapGrowthBytes": 16048
+            },
+            "server": {
+                "samples": 9,
+                "medianMs": 78.8197,
+                "medianProgramMs": 75.3983,
+                "medianCheckerMs": 3.3477999999999923,
+                "p95Ms": 85.2723,
+                "medianCpuMs": 109.375,
+                "medianAllocatedBytes": 86801512,
+                "peakRssBytes": 154394624,
+                "releasedHeapGrowthBytes": 11192
+            },
+            "goSatoriRun": {
+                "samples": 9,
+                "medianMs": 15.959999999999999,
+                "medianProgramMs": 14.9676,
+                "medianCheckerMs": 1.0553000000000008,
+                "p95Ms": 17.2523,
+                "medianCpuMs": 15.625,
+                "medianAllocatedBytes": 20503456,
+                "peakRssBytes": 45051904,
+                "releasedHeapGrowthBytes": 8512
+            },
+            "satori": {
+                "samples": 9,
+                "medianMs": 65.0581,
+                "medianProgramMs": 61.8481,
+                "medianCheckerMs": 3.201600000000006,
+                "p95Ms": 69.3468,
+                "medianCpuMs": 109.375,
+                "medianAllocatedBytes": 86802800,
+                "peakRssBytes": 236486656,
+                "releasedHeapGrowthBytes": 7896
+            },
+            "serverToGo": 4.919927592771762,
+            "satoriToGo": 4.076322055137845,
+            "satoriMedianReductionPercent": 17.459594492239884,
+            "satoriPeakRssIncreasePercent": 53.17026582479971,
+            "goMedianDriftPercent": -0.37764114728003895
+        }
+    ]
+}
