@@ -1,4 +1,6 @@
 using System.Collections;
+using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Ast;
@@ -22,13 +24,61 @@ public abstract class SyntaxNode(SyntaxKind kind)
     public int Pos { get; set; } = -1;
     public int End { get; set; } = -1;
     public SyntaxNode? Parent { get; internal set; }
+    internal BoundSourceFile? BindingOwner;
+    internal NodeFlags BindingFlags;
+    internal virtual Symbol? BindingSymbol
+    {
+        get => null;
+        set { if (value is not null) throw new InvalidOperationException($"{Kind} has no Symbol binding slot"); }
+    }
+    internal virtual Symbol? BindingLocalSymbol
+    {
+        get => null;
+        set { if (value is not null) throw new InvalidOperationException($"{Kind} has no LocalSymbol binding slot"); }
+    }
+    internal virtual FlowNode? BindingFlow
+    {
+        get => null;
+        set { if (value is not null) throw new InvalidOperationException($"{Kind} has no Flow binding slot"); }
+    }
+    internal virtual FlowNode? BindingEndFlow
+    {
+        get => null;
+        set { if (value is not null) throw new InvalidOperationException($"{Kind} has no EndFlow binding slot"); }
+    }
+    internal virtual FlowNode? BindingReturnFlow
+    {
+        get => null;
+        set { if (value is not null) throw new InvalidOperationException($"{Kind} has no ReturnFlow binding slot"); }
+    }
+    internal virtual Dictionary<TextSlice, Symbol>? BindingLocals
+    {
+        get => null;
+        set { if (value is not null) throw new InvalidOperationException($"{Kind} has no Locals binding slot"); }
+    }
+    internal virtual IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView
+    {
+        get => null;
+        set { if (value is not null) throw new InvalidOperationException($"{Kind} has no LocalsView binding slot"); }
+    }
+
+    internal virtual void ClearBindingState()
+    {
+        BindingOwner = null;
+        BindingFlags = 0;
+    }
     public abstract int ChildCount { get; }
 
     public abstract SyntaxNode GetChild(int index);
 
     internal abstract void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies);
 
-    internal virtual SyntaxNode ShallowClone() => (SyntaxNode)MemberwiseClone();
+    internal virtual SyntaxNode ShallowClone()
+    {
+        var clone = (SyntaxNode)MemberwiseClone();
+        clone.ClearBindingState();
+        return clone;
+    }
 
     internal virtual void ConvertPositions(Func<int, int> convert)
     {
@@ -97,6 +147,8 @@ public sealed class NodeList(SyntaxNode[] nodes, int pos = -1, int end = -1, boo
     public SyntaxNode this[int index] => nodes[index];
 
     public int IndexOf(SyntaxNode node) => Array.IndexOf(nodes, node);
+
+    public ReadOnlySpan<SyntaxNode> AsSpan() => nodes;
 
     public IEnumerator<SyntaxNode> GetEnumerator() => ((IEnumerable<SyntaxNode>)nodes).GetEnumerator();
 

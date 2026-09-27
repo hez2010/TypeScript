@@ -22,7 +22,25 @@ internal sealed class TypeRelations(TypeContext context, TypeNormalization norma
     private readonly Dictionary<RelationKind, Relation> relations = Enum.GetValues<RelationKind>().ToDictionary(
         k => k,
         k => new Relation(k));
+    private readonly Dictionary<RelationKind, Stack<RelationSession>> availableSessions = [];
     internal RelationState State { get; } = new();
+
+    private RelationSession RentSession(RelationKind kind)
+    {
+        if (availableSessions.TryGetValue(kind, out var available) && available.TryPop(out var session))
+        {
+            session.Reset();
+            return session;
+        }
+        return new(context, relations[kind], keys, recursion, State);
+    }
+
+    private void ReturnSession(RelationKind kind, RelationSession session)
+    {
+        if (!availableSessions.TryGetValue(kind, out var available))
+            availableSessions.Add(kind, available = []);
+        available.Push(session);
+    }
 
     internal async ValueTask<bool> HasOverflowAsync(Type source, Type target, RelationKind kind, CancellationToken cancellation)
     {
@@ -35,7 +53,8 @@ internal sealed class TypeRelations(TypeContext context, TypeNormalization norma
 
     internal async ValueTask<RelationExplanation?> ExplainAsync(Type source, Type target, RelationKind kind, CancellationToken cancellation)
     {
-        var session = new RelationSession(context, relations[kind], keys, recursion, State);
+        cancellation.ThrowIfCancellationRequested();
+        var session = RentSession(kind);
         var operation = new RelationOperation(context, this, session, normalization, host, kind, reportErrors: true);
         try
         {
@@ -48,6 +67,10 @@ internal sealed class TypeRelations(TypeContext context, TypeNormalization norma
             session.Abort();
             throw;
         }
+        finally
+        {
+            ReturnSession(kind, session);
+        }
     }
 
     internal async ValueTask<bool> SignatureAsync(Signature source, Signature target, SignatureAssignability signatures,
@@ -56,7 +79,7 @@ internal sealed class TypeRelations(TypeContext context, TypeNormalization norma
         cancellation.ThrowIfCancellationRequested();
         var sourceType = instantiation.FromSignature(source);
         var targetType = instantiation.FromSignature(target);
-        var session = new RelationSession(context, relations[RelationKind.Assignable], keys, recursion, State);
+        var session = RentSession(RelationKind.Assignable);
         var operation = new RelationOperation(context, this, session, normalization, host, RelationKind.Assignable);
         try
         {
@@ -73,6 +96,10 @@ internal sealed class TypeRelations(TypeContext context, TypeNormalization norma
         {
             session.Abort();
             throw;
+        }
+        finally
+        {
+            ReturnSession(RelationKind.Assignable, session);
         }
     }
 
@@ -116,7 +143,7 @@ internal sealed class TypeRelations(TypeContext context, TypeNormalization norma
         }
         if (((source.Flags | target.Flags) & TypeFlags.StructuredOrInstantiable) == 0)
             return false;
-        var session = new RelationSession(context, relation, keys, recursion, State);
+        var session = RentSession(kind);
         var operation = new RelationOperation(context, this, session, normalization, host, kind);
         try
         {
@@ -128,6 +155,10 @@ internal sealed class TypeRelations(TypeContext context, TypeNormalization norma
         {
             session.Abort();
             throw;
+        }
+        finally
+        {
+            ReturnSession(kind, session);
         }
     }
 

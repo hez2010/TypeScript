@@ -60,8 +60,11 @@ internal sealed partial class Checker
                 return PrintDiagnosticNode(computed, !ascii, cancellation, enclosing is null ? null : SemanticSyntax.Source(enclosing));
             if (links.Values.TryGet(symbol)?.NameType is { Symbol: { } nameSymbol } nameType
                 && (nameType.Flags & (TypeFlags.EnumLiteral | TypeFlags.UniqueESSymbol)) != 0)
-                return TextSlice.Concat("[", await SymbolDisplayNameAsync(nameSymbol, nameSymbol.ValueDeclaration, meaning, cancellation,
-                    flags & ~SymbolFormatFlags.WriteComputedProps, !ascii), "]");
+            {
+                var name = await SymbolDisplayNameAsync(nameSymbol, nameSymbol.ValueDeclaration, meaning, cancellation,
+                    flags & ~SymbolFormatFlags.WriteComputedProps, !ascii);
+                return TextSlice.Concat("[", name, "]");
+            }
         }
         var state = new SymbolDisplayContext(enclosing, flags);
         List<Symbol> chain = enclosing is null
@@ -201,10 +204,10 @@ internal sealed partial class Checker
     {
         cancellation.ThrowIfCancellationRequested();
         if (symbol.Name == "default" && (state.Flags & SymbolFormatFlags.UseAliasDefinedOutsideCurrentScope) == 0
-            && (!first || symbol.Declarations.Count == 0 || state.Enclosing is not null
+            && (!first || symbol.Declarations.Length == 0 || state.Enclosing is not null
             && DefaultBindingContext(symbol.Declarations[0]) != DefaultBindingContext(state.Enclosing)))
             return "default";
-        if (symbol.Declarations.Count != 0)
+        if (symbol.Declarations.Length != 0)
         {
             var name = symbol.Declarations.Select(DisplayDeclarationName).FirstOrDefault(n => n is not null);
             if (name is not null)

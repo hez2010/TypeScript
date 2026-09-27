@@ -320,7 +320,7 @@ internal sealed class TypeProperties(TypeContext context, CheckerLinks links, Ch
         }
         cancellation.ThrowIfCancellationRequested();
         var result = new Symbol(flags | optional | S.Transient, name) { CheckFlags = checks | synthetic };
-        result.DeclarationList.AddRange(declarations);
+        result.DeclarationList = result.DeclarationList.AddRange(declarations);
         if (!nonUniform && firstDeclaration is not null)
         {
             result.ValueDeclaration = firstDeclaration;
@@ -351,7 +351,7 @@ internal sealed class TypeProperties(TypeContext context, CheckerLinks links, Ch
             context.RequireOwned(type);
         var result = new Symbol(source.Flags | S.Transient, source.Name)
         { CheckFlags = source.CheckFlags & C.Readonly, Parent = source.Parent, ValueDeclaration = source.ValueDeclaration };
-        result.DeclarationList.AddRange(source.Declarations);
+        result.DeclarationList = result.DeclarationList.AddRange(source.Declarations);
         var data = links.Values.Get(result);
         data.ResolvedType = type;
         data.Target = source;

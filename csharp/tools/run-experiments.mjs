@@ -37,7 +37,7 @@ await copyFile(path.join(root, "csharp/oracle/main.go"), path.join(probeDirector
 const suffix = process.platform === "win32" ? ".exe" : "";
 const probe = path.join(output, "oracle-probe" + suffix);
 await run(go, ["-C", path.join(referenceSource, "tsc"), "build", "-mod=readonly", "-buildvcs=false", "-trimpath", "-o", probe, "./cmd/rewrite-probe"], { env: { ...process.env, GOWORK: "off", GOTOOLCHAIN: "local" } });
-const publish = await run(dotnet, ["publish", "tests/TypeScript.Compatibility", "-c", "Release", "-r", rid, "-p:RestoreLockedMode=true", "-p:IlcInstructionSet=native", "-o", nativeOutput], { cwd: path.join(root, "csharp"), env: { ...process.env, DOTNET_CLI_UI_LANGUAGE: "en-US" } });
+const publish = await run(dotnet, ["publish", "tests/TypeScript.Compatibility", "-p:PublishAot=true", "-c", "Release", "-r", rid, "-p:RestoreLockedMode=true", "-p:IlcInstructionSet=native", "-o", nativeOutput], { cwd: path.join(root, "csharp"), env: { ...process.env, DOTNET_CLI_UI_LANGUAGE: "en-US" } });
 await writeFile(path.join(output, `publish${variant}.log`), publish);
 console.log(publish);
 const candidate = path.join(nativeOutput, "TypeScript.Compatibility" + suffix);

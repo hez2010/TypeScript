@@ -188,7 +188,7 @@ internal sealed class AliasResolver(CheckerSymbols symbols, CheckerLinks links, 
         {
             cancellation.ThrowIfCancellationRequested();
             var target = await ImmediateAsync(symbol, cancellation).ConfigureAwait(false);
-            if (target is null || target == result || target.Declarations.Count == 0)
+            if (target is null || target == result || target.Declarations.Length == 0)
                 break;
             if (host.IsDeprecated(target))
             {

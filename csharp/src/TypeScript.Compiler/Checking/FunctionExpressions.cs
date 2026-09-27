@@ -62,8 +62,8 @@ internal sealed class FunctionExpressions(TypeContext context, CheckerLinks link
                     symbols.Declaration(node));
                 result.Members = new Dictionary<TextSlice, Symbol>().AsReadOnly();
                 result.Properties = [];
-                result.CallSignatures = [context.NewSignature(SignatureFlags.IsNonInferrable, null, [], null, [],
-                    await bodies.ReturnAsync(node, mode, cancellation).ConfigureAwait(false), null, 0)];
+                var returnType = await bodies.ReturnAsync(node, mode, cancellation).ConfigureAwait(false);
+                result.CallSignatures = [context.NewSignature(SignatureFlags.IsNonInferrable, null, [], null, [], returnType, null, 0)];
                 result.ConstructSignatures = [];
                 result.IndexInfos = [];
                 cancellation.ThrowIfCancellationRequested();

@@ -13,31 +13,14 @@ internal enum RelationKind
 
 internal sealed class Relation(RelationKind kind)
 {
-    internal readonly record struct Entry(RelationComparisonResult Result, long Version);
-
-    private long version;
-
-    private readonly Dictionary<RelationKey, Entry> results = [];
+    private readonly Dictionary<RelationKey, RelationComparisonResult> results = [];
     internal RelationKind Kind { get; } = kind;
     internal int Count => results.Count;
-    internal IEnumerable<KeyValuePair<RelationKey, RelationComparisonResult>> Results =>
-        results.Select(p => new KeyValuePair<RelationKey, RelationComparisonResult>(p.Key, p.Value.Result));
+    internal IEnumerable<KeyValuePair<RelationKey, RelationComparisonResult>> Results => results;
 
-    internal RelationComparisonResult Get(RelationKey key) => results.GetValueOrDefault(key).Result;
-
-    internal Entry? Snapshot(RelationKey key) => results.TryGetValue(key, out var entry) ? entry : null;
-
-    internal Entry Set(RelationKey key, RelationComparisonResult result) => results[key] = new(result, ++version);
-
-    internal void Restore(RelationKey key, Entry? before, Entry written)
-    {
-        if (!results.TryGetValue(key, out var current) || current.Version != written.Version)
-            return;
-        if (before is null)
-            results.Remove(key);
-        else
-            results[key] = before.Value;
-    }
+    internal RelationComparisonResult Get(RelationKey key) => results.GetValueOrDefault(key);
+    internal void Set(RelationKey key, RelationComparisonResult result) => results[key] = result;
+    internal void Clear() => results.Clear();
 }
 
 internal sealed class RelationState
@@ -56,14 +39,23 @@ internal sealed class RelationSession(
     private readonly HashSet<RelationKey> maybeSet = [];
     private readonly List<Type> sourceStack = [], targetStack = [];
     private ExpandingFlags expanding;
-    private readonly Dictionary<RelationKey, (Relation.Entry? Before, Relation.Entry Written)> writes = [];
     private int active;
-    private readonly RelationComparisonResult initialReliability = state.Reliability;
+    private RelationComparisonResult initialReliability = state.Reliability;
     internal int Remaining { get; set; } = (16_000_000 - relation.Count) / 8;
     internal bool Overflow { get; private set; }
     internal int PendingCount => maybe.Count;
     internal IReadOnlyList<Type> SourceStack => sourceStack;
     internal IReadOnlyList<Type> TargetStack => targetStack;
+
+    internal void Reset()
+    {
+        if (active != 0 || maybe.Count != 0 || sourceStack.Count != 0 || targetStack.Count != 0)
+            throw new InvalidOperationException("Cannot reuse an active relation session");
+        initialReliability = state.Reliability;
+        Remaining = (16_000_000 - relation.Count) / 8;
+        Overflow = false;
+        expanding = 0;
+    }
 
     internal async ValueTask<Ternary> RecursiveAsync(
         Type source,
@@ -245,20 +237,15 @@ internal sealed class RelationSession(
         maybeSet.Clear();
         sourceStack.Clear();
         targetStack.Clear();
-        writes.Clear();
     }
 
-    private void Record(RelationKey key, RelationComparisonResult result)
-    {
-        var before = writes.TryGetValue(key, out var old) ? old.Before : relation.Snapshot(key);
-        writes[key] = (before, relation.Set(key, result));
-    }
+    private void Record(RelationKey key, RelationComparisonResult result) => relation.Set(key, result);
 
     internal void Abort()
     {
-        foreach (var (key, entry) in writes)
-            relation.Restore(key, entry.Before, entry.Written);
-        writes.Clear();
+        // An interrupted comparison can have cached results based on unfinished assumptions.
+        // Discard the cache on this rare path instead of journaling every successful comparison.
+        relation.Clear();
         maybe.Clear();
         maybeSet.Clear();
         sourceStack.Clear();

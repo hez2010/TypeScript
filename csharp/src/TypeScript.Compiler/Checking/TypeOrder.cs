@@ -121,6 +121,9 @@ internal sealed class TypeOrder : IComparer<Type>, IComparer<Symbol>
                     switch (ma.Kind)
                     {
                         case TypeMapperKind.Simple:
+                            pending.Push(new(PartKind.Type, ma.Single.Target, mb.Single.Target));
+                            pending.Push(new(PartKind.Type, ma.Single.Source, mb.Single.Source));
+                            break;
                         case TypeMapperKind.Array:
                             pending.Push(new(PartKind.Types, ma.Targets, mb.Targets));
                             pending.Push(new(PartKind.Types, ma.Sources, mb.Sources));
@@ -299,15 +302,15 @@ internal sealed class TypeOrder : IComparer<Type>, IComparer<Symbol>
             return 1;
         if (right is null)
             return -1;
-        if (left.Declarations.Count != 0 && right.Declarations.Count != 0)
+        if (left.Declarations.Length != 0 && right.Declarations.Length != 0)
         {
             int result = CompareNodes(left.Declarations[0], right.Declarations[0]);
             if (result != 0)
                 return result;
         }
-        else if (left.Declarations.Count != 0)
+        else if (left.Declarations.Length != 0)
             return -1;
-        else if (right.Declarations.Count != 0)
+        else if (right.Declarations.Length != 0)
             return 1;
         int name = CompareSymbolNames(left.Name, right.Name);
         return name != 0 ? name : left.Id.CompareTo(right.Id);

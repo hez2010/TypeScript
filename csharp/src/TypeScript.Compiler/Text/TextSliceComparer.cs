@@ -9,6 +9,7 @@ public sealed class TextSliceComparer : IEqualityComparer<TextSlice>, IComparer<
     private TextSliceComparer(StringComparison comparison) => this.comparison = comparison;
 
     public bool Equals(TextSlice left, TextSlice right) => left.Span.Equals(right.Span, comparison);
-    public int GetHashCode(TextSlice value) => string.GetHashCode(value.Span, comparison);
+    public int GetHashCode(TextSlice value) => comparison == StringComparison.Ordinal
+        ? value.GetHashCode() : string.GetHashCode(value.Span, comparison);
     public int Compare(TextSlice left, TextSlice right) => left.Span.CompareTo(right.Span, comparison);
 }

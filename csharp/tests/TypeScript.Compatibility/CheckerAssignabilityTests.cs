@@ -91,10 +91,10 @@ internal static class CheckerAssignabilityTests
         {
             checks++;
         }
-        Check(host.Relations.Cache(RelationKind.Assignable).Count == before && host.Instantiation.Resolutions.Count == 0);
+        Check(before > 0 && host.Relations.Cache(RelationKind.Assignable).Count == 0 && host.Instantiation.Resolutions.Count == 0);
         host.BeforeNode = null;
         Check(!await host.Relations.RelatedAsync(s, t, RelationKind.Assignable));
-        Check(host.Relations.Cache(RelationKind.Assignable).Count > before);
+        Check(host.Relations.Cache(RelationKind.Assignable).Count > 0);
 
         var union = (UnionType)await Type("U");
         var discriminated = await Type("D");

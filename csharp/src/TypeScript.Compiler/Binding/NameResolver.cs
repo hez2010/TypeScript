@@ -294,7 +294,7 @@ public sealed class NameResolver(CompilerOptions options, Func<SyntaxNode, Bound
 
     public Symbol? GetLocalSymbolForExportDefault(Symbol? symbol)
     {
-        if (symbol is null || symbol.Declarations.Count == 0 || !HasModifier(symbol.Declarations[0], K.DefaultKeyword))
+        if (symbol is null || symbol.Declarations.Length == 0 || !HasModifier(symbol.Declarations[0], K.DefaultKeyword))
             return null;
         foreach (var declaration in symbol.Declarations)
             if (Data(declaration)?.LocalSymbol is { } local)

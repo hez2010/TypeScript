@@ -121,7 +121,7 @@ internal sealed partial class Checker
         var declaration = node.TypeParameter!;
         await FunctionDeclarations.TypeParameterAsync(declaration, cancellation);
         var symbol = program.Symbols.Declaration(declaration)!;
-        if (symbol.Declarations.Count > 1 && !checkedInferParameters.Contains(symbol))
+        if (symbol.Declarations.Length > 1 && !checkedInferParameters.Contains(symbol))
         {
             var parameter = program.Scopes.Parameter(symbol);
             var constraint = await Instantiation.Constraints.ConstraintAsync(parameter, cancellation);

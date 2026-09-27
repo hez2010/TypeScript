@@ -103,15 +103,6 @@ internal static class CheckerRelationTests
         Check(typeKey.Equals(new TypeCacheKey([context.StringType, context.NumberType])));
         Check(!typeKey.Equals(new TypeCacheKey([context.NumberType, context.StringType])));
         Check(default(TypeCacheKey).Equals(default));
-        var journal = new Relation(RelationKind.Assignable);
-        var firstWrite = journal.Set(directKey, RelationComparisonResult.Succeeded);
-        var laterWrite = journal.Set(directKey, RelationComparisonResult.Succeeded);
-        journal.Restore(directKey, null, firstWrite);
-        Check(journal.Get(directKey) == RelationComparisonResult.Succeeded);
-        journal.Restore(directKey, firstWrite, laterWrite);
-        Check(journal.Snapshot(directKey) == firstWrite);
-        journal.Restore(directKey, null, firstWrite);
-        Check(journal.Snapshot(directKey) is null);
         var p = context.NewTypeParameter();
         var q = context.NewTypeParameter();
         var constrained = context.NewTypeParameter();
@@ -233,7 +224,15 @@ internal static class CheckerRelationTests
         await independent.RecursiveAsync(bc, oc, 0, RecursionFlags.Both, true, () => ValueTask.FromResult(Ternary.True), NoOverflow);
         await independent.CompleteAsync(bc, oc, NoOverflow);
         owner.Abort();
-        Check(relation.Get(constrainedKey.Key) == RelationComparisonResult.Succeeded);
+        Check(relation.Count == 0);
+        var retry = new RelationSession(context, relation, host.RelationKeys, recursion, state);
+        bool recomputed = false;
+        Check(await retry.RecursiveAsync(bc, oc, 0, RecursionFlags.Both, true, () =>
+        {
+            recomputed = true;
+            return ValueTask.FromResult(Ternary.True);
+        }, NoOverflow) == Ternary.True && recomputed);
+        await retry.CompleteAsync(bc, oc, NoOverflow);
 
         var budgetRelation = new Relation(RelationKind.Assignable);
         var budget = new RelationSession(context, budgetRelation, host.RelationKeys, recursion, state) { Remaining = 0 };

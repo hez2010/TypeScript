@@ -170,7 +170,7 @@ internal sealed partial class Checker : ISignatureHost, IStructuredMemberHost, I
         if (code == DiagnosticCode.BaseConstructorReturnType0IsNotAnObjectTypeOrIntersectionOfObjectTypesWithStaticallyKnownMembers)
             diagnostic = await NeverIntersectionNoteAsync(diagnostic, type, cancellation);
         if (code == DiagnosticCode.Type0IsNotAConstructorFunctionType
-            && type is TypeParameter { Symbol: { Declarations.Count: > 0 } parameterSymbol })
+            && type is TypeParameter { Symbol: { Declarations.Length: > 0 } parameterSymbol })
         {
             Type result = context.UnknownType;
             if (await Instantiation.Constraints.ConstraintAsync(type, cancellation) is { } constraint

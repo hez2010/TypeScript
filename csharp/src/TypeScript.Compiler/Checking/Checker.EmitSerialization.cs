@@ -23,7 +23,7 @@ internal sealed partial class Checker
             while (first is QualifiedNameNode qualified)
                 first = qualified.Left!;
             var root = await program.EntityNames.ResolveAsync(first, SymbolFlags.Value, true, true, location, cancellation);
-            typeOnly = root is { Declarations.Count: > 0 } && root.Declarations.All(AliasResolver.IsTypeOnly);
+            typeOnly = root is { Declarations.Length: > 0 } && root.Declarations.All(AliasResolver.IsTypeOnly);
         }
         var valueSymbol = await program.EntityNames.ResolveAsync(name, SymbolFlags.Value, true, true, location, cancellation);
         var value = valueSymbol is not null && (valueSymbol.Flags & SymbolFlags.Alias) != 0

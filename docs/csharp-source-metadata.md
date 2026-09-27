@@ -11,7 +11,7 @@ Imports, module augmentations, and ambient module names are parser-owned in the 
 ```powershell
 node csharp/tools/metadata.mjs
 $dotnet = 'D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe'
-& $dotnet publish csharp/tests/TypeScript.SourceMetadata -r win-x64 -c Release `
+& $dotnet publish csharp/tests/TypeScript.SourceMetadata -p:PublishAot=true -r win-x64 -c Release `
     -p:IlcInstructionSet=native -p:RestoreLockedMode=true -o built/csharp/metadata-native
 node csharp/tools/metadata.mjs --no-build `
     --native built/csharp/metadata-native/TypeScript.SourceMetadata.exe

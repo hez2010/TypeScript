@@ -387,9 +387,13 @@ public sealed partial class Parser
         return Finish(factory.NewIdentifier(""), start, start);
     }
 
-    private bool Peek(Func<bool> action)
+    private bool Peek(Func<bool> action) => Peek(action, static callback => callback());
+
+    private bool Peek(Func<Parser, bool> action) => Peek(this, action);
+
+    private bool Peek<TState>(TState state, Func<TState, bool> action)
     {
-        var state = scanner.Mark();
+        var marker = scanner.Mark();
         int count = diagnostics.Count, scanned = scannedDiagnostics;
         bool error = hasError;
         NodeFlags flags = context, fileFlags = sourceFlags;
@@ -397,11 +401,11 @@ public sealed partial class Parser
         speculationDepth++;
         try
         {
-            return action();
+            return action(state);
         }
         finally
         {
-            scanner.Rewind(state);
+            scanner.Rewind(marker);
             diagnostics.RemoveRange(count, diagnostics.Count - count);
             scannedDiagnostics = scanned;
             hasError = error;
@@ -412,7 +416,7 @@ public sealed partial class Parser
         }
     }
 
-    private bool NextIs(K kind) => Peek(() => Next() == kind);
+    private bool NextIs(K kind) => Peek((Parser: this, Kind: kind), static state => state.Parser.Next() == state.Kind);
 
     private void Semicolon()
     {

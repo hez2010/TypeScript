@@ -105,7 +105,7 @@ internal sealed partial class CallResolution
         var returns = new List<Type>();
         foreach (var signature in candidates)
             returns.Add(await signatures.ReturnAsync(signature, cancellation).ConfigureAwait(false));
-        return context.NewSignature(flags, candidates[0].Declaration, [], receiver, combined.ToArray(),
-            await algebra.IntersectionAsync(returns, cancellation: cancellation).ConfigureAwait(false), null, minimum);
+        var returnType = await algebra.IntersectionAsync(returns, cancellation: cancellation).ConfigureAwait(false);
+        return context.NewSignature(flags, candidates[0].Declaration, [], receiver, combined.ToArray(), returnType, null, minimum);
     }
 }

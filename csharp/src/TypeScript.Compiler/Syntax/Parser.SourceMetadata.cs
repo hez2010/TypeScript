@@ -172,9 +172,10 @@ public sealed partial class Parser
                     statement is ImportEqualsDeclarationNode { ModuleReference.Kind: K.ExternalModuleReference } ||
                     statement is IModifiedNode { Modifiers: { } modifiers } && modifiers.Any(m => m.Kind == K.ExportKeyword))
                     return statement;
-        foreach (SyntaxNode node in file.DescendantsAndSelf())
-            if (node is MetaPropertyNode { KeywordToken: K.ImportKeyword, Name.Text.Span: "meta" })
-                return node;
+        if ((file.Flags & NodeFlags.PossiblyContainsImportMeta) != 0)
+            foreach (SyntaxNode node in file.DescendantsAndSelf())
+                if (node is MetaPropertyNode { KeywordToken: K.ImportKeyword, Name.Text.Span: "meta" })
+                    return node;
         if (file.IsDeclarationFile)
             return null;
         if (jsx)

@@ -33,7 +33,7 @@ const oracle = path.join(output, "syntax-oracle.exe");
 await run(go, ["-C", source, "build", "-mod=readonly", "-buildvcs=false", "-o", oracle, "./cmd/syntax-probe"], { env: { ...process.env, GOWORK: "off", GOTOOLCHAIN: "local" } });
 const managed = process.argv.includes("--managed");
 if (!process.argv.includes("--no-build")) {
-    const args = managed ? ["build", "TypeScript.slnx", "-c", "Release", "--no-restore"] : ["publish", "tests/TypeScript.Compatibility", "-r", "win-x64", "-c", "Release", "-p:IlcInstructionSet=native", "-p:RestoreLockedMode=true", "-o", path.join(output, "phase2-native")];
+    const args = managed ? ["build", "TypeScript.slnx", "-c", "Release", "--no-restore"] : ["publish", "tests/TypeScript.Compatibility", "-p:PublishAot=true", "-r", "win-x64", "-c", "Release", "-p:IlcInstructionSet=native", "-p:RestoreLockedMode=true", "-o", path.join(output, "phase2-native")];
     await writeFile(path.join(output, "phase2-build.log"), await run(dotnet, args, { cwd: path.join(root, "csharp") }));
 }
 const candidate = managed ? dotnet : option("--candidate", path.join(output, "phase2-native/TypeScript.Compatibility.exe"));

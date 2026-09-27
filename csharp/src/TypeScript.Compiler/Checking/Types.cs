@@ -23,6 +23,8 @@ public abstract class Type
         ObjectFlags = objectFlags;
     }
 
+    public sealed override int GetHashCode() => unchecked((int)Id);
+
     public bool IsFreshLiteral => this is LiteralType literal && literal.FreshType == this;
     public bool IsUnit => (Flags & TypeFlags.Unit) != 0;
     public bool IsLiteral => (Flags & TypeFlags.Boolean) != 0 || (this is UnionType union

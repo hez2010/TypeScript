@@ -11,9 +11,14 @@ public sealed class SourceText
     public int Length => Text.Length;
     internal bool IsAsciiOnly => map.IsAsciiOnly;
 
-    public SourceText(ReadOnlySpan<byte> bytes)
+    public SourceText(ReadOnlySpan<byte> bytes) : this(bytes.ToArray()) { }
+
+    // The host has already supplied an owned buffer, or a permanently immutable library buffer.
+    internal static SourceText FromOwnedBytes(byte[] bytes) => new(bytes);
+
+    private SourceText(byte[] bytes)
     {
-        this.bytes = bytes.ToArray();
+        this.bytes = bytes;
         Text = Wtf8.DecodeString(bytes);
         map = new PositionMap(bytes);
     }

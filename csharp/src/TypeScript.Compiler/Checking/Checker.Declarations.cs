@@ -116,7 +116,7 @@ internal sealed partial class Checker
 
     private async ValueTask CheckMergedTypeParametersAsync(Symbol symbol, InterfaceType type, CancellationToken cancellation)
     {
-        if (symbol.Declarations.Count <= 1 || checkedTypeParameterLists.Contains(symbol))
+        if (symbol.Declarations.Length <= 1 || checkedTypeParameterLists.Contains(symbol))
             return;
         var declarations = symbol.Declarations.Where(n => n is InterfaceDeclarationNode or ClassDeclarationNode).ToArray();
         var parameters = type.AllTypeParameters.Skip(type.OuterTypeParameterCount).Take(

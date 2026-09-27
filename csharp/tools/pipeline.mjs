@@ -73,7 +73,7 @@ await new Promise((resolve, reject) => {
     });
     child.stdin.end(JSON.stringify({ cases }));
 });
-const publish = await run(dotnet, ["publish", "tests/TypeScript.Compatibility", "-r", "win-x64", "-c", "Release", "-p:IlcInstructionSet=native", "-p:RestoreLockedMode=true", "-o", path.join(output, "native-host")], { cwd: path.join(root, "csharp") });
+const publish = await run(dotnet, ["publish", "tests/TypeScript.Compatibility", "-p:PublishAot=true", "-r", "win-x64", "-c", "Release", "-p:IlcInstructionSet=native", "-p:RestoreLockedMode=true", "-o", path.join(output, "native-host")], { cwd: path.join(root, "csharp") });
 await writeFile(path.join(output, "pipeline-publish.log"), publish);
 const executable = path.join(output, "native-host/TypeScript.Compatibility" + suffix);
 const runtime = await run(executable, ["--native-check"]);

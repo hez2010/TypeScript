@@ -59,7 +59,7 @@ internal sealed class IdentifierTypes(TypeContext context, CheckerLinks links, C
             await host.MarkIdentifierAsync(node, cancellation).ConfigureAwait(false);
         var exported = symbols.ExportedValue(symbol)!;
         var target = await aliases.WithDeprecationAsync(exported, node, cancellation).ConfigureAwait(false);
-        if (target.Declarations.Count != 0)
+        if (target.Declarations.Length != 0)
             await host.CheckDeprecatedAsync(node, target, cancellation).ConfigureAwait(false);
         var declaration = exported.ValueDeclaration;
         var immediateDeclaration = declaration;

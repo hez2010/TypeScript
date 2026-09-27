@@ -152,7 +152,7 @@ internal sealed partial class Checker
         }
         Diagnostic? implementationNote = null;
         if (diagnostics.Count != 0 && last.Declaration is { } declaration
-            && program.Symbols.Declaration(declaration) is { Declarations.Count: > 1 } symbol
+            && program.Symbols.Declaration(declaration) is { Declarations.Length: > 1 } symbol
             && symbol.Declarations.FirstOrDefault(d => d is IFunctionSignature && SemanticSyntax.Body(d) is not null) is { } implementation)
         {
             var signature = await Signatures.FromDeclarationAsync(implementation, cancellation);

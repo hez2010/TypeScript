@@ -152,8 +152,8 @@ internal static class CheckerStateTests
         var lastNode = new IdentifierNode { Pos = 1, Parent = lastFile };
         var firstSymbol = new Symbol(SymbolFlags.Interface, "I");
         var lastSymbol = new Symbol(SymbolFlags.Interface, "I");
-        firstSymbol.DeclarationList.Add(firstNode);
-        lastSymbol.DeclarationList.Add(lastNode);
+        firstSymbol.DeclarationList = firstSymbol.DeclarationList.Add(firstNode);
+        lastSymbol.DeclarationList = lastSymbol.DeclarationList.Add(lastNode);
         order = new([firstFile, lastFile]);
         Check(order.CompareSymbols(firstSymbol, lastSymbol) < 0);
         Check(order.CompareNodes(firstNode, lastNode) < 0);

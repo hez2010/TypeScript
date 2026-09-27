@@ -23,7 +23,7 @@ internal sealed class SymbolMerger(Symbol unknownSymbol, Symbol globalThisSymbol
             symbol.Flags | S.Transient,
             symbol.Name)
         { Parent = symbol.Parent, ValueDeclaration = symbol.ValueDeclaration };
-        result.DeclarationList.AddRange(symbol.Declarations);
+        result.DeclarationList = result.DeclarationList.AddRange(symbol.Declarations);
         foreach (var pair in symbol.Members)
             result.MemberTable.Add(pair.Key, pair.Value);
         foreach (var pair in symbol.Exports)
@@ -130,7 +130,7 @@ internal sealed class SymbolMerger(Symbol unknownSymbol, Symbol globalThisSymbol
             target.Flags |= (target.Flags & S.ConstEnumOnlyModule) == 0 ? source.Flags & ~S.ConstEnumOnlyModule : source.Flags;
             if (source.ValueDeclaration is { } value)
                 SetValueDeclaration(target, value);
-            target.DeclarationList.AddRange(source.Declarations);
+            target.DeclarationList = target.DeclarationList.AddRange(source.Declarations);
             if (source.Members.Count != 0)
                 await MergeTableCore(target.MemberTable, source.Members, unidirectional, null, cancellation).ConfigureAwait(false);
             if (source.Exports.Count != 0)
@@ -185,8 +185,8 @@ internal sealed class SymbolMerger(Symbol unknownSymbol, Symbol globalThisSymbol
                 symbol.Flags = snapshot.Flags;
                 symbol.Parent = snapshot.Parent;
                 symbol.ValueDeclaration = snapshot.Value;
-                symbol.DeclarationList.Clear();
-                symbol.DeclarationList.AddRange(snapshot.Declarations);
+                symbol.DeclarationList = [];
+                symbol.DeclarationList = symbol.DeclarationList.AddRange(snapshot.Declarations);
             }
             foreach (var (table, entries) in tables)
             {

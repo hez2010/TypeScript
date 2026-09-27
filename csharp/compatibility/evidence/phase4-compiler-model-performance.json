@@ -1,0 +1,4112 @@
+{
+  "timestamp": "2026-09-27T19:19:02.307Z",
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "manifest": {
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "execution": "Tiered compilation enabled; paired Release CoreCLR and Go, fresh programs in warm processes",
+    "scope": "Fresh program construction, binding and complete semantic checking in warm processes; input decoding excluded",
+    "processorCount": 4,
+    "modes": [
+      "single",
+      "default"
+    ],
+    "warmups": 20,
+    "samples": 15,
+    "provisionalBudgets": {
+      "p95ElapsedMs": 5000,
+      "peakRssBytes": 536870912,
+      "releasedHeapGrowthBytes": 16777216
+    },
+    "budgetScope": "Existing Phase 4 operability budgets; timings compare runtime distributions, including their JIT and CoreLib, not an isolated collector substitution.",
+    "cases": [
+      "compiler/jsxComplexSignatureHasApplicabilityError.tsx",
+      "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+      "conformance/superInStaticMembers1.ts target=es2022",
+      "conformance/nodeModulesAllowJs1.ts module=node18",
+      "compiler/giant.ts"
+    ]
+  },
+  "manifestSha256": "603d9f16c101c248fd2a3312c8db83a35cd6a4cebaaebf5b29212a5a692db4dd",
+  "candidateSha256": "a3bf1753571ffc537d2a8165412cf46eeb99e7d59d0b5e34492139cc87f52b9c",
+  "compilerSha256": "84a178ab304887c58c465d70e84b4b790f98b21d30b2448e1c4e7321ad3700fb",
+  "baseline": {
+    "directory": "D:\\source\\repos\\TypeScript\\built\\compiler-model\\baseline-normal",
+    "candidateSha256": "436a4f5058a95690e57dbba7fcb60f2324544a8cf26462b0b641f0970fa705a9",
+    "compilerSha256": "db7484c3353d8516e34bba4ff809dd14288113159ad3a2372d7fd39965c9937f"
+  },
+  "oracleSha256": "3b24ab2a8765063a904a578271c8def1a0f9607104913f99f17f8801533a2d7a",
+  "samplesSha256": "cbd4a6a42a9e37bf61653deca1b37ecbcc6764acd39119e26246a0287480d63f",
+  "machine": {
+    "platform": "win32",
+    "architecture": "x64",
+    "os": "Windows 11 Pro for Workstations",
+    "cpu": "13th Gen Intel(R) Core(TM) i7-13700K",
+    "availableMemoryBytes": 68399497216
+  },
+  "runtime": {
+    "dotnet": "D:\\dotnet-sdk-11.0.100-rtm.26473.115-win-x64\\dotnet.exe",
+    "tieredCompilation": true,
+    "processorCount": 4,
+    "nativeAotExecuted": false,
+    "serverGC": true,
+    "label": "CoreCLR"
+  },
+  "groups": [
+    {
+      "name": "compiler/jsxComplexSignatureHasApplicabilityError.tsx",
+      "mode": "single",
+      "before": {
+        "samples": 15,
+        "medianMs": 62.7949,
+        "medianProgramMs": 58.1572,
+        "medianCheckerMs": 4.744599999999998,
+        "p95Ms": 69.7447,
+        "medianCpuMs": 109.375,
+        "medianAllocatedBytes": 65909800,
+        "peakRssBytes": 153976832,
+        "releasedHeapGrowthBytes": 0
+      },
+      "after": {
+        "samples": 15,
+        "medianMs": 38.78,
+        "medianProgramMs": 34.6401,
+        "medianCheckerMs": 4.250599999999999,
+        "p95Ms": 51.5654,
+        "medianCpuMs": 31.25,
+        "medianAllocatedBytes": 36714160,
+        "peakRssBytes": 138784768,
+        "releasedHeapGrowthBytes": 0
+      },
+      "go": {
+        "samples": 15,
+        "medianMs": 20.6148,
+        "medianProgramMs": 17.942300000000003,
+        "medianCheckerMs": 2.6127999999999965,
+        "p95Ms": 23.419700000000002,
+        "medianCpuMs": 15.625,
+        "medianAllocatedBytes": 21999112,
+        "peakRssBytes": 47562752,
+        "releasedHeapGrowthBytes": 560
+      },
+      "passed": true,
+      "elapsedRatio": 0.6175660762259356,
+      "allocationRatio": 0.5570364346424963
+    },
+    {
+      "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+      "mode": "single",
+      "before": {
+        "samples": 15,
+        "medianMs": 150.0168,
+        "medianProgramMs": 56.3377,
+        "medianCheckerMs": 94.29899999999999,
+        "p95Ms": 156.9725,
+        "medianCpuMs": 234.375,
+        "medianAllocatedBytes": 133429744,
+        "peakRssBytes": 189509632,
+        "releasedHeapGrowthBytes": 0
+      },
+      "after": {
+        "samples": 15,
+        "medianMs": 122.6059,
+        "medianProgramMs": 35.1317,
+        "medianCheckerMs": 87.197,
+        "p95Ms": 139.0343,
+        "medianCpuMs": 156.25,
+        "medianAllocatedBytes": 84354312,
+        "peakRssBytes": 157151232,
+        "releasedHeapGrowthBytes": 0
+      },
+      "go": {
+        "samples": 15,
+        "medianMs": 64.35879999999999,
+        "medianProgramMs": 18.692400000000003,
+        "medianCheckerMs": 45.68799999999999,
+        "p95Ms": 68.76820000000001,
+        "medianCpuMs": 78.125,
+        "medianAllocatedBytes": 34393792,
+        "peakRssBytes": 58601472,
+        "releasedHeapGrowthBytes": 112
+      },
+      "passed": true,
+      "elapsedRatio": 0.8172811311799746,
+      "allocationRatio": 0.6322002086731127
+    },
+    {
+      "name": "conformance/superInStaticMembers1.ts target=es2022",
+      "mode": "single",
+      "before": {
+        "samples": 15,
+        "medianMs": 62.3327,
+        "medianProgramMs": 59.8866,
+        "medianCheckerMs": 2.4461000000000013,
+        "p95Ms": 66.4879,
+        "medianCpuMs": 125,
+        "medianAllocatedBytes": 62598096,
+        "peakRssBytes": 159285248,
+        "releasedHeapGrowthBytes": 0
+      },
+      "after": {
+        "samples": 15,
+        "medianMs": 39.7517,
+        "medianProgramMs": 37.4132,
+        "medianCheckerMs": 2.3384999999999962,
+        "p95Ms": 42.1869,
+        "medianCpuMs": 62.5,
+        "medianAllocatedBytes": 33542816,
+        "peakRssBytes": 145424384,
+        "releasedHeapGrowthBytes": 0
+      },
+      "go": {
+        "samples": 15,
+        "medianMs": 18.9153,
+        "medianProgramMs": 17.3461,
+        "medianCheckerMs": 1.044900000000002,
+        "p95Ms": 20.032,
+        "medianCpuMs": 15.625,
+        "medianAllocatedBytes": 21003792,
+        "peakRssBytes": 45019136,
+        "releasedHeapGrowthBytes": 608
+      },
+      "passed": true,
+      "elapsedRatio": 0.6377342871398158,
+      "allocationRatio": 0.5358440295053064
+    },
+    {
+      "name": "conformance/nodeModulesAllowJs1.ts module=node18",
+      "mode": "single",
+      "before": {
+        "samples": 15,
+        "medianMs": 51.7287,
+        "medianProgramMs": 50.249,
+        "medianCheckerMs": 1.5403999999999982,
+        "p95Ms": 67.0011,
+        "medianCpuMs": 78.125,
+        "medianAllocatedBytes": 60843352,
+        "peakRssBytes": 150511616,
+        "releasedHeapGrowthBytes": 0
+      },
+      "after": {
+        "samples": 15,
+        "medianMs": 42.1717,
+        "medianProgramMs": 40.7793,
+        "medianCheckerMs": 1.369400000000006,
+        "p95Ms": 42.9208,
+        "medianCpuMs": 78.125,
+        "medianAllocatedBytes": 32304880,
+        "peakRssBytes": 136757248,
+        "releasedHeapGrowthBytes": 0
+      },
+      "go": {
+        "samples": 15,
+        "medianMs": 18.948,
+        "medianProgramMs": 17.5883,
+        "medianCheckerMs": 1.045099999999998,
+        "p95Ms": 20.0309,
+        "medianCpuMs": 15.625,
+        "medianAllocatedBytes": 20623512,
+        "peakRssBytes": 44609536,
+        "releasedHeapGrowthBytes": 160
+      },
+      "passed": true,
+      "elapsedRatio": 0.8152476284925003,
+      "allocationRatio": 0.5309516806371878
+    },
+    {
+      "name": "compiler/giant.ts",
+      "mode": "single",
+      "before": {
+        "samples": 15,
+        "medianMs": 58.7782,
+        "medianProgramMs": 56.4596,
+        "medianCheckerMs": 2.3958999999999975,
+        "p95Ms": 63.6073,
+        "medianCpuMs": 109.375,
+        "medianAllocatedBytes": 59629424,
+        "peakRssBytes": 151695360,
+        "releasedHeapGrowthBytes": 0
+      },
+      "after": {
+        "samples": 15,
+        "medianMs": 38.2097,
+        "medianProgramMs": 36.206,
+        "medianCheckerMs": 2.0816000000000017,
+        "p95Ms": 40.1191,
+        "medianCpuMs": 62.5,
+        "medianAllocatedBytes": 32111848,
+        "peakRssBytes": 134418432,
+        "releasedHeapGrowthBytes": 24
+      },
+      "go": {
+        "samples": 15,
+        "medianMs": 17.918300000000002,
+        "medianProgramMs": 16.229799999999997,
+        "medianCheckerMs": 1.5611000000000033,
+        "p95Ms": 18.8833,
+        "medianCpuMs": 15.625,
+        "medianAllocatedBytes": 19799384,
+        "peakRssBytes": 43335680,
+        "releasedHeapGrowthBytes": 160
+      },
+      "passed": true,
+      "elapsedRatio": 0.6500658407368718,
+      "allocationRatio": 0.5385235316041289
+    },
+    {
+      "name": "compiler/jsxComplexSignatureHasApplicabilityError.tsx",
+      "mode": "default",
+      "before": {
+        "samples": 15,
+        "medianMs": 61.1959,
+        "medianProgramMs": 56.2828,
+        "medianCheckerMs": 4.9726,
+        "p95Ms": 80.4074,
+        "medianCpuMs": 109.375,
+        "medianAllocatedBytes": 67933176,
+        "peakRssBytes": 164110336,
+        "releasedHeapGrowthBytes": 72
+      },
+      "after": {
+        "samples": 15,
+        "medianMs": 38.5971,
+        "medianProgramMs": 33.8062,
+        "medianCheckerMs": 4.686900000000001,
+        "p95Ms": 58.8504,
+        "medianCpuMs": 31.25,
+        "medianAllocatedBytes": 38711040,
+        "peakRssBytes": 161411072,
+        "releasedHeapGrowthBytes": 10584
+      },
+      "go": {
+        "samples": 15,
+        "medianMs": 17.7859,
+        "medianProgramMs": 15.4887,
+        "medianCheckerMs": 2.5284999999999993,
+        "p95Ms": 19.2262,
+        "medianCpuMs": 15.625,
+        "medianAllocatedBytes": 22715536,
+        "peakRssBytes": 48926720,
+        "releasedHeapGrowthBytes": 7168
+      },
+      "passed": true,
+      "elapsedRatio": 0.6307138223312345,
+      "allocationRatio": 0.5698399851053629
+    },
+    {
+      "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+      "mode": "default",
+      "before": {
+        "samples": 15,
+        "medianMs": 148.834,
+        "medianProgramMs": 55.1772,
+        "medianCheckerMs": 93.756,
+        "p95Ms": 167.7282,
+        "medianCpuMs": 234.375,
+        "medianAllocatedBytes": 135290696,
+        "peakRssBytes": 194375680,
+        "releasedHeapGrowthBytes": 1896
+      },
+      "after": {
+        "samples": 15,
+        "medianMs": 117.3264,
+        "medianProgramMs": 33.9476,
+        "medianCheckerMs": 83.51769999999999,
+        "p95Ms": 130.4939,
+        "medianCpuMs": 171.875,
+        "medianAllocatedBytes": 86191576,
+        "peakRssBytes": 162131968,
+        "releasedHeapGrowthBytes": 50472
+      },
+      "go": {
+        "samples": 15,
+        "medianMs": 62.6332,
+        "medianProgramMs": 15.610199999999999,
+        "medianCheckerMs": 45.417699999999996,
+        "p95Ms": 66.7205,
+        "medianCpuMs": 93.75,
+        "medianAllocatedBytes": 35122064,
+        "peakRssBytes": 57769984,
+        "releasedHeapGrowthBytes": 2992
+      },
+      "passed": true,
+      "elapsedRatio": 0.7883037477995619,
+      "allocationRatio": 0.6370842825732821
+    },
+    {
+      "name": "conformance/superInStaticMembers1.ts target=es2022",
+      "mode": "default",
+      "before": {
+        "samples": 15,
+        "medianMs": 60.2077,
+        "medianProgramMs": 58.0588,
+        "medianCheckerMs": 1.9385000000000048,
+        "p95Ms": 80.6205,
+        "medianCpuMs": 109.375,
+        "medianAllocatedBytes": 65548536,
+        "peakRssBytes": 167649280,
+        "releasedHeapGrowthBytes": 5728
+      },
+      "after": {
+        "samples": 15,
+        "medianMs": 40.633,
+        "medianProgramMs": 38.4426,
+        "medianCheckerMs": 2.1773000000000025,
+        "p95Ms": 58.2855,
+        "medianCpuMs": 62.5,
+        "medianAllocatedBytes": 36443200,
+        "peakRssBytes": 155832320,
+        "releasedHeapGrowthBytes": 144
+      },
+      "go": {
+        "samples": 15,
+        "medianMs": 16.4395,
+        "medianProgramMs": 15.7776,
+        "medianCheckerMs": 0.5357999999999983,
+        "p95Ms": 17.6008,
+        "medianCpuMs": 15.625,
+        "medianAllocatedBytes": 22018936,
+        "peakRssBytes": 47747072,
+        "releasedHeapGrowthBytes": 8208
+      },
+      "passed": true,
+      "elapsedRatio": 0.6748804554899125,
+      "allocationRatio": 0.5559727527705577
+    },
+    {
+      "name": "conformance/nodeModulesAllowJs1.ts module=node18",
+      "mode": "default",
+      "before": {
+        "samples": 15,
+        "medianMs": 60.7287,
+        "medianProgramMs": 46.3571,
+        "medianCheckerMs": 14.232800000000005,
+        "p95Ms": 75.8447,
+        "medianCpuMs": 125,
+        "medianAllocatedBytes": 63612200,
+        "peakRssBytes": 158818304,
+        "releasedHeapGrowthBytes": 0
+      },
+      "after": {
+        "samples": 15,
+        "medianMs": 40.7582,
+        "medianProgramMs": 39.3943,
+        "medianCheckerMs": 1.1524,
+        "p95Ms": 55.4481,
+        "medianCpuMs": 62.5,
+        "medianAllocatedBytes": 35035168,
+        "peakRssBytes": 142495744,
+        "releasedHeapGrowthBytes": 144
+      },
+      "go": {
+        "samples": 15,
+        "medianMs": 16.4052,
+        "medianProgramMs": 15.7797,
+        "medianCheckerMs": 0.5124999999999993,
+        "p95Ms": 17.107,
+        "medianCpuMs": 15.625,
+        "medianAllocatedBytes": 21688512,
+        "peakRssBytes": 47083520,
+        "releasedHeapGrowthBytes": 672
+      },
+      "passed": true,
+      "elapsedRatio": 0.6711521899859539,
+      "allocationRatio": 0.5507617721128966
+    },
+    {
+      "name": "compiler/giant.ts",
+      "mode": "default",
+      "before": {
+        "samples": 15,
+        "medianMs": 59.8067,
+        "medianProgramMs": 46.5094,
+        "medianCheckerMs": 13.727400000000003,
+        "p95Ms": 69.572,
+        "medianCpuMs": 140.625,
+        "medianAllocatedBytes": 61479992,
+        "peakRssBytes": 157515776,
+        "releasedHeapGrowthBytes": 0
+      },
+      "after": {
+        "samples": 15,
+        "medianMs": 38.2891,
+        "medianProgramMs": 35.707,
+        "medianCheckerMs": 2.2235999999999976,
+        "p95Ms": 48.3914,
+        "medianCpuMs": 78.125,
+        "medianAllocatedBytes": 33938008,
+        "peakRssBytes": 151949312,
+        "releasedHeapGrowthBytes": 0
+      },
+      "go": {
+        "samples": 15,
+        "medianMs": 16.0047,
+        "medianProgramMs": 14.7087,
+        "medianCheckerMs": 1.0694,
+        "p95Ms": 16.709600000000002,
+        "medianCpuMs": 15.625,
+        "medianAllocatedBytes": 20503512,
+        "peakRssBytes": 44556288,
+        "releasedHeapGrowthBytes": 4112
+      },
+      "passed": true,
+      "elapsedRatio": 0.6402142234900103,
+      "allocationRatio": 0.5520171180243485
+    }
+  ],
+  "passed": true,
+  "goal": {
+    "fasterThanGo": false,
+    "status": "Not achieved; retained source changes materially narrow the measured gap."
+  },
+  "baselineRuntime": "Unchanged 811abc5f44 binaries with the candidate normal CoreCLR runtime configuration; AOT feature switches removed equally from both sides.",
+  "profiles": {
+    "giant": {
+      "scope": "CPU_TIME samples with a managed compiler frame; inclusive stacks overlap; excludes harness-only and GC-only stacks, so not a total GC budget.",
+      "attributedCpuMs": 12098.715854428121,
+      "phases": {
+        "binding": {
+          "ms": 4768.66228040235,
+          "share": 0.3941461505319197
+        },
+        "parsing": {
+          "ms": 4778.499428812048,
+          "share": 0.39495922429347086
+        },
+        "checking": {
+          "ms": 2456.139015052571,
+          "share": 0.20300824026325287
+        },
+        "otherCompiler": {
+          "ms": 95.41513016109465,
+          "share": 0.007886384911351792
+        }
+      },
+      "inclusive": [
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Programs.CompilerProgram+Builder.Parse(class System.String,class TypeScript.Compiler.Configuration.ParsedConfig,bool)",
+          "ms": 4821.23547535241,
+          "share": 0.39849150383904924
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.ParseSourceFileAsync(value class TypeScript.Compiler.Syntax.ParseOptions,class TypeScript.Compiler.Text.SourceText,value class System.Threading.CancellationToken)",
+          "ms": 4778.499428812048,
+          "share": 0.39495922429347086
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Programs.CompilerProgram+Builder.ParseAndBind(class System.String,class TypeScript.Compiler.Configuration.ParsedConfig,bool)",
+          "ms": 4770.106363591083,
+          "share": 0.3942655089172317
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.ParseFileCore()",
+          "ms": 4768.665732277951,
+          "share": 0.39414643584117426
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Binding.Binder.BindAsync(class TypeScript.Compiler.Ast.SourceFileNode,value class System.Threading.CancellationToken)",
+          "ms": 4768.66228040235,
+          "share": 0.3941461505319197
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Binding.Binder.Visit(class TypeScript.Compiler.Ast.SyntaxNode)",
+          "ms": 4703.012743113553,
+          "share": 0.38871999307201305
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Binding.Binder.VisitContainer(class TypeScript.Compiler.Ast.SyntaxNode)",
+          "ms": 4702.816843112922,
+          "share": 0.388703801270917
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Binding.Binder.Children(class TypeScript.Compiler.Ast.SyntaxNode)",
+          "ms": 4702.339043141341,
+          "share": 0.38866430947878555
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Binding.Binder.Each(class TypeScript.Compiler.Ast.NodeList,bool)",
+          "ms": 4702.339043141341,
+          "share": 0.38866430947878555
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Binding.Binder.DeclareNode(class TypeScript.Compiler.Ast.SyntaxNode)",
+          "ms": 4444.253544419641,
+          "share": 0.36733266554012406
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Binding.Binder.EachChild(class TypeScript.Compiler.Ast.SyntaxNode)",
+          "ms": 4427.221740116087,
+          "share": 0.3659249290077118
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.ParseStatementCore()",
+          "ms": 3589.1579631178306,
+          "share": 0.2966561084913984
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.ParseStatementWorkerCore(bool)",
+          "ms": 3589.1579631178306,
+          "share": 0.2966561084913984
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Binding.Binder.Declare(class System.Collections.Generic.Dictionary`2<value class TypeScript.Compiler.Text.TextSlice,class TypeScript.Compiler.Binding.Symbol>,class TypeScript.Compiler.Binding.Symbol,class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags,value class System.Nullable`1<value class TypeScript.Compiler.Text.TextSlice>,bool)",
+          "ms": 3581.700415063936,
+          "share": 0.2960397167896985
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.ListCore(value class TypeScript.Compiler.Syntax.SyntaxKind,class System.Func`1<value class System.Threading.Tasks.ValueTask`1<class TypeScript.Compiler.Ast.SyntaxNode>>,bool,class System.Func`1<bool>,bool)",
+          "ms": 3018.7396403005046,
+          "share": 0.24950909473550847
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.TypeMemberCore(bool)",
+          "ms": 2796.2927914029146,
+          "share": 0.23112310637326636
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.TypeMemberWorkerCore(bool)",
+          "ms": 2796.2927914029146,
+          "share": 0.23112310637326636
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.InterfaceCore(class TypeScript.Compiler.Ast.NodeList,int32)",
+          "ms": 2751.8139326937016,
+          "share": 0.2274467774765154
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.<InterfaceCore>b__153_0()",
+          "ms": 2414.8582541054475,
+          "share": 0.19959624501980605
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Binding.Binder.Member(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags)",
+          "ms": 2198.4528605004043,
+          "share": 0.18170960347794035
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Binding.Binder.Property(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags)",
+          "ms": 1507.8663859475969,
+          "share": 0.12463028341935305
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.TypeCore()",
+          "ms": 1471.6262662456948,
+          "share": 0.12163491431258637
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.ParametersCore(value class TypeScript.Compiler.Syntax.NodeFlags,bool)",
+          "ms": 1451.3761884811636,
+          "share": 0.11996117653676121
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.CheckerPool+<>c__DisplayClass12_0.<GetDiagnosticsAsync>g__CheckGroupAsync|0(int32)",
+          "ms": 1384.4107573655147,
+          "share": 0.11442625597813517
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.DelimitedCore(value class TypeScript.Compiler.Syntax.SyntaxKind,class System.Func`1<value class System.Threading.Tasks.ValueTask`1<class TypeScript.Compiler.Ast.SyntaxNode>>,bool,class System.Func`1<bool>,class System.Func`1<bool>,class TypeScript.Compiler.Diagnostics.DiagnosticMessage,class System.Action,class System.Func`1<bool>)",
+          "ms": 1374.493966004999,
+          "share": 0.11360659945591955
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.PrimaryTypeCore()",
+          "ms": 1306.370611478363,
+          "share": 0.10797597259053177
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.UnionTypeCore(bool)",
+          "ms": 1296.7654198417665,
+          "share": 0.10718207084491131
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.AnnotationCore()",
+          "ms": 1237.9562385248873,
+          "share": 0.10232129206272716
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.UnionConstituentCore(bool,bool)",
+          "ms": 1149.9045567144835,
+          "share": 0.09504352119267429
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.PostfixTypeCore()",
+          "ms": 1148.375361679167,
+          "share": 0.09491712802386897
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.CheckerPool+<>c__DisplayClass10_1.<CreateAsync>b__1()",
+          "ms": 1053.5109583621975,
+          "share": 0.08707626255860974
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.Checker.CreateAsync(class TypeScript.Compiler.Programs.CompilerProgram,value class System.Threading.CancellationToken)",
+          "ms": 1053.5109583621975,
+          "share": 0.08707626255860974
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.CheckerSymbols.CreateAsync(class TypeScript.Compiler.Programs.CompilerProgram,class TypeScript.Compiler.Checking.CheckerLinks,class TypeScript.Compiler.Checking.ICheckerSymbolHost,value class System.Threading.CancellationToken,class System.Action`1<class TypeScript.Compiler.Checking.CheckerSymbols>)",
+          "ms": 1046.6492253818378,
+          "share": 0.08650911699845938
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.CheckerSymbols.InitializeAsync(value class System.Threading.CancellationToken)",
+          "ms": 1004.9774464858607,
+          "share": 0.08306480279211118
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.ParameterCore(value class TypeScript.Compiler.Syntax.NodeFlags)",
+          "ms": 981.868085684876,
+          "share": 0.08115473555199769
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.CheckerSymbols.MergeGlobalAsync(class TypeScript.Compiler.Binding.Symbol,value class System.Threading.CancellationToken)",
+          "ms": 912.8651468338728,
+          "share": 0.07545140805168714
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Diagnostics.DiagnosticCollection.SortAndDeduplicate(class System.Collections.Generic.IEnumerable`1<class TypeScript.Compiler.Diagnostics.Diagnostic>)",
+          "ms": 648.135190268091,
+          "share": 0.05357057708160606
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.SymbolMerger.MergeAsync(class TypeScript.Compiler.Binding.Symbol,class TypeScript.Compiler.Binding.Symbol,bool,value class System.Threading.CancellationToken)",
+          "ms": 642.8603932287375,
+          "share": 0.05313459717243058
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Diagnostics.DiagnosticEqualityComparer.Equals(class TypeScript.Compiler.Diagnostics.Diagnostic,class TypeScript.Compiler.Diagnostics.Diagnostic)",
+          "ms": 610.410290828612,
+          "share": 0.05045248588140057
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Ast.SyntaxNode+<DescendantsAndSelf>d__50.MoveNext()",
+          "ms": 567.6500190900302,
+          "share": 0.046918204040825605
+        }
+      ],
+      "exclusive": [
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Binding.Binder.Declare(class System.Collections.Generic.Dictionary`2<value class TypeScript.Compiler.Text.TextSlice,class TypeScript.Compiler.Binding.Symbol>,class TypeScript.Compiler.Binding.Symbol,class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags,value class System.Nullable`1<value class TypeScript.Compiler.Text.TextSlice>,bool)",
+          "ms": 1954.3828471043928,
+          "share": 0.16153638705293588
+        },
+        {
+          "frame": "System.Private.CoreLib.il!System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Text.TextSlice,System.__Canon].Initialize(int32)",
+          "ms": 782.1039473990053,
+          "share": 0.06464355034115095
+        },
+        {
+          "frame": "System.Private.CoreLib.il!System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Text.TextSlice,System.__Canon].Resize()",
+          "ms": 605.538082023161,
+          "share": 0.05004978125852377
+        },
+        {
+          "frame": "System.Private.CoreLib.il!System.Threading.Thread.<PollGC>g__PollGCWorker|75_0()",
+          "ms": 476.3832370615495,
+          "share": 0.039374694206674304
+        },
+        {
+          "frame": "System.Collections.il!System.Collections.Generic.Stack`1[System.ValueTuple`3[System.__Canon,System.__Canon,System.Boolean]].PushWithResize(!0)",
+          "ms": 389.83549510079774,
+          "share": 0.032221229078466064
+        },
+        {
+          "frame": "System.Private.CoreLib.il!System.Collections.Generic.List`1[System.__Canon].AddWithResize(!0)",
+          "ms": 372.57193193714875,
+          "share": 0.030794336888306018
+        },
+        {
+          "frame": "System.Private.CoreLib.il!System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Text.TextSlice,System.__Canon].Resize(int32,bool)",
+          "ms": 346.4615507968676,
+          "share": 0.02863622511392917
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.PrimaryTypeCore()",
+          "ms": 322.5481707821109,
+          "share": 0.026659702952198727
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Binding.Binder.Member(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags)",
+          "ms": 316.03848362247186,
+          "share": 0.026121655176057548
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.ModifiersCore(bool,bool)",
+          "ms": 306.5129685890874,
+          "share": 0.025334338972586405
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.ParametersCore(value class TypeScript.Compiler.Syntax.NodeFlags,bool)",
+          "ms": 293.7438350448699,
+          "share": 0.024278926671160717
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.TypeMemberWorkerCore(bool)",
+          "ms": 285.91351566554084,
+          "share": 0.023631724152022027
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Ast.SyntaxNode+<DescendantsAndSelf>d__50.MoveNext()",
+          "ms": 272.37157543283183,
+          "share": 0.022512436750313797
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Binding.Binder.Anonymous(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Text.TextSlice)",
+          "ms": 250.32158872942603,
+          "share": 0.020689930381149378
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.ParameterCore(value class TypeScript.Compiler.Syntax.NodeFlags)",
+          "ms": 227.31706336437307,
+          "share": 0.018788528146247454
+        },
+        {
+          "frame": "System.Collections.il!System.Collections.Generic.Stack`1[System.__Canon].PushWithResize(!0)",
+          "ms": 209.30954762114504,
+          "share": 0.01730014574600807
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.BindingNameCore(class TypeScript.Compiler.Diagnostics.DiagnosticMessage)",
+          "ms": 208.3491711891201,
+          "share": 0.017220767368700908
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Binding.Binder.VisitContainer(class TypeScript.Compiler.Ast.SyntaxNode)",
+          "ms": 197.59085102208846,
+          "share": 0.01633155562949851
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.EntityName(bool,bool)",
+          "ms": 196.8968659649642,
+          "share": 0.016274195405035493
+        },
+        {
+          "frame": "System.Private.CoreLib.il!System.Collections.Generic.ArraySortHelper`1[System.Int32].BinarySearch(!0[],int32,int32,!0,class System.Collections.Generic.IComparer`1<!0>)",
+          "ms": 194.49479560265698,
+          "share": 0.016075656122750585
+        },
+        {
+          "frame": "System.Collections.il!System.Collections.Generic.Stack`1[System.ValueTuple`2[System.__Canon,System.Boolean]].PushWithResize(!0)",
+          "ms": 185.75538997026408,
+          "share": 0.015353314533978228
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.DelimitedCore(value class TypeScript.Compiler.Syntax.SyntaxKind,class System.Func`1<value class System.Threading.Tasks.ValueTask`1<class TypeScript.Compiler.Ast.SyntaxNode>>,bool,class System.Func`1<bool>,class System.Func`1<bool>,class TypeScript.Compiler.Diagnostics.DiagnosticMessage,class System.Action,class System.Func`1<bool>)",
+          "ms": 179.04568746827502,
+          "share": 0.01479873480975623
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.NameCore()",
+          "ms": 171.0757685548425,
+          "share": 0.014139993914497042
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.ParseFileCore()",
+          "ms": 167.0696624461991,
+          "share": 0.013808875624188803
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.SymbolMerger.MergeCore(class TypeScript.Compiler.Binding.Symbol,class TypeScript.Compiler.Binding.Symbol,bool,value class System.Threading.CancellationToken)",
+          "ms": 152.48919927180555,
+          "share": 0.012603750770458388
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.SymbolMerger.MergeTableCore(class System.Collections.Generic.Dictionary`2<value class TypeScript.Compiler.Text.TextSlice,class TypeScript.Compiler.Binding.Symbol>,class System.Collections.Generic.IReadOnlyDictionary`2<value class TypeScript.Compiler.Text.TextSlice,class TypeScript.Compiler.Binding.Symbol>,bool,class TypeScript.Compiler.Binding.Symbol,value class System.Threading.CancellationToken)",
+          "ms": 151.09559881156076,
+          "share": 0.012488564954293053
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Diagnostics.DiagnosticEqualityComparer.Equals(class TypeScript.Compiler.Diagnostics.Diagnostic,class TypeScript.Compiler.Diagnostics.Diagnostic)",
+          "ms": 132.52649942492326,
+          "share": 0.010953765756588015
+        },
+        {
+          "frame": "System.Linq.il!System.Linq.Enumerable+DistinctIterator`1[System.__Canon].MoveNext()",
+          "ms": 127.83449540892605,
+          "share": 0.010565955672240928
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.SymbolMerger.CloneSymbol(class TypeScript.Compiler.Binding.Symbol)",
+          "ms": 111.99339896504807,
+          "share": 0.009256635192738952
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Binding.Binder.Property(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags)",
+          "ms": 101.35467963355407,
+          "share": 0.008377308869226673
+        },
+        {
+          "frame": "System.Private.CoreLib.il!System.Collections.Generic.Dictionary`2[System.__Canon,System.__Canon].Resize(int32,bool)",
+          "ms": 98.82409651457894,
+          "share": 0.008168147570670435
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.SymbolMerger.MergeAsync(class TypeScript.Compiler.Binding.Symbol,class TypeScript.Compiler.Binding.Symbol,bool,value class System.Threading.CancellationToken)",
+          "ms": 87.36489941142281,
+          "share": 0.007221005969773835
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.ParseToken()",
+          "ms": 87.29948330147175,
+          "share": 0.007215599105877026
+        },
+        {
+          "frame": "System.Private.CoreLib.il!System.Runtime.CompilerServices.CastHelpers.StelemRef_Helper(class System.Object&,void*,class System.Object)",
+          "ms": 80.63949585443831,
+          "share": 0.006665128499974178
+        },
+        {
+          "frame": "System.Private.CoreLib.il!System.SZArrayHelper.GetEnumerator()",
+          "ms": 76.3152664273056,
+          "share": 0.006307716235799874
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.ListCore(value class TypeScript.Compiler.Syntax.SyntaxKind,class System.Func`1<value class System.Threading.Tasks.ValueTask`1<class TypeScript.Compiler.Ast.SyntaxNode>>,bool,class System.Func`1<bool>,bool)",
+          "ms": 72.18167313031125,
+          "share": 0.005966060695928553
+        },
+        {
+          "frame": "System.Private.CoreLib.il!System.Array.Resize(!!0[]&,int32)",
+          "ms": 71.97419680668682,
+          "share": 0.005948912072378683
+        },
+        {
+          "frame": "System.Private.CoreLib.il!System.Collections.Generic.HashSet`1[System.__Canon].Resize()",
+          "ms": 67.99399750948442,
+          "share": 0.005619935068117057
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Binding.Binder.ModuleState(class TypeScript.Compiler.Ast.ModuleDeclarationNode)",
+          "ms": 58.57098281950286,
+          "share": 0.0048410908665208405
+        },
+        {
+          "frame": "System.Private.CoreLib.il!System.Collections.Generic.List`1[System.__Canon].ToArray()",
+          "ms": 58.542892029157485,
+          "share": 0.004838769067192435
+        }
+      ]
+    },
+    "conditional": {
+      "scope": "CPU_TIME samples with a managed compiler frame; inclusive stacks overlap; excludes harness-only and GC-only stacks, so not a total GC budget.",
+      "attributedCpuMs": 13571.032272480848,
+      "phases": {
+        "binding": {
+          "ms": 1347.9731745259878,
+          "share": 0.09932723962784977
+        },
+        "parsing": {
+          "ms": 3039.614433361041,
+          "share": 0.22397813020640508
+        },
+        "checking": {
+          "ms": 9047.843731289846,
+          "share": 0.666702690674234
+        },
+        "otherCompiler": {
+          "ms": 135.60093330397768,
+          "share": 0.009991939491511444
+        }
+      },
+      "inclusive": [
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.CheckerPool+<>c__DisplayClass12_0.<GetDiagnosticsAsync>g__CheckGroupAsync|0(int32)",
+          "ms": 8577.130887041567,
+          "share": 0.6320175735219608
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.Checker.CheckSourceFileAsync(class TypeScript.Compiler.Ast.SourceFileNode,value class System.Threading.CancellationToken)",
+          "ms": 8565.549487130402,
+          "share": 0.631164182292861
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.Checker.CheckSourceElementAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+          "ms": 8527.101959956752,
+          "share": 0.6283311238783134
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.Checker.CheckedFunctionTypeAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+          "ms": 8454.415421398977,
+          "share": 0.6229751172681774
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.Checker.CheckedFunctionTypeWorkerAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+          "ms": 8454.415421398977,
+          "share": 0.6229751172681774
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.TypeReferenceChecks.CheckAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+          "ms": 6745.980273992894,
+          "share": 0.49708674613295994
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.FunctionDeclarations.VariableAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+          "ms": 6487.789690334553,
+          "share": 0.4780616212585687
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.TypeRelations.RelatedAsync(class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.Type,value class TypeScript.Compiler.Checking.RelationKind,value class System.Threading.CancellationToken)",
+          "ms": 5474.265548668131,
+          "share": 0.403378714216808
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.Checker.CheckFunctionDeclarationAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+          "ms": 5385.522811148335,
+          "share": 0.39683958471376
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.FunctionDeclarations.CheckAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+          "ms": 5385.522811148335,
+          "share": 0.39683958471376
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.RelationOperation.CompareAsync(class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.Type,value class TypeScript.Compiler.Checking.RecursionFlags,value class TypeScript.Compiler.Checking.IntersectionState,value class System.Threading.CancellationToken,bool)",
+          "ms": 5235.576954089334,
+          "share": 0.3857906199741316
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.RelationOperation.CompareCoreAsync(class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.Type,value class TypeScript.Compiler.Checking.RecursionFlags,value class TypeScript.Compiler.Checking.IntersectionState,value class System.Threading.CancellationToken)",
+          "ms": 5235.576954089334,
+          "share": 0.3857906199741316
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.StructuralRelations.RelatedAsync(class TypeScript.Compiler.Checking.RelationOperation,class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.Type,value class TypeScript.Compiler.Checking.RecursionFlags,value class TypeScript.Compiler.Checking.IntersectionState,value class System.Threading.CancellationToken)",
+          "ms": 5205.556754561389,
+          "share": 0.38357854067720004
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.RelationSession.RecursiveAsync(class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.Type,value class TypeScript.Compiler.Checking.IntersectionState,value class TypeScript.Compiler.Checking.RecursionFlags,bool,class System.Func`1<value class System.Threading.Tasks.ValueTask`1<value class TypeScript.Compiler.Checking.Ternary>>,class System.Func`4<class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.Type,value class System.Threading.CancellationToken,value class System.Threading.Tasks.ValueTask>,value class System.Threading.CancellationToken)",
+          "ms": 5105.026857113554,
+          "share": 0.37617085823791435
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.RelationSession.RecursiveCoreAsync(class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.Type,value class TypeScript.Compiler.Checking.IntersectionState,value class TypeScript.Compiler.Checking.RecursionFlags,bool,class System.Func`1<value class System.Threading.Tasks.ValueTask`1<value class TypeScript.Compiler.Checking.Ternary>>,class System.Func`4<class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.Type,value class System.Threading.CancellationToken,value class System.Threading.Tasks.ValueTask>,value class System.Threading.CancellationToken)",
+          "ms": 5105.026857113554,
+          "share": 0.37617085823791435
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.StructuralRelations.StructuredAsync(class TypeScript.Compiler.Checking.RelationOperation,class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.Type,value class TypeScript.Compiler.Checking.IntersectionState,value class System.Threading.CancellationToken)",
+          "ms": 4829.091662759046,
+          "share": 0.3558381975519586
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.StructuralRelations.WorkerAsync(class TypeScript.Compiler.Checking.RelationOperation,class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.Type,value class TypeScript.Compiler.Checking.IntersectionState,value class System.Threading.CancellationToken)",
+          "ms": 4808.227863062083,
+          "share": 0.3543008200497866
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.StructuralRelations.UnionIntersectionAsync(class TypeScript.Compiler.Checking.RelationOperation,class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.Type,value class TypeScript.Compiler.Checking.IntersectionState,value class System.Threading.CancellationToken)",
+          "ms": 4276.827575130725,
+          "share": 0.31514386593886573
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.RelationOperation.CompareWithoutErrorsAsync(class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.Type,value class TypeScript.Compiler.Checking.RecursionFlags,value class TypeScript.Compiler.Checking.IntersectionState,value class System.Threading.CancellationToken)",
+          "ms": 4276.827575130725,
+          "share": 0.31514386593886573
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.StructuralRelations.EachAsync(class TypeScript.Compiler.Checking.RelationOperation,class TypeScript.Compiler.Checking.UnionType,class TypeScript.Compiler.Checking.Type,value class TypeScript.Compiler.Checking.IntersectionState,value class System.Threading.CancellationToken)",
+          "ms": 4276.1902751487505,
+          "share": 0.31509690562153847
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.StructuralRelations.AfterVarianceAsync(class TypeScript.Compiler.Checking.RelationOperation,class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.Type,value class TypeScript.Compiler.Checking.IntersectionState,class TypeScript.Compiler.Checking.RelationExplanation,value class System.Threading.CancellationToken)",
+          "ms": 3787.5614846690696,
+          "share": 0.2790916275653868
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.Checker.AdvancedRelationAsync(class TypeScript.Compiler.Checking.RelationOperation,class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.Type,value class TypeScript.Compiler.Checking.IntersectionState,value class System.Threading.CancellationToken)",
+          "ms": 3365.943893993476,
+          "share": 0.2480241610521324
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.ConditionalRelations.SourceAsync(class TypeScript.Compiler.Checking.RelationOperation,class TypeScript.Compiler.Checking.ConditionalType,class TypeScript.Compiler.Checking.Type,value class System.Threading.CancellationToken)",
+          "ms": 3262.592398061445,
+          "share": 0.24040856528484458
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.TypeNormalization.GetAsync(class TypeScript.Compiler.Checking.Type,bool,value class System.Threading.CancellationToken)",
+          "ms": 3135.2151422922925,
+          "share": 0.23102259867510877
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Programs.CompilerProgram+Builder.Parse(class System.String,class TypeScript.Compiler.Configuration.ParsedConfig,bool)",
+          "ms": 3062.629370561756,
+          "share": 0.22567401720590655
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.ParseSourceFileAsync(value class TypeScript.Compiler.Syntax.ParseOptions,class TypeScript.Compiler.Text.SourceText,value class System.Threading.CancellationToken)",
+          "ms": 3039.614433361041,
+          "share": 0.22397813020640508
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.ParseFileCore()",
+          "ms": 3036.1459334059946,
+          "share": 0.2237225490622883
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.TypeInstantiation.InstantiateAsync(class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.TypeMapper,class TypeScript.Compiler.Checking.TypeAlias,value class System.Threading.CancellationToken)",
+          "ms": 2717.7932383666275,
+          "share": 0.20026429705555496
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.TypeInstantiation.WorkerAsync(class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.TypeMapper,class TypeScript.Compiler.Checking.TypeAlias,value class System.Threading.CancellationToken)",
+          "ms": 2714.856138523013,
+          "share": 0.2000478728525435
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.ParseStatementCore()",
+          "ms": 2525.894395494286,
+          "share": 0.1861239694062374
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.ParseStatementWorkerCore(bool)",
+          "ms": 2525.894395494286,
+          "share": 0.1861239694062374
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.TypeReferences.FromNodeAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+          "ms": 2369.922336213118,
+          "share": 0.17463095574673518
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.TypeProperties.CompositePropertyAsync(class TypeScript.Compiler.Checking.UnionOrIntersectionType,value class TypeScript.Compiler.Text.TextSlice,bool,value class System.Threading.CancellationToken)",
+          "ms": 2356.5333704023897,
+          "share": 0.17364437156198761
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.TypeProperties.CachedPropertyAsync(class TypeScript.Compiler.Checking.UnionOrIntersectionType,value class TypeScript.Compiler.Text.TextSlice,bool,value class System.Threading.CancellationToken)",
+          "ms": 2356.5333704023897,
+          "share": 0.17364437156198761
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.TypeViews.ReducedAsync(class TypeScript.Compiler.Checking.Type,value class System.Threading.CancellationToken)",
+          "ms": 2283.560742109824,
+          "share": 0.1682672840400208
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.TypeProperties.CompositePropertiesAsync(class TypeScript.Compiler.Checking.UnionOrIntersectionType,value class System.Threading.CancellationToken)",
+          "ms": 2270.405442427421,
+          "share": 0.16729791786224824
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.TypeReferences.ReferenceAsync(class TypeScript.Compiler.Ast.SyntaxNode,class TypeScript.Compiler.Binding.Symbol,value class System.Threading.CancellationToken)",
+          "ms": 2204.2357402499147,
+          "share": 0.16242211321828726
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.TypeReferences.AliasReferenceAsync(class TypeScript.Compiler.Ast.SyntaxNode,class TypeScript.Compiler.Binding.Symbol,value class System.Threading.CancellationToken)",
+          "ms": 2204.2357402499147,
+          "share": 0.16242211321828726
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.TypeProperties.CreateAsync(class TypeScript.Compiler.Checking.UnionOrIntersectionType,value class TypeScript.Compiler.Text.TextSlice,bool,value class System.Threading.CancellationToken)",
+          "ms": 2194.2094743449984,
+          "share": 0.1616833141569036
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.TypeReferences.AliasInstantiationAsync(class TypeScript.Compiler.Binding.Symbol,class System.Collections.Generic.IReadOnlyList`1<class TypeScript.Compiler.Checking.Type>,class TypeScript.Compiler.Checking.TypeAlias,value class System.Threading.CancellationToken)",
+          "ms": 2053.2625724154204,
+          "share": 0.1512974496847228
+        }
+      ],
+      "exclusive": [
+        {
+          "frame": "System.Private.CoreLib.il!System.Threading.Thread.<PollGC>g__PollGCWorker|75_0()",
+          "ms": 561.594567333631,
+          "share": 0.041381860720530794
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Binding.Binder.Declare(class System.Collections.Generic.Dictionary`2<value class TypeScript.Compiler.Text.TextSlice,class TypeScript.Compiler.Binding.Symbol>,class TypeScript.Compiler.Binding.Symbol,class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags,value class System.Nullable`1<value class TypeScript.Compiler.Text.TextSlice>,bool)",
+          "ms": 477.2606100462328,
+          "share": 0.03516759819472357
+        },
+        {
+          "frame": "System.Private.CoreLib.il!System.Collections.Generic.List`1[System.__Canon].AddWithResize(!0)",
+          "ms": 462.64028501700653,
+          "share": 0.03409027962855428
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.StructuralRelations.RelatedAsync(class TypeScript.Compiler.Checking.RelationOperation,class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.Type,value class TypeScript.Compiler.Checking.RecursionFlags,value class TypeScript.Compiler.Checking.IntersectionState,value class System.Threading.CancellationToken)",
+          "ms": 401.45418417316995,
+          "share": 0.029581698437725564
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.TypeProperties.CreateAsync(class TypeScript.Compiler.Checking.UnionOrIntersectionType,value class TypeScript.Compiler.Text.TextSlice,bool,value class System.Threading.CancellationToken)",
+          "ms": 381.1826370931811,
+          "share": 0.02808796187642542
+        },
+        {
+          "frame": "System.Collections.il!System.Collections.Generic.Stack`1[System.__Canon].PushWithResize(!0)",
+          "ms": 345.9477205104316,
+          "share": 0.025491629049614717
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.TypeAlgebra.AddIntersectionTypes(class System.Collections.Generic.IReadOnlyList`1<class TypeScript.Compiler.Checking.Type>,value class System.Threading.CancellationToken)",
+          "ms": 320.0340712249681,
+          "share": 0.023582146501407174
+        },
+        {
+          "frame": "System.Private.CoreLib.il!System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Checking.RelationKey,System.ValueTuple`2[System.Nullable`1[TypeScript.Compiler.Checking.Relation+Entry],TypeScript.Compiler.Checking.Relation+Entry]].Initialize(int32)",
+          "ms": 260.92909503482997,
+          "share": 0.019226915815677367
+        },
+        {
+          "frame": "System.Private.CoreLib.il!System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Text.TextSlice,System.__Canon].Initialize(int32)",
+          "ms": 260.06861094439057,
+          "share": 0.019163509873287538
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.TypeAlgebra.IntersectionAsync(class System.Collections.Generic.IReadOnlyList`1<class TypeScript.Compiler.Checking.Type>,value class TypeScript.Compiler.Checking.IntersectionFlags,class TypeScript.Compiler.Checking.TypeAlias,value class System.Threading.CancellationToken)",
+          "ms": 252.58358289012176,
+          "share": 0.01861196538470454
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.StructuredMembers.SetAsync(class TypeScript.Compiler.Checking.StructuredType,class System.Collections.Generic.IReadOnlyDictionary`2<value class TypeScript.Compiler.Text.TextSlice,class TypeScript.Compiler.Binding.Symbol>,class System.Collections.Generic.IReadOnlyList`1<class TypeScript.Compiler.Checking.Signature>,class System.Collections.Generic.IReadOnlyList`1<class TypeScript.Compiler.Checking.Signature>,class System.Collections.Generic.IReadOnlyList`1<class TypeScript.Compiler.Checking.IndexInfo>,value class System.Threading.CancellationToken)",
+          "ms": 248.77959019713117,
+          "share": 0.018331663001170735
+        },
+        {
+          "frame": "System.Private.CoreLib.il!System.Collections.Generic.Dictionary`2[System.__Canon,System.__Canon].Resize(int32,bool)",
+          "ms": 245.95339508430382,
+          "share": 0.018123410964326177
+        },
+        {
+          "frame": "System.Private.CoreLib.il!System.SZArrayHelper.GetEnumerator()",
+          "ms": 240.9264639210879,
+          "share": 0.017752994693678185
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.TypeRelations.RelatedAsync(class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.Type,value class TypeScript.Compiler.Checking.RelationKind,value class System.Threading.CancellationToken)",
+          "ms": 230.9493960830236,
+          "share": 0.01701782085887008
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.RelationSession..ctor(class TypeScript.Compiler.Checking.TypeContext,class TypeScript.Compiler.Checking.Relation,class TypeScript.Compiler.Checking.RelationKeys,class TypeScript.Compiler.Checking.TypeRecursion,class TypeScript.Compiler.Checking.RelationState)",
+          "ms": 206.1867970415418,
+          "share": 0.015193155015896952
+        },
+        {
+          "frame": "System.Private.CoreLib.il!System.RuntimeType.CreateInstanceOfT()",
+          "ms": 203.4207691664269,
+          "share": 0.01498933648392545
+        },
+        {
+          "frame": "System.Private.CoreLib.il!System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Text.TextSlice,System.__Canon].Resize(int32,bool)",
+          "ms": 199.1666973443256,
+          "share": 0.014675869406647354
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.TypeCacheKey.UnionValues(value class System.ReadOnlySpan`1<class TypeScript.Compiler.Checking.Type>,class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.TypeAlias,int32)",
+          "ms": 196.9138728129064,
+          "share": 0.014509866962162166
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.PrimaryTypeCore()",
+          "ms": 194.15268056415246,
+          "share": 0.014306404749906356
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.TypeInstantiation.AliasAsync(class TypeScript.Compiler.Checking.TypeAlias,class TypeScript.Compiler.Checking.TypeMapper,value class System.Threading.CancellationToken)",
+          "ms": 184.72948802704323,
+          "share": 0.013612043971160184
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.TypeNodeFlow.ApplyAsync(class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+          "ms": 180.55079138673224,
+          "share": 0.01330413101683139
+        },
+        {
+          "frame": "System.Collections.il!System.Collections.Generic.Stack`1[System.ValueTuple`2[System.__Canon,System.Boolean]].PushWithResize(!0)",
+          "ms": 176.2872971331647,
+          "share": 0.012989969634855093
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.ModifiersCore(bool,bool)",
+          "ms": 173.26236116053693,
+          "share": 0.012767073107023403
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.TypeMemberWorkerCore(bool)",
+          "ms": 170.29606282101835,
+          "share": 0.012548497373065891
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.Literal()",
+          "ms": 168.1158973481356,
+          "share": 0.012387848910288032
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.RelationSession.RecursiveCoreAsync(class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.Type,value class TypeScript.Compiler.Checking.IntersectionState,value class TypeScript.Compiler.Checking.RecursionFlags,bool,class System.Func`1<value class System.Threading.Tasks.ValueTask`1<value class TypeScript.Compiler.Checking.Ternary>>,class System.Func`4<class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.Type,value class System.Threading.CancellationToken,value class System.Threading.Tasks.ValueTask>,value class System.Threading.CancellationToken)",
+          "ms": 166.17629760506063,
+          "share": 0.012244926861019308
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.ObjectInstantiation.InstantiateAsync(class TypeScript.Compiler.Checking.ObjectType,class TypeScript.Compiler.Checking.TypeMapper,class TypeScript.Compiler.Checking.TypeAlias,value class System.Threading.CancellationToken)",
+          "ms": 158.99858990230598,
+          "share": 0.011716027691181689
+        },
+        {
+          "frame": "System.Private.CoreLib.il!System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Text.TextSlice,System.__Canon].Resize()",
+          "ms": 156.9429057860757,
+          "share": 0.011564551806742243
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.StructuralRelations.WorkerAsync(class TypeScript.Compiler.Checking.RelationOperation,class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.Type,value class TypeScript.Compiler.Checking.IntersectionState,value class System.Threading.CancellationToken)",
+          "ms": 152.13509473334642,
+          "share": 0.011210281699929625
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.TypeAlgebra.Pattern(class TypeScript.Compiler.Checking.Type,bool)",
+          "ms": 147.06039842398334,
+          "share": 0.01083634578942019
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.RelationOperation.CompareCoreAsync(class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.Type,value class TypeScript.Compiler.Checking.RecursionFlags,value class TypeScript.Compiler.Checking.IntersectionState,value class System.Threading.CancellationToken)",
+          "ms": 146.97469641433958,
+          "share": 0.010830030720092887
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.FunctionDeclarations.VariableAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class System.Threading.CancellationToken)",
+          "ms": 140.09569970726972,
+          "share": 0.010323142476888352
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.EntityName(bool,bool)",
+          "ms": 140.09182389037272,
+          "share": 0.010322856882040505
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.ParametersCore(value class TypeScript.Compiler.Syntax.NodeFlags,bool)",
+          "ms": 138.16145748869758,
+          "share": 0.010180615204110852
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.ParameterCore(value class TypeScript.Compiler.Syntax.NodeFlags)",
+          "ms": 132.23959035147016,
+          "share": 0.00974425435710029
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.ExpressionTypes.WorkerAsync(class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Checking.CheckMode,value class System.Threading.CancellationToken)",
+          "ms": 130.61629875330186,
+          "share": 0.009624639904376602
+        },
+        {
+          "frame": "System.Private.CoreLib.il!System.Collections.Generic.List`1[TypeScript.Compiler.Checking.RelationKey].AddWithResize(!0)",
+          "ms": 124.67389632422679,
+          "share": 0.00918676588641225
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.TypeRecursion.MatchesAsync(class TypeScript.Compiler.Checking.Type,value class TypeScript.Compiler.Checking.RecursionIdentity,value class System.Threading.CancellationToken)",
+          "ms": 124.58979489066076,
+          "share": 0.009180568757713605
+        },
+        {
+          "frame": "System.Private.CoreLib.il!System.Collections.Generic.HashSet`1[System.__Canon].Initialize(int32)",
+          "ms": 121.26239134018073,
+          "share": 0.008935384494374457
+        },
+        {
+          "frame": "TypeScript.Compiler!TypeScript.Compiler.Checking.StructuralRelations.StructuredAsync(class TypeScript.Compiler.Checking.RelationOperation,class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.Type,value class TypeScript.Compiler.Checking.IntersectionState,value class System.Threading.CancellationToken)",
+          "ms": 115.9455943377566,
+          "share": 0.008543609064497583
+        }
+      ]
+    }
+  },
+  "allocationProfile": [
+    {
+      "type": "TypeScript.Compiler.Checking.Type[]",
+      "bytes": 703856576,
+      "samples": 6604
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.SyntaxNode[]",
+      "bytes": 407469184,
+      "samples": 3794
+    },
+    {
+      "type": "TypeScript.Compiler.Binding.Symbol",
+      "bytes": 386328480,
+      "samples": 3630
+    },
+    {
+      "type": "Entry[TypeScript.Compiler.Text.TextSlice,TypeScript.Compiler.Binding.Symbol][]",
+      "bytes": 385950488,
+      "samples": 3443
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.IdentifierNode",
+      "bytes": 353966904,
+      "samples": 3321
+    },
+    {
+      "type": "Entry[TypeScript.Compiler.Checking.RelationKey,System.ValueTuple`2[System.Nullable`1[TypeScript.Compiler.Checking.Relation+Entry],TypeScript.Compiler.Checking.Relation+Entry]][]",
+      "bytes": 315337384,
+      "samples": 2221
+    },
+    {
+      "type": "System.Int32[]",
+      "bytes": 303536768,
+      "samples": 2787
+    },
+    {
+      "type": "Entry[TypeScript.Compiler.Checking.RelationKey,TypeScript.Compiler.Checking.Relation+Entry][]",
+      "bytes": 216793200,
+      "samples": 671
+    },
+    {
+      "type": "System.Collections.Generic.List`1[TypeScript.Compiler.Checking.Type]",
+      "bytes": 199115048,
+      "samples": 1871
+    },
+    {
+      "type": "System.Func`1[System.Boolean]",
+      "bytes": 164212264,
+      "samples": 1541
+    },
+    {
+      "type": "System.Int64[]",
+      "bytes": 145966800,
+      "samples": 1370
+    },
+    {
+      "type": "<>c__DisplayClass10_0",
+      "bytes": 144267616,
+      "samples": 1355
+    },
+    {
+      "type": "System.Func`4[TypeScript.Compiler.Checking.Type,TypeScript.Compiler.Checking.Type,System.Threading.CancellationToken,System.Threading.Tasks.ValueTask]",
+      "bytes": 138209504,
+      "samples": 1298
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.PropertySignatureDeclarationNode",
+      "bytes": 134316976,
+      "samples": 1260
+    },
+    {
+      "type": "System.SZGenericArrayEnumerator`1[TypeScript.Compiler.Checking.Type]",
+      "bytes": 133175816,
+      "samples": 1251
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.ParameterDeclarationNode",
+      "bytes": 122955184,
+      "samples": 1154
+    },
+    {
+      "type": "<>c__DisplayClass12_0",
+      "bytes": 116798088,
+      "samples": 1097
+    },
+    {
+      "type": "Entry[TypeScript.Compiler.Checking.RelationKey][]",
+      "bytes": 116038616,
+      "samples": 1090
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Text.TextSlice,TypeScript.Compiler.Binding.Symbol]",
+      "bytes": 114440312,
+      "samples": 1075
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.TypeReferenceNode",
+      "bytes": 113913592,
+      "samples": 1069
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.RelationKey[]",
+      "bytes": 113415856,
+      "samples": 1065
+    },
+    {
+      "type": "<>c__DisplayClass61_0",
+      "bytes": 113384680,
+      "samples": 1064
+    },
+    {
+      "type": "<>c__DisplayClass13_0",
+      "bytes": 108344056,
+      "samples": 1018
+    },
+    {
+      "type": "System.SZGenericArrayEnumerator`1[TypeScript.Compiler.Binding.Symbol]",
+      "bytes": 96087864,
+      "samples": 902
+    },
+    {
+      "type": "<>c__DisplayClass9_0",
+      "bytes": 94542712,
+      "samples": 889
+    },
+    {
+      "type": "<>c__DisplayClass28_0",
+      "bytes": 93521632,
+      "samples": 878
+    },
+    {
+      "type": "System.Func`1[System.Threading.Tasks.ValueTask`1[TypeScript.Compiler.Checking.Ternary]]",
+      "bytes": 88217448,
+      "samples": 829
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.RelationSession",
+      "bytes": 87902984,
+      "samples": 825
+    },
+    {
+      "type": "System.Collections.ObjectModel.ReadOnlyCollection`1[TypeScript.Compiler.Checking.Type]",
+      "bytes": 87556816,
+      "samples": 822
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.NodeList",
+      "bytes": 85776120,
+      "samples": 805
+    },
+    {
+      "type": "System.Collections.Generic.List`1[TypeScript.Compiler.Ast.SyntaxNode]",
+      "bytes": 84488888,
+      "samples": 793
+    },
+    {
+      "type": "System.Collections.Generic.Stack`1[TypeScript.Compiler.Checking.Type]",
+      "bytes": 80384656,
+      "samples": 756
+    },
+    {
+      "type": "System.ValueTuple`2[TypeScript.Compiler.Checking.TypeMapper,TypeScript.Compiler.Checking.Type][]",
+      "bytes": 69765368,
+      "samples": 655
+    },
+    {
+      "type": "Entry[TypeScript.Compiler.Ast.SyntaxNode,TypeScript.Compiler.Binding.BoundSourceFile][]",
+      "bytes": 67559592,
+      "samples": 263
+    },
+    {
+      "type": "<>c__DisplayClass11_0",
+      "bytes": 65920848,
+      "samples": 620
+    },
+    {
+      "type": "System.Func`1[System.Threading.Tasks.ValueTask`1[TypeScript.Compiler.Ast.SyntaxNode]]",
+      "bytes": 64272816,
+      "samples": 603
+    },
+    {
+      "type": "Enumerator[TypeScript.Compiler.Checking.Type]",
+      "bytes": 62846288,
+      "samples": 591
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.KeywordTypeNode",
+      "bytes": 61807592,
+      "samples": 580
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Checking.RelationKey,System.ValueTuple`2[System.Nullable`1[TypeScript.Compiler.Checking.Relation+Entry],TypeScript.Compiler.Checking.Relation+Entry]]",
+      "bytes": 61428560,
+      "samples": 577
+    },
+    {
+      "type": "System.ValueTuple`2[TypeScript.Compiler.Ast.SyntaxNode,System.Boolean][]",
+      "bytes": 60249048,
+      "samples": 541
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.IntersectionType",
+      "bytes": 57064016,
+      "samples": 537
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.RelationOperation",
+      "bytes": 55355144,
+      "samples": 520
+    },
+    {
+      "type": "<>c__DisplayClass24_0",
+      "bytes": 54646584,
+      "samples": 514
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.ConditionalType",
+      "bytes": 52951856,
+      "samples": 497
+    },
+    {
+      "type": "System.Func`4[TypeScript.Compiler.Checking.Type,TypeScript.Compiler.Checking.TypeMapper,System.Threading.CancellationToken,System.Threading.Tasks.ValueTask`1[TypeScript.Compiler.Checking.Type]]",
+      "bytes": 51681952,
+      "samples": 485
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.TypeAlias",
+      "bytes": 51149920,
+      "samples": 480
+    },
+    {
+      "type": "System.ArrayEnumerator",
+      "bytes": 50096680,
+      "samples": 472
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.TokenNode",
+      "bytes": 49567840,
+      "samples": 465
+    },
+    {
+      "type": "System.Func`2[TypeScript.Compiler.Ast.CallExpressionNode,System.Boolean]",
+      "bytes": 48760536,
+      "samples": 458
+    },
+    {
+      "type": "TypeScript.Compiler.Binding.Symbol[]",
+      "bytes": 47736776,
+      "samples": 448
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.ValueSymbolLinks",
+      "bytes": 46222688,
+      "samples": 434
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.MethodSignatureDeclarationNode",
+      "bytes": 46160728,
+      "samples": 433
+    },
+    {
+      "type": "Entry[TypeScript.Compiler.Ast.SyntaxNode,TypeScript.Compiler.Checking.TypeNodeLinks][]",
+      "bytes": 45586240,
+      "samples": 267
+    },
+    {
+      "type": "System.Action",
+      "bytes": 44729808,
+      "samples": 420
+    },
+    {
+      "type": "Entry[System.ValueTuple`2[TypeScript.Compiler.Checking.Type,System.Boolean],System.Boolean][]",
+      "bytes": 44534168,
+      "samples": 419
+    },
+    {
+      "type": "System.Collections.Generic.HashSet`1[TypeScript.Compiler.Checking.RelationKey]",
+      "bytes": 41769816,
+      "samples": 393
+    },
+    {
+      "type": "Composite",
+      "bytes": 41487136,
+      "samples": 390
+    },
+    {
+      "type": "System.Collections.Generic.List`1[TypeScript.Compiler.Binding.Symbol]",
+      "bytes": 40001368,
+      "samples": 376
+    },
+    {
+      "type": "Entry[TypeScript.Compiler.Checking.Type][]",
+      "bytes": 39093416,
+      "samples": 368
+    },
+    {
+      "type": "System.Collections.ObjectModel.ReadOnlyDictionary`2[TypeScript.Compiler.Text.TextSlice,TypeScript.Compiler.Binding.Symbol]",
+      "bytes": 38982992,
+      "samples": 366
+    },
+    {
+      "type": "Entry[TypeScript.Compiler.Ast.SyntaxNode][]",
+      "bytes": 38482888,
+      "samples": 329
+    },
+    {
+      "type": "OfTypeIterator`1[TypeScript.Compiler.Ast.CallExpressionNode]",
+      "bytes": 38217312,
+      "samples": 360
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.LiteralTypeNode",
+      "bytes": 38021872,
+      "samples": 357
+    },
+    {
+      "type": "OfTypeIterator`1[TypeScript.Compiler.Ast.SetAccessorDeclarationNode]",
+      "bytes": 37773936,
+      "samples": 355
+    },
+    {
+      "type": "TypeScript.Compiler.Binding.FlowNode",
+      "bytes": 37594368,
+      "samples": 353
+    },
+    {
+      "type": "Entry[TypeScript.Compiler.Binding.Symbol][]",
+      "bytes": 37193904,
+      "samples": 313
+    },
+    {
+      "type": "System.Byte[]",
+      "bytes": 36163608,
+      "samples": 276
+    },
+    {
+      "type": "System.Comparison`1[TypeScript.Compiler.Binding.Symbol]",
+      "bytes": 34095560,
+      "samples": 320
+    },
+    {
+      "type": "Entry[TypeScript.Compiler.Checking.Type,TypeScript.Compiler.Checking.Type][]",
+      "bytes": 33417352,
+      "samples": 228
+    },
+    {
+      "type": "System.SZGenericArrayEnumerator`1[TypeScript.Compiler.Ast.SyntaxNode]",
+      "bytes": 33059608,
+      "samples": 311
+    },
+    {
+      "type": "<>c__DisplayClass148_0",
+      "bytes": 30691632,
+      "samples": 288
+    },
+    {
+      "type": "System.ValueTuple`3[TypeScript.Compiler.Checking.Type,System.Boolean,System.Boolean][]",
+      "bytes": 30216080,
+      "samples": 284
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.StringLiteralNode",
+      "bytes": 30052840,
+      "samples": 282
+    },
+    {
+      "type": "Entry[TypeScript.Compiler.Binding.Symbol,TypeScript.Compiler.Checking.ValueSymbolLinks][]",
+      "bytes": 29750416,
+      "samples": 183
+    },
+    {
+      "type": "TypeScript.Compiler.Syntax.Scanner",
+      "bytes": 29524816,
+      "samples": 277
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.LiteralType",
+      "bytes": 29479872,
+      "samples": 277
+    },
+    {
+      "type": "Entry[TypeScript.Compiler.Checking.TypeCacheKey,TypeScript.Compiler.Checking.Type][]",
+      "bytes": 29182328,
+      "samples": 228
+    },
+    {
+      "type": "System.Collections.Generic.HashSet`1[TypeScript.Compiler.Checking.Type]",
+      "bytes": 28886192,
+      "samples": 272
+    },
+    {
+      "type": "Entry[System.ValueTuple`2[TypeScript.Compiler.Checking.TypeCacheKey,TypeScript.Compiler.Checking.IntersectionFlags],TypeScript.Compiler.Checking.Type][]",
+      "bytes": 28437560,
+      "samples": 193
+    },
+    {
+      "type": "System.String",
+      "bytes": 27943136,
+      "samples": 129
+    },
+    {
+      "type": "ReverseIterator`1[TypeScript.Compiler.Checking.Type]",
+      "bytes": 27808816,
+      "samples": 261
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[System.ValueTuple`2[TypeScript.Compiler.Checking.Type,System.Boolean],System.Boolean]",
+      "bytes": 26378992,
+      "samples": 248
+    },
+    {
+      "type": "Entry[System.ValueTuple`4[TypeScript.Compiler.Checking.Type,TypeScript.Compiler.Checking.TypeFlags,System.Boolean,System.Boolean],TypeScript.Compiler.Checking.Type][]",
+      "bytes": 26334224,
+      "samples": 209
+    },
+    {
+      "type": "Entry[TypeScript.Compiler.Text.TextSlice,TypeScript.Compiler.Checking.LiteralType][]",
+      "bytes": 25189464,
+      "samples": 202
+    },
+    {
+      "type": "System.Collections.Generic.HashSet`1[TypeScript.Compiler.Binding.Symbol]",
+      "bytes": 24630384,
+      "samples": 232
+    },
+    {
+      "type": "System.Collections.Generic.Stack`1[System.ValueTuple`2[TypeScript.Compiler.Checking.TypeMapper,TypeScript.Compiler.Checking.Type]]",
+      "bytes": 24392632,
+      "samples": 229
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.InterfaceDeclarationNode",
+      "bytes": 23658280,
+      "samples": 222
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.TypeNodeLinks",
+      "bytes": 23640104,
+      "samples": 222
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.ObjectType",
+      "bytes": 23582376,
+      "samples": 222
+    },
+    {
+      "type": "System.Collections.Generic.List`1[TypeScript.Compiler.Checking.RelationKey]",
+      "bytes": 22795744,
+      "samples": 214
+    },
+    {
+      "type": "System.Comparison`1[TypeScript.Compiler.Checking.Type]",
+      "bytes": 22751832,
+      "samples": 214
+    },
+    {
+      "type": "Entry[TypeScript.Compiler.Ast.SyntaxNode,TypeScript.Compiler.Checking.SymbolNodeLinks][]",
+      "bytes": 22377160,
+      "samples": 139
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.TypeLiteralNode",
+      "bytes": 21639712,
+      "samples": 203
+    },
+    {
+      "type": "<>z__ReadOnlySingleElementList`1[TypeScript.Compiler.Checking.Type]",
+      "bytes": 18326296,
+      "samples": 172
+    },
+    {
+      "type": "<>c__DisplayClass7_0",
+      "bytes": 17788984,
+      "samples": 167
+    },
+    {
+      "type": "Entry[System.ValueTuple`2[TypeScript.Compiler.Binding.Symbol,System.Boolean],System.Collections.Generic.IReadOnlyDictionary`2[TypeScript.Compiler.Text.TextSlice,TypeScript.Compiler.Binding.Symbol]][]",
+      "bytes": 17629800,
+      "samples": 134
+    },
+    {
+      "type": "<>c__DisplayClass182_0",
+      "bytes": 16727680,
+      "samples": 157
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.UnionTypeNode",
+      "bytes": 15772744,
+      "samples": 148
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.ArrayTypeNode",
+      "bytes": 15674648,
+      "samples": 147
+    },
+    {
+      "type": "Entry[TypeScript.Compiler.Text.TextSlice][]",
+      "bytes": 15565000,
+      "samples": 146
+    },
+    {
+      "type": "System.Collections.Generic.HashSet`1[TypeScript.Compiler.Ast.SyntaxNode]",
+      "bytes": 14890560,
+      "samples": 140
+    },
+    {
+      "type": "<>c__DisplayClass42_0",
+      "bytes": 14457392,
+      "samples": 136
+    },
+    {
+      "type": "System.Func`2[TypeScript.Compiler.Checking.Type,System.Boolean]",
+      "bytes": 14381224,
+      "samples": 136
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.NumericLiteralNode",
+      "bytes": 14180680,
+      "samples": 133
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Text.TextSlice,System.Int32]",
+      "bytes": 14149008,
+      "samples": 133
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.FunctionTypeNode",
+      "bytes": 13002320,
+      "samples": 122
+    },
+    {
+      "type": "Enumerator[TypeScript.Compiler.Text.TextSlice,TypeScript.Compiler.Binding.Symbol]",
+      "bytes": 12798320,
+      "samples": 120
+    },
+    {
+      "type": "System.Collections.Generic.KeyValuePair`2[TypeScript.Compiler.Text.TextSlice,TypeScript.Compiler.Binding.Symbol][]",
+      "bytes": 12720184,
+      "samples": 119
+    },
+    {
+      "type": "Entry[TypeScript.Compiler.Binding.Symbol,TypeScript.Compiler.Binding.Symbol][]",
+      "bytes": 12558296,
+      "samples": 117
+    },
+    {
+      "type": "<>z__ReadOnlyArray`1[TypeScript.Compiler.Checking.Type]",
+      "bytes": 12338056,
+      "samples": 116
+    },
+    {
+      "type": "System.Collections.Generic.HashSet`1[TypeScript.Compiler.Text.TextSlice]",
+      "bytes": 12318864,
+      "samples": 116
+    },
+    {
+      "type": "System.Collections.Generic.Stack`1[System.ValueTuple`3[TypeScript.Compiler.Checking.Type,System.Boolean,System.Boolean]]",
+      "bytes": 12027720,
+      "samples": 113
+    },
+    {
+      "type": "System.Func`1[System.Threading.Tasks.ValueTask`1[System.Collections.Generic.IReadOnlyDictionary`2[TypeScript.Compiler.Text.TextSlice,TypeScript.Compiler.Binding.Symbol]]]",
+      "bytes": 11648056,
+      "samples": 110
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.TypeParameterDeclarationNode",
+      "bytes": 11609136,
+      "samples": 109
+    },
+    {
+      "type": "<>c__DisplayClass21_0",
+      "bytes": 10352200,
+      "samples": 97
+    },
+    {
+      "type": "Entry[System.UInt32,TypeScript.Compiler.Checking.Type][]",
+      "bytes": 10323296,
+      "samples": 84
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.VariableDeclarationNode",
+      "bytes": 10228488,
+      "samples": 96
+    },
+    {
+      "type": "System.Func`2[TypeScript.Compiler.Checking.IndexInfo,System.Boolean]",
+      "bytes": 9908760,
+      "samples": 93
+    },
+    {
+      "type": "System.Collections.Generic.Stack`1[System.ValueTuple`2[TypeScript.Compiler.Ast.SyntaxNode,System.Boolean]]",
+      "bytes": 9469752,
+      "samples": 89
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.RecursionIdentity[]",
+      "bytes": 9376936,
+      "samples": 88
+    },
+    {
+      "type": "System.Action[]",
+      "bytes": 9319000,
+      "samples": 88
+    },
+    {
+      "type": "System.Collections.ObjectModel.ReadOnlyCollection`1[TypeScript.Compiler.Binding.Symbol]",
+      "bytes": 8619736,
+      "samples": 81
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.ConstructSignatureDeclarationNode",
+      "bytes": 8100288,
+      "samples": 76
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.VariableStatementNode",
+      "bytes": 7455976,
+      "samples": 70
+    },
+    {
+      "type": "System.Char[]",
+      "bytes": 7233392,
+      "samples": 68
+    },
+    {
+      "type": "Enumerator[TypeScript.Compiler.Binding.Symbol]",
+      "bytes": 7132392,
+      "samples": 67
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.ExpressionWithTypeArgumentsNode",
+      "bytes": 7036784,
+      "samples": 66
+    },
+    {
+      "type": "TypeScript.Compiler.Text.TextSlice",
+      "bytes": 6714472,
+      "samples": 63
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.KeywordExpressionNode",
+      "bytes": 6178200,
+      "samples": 58
+    },
+    {
+      "type": "Enumerator[TypeScript.Compiler.Checking.TypeParameter]",
+      "bytes": 5967600,
+      "samples": 56
+    },
+    {
+      "type": "<>c__DisplayClass10_1",
+      "bytes": 5964408,
+      "samples": 56
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.HeritageClauseNode",
+      "bytes": 5864808,
+      "samples": 55
+    },
+    {
+      "type": "Direct",
+      "bytes": 5857032,
+      "samples": 55
+    },
+    {
+      "type": "System.Collections.Generic.Stack`1[TypeScript.Compiler.Ast.SyntaxNode]",
+      "bytes": 5853136,
+      "samples": 55
+    },
+    {
+      "type": "System.Collections.Generic.List`1[TypeScript.Compiler.Diagnostics.Diagnostic]",
+      "bytes": 5648672,
+      "samples": 53
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.TypeOperatorNode",
+      "bytes": 5544344,
+      "samples": 52
+    },
+    {
+      "type": "System.GCMemoryInfoData",
+      "bytes": 5314560,
+      "samples": 50
+    },
+    {
+      "type": "Entry[TypeScript.Compiler.Binding.Symbol,TypeScript.Compiler.Checking.SymbolMerger+MergeJournal+Snapshot][]",
+      "bytes": 5257160,
+      "samples": 49
+    },
+    {
+      "type": "System.Collections.Generic.List`1[System.Action]",
+      "bytes": 4884232,
+      "samples": 46
+    },
+    {
+      "type": "System.Collections.Immutable.ImmutableArray`1[TypeScript.Compiler.Ast.SyntaxNode]",
+      "bytes": 4795912,
+      "samples": 45
+    },
+    {
+      "type": "<>c__DisplayClass48_0",
+      "bytes": 4483168,
+      "samples": 42
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.VariableDeclarationListNode",
+      "bytes": 4474120,
+      "samples": 42
+    },
+    {
+      "type": "Simple",
+      "bytes": 4471504,
+      "samples": 42
+    },
+    {
+      "type": "System.Collections.Generic.List`1[TypeScript.Compiler.Syntax.CommentDirective]",
+      "bytes": 4261368,
+      "samples": 40
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Text.TextSlice,TypeScript.Compiler.Binding.Symbol],System.Collections.Generic.KeyValuePair`2[TypeScript.Compiler.Text.TextSlice,TypeScript.Compiler.Binding.Symbol][]]",
+      "bytes": 3980416,
+      "samples": 37
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.TypeAliasDeclarationNode",
+      "bytes": 3833840,
+      "samples": 36
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.IndexedAccessTypeNode",
+      "bytes": 3730488,
+      "samples": 35
+    },
+    {
+      "type": "Entry[TypeScript.Compiler.Ast.SourceFileNode,System.Int32][]",
+      "bytes": 3411200,
+      "samples": 32
+    },
+    {
+      "type": "Merged",
+      "bytes": 3408744,
+      "samples": 32
+    },
+    {
+      "type": "System.Collections.Generic.Stack`1[TypeScript.Compiler.Ast.PropertyAccessExpressionNode]",
+      "bytes": 3197384,
+      "samples": 30
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Binding.Symbol,TypeScript.Compiler.Checking.SymbolMerger+MergeJournal+Snapshot]",
+      "bytes": 2584376,
+      "samples": 24
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.ParenthesizedTypeNode",
+      "bytes": 2554632,
+      "samples": 24
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.SymbolNodeLinks",
+      "bytes": 2235576,
+      "samples": 21
+    },
+    {
+      "type": "System.Collections.Generic.IReadOnlyList`1[TypeScript.Compiler.Checking.Signature][]",
+      "bytes": 2211552,
+      "samples": 20
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Binding.Symbol,TypeScript.Compiler.Binding.Symbol]",
+      "bytes": 2141888,
+      "samples": 20
+    },
+    {
+      "type": "Entry[System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Text.TextSlice,TypeScript.Compiler.Binding.Symbol],System.Collections.Generic.KeyValuePair`2[TypeScript.Compiler.Text.TextSlice,TypeScript.Compiler.Binding.Symbol][]][]",
+      "bytes": 2034624,
+      "samples": 19
+    },
+    {
+      "type": "MergeJournal",
+      "bytes": 1605224,
+      "samples": 15
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.FunctionDeclarationNode",
+      "bytes": 1595632,
+      "samples": 15
+    },
+    {
+      "type": "Entry[TypeScript.Compiler.Ast.SyntaxNode,TypeScript.Compiler.Ast.SyntaxNode[]][]",
+      "bytes": 1383232,
+      "samples": 13
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.UnionType",
+      "bytes": 1063096,
+      "samples": 10
+    },
+    {
+      "type": "",
+      "bytes": 959416,
+      "samples": 9
+    },
+    {
+      "type": "Entry[TypeScript.Compiler.Ast.SyntaxNode,System.Int32][]",
+      "bytes": 959400,
+      "samples": 9
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.ComputedPropertyNameNode",
+      "bytes": 959144,
+      "samples": 9
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.CallSignatureDeclarationNode",
+      "bytes": 958112,
+      "samples": 9
+    },
+    {
+      "type": "System.IO.MemoryStream",
+      "bytes": 854696,
+      "samples": 8
+    },
+    {
+      "type": "Entry[System.String,TypeScript.Compiler.Ast.PragmaArgument][]",
+      "bytes": 852800,
+      "samples": 8
+    },
+    {
+      "type": "System.Func`1[System.Threading.Tasks.ValueTask`1[System.Boolean]]",
+      "bytes": 852800,
+      "samples": 8
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.Signature",
+      "bytes": 746200,
+      "samples": 7
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.TypeParameter",
+      "bytes": 746200,
+      "samples": 7
+    },
+    {
+      "type": "System.Text.StringBuilder",
+      "bytes": 649816,
+      "samples": 6
+    },
+    {
+      "type": "Entry[TypeScript.Compiler.Binding.Symbol,TypeScript.Compiler.Checking.Type][]",
+      "bytes": 643808,
+      "samples": 6
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.IntrinsicType",
+      "bytes": 639600,
+      "samples": 6
+    },
+    {
+      "type": "OrderedIterator`2[TypeScript.Compiler.Ast.SyntaxNode,System.Int32]",
+      "bytes": 639600,
+      "samples": 6
+    },
+    {
+      "type": "<>c__DisplayClass76_0",
+      "bytes": 639600,
+      "samples": 6
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.PropertyAccessExpressionNode",
+      "bytes": 635448,
+      "samples": 6
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.InterfaceType",
+      "bytes": 539504,
+      "samples": 5
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Binding.Symbol,TypeScript.Compiler.Checking.Type]",
+      "bytes": 537336,
+      "samples": 5
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.Checker",
+      "bytes": 533000,
+      "samples": 5
+    },
+    {
+      "type": "Entry[System.String,System.String][]",
+      "bytes": 426416,
+      "samples": 4
+    },
+    {
+      "type": "<>c__DisplayClass75_0",
+      "bytes": 426400,
+      "samples": 4
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.GetAccessorDeclarationNode",
+      "bytes": 426400,
+      "samples": 4
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.ThisTypeNode",
+      "bytes": 426400,
+      "samples": 4
+    },
+    {
+      "type": "System.Collections.ObjectModel.ReadOnlyCollection`1[TypeScript.Compiler.Ast.FileReference]",
+      "bytes": 426400,
+      "samples": 4
+    },
+    {
+      "type": "SizeOptIListSelectIterator`2[TypeScript.Compiler.Diagnostics.Diagnostic,TypeScript.Compiler.Diagnostics.Diagnostic]",
+      "bytes": 426400,
+      "samples": 4
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Checking.Type,TypeScript.Compiler.Checking.Type]",
+      "bytes": 426400,
+      "samples": 4
+    },
+    {
+      "type": "System.Diagnostics.ThreadInfo",
+      "bytes": 423568,
+      "samples": 4
+    },
+    {
+      "type": "OfTypeIterator`1[TypeScript.Compiler.Ast.ModuleDeclarationNode]",
+      "bytes": 421912,
+      "samples": 4
+    },
+    {
+      "type": "TypeScript.Compiler.Programs.ProgramFile[]",
+      "bytes": 319800,
+      "samples": 3
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Checking.RelationKey,TypeScript.Compiler.Checking.Relation+Entry]",
+      "bytes": 319800,
+      "samples": 3
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.TupleTypeNode",
+      "bytes": 319800,
+      "samples": 3
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Ast.SyntaxNode,System.Int32]",
+      "bytes": 319800,
+      "samples": 3
+    },
+    {
+      "type": "System.Collections.Generic.List`1[System.Int32]",
+      "bytes": 319800,
+      "samples": 3
+    },
+    {
+      "type": "System.Collections.Generic.List`1[TypeScript.Compiler.Ast.SourceCommentRange]",
+      "bytes": 319800,
+      "samples": 3
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.ExpressionContexts",
+      "bytes": 319800,
+      "samples": 3
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.ObjectLiterals",
+      "bytes": 319800,
+      "samples": 3
+    },
+    {
+      "type": "RuntimeAsyncTask`1[System.Threading.Tasks.VoidTaskResult]",
+      "bytes": 319800,
+      "samples": 3
+    },
+    {
+      "type": "SizeOptIListSelectIterator`2[TypeScript.Compiler.Programs.ProgramFile,TypeScript.Compiler.Ast.SourceFileNode]",
+      "bytes": 319800,
+      "samples": 3
+    },
+    {
+      "type": "Entry[System.String,TypeScript.Compiler.Programs.ProgramFile][]",
+      "bytes": 319800,
+      "samples": 3
+    },
+    {
+      "type": "ActivatorCache",
+      "bytes": 319648,
+      "samples": 3
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.IndexSignatureDeclarationNode",
+      "bytes": 319544,
+      "samples": 3
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.TypeRelations",
+      "bytes": 317216,
+      "samples": 3
+    },
+    {
+      "type": "RuntimeTypeCache",
+      "bytes": 316984,
+      "samples": 3
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.Signatures",
+      "bytes": 215448,
+      "samples": 2
+    },
+    {
+      "type": "Entry[TypeScript.Compiler.Text.TextSlice,TypeScript.Compiler.Checking.Type][]",
+      "bytes": 215368,
+      "samples": 2
+    },
+    {
+      "type": "Entry[System.String,System.Int32][]",
+      "bytes": 214224,
+      "samples": 2
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.SourceFileNode",
+      "bytes": 213216,
+      "samples": 2
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Checking.TypeCacheKey,TypeScript.Compiler.Checking.Type]",
+      "bytes": 213200,
+      "samples": 2
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Ast.SyntaxNode,TypeScript.Compiler.Binding.Symbol]",
+      "bytes": 213200,
+      "samples": 2
+    },
+    {
+      "type": "TypeScript.Compiler.Text.SourceText",
+      "bytes": 213200,
+      "samples": 2
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.IndexedAccessValidation",
+      "bytes": 213200,
+      "samples": 2
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.ContextualProperties",
+      "bytes": 213200,
+      "samples": 2
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.InstantiationExpressions",
+      "bytes": 213200,
+      "samples": 2
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.TypeReferences",
+      "bytes": 213200,
+      "samples": 2
+    },
+    {
+      "type": "System.Collections.Generic.List`1[System.ValueTuple`4[TypeScript.Compiler.Ast.SyntaxNode,TypeScript.Compiler.Checking.Type,System.Boolean,System.Collections.Generic.IReadOnlyList`1[TypeScript.Compiler.Checking.IterationDiagnostic]]]",
+      "bytes": 213200,
+      "samples": 2
+    },
+    {
+      "type": "System.ValueTuple`3[System.String,System.Boolean,TypeScript.Compiler.Programs.FileIncludeReason][]",
+      "bytes": 213200,
+      "samples": 2
+    },
+    {
+      "type": "TypeScript.Compiler.Binding.Binder",
+      "bytes": 213200,
+      "samples": 2
+    },
+    {
+      "type": "Entry[TypeScript.Compiler.Checking.TypeCacheKey,TypeScript.Compiler.Checking.UnionType][]",
+      "bytes": 213200,
+      "samples": 2
+    },
+    {
+      "type": "TypeScript.Compiler.Programs.ProgramFile",
+      "bytes": 213200,
+      "samples": 2
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.TypeVariance",
+      "bytes": 213200,
+      "samples": 2
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.SignatureInstantiation",
+      "bytes": 213200,
+      "samples": 2
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.SetAccessorDeclarationNode",
+      "bytes": 213200,
+      "samples": 2
+    },
+    {
+      "type": "OfTypeIterator`1[TypeScript.Compiler.Ast.TypeParameterDeclarationNode]",
+      "bytes": 213200,
+      "samples": 2
+    },
+    {
+      "type": "IEnumerableWhereSelectIterator`2[System.Object,TypeScript.Compiler.Ast.SyntaxNode]",
+      "bytes": 213200,
+      "samples": 2
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.SourceFileNode[]",
+      "bytes": 213200,
+      "samples": 2
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.SourceCommentRange[]",
+      "bytes": 213200,
+      "samples": 2
+    },
+    {
+      "type": "OfTypeIterator`1[TypeScript.Compiler.Ast.InterfaceDeclarationNode]",
+      "bytes": 213200,
+      "samples": 2
+    },
+    {
+      "type": "System.Collections.ObjectModel.ReadOnlyCollection`1[TypeScript.Compiler.Ast.SyntaxNode]",
+      "bytes": 213152,
+      "samples": 2
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.TemplateTailNode",
+      "bytes": 212688,
+      "samples": 2
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.TemplateHeadNode",
+      "bytes": 212432,
+      "samples": 2
+    },
+    {
+      "type": "System.Func`3[TypeScript.Compiler.Checking.TypeReference,System.Threading.CancellationToken,System.Threading.Tasks.ValueTask`1[System.Collections.Generic.IReadOnlyList`1[TypeScript.Compiler.Checking.Type]]]",
+      "bytes": 210616,
+      "samples": 2
+    },
+    {
+      "type": "ValueCollection[TypeScript.Compiler.Ast.SyntaxNode,TypeScript.Compiler.Ast.JSDocNode[]]",
+      "bytes": 210256,
+      "samples": 2
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.TypeParameter[]",
+      "bytes": 109312,
+      "samples": 1
+    },
+    {
+      "type": "System.Func`5[TypeScript.Compiler.Ast.SyntaxNode,TypeScript.Compiler.Text.TextSlice,TypeScript.Compiler.Ast.SyntaxNode,TypeScript.Compiler.Binding.Symbol,System.Boolean]",
+      "bytes": 108768,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.TypeReference",
+      "bytes": 108768,
+      "samples": 1
+    },
+    {
+      "type": "OfTypeIterator`1[TypeScript.Compiler.Ast.HeritageClauseNode]",
+      "bytes": 108768,
+      "samples": 1
+    },
+    {
+      "type": "<>c__DisplayClass41_0",
+      "bytes": 107624,
+      "samples": 1
+    },
+    {
+      "type": "System.Collections.Generic.List`1[System.String]",
+      "bytes": 107624,
+      "samples": 1
+    },
+    {
+      "type": "Entry[TypeScript.Compiler.Binding.Symbol,TypeScript.Compiler.Checking.TypeAliasLinks][]",
+      "bytes": 107128,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.TypeAliasLinks",
+      "bytes": 106616,
+      "samples": 1
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[System.String,TypeScript.Compiler.Ast.PragmaArgument]",
+      "bytes": 106616,
+      "samples": 1
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Text.TextSlice,TypeScript.Compiler.Checking.LiteralType]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.FlowNarrowing",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Binding.Symbol,TypeScript.Compiler.Checking.UniqueSymbolType]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Ast.SourceFileNode,TypeScript.Compiler.Checking.Type]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.PrivateAccess",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.TypeFactQueries",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Ast.SyntaxNode,TypeScript.Compiler.Checking.Type]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "System.Collections.Generic.List`1[TypeScript.Compiler.Ast.SourcePragma]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[System.ValueTuple`2[TypeScript.Compiler.Checking.Type,System.Boolean],TypeScript.Compiler.Checking.IndexType]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "System.Collections.Generic.List`1[TypeScript.Compiler.Programs.ModuleReference]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "System.Collections.ObjectModel.ReadOnlyCollection`1[System.String]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.MappedTypeNode",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "<>c__DisplayClass38_1",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[System.ValueTuple`2[TypeScript.Compiler.Checking.TypeCacheKey,TypeScript.Compiler.Checking.AccessFlags],TypeScript.Compiler.Checking.IndexedAccessType]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.TypeContext",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.CheckerEnvironment",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Syntax.Parser",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.IteratorProtocols",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "ParsedSource",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.FunctionDeclarations",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[System.ValueTuple`2[TypeScript.Compiler.Checking.Signature,TypeScript.Compiler.Checking.SignatureFlags],TypeScript.Compiler.Checking.Signature]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "System.Runtime.CompilerServices.RuntimeAsyncTaskContinuation",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.StructuralRelations",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "System.Collections.Generic.List`1[TypeScript.Compiler.Checking.CallResolution+Frame]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "Entry[System.ValueTuple`2[TypeScript.Compiler.Checking.IndexedAccessType,System.Boolean],TypeScript.Compiler.Checking.Type][]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "System.Collections.Generic.List`1[TypeScript.Compiler.Ast.FileReference]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "System.Boolean",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "Entry[System.String,System.Collections.Generic.IReadOnlyList`1[TypeScript.Compiler.Programs.FileIncludeReason]][]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.TypeRecursion",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "System.Func`4[System.Collections.Generic.IReadOnlyDictionary`2[TypeScript.Compiler.Text.TextSlice,TypeScript.Compiler.Binding.Symbol],TypeScript.Compiler.Text.TextSlice,TypeScript.Compiler.Binding.SymbolFlags,TypeScript.Compiler.Binding.Symbol]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.IterationElements",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.CheckerLinks",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.MissingNamePrefixes",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.TypeInstantiation",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.ObjectRelations",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Binding.Symbol,TypeScript.Compiler.Checking.TypeAliasLinks]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "RuntimeAsyncTask`1[TypeScript.Compiler.Programs.CompilerProgram+Builder+ParsedSource]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.InferredConstraints",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "Entry[TypeScript.Compiler.Checking.RelationKind,TypeScript.Compiler.Checking.Relation][]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.Deprecations",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.LiteralElaboration",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[System.Double,TypeScript.Compiler.Checking.LiteralType]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.ConditionalTypeNode",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Binding.Symbol,TypeScript.Compiler.Checking.ExportTypeLinks]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Binding.BoundSourceFile",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Ast.SyntaxNode,TypeScript.Compiler.Checking.Signature]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.CheckerSymbols",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Text.PositionMap",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "Entry[System.ValueTuple`2[TypeScript.Compiler.Checking.TypeCacheKey,TypeScript.Compiler.Text.TextSlice],TypeScript.Compiler.Checking.TemplateLiteralType][]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[System.ValueTuple`2[TypeScript.Compiler.Binding.Symbol,System.Boolean],System.Collections.Generic.IReadOnlyDictionary`2[TypeScript.Compiler.Text.TextSlice,TypeScript.Compiler.Binding.Symbol]]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "System.SZGenericArrayEnumerator`1[TypeScript.Compiler.Configuration.OptionDefinition]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.SignatureComparison",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "SizeOptIListWhereIterator`1[TypeScript.Compiler.Programs.ModuleReference]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.StructuredMembers",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "System.SZGenericArrayEnumerator`1[System.Object]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.ReverseMappedInference",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.FunctionExpressions",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Binding.Symbol,TypeScript.Compiler.Checking.AssignmentMark]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Binding.Symbol,TypeScript.Compiler.Checking.DeferredSymbolLinks]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.IReadOnlyList`1[TypeScript.Compiler.Programs.FileIncludeReason]]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Ast.SyntaxNode,TypeScript.Compiler.Checking.SignatureLinks]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.IndexDeclarationChecks",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.FileReference[]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Ast.EnumMemberNode,TypeScript.Compiler.Semantics.ConstantResult]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.FunctionBodies",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "System.Collections.Generic.List`1[TypeScript.Compiler.Diagnostics.DiagnosticCode]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[System.ValueTuple`2[TypeScript.Compiler.Binding.Symbol,TypeScript.Compiler.Checking.Type],TypeScript.Compiler.Checking.StringMappingType]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.ReferenceTypeNarrowing",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.BindingPatterns",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.BindingElementNode",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[System.ValueTuple`2[TypeScript.Compiler.Checking.Type,TypeScript.Compiler.Checking.Type],TypeScript.Compiler.Checking.SubstitutionType]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.ConstructorTypeNode",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Binding.FlowNode,System.Boolean]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.CallResolution",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.MappedMembers",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.IndexInfo",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.CallSignatures",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.TypeDisplay",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "ValueCollection[TypeScript.Compiler.Text.TextSlice,TypeScript.Compiler.Binding.Symbol]",
+      "bytes": 106600,
+      "samples": 1
+    },
+    {
+      "type": "<>c__DisplayClass15_0",
+      "bytes": 105488,
+      "samples": 1
+    },
+    {
+      "type": "System.Func`4[TypeScript.Compiler.Checking.Type,TypeScript.Compiler.Checking.Type,System.Threading.CancellationToken,System.Threading.Tasks.ValueTask`1[System.Boolean]]",
+      "bytes": 105128,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Checking.SubstitutionType",
+      "bytes": 105128,
+      "samples": 1
+    },
+    {
+      "type": "TypeScript.Compiler.Ast.SourcePragma[]",
+      "bytes": 104464,
+      "samples": 1
+    },
+    {
+      "type": "System.Collections.Generic.Dictionary`2[TypeScript.Compiler.Ast.SyntaxNode,TypeScript.Compiler.Checking.SymbolNodeLinks]",
+      "bytes": 104016,
+      "samples": 1
+    }
+  ],
+  "hashControl": {
+    "words": 36271,
+    "checksum": 15712420800,
+    "medians": {
+      "Marvin": 8.3728,
+      "XxHash3": 7.2528,
+      "XxHash64": 9.3479,
+      "XxHash32": 8.4246
+    },
+    "samples": {
+      "Marvin": [
+        8.5052,
+        8.3538,
+        8.7337,
+        8.8804,
+        8.0864,
+        8.3102,
+        8.3145,
+        8.1051,
+        8.5114,
+        8.5836,
+        8.4619,
+        8.7826,
+        8.224,
+        8.3012,
+        9.4224,
+        8.1076,
+        8.2871,
+        8.6252,
+        8.3986,
+        8.0795,
+        8.2168,
+        8.2454,
+        12.6624,
+        8.2369,
+        8.5909,
+        8.3728,
+        8.5453,
+        8.0658,
+        8.9861,
+        8.1078
+      ],
+      "XxHash3": [
+        6.8082,
+        7.7793,
+        7.1556,
+        7.1695,
+        7.1472,
+        7.3044,
+        7.1727,
+        7.0451,
+        7.6032,
+        7.5154,
+        7.858,
+        7.3766,
+        6.8302,
+        7.4482,
+        7.6139,
+        6.9528,
+        7.4164,
+        7.043,
+        7.324,
+        6.9186,
+        7.5863,
+        7.1794,
+        7.3576,
+        7.3665,
+        7.1024,
+        6.9002,
+        7.3574,
+        7.2528,
+        7.1551,
+        7.1503
+      ],
+      "XxHash64": [
+        9.7642,
+        9.1064,
+        9.7883,
+        9.3794,
+        9.0439,
+        9.0684,
+        9.6479,
+        9.9005,
+        9.0013,
+        9.3479,
+        8.9976,
+        9.5338,
+        8.8092,
+        9.635,
+        9.9171,
+        9.415,
+        8.9404,
+        9.5842,
+        9.3074,
+        10.2535,
+        8.9176,
+        9.6562,
+        9.0145,
+        9.1649,
+        9.4656,
+        8.8266,
+        9.0736,
+        9.0953,
+        9.0286,
+        9.3784
+      ],
+      "XxHash32": [
+        8.0561,
+        8.3598,
+        8.4783,
+        8.462,
+        8.5676,
+        8.3167,
+        8.3149,
+        8.2001,
+        9.1279,
+        8.208,
+        8.8384,
+        9.027,
+        8.3348,
+        8.7458,
+        8.4246,
+        8.2068,
+        8.3567,
+        9.1234,
+        8.3292,
+        8.6084,
+        8.5141,
+        8.401,
+        8.3626,
+        8.4356,
+        8.4037,
+        8.8146,
+        8.3277,
+        9.5171,
+        8.3678,
+        8.7613
+      ]
+    }
+  },
+  "asyncControl": {
+    "timestamp": "2026-09-27T18:40:07.286Z",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "manifest": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "execution": "Tiered compilation enabled; paired Release CoreCLR and Go, fresh programs in warm processes",
+      "scope": "Fresh program construction, binding and complete semantic checking in warm processes; input decoding excluded",
+      "processorCount": 4,
+      "modes": [
+        "single",
+        "default"
+      ],
+      "warmups": 20,
+      "samples": 15,
+      "provisionalBudgets": {
+        "p95ElapsedMs": 5000,
+        "peakRssBytes": 536870912,
+        "releasedHeapGrowthBytes": 16777216
+      },
+      "budgetScope": "Existing Phase 4 operability budgets; timings compare runtime distributions, including their JIT and CoreLib, not an isolated collector substitution.",
+      "cases": [
+        "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+        "compiler/giant.ts"
+      ]
+    },
+    "manifestSha256": "77bf479723f8b92b1e2199ba8e3e42c2e8aebfa85acb76ca74ddad8f3a108786",
+    "candidateSha256": "d5161b31bfa5bc9a3b164b02fbffbfac2c812cf4aff3869afc4767a98a844f52",
+    "compilerSha256": "c562504c1b79fd6c48255a764d686575d7fe52cf39f353e8323cb08d43e6d032",
+    "baseline": {
+      "directory": "D:\\source\\repos\\TypeScript\\built\\compiler-model\\native-async-hoisted",
+      "candidateSha256": "7d0a282912f9f2c244465f0d93c1660de67c5526578a4da5d1ff433aa433e60f",
+      "compilerSha256": "c562504c1b79fd6c48255a764d686575d7fe52cf39f353e8323cb08d43e6d032"
+    },
+    "samplesSha256": "fd79548521d4edfdd6f6a50032e5e43a9978619659c5e91451a095f6ce27e248",
+    "machine": {
+      "platform": "win32",
+      "architecture": "x64",
+      "os": "Windows 11 Pro for Workstations",
+      "cpu": "13th Gen Intel(R) Core(TM) i7-13700K",
+      "availableMemoryBytes": 68399497216
+    },
+    "runtime": {
+      "dotnet": "D:\\dotnet-sdk-11.0.100-rtm.26473.115-win-x64\\dotnet.exe",
+      "tieredCompilation": true,
+      "processorCount": 4,
+      "nativeAotExecuted": false,
+      "serverGC": true,
+      "label": "CoreCLR"
+    },
+    "groups": [
+      {
+        "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+        "mode": "single",
+        "before": {
+          "samples": 15,
+          "medianMs": 166.6005,
+          "medianProgramMs": 47.4263,
+          "medianCheckerMs": 119.10469999999998,
+          "p95Ms": 172.5123,
+          "medianCpuMs": 218.75,
+          "medianAllocatedBytes": 83986192,
+          "peakRssBytes": 160845824,
+          "releasedHeapGrowthBytes": 0
+        },
+        "after": {
+          "samples": 15,
+          "medianMs": 172.774,
+          "medianProgramMs": 54.2156,
+          "medianCheckerMs": 116.5908,
+          "p95Ms": 179.6837,
+          "medianCpuMs": 218.75,
+          "medianAllocatedBytes": 83980936,
+          "peakRssBytes": 180424704,
+          "releasedHeapGrowthBytes": 0
+        },
+        "passed": true,
+        "elapsedRatio": 1.0370557111173135,
+        "allocationRatio": 0.9999374182841865
+      },
+      {
+        "name": "compiler/giant.ts",
+        "mode": "single",
+        "before": {
+          "samples": 15,
+          "medianMs": 49.5511,
+          "medianProgramMs": 46.8905,
+          "medianCheckerMs": 2.5,
+          "p95Ms": 50.8471,
+          "medianCpuMs": 62.5,
+          "medianAllocatedBytes": 32213920,
+          "peakRssBytes": 141127680,
+          "releasedHeapGrowthBytes": 0
+        },
+        "after": {
+          "samples": 15,
+          "medianMs": 51.6836,
+          "medianProgramMs": 45.5762,
+          "medianCheckerMs": 2.4405,
+          "p95Ms": 57.3925,
+          "medianCpuMs": 62.5,
+          "medianAllocatedBytes": 32214208,
+          "peakRssBytes": 153419776,
+          "releasedHeapGrowthBytes": 8224
+        },
+        "passed": true,
+        "elapsedRatio": 1.0430363806252536,
+        "allocationRatio": 1.0000089402345322
+      },
+      {
+        "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+        "mode": "default",
+        "before": {
+          "samples": 15,
+          "medianMs": 162.6271,
+          "medianProgramMs": 46.5515,
+          "medianCheckerMs": 116.13829999999999,
+          "p95Ms": 164.6518,
+          "medianCpuMs": 218.75,
+          "medianAllocatedBytes": 85830600,
+          "peakRssBytes": 164741120,
+          "releasedHeapGrowthBytes": 168
+        },
+        "after": {
+          "samples": 15,
+          "medianMs": 161.0343,
+          "medianProgramMs": 45.3021,
+          "medianCheckerMs": 115.84410000000001,
+          "p95Ms": 181.8245,
+          "medianCpuMs": 203.125,
+          "medianAllocatedBytes": 85829088,
+          "peakRssBytes": 176738304,
+          "releasedHeapGrowthBytes": 2824
+        },
+        "passed": true,
+        "elapsedRatio": 0.990205814406086,
+        "allocationRatio": 0.9999823839050409
+      },
+      {
+        "name": "compiler/giant.ts",
+        "mode": "default",
+        "before": {
+          "samples": 15,
+          "medianMs": 47.5508,
+          "medianProgramMs": 44.8239,
+          "medianCheckerMs": 2.679300000000005,
+          "p95Ms": 58.2567,
+          "medianCpuMs": 78.125,
+          "medianAllocatedBytes": 34046968,
+          "peakRssBytes": 154497024,
+          "releasedHeapGrowthBytes": 1968
+        },
+        "after": {
+          "samples": 15,
+          "medianMs": 48.3945,
+          "medianProgramMs": 45.5783,
+          "medianCheckerMs": 2.6037000000000035,
+          "p95Ms": 51.3179,
+          "medianCpuMs": 62.5,
+          "medianAllocatedBytes": 34046416,
+          "peakRssBytes": 153735168,
+          "releasedHeapGrowthBytes": 1944
+        },
+        "passed": true,
+        "elapsedRatio": 1.0177431294531323,
+        "allocationRatio": 0.9999837871025696
+      }
+    ],
+    "passed": true
+  },
+  "synchronousBinderControl": {
+    "timestamp": "2026-09-27T19:06:28.520Z",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "manifest": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "execution": "Tiered compilation enabled; paired Release CoreCLR and Go, fresh programs in warm processes",
+      "scope": "Fresh program construction, binding and complete semantic checking in warm processes; input decoding excluded",
+      "processorCount": 4,
+      "modes": [
+        "single",
+        "default"
+      ],
+      "warmups": 20,
+      "samples": 15,
+      "provisionalBudgets": {
+        "p95ElapsedMs": 5000,
+        "peakRssBytes": 536870912,
+        "releasedHeapGrowthBytes": 16777216
+      },
+      "budgetScope": "Existing Phase 4 operability budgets; timings compare runtime distributions, including their JIT and CoreLib, not an isolated collector substitution.",
+      "cases": [
+        "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+        "compiler/giant.ts"
+      ]
+    },
+    "manifestSha256": "77bf479723f8b92b1e2199ba8e3e42c2e8aebfa85acb76ca74ddad8f3a108786",
+    "candidateSha256": "58a7b25509851fea691b56b001100c53d3016715c483f1f166deb769742a42ac",
+    "compilerSha256": "08edb20552a684f134c442d0b54ebd6bd2fe8fd341444245792a497df8b27e27",
+    "baseline": {
+      "directory": "D:\\source\\repos\\TypeScript\\built\\compiler-model\\release-kind-dispatch",
+      "candidateSha256": "9470c2b8e3820195bcd3404b2a87b763c05b47231bfb6c287e06f4ac5902e48d",
+      "compilerSha256": "d3143c420c5f8fa44862280907edebd86b63bdb767dbb1901e51d9e3348191d3"
+    },
+    "oracleSha256": "3b24ab2a8765063a904a578271c8def1a0f9607104913f99f17f8801533a2d7a",
+    "samplesSha256": "43d185765101ce41842776bc24da1392f808b24b68f87d7a005227a33bbf8b16",
+    "machine": {
+      "platform": "win32",
+      "architecture": "x64",
+      "os": "Windows 11 Pro for Workstations",
+      "cpu": "13th Gen Intel(R) Core(TM) i7-13700K",
+      "availableMemoryBytes": 68399497216
+    },
+    "runtime": {
+      "dotnet": "D:\\dotnet-sdk-11.0.100-rtm.26473.115-win-x64\\dotnet.exe",
+      "tieredCompilation": true,
+      "processorCount": 4,
+      "nativeAotExecuted": false,
+      "serverGC": true,
+      "label": "CoreCLR"
+    },
+    "groups": [
+      {
+        "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+        "mode": "single",
+        "before": {
+          "samples": 15,
+          "medianMs": 117.7844,
+          "medianProgramMs": 34.6714,
+          "medianCheckerMs": 83.6052,
+          "p95Ms": 123.0464,
+          "medianCpuMs": 171.875,
+          "medianAllocatedBytes": 84354344,
+          "peakRssBytes": 156876800,
+          "releasedHeapGrowthBytes": 49152
+        },
+        "after": {
+          "samples": 15,
+          "medianMs": 118.6324,
+          "medianProgramMs": 35.0736,
+          "medianCheckerMs": 84.49080000000001,
+          "p95Ms": 125.065,
+          "medianCpuMs": 171.875,
+          "medianAllocatedBytes": 84352368,
+          "peakRssBytes": 160329728,
+          "releasedHeapGrowthBytes": 0
+        },
+        "go": {
+          "samples": 15,
+          "medianMs": 62.86509999999999,
+          "medianProgramMs": 18.3147,
+          "medianCheckerMs": 44.91640000000001,
+          "p95Ms": 66.49520000000001,
+          "medianCpuMs": 62.5,
+          "medianAllocatedBytes": 34393648,
+          "peakRssBytes": 59125760,
+          "releasedHeapGrowthBytes": 224
+        },
+        "passed": true,
+        "elapsedRatio": 1.007199595192572,
+        "allocationRatio": 0.9999765750060245
+      },
+      {
+        "name": "compiler/giant.ts",
+        "mode": "single",
+        "before": {
+          "samples": 15,
+          "medianMs": 39.484,
+          "medianProgramMs": 37.3593,
+          "medianCheckerMs": 2.098700000000001,
+          "p95Ms": 40.2743,
+          "medianCpuMs": 46.875,
+          "medianAllocatedBytes": 32111848,
+          "peakRssBytes": 133754880,
+          "releasedHeapGrowthBytes": 0
+        },
+        "after": {
+          "samples": 15,
+          "medianMs": 41.5944,
+          "medianProgramMs": 39.428,
+          "medianCheckerMs": 2.1441000000000017,
+          "p95Ms": 42.482,
+          "medianCpuMs": 46.875,
+          "medianAllocatedBytes": 32111848,
+          "peakRssBytes": 136167424,
+          "releasedHeapGrowthBytes": 0
+        },
+        "go": {
+          "samples": 15,
+          "medianMs": 17.4691,
+          "medianProgramMs": 16.1834,
+          "medianCheckerMs": 1.0216999999999992,
+          "p95Ms": 18.3004,
+          "medianCpuMs": 15.625,
+          "medianAllocatedBytes": 19799984,
+          "peakRssBytes": 43376640,
+          "releasedHeapGrowthBytes": 96
+        },
+        "passed": true,
+        "elapsedRatio": 1.0534494985310505,
+        "allocationRatio": 1
+      },
+      {
+        "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+        "mode": "default",
+        "before": {
+          "samples": 15,
+          "medianMs": 123.6981,
+          "medianProgramMs": 33.9768,
+          "medianCheckerMs": 88.36099999999999,
+          "p95Ms": 136.375,
+          "medianCpuMs": 187.5,
+          "medianAllocatedBytes": 86191408,
+          "peakRssBytes": 161583104,
+          "releasedHeapGrowthBytes": 72
+        },
+        "after": {
+          "samples": 15,
+          "medianMs": 123.9159,
+          "medianProgramMs": 33.3183,
+          "medianCheckerMs": 90.27839999999999,
+          "p95Ms": 136.1528,
+          "medianCpuMs": 187.5,
+          "medianAllocatedBytes": 86189944,
+          "peakRssBytes": 163078144,
+          "releasedHeapGrowthBytes": 4032
+        },
+        "go": {
+          "samples": 15,
+          "medianMs": 62.0004,
+          "medianProgramMs": 15.671199999999999,
+          "medianCheckerMs": 46.3721,
+          "p95Ms": 66.6669,
+          "medianCpuMs": 93.75,
+          "medianAllocatedBytes": 35122208,
+          "peakRssBytes": 59162624,
+          "releasedHeapGrowthBytes": 18576
+        },
+        "passed": true,
+        "elapsedRatio": 1.0017607384430318,
+        "allocationRatio": 0.9999830145482714
+      },
+      {
+        "name": "compiler/giant.ts",
+        "mode": "default",
+        "before": {
+          "samples": 15,
+          "medianMs": 38.4021,
+          "medianProgramMs": 36.2371,
+          "medianCheckerMs": 2.307299999999998,
+          "p95Ms": 45.7053,
+          "medianCpuMs": 78.125,
+          "medianAllocatedBytes": 33937888,
+          "peakRssBytes": 154439680,
+          "releasedHeapGrowthBytes": 6064
+        },
+        "after": {
+          "samples": 15,
+          "medianMs": 38.5927,
+          "medianProgramMs": 35.0954,
+          "medianCheckerMs": 2.549900000000001,
+          "p95Ms": 50.6121,
+          "medianCpuMs": 78.125,
+          "medianAllocatedBytes": 33937944,
+          "peakRssBytes": 150573056,
+          "releasedHeapGrowthBytes": 1080
+        },
+        "go": {
+          "samples": 15,
+          "medianMs": 15.853099999999998,
+          "medianProgramMs": 14.7728,
+          "medianCheckerMs": 1.0413999999999994,
+          "p95Ms": 16.729,
+          "medianCpuMs": 15.625,
+          "medianAllocatedBytes": 20504552,
+          "peakRssBytes": 44560384,
+          "releasedHeapGrowthBytes": 15680
+        },
+        "passed": true,
+        "elapsedRatio": 1.0049632702378257,
+        "allocationRatio": 1.000001650073216
+      }
+    ],
+    "passed": true
+  },
+  "initialModel": {
+    "timestamp": "2026-09-27T17:28:11.280Z",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "manifest": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "execution": "Tiered compilation enabled; paired Release CoreCLR and Go, fresh programs in warm processes",
+      "scope": "Fresh program construction, binding and complete semantic checking in warm processes; input decoding excluded",
+      "processorCount": 4,
+      "modes": [
+        "single",
+        "default"
+      ],
+      "warmups": 20,
+      "samples": 15,
+      "provisionalBudgets": {
+        "p95ElapsedMs": 5000,
+        "peakRssBytes": 536870912,
+        "releasedHeapGrowthBytes": 16777216
+      },
+      "budgetScope": "Existing Phase 4 operability budgets; timings compare runtime distributions, including their JIT and CoreLib, not an isolated collector substitution.",
+      "cases": [
+        "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+        "compiler/giant.ts"
+      ]
+    },
+    "manifestSha256": "77bf479723f8b92b1e2199ba8e3e42c2e8aebfa85acb76ca74ddad8f3a108786",
+    "candidateSha256": "ef32aae3b9eac728b8ddf48729f2f1fa5c5dea82ee6c5d69d6e3548cebccf9ac",
+    "compilerSha256": "6abe4b7cd67fb1ff9254116175b7982933c43f95cf212c2b5b0e3f2fd839f0a6",
+    "baseline": {
+      "directory": "D:\\source\\repos\\TypeScript\\built\\value-performance\\validated",
+      "candidateSha256": "436a4f5058a95690e57dbba7fcb60f2324544a8cf26462b0b641f0970fa705a9",
+      "compilerSha256": "db7484c3353d8516e34bba4ff809dd14288113159ad3a2372d7fd39965c9937f"
+    },
+    "oracleSha256": "3b24ab2a8765063a904a578271c8def1a0f9607104913f99f17f8801533a2d7a",
+    "samplesSha256": "dce2cd8a018695cac4c523300bcca2e7451728f8c47a115a8f66ffa09c621c50",
+    "machine": {
+      "platform": "win32",
+      "architecture": "x64",
+      "os": "Windows 11 Pro for Workstations",
+      "cpu": "13th Gen Intel(R) Core(TM) i7-13700K",
+      "availableMemoryBytes": 68399497216
+    },
+    "runtime": {
+      "dotnet": "D:\\dotnet-sdk-11.0.100-rtm.26473.115-win-x64\\dotnet.exe",
+      "tieredCompilation": true,
+      "processorCount": 4,
+      "nativeAotExecuted": false,
+      "serverGC": true,
+      "label": "CoreCLR"
+    },
+    "groups": [
+      {
+        "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+        "mode": "single",
+        "before": {
+          "samples": 15,
+          "medianMs": 149.1608,
+          "medianProgramMs": 56.8153,
+          "medianCheckerMs": 92.43709999999999,
+          "p95Ms": 160.3629,
+          "medianCpuMs": 234.375,
+          "medianAllocatedBytes": 133430408,
+          "peakRssBytes": 189730816,
+          "releasedHeapGrowthBytes": 0
+        },
+        "after": {
+          "samples": 15,
+          "medianMs": 146.201,
+          "medianProgramMs": 53.146,
+          "medianCheckerMs": 93.0453,
+          "p95Ms": 162.3046,
+          "medianCpuMs": 218.75,
+          "medianAllocatedBytes": 124746392,
+          "peakRssBytes": 191254528,
+          "releasedHeapGrowthBytes": 8224
+        },
+        "go": {
+          "samples": 15,
+          "medianMs": 63.7701,
+          "medianProgramMs": 18.8832,
+          "medianCheckerMs": 44.861,
+          "p95Ms": 68.80640000000001,
+          "medianCpuMs": 93.75,
+          "medianAllocatedBytes": 34392720,
+          "peakRssBytes": 58966016,
+          "releasedHeapGrowthBytes": 272
+        },
+        "passed": true,
+        "elapsedRatio": 0.9801569849451062,
+        "allocationRatio": 0.9349172641366726
+      },
+      {
+        "name": "compiler/giant.ts",
+        "mode": "single",
+        "before": {
+          "samples": 15,
+          "medianMs": 59.2349,
+          "medianProgramMs": 56.7915,
+          "medianCheckerMs": 2.3529999999999944,
+          "p95Ms": 61.4174,
+          "medianCpuMs": 109.375,
+          "medianAllocatedBytes": 59640632,
+          "peakRssBytes": 147836928,
+          "releasedHeapGrowthBytes": 0
+        },
+        "after": {
+          "samples": 15,
+          "medianMs": 55.747,
+          "medianProgramMs": 39.5399,
+          "medianCheckerMs": 16.173700000000004,
+          "p95Ms": 56.2932,
+          "medianCpuMs": 78.125,
+          "medianAllocatedBytes": 53829800,
+          "peakRssBytes": 147382272,
+          "releasedHeapGrowthBytes": 8224
+        },
+        "go": {
+          "samples": 15,
+          "medianMs": 17.3133,
+          "medianProgramMs": 16.1344,
+          "medianCheckerMs": 1.0488000000000035,
+          "p95Ms": 18.8237,
+          "medianCpuMs": 15.625,
+          "medianAllocatedBytes": 19799744,
+          "peakRssBytes": 43126784,
+          "releasedHeapGrowthBytes": 112
+        },
+        "passed": true,
+        "elapsedRatio": 0.941117483105399,
+        "allocationRatio": 0.9025692417209797
+      },
+      {
+        "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+        "mode": "default",
+        "before": {
+          "samples": 15,
+          "medianMs": 152.3944,
+          "medianProgramMs": 56.0767,
+          "medianCheckerMs": 95.63979999999998,
+          "p95Ms": 166.1694,
+          "medianCpuMs": 250,
+          "medianAllocatedBytes": 135295944,
+          "peakRssBytes": 199098368,
+          "releasedHeapGrowthBytes": 2848
+        },
+        "after": {
+          "samples": 15,
+          "medianMs": 148.0158,
+          "medianProgramMs": 52.6078,
+          "medianCheckerMs": 95.20280000000001,
+          "p95Ms": 158.7731,
+          "medianCpuMs": 234.375,
+          "medianAllocatedBytes": 126587560,
+          "peakRssBytes": 191287296,
+          "releasedHeapGrowthBytes": 0
+        },
+        "go": {
+          "samples": 15,
+          "medianMs": 61.3005,
+          "medianProgramMs": 15.906400000000001,
+          "medianCheckerMs": 46.0141,
+          "p95Ms": 66.3898,
+          "medianCpuMs": 62.5,
+          "medianAllocatedBytes": 35122680,
+          "peakRssBytes": 60116992,
+          "releasedHeapGrowthBytes": 736
+        },
+        "passed": true,
+        "elapsedRatio": 0.9712679731013739,
+        "allocationRatio": 0.9356345523558341
+      },
+      {
+        "name": "compiler/giant.ts",
+        "mode": "default",
+        "before": {
+          "samples": 15,
+          "medianMs": 58.7298,
+          "medianProgramMs": 45.2062,
+          "medianCheckerMs": 14.263200000000005,
+          "p95Ms": 69.8325,
+          "medianCpuMs": 109.375,
+          "medianAllocatedBytes": 61496232,
+          "peakRssBytes": 157102080,
+          "releasedHeapGrowthBytes": 49080
+        },
+        "after": {
+          "samples": 15,
+          "medianMs": 53.5793,
+          "medianProgramMs": 38.8804,
+          "medianCheckerMs": 14.438299999999998,
+          "p95Ms": 69.9076,
+          "medianCpuMs": 93.75,
+          "medianAllocatedBytes": 55661904,
+          "peakRssBytes": 153169920,
+          "releasedHeapGrowthBytes": 4000
+        },
+        "go": {
+          "samples": 15,
+          "medianMs": 16.1891,
+          "medianProgramMs": 14.876900000000001,
+          "medianCheckerMs": 1.0502000000000002,
+          "p95Ms": 16.9256,
+          "medianCpuMs": 15.625,
+          "medianAllocatedBytes": 20504704,
+          "peakRssBytes": 44883968,
+          "releasedHeapGrowthBytes": 10880
+        },
+        "passed": true,
+        "elapsedRatio": 0.9123017616269765,
+        "allocationRatio": 0.9051270653460525
+      }
+    ],
+    "passed": true
+  },
+  "gcDiagnostics": {
+    "gc": {
+      "path": "built/compiler-model/gc-samples.jsonl",
+      "sha256": "4706ad1785489615212b1b256a717f8a7f925e650879bbdacc34e58ce264d65a",
+      "groups": [
+        {
+          "mode": "single",
+          "name": "compiler/giant.ts",
+          "samples": 15,
+          "elapsedMs": 57.6148,
+          "programMs": 39.9678,
+          "poolMs": 0.6504000000000048,
+          "gcPauseMs": 20.608999999999924,
+          "programGcPauseMs": 6.891000000000076,
+          "gen0Collections": 3,
+          "gen1Collections": 2,
+          "gen2Collections": 1,
+          "allocatedBytes": 53833096
+        },
+        {
+          "mode": "single",
+          "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+          "samples": 15,
+          "elapsedMs": 147.5841,
+          "programMs": 52.7478,
+          "poolMs": 0.5981000000000023,
+          "gcPauseMs": 35.98700000000008,
+          "programGcPauseMs": 17.291999999999916,
+          "gen0Collections": 7,
+          "gen1Collections": 4,
+          "gen2Collections": 2,
+          "allocatedBytes": 124746200
+        },
+        {
+          "mode": "default",
+          "name": "compiler/giant.ts",
+          "samples": 15,
+          "elapsedMs": 56.8432,
+          "programMs": 40.0687,
+          "poolMs": 11.112499999999997,
+          "gcPauseMs": 18.37999999999988,
+          "programGcPauseMs": 7.162999999999897,
+          "gen0Collections": 3,
+          "gen1Collections": 2,
+          "gen2Collections": 1,
+          "allocatedBytes": 55670168
+        },
+        {
+          "mode": "default",
+          "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+          "samples": 15,
+          "elapsedMs": 145.7596,
+          "programMs": 52.5304,
+          "poolMs": 0.6250999999999962,
+          "gcPauseMs": 36.02999999999997,
+          "programGcPauseMs": 17.807999999999993,
+          "gen0Collections": 7,
+          "gen1Collections": 4,
+          "gen2Collections": 2,
+          "allocatedBytes": 126586216
+        }
+      ]
+    },
+    "gc-source": {
+      "path": "built/compiler-model/gc-source-samples.jsonl",
+      "sha256": "167dcc06f7131ee1c176c4af738eeec2cc11dc24cff58d26283b7c4a328a1b29",
+      "groups": [
+        {
+          "mode": "single",
+          "name": "compiler/giant.ts",
+          "samples": 15,
+          "elapsedMs": 43.1992,
+          "programMs": 39.889,
+          "poolMs": 0.5972000000000008,
+          "gcPauseMs": 7.423999999999978,
+          "programGcPauseMs": 7.423999999999978,
+          "gen0Collections": 1,
+          "gen1Collections": 0,
+          "gen2Collections": 0,
+          "allocatedBytes": 40410608
+        },
+        {
+          "mode": "single",
+          "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+          "samples": 15,
+          "elapsedMs": 143.194,
+          "programMs": 53.142,
+          "poolMs": 0.6458999999999975,
+          "gcPauseMs": 37.26800000000003,
+          "programGcPauseMs": 20.384000000000015,
+          "gen0Collections": 6,
+          "gen1Collections": 3,
+          "gen2Collections": 1,
+          "allocatedBytes": 111096744
+        },
+        {
+          "mode": "default",
+          "name": "compiler/giant.ts",
+          "samples": 15,
+          "elapsedMs": 42.0795,
+          "programMs": 39.0259,
+          "poolMs": 0.8161000000000058,
+          "gcPauseMs": 7.914999999999964,
+          "programGcPauseMs": 7.914999999999964,
+          "gen0Collections": 1,
+          "gen1Collections": 0,
+          "gen2Collections": 0,
+          "allocatedBytes": 42237512
+        },
+        {
+          "mode": "default",
+          "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+          "samples": 15,
+          "elapsedMs": 146.5722,
+          "programMs": 53.8815,
+          "poolMs": 0.8186999999999998,
+          "gcPauseMs": 38.43299999999999,
+          "programGcPauseMs": 20.90300000000002,
+          "gen0Collections": 6,
+          "gen1Collections": 3,
+          "gen2Collections": 1,
+          "allocatedBytes": 112933976
+        }
+      ]
+    },
+    "gc-instantiation": {
+      "path": "built/compiler-model/gc-instantiation-samples.jsonl",
+      "sha256": "671fff842f414e511e4ba1b2543e90ac0c2d92fdcb56c29ccb7c5e46aa0cca48",
+      "groups": [
+        {
+          "mode": "single",
+          "name": "compiler/giant.ts",
+          "samples": 15,
+          "elapsedMs": 41.6409,
+          "programMs": 38.8012,
+          "poolMs": 0.6241000000000057,
+          "gcPauseMs": 7.205000000000041,
+          "programGcPauseMs": 7.205000000000041,
+          "gen0Collections": 1,
+          "gen1Collections": 0,
+          "gen2Collections": 0,
+          "allocatedBytes": 40406280
+        },
+        {
+          "mode": "single",
+          "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+          "samples": 15,
+          "elapsedMs": 133.4183,
+          "programMs": 54.0977,
+          "poolMs": 0.6266999999999996,
+          "gcPauseMs": 28.048999999999978,
+          "programGcPauseMs": 20.67599999999993,
+          "gen0Collections": 5,
+          "gen1Collections": 2,
+          "gen2Collections": 1,
+          "allocatedBytes": 104019832
+        },
+        {
+          "mode": "default",
+          "name": "compiler/giant.ts",
+          "samples": 15,
+          "elapsedMs": 41.5109,
+          "programMs": 37.9664,
+          "poolMs": 0.7867000000000033,
+          "gcPauseMs": 7.551000000000045,
+          "programGcPauseMs": 7.551000000000045,
+          "gen0Collections": 1,
+          "gen1Collections": 0,
+          "gen2Collections": 0,
+          "allocatedBytes": 42240088
+        },
+        {
+          "mode": "default",
+          "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+          "samples": 15,
+          "elapsedMs": 142.5912,
+          "programMs": 53.2819,
+          "poolMs": 0.7679000000000045,
+          "gcPauseMs": 37.78599999999983,
+          "programGcPauseMs": 20.230000000000018,
+          "gen0Collections": 6,
+          "gen1Collections": 3,
+          "gen2Collections": 1,
+          "allocatedBytes": 105861200
+        }
+      ]
+    },
+    "gc-sparse": {
+      "path": "built/compiler-model/gc-sparse-samples.jsonl",
+      "sha256": "d9519640e03d81fac83b11cd7c382fc4f512b38018a440c93a9170a240ecccca",
+      "groups": [
+        {
+          "mode": "single",
+          "name": "compiler/giant.ts",
+          "samples": 15,
+          "elapsedMs": 49.2554,
+          "programMs": 42.1169,
+          "poolMs": 0.9600000000000009,
+          "gcPauseMs": 9.690000000000055,
+          "programGcPauseMs": 9.690000000000055,
+          "gen0Collections": 1,
+          "gen1Collections": 0,
+          "gen2Collections": 0,
+          "allocatedBytes": 34435368
+        },
+        {
+          "mode": "single",
+          "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+          "samples": 15,
+          "elapsedMs": 127.1216,
+          "programMs": 39.383,
+          "poolMs": 0.6132999999999953,
+          "gcPauseMs": 26.952999999999975,
+          "programGcPauseMs": 6.9090000000001055,
+          "gen0Collections": 5,
+          "gen1Collections": 2,
+          "gen2Collections": 1,
+          "allocatedBytes": 97251784
+        },
+        {
+          "mode": "default",
+          "name": "compiler/giant.ts",
+          "samples": 15,
+          "elapsedMs": 44.5065,
+          "programMs": 40.4143,
+          "poolMs": 0.7989999999999995,
+          "gcPauseMs": 9.64799999999991,
+          "programGcPauseMs": 9.64799999999991,
+          "gen0Collections": 1,
+          "gen1Collections": 0,
+          "gen2Collections": 0,
+          "allocatedBytes": 36258008
+        },
+        {
+          "mode": "default",
+          "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+          "samples": 15,
+          "elapsedMs": 127.8968,
+          "programMs": 38.4083,
+          "poolMs": 0.7485999999999962,
+          "gcPauseMs": 25.986000000000104,
+          "programGcPauseMs": 6.844000000000051,
+          "gen0Collections": 5,
+          "gen1Collections": 2,
+          "gen2Collections": 1,
+          "allocatedBytes": 99092344
+        }
+      ]
+    },
+    "gc-fixed-heaps": {
+      "path": "built/compiler-model/gc-fixed-heaps-samples.jsonl",
+      "sha256": "e632d0ef650fdb80abb264379d6b2bf4ea3a1b06d6261152bdbec794b3428229",
+      "groups": [
+        {
+          "mode": "single",
+          "name": "compiler/giant.ts",
+          "samples": 15,
+          "elapsedMs": 40.6948,
+          "programMs": 34.3188,
+          "poolMs": 0.7591999999999999,
+          "gcPauseMs": 0,
+          "programGcPauseMs": 0,
+          "gen0Collections": 0,
+          "gen1Collections": 0,
+          "gen2Collections": 0,
+          "allocatedBytes": 34430664
+        },
+        {
+          "mode": "single",
+          "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+          "samples": 15,
+          "elapsedMs": 120.5528,
+          "programMs": 32.5182,
+          "poolMs": 0.6102999999999952,
+          "gcPauseMs": 17.261000000000195,
+          "programGcPauseMs": 0,
+          "gen0Collections": 1,
+          "gen1Collections": 0,
+          "gen2Collections": 0,
+          "allocatedBytes": 97244792
+        },
+        {
+          "mode": "default",
+          "name": "compiler/giant.ts",
+          "samples": 15,
+          "elapsedMs": 40.2448,
+          "programMs": 31.9183,
+          "poolMs": 1.3568999999999996,
+          "gcPauseMs": 0,
+          "programGcPauseMs": 0,
+          "gen0Collections": 0,
+          "gen1Collections": 0,
+          "gen2Collections": 0,
+          "allocatedBytes": 36265624
+        },
+        {
+          "mode": "default",
+          "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+          "samples": 15,
+          "elapsedMs": 121.5981,
+          "programMs": 32.8641,
+          "poolMs": 0.7779999999999987,
+          "gcPauseMs": 16.77500000000009,
+          "programGcPauseMs": 0,
+          "gen0Collections": 1,
+          "gen1Collections": 0,
+          "gen2Collections": 0,
+          "allocatedBytes": 99081832
+        }
+      ]
+    },
+    "gc-relations": {
+      "path": "built/compiler-model/gc-relations-samples.jsonl",
+      "sha256": "cb6ebc889e8d3b24c6456a63149d033cc7ca423e7c2cc0791ea08b372ccff92f",
+      "groups": [
+        {
+          "mode": "single",
+          "name": "compiler/giant.ts",
+          "samples": 15,
+          "elapsedMs": 48.2138,
+          "programMs": 41.4048,
+          "poolMs": 0.746699999999997,
+          "gcPauseMs": 10.140999999999963,
+          "programGcPauseMs": 10.140999999999963,
+          "gen0Collections": 1,
+          "gen1Collections": 0,
+          "gen2Collections": 0,
+          "allocatedBytes": 32223936
+        },
+        {
+          "mode": "single",
+          "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+          "samples": 15,
+          "elapsedMs": 121.9794,
+          "programMs": 39.945,
+          "poolMs": 0.6088000000000022,
+          "gcPauseMs": 25.25299999999993,
+          "programGcPauseMs": 7.514999999999986,
+          "gen0Collections": 5,
+          "gen1Collections": 2,
+          "gen2Collections": 1,
+          "allocatedBytes": 84432480
+        },
+        {
+          "mode": "default",
+          "name": "compiler/giant.ts",
+          "samples": 15,
+          "elapsedMs": 48.0209,
+          "programMs": 41.3085,
+          "poolMs": 0.7657000000000025,
+          "gcPauseMs": 10.299000000000092,
+          "programGcPauseMs": 10.299000000000092,
+          "gen0Collections": 1,
+          "gen1Collections": 0,
+          "gen2Collections": 0,
+          "allocatedBytes": 34059744
+        },
+        {
+          "mode": "default",
+          "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+          "samples": 15,
+          "elapsedMs": 118.3994,
+          "programMs": 39.0139,
+          "poolMs": 0.6596999999999937,
+          "gcPauseMs": 21.787000000000035,
+          "programGcPauseMs": 7.483999999999924,
+          "gen0Collections": 3,
+          "gen1Collections": 1,
+          "gen2Collections": 0,
+          "allocatedBytes": 86268528
+        }
+      ]
+    },
+    "gc-normal-release": {
+      "path": "built/compiler-model/gc-normal-release-samples.jsonl",
+      "sha256": "d604b35e1ed47edff6b04d99a00882c3eec6f85668e776e8abcf6833f0decf0b",
+      "groups": [
+        {
+          "mode": "single",
+          "name": "compiler/giant.ts",
+          "samples": 15,
+          "elapsedMs": 42.3757,
+          "programMs": 37.3599,
+          "poolMs": 0.6417999999999964,
+          "gcPauseMs": 9.053999999999974,
+          "programGcPauseMs": 9.053999999999974,
+          "gen0Collections": 1,
+          "gen1Collections": 0,
+          "gen2Collections": 0,
+          "allocatedBytes": 32115288
+        },
+        {
+          "mode": "single",
+          "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+          "samples": 15,
+          "elapsedMs": 117.8699,
+          "programMs": 36.3198,
+          "poolMs": 0.6026999999999987,
+          "gcPauseMs": 24.225999999999885,
+          "programGcPauseMs": 7.206000000000017,
+          "gen0Collections": 3,
+          "gen1Collections": 1,
+          "gen2Collections": 0,
+          "allocatedBytes": 84351272
+        },
+        {
+          "mode": "default",
+          "name": "compiler/giant.ts",
+          "samples": 15,
+          "elapsedMs": 47.0724,
+          "programMs": 39.2536,
+          "poolMs": 1.306599999999996,
+          "gcPauseMs": 10.450000000000045,
+          "programGcPauseMs": 10.450000000000045,
+          "gen0Collections": 1,
+          "gen1Collections": 0,
+          "gen2Collections": 0,
+          "allocatedBytes": 33946784
+        },
+        {
+          "mode": "default",
+          "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+          "samples": 15,
+          "elapsedMs": 117.8674,
+          "programMs": 35.5835,
+          "poolMs": 0.7385000000000019,
+          "gcPauseMs": 21.96199999999999,
+          "programGcPauseMs": 7.376000000000204,
+          "gen0Collections": 3,
+          "gen1Collections": 1,
+          "gen2Collections": 0,
+          "allocatedBytes": 86184864
+        }
+      ]
+    }
+  },
+  "interpretation": "Only the retained paired benchmark is the final end-to-end comparison. GC probes are diagnostic, unpaired controls from successive intermediate binaries. Do not combine them into a universal speedup estimate."
+}

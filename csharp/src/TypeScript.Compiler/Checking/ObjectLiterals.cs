@@ -113,7 +113,7 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
                                 contextual,
                                 cancellation).ConfigureAwait(false);
                     }
-                    property.DeclarationList.AddRange(member.Declarations);
+                    property.DeclarationList = property.DeclarationList.AddRange(member.Declarations);
                     property.Parent = member.Parent;
                     property.ValueDeclaration = member.ValueDeclaration;
                     data.ResolvedType = type;

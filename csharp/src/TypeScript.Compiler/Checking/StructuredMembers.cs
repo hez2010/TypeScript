@@ -245,7 +245,7 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
         IReadOnlyDictionary<TextSlice, Symbol> exports = await host.ExportsAsync(symbol, cancellation).ConfigureAwait(false);
         if (symbol == symbols.GlobalThisSymbol)
             exports = exports.Where(p => (p.Value.Flags & S.BlockScoped) == 0
-                && !((p.Value.Flags & S.ValueModule) != 0 && p.Value.Declarations.Count != 0
+                && !((p.Value.Flags & S.ValueModule) != 0 && p.Value.Declarations.Length != 0
                     && p.Value.Declarations.All(
                         d => d is ModuleDeclarationNode { Name: StringLiteralNode }
                             or ModuleDeclarationNode { Keyword: SyntaxKind.GlobalKeyword })))

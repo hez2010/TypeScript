@@ -1,7 +1,6 @@
 using TypeScript.Compiler.Text;
 using System.Collections.ObjectModel;
-using System.Runtime.InteropServices;
-using TypeScript.Compiler.Storage;
+using System.Collections.Immutable;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
@@ -29,8 +28,8 @@ public sealed class Symbol
     public Symbol? Parent { get; internal set; }
     public Symbol? ExportSymbol { get; internal set; }
     public SyntaxNode? ValueDeclaration { get; internal set; }
-    internal List<SyntaxNode> DeclarationList { get; } = [];
-    public IReadOnlyList<SyntaxNode> Declarations { get; }
+    internal ImmutableArray<SyntaxNode> DeclarationList { get; set; } = [];
+    public ImmutableArray<SyntaxNode> Declarations => DeclarationList;
 
     internal Dictionary<TextSlice, Symbol> MemberTable
     {
@@ -69,7 +68,6 @@ public sealed class Symbol
     {
         Flags = flags;
         Name = name;
-        Declarations = DeclarationList.AsReadOnly();
     }
 
     // A noncharacter prefix is represented independently of the Go implementation's invalid UTF-8 byte.
@@ -87,8 +85,21 @@ public sealed class FlowNode
     public FlowFlags Flags { get; internal set; }
     public SyntaxNode? Node { get; internal set; }
     public FlowNode? Antecedent { get; internal set; }
-    internal List<FlowNode> AntecedentList { get; } = [];
-    public IReadOnlyList<FlowNode> Antecedents { get; }
+    private List<FlowNode>? antecedents;
+    private IReadOnlyList<FlowNode>? antecedentsView;
+    internal List<FlowNode> AntecedentList
+    {
+        get
+        {
+            if (antecedents is null)
+            {
+                antecedents = [];
+                antecedentsView = antecedents.AsReadOnly();
+            }
+            return antecedents;
+        }
+    }
+    public IReadOnlyList<FlowNode> Antecedents => antecedentsView ?? [];
     public FlowNode? ReducedTarget { get; internal set; }
     public IReadOnlyList<FlowNode> ReducedAntecedents { get; internal set; } = [];
     public int ClauseStart { get; internal set; }
@@ -99,43 +110,66 @@ public sealed class FlowNode
         Flags = flags;
         Node = node;
         Antecedent = antecedent;
-        Antecedents = AntecedentList.AsReadOnly();
     }
 }
 
-public struct NodeBinding
+/// <summary>A view of the semantic state attached to one syntax node.</summary>
+public readonly struct NodeBinding
 {
-    public Symbol? Symbol { get; internal set; }
-    public Symbol? LocalSymbol { get; internal set; }
-    public FlowNode? Flow { get; internal set; }
-    public FlowNode? EndFlow { get; internal set; }
-    public FlowNode? ReturnFlow { get; internal set; }
-    public NodeFlags Flags { get; internal set; }
+    private readonly SyntaxNode node;
+    internal NodeBinding(SyntaxNode node) => this.node = node;
+    public Symbol? Symbol
+    {
+        get => node?.BindingSymbol;
+        internal set => node.BindingSymbol = value;
+    }
+    public Symbol? LocalSymbol
+    {
+        get => node?.BindingLocalSymbol;
+        internal set => node.BindingLocalSymbol = value;
+    }
+    public FlowNode? Flow
+    {
+        get => node?.BindingFlow;
+        internal set => node.BindingFlow = value;
+    }
+    public FlowNode? EndFlow
+    {
+        get => node?.BindingEndFlow;
+        internal set => node.BindingEndFlow = value;
+    }
+    public FlowNode? ReturnFlow
+    {
+        get => node?.BindingReturnFlow;
+        internal set => node.BindingReturnFlow = value;
+    }
+    public NodeFlags Flags
+    {
+        get => node?.BindingFlags ?? 0;
+        internal set => node.BindingFlags = value;
+    }
 
     internal Dictionary<TextSlice, Symbol> LocalTable
     {
         get
         {
-            if (locals is null)
+            if (node.BindingLocals is not { } locals)
             {
-                locals = new();
-                localsView = locals.AsReadOnly();
+                node.BindingLocals = locals = new();
+                node.BindingLocalsView = locals.AsReadOnly();
             }
             return locals;
         }
     }
 
-    private Dictionary<TextSlice, Symbol>? locals;
-    private IReadOnlyDictionary<TextSlice, Symbol>? localsView;
-    internal bool HasLocals => locals is not null;
-    public readonly IReadOnlyDictionary<TextSlice, Symbol> Locals => localsView ?? ReadOnlyDictionary<TextSlice, Symbol>.Empty;
+    internal bool HasLocals => node?.BindingLocals is not null;
+    public IReadOnlyDictionary<TextSlice, Symbol> Locals =>
+        node?.BindingLocalsView ?? ReadOnlyDictionary<TextSlice, Symbol>.Empty;
 }
 
-/// <summary>Binding state is owned separately from the immutable parsed tree and published only after a successful bind.</summary>
+/// <summary>Binding slots belong to one source tree and are published only after a successful bind. Syntax clones clear them.</summary>
 public sealed class BoundSourceFile
 {
-    private readonly Dictionary<SyntaxNode, int> nodes = new(ReferenceEqualityComparer.Instance);
-    private readonly Arena<NodeBinding> bindings;
     public SourceFileNode SourceFile { get; }
     public Symbol? Symbol => Get(SourceFile)?.Symbol;
     public IReadOnlyDictionary<TextSlice, Symbol> Locals => Get(SourceFile)!.Value.Locals;
@@ -146,20 +180,19 @@ public sealed class BoundSourceFile
     public IReadOnlyDictionary<TextSlice, Symbol> GlobalExports { get; internal set; } = ReadOnlyDictionary<TextSlice, Symbol>.Empty;
     public int SymbolCount { get; internal set; }
 
-    internal BoundSourceFile(SourceFileNode file)
-    {
-        SourceFile = file;
-        bindings = new(Math.Clamp(file.NodeCount, 1, Arena<NodeBinding>.DefaultChunkSize));
-    }
+    internal BoundSourceFile(SourceFileNode file) => SourceFile = file;
 
-    public NodeBinding? Get(SyntaxNode node) => nodes.TryGetValue(node, out int index) ? bindings[new(bindings, index)] : null;
+    public NodeBinding? Get(SyntaxNode node) => ReferenceEquals(node.BindingOwner, this) ? new NodeBinding(node) : null;
 
-    internal ref NodeBinding Data(SyntaxNode node)
+    internal NodeBinding Data(SyntaxNode node)
     {
-        ref int index = ref CollectionsMarshal.GetValueRefOrAddDefault(nodes, node, out bool exists);
-        if (!exists)
-            index = bindings.Add(new() { Flags = node.Flags }).Index;
-        // Arena slots stay valid when recursive binding adds more nodes.
-        return ref bindings[new(bindings, index)];
+        if (!ReferenceEquals(node.BindingOwner, this))
+        {
+            if (node.BindingOwner is not null)
+                node.ClearBindingState();
+            node.BindingFlags = node.Flags;
+            node.BindingOwner = this;
+        }
+        return new(node);
     }
 }

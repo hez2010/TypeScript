@@ -713,7 +713,7 @@ internal static class CheckerProgramTests
         var host = new CheckerEnvironment(context, links);
         var environment = await CheckerSymbols.CreateAsync(program, links, host);
         var merged = environment.Globals["I"];
-        Check(merged != original && merged.Declarations.Count == 2 && original.Declarations.Count == 1);
+        Check(merged != original && merged.Declarations.Length == 2 && original.Declarations.Length == 1);
         Check(merged.Members.ContainsKey("a") && merged.Members.ContainsKey("b") && !original.Members.ContainsKey("b"));
         Check(ReferenceEquals(environment.Globals["globalThis"].Exports["I"], merged));
         var declaration = program.SourceFiles[1].Syntax.DescendantsAndSelf().OfType<InterfaceDeclarationNode>().First();
@@ -728,7 +728,7 @@ internal static class CheckerProgramTests
         var otherLinks = new CheckerLinks();
         var otherHost = new CheckerEnvironment(otherContext, otherLinks);
         var otherEnvironment = await CheckerSymbols.CreateAsync(updated, otherLinks, otherHost);
-        Check(otherEnvironment.Globals["I"] != merged && original.Declarations.Count == 1);
+        Check(otherEnvironment.Globals["I"] != merged && original.Declarations.Length == 1);
         Check((await otherHost.Scopes.ClassOrInterfaceAsync(otherEnvironment.Globals["I"])).Context == otherContext);
         Check(links.Values.Get(environment.UndefinedSymbol).ResolvedType == context.UndefinedWideningType);
         Check(host.Globals.AnyArrayType == context.EmptyObjectType && host.Globals.AutoArrayType != context.EmptyObjectType);
@@ -746,11 +746,11 @@ internal static class CheckerProgramTests
         {
             checks++;
         }
-        Check(original.Declarations.Count == 1 && !original.Members.ContainsKey("b"));
+        Check(original.Declarations.Length == 1 && !original.Members.ContainsKey("b"));
         var recoveredLinks = new CheckerLinks();
         var recoveredHost = new CheckerEnvironment(new(true, true), recoveredLinks);
         var recovered = await CheckerSymbols.CreateAsync(program, recoveredLinks, recoveredHost);
-        Check(recovered.Globals["I"].Declarations.Count == 2);
+        Check(recovered.Globals["I"].Declarations.Length == 2);
 
         var retryProgram = await Build(
             new() { ["/project/rollback.ts"] = "interface Finished {} interface Stop {} interface Root extends Finished, Stop {}" });

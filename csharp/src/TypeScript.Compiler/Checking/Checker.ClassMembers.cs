@@ -379,7 +379,7 @@ internal sealed partial class Checker
                             : [await TypeDisplay.GetAsync(baseWithThis, cancellation), TypeDisplay.SymbolName(suggestion)]);
                 }
                 if (property is not null
-                    && inherited is { Declarations.Count: > 0 }
+                    && inherited is { Declarations.Length: > 0 }
                     && !hasOverride
                     && (node.Flags & NodeFlags.Ambient) == 0
                     && program.Symbols.Program.Configuration.Options.Boolean("noImplicitOverride") == true)

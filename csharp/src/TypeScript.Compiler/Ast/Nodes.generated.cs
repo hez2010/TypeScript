@@ -3,6 +3,7 @@
 // ast.json SHA256 9ab3dfc6a2ff155ec1e315c6fee3deba8fe77c74256761ed38f475296a569574
 using TypeScript.Compiler.Syntax;
 using TypeScript.Compiler.Text;
+using TypeScript.Compiler.Binding;
 namespace TypeScript.Compiler.Ast;
 
 public sealed partial class TokenNode : SyntaxNode
@@ -30,6 +31,12 @@ public sealed partial class IdentifierNode : SyntaxNode
     {
     }
     public TextSlice Text { get; set; } = "";
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => 0;
     public override SyntaxNode GetChild(int index)
     {
@@ -50,6 +57,12 @@ public sealed partial class PrivateIdentifierNode : SyntaxNode
     {
     }
     public TextSlice Text { get; set; } = "";
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => 0;
     public override SyntaxNode GetChild(int index)
     {
@@ -71,6 +84,12 @@ public sealed partial class QualifiedNameNode : SyntaxNode
     }
     public SyntaxNode? Left { get; set; }
     public SyntaxNode? Right { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Left is null ? 0 : 1) + (Right is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -138,6 +157,12 @@ public sealed partial class EmptyStatementNode : SyntaxNode
     public EmptyStatementNode() : base(SyntaxKind.EmptyStatement)
     {
     }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => 0;
     public override SyntaxNode GetChild(int index)
     {
@@ -160,6 +185,12 @@ public sealed partial class IfStatementNode : SyntaxNode
     public SyntaxNode? Expression { get; set; }
     public SyntaxNode? ThenStatement { get; set; }
     public SyntaxNode? ElseStatement { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1) + (ThenStatement is null ? 0 : 1) + (ElseStatement is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -187,6 +218,12 @@ public sealed partial class DoStatementNode : SyntaxNode
     }
     public SyntaxNode? Statement { get; set; }
     public SyntaxNode? Expression { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Statement is null ? 0 : 1) + (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -212,6 +249,12 @@ public sealed partial class WhileStatementNode : SyntaxNode
     }
     public SyntaxNode? Expression { get; set; }
     public SyntaxNode? Statement { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1) + (Statement is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -239,6 +282,16 @@ public sealed partial class ForStatementNode : SyntaxNode, IInitializedNode
     public SyntaxNode? Condition { get; set; }
     public SyntaxNode? Incrementor { get; set; }
     public SyntaxNode? Statement { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+        BindingLocals = null;
+        BindingLocalsView = null;
+    }
     public override int ChildCount => (Initializer is null ? 0 : 1) + (Condition is null ? 0 : 1) + (Incrementor is null ? 0 : 1) + (Statement is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -271,6 +324,16 @@ public sealed partial class ForInOrOfStatementNode : SyntaxNode, IInitializedNod
     public SyntaxNode? Initializer { get; set; }
     public SyntaxNode? Expression { get; set; }
     public SyntaxNode? Statement { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+        BindingLocals = null;
+        BindingLocalsView = null;
+    }
     public override int ChildCount => (AwaitModifier is null ? 0 : 1) + (Initializer is null ? 0 : 1) + (Expression is null ? 0 : 1) + (Statement is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -299,6 +362,12 @@ public sealed partial class BreakStatementNode : SyntaxNode
     {
     }
     public IdentifierNode? Label { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Label is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -321,6 +390,12 @@ public sealed partial class ContinueStatementNode : SyntaxNode
     {
     }
     public IdentifierNode? Label { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Label is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -343,6 +418,12 @@ public sealed partial class ReturnStatementNode : SyntaxNode
     {
     }
     public SyntaxNode? Expression { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -366,6 +447,12 @@ public sealed partial class WithStatementNode : SyntaxNode
     }
     public SyntaxNode? Expression { get; set; }
     public SyntaxNode? Statement { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1) + (Statement is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -391,6 +478,12 @@ public sealed partial class SwitchStatementNode : SyntaxNode
     }
     public SyntaxNode? Expression { get; set; }
     public CaseBlockNode? CaseBlock { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1) + (CaseBlock is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -415,6 +508,14 @@ public sealed partial class CaseBlockNode : SyntaxNode
     {
     }
     public NodeList? Clauses { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingLocals = null;
+        BindingLocalsView = null;
+    }
     public override int ChildCount => (Clauses?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -444,6 +545,12 @@ public sealed partial class CaseOrDefaultClauseNode : SyntaxNode
     }
     public SyntaxNode? Expression { get; set; }
     public NodeList? Statements { get; set; }
+    internal override FlowNode? BindingEndFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingEndFlow = null;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1) + (Statements?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -473,6 +580,12 @@ public sealed partial class ThrowStatementNode : SyntaxNode
     {
     }
     public SyntaxNode? Expression { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -497,6 +610,12 @@ public sealed partial class TryStatementNode : SyntaxNode
     public BlockNode? TryBlock { get; set; }
     public CatchClauseNode? CatchClause { get; set; }
     public BlockNode? FinallyBlock { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (TryBlock is null ? 0 : 1) + (CatchClause is null ? 0 : 1) + (FinallyBlock is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -524,6 +643,14 @@ public sealed partial class CatchClauseNode : SyntaxNode
     }
     public VariableDeclarationNode? VariableDeclaration { get; set; }
     public BlockNode? Block { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingLocals = null;
+        BindingLocalsView = null;
+    }
     public override int ChildCount => (VariableDeclaration is null ? 0 : 1) + (Block is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -547,6 +674,12 @@ public sealed partial class DebuggerStatementNode : SyntaxNode
     public DebuggerStatementNode() : base(SyntaxKind.DebuggerStatement)
     {
     }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => 0;
     public override SyntaxNode GetChild(int index)
     {
@@ -568,6 +701,12 @@ public sealed partial class LabeledStatementNode : SyntaxNode
     }
     public IdentifierNode? Label { get; set; }
     public SyntaxNode? Statement { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Label is null ? 0 : 1) + (Statement is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -592,6 +731,12 @@ public sealed partial class ExpressionStatementNode : SyntaxNode
     {
     }
     public SyntaxNode? Expression { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -615,6 +760,16 @@ public sealed partial class BlockNode : SyntaxNode
     }
     public NodeList? Statements { get; set; }
     public bool MultiLine { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+        BindingLocals = null;
+        BindingLocalsView = null;
+    }
     public override int ChildCount => (Statements?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -643,6 +798,12 @@ public sealed partial class VariableStatementNode : SyntaxNode, IModifiedNode
     }
     public NodeList? Modifiers { get; set; }
     public VariableDeclarationListNode? DeclarationList { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (DeclarationList is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -675,6 +836,16 @@ public sealed partial class VariableDeclarationNode : SyntaxNode, ITypedNode, II
     public SyntaxNode? ExclamationToken { get; set; }
     public SyntaxNode? Type { get; set; }
     public SyntaxNode? Initializer { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Name is null ? 0 : 1) + (ExclamationToken is null ? 0 : 1) + (Type is null ? 0 : 1) + (Initializer is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -764,6 +935,16 @@ public sealed partial class ParameterDeclarationNode : SyntaxNode, ITypedNode, I
     public SyntaxNode? QuestionToken { get; set; }
     public SyntaxNode? Type { get; set; }
     public SyntaxNode? Initializer { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (DotDotDotToken is null ? 0 : 1) + (Name is null ? 0 : 1) + (QuestionToken is null ? 0 : 1) + (Type is null ? 0 : 1) + (Initializer is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -805,6 +986,16 @@ public sealed partial class BindingElementNode : SyntaxNode, IInitializedNode, I
     public SyntaxNode? PropertyName { get; set; }
     public SyntaxNode? Name { get; set; }
     public SyntaxNode? Initializer { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (DotDotDotToken is null ? 0 : 1) + (PropertyName is null ? 0 : 1) + (Name is null ? 0 : 1) + (Initializer is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -834,6 +1025,16 @@ public sealed partial class MissingDeclarationNode : SyntaxNode, IModifiedNode
     {
     }
     public NodeList? Modifiers { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -868,6 +1069,24 @@ public sealed partial class FunctionDeclarationNode : SyntaxNode, ITypedNode, IF
     public SyntaxNode? Type { get; set; }
     public SyntaxNode? FullSignature { get; set; }
     public SyntaxNode? Body { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override FlowNode? BindingEndFlow { get; set; }
+    internal override FlowNode? BindingReturnFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+        BindingLocals = null;
+        BindingLocalsView = null;
+        BindingEndFlow = null;
+        BindingReturnFlow = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (AsteriskToken is null ? 0 : 1) + (Name is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1) + (FullSignature is null ? 0 : 1) + (Body is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -924,6 +1143,20 @@ public sealed partial class ClassDeclarationNode : SyntaxNode, IModifiedNode, IN
     public NodeList? TypeParameters { get; set; }
     public NodeList? HeritageClauses { get; set; }
     public NodeList? Members { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+        BindingLocals = null;
+        BindingLocalsView = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (HeritageClauses?.Count ?? 0) + (Members?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
@@ -979,6 +1212,20 @@ public sealed partial class ClassExpressionNode : SyntaxNode, IModifiedNode, INa
     public NodeList? TypeParameters { get; set; }
     public NodeList? HeritageClauses { get; set; }
     public NodeList? Members { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+        BindingLocals = null;
+        BindingLocalsView = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (HeritageClauses?.Count ?? 0) + (Members?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
@@ -1062,6 +1309,20 @@ public sealed partial class InterfaceDeclarationNode : SyntaxNode, IModifiedNode
     public NodeList? TypeParameters { get; set; }
     public NodeList? HeritageClauses { get; set; }
     public NodeList? Members { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+        BindingLocals = null;
+        BindingLocalsView = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (HeritageClauses?.Count ?? 0) + (Members?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
@@ -1117,6 +1378,20 @@ public sealed partial class TypeAliasDeclarationNode : SyntaxNode, ITypedNode, I
     public IdentifierNode? Name { get; set; }
     public NodeList? TypeParameters { get; set; }
     public SyntaxNode? Type { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+        BindingLocals = null;
+        BindingLocalsView = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -1157,6 +1432,16 @@ public sealed partial class EnumMemberNode : SyntaxNode, IInitializedNode, IName
     }
     public SyntaxNode? Name { get; set; }
     public SyntaxNode? Initializer { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Name is null ? 0 : 1) + (Initializer is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -1184,6 +1469,20 @@ public sealed partial class EnumDeclarationNode : SyntaxNode, IModifiedNode, INa
     public NodeList? Modifiers { get; set; }
     public IdentifierNode? Name { get; set; }
     public NodeList? Members { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+        BindingLocals = null;
+        BindingLocalsView = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (Members?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
@@ -1221,6 +1520,12 @@ public sealed partial class ModuleBlockNode : SyntaxNode
     {
     }
     public NodeList? Statements { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Statements?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -1246,6 +1551,12 @@ public sealed partial class NotEmittedStatementNode : SyntaxNode
 {
     public NotEmittedStatementNode() : base(SyntaxKind.NotEmittedStatement)
     {
+    }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
     }
     public override int ChildCount => 0;
     public override SyntaxNode GetChild(int index)
@@ -1290,6 +1601,16 @@ public sealed partial class ImportDeclarationNode : SyntaxNode, IModifiedNode
     public ImportClauseNode? ImportClause { get; set; }
     public SyntaxNode? ModuleSpecifier { get; set; }
     public ImportAttributesNode? Attributes { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (ImportClause is null ? 0 : 1) + (ModuleSpecifier is null ? 0 : 1) + (Attributes is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -1345,6 +1666,16 @@ public sealed partial class NamespaceImportNode : SyntaxNode, INamedNode
     {
     }
     public IdentifierNode? Name { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -1398,6 +1729,16 @@ public sealed partial class ExportAssignmentNode : SyntaxNode, ITypedNode, IModi
     public bool IsExportEquals { get; set; }
     public SyntaxNode? Type { get; set; }
     public SyntaxNode? Expression { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Type is null ? 0 : 1) + (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -1430,6 +1771,16 @@ public sealed partial class NamespaceExportDeclarationNode : SyntaxNode, IModifi
     }
     public NodeList? Modifiers { get; set; }
     public IdentifierNode? Name { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -1460,6 +1811,16 @@ public sealed partial class NamespaceExportNode : SyntaxNode, INamedNode
     {
     }
     public SyntaxNode? Name { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -1512,6 +1873,16 @@ public sealed partial class ExportSpecifierNode : SyntaxNode, INamedNode
     public bool IsTypeOnly { get; set; }
     public SyntaxNode? PropertyName { get; set; }
     public SyntaxNode? Name { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (PropertyName is null ? 0 : 1) + (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -1539,6 +1910,20 @@ public sealed partial class CallSignatureDeclarationNode : SyntaxNode, ITypedNod
     public NodeList? TypeParameters { get; set; }
     public NodeList? Parameters { get; set; }
     public SyntaxNode? Type { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+        BindingLocals = null;
+        BindingLocalsView = null;
+    }
     public override int ChildCount => (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -1577,6 +1962,20 @@ public sealed partial class ConstructSignatureDeclarationNode : SyntaxNode, ITyp
     public NodeList? TypeParameters { get; set; }
     public NodeList? Parameters { get; set; }
     public SyntaxNode? Type { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+        BindingLocals = null;
+        BindingLocalsView = null;
+    }
     public override int ChildCount => (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -1618,6 +2017,24 @@ public sealed partial class ConstructorDeclarationNode : SyntaxNode, ITypedNode,
     public SyntaxNode? Type { get; set; }
     public SyntaxNode? FullSignature { get; set; }
     public SyntaxNode? Body { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override FlowNode? BindingEndFlow { get; set; }
+    internal override FlowNode? BindingReturnFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+        BindingLocals = null;
+        BindingLocalsView = null;
+        BindingEndFlow = null;
+        BindingReturnFlow = null;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1) + (FullSignature is null ? 0 : 1) + (Body is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -1671,6 +2088,24 @@ public sealed partial class GetAccessorDeclarationNode : SyntaxNode, ITypedNode,
     public SyntaxNode? Type { get; set; }
     public SyntaxNode? FullSignature { get; set; }
     public SyntaxNode? Body { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override FlowNode? BindingEndFlow { get; set; }
+    internal override FlowNode? BindingReturnFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+        BindingLocals = null;
+        BindingLocalsView = null;
+        BindingEndFlow = null;
+        BindingReturnFlow = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1) + (FullSignature is null ? 0 : 1) + (Body is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -1727,6 +2162,24 @@ public sealed partial class SetAccessorDeclarationNode : SyntaxNode, ITypedNode,
     public SyntaxNode? Type { get; set; }
     public SyntaxNode? FullSignature { get; set; }
     public SyntaxNode? Body { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override FlowNode? BindingEndFlow { get; set; }
+    internal override FlowNode? BindingReturnFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+        BindingLocals = null;
+        BindingLocalsView = null;
+        BindingEndFlow = null;
+        BindingReturnFlow = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1) + (FullSignature is null ? 0 : 1) + (Body is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -1779,6 +2232,20 @@ public sealed partial class IndexSignatureDeclarationNode : SyntaxNode, ITypedNo
     public NodeList? Modifiers { get; set; }
     public NodeList? Parameters { get; set; }
     public SyntaxNode? Type { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+        BindingLocals = null;
+        BindingLocalsView = null;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -1820,6 +2287,20 @@ public sealed partial class MethodSignatureDeclarationNode : SyntaxNode, ITypedN
     public NodeList? TypeParameters { get; set; }
     public NodeList? Parameters { get; set; }
     public SyntaxNode? Type { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+        BindingLocals = null;
+        BindingLocalsView = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (PostfixToken is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -1876,6 +2357,24 @@ public sealed partial class MethodDeclarationNode : SyntaxNode, ITypedNode, IFul
     public SyntaxNode? Type { get; set; }
     public SyntaxNode? FullSignature { get; set; }
     public SyntaxNode? Body { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override FlowNode? BindingEndFlow { get; set; }
+    internal override FlowNode? BindingReturnFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+        BindingLocals = null;
+        BindingLocalsView = null;
+        BindingEndFlow = null;
+        BindingReturnFlow = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (AsteriskToken is null ? 0 : 1) + (Name is null ? 0 : 1) + (PostfixToken is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1) + (FullSignature is null ? 0 : 1) + (Body is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -1934,6 +2433,16 @@ public sealed partial class PropertySignatureDeclarationNode : SyntaxNode, IType
     public SyntaxNode? PostfixToken { get; set; }
     public SyntaxNode? Type { get; set; }
     public SyntaxNode? Initializer { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (PostfixToken is null ? 0 : 1) + (Type is null ? 0 : 1) + (Initializer is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -1974,6 +2483,16 @@ public sealed partial class PropertyDeclarationNode : SyntaxNode, ITypedNode, II
     public SyntaxNode? PostfixToken { get; set; }
     public SyntaxNode? Type { get; set; }
     public SyntaxNode? Initializer { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (PostfixToken is null ? 0 : 1) + (Type is null ? 0 : 1) + (Initializer is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -2009,6 +2528,16 @@ public sealed partial class SemicolonClassElementNode : SyntaxNode
     public SemicolonClassElementNode() : base(SyntaxKind.SemicolonClassElement)
     {
     }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+    }
     public override int ChildCount => 0;
     public override SyntaxNode GetChild(int index)
     {
@@ -2030,6 +2559,24 @@ public sealed partial class ClassStaticBlockDeclarationNode : SyntaxNode, IModif
     }
     public NodeList? Modifiers { get; set; }
     public BlockNode? Body { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override FlowNode? BindingEndFlow { get; set; }
+    internal override FlowNode? BindingReturnFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+        BindingLocals = null;
+        BindingLocalsView = null;
+        BindingEndFlow = null;
+        BindingReturnFlow = null;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Body is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -2058,6 +2605,12 @@ public sealed partial class OmittedExpressionNode : SyntaxNode
     public OmittedExpressionNode() : base(SyntaxKind.OmittedExpression)
     {
     }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => 0;
     public override SyntaxNode GetChild(int index)
     {
@@ -2076,6 +2629,12 @@ public sealed partial class KeywordExpressionNode : SyntaxNode
 {
     public KeywordExpressionNode(SyntaxKind kind) : base(kind)
     {
+    }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
     }
     public override int ChildCount => 0;
     public override SyntaxNode GetChild(int index)
@@ -2098,6 +2657,12 @@ public sealed partial class StringLiteralNode : SyntaxNode
     }
     public TextSlice Text { get; set; } = "";
     public TokenFlags TokenFlags { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => 0;
     public override SyntaxNode GetChild(int index)
     {
@@ -2119,6 +2684,12 @@ public sealed partial class NumericLiteralNode : SyntaxNode
     }
     public TextSlice Text { get; set; } = "";
     public TokenFlags TokenFlags { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => 0;
     public override SyntaxNode GetChild(int index)
     {
@@ -2140,6 +2711,12 @@ public sealed partial class BigIntLiteralNode : SyntaxNode
     }
     public TextSlice Text { get; set; } = "";
     public TokenFlags TokenFlags { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => 0;
     public override SyntaxNode GetChild(int index)
     {
@@ -2161,6 +2738,12 @@ public sealed partial class RegularExpressionLiteralNode : SyntaxNode
     }
     public TextSlice Text { get; set; } = "";
     public TokenFlags TokenFlags { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => 0;
     public override SyntaxNode GetChild(int index)
     {
@@ -2182,6 +2765,16 @@ public sealed partial class NoSubstitutionTemplateLiteralNode : SyntaxNode
     }
     public TextSlice Text { get; set; } = "";
     public TokenFlags TemplateFlags { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+    }
     public override int ChildCount => 0;
     public override SyntaxNode GetChild(int index)
     {
@@ -2206,6 +2799,16 @@ public sealed partial class BinaryExpressionNode : SyntaxNode, ITypedNode, IModi
     public SyntaxNode? Type { get; set; }
     public SyntaxNode? OperatorToken { get; set; }
     public SyntaxNode? Right { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Left is null ? 0 : 1) + (Type is null ? 0 : 1) + (OperatorToken is null ? 0 : 1) + (Right is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -2242,6 +2845,12 @@ public sealed partial class PrefixUnaryExpressionNode : SyntaxNode
     }
     public SyntaxKind Operator { get; set; }
     public SyntaxNode? Operand { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Operand is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -2265,6 +2874,12 @@ public sealed partial class PostfixUnaryExpressionNode : SyntaxNode
     }
     public SyntaxNode? Operand { get; set; }
     public SyntaxKind Operator { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Operand is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -2288,6 +2903,12 @@ public sealed partial class YieldExpressionNode : SyntaxNode
     }
     public SyntaxNode? AsteriskToken { get; set; }
     public SyntaxNode? Expression { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (AsteriskToken is null ? 0 : 1) + (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -2318,6 +2939,24 @@ public sealed partial class ArrowFunctionNode : SyntaxNode, ITypedNode, IFullSig
     public SyntaxNode? FullSignature { get; set; }
     public SyntaxNode? EqualsGreaterThanToken { get; set; }
     public SyntaxNode? Body { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override FlowNode? BindingEndFlow { get; set; }
+    internal override FlowNode? BindingReturnFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+        BindingLocals = null;
+        BindingLocalsView = null;
+        BindingEndFlow = null;
+        BindingReturnFlow = null;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1) + (FullSignature is null ? 0 : 1) + (EqualsGreaterThanToken is null ? 0 : 1) + (Body is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -2374,6 +3013,24 @@ public sealed partial class FunctionExpressionNode : SyntaxNode, ITypedNode, IFu
     public SyntaxNode? Type { get; set; }
     public SyntaxNode? FullSignature { get; set; }
     public SyntaxNode? Body { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override FlowNode? BindingEndFlow { get; set; }
+    internal override FlowNode? BindingReturnFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+        BindingLocals = null;
+        BindingLocalsView = null;
+        BindingEndFlow = null;
+        BindingReturnFlow = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (AsteriskToken is null ? 0 : 1) + (Name is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1) + (FullSignature is null ? 0 : 1) + (Body is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -2427,6 +3084,12 @@ public sealed partial class AsExpressionNode : SyntaxNode, ITypedNode
     }
     public SyntaxNode? Expression { get; set; }
     public SyntaxNode? Type { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1) + (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -2452,6 +3115,12 @@ public sealed partial class SatisfiesExpressionNode : SyntaxNode, ITypedNode
     }
     public SyntaxNode? Expression { get; set; }
     public SyntaxNode? Type { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1) + (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -2480,6 +3149,12 @@ public sealed partial class ConditionalExpressionNode : SyntaxNode
     public SyntaxNode? WhenTrue { get; set; }
     public SyntaxNode? ColonToken { get; set; }
     public SyntaxNode? WhenFalse { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Condition is null ? 0 : 1) + (QuestionToken is null ? 0 : 1) + (WhenTrue is null ? 0 : 1) + (ColonToken is null ? 0 : 1) + (WhenFalse is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -2512,6 +3187,12 @@ public sealed partial class PropertyAccessExpressionNode : SyntaxNode, INamedNod
     public SyntaxNode? Expression { get; set; }
     public SyntaxNode? QuestionDotToken { get; set; }
     public SyntaxNode? Name { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Expression is null ? 0 : 1) + (QuestionDotToken is null ? 0 : 1) + (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -2541,6 +3222,12 @@ public sealed partial class ElementAccessExpressionNode : SyntaxNode
     public SyntaxNode? Expression { get; set; }
     public SyntaxNode? QuestionDotToken { get; set; }
     public SyntaxNode? ArgumentExpression { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1) + (QuestionDotToken is null ? 0 : 1) + (ArgumentExpression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -2570,6 +3257,16 @@ public sealed partial class CallExpressionNode : SyntaxNode
     public SyntaxNode? QuestionDotToken { get; set; }
     public NodeList? TypeArguments { get; set; }
     public NodeList? Arguments { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1) + (QuestionDotToken is null ? 0 : 1) + (TypeArguments?.Count ?? 0) + (Arguments?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -2610,6 +3307,12 @@ public sealed partial class NewExpressionNode : SyntaxNode
     public SyntaxNode? Expression { get; set; }
     public NodeList? TypeArguments { get; set; }
     public NodeList? Arguments { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1) + (TypeArguments?.Count ?? 0) + (Arguments?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -2647,6 +3350,12 @@ public sealed partial class MetaPropertyNode : SyntaxNode, INamedNode
     }
     public SyntaxKind KeywordToken { get; set; }
     public IdentifierNode? Name { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -2670,6 +3379,12 @@ public sealed partial class NonNullExpressionNode : SyntaxNode
     {
     }
     public SyntaxNode? Expression { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -2692,6 +3407,12 @@ public sealed partial class SpreadElementNode : SyntaxNode
     {
     }
     public SyntaxNode? Expression { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -2715,6 +3436,12 @@ public sealed partial class TemplateExpressionNode : SyntaxNode
     }
     public TemplateHeadNode? Head { get; set; }
     public NodeList? TemplateSpans { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Head is null ? 0 : 1) + (TemplateSpans?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -2772,6 +3499,12 @@ public sealed partial class TaggedTemplateExpressionNode : SyntaxNode
     public SyntaxNode? QuestionDotToken { get; set; }
     public NodeList? TypeArguments { get; set; }
     public SyntaxNode? Template { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Tag is null ? 0 : 1) + (QuestionDotToken is null ? 0 : 1) + (TypeArguments?.Count ?? 0) + (Template is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -2805,6 +3538,12 @@ public sealed partial class ParenthesizedExpressionNode : SyntaxNode
     {
     }
     public SyntaxNode? Expression { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -2828,6 +3567,12 @@ public sealed partial class ArrayLiteralExpressionNode : SyntaxNode
     }
     public NodeList? Elements { get; set; }
     public bool MultiLine { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Elements?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -2856,6 +3601,20 @@ public sealed partial class ObjectLiteralExpressionNode : SyntaxNode
     }
     public NodeList? Properties { get; set; }
     public bool MultiLine { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+        BindingLocals = null;
+        BindingLocalsView = null;
+    }
     public override int ChildCount => (Properties?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -2883,6 +3642,16 @@ public sealed partial class SpreadAssignmentNode : SyntaxNode
     {
     }
     public SyntaxNode? Expression { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -2909,6 +3678,16 @@ public sealed partial class PropertyAssignmentNode : SyntaxNode, ITypedNode, IIn
     public SyntaxNode? PostfixToken { get; set; }
     public SyntaxNode? Type { get; set; }
     public SyntaxNode? Initializer { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (PostfixToken is null ? 0 : 1) + (Type is null ? 0 : 1) + (Initializer is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -2950,6 +3729,16 @@ public sealed partial class ShorthandPropertyAssignmentNode : SyntaxNode, ITyped
     public SyntaxNode? Type { get; set; }
     public SyntaxNode? EqualsToken { get; set; }
     public SyntaxNode? ObjectAssignmentInitializer { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (PostfixToken is null ? 0 : 1) + (Type is null ? 0 : 1) + (EqualsToken is null ? 0 : 1) + (ObjectAssignmentInitializer is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -2988,6 +3777,12 @@ public sealed partial class DeleteExpressionNode : SyntaxNode
     {
     }
     public SyntaxNode? Expression { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -3010,6 +3805,12 @@ public sealed partial class TypeOfExpressionNode : SyntaxNode
     {
     }
     public SyntaxNode? Expression { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -3032,6 +3833,12 @@ public sealed partial class VoidExpressionNode : SyntaxNode
     {
     }
     public SyntaxNode? Expression { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -3054,6 +3861,12 @@ public sealed partial class AwaitExpressionNode : SyntaxNode
     {
     }
     public SyntaxNode? Expression { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -3077,6 +3890,12 @@ public sealed partial class TypeAssertionNode : SyntaxNode, ITypedNode
     }
     public SyntaxNode? Type { get; set; }
     public SyntaxNode? Expression { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Type is null ? 0 : 1) + (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -3177,6 +3996,14 @@ public sealed partial class ConditionalTypeNode : SyntaxNode
     public SyntaxNode? ExtendsType { get; set; }
     public SyntaxNode? TrueType { get; set; }
     public SyntaxNode? FalseType { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingLocals = null;
+        BindingLocalsView = null;
+    }
     public override int ChildCount => (CheckType is null ? 0 : 1) + (ExtendsType is null ? 0 : 1) + (TrueType is null ? 0 : 1) + (FalseType is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -3328,6 +4155,12 @@ public sealed partial class ExpressionWithTypeArgumentsNode : SyntaxNode
     }
     public SyntaxNode? Expression { get; set; }
     public NodeList? TypeArguments { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1) + (TypeArguments?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -3516,6 +4349,20 @@ public sealed partial class MappedTypeNode : SyntaxNode, ITypedNode
     public SyntaxNode? QuestionToken { get; set; }
     public SyntaxNode? Type { get; set; }
     public NodeList? Members { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+        BindingLocals = null;
+        BindingLocalsView = null;
+    }
     public override int ChildCount => (ReadonlyToken is null ? 0 : 1) + (TypeParameter is null ? 0 : 1) + (NameType is null ? 0 : 1) + (QuestionToken is null ? 0 : 1) + (Type is null ? 0 : 1) + (Members?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -3553,6 +4400,20 @@ public sealed partial class TypeLiteralNode : SyntaxNode
     {
     }
     public NodeList? Members { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+        BindingLocals = null;
+        BindingLocalsView = null;
+    }
     public override int ChildCount => (Members?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -3610,6 +4471,16 @@ public sealed partial class NamedTupleMemberNode : SyntaxNode, ITypedNode, IName
     public IdentifierNode? Name { get; set; }
     public SyntaxNode? QuestionToken { get; set; }
     public SyntaxNode? Type { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (DotDotDotToken is null ? 0 : 1) + (Name is null ? 0 : 1) + (QuestionToken is null ? 0 : 1) + (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -3707,6 +4578,20 @@ public sealed partial class FunctionTypeNode : SyntaxNode, ITypedNode, IFunction
     public NodeList? TypeParameters { get; set; }
     public NodeList? Parameters { get; set; }
     public SyntaxNode? Type { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+        BindingLocals = null;
+        BindingLocalsView = null;
+    }
     public override int ChildCount => (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -3746,6 +4631,20 @@ public sealed partial class ConstructorTypeNode : SyntaxNode, ITypedNode, IFunct
     public NodeList? TypeParameters { get; set; }
     public NodeList? Parameters { get; set; }
     public SyntaxNode? Type { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+        BindingLocals = null;
+        BindingLocalsView = null;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -3912,6 +4811,12 @@ public sealed partial class SyntheticExpressionNode : SyntaxNode
     public object? Type { get; set; }
     public bool IsSpread { get; set; }
     public SyntaxNode? TupleNameSource { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (TupleNameSource is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -3934,6 +4839,12 @@ public sealed partial class PartiallyEmittedExpressionNode : SyntaxNode
     {
     }
     public SyntaxNode? Expression { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -3958,6 +4869,12 @@ public sealed partial class JsxElementNode : SyntaxNode
     public JsxOpeningElementNode? OpeningElement { get; set; }
     public NodeList? Children { get; set; }
     public JsxClosingElementNode? ClosingElement { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (OpeningElement is null ? 0 : 1) + (Children?.Count ?? 0) + (ClosingElement is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -3989,6 +4906,20 @@ public sealed partial class JsxAttributesNode : SyntaxNode
     {
     }
     public NodeList? Properties { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+        BindingLocals = null;
+        BindingLocalsView = null;
+    }
     public override int ChildCount => (Properties?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -4017,6 +4948,12 @@ public sealed partial class JsxNamespacedNameNode : SyntaxNode, INamedNode
     }
     public IdentifierNode? Namespace { get; set; }
     public IdentifierNode? Name { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Namespace is null ? 0 : 1) + (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -4044,6 +4981,12 @@ public sealed partial class JsxOpeningElementNode : SyntaxNode
     public SyntaxNode? TagName { get; set; }
     public NodeList? TypeArguments { get; set; }
     public JsxAttributesNode? Attributes { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (TagName is null ? 0 : 1) + (TypeArguments?.Count ?? 0) + (Attributes is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -4077,6 +5020,12 @@ public sealed partial class JsxSelfClosingElementNode : SyntaxNode
     public SyntaxNode? TagName { get; set; }
     public NodeList? TypeArguments { get; set; }
     public JsxAttributesNode? Attributes { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (TagName is null ? 0 : 1) + (TypeArguments?.Count ?? 0) + (Attributes is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -4110,6 +5059,12 @@ public sealed partial class JsxFragmentNode : SyntaxNode
     public JsxOpeningFragmentNode? OpeningFragment { get; set; }
     public NodeList? Children { get; set; }
     public JsxClosingFragmentNode? ClosingFragment { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (OpeningFragment is null ? 0 : 1) + (Children?.Count ?? 0) + (ClosingFragment is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -4140,6 +5095,12 @@ public sealed partial class JsxOpeningFragmentNode : SyntaxNode
     public JsxOpeningFragmentNode() : base(SyntaxKind.JsxOpeningFragment)
     {
     }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => 0;
     public override SyntaxNode GetChild(int index)
     {
@@ -4158,6 +5119,12 @@ public sealed partial class JsxClosingFragmentNode : SyntaxNode
 {
     public JsxClosingFragmentNode() : base(SyntaxKind.JsxClosingFragment)
     {
+    }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
     }
     public override int ChildCount => 0;
     public override SyntaxNode GetChild(int index)
@@ -4180,6 +5147,16 @@ public sealed partial class JsxAttributeNode : SyntaxNode, IInitializedNode, INa
     }
     public SyntaxNode? Name { get; set; }
     public SyntaxNode? Initializer { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Name is null ? 0 : 1) + (Initializer is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -4250,6 +5227,12 @@ public sealed partial class JsxExpressionNode : SyntaxNode
     }
     public SyntaxNode? DotDotDotToken { get; set; }
     public SyntaxNode? Expression { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (DotDotDotToken is null ? 0 : 1) + (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -4275,6 +5258,12 @@ public sealed partial class JsxTextNode : SyntaxNode
     }
     public TextSlice Text { get; set; } = "";
     public bool ContainsOnlyTriviaWhiteSpaces { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => 0;
     public override SyntaxNode GetChild(int index)
     {
@@ -5148,6 +6137,20 @@ public sealed partial class JSDocSignatureNode : SyntaxNode, ITypedNode, IFuncti
     public NodeList? TypeParameters { get; set; }
     public NodeList? Parameters { get; set; }
     public SyntaxNode? Type { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+        BindingLocals = null;
+        BindingLocalsView = null;
+    }
     public override int ChildCount => (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -5208,6 +6211,20 @@ public sealed partial class SourceFileNode : SyntaxNode
     }
     public NodeList? Statements { get; set; }
     public SyntaxNode? EndOfFileToken { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+        BindingLocals = null;
+        BindingLocalsView = null;
+    }
     public override int ChildCount => (Statements?.Count ?? 0) + (EndOfFileToken is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -5241,6 +6258,20 @@ public sealed partial class ModuleDeclarationNode : SyntaxNode, IModifiedNode, I
     public SyntaxNode? Name { get; set; }
     public TypeLiteralNode? Attributes { get; set; }
     public SyntaxNode? Body { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override Dictionary<TextSlice, Symbol>? BindingLocals { get; set; }
+    internal override IReadOnlyDictionary<TextSlice, Symbol>? BindingLocalsView { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+        BindingLocals = null;
+        BindingLocalsView = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (Attributes is null ? 0 : 1) + (Body is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -5278,6 +6309,16 @@ public sealed partial class ImportEqualsDeclarationNode : SyntaxNode, IModifiedN
     public bool IsTypeOnly { get; set; }
     public IdentifierNode? Name { get; set; }
     public SyntaxNode? ModuleReference { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (ModuleReference is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -5314,6 +6355,16 @@ public sealed partial class ExportDeclarationNode : SyntaxNode, IModifiedNode
     public SyntaxNode? ExportClause { get; set; }
     public SyntaxNode? ModuleSpecifier { get; set; }
     public ImportAttributesNode? Attributes { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (ExportClause is null ? 0 : 1) + (ModuleSpecifier is null ? 0 : 1) + (Attributes is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -5386,6 +6437,16 @@ public sealed partial class ImportClauseNode : SyntaxNode, INamedNode
     public SyntaxKind PhaseModifier { get; set; }
     public IdentifierNode? Name { get; set; }
     public SyntaxNode? NamedBindings { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Name is null ? 0 : 1) + (NamedBindings is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -5413,6 +6474,16 @@ public sealed partial class ImportSpecifierNode : SyntaxNode, INamedNode
     public bool IsTypeOnly { get; set; }
     public SyntaxNode? PropertyName { get; set; }
     public IdentifierNode? Name { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (PropertyName is null ? 0 : 1) + (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -5538,6 +6609,16 @@ public sealed partial class TypeParameterDeclarationNode : SyntaxNode, IModified
     public SyntaxNode? Constraint { get; set; }
     public SyntaxNode? Expression { get; set; }
     public SyntaxNode? DefaultType { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+    }
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (Constraint is null ? 0 : 1) + (Expression is null ? 0 : 1) + (DefaultType is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -5575,6 +6656,12 @@ public sealed partial class SyntheticReferenceExpressionNode : SyntaxNode
     }
     public SyntaxNode? Expression { get; set; }
     public SyntaxNode? ThisArg { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingFlow = null;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1) + (ThisArg is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -5600,6 +6687,16 @@ public sealed partial class JSDocTypeLiteralNode : SyntaxNode
     }
     public SyntaxNode[] JSDocPropertyTags { get; set; } = [];
     public bool IsArrayType { get; set; }
+    internal override Symbol? BindingSymbol { get; set; }
+    internal override Symbol? BindingLocalSymbol { get; set; }
+    internal override FlowNode? BindingFlow { get; set; }
+    internal override void ClearBindingState()
+    {
+        base.ClearBindingState();
+        BindingSymbol = null;
+        BindingLocalSymbol = null;
+        BindingFlow = null;
+    }
     public override int ChildCount => JSDocPropertyTags.Length;
     public override SyntaxNode GetChild(int index)
     {

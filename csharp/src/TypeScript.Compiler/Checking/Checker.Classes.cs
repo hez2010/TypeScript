@@ -325,7 +325,7 @@ internal sealed partial class Checker
         }
         void Check(SyntaxNode member, bool @static, int kind)
         {
-            if (kind == 0 || program.Symbols.Declaration(member) is not { Declarations.Count: > 1 } symbol)
+            if (kind == 0 || program.Symbols.Declaration(member) is not { Declarations.Length: > 1 } symbol)
                 return;
             int prior = seen.GetValueOrDefault((symbol.Name, @static));
             if (prior == 0)

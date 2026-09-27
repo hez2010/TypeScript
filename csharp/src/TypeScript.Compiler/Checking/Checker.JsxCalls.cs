@@ -111,7 +111,8 @@ internal sealed partial class Checker
     {
         var parameter = new Symbol(SymbolFlags.FunctionScopedVariable | SymbolFlags.Transient, "props");
         links.Values.Get(parameter).ResolvedType = props;
-        return context.NewSignature(0, null, [], null, [parameter], await JsxTypeAsync("Element", node, cancellation), null, 1);
+        var elementType = await JsxTypeAsync("Element", node, cancellation);
+        return context.NewSignature(0, null, [], null, [parameter], elementType, null, 1);
     }
 
     private async ValueTask<IReadOnlyList<Signature>> JsxSignaturesAsync(Type type, SyntaxNode node, CancellationToken cancellation)

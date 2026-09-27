@@ -1,5 +1,7 @@
 using System.Buffers;
 using System.Globalization;
+using System.IO.Hashing;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace TypeScript.Compiler.Text;
@@ -7,6 +9,7 @@ namespace TypeScript.Compiler.Text;
 /// <summary>An immutable view of compiler text. Source slices retain their owner and compare by content.</summary>
 public readonly struct TextSlice(ReadOnlyMemory<char> memory) : IEquatable<TextSlice>, IComparable<TextSlice>, ISpanFormattable
 {
+    private static readonly long HashSeed = Random.Shared.NextInt64();
     public ReadOnlyMemory<char> Memory { get; } = memory;
     public ReadOnlySpan<char> Span => Memory.Span;
     public int Length => Memory.Length;
@@ -17,7 +20,7 @@ public readonly struct TextSlice(ReadOnlyMemory<char> memory) : IEquatable<TextS
 
     public bool Equals(TextSlice other) => Span.SequenceEqual(other.Span);
     public override bool Equals(object? value) => value is TextSlice other && Equals(other);
-    public override int GetHashCode() => string.GetHashCode(Span, StringComparison.Ordinal);
+    public override int GetHashCode() => unchecked((int)XxHash3.HashToUInt64(MemoryMarshal.AsBytes(Span), HashSeed));
     public int CompareTo(TextSlice other) => Span.SequenceCompareTo(other.Span);
     public override string ToString() => Memory.ToString();
     public string ToString(string? format, IFormatProvider? provider) => ToString();

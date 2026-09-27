@@ -94,8 +94,8 @@ internal static class CheckerVisibilityTests
         Check(!await failedChecker.IsDeclarationVisibleAsync(import));
         baselineCount = failedChecker.DeclarationVisibilityCount;
         var combined = new Symbol(SymbolFlags.Transient | SymbolFlags.TypeAlias, "combined");
-        combined.DeclarationList.Add(import);
-        combined.DeclarationList.Add(member);
+        combined.DeclarationList = combined.DeclarationList.Add(import);
+        combined.DeclarationList = combined.DeclarationList.Add(member);
         failedChecker.BeforeVisibilityNode = node =>
         {
             if (node == member)

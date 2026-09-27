@@ -198,7 +198,7 @@ internal sealed class ObjectInstantiation(
     {
         cancellation.ThrowIfCancellationRequested();
         context.RequireOwned(parameter);
-        if (parameter.Symbol is not { Declarations.Count: 1 } symbol)
+        if (parameter.Symbol is not { Declarations.Length: 1 } symbol)
             return true;
         var container = symbol.Declarations[0].Parent;
         for (var current = node; current != container; current = current.Parent)

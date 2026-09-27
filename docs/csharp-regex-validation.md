@@ -13,7 +13,7 @@ node csharp/tools/generate-regex.mjs --check
 node csharp/tools/regex.mjs --fuzz 100000 --corpus
 
 $dotnet = 'D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe'
-& $dotnet publish csharp/tests/TypeScript.RegularExpression -r win-x64 -c Release `
+& $dotnet publish csharp/tests/TypeScript.RegularExpression -p:PublishAot=true -r win-x64 -c Release `
     -p:IlcInstructionSet=native -p:RestoreLockedMode=true -o built/csharp/regex-native
 node csharp/tools/regex.mjs --fuzz 100000 --corpus --no-build `
     --native built/csharp/regex-native/TypeScript.RegularExpression.exe

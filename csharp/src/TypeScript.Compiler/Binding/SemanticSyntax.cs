@@ -9,8 +9,14 @@ internal static class SemanticSyntax
 {
     internal static SyntaxNode? Name(SyntaxNode? node) => (node as INamedNode)?.Name;
 
-    internal static bool HasModifier(SyntaxNode node, K kind) =>
-        node is IModifiedNode { Modifiers: { } list } && list.Any(n => n.Kind == kind);
+    internal static bool HasModifier(SyntaxNode node, K kind)
+    {
+        if (node is IModifiedNode { Modifiers: { } list })
+            foreach (var modifier in list.AsSpan())
+                if (modifier.Kind == kind)
+                    return true;
+        return false;
+    }
 
     internal static bool ClassLike(SyntaxNode? node) => node?.Kind is K.ClassDeclaration or K.ClassExpression;
 

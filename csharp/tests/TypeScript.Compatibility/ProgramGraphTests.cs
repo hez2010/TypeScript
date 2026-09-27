@@ -166,15 +166,15 @@ internal static class ProgramGraphTests
         {
             var storage = new BoundSourceFile(new SourceFileNode());
             var original = new IdentifierNode();
-            ref var entry = ref storage.Data(original);
+            var entry = storage.Data(original);
             entry.Flags = NodeFlags.Synthesized;
-            var snapshot = storage.Get(original)!.Value;
+            var view = storage.Get(original)!.Value;
             for (int i = 0; i < 3000; i++)
                 storage.Data(new IdentifierNode()).Flags = NodeFlags.Ambient;
             entry.Flags |= NodeFlags.ThisNodeHasError;
             Check(storage.Get(original)!.Value.Flags == (NodeFlags.Synthesized | NodeFlags.ThisNodeHasError),
                 "Binding slots retain their identity when the node index and chunk storage grow");
-            Check(snapshot.Flags == NodeFlags.Synthesized, "Returned binding values are snapshots");
+            Check(view.Flags == entry.Flags, "Returned binding views retain the node state");
             Check(storage.Get(new IdentifierNode()) is null, "An absent binding differs from a default binding value");
         }
         const int depth = 12000;

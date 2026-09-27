@@ -70,7 +70,7 @@ internal static class CheckerAliasTests
         {
             var symbol = new Symbol(SymbolFlags.Alias | extra, name);
             var declaration = new ImportEqualsDeclarationNode { Name = new IdentifierNode { Text = name } };
-            symbol.DeclarationList.Add(declaration);
+            symbol.DeclarationList = symbol.DeclarationList.Add(declaration);
             host.Targets[declaration] = _ => ValueTask.FromResult(target);
             return symbol;
         }
@@ -151,7 +151,7 @@ internal static class CheckerAliasTests
 
         var module = new Symbol(SymbolFlags.ValueModule, "module");
         module.ExportTable.Add("value", value);
-        module.DeclarationList.Add(program.SourceFiles[0].Syntax);
+        module.DeclarationList = module.DeclarationList.Add(program.SourceFiles[0].Syntax);
         var memberType = context.NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved, module);
         memberType.Members = module.Exports;
         memberType.CallSignatures = [context.NewSignature(0, null, [], null, [], context.AnyType, null, 0)];
@@ -179,7 +179,7 @@ internal static class CheckerAliasTests
         var declarations = exportFile.Statements!.Cast<ExportDeclarationNode>().ToArray();
         var parent = new Symbol(SymbolFlags.ValueModule, "parent");
         var stars = new Symbol(SymbolFlags.ExportStar, Symbol.InternalPrefix + "export");
-        stars.DeclarationList.AddRange(declarations);
+        stars.DeclarationList = stars.DeclarationList.AddRange(declarations);
         parent.ExportTable.Add(stars.Name, stars);
         exportHost.Modules.Add(declarations[0], left);
         exportHost.Modules.Add(declarations[1], right);

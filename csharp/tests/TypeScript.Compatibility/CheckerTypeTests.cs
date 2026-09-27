@@ -257,7 +257,7 @@ internal static class CheckerTypeTests
                     End = values.Count + 1,
                     Parent = memberSource!
                 };
-                property.DeclarationList.Add(declaration);
+                property.DeclarationList = property.DeclarationList.Add(declaration);
                 property.ValueDeclaration = declaration;
                 if (args.Length > 1)
                     links.Values.Get(property).NameType = args[1];
@@ -322,7 +322,7 @@ internal static class CheckerTypeTests
                 var declaration = nodes.Single(n => n is INamedNode { Name: IdentifierNode id } && id.Text == symbol
                     && (Bool(step, "this") ? n is ClassDeclarationNode : n is TypeParameterDeclarationNode));
                 var parameterSymbol = new Symbol(SymbolFlags.TypeParameter, symbol);
-                parameterSymbol.DeclarationList.Add(declaration);
+                parameterSymbol.DeclarationList = parameterSymbol.DeclarationList.Add(declaration);
                 var parameter = c.NewTypeParameter(parameterSymbol);
                 parameter.IsThisType = Bool(step, "this");
                 var unknownSymbol = new Symbol(SymbolFlags.None, "unknown");
@@ -334,7 +334,7 @@ internal static class CheckerTypeTests
                     if (node is IdentifierNode identifier)
                     {
                         var value = new Symbol(SymbolFlags.BlockScopedVariable, identifier.Text);
-                        value.DeclarationList.AddRange(nodes.OfType<VariableDeclarationNode>()
+                        value.DeclarationList = value.DeclarationList.AddRange(nodes.OfType<VariableDeclarationNode>()
                             .Where(d => d.Name is IdentifierNode name && name.Text == identifier.Text));
                         instantiationHost!.ValueSymbols[identifier] = value;
                     }
@@ -350,7 +350,7 @@ internal static class CheckerTypeTests
                 name.Flags = SymbolFlags.TypeLiteral;
                 SyntaxNode node = (flags & (uint)ObjectFlags.InstantiationExpressionType) != 0
                     ? new ExpressionWithTypeArgumentsNode() : new TypeLiteralNode();
-                name.DeclarationList.Add(node);
+                name.DeclarationList = name.DeclarationList.Add(node);
                 var result = c.NewObjectType((ObjectFlags)flags, name);
                 if (result is InstantiationExpressionType expression)
                     expression.Node = node;
@@ -405,8 +405,8 @@ internal static class CheckerTypeTests
                 };
                 var name = SymbolFor(text)!;
                 name.Flags = SymbolFlags.TypeLiteral;
-                name.DeclarationList.Add(declaration);
-                parameter.Symbol!.DeclarationList.Add(declaration.TypeParameter);
+                name.DeclarationList = name.DeclarationList.Add(declaration);
+                parameter.Symbol!.DeclarationList = parameter.Symbol!.DeclarationList.Add(declaration.TypeParameter);
                 parameter.Constraint = args[1];
                 instantiationHost!.Parameters[declaration.TypeParameter] = parameter;
                 instantiationHost.ConstraintDependencies.Nodes[declaration.Type!] = _ => ValueTask.FromResult(args[2]);
@@ -472,7 +472,7 @@ internal static class CheckerTypeTests
                 else
                     declaration.DefaultType = null;
                 var name = SymbolFor(symbol)!;
-                name.DeclarationList.Add(declaration);
+                name.DeclarationList = name.DeclarationList.Add(declaration);
                 var parameter = c.NewTypeParameter(name);
                 parameter.IsThisType = Bool(step, "this");
                 return parameter;
@@ -664,7 +664,7 @@ internal static class CheckerTypeTests
                         writer.WriteNumberValue(Ref(data.ContainingType));
                         writer.WriteBase64StringValue(
                             Wtf8.Encode(mapping?.SyntheticOrigin is { } original ? Symbol.EscapeName(original.Name) : ""));
-                        writer.WriteNumberValue(property.Declarations.Count);
+                        writer.WriteNumberValue(property.Declarations.Length);
                         writer.WriteEndArray();
                     }
                     writer.WriteEndArray();

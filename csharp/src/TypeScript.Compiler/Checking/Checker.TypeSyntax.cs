@@ -779,7 +779,7 @@ internal sealed partial class Checker
                 propertyIndex = properties.Count - 1;
             }
             var property = properties[propertyIndex];
-            if (LateName(property.Name) && property.Declarations.Count == 0)
+            if (LateName(property.Name) && property.Declarations.Length == 0)
                 state.Tracker.ReportNonSerializableProperty(TypeDisplay.SymbolName(property));
             if ((state.Flags & NodeBuilderFlags.WriteClassExpressionAsTypeLiteral) != 0 && (property.Flags & SymbolFlags.Prototype) != 0)
                 continue;
@@ -852,8 +852,8 @@ internal sealed partial class Checker
                 name = text;
             else if (nameType is LiteralType { Value: double number })
                 name = TokenFacts.NumberText(number);
-            bool stringNamed = property.Declarations.Count != 0;
-            bool singleQuote = property.Declarations.Count != 0;
+            bool stringNamed = property.Declarations.Length != 0;
+            bool singleQuote = property.Declarations.Length != 0;
             foreach (var propertyDeclaration in property.Declarations)
             {
                 var declarationName = DisplayDeclarationName(propertyDeclaration);

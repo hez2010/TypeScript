@@ -80,7 +80,7 @@ public sealed partial class Parser
         {
             while (Token != end && Token != K.EndOfFile && stop?.Invoke() != true)
             {
-                if (typeMembers && !Peek(ScanTypeMemberStart))
+                if (typeMembers && !Peek(static parser => parser.ScanTypeMemberStart()))
                 {
                     Error(Messages.Property_or_signature_expected);
                     if (Token is K.CloseParenToken or K.CloseBracketToken || Token != K.SemicolonToken && StartsStatement())
@@ -91,7 +91,7 @@ public sealed partial class Parser
                 if (statementList && !StartsStatement())
                 {
                     Error(Messages.Declaration_or_statement_expected);
-                    if (classMemberBodyDepth != 0 && Peek(StartsClassMember))
+                    if (classMemberBodyDepth != 0 && Peek(static parser => parser.StartsClassMember()))
                         break;
                     Next();
                     continue;

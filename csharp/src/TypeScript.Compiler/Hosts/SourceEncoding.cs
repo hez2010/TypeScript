@@ -14,6 +14,10 @@ public static class SourceEncoding
         return bytes.ToArray();
     }
 
+    internal static byte[] DecodeOwnedBytes(byte[] bytes) =>
+        bytes.AsSpan().StartsWith("\uFEFF"u8) || bytes.AsSpan().StartsWith((ReadOnlySpan<byte>)[0xFF, 0xFE])
+            || bytes.AsSpan().StartsWith((ReadOnlySpan<byte>)[0xFE, 0xFF]) ? DecodeBytes(bytes) : bytes;
+
     public static string Decode(ReadOnlySpan<byte> bytes)
     {
         if (bytes.StartsWith("\uFEFF"u8))

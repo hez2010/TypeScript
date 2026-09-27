@@ -138,7 +138,7 @@ internal static class CheckerNameTests
         var before = new Symbol(SymbolFlags.Interface | SymbolFlags.Transient, "I");
         before.MemberTable["x"] = new(SymbolFlags.BlockScopedVariable, "x");
         var addition = new Symbol(SymbolFlags.Interface | SymbolFlags.ValueModule, "I") { ValueDeclaration = use };
-        addition.DeclarationList.Add(use);
+        addition.DeclarationList = addition.DeclarationList.Add(use);
         addition.MemberTable["x"] = new(SymbolFlags.BlockScopedVariable, "x");
         var transactional = new SymbolMerger(unknown, globalThis, s => s, (_, _, _) => throw new InvalidDataException("conflict"));
         var originalMember = before.Members["x"];
@@ -152,7 +152,7 @@ internal static class CheckerNameTests
             assertions++;
         }
         Check(before.Members["x"] == originalMember && transactional.GetMergedSymbol(addition) == addition
-            && before.Flags == (SymbolFlags.Interface | SymbolFlags.Transient) && before.ValueDeclaration is null && before.Declarations.Count == 0);
+            && before.Flags == (SymbolFlags.Interface | SymbolFlags.Transient) && before.ValueDeclaration is null && before.Declarations.Length == 0);
 
         var importFile = Parser.ParseSourceFile(new("/imports.ts"), new SourceText("import {x as y} from 'p'; y;"));
         var importBinding = Binder.Bind(importFile);

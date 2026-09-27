@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <NuGetLockFilePath Condition="'$(PublishAot)' == 'true'">packages.aot.lock.json</NuGetLockFilePath>
     <OutputType>Exe</OutputType>
-    <PublishAot>true</PublishAot>
     <IlcGenerateMapFile>true</IlcGenerateMapFile>
     <EventSourceSupport>true</EventSourceSupport>
     <JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault>

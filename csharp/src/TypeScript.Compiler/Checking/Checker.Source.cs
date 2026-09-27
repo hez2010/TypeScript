@@ -749,7 +749,7 @@ internal sealed partial class Checker
                 && await Properties.PropertyAsync(
                     contextual,
                     SyntaxNameText.Get(name),
-                    cancellation: cancellation).ConfigureAwait(false) is { Declarations.Count: > 0 } property
+                    cancellation: cancellation).ConfigureAwait(false) is { Declarations.Length: > 0 } property
                 && program.Deprecations.Symbol(property))
                 program.Suggestion(name, DiagnosticCode.X0IsDeprecated, property.Name);
         }

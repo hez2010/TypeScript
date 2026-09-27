@@ -88,7 +88,7 @@ internal sealed partial class Checker
         await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
             ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
         cancellation.ThrowIfCancellationRequested();
-        if (lookup.Symbol.Declarations.Count != 0 && lookup.Symbol.Declarations.All(d => d is
+        if (lookup.Symbol.Declarations.Length != 0 && lookup.Symbol.Declarations.All(d => d is
             PropertyDeclarationNode or MethodDeclarationNode or GetAccessorDeclarationNode or SetAccessorDeclarationNode))
             return null;
         SyntaxNode? firstScope = null;

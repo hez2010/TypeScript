@@ -99,7 +99,7 @@ internal static class BindingTests
         string Name(Symbol symbol)
         {
             if (symbol.Name.Span.StartsWith(TypeScript.Compiler.Binding.Symbol.InternalPrefix + "#", StringComparison.Ordinal)
-                && symbol.Parent is { Declarations.Count: > 0 } parent)
+                && symbol.Parent is { Declarations.Length: > 0 } parent)
                 return "__#" + Node(parent.Declarations[0]) + symbol.Name[symbol.Name.Span.IndexOf('@')..].ToString();
             if (symbol.Name.Span.StartsWith(TypeScript.Compiler.Binding.Symbol.InternalPrefix + "\"", StringComparison.Ordinal)
                 && symbol.Name.Span.Contains(

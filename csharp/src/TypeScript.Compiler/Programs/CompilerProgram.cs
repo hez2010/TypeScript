@@ -704,24 +704,26 @@ public sealed partial class CompilerProgram
                     js ? [path] : [path, SupportedExtensionsText(project)]);
                 return new(null, parseOptions, format, scope?.Directory ?? "", type, Diagnostics: [diagnostic], FailedLookup: true);
             }
-            byte[]? bytes = fs.ReadFile(path);
-            if (bytes is null)
+            SourceText? source = (fs as LibraryFileSystem)?.ReadBundledSource(path);
+            byte[]? bytes = source is null ? fs.ReadFile(path) : null;
+            if (source is null && bytes is null)
                 return new(null, parseOptions, format, scope?.Directory ?? "", type);
-            bytes = SourceEncoding.DecodeBytes(bytes);
+            if (bytes is not null)
+                bytes = SourceEncoding.DecodeOwnedBytes(bytes);
             if (mapper is not null)
                 return await ParseMapped(
                     mapper,
                     parseOptions,
-                    new SourceText(bytes),
+                    source ?? SourceText.FromOwnedBytes(bytes!),
                     format,
                     scope?.Directory ?? "",
                     type).ConfigureAwait(false);
-            if (previous?.GetFile(path) is { } old && old.ParseOptions == parseOptions && old.Syntax.Source.Bytes.Span.SequenceEqual(bytes))
+            if (previous?.GetFile(path) is { } old && old.ParseOptions == parseOptions && old.Syntax.Source.Bytes.Span.SequenceEqual(source is null ? bytes : source.Bytes.Span))
             {
                 Interlocked.Increment(ref reused);
                 return new(old.Syntax, parseOptions, format, scope?.Directory ?? "", type);
             }
-            var syntax = await Parser.ParseSourceFileAsync(parseOptions, new SourceText(bytes), cancellation).ConfigureAwait(false);
+            var syntax = await Parser.ParseSourceFileAsync(parseOptions, source ?? SourceText.FromOwnedBytes(bytes!), cancellation).ConfigureAwait(false);
             return new(syntax, parseOptions, format, scope?.Directory ?? "", type);
         }
     }

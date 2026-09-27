@@ -43,7 +43,7 @@ internal sealed partial class Checker
             if (objectElements is null)
                 return false;
             var expected = await Properties.GetAsync(type, cancellation);
-            if (expected.Sum(p => p.Declarations.Count) != objectElements.Count)
+            if (expected.Sum(p => p.Declarations.Length) != objectElements.Count)
                 return false;
             foreach (var property in objectElements)
             {

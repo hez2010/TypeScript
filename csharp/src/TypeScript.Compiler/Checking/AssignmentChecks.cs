@@ -38,7 +38,7 @@ internal sealed class AssignmentChecks(TypeContext context, CheckerLinks links, 
         cancellation.ThrowIfCancellationRequested();
         if (!BinaryExpressions.Assignment(op))
             return;
-        if (host.ExportsPropertyAssignment(left) && links.SymbolNodes.Get(left).ResolvedSymbol is { Declarations.Count: > 1 }
+        if (host.ExportsPropertyAssignment(left) && links.SymbolNodes.Get(left).ResolvedSymbol is { Declarations.Length: > 1 }
             && (rightType.Flags & TypeFlags.Undefined) != 0)
             return;
         if (op is >= SyntaxKind.FirstCompoundAssignment and <= SyntaxKind.LastCompoundAssignment

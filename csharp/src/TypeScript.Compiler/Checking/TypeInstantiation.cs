@@ -35,8 +35,36 @@ internal interface ITypeInstantiationHost
 internal sealed partial class TypeInstantiation(TypeContext context, TypeAlgebra algebra, CheckerLinks links, ITypeInstantiationHost host)
 {
     private readonly TypeVariables variables = new(host.TypeArgumentsAsync);
-    private readonly List<(TypeMapper Mapper, Dictionary<TypeCacheKey, Type> Cache)> active = [];
-    private readonly Stack<Dictionary<TypeCacheKey, Type>> availableCaches = [];
+    private readonly List<(TypeMapper Mapper, InstantiationCache Cache)> active = [];
+    private readonly Stack<InstantiationCache> availableCaches = [];
+
+    private sealed class InstantiationCache
+    {
+        private readonly Dictionary<uint, Type> types = [];
+        private Dictionary<TypeCacheKey, Type>? aliases;
+
+        internal bool TryGet(uint type, TypeCacheKey? alias, out Type? result)
+        {
+            if (alias is not { } key)
+                return types.TryGetValue(type, out result);
+            result = null;
+            return aliases is not null && aliases.TryGetValue(key, out result);
+        }
+
+        internal void Set(uint type, TypeCacheKey? alias, Type result)
+        {
+            if (alias is { } key)
+                (aliases ??= [])[key] = result;
+            else
+                types[type] = result;
+        }
+
+        internal void Clear()
+        {
+            types.Clear();
+            aliases?.Clear();
+        }
+    }
     private int depth, count;
     private readonly Dictionary<Type, Type> restrictiveTypes = [];
     private readonly Dictionary<Type, Type> permissiveTypes = [];
@@ -73,8 +101,6 @@ internal sealed partial class TypeInstantiation(TypeContext context, TypeAlgebra
         TypeAlias? alias = null,
         CancellationToken cancellation = default)
     {
-        await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
-            ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
         cancellation.ThrowIfCancellationRequested();
         if (type is null)
             return null;
@@ -94,6 +120,8 @@ internal sealed partial class TypeInstantiation(TypeContext context, TypeAlgebra
                 }
         if (!affected)
             return type;
+        await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
+            ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
         if (depth == 100 || count >= 5_000_000)
         {
             host.InstantiationLimit(depth, count);
@@ -103,20 +131,20 @@ internal sealed partial class TypeInstantiation(TypeContext context, TypeAlgebra
         while (index >= 0 && active[index].Mapper != mapper)
             index--;
         bool ownsScope = index < 0;
-        Dictionary<TypeCacheKey, Type> cache;
+        InstantiationCache cache;
         if (ownsScope)
         {
-            cache = availableCaches.TryPop(out var reusable) ? reusable : [];
+            cache = availableCaches.TryPop(out var reusable) ? reusable : new();
             active.Add((mapper, cache));
         }
         else
             cache = active[index].Cache;
         // A newly opened scope has an empty cache and never stores its own result.
         // Alias keys still assign the symbol's lazy identity in reference order.
-        TypeCacheKey? key = ownsScope && alias is null ? null : TypeCacheKey.Union([type], null, alias);
+        TypeCacheKey? key = alias is null ? null : TypeCacheKey.Union([type], null, alias);
         try
         {
-            if (key is not null && cache.TryGetValue(key.Value, out var cached))
+            if (!ownsScope && cache.TryGet(type.Id, key, out var cached))
                 return cached;
             TotalCount++;
             count++;
@@ -132,7 +160,7 @@ internal sealed partial class TypeInstantiation(TypeContext context, TypeAlgebra
             }
             context.RequireOwned(result);
             if (!ownsScope)
-                cache[key!.Value] = result;
+                cache.Set(type.Id, key, result);
             return result;
         }
         finally

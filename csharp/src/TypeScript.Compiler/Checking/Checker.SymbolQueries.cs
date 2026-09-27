@@ -331,7 +331,7 @@ internal sealed partial class Checker
             return null;
         var symbol = new Symbol(SymbolFlags.Property | SymbolFlags.Transient, Symbol.InternalPrefix + "index")
         { CheckFlags = CheckFlags.IndexSymbol, Parent = type.Symbol, ValueDeclaration = declarations[0] };
-        symbol.DeclarationList.AddRange(declarations);
+        symbol.DeclarationList = symbol.DeclarationList.AddRange(declarations);
         links.Values.Get(symbol).ResolvedType = info.ValueType;
         cancellation.ThrowIfCancellationRequested();
         return info.IndexSymbol = symbol;

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <NuGetLockFilePath Condition="'$(PublishAot)' == 'true'">packages.aot.lock.json</NuGetLockFilePath>
     <OutputType>Exe</OutputType>
-    <PublishAot>true</PublishAot>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../../src/TypeScript.Compiler/Ast/*.cs" Link="Ast/%(Filename)%(Extension)" />

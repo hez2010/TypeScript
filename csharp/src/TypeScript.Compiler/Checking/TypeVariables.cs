@@ -11,14 +11,14 @@ internal sealed class TypeVariables(Func<TypeReference, CancellationToken, Value
 {
     internal async ValueTask<bool> CouldContainAsync(Type type, CancellationToken cancellation = default)
     {
-        await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
-            ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
         cancellation.ThrowIfCancellationRequested();
         if ((type.Flags & F.StructuredOrInstantiable) == 0)
             return false;
         var flags = type.ObjectFlags;
         if ((flags & O.CouldContainTypeVariablesComputed) != 0)
             return (flags & O.CouldContainTypeVariables) != 0;
+        await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
+            ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
         bool result = (type.Flags & F.Instantiable) != 0;
         if (!result && (type.Flags & F.Object) != 0 && !IsNonGenericTopLevel(type))
         {
@@ -34,7 +34,7 @@ internal sealed class TypeVariables(Func<TypeReference, CancellationToken, Value
                             break;
                         }
             }
-            result |= (flags & O.Anonymous) != 0 && type.Symbol is { Declarations.Count: > 0 } symbol
+            result |= (flags & O.Anonymous) != 0 && type.Symbol is { Declarations.Length: > 0 } symbol
                 && (symbol.Flags & (SymbolFlags.Function | SymbolFlags.Method | SymbolFlags.Class | SymbolFlags.TypeLiteral | SymbolFlags.ObjectLiteral)) != 0
                 || (flags & (O.Mapped | O.ReverseMapped | O.ObjectRestType | O.InstantiationExpressionType)) != 0;
         }

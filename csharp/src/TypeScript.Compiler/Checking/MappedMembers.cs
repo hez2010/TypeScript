@@ -256,7 +256,7 @@ internal sealed class MappedMembers(TypeContext context, TypeAlgebra algebra, Ty
                         {
                             mapping.SyntheticOrigin = original;
                             if (linkDeclarations)
-                                property.DeclarationList.AddRange(original.Declarations);
+                                property.DeclarationList = property.DeclarationList.AddRange(original.Declarations);
                         }
                     }
                     else if (await ValidIndexKeyAsync(name, cancellation).ConfigureAwait(false) || (name.Flags & (F.Any | F.Enum)) != 0)

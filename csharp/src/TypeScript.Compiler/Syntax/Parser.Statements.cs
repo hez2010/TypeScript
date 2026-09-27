@@ -141,7 +141,7 @@ public sealed partial class Parser
                 break;
         }
 
-        NodeList? modifiers = Token == K.AtToken || Peek(StartsDeclaration) ? (await ModifiersCore().ConfigureAwait(false)) : null;
+        NodeList? modifiers = Token == K.AtToken || Peek(static parser => parser.StartsDeclaration()) ? (await ModifiersCore().ConfigureAwait(false)) : null;
         AmbientModifiers(modifiers);
         switch (Token)
         {
@@ -347,10 +347,10 @@ public sealed partial class Parser
             or K.ThrowKeyword or K.TryKeyword or K.DebuggerKeyword or K.CatchKeyword or K.FinallyKeyword
             or K.AsyncKeyword or K.DeclareKeyword or K.InterfaceKeyword or K.ModuleKeyword or K.NamespaceKeyword
             or K.TypeKeyword or K.GlobalKeyword or K.DeferKeyword => true,
-        K.ImportKeyword => Peek(StartsDeclaration) || Peek(() => Next() is K.OpenParenToken or K.LessThanToken or K.DotToken),
-        K.ConstKeyword or K.ExportKeyword => Peek(StartsDeclaration),
+        K.ImportKeyword => Peek(static parser => parser.StartsDeclaration()) || Peek(() => Next() is K.OpenParenToken or K.LessThanToken or K.DotToken),
+        K.ConstKeyword or K.ExportKeyword => Peek(static parser => parser.StartsDeclaration()),
         K.AccessorKeyword or K.PublicKeyword or K.PrivateKeyword or K.ProtectedKeyword or K.StaticKeyword or K.ReadonlyKeyword =>
-            Peek(StartsDeclaration) || !Peek(() =>
+            Peek(static parser => parser.StartsDeclaration()) || !Peek(() =>
             {
                 Next();
                 return !LineBreak && (IsIdentifier || Token is >= K.FirstKeyword and <= K.LastKeyword);
@@ -730,7 +730,7 @@ public sealed partial class Parser
 
     private bool ClassMemberBoundary()
     {
-        while (Token is not (K.CloseBraceToken or K.EndOfFile) && !Peek(StartsClassMember))
+        while (Token is not (K.CloseBraceToken or K.EndOfFile) && !Peek(static parser => parser.StartsClassMember()))
         {
             if (StartsStatement())
                 return true;

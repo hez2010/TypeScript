@@ -11,6 +11,7 @@ public interface IFileSystem
 
     bool DirectoryExists(string path);
 
+    /// <summary>Returns an owned buffer whose ownership transfers to the caller.</summary>
     byte[]? ReadFile(string path);
 
     void WriteFile(string path, ReadOnlySpan<byte> contents);

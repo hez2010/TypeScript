@@ -38,7 +38,7 @@ internal sealed class IndexDeclarationChecks(CheckerSymbols symbols, TypeNodes n
         foreach (var member in members)
         {
             cancellation.ThrowIfCancellationRequested();
-            if (symbols.Declaration(member) is not { Declarations.Count: > 1 } symbol)
+            if (symbols.Declaration(member) is not { Declarations.Length: > 1 } symbol)
                 continue;
             int kind = member is PropertySignatureDeclarationNode
                 ? 1
@@ -155,7 +155,7 @@ internal sealed class IndexDeclarationChecks(CheckerSymbols symbols, TypeNodes n
     internal async ValueTask DuplicateIndexesAsync(SyntaxNode node, CancellationToken cancellation = default)
     {
         var symbol = symbols.Declaration(node);
-        if (symbol?.Members.GetValueOrDefault(Symbol.InternalPrefix + "index") is not { Declarations.Count: > 1 } index)
+        if (symbol?.Members.GetValueOrDefault(Symbol.InternalPrefix + "index") is not { Declarations.Length: > 1 } index)
             return;
         var groups = new Dictionary<Type, List<SyntaxNode>>();
         foreach (var declaration in index.Declarations)

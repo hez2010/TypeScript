@@ -19,6 +19,9 @@ internal abstract class TypeMapper
 
     private protected abstract Type MapLeaf(Type type);
 
+    internal (Type Source, Type Target) Single => this is Simple simple ? (simple.Source, simple.Target)
+        : throw new InvalidOperationException("Mapper is not a single-parameter mapping");
+
     internal IReadOnlyList<Type> Sources => this is Direct direct ? direct.SourceTypes
         : throw new InvalidOperationException("Mapper has no direct sources");
     internal IReadOnlyList<Type> Targets => this is Direct direct ? direct.TargetTypes
@@ -36,9 +39,15 @@ internal abstract class TypeMapper
     {
         // A composite can re-enter through structural instantiation. Preserve the
         // checker's semantic limits instead of imposing a native-stack limit.
+        cancellation.ThrowIfCancellationRequested();
+        if (this is Simple or Direct or SingleTarget)
+        {
+            var mapped = MapLeaf(type);
+            type.Context.RequireOwned(mapped);
+            return mapped;
+        }
         if (!RuntimeHelpers.TryEnsureSufficientExecutionStack())
             await Task.CompletedTask.ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
-        cancellation.ThrowIfCancellationRequested();
         if (this is not (Merged or Composite))
         {
             var mapped = this is AsyncFunctionMapper function
@@ -48,37 +57,45 @@ internal abstract class TypeMapper
             return mapped;
         }
         Type result = type;
-        var pending = new Stack<(TypeMapper Mapper, Type? Original)>();
-        pending.Push((this, null));
-        while (pending.TryPop(out var frame))
+        var pending = Interlocked.Exchange(ref type.Context.MappingScratch, null) ?? new Stack<(TypeMapper Mapper, Type? Original)>();
+        try
         {
-            cancellation.ThrowIfCancellationRequested();
-            switch (frame.Mapper)
+            pending.Push((this, null));
+            while (pending.TryPop(out var frame))
             {
-                case Merged merged:
-                    pending.Push((merged.Second, null));
-                    pending.Push((merged.First, null));
-                    break;
-                case Composite composite when frame.Original is null:
-                    pending.Push((composite, result));
-                    pending.Push((composite.First, null));
-                    break;
-                case Composite composite:
-                    if (result != frame.Original)
-                        result = await composite.Instantiate(result, composite.Second, cancellation).ConfigureAwait(false);
-                    else
-                        pending.Push((composite.Second, null));
-                    break;
-                case AsyncFunctionMapper function:
-                    result = await function.Callback(result, cancellation).ConfigureAwait(false);
-                    break;
-                default:
-                    result = frame.Mapper.MapLeaf(result);
-                    break;
+                cancellation.ThrowIfCancellationRequested();
+                switch (frame.Mapper)
+                {
+                    case Merged merged:
+                        pending.Push((merged.Second, null));
+                        pending.Push((merged.First, null));
+                        break;
+                    case Composite composite when frame.Original is null:
+                        pending.Push((composite, result));
+                        pending.Push((composite.First, null));
+                        break;
+                    case Composite composite:
+                        if (result != frame.Original)
+                            result = await composite.Instantiate(result, composite.Second, cancellation).ConfigureAwait(false);
+                        else
+                            pending.Push((composite.Second, null));
+                        break;
+                    case AsyncFunctionMapper function:
+                        result = await function.Callback(result, cancellation).ConfigureAwait(false);
+                        break;
+                    default:
+                        result = frame.Mapper.MapLeaf(result);
+                        break;
+                }
+                type.Context.RequireOwned(result);
             }
-            type.Context.RequireOwned(result);
+            return result;
         }
-        return result;
+        finally
+        {
+            pending.Clear();
+            Interlocked.CompareExchange(ref type.Context.MappingScratch, pending, null);
+        }
     }
 
     internal Type MapType(Type type, CancellationToken cancellation = default)
@@ -90,7 +107,7 @@ internal abstract class TypeMapper
     internal static TypeMapper Create(ReadOnlySpan<Type> sources, ReadOnlySpan<Type> targets)
     {
         Validate(sources, targets);
-        return new Direct(sources.ToArray(), targets.ToArray(), sources.Length == 1);
+        return sources.Length == 1 ? new Simple(sources[0], targets[0]) : new Direct(sources.ToArray(), targets.ToArray());
     }
 
     internal static TypeMapper ToSingle(ReadOnlySpan<Type> sources, Type target)
@@ -139,11 +156,20 @@ internal abstract class TypeMapper
         }
     }
 
-    private sealed class Direct(Type[] sources, Type[] targets, bool simple) : TypeMapper
+    private sealed class Simple(Type source, Type target) : TypeMapper
+    {
+        internal Type Source => source;
+        internal Type Target => target;
+        internal override TypeMapperKind Kind => TypeMapperKind.Simple;
+        internal override bool MapsThisOnly => source is TypeParameter { IsThisType: true };
+        private protected override Type MapLeaf(Type type) => type == source ? target : type;
+    }
+
+    private sealed class Direct(Type[] sources, Type[] targets) : TypeMapper
     {
         internal IReadOnlyList<Type> SourceTypes { get; } = Array.AsReadOnly(sources);
         internal IReadOnlyList<Type> TargetTypes { get; } = Array.AsReadOnly(targets);
-        internal override TypeMapperKind Kind => simple ? TypeMapperKind.Simple : TypeMapperKind.Array;
+        internal override TypeMapperKind Kind => TypeMapperKind.Array;
         internal override bool MapsThisOnly => sources is [TypeParameter { IsThisType: true }];
 
         private protected override Type MapLeaf(Type type)

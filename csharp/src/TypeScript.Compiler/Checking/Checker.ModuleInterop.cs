@@ -259,7 +259,7 @@ internal sealed partial class Checker
         if (await SyntheticDefaultAsync(original, specifier, false, cancellation).ConfigureAwait(false))
         {
             var symbol = new Symbol(SymbolFlags.TypeLiteral | SymbolFlags.Transient, Symbol.InternalPrefix + "type");
-            symbol.DeclarationList.AddRange(original.Declarations);
+            symbol.DeclarationList = symbol.DeclarationList.AddRange(original.Declarations);
             var wrapper = await DefaultWrapperAsync(target, original, symbol, cancellation).ConfigureAwait(false);
             links.Values.Get(symbol).ResolvedType = wrapper;
             result = await Bindings.ValidSpreadAsync(type, cancellation).ConfigureAwait(false)
@@ -279,7 +279,7 @@ internal sealed partial class Checker
         if (anonymous is null && original is not null)
         {
             anonymous = new Symbol(SymbolFlags.ObjectLiteral | SymbolFlags.Transient, Symbol.InternalPrefix + "object");
-            anonymous.DeclarationList.AddRange(original.Declarations);
+            anonymous.DeclarationList = anonymous.DeclarationList.AddRange(original.Declarations);
         }
         var result = context.NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved, anonymous);
         result.Members = new Dictionary<TextSlice, Symbol> { ["default"] = property }.AsReadOnly();
@@ -340,7 +340,7 @@ internal sealed partial class Checker
         { Parent = value.Parent ?? type.Parent, ValueDeclaration = value.ValueDeclaration };
         foreach (var declaration in value.Declarations.Concat(type.Declarations))
             if (result.DeclarationList.LastOrDefault() != declaration)
-                result.DeclarationList.Add(declaration);
+                result.DeclarationList = result.DeclarationList.Add(declaration);
         foreach (var (name, member) in type.Members)
             result.MemberTable[name] = member;
         foreach (var (name, member) in value.Exports)

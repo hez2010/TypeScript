@@ -57,7 +57,7 @@ internal sealed class ValueUseChecks(CheckerSymbols symbols, AliasResolver alias
         if (inModule && valueMeaning && location is not null && (location.Flags & NodeFlags.JSDoc) == 0)
         {
             var merged = symbols.Merger.GetMergedSymbol(symbol)!;
-            if (merged.Declarations.Count != 0 && merged.Declarations.All(d => d is NamespaceExportDeclarationNode
+            if (merged.Declarations.Length != 0 && merged.Declarations.All(d => d is NamespaceExportDeclarationNode
                 || d is SourceFileNode && symbols.Binding(d)?.GlobalExports.Count > 0))
             {
                 if (symbols.Program.Configuration.Options.Boolean("allowUmdGlobalAccess") == true)

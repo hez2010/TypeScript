@@ -96,8 +96,11 @@ TextSlice.ConcatMany(receiver, "[", CheckerDiagnostic.DeclarationName(((ElementA
             {
                 Diagnostic? reason = null;
                 if ((indexType.Flags & TypeFlags.EnumLiteral) != 0)
+                {
+                    var name = await TypeDisplay.GetAsync(indexType, cancellation);
                     reason = CheckerDiagnostic.Create(node, Messages.Property_0_does_not_exist_on_type_1,
-                        TextSlice.Concat("[", await TypeDisplay.GetAsync(indexType, cancellation), "]"), receiver);
+                        TextSlice.Concat("[", name, "]"), receiver);
+                }
                 else if (indexType is UniqueSymbolType unique)
                     reason = CheckerDiagnostic.Create(node, Messages.Property_0_does_not_exist_on_type_1,
                         TextSlice.Concat("[", TypeDisplay.SymbolName(unique.Symbol!), "]"), receiver);

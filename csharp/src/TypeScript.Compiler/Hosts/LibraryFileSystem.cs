@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
+using TypeScript.Compiler.Text;
 
 namespace TypeScript.Compiler.Hosts;
 
@@ -15,6 +16,7 @@ public sealed class LibraryFileSystem(IFileSystem underlying) : IFileSystem
                 "TypeScript.Libraries.",
                 StringComparison.Ordinal)).Select(n => n["TypeScript.Libraries.".Length..]).ToFrozenSet(StringComparer.Ordinal);
     private static readonly ConcurrentDictionary<string, byte[]> Contents = new(StringComparer.Ordinal);
+    private static readonly ConcurrentDictionary<string, SourceText> Sources = new(StringComparer.Ordinal);
 
     private static bool HasLibrary(string path)
     {
@@ -75,6 +77,16 @@ public sealed class LibraryFileSystem(IFileSystem underlying) : IFileSystem
             return HasLibrary(path);
 #endif
         return underlying.FileExists(path);
+    }
+
+    internal SourceText? ReadBundledSource(string path)
+    {
+#if EMBED_TYPESCRIPT_LIBRARIES
+        if (IsBundled(path) && Library(path) is { } bytes)
+            return Sources.GetOrAdd(NormalizeBundled(path), static (_, bytes) =>
+                SourceText.FromOwnedBytes(SourceEncoding.DecodeOwnedBytes(bytes)), bytes);
+#endif
+        return null;
     }
 
     public byte[]? ReadFile(string path)

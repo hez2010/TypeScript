@@ -23,7 +23,7 @@ public sealed partial class Binder
     }
 
     private FlowNode Finish(FlowNode label) =>
-        label.AntecedentList.Count switch { 0 => unreachable, 1 => label.AntecedentList[0], _ => label };
+        label.Antecedents.Count switch { 0 => unreachable, 1 => label.Antecedents[0], _ => label };
 
     private FlowNode Mutation(F flags, SyntaxNode node)
     {
@@ -79,7 +79,7 @@ public sealed partial class Binder
             var savedContinue = continueTarget;
             var savedReturn = returnTarget;
             var savedException = exceptionTarget;
-            var savedLabels = labels;
+            int savedLabelStart = labelStart;
             bool savedReturnFlag = explicitReturn, savedSeenThis = seenThis;
             bool immediate = node.Kind == K.ClassStaticBlockDeclaration || IsImmediate(node);
             if (!immediate)
@@ -88,10 +88,10 @@ public sealed partial class Binder
                     && node.Parent?.Kind is K.ObjectLiteralExpression or K.ClassExpression ? node : null);
             returnTarget = immediate || node.Kind == K.Constructor ? Label() : null;
             exceptionTarget = breakTarget = continueTarget = null;
-            labels = [];
+            labelStart = labels.Count;
             explicitReturn = seenThis = false;
             await Children(node).ConfigureAwait(false);
-            ref var data = ref Data(node);
+            var data = Data(node);
             data.Flags &= ~(NodeFlags.ReachabilityAndEmitFlags | NodeFlags.ContainsThis);
             if ((currentFlow.Flags & F.Unreachable) == 0 && FunctionLike(node) && Body(node) is { } body && body.End > body.Pos)
             {
@@ -117,7 +117,8 @@ public sealed partial class Binder
             continueTarget = savedContinue;
             returnTarget = savedReturn;
             exceptionTarget = savedException;
-            labels = savedLabels;
+            labels.RemoveRange(labelStart, labels.Count - labelStart);
+            labelStart = savedLabelStart;
             explicitReturn = savedReturnFlag;
             seenThis = savedSeenThis || propagatesThis && seenThis;
         }
@@ -168,17 +169,17 @@ public sealed partial class Binder
         if (list is null)
             return;
         if (functionsFirst)
-            foreach (var node in list)
-                if (node.Kind == K.FunctionDeclaration)
-                    await Visit(node).ConfigureAwait(false);
-        foreach (var node in list)
-            if (!functionsFirst || node.Kind != K.FunctionDeclaration)
-                await Visit(node).ConfigureAwait(false);
+            for (int i = 0; i < list.Count; i++)
+                if (list[i].Kind == K.FunctionDeclaration)
+                    await Visit(list[i]).ConfigureAwait(false);
+        for (int i = 0; i < list.Count; i++)
+            if (!functionsFirst || list[i].Kind != K.FunctionDeclaration)
+                await Visit(list[i]).ConfigureAwait(false);
     }
 
     private async ValueTask EachChild(SyntaxNode node)
     {
-        for (int i = 0; i < node.ChildCount; i++)
+        for (int i = 0, count = node.ChildCount; i < count; i++)
             await Visit(node.GetChild(i)).ConfigureAwait(false);
     }
 
@@ -228,108 +229,108 @@ public sealed partial class Binder
         }
         if (node.Kind is not (K.ObjectLiteralExpression or K.ArrayLiteralExpression or K.PropertyAssignment or K.SpreadElement))
             assignmentPattern = false;
-        switch (node)
+        switch (node.Kind)
         {
-            case SourceFileNode:
+            case K.SourceFile when node is SourceFileNode:
                 await Each(file.Statements, true).ConfigureAwait(false);
                 await Visit(file.EndOfFileToken).ConfigureAwait(false);
                 break;
-            case BlockNode or ModuleBlockNode:
+            case K.Block or K.ModuleBlock when node is (BlockNode or ModuleBlockNode):
                 await Each(Statements(node), true).ConfigureAwait(false);
                 break;
-            case IfStatementNode n:
+            case K.IfStatement when node is (IfStatementNode n):
                 await If(n).ConfigureAwait(false);
                 break;
-            case WhileStatementNode n:
+            case K.WhileStatement when node is (WhileStatementNode n):
                 await While(n).ConfigureAwait(false);
                 break;
-            case DoStatementNode n:
+            case K.DoStatement when node is (DoStatementNode n):
                 await Do(n).ConfigureAwait(false);
                 break;
-            case ForStatementNode n:
+            case K.ForStatement when node is (ForStatementNode n):
                 await For(n).ConfigureAwait(false);
                 break;
-            case ForInOrOfStatementNode n:
+            case K.ForInStatement or K.ForOfStatement when node is (ForInOrOfStatementNode n):
                 await ForEach(node, n.Initializer, n.Expression, n.Statement, n.AwaitModifier).ConfigureAwait(false);
                 break;
-            case ReturnStatementNode n:
+            case K.ReturnStatement when node is (ReturnStatementNode n):
                 await Visit(n.Expression).ConfigureAwait(false);
                 Add(returnTarget, currentFlow);
                 currentFlow = unreachable;
                 explicitReturn = hasFlowEffects = true;
                 break;
-            case ThrowStatementNode n:
+            case K.ThrowStatement when node is (ThrowStatementNode n):
                 await Visit(n.Expression).ConfigureAwait(false);
                 currentFlow = unreachable;
                 hasFlowEffects = true;
                 break;
-            case BreakStatementNode n:
+            case K.BreakStatement when node is (BreakStatementNode n):
                 await BreakContinue(n.Label, false).ConfigureAwait(false);
                 break;
-            case ContinueStatementNode n:
+            case K.ContinueStatement when node is (ContinueStatementNode n):
                 await BreakContinue(n.Label, true).ConfigureAwait(false);
                 break;
-            case LabeledStatementNode n:
+            case K.LabeledStatement when node is (LabeledStatementNode n):
                 await Labeled(n).ConfigureAwait(false);
                 break;
-            case TryStatementNode n:
+            case K.TryStatement when node is (TryStatementNode n):
                 await Try(n).ConfigureAwait(false);
                 break;
-            case SwitchStatementNode n:
+            case K.SwitchStatement when node is (SwitchStatementNode n):
                 await Switch(n).ConfigureAwait(false);
                 break;
-            case CaseBlockNode n:
+            case K.CaseBlock when node is (CaseBlockNode n):
                 await Cases(n).ConfigureAwait(false);
                 break;
-            case CaseOrDefaultClauseNode n:
+            case K.CaseClause or K.DefaultClause when node is (CaseOrDefaultClauseNode n):
                 var savedFlow = currentFlow;
                 currentFlow = preSwitchFlow!;
                 await Visit(n.Expression).ConfigureAwait(false);
                 currentFlow = savedFlow;
                 await Each(n.Statements).ConfigureAwait(false);
                 break;
-            case ExpressionStatementNode n:
+            case K.ExpressionStatement when node is (ExpressionStatementNode n):
                 await Visit(n.Expression).ConfigureAwait(false);
                 AssertionCall(n.Expression);
                 break;
-            case PrefixUnaryExpressionNode { Operator: K.ExclamationToken } n:
+            case K.PrefixUnaryExpression when node is (PrefixUnaryExpressionNode { Operator: K.ExclamationToken } n):
                 (trueTarget, falseTarget) = (falseTarget, trueTarget);
                 await EachChild(n).ConfigureAwait(false);
                 (trueTarget, falseTarget) = (falseTarget, trueTarget);
                 break;
-            case PrefixUnaryExpressionNode n:
+            case K.PrefixUnaryExpression when node is (PrefixUnaryExpressionNode n):
                 await EachChild(n).ConfigureAwait(false);
                 if (n.Operator is K.PlusPlusToken or K.MinusMinusToken)
                     AssignmentFlow(n.Operand);
                 break;
-            case PostfixUnaryExpressionNode n:
+            case K.PostfixUnaryExpression when node is (PostfixUnaryExpressionNode n):
                 await EachChild(n).ConfigureAwait(false);
                 AssignmentFlow(n.Operand);
                 break;
-            case BinaryExpressionNode n:
+            case K.BinaryExpression when node is (BinaryExpressionNode n):
                 await Binary(n).ConfigureAwait(false);
                 break;
-            case ConditionalExpressionNode n:
+            case K.ConditionalExpression when node is (ConditionalExpressionNode n):
                 await Conditional(n).ConfigureAwait(false);
                 break;
-            case DeleteExpressionNode n:
+            case K.DeleteExpression when node is (DeleteExpressionNode n):
                 await EachChild(n).ConfigureAwait(false);
                 if (n.Expression is PropertyAccessExpressionNode)
                     AssignmentFlow(n.Expression);
                 break;
-            case VariableDeclarationNode n:
+            case K.VariableDeclaration when node is (VariableDeclarationNode n):
                 await EachChild(n).ConfigureAwait(false);
                 if (n.Initializer is not null || n.Parent?.Parent?.Kind is K.ForInStatement or K.ForOfStatement)
                     Initialized(n);
                 break;
-            case BindingElementNode n:
+            case K.BindingElement when node is (BindingElementNode n):
                 Data(n).Flow = currentFlow;
                 await Visit(n.DotDotDotToken).ConfigureAwait(false);
                 await Visit(n.PropertyName).ConfigureAwait(false);
                 await Initializer(n.Initializer).ConfigureAwait(false);
                 await Visit(n.Name).ConfigureAwait(false);
                 break;
-            case ParameterDeclarationNode n:
+            case K.Parameter when node is (ParameterDeclarationNode n):
                 await Each(n.Modifiers).ConfigureAwait(false);
                 await Visit(n.DotDotDotToken).ConfigureAwait(false);
                 await Visit(n.QuestionToken).ConfigureAwait(false);
@@ -337,7 +338,7 @@ public sealed partial class Binder
                 await Initializer(n.Initializer).ConfigureAwait(false);
                 await Visit(n.Name).ConfigureAwait(false);
                 break;
-            case PropertyAccessExpressionNode or ElementAccessExpressionNode or NonNullExpressionNode:
+            case K.PropertyAccessExpression or K.ElementAccessExpression or K.NonNullExpression when node is (PropertyAccessExpressionNode or ElementAccessExpressionNode or NonNullExpressionNode):
                 if (node is not NonNullExpressionNode && Narrowable(node))
                     Data(node).Flow = currentFlow;
                 if (Optional(node))
@@ -345,7 +346,7 @@ public sealed partial class Binder
                 else
                     await EachChild(node).ConfigureAwait(false);
                 break;
-            case CallExpressionNode n:
+            case K.CallExpression when node is (CallExpressionNode n):
                 await Call(n).ConfigureAwait(false);
                 break;
             default:
@@ -452,7 +453,7 @@ public sealed partial class Binder
 
     private FlowNode ContinueLabel(SyntaxNode node, FlowNode label)
     {
-        for (int i = labels.Count - 1; i >= 0 && node.Parent is LabeledStatementNode; i--)
+        for (int i = labels.Count - 1; i >= labelStart && node.Parent is LabeledStatementNode; i--)
         {
             labels[i] = labels[i] with { Continue = label };
             node = node.Parent;
@@ -563,8 +564,10 @@ public sealed partial class Binder
         FlowNode? target = isContinue ? continueTarget : breakTarget;
         if (label is not null)
         {
-            int index = labels.FindLastIndex(l => l.Name == label.Text);
-            if (index < 0)
+            int index = labels.Count - 1;
+            while (index >= labelStart && labels[index].Name != label.Text)
+                index--;
+            if (index < labelStart)
                 return;
             labels[index] = labels[index] with { Referenced = true };
             target = isContinue ? labels[index].Continue : labels[index].Break;

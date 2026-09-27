@@ -51,7 +51,7 @@ internal static class CheckerConstraintTests
         var defaultNode = new TypeReferenceNode { TypeName = new IdentifierNode { Text = "Default" } };
         var declaration = new TypeParameterDeclarationNode { Name = new IdentifierNode { Text = "T" }, DefaultType = defaultNode };
         var symbol = new Symbol(SymbolFlags.TypeParameter, "T");
-        symbol.DeclarationList.Add(declaration);
+        symbol.DeclarationList = symbol.DeclarationList.Add(declaration);
         var parameter = context.NewTypeParameter(symbol);
         host.Nodes[defaultNode] = _ => constraints.ResolvedDefaultAsync(parameter);
         Check(constraints.DefaultAsync(parameter).GetAwaiter().GetResult() is null);
@@ -64,7 +64,7 @@ internal static class CheckerConstraintTests
             DefaultType = cancelNode
         };
         var canceledSymbol = new Symbol(SymbolFlags.TypeParameter, "Canceled");
-        canceledSymbol.DeclarationList.Add(canceledDeclaration);
+        canceledSymbol.DeclarationList = canceledSymbol.DeclarationList.Add(canceledDeclaration);
         var canceled = context.NewTypeParameter(canceledSymbol);
         host.Nodes[cancelNode] = _ => throw new OperationCanceledException();
         try

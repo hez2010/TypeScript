@@ -196,7 +196,7 @@ internal sealed class ReverseMappedInference(TypeContext context, TypeAlgebra al
                 continue;
             var inferred = new Symbol(SymbolFlags.Property | SymbolFlags.Transient | property.Flags & optional, property.Name)
             { CheckFlags = CheckFlags.ReverseMapped | (readOnly && host.IsReadonly(property) ? CheckFlags.Readonly : 0) };
-            inferred.DeclarationList.AddRange(property.Declarations);
+            inferred.DeclarationList = inferred.DeclarationList.AddRange(property.Declarations);
             links.Values.Get(inferred).NameType = links.Values.Get(property).NameType;
             var data = links.ReverseMappedSymbols.Get(inferred);
             data.PropertyType = await host.SymbolTypeAsync(property, cancellation).ConfigureAwait(false);

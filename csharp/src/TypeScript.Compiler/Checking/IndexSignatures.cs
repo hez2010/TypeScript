@@ -149,7 +149,7 @@ internal sealed class IndexSignatures(
             if (!include)
                 continue;
             types.Add(await host.SymbolTypeAsync(property, cancellation).ConfigureAwait(false));
-            if (property.Declarations.Count != 0 && (property.Declarations[0] as INamedNode)?.Name is ComputedPropertyNameNode)
+            if (property.Declarations.Length != 0 && (property.Declarations[0] as INamedNode)?.Name is ComputedPropertyNameNode)
                 declarations.Add(property.Declarations[0]);
         }
         var value = types.Count == 0

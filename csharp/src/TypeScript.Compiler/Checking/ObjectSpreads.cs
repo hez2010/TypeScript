@@ -89,8 +89,8 @@ internal sealed class ObjectSpreads(TypeContext context, CheckerLinks links, Typ
                             cancellation: cancellation).ConfigureAwait(false);
                     links.Spreads.Get(result).Left = property;
                     links.Spreads.Get(result).Right = previous;
-                    result.DeclarationList.AddRange(property.Declarations);
-                    result.DeclarationList.AddRange(previous.Declarations);
+                    result.DeclarationList = result.DeclarationList.AddRange(property.Declarations);
+                    result.DeclarationList = result.DeclarationList.AddRange(previous.Declarations);
                     links.Values.Get(result).NameType = links.Values.Get(property).NameType;
                     members[property.Name] = result;
                 }
@@ -139,7 +139,7 @@ internal sealed class ObjectSpreads(TypeContext context, CheckerLinks links, Typ
                 && context.StrictNullChecks)
                 value = await algebra.UnionAsync([value, context.UndefinedOrMissingType], cancellation: cancellation).ConfigureAwait(false);
             links.Values.Get(symbol).ResolvedType = value;
-            symbol.DeclarationList.AddRange(property.Declarations);
+            symbol.DeclarationList = symbol.DeclarationList.AddRange(property.Declarations);
             links.Values.Get(symbol).NameType = links.Values.Get(property).NameType;
             links.MappedSymbols.Get(symbol).SyntheticOrigin = property;
             members[symbol.Name] = symbol;

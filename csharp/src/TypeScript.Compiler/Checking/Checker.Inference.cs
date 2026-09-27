@@ -116,7 +116,7 @@ internal sealed partial class Checker : ITypeInferenceHost, IInferredConstraintH
                 links.Values.Get(property).ResolvedType = context.AnyType;
                 if (part.Symbol is { } symbol)
                 {
-                    property.DeclarationList.AddRange(symbol.Declarations);
+                    property.DeclarationList = property.DeclarationList.AddRange(symbol.Declarations);
                     property.ValueDeclaration = symbol.ValueDeclaration;
                 }
                 members[name] = property;

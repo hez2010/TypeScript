@@ -9,6 +9,7 @@ namespace TypeScript.Compiler.Checking;
 public sealed class TypeContext
 {
     private uint typeCount, signatureCount;
+    internal Stack<(TypeMapper Mapper, Type? Original)>? MappingScratch;
     private readonly Dictionary<TextSlice, LiteralType> strings = new();
     private readonly Dictionary<double, LiteralType> numbers = [];
     private readonly Dictionary<BigInteger, LiteralType> bigints = [];

@@ -105,14 +105,14 @@ internal sealed class LateMembers(CheckerSymbols symbols, CheckerLinks links, IL
                                 Parent = original.Parent,
                                 ValueDeclaration = original.ValueDeclaration
                             };
-                            index.DeclarationList.AddRange(original.Declarations);
+                            index.DeclarationList = index.DeclarationList.AddRange(original.Declarations);
                         }
                         else
                             index = new Symbol(SymbolFlags.Transient, indexName) { CheckFlags = CheckFlags.Late };
                         members[indexName] = index;
                     }
-                    if (index.Declarations.Count == 0 || (Raw(member)!.Flags & SymbolFlags.ReplaceableByMethod) == 0)
-                        index.DeclarationList.Add(member);
+                    if (index.Declarations.Length == 0 || (Raw(member)!.Flags & SymbolFlags.ReplaceableByMethod) == 0)
+                        index.DeclarationList = index.DeclarationList.Add(member);
                 }
             }
         });
@@ -153,15 +153,15 @@ internal sealed class LateMembers(CheckerSymbols symbols, CheckerLinks links, IL
         }
         links.Values.Get(symbol).NameType = type;
         SetLate(original, symbol);
-        if (symbol.Declarations.Count == 0 || (original.Flags & SymbolFlags.ReplaceableByMethod) == 0)
+        if (symbol.Declarations.Length == 0 || (original.Flags & SymbolFlags.ReplaceableByMethod) == 0)
         {
             symbol.Flags |= original.Flags;
-            symbol.DeclarationList.Add(declaration);
+            symbol.DeclarationList = symbol.DeclarationList.Add(declaration);
         }
         else if ((symbol.Flags & SymbolFlags.ReplaceableByMethod) != 0 && (original.Flags & SymbolFlags.Method) != 0)
         {
-            symbol.DeclarationList.RemoveAll(d => (Raw(d)!.Flags & SymbolFlags.ReplaceableByMethod) != 0);
-            symbol.DeclarationList.Add(declaration);
+            symbol.DeclarationList = symbol.DeclarationList.RemoveAll(d => (Raw(d)!.Flags & SymbolFlags.ReplaceableByMethod) != 0);
+            symbol.DeclarationList = symbol.DeclarationList.Add(declaration);
             var oldFlags = symbol.Flags;
             symbol.Flags = 0;
             foreach (var item in symbol.Declarations)

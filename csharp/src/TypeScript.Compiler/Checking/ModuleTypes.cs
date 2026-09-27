@@ -16,7 +16,7 @@ internal sealed class ModuleTypes(TypeContext context, CheckerLinks links, Alias
             throw new ArgumentException("Module type members must be resolved before cloning", nameof(resolved));
         var result = new Symbol(symbol.Flags | S.Transient, symbol.Name)
         { Parent = symbol.Parent, ValueDeclaration = symbol.ValueDeclaration };
-        result.DeclarationList.AddRange(symbol.Declarations);
+        result.DeclarationList = result.DeclarationList.AddRange(symbol.Declarations);
         foreach (var pair in symbol.Members)
             result.MemberTable.Add(pair.Key, pair.Value);
         foreach (var pair in symbol.Exports)

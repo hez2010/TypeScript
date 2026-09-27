@@ -73,7 +73,7 @@ internal sealed partial class TypeInstantiation
             Parent = symbol.Parent,
             ValueDeclaration = symbol.ValueDeclaration
         };
-        result.DeclarationList.AddRange(symbol.Declarations);
+        result.DeclarationList = result.DeclarationList.AddRange(symbol.Declarations);
         var resultLinks = links.Values.Get(result);
         resultLinks.Target = symbol;
         resultLinks.Mapper = mapper;

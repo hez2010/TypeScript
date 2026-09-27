@@ -62,7 +62,7 @@ internal sealed partial class Checker
         if (type is null)
         {
             var types = new List<Type>();
-            for (int i = 0; i < symbol.Declarations.Count; i++)
+            for (int i = 0; i < symbol.Declarations.Length; i++)
             {
                 var declaration = symbol.Declarations[i];
                 if (declaration is BinaryExpressionNode { Type: { } annotation })
@@ -71,7 +71,7 @@ internal sealed partial class Checker
                     break;
                 }
                 if (await AssignmentInitializerTypeAsync(declaration, cancellation).ConfigureAwait(false) is { } assigned
-                    && !(i == 0 && symbol.Declarations.Count > 1 && (assigned.Flags & TypeFlags.Undefined) != 0
+                    && !(i == 0 && symbol.Declarations.Length > 1 && (assigned.Flags & TypeFlags.Undefined) != 0
                         && declaration is BinaryExpressionNode binary && ExportsPropertyAssignment(binary.Left!))
                     && !types.Contains(assigned))
                     types.Add(assigned);

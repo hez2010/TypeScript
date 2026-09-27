@@ -326,7 +326,7 @@ internal sealed class BindingTypes(TypeContext context, CheckerLinks links, Chec
         { CheckFlags = (property.CheckFlags & CheckFlags.Late) | (readOnly ? CheckFlags.Readonly : 0) };
         var data = links.Values.Get(result);
         data.ResolvedType = setOnly ? context.UndefinedType : await values.GetAsync(property, cancellation).ConfigureAwait(false);
-        result.DeclarationList.AddRange(property.Declarations);
+        result.DeclarationList = result.DeclarationList.AddRange(property.Declarations);
         data.NameType = links.Values.Get(property).NameType;
         links.MappedSymbols.Get(result).SyntheticOrigin = property;
         return result;

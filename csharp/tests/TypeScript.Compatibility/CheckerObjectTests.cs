@@ -25,7 +25,7 @@ internal static class CheckerObjectTests
         var scope = new FunctionDeclarationNode();
         var declaration = new TypeParameterDeclarationNode { Name = new IdentifierNode { Text = "T" }, Parent = scope };
         var symbol = new Symbol(SymbolFlags.TypeParameter, "T");
-        symbol.DeclarationList.Add(declaration);
+        symbol.DeclarationList = symbol.DeclarationList.Add(declaration);
         var t = context.NewTypeParameter(symbol);
         var u = context.NewTypeParameter(new(SymbolFlags.TypeParameter, "U"));
         var reference = new TypeReferenceNode { TypeName = new IdentifierNode { Text = "T" }, Parent = scope };
@@ -46,7 +46,7 @@ internal static class CheckerObjectTests
 
         var classDeclaration = new ClassDeclarationNode { Parent = scope };
         var classSymbol = new Symbol(SymbolFlags.Class, "C");
-        classSymbol.DeclarationList.Add(classDeclaration);
+        classSymbol.DeclarationList = classSymbol.DeclarationList.Add(classDeclaration);
         var thisType = context.NewTypeParameter(classSymbol);
         thisType.IsThisType = true;
         var thisNode = new TokenNode(SyntaxKind.ThisType) { Parent = classDeclaration };
@@ -64,7 +64,7 @@ internal static class CheckerObjectTests
         var identifier = new IdentifierNode { Text = "value" };
         var query = new TypeQueryNode { ExprName = identifier, Parent = scope };
         var value = new Symbol(SymbolFlags.BlockScopedVariable, "value");
-        value.DeclarationList.Add(new VariableDeclarationNode { Parent = scope });
+        value.DeclarationList = value.DeclarationList.Add(new VariableDeclarationNode { Parent = scope });
         host.ValueSymbols[identifier] = value;
         Check(await host.Objects.PossiblyReferencedAsync(t, query));
         value.DeclarationList[0].Parent = new SourceFileNode();
@@ -92,7 +92,7 @@ internal static class CheckerObjectTests
 
         var objectDeclaration = new TypeLiteralNode { Members = new([reference], -1, -1), Parent = scope };
         var objectSymbol = new Symbol(SymbolFlags.TypeLiteral, "Object");
-        objectSymbol.DeclarationList.Add(objectDeclaration);
+        objectSymbol.DeclarationList = objectSymbol.DeclarationList.Add(objectDeclaration);
         var target = context.NewObjectType(ObjectFlags.Anonymous, objectSymbol);
         host.OuterParameters[objectDeclaration] = new Type[] { t, u };
         var map = TypeMapper.Create([t], [context.StringType]);
@@ -111,7 +111,7 @@ internal static class CheckerObjectTests
 
         var unusedNode = new TypeLiteralNode { Members = new([number], -1, -1), Parent = scope };
         var unusedSymbol = new Symbol(SymbolFlags.TypeLiteral, "Unused");
-        unusedSymbol.DeclarationList.Add(unusedNode);
+        unusedSymbol.DeclarationList = unusedSymbol.DeclarationList.Add(unusedNode);
         var unused = context.NewObjectType(ObjectFlags.Anonymous, unusedSymbol);
         var parameters = new Type[] { t };
         host.OuterParameters[unusedNode] = parameters;
@@ -120,7 +120,7 @@ internal static class CheckerObjectTests
 
         var snapshotNode = new TypeLiteralNode { Parent = scope };
         var snapshotSymbol = new Symbol(SymbolFlags.TypeLiteral, "Snapshot");
-        snapshotSymbol.DeclarationList.Add(snapshotNode);
+        snapshotSymbol.DeclarationList = snapshotSymbol.DeclarationList.Add(snapshotNode);
         var snapshot = context.NewObjectType(ObjectFlags.Anonymous, snapshotSymbol);
         snapshot.Alias = context.CreateAlias(new(SymbolFlags.TypeAlias, "Captured"), [t]);
         host.OuterParameters[snapshotNode] = parameters;

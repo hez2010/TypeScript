@@ -53,7 +53,7 @@ internal sealed class Signatures(TypeContext context, CheckerLinks links, Checke
         if (symbol is null)
             return [];
         var result = new List<Signature>();
-        for (int i = 0; i < symbol.Declarations.Count; i++)
+        for (int i = 0; i < symbol.Declarations.Length; i++)
         {
             cancellation.ThrowIfCancellationRequested();
             var declaration = symbol.Declarations[i];

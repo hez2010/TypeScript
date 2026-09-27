@@ -70,7 +70,7 @@ public sealed partial class Binder
             {
                 var owner = SymbolOf(file)!;
                 Declare(owner.ExportTable, owner, node, AliasExpression(node.Right) ? S.Alias : S.FunctionScopedVariable,
-                    S.FunctionScopedVariableExcludes, AccessName(node.Left) ?? Internal("computed"));
+                    S.FunctionScopedVariableExcludes, AccessName(node.Left) ?? (Symbol.InternalPrefix + "computed"));
             }
         }
         else if (js && AccessBase(node.Left)?.Kind == K.ThisKeyword)
@@ -82,7 +82,7 @@ public sealed partial class Binder
                 && thisContainer.Parent is { } parent && SymbolOf(parent) is { } owner)
             {
                 TextSlice name = DeclarationName(node);
-                bool dynamic = name == Internal("computed");
+                bool dynamic = name == (Symbol.InternalPrefix + "computed");
                 Declare(
                     Has(thisContainer, K.StaticKeyword) || thisContainer.Kind == K.ClassStaticBlockDeclaration
                         ? owner.ExportTable
@@ -165,7 +165,7 @@ public sealed partial class Binder
             if (symbol is null)
                 continue;
             TextSlice name = DeclarationName(node);
-            if (name == Internal("computed"))
+            if (name == (Symbol.InternalPrefix + "computed"))
             {
                 Anonymous(node, S.Property | S.Assignment, name);
                 LateAssignment(symbol, node);
@@ -177,9 +177,9 @@ public sealed partial class Binder
 
     private void LateAssignment(Symbol symbol, SyntaxNode node)
     {
-        if (!symbol.ExportTable.TryGetValue(Internal("assignment"), out var assignments))
-            symbol.ExportTable[Internal("assignment")] = assignments = NewSymbol(0, Internal("assignment"));
-        assignments.DeclarationList.Add(node);
+        if (!symbol.ExportTable.TryGetValue((Symbol.InternalPrefix + "assignment"), out var assignments))
+            symbol.ExportTable[(Symbol.InternalPrefix + "assignment")] = assignments = NewSymbol(0, (Symbol.InternalPrefix + "assignment"));
+        assignments.DeclarationList = assignments.DeclarationList.Add(node);
     }
 
     private void FinishModule(Symbol? symbol)
@@ -199,13 +199,13 @@ public sealed partial class Binder
         if (Data(file).LocalTable.ContainsKey(name))
             return;
         var symbol = NewSymbol(S.FunctionScopedVariable | S.ModuleExports, name);
-        symbol.DeclarationList.Add(file);
+        symbol.DeclarationList = symbol.DeclarationList.Add(file);
         symbol.ValueDeclaration = file;
         Data(file).LocalTable[name] = symbol;
         if (name == "module")
         {
             var exports = NewSymbol(S.ModuleExports | S.Property, "exports", symbol);
-            exports.DeclarationList.Add(file);
+            exports.DeclarationList = exports.DeclarationList.Add(file);
             exports.ValueDeclaration = file;
             symbol.MemberTable["exports"] = exports;
         }

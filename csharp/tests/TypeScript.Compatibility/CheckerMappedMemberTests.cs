@@ -36,9 +36,9 @@ internal static class CheckerMappedMemberTests
             };
             node.SetParents();
             var symbol = new Symbol(SymbolFlags.TypeLiteral, "Mapped");
-            symbol.DeclarationList.Add(node);
+            symbol.DeclarationList = symbol.DeclarationList.Add(node);
             var parameter = context.NewTypeParameter(new(SymbolFlags.TypeParameter, "P"));
-            parameter.Symbol!.DeclarationList.Add(node.TypeParameter);
+            parameter.Symbol!.DeclarationList = parameter.Symbol!.DeclarationList.Add(node.TypeParameter);
             parameter.Constraint = keys;
             var result = (MappedType)context.NewObjectType(ObjectFlags.Mapped, symbol);
             result.Declaration = node;

@@ -36,7 +36,7 @@ internal static class CheckerSymbolTests
             if (definition.TryGetProperty("declaration", out var kind) && kind.GetInt32() != 0)
             {
                 symbol.ValueDeclaration = declarations[(SyntaxKind)kind.GetInt32()];
-                symbol.DeclarationList.Add(symbol.ValueDeclaration);
+                symbol.DeclarationList = symbol.DeclarationList.Add(symbol.ValueDeclaration);
             }
             symbols.Add(symbol);
         }

@@ -148,7 +148,7 @@ internal sealed class IndexedTypes(TypeContext context, TypeAlgebra algebra, Typ
             var property = await properties.PropertyAsync(objectType, (name).Value, cancellation: cancellation).ConfigureAwait(false);
             if (property is not null)
             {
-                if ((flags & AccessFlags.ReportDeprecated) != 0 && node is not null && property.Declarations.Count != 0)
+                if ((flags & AccessFlags.ReportDeprecated) != 0 && node is not null && property.Declarations.Length != 0)
                     await host.DeprecatedPropertyAsync(property, node, cancellation).ConfigureAwait(false);
                 if (element is not null)
                     return await host.ElementPropertyAsync(property, objectType, element, flags, cancellation).ConfigureAwait(false);

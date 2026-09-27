@@ -187,7 +187,7 @@ internal sealed class TypeWidening(TypeContext context, TypeAlgebra algebra, Typ
             context.RequireOwned(type);
         var result = new Symbol(source.Flags | SymbolFlags.Transient, source.Name)
         { CheckFlags = source.CheckFlags & CheckFlags.Readonly, Parent = source.Parent, ValueDeclaration = source.ValueDeclaration };
-        result.DeclarationList.AddRange(source.Declarations);
+        result.DeclarationList = result.DeclarationList.AddRange(source.Declarations);
         var data = links.Values.Get(result);
         data.ResolvedType = type;
         data.Target = source;

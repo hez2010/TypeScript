@@ -37,12 +37,12 @@ internal sealed class Deprecations(CheckerSymbols symbols)
 
     internal bool Symbol(Symbol symbol)
     {
-        if (symbols.Parent(symbol) is { } parent && symbol.Declarations.Count > 1)
+        if (symbols.Parent(symbol) is { } parent && symbol.Declarations.Length > 1)
             return (parent.Flags & SymbolFlags.Interface) != 0
                 ? symbol.Declarations.Any(Declaration)
                 : symbol.Declarations.All(Declaration);
         return symbol.ValueDeclaration is { } declaration && Declaration(declaration)
-            || symbol.Declarations.Count != 0 && symbol.Declarations.All(Declaration);
+            || symbol.Declarations.Length != 0 && symbol.Declarations.All(Declaration);
     }
 
     internal async ValueTask<bool> UncalledAsync(

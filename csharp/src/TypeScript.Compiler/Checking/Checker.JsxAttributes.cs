@@ -69,9 +69,9 @@ internal sealed partial class Checker
                         original?.Name ?? JsxName(attribute.Name!))
                     { Parent = original?.Parent ?? symbol, ValueDeclaration = original?.ValueDeclaration ?? attribute };
                     if (original is not null)
-                        property.DeclarationList.AddRange(original.Declarations);
+                        property.DeclarationList = property.DeclarationList.AddRange(original.Declarations);
                     else
-                        property.DeclarationList.Add(attribute);
+                        property.DeclarationList = property.DeclarationList.Add(attribute);
                     links.Values.Get(property).ResolvedType = type;
                     links.Values.Get(property).Target = original;
                     members[property.Name] = property;

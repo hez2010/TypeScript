@@ -48,6 +48,12 @@ internal static class CheckerWorkloadTests
             writer.WriteNumber("elapsedMs", result.Elapsed);
             writer.WriteNumber("cpuMs", result.Cpu);
             writer.WriteNumber("programMs", result.Program);
+            writer.WriteNumber("poolMs", result.Pool);
+            writer.WriteNumber("programGcPauseMs", result.ProgramPause);
+            writer.WriteNumber("gcPauseMs", result.Pause);
+            writer.WriteNumber("gen0Collections", result.Gen0);
+            writer.WriteNumber("gen1Collections", result.Gen1);
+            writer.WriteNumber("gen2Collections", result.Gen2);
             writer.WriteNumber("allocatedBytes", result.Allocated);
             writer.WriteNumber("liveBytes", result.Live);
             writer.WriteNumber("releasedBytes", releasedBytes);
@@ -72,13 +78,21 @@ internal static class CheckerWorkloadTests
         long allocated = GC.GetTotalAllocatedBytes(true);
         var process = Process.GetCurrentProcess();
         var cpu = process.TotalProcessorTime;
+        double pause = GC.GetTotalPauseDuration().TotalMilliseconds;
+        int gen0 = GC.CollectionCount(0), gen1 = GC.CollectionCount(1), gen2 = GC.CollectionCount(2);
         var timer = Stopwatch.StartNew();
         var program = await CompilerProgram.CreateAsync(fs, cwd, config, concurrency: single ? 1 : Environment.ProcessorCount,
             defaultLibraryDirectory: libraries);
         double programMs = timer.Elapsed.TotalMilliseconds;
+        double programPause = GC.GetTotalPauseDuration().TotalMilliseconds - pause;
         var pool = await program.CreateCheckerPoolAsync(single);
+        double poolMs = timer.Elapsed.TotalMilliseconds - programMs;
         var diagnostics = await pool.GetDiagnosticsAsync();
         timer.Stop();
+        double pauseMs = GC.GetTotalPauseDuration().TotalMilliseconds - pause;
+        gen0 = GC.CollectionCount(0) - gen0;
+        gen1 = GC.CollectionCount(1) - gen1;
+        gen2 = GC.CollectionCount(2) - gen2;
         double cpuMs = (process.TotalProcessorTime - cpu).TotalMilliseconds;
         long bytes = GC.GetTotalAllocatedBytes(true) - allocated;
         var graph = new StringBuilder();
@@ -88,12 +102,12 @@ internal static class CheckerWorkloadTests
         string hash = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(graph.ToString())));
         long live = GC.GetTotalMemory(true);
         var result = new Measurement(timer.Elapsed.TotalMilliseconds, cpuMs, programMs, bytes, live, program.SourceFiles.Count,
-            pool.Count, diagnostics.Semantic.Count + diagnostics.Global.Count, hash);
+            pool.Count, diagnostics.Semantic.Count + diagnostics.Global.Count, hash, poolMs, programPause, pauseMs, gen0, gen1, gen2);
         GC.KeepAlive(pool);
         GC.KeepAlive(program);
         return result;
     }
 
     private readonly record struct Measurement(double Elapsed, double Cpu, double Program, long Allocated, long Live,
-        int SourceFiles, int Checkers, int Diagnostics, string Graph);
+        int SourceFiles, int Checkers, int Diagnostics, string Graph, double Pool, double ProgramPause, double Pause, int Gen0, int Gen1, int Gen2);
 }
