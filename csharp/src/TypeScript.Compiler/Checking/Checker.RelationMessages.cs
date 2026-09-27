@@ -22,7 +22,7 @@ internal sealed partial class Checker
             or 2740
             or 2741
             or 2787 or 2788
-            or 2789 or 18053))
+            or 2789 or 18053 or 2850 or 2851))
         {
             RelationError(node, code);
             return;

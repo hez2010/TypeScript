@@ -83,6 +83,8 @@ internal sealed partial class Checker : IBinaryExpressionHost, IAwaitedTypeHost
         {
             string[] arguments = code switch
             {
+                2447 => [TokenFacts.Text(node.Kind)!, node.Kind == SyntaxKind.BarToken ? "||"
+                    : node.Kind == SyntaxKind.AmpersandToken ? "&&" : "!=="],
                 2839 when node is BinaryExpressionNode comparison =>
                     [comparison.OperatorToken!.Kind is SyntaxKind.EqualsEqualsToken or SyntaxKind.EqualsEqualsEqualsToken
                         ? "false"

@@ -306,6 +306,10 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
     {
         cancellation.ThrowIfCancellationRequested();
         context.RequireOwned(type);
+        // Alias resolution can re-enter member lookup for a sibling export.
+        // ResolveAsync restores this provisional state if resolution fails.
+        type.Members = members;
+        type.ObjectFlags |= O.MembersResolved;
         var declared = new List<Symbol>();
         var inherited = new List<Symbol>();
         if (members is not null)
@@ -322,12 +326,10 @@ internal sealed class StructuredMembers(TypeContext context, CheckerSymbols symb
         declared.Sort(order.CompareSymbols);
         inherited.Sort(order.CompareSymbols);
         cancellation.ThrowIfCancellationRequested();
-        type.Members = members;
         type.Properties = Array.AsReadOnly<Symbol>([.. declared, .. inherited]);
         type.CallSignatures = calls;
         type.ConstructSignatures = constructors;
         type.IndexInfos = indexes;
-        type.ObjectFlags |= O.MembersResolved;
     }
 
     private async ValueTask<IReadOnlyDictionary<string, Symbol>?> InstantiateTableAsync(

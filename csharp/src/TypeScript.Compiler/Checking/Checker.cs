@@ -96,7 +96,18 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
             ObjectRelations,
             Instantiation.Mapped,
             this);
-        RelationSupport = new(context, links, Algebra, Instantiation.Constraints, Normalization, Views, Properties, Declared, Bases, this);
+        RelationSupport = new(
+            context,
+            links,
+            program.Symbols,
+            Algebra,
+            Instantiation.Constraints,
+            Normalization,
+            Views,
+            Properties,
+            Declared,
+            Bases,
+            this);
         Variances = new(context, links, Declared, References, Instantiation.Engine, Instantiation.Constraints, Instantiation.Resolutions,
             new(program.Symbols.Program.SourceFiles.Select(f => f.Syntax).ToArray()), Relations.State, this);
         SignatureAssignability = new(context, Parameters, Signatures, Instantiation.Engine, this);

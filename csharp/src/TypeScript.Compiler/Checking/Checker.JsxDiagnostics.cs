@@ -94,7 +94,11 @@ internal sealed partial class Checker
                 relation,
                 cancellation))
             {
-                RelationError(element.OpeningElement!.TagName!, 2746);
+                RelationError(
+                    element.OpeningElement!.TagName!,
+                    2746,
+                    nameOfChildren,
+                    await TypeDisplay.GetAsync(childrenTarget, cancellation));
                 reported = true;
             }
         }

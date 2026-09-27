@@ -372,7 +372,7 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
                 declarationType = context.AnyType;
             else if (declarationType == host.AutoArray)
                 declarationType = host.AnyArray;
-            if (type != context.ErrorType && declarationType != context.ErrorType && (symbol.Flags & SymbolFlags.Assignment) == 0
+            if (!ErrorType(type) && !ErrorType(declarationType) && (symbol.Flags & SymbolFlags.Assignment) == 0
                 && !await relations.RelatedAsync(type, declarationType, RelationKind.Identity, cancellation).ConfigureAwait(false))
                 await host.VariableDeclarationConflictAsync(node, symbol, type, declarationType, cancellation).ConfigureAwait(false);
             type = declarationType;
@@ -387,4 +387,6 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
         if (node is VariableDeclarationNode or BindingElementNode)
             host.CheckVariableShadowing(node, cancellation);
     }
+
+    private bool ErrorType(Type type) => type == context.ErrorType || (type.Flags & TypeFlags.Any) != 0 && type.Alias is not null;
 }

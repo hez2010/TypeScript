@@ -198,8 +198,20 @@ internal sealed partial class Checker : IStructuralRelationHost, IObjectRelation
     public ValueTask<Type> RegularObjectAsync(Type type, CancellationToken cancellation)
             => ObjectLiterals.RegularAsync(type, cancellation);
 
-    public ValueTask<Type> NonUndefinedAsync(Type type, CancellationToken cancellation)
-            => Facts.FilterAsync(type, TypeFacts.NEUndefined, cancellation);
+    public async ValueTask<Type> NonUndefinedAsync(Type type, CancellationToken cancellation)
+    {
+        foreach (var part in type is UnionType union ? union.Types : [type])
+            if ((part.Flags & TypeFlags.Instantiable) != 0
+                && await Instantiation.Constraints.BaseConstraintAsync(part, cancellation) is { } constraint
+                && Predicates.Maybe(constraint, TypeFlags.Undefined, cancellation))
+            {
+                type = (await Algebra.MapAsync(type, async item => (item.Flags & TypeFlags.Instantiable) != 0
+                    ? await Instantiation.Constraints.BaseConstraintOrTypeAsync(item, cancellation) : item,
+                    cancellation: cancellation))!;
+                break;
+            }
+        return await Facts.FilterAsync(type, TypeFacts.NEUndefined, cancellation);
+    }
 
     public ValueTask<Type> NonNullableAsync(Type type, CancellationToken cancellation)
             => Facts.NonNullableAsync(type, cancellation);

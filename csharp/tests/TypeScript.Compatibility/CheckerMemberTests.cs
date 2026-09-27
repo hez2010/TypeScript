@@ -98,7 +98,7 @@ internal static class CheckerMemberTests
 
         var body = (await host.Signatures.OfSymbolAsync(symbols.Globals["body"])).Single();
         host.ReturnBody = (_, token) => host.Signatures.ReturnAsync(body, token);
-        Check(await host.Signatures.ReturnAsync(body) == context.AnyType && host.Diagnostics.Contains(2577));
+        Check(await host.Signatures.ReturnAsync(body) == context.AnyType && host.Diagnostics.Contains(7023));
         Check(host.Instantiation.Resolutions.Count == 0);
         body.ResolvedReturnType = null;
         using var cancellation = new CancellationTokenSource();
@@ -163,7 +163,56 @@ internal static class CheckerMemberTests
         {
             checks++;
         }
+        checks += await AliasPublicationSafety();
         Console.WriteLine($"{checks} structured member/signature assertions; base and signature chains depth 20000");
+    }
+
+    private static async Task<int> AliasPublicationSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Member publication assertion {checks + 1}");
+            checks++;
+        }
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("allowJs", "true");
+        const string path = "/project/exports.js";
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>
+        {
+            [path] = Wtf8.Encode("module.exports.i = function i() {}; module.exports.ii = module.exports.i;")
+        }), "/project", new("/project/tsconfig.json", options, [path], [], [], []));
+        var context = new TypeContext(true);
+        var links = new CheckerLinks();
+        var environment = new CheckerEnvironment(context, links);
+        Checker checker = null!;
+        var symbols = await CheckerSymbols.CreateAsync(program, links, environment,
+            bound: _ => checker = new(context, links, environment));
+        var source = program.GetFile(path)!.Syntax;
+        var snapshot = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
+        var module = symbols.Declaration(source)!;
+        var type = (StructuredType)await checker.Values.GetAsync(module);
+        checker.VariableBody = (_, _, _) => throw new OperationCanceledException();
+        try
+        {
+            await checker.Members.ResolveAsync(type);
+            throw new InvalidOperationException("Member publication cancellation ignored");
+        }
+        catch (OperationCanceledException)
+        {
+            checks++;
+        }
+        Check(type.Members is null && type.Properties is null && (type.ObjectFlags & ObjectFlags.MembersResolved) == 0);
+        Check(checker.Instantiation.Resolutions.Count == 0 && links.Aliases.Get(module.Exports["ii"]).AliasTarget is null);
+        checker.VariableBody = null;
+        await checker.Members.ResolveAsync(type);
+        Check(type.Properties!.Select(p => p.Name).Order().SequenceEqual(["i", "ii"]));
+        Check(await checker.Values.GetAsync(module.Exports["ii"]) == await checker.Values.GetAsync(module.Exports["i"]));
+        Check(!environment.Diagnostics.Contains(2303));
+        Check(snapshot.All(n => n.Node.Parent == n.Parent && n.Node.Pos == n.Pos && n.Node.End == n.End && n.Node.Flags == n.Flags));
+        return checks;
     }
 
     internal static async Task WriteAsync(

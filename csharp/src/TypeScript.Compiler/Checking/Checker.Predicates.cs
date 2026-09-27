@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 
 namespace TypeScript.Compiler.Checking;
 
@@ -23,10 +24,15 @@ internal sealed partial class Checker
         {
             if ((signature.Flags & SignatureFlags.HasRestParameter) != 0 && predicate.ParameterIndex == signature.Parameters.Count - 1)
                 Error(node.ParameterName!, 1229);
-            else if (predicate.Type is { } type && !await AssignableAsync(type,
-                await Values.GetAsync(signature.Parameters[predicate.ParameterIndex], cancellation).ConfigureAwait(false),
-                cancellation).ConfigureAwait(false))
-                Error(node.Type!, 2677);
+            else if (predicate.Type is { } type)
+            {
+                var parameterType = await Values.GetAsync(
+                    signature.Parameters[predicate.ParameterIndex],
+                    cancellation).ConfigureAwait(false);
+                if (!await AssignableAsync(type, parameterType, cancellation).ConfigureAwait(false))
+                    await ReportRelationMessageAsync(node.Type!, 2322, type, parameterType, RelationKind.Assignable, cancellation,
+                        CheckerDiagnostic.Create(node.Type!, Messages.A_type_predicate_s_type_must_be_assignable_to_its_parameter_s_type));
+            }
         }
         else if (node.ParameterName is { } name)
         {
@@ -40,13 +46,13 @@ internal sealed partial class Checker
                     {
                         if (element.Name is IdentifierNode identifier && identifier.Text == predicate.ParameterName)
                         {
-                            Error(name, 1230);
+                            Error(name, 1230, predicate.ParameterName!);
                             return;
                         }
                         if (element.Name is BindingPatternNode nested)
                             pending.Push(nested);
                     }
-            Error(name, 1225);
+            Error(name, 1225, predicate.ParameterName!);
         }
     }
 }

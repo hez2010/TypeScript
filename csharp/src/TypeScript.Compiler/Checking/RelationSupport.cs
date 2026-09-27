@@ -6,6 +6,7 @@ namespace TypeScript.Compiler.Checking;
 internal sealed class RelationSupport(
     TypeContext context,
     CheckerLinks links,
+    CheckerSymbols symbols,
     TypeAlgebra algebra,
     TypeConstraints constraints,
     TypeNormalization normalization,
@@ -129,7 +130,7 @@ internal sealed class RelationSupport(
     internal async ValueTask<Type?> DeclaringClassAsync(Symbol symbol, CancellationToken cancellation)
         =>
             symbol.Parent is { } parent && (parent.Flags & SymbolFlags.Class) != 0
-                ? await declared.GetAsync(parent, cancellation).ConfigureAwait(false)
+                ? await declared.GetAsync(symbols.Parent(symbol)!, cancellation).ConfigureAwait(false)
                 : null;
 
     private async ValueTask<IReadOnlyList<Symbol>> UnderlyingAsync(Symbol symbol, CancellationToken cancellation)

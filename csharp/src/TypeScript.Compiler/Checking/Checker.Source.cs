@@ -28,6 +28,9 @@ internal sealed partial class Checker
     }
 
     internal bool SkipProgramFile(SourceFileNode file) => NoCheck || file.CheckJsDirective?.Enabled == false
+        || file.ScriptKind is not (ScriptKind.TS or ScriptKind.TSX)
+            && (file.ScriptKind is not (ScriptKind.JS or ScriptKind.JSX)
+                || file.CheckJsDirective?.Enabled != true && program.Symbols.Program.Configuration.Options.Boolean("checkJs") == false)
         || file.IsDeclarationFile && program.Symbols.Program.Configuration.Options.Boolean("skipLibCheck") == true
         || program.Symbols.Program.GetFile(file.FileName)!.Library
             && program.Symbols.Program.Configuration.Options.Boolean("skipDefaultLibCheck") == true;

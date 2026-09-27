@@ -211,7 +211,7 @@ internal sealed partial class Checker
             {
                 var flags = await program.Aliases.FlagsAsync(target, cancellation: cancellation).ConfigureAwait(false);
                 if ((flags & SymbolFlags.Type) != 0 && ReservedTypeName(node.Name!.Text))
-                    Error(node.Name, 2438);
+                    Error(node.Name, 2438, node.Name.Text);
                 if ((flags & SymbolFlags.Value) != 0)
                 {
                     var first = node.ModuleReference!;
@@ -281,7 +281,7 @@ internal sealed partial class Checker
                 && DefaultOnlyModule(resolved, node.ModuleSpecifier!)
                 && node.Attributes?.Attributes?.OfType<ImportAttributeNode>().Any(a => ImportAttributeName(a.Name!) == "type"
                     && a.Value is StringLiteralNode { Text: "json" }) != true)
-                Error(node.ModuleSpecifier!, 1543);
+                Error(node.ModuleSpecifier!, 1543, ModuleKind switch { 101 => "Node18", 102 => "Node20", _ => "NodeNext" });
         }
         else if (program.Symbols.Program.Configuration.Options.Boolean("noUncheckedSideEffectImports") != false)
         {

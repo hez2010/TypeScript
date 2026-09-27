@@ -114,7 +114,7 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
             foreach (var declaration in symbol.Declarations)
             {
                 var node = Location(declaration)!;
-                Error(node, message, source.Name);
+                Error(node, message, source.Name.Length == 0 ? "(Missing)" : source.Name);
                 if (!MergeRelatedDeclarations.TryGetValue((node, message.Code), out var related))
                     MergeRelatedDeclarations[(node, message.Code)] = related = [];
                 foreach (var otherDeclaration in other.Declarations)

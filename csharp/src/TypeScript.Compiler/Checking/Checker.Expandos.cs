@@ -305,8 +305,8 @@ internal sealed partial class Checker
                         PropertyAccessExpressionNode { Name: IdentifierNode name } => name,
                         _ => null
                     };
-                    if (Name(baseNode.Expression) is not null && Name(annotated.Expression) is { } name)
-                        Error(name, 8023);
+                    if (Name(baseNode.Expression) is { } baseName && Name(annotated.Expression) is { } name)
+                        Error(name, 8023, tag.TagName!.Text, name.Text, baseName.Text);
                 }
     }
 }

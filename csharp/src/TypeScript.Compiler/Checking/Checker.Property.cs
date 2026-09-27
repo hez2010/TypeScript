@@ -55,6 +55,8 @@ internal sealed partial class Checker : ITypePropertyHost, ITypeViewHost, ICompo
         symbol = await LateMembers.SymbolAsync(symbol, cancellation);
         if (links.Values.Get(symbol).NameType is { } cached)
             return (cached.Flags & TypeFlags.StringOrNumberLiteralOrUnique) != 0 ? cached : context.NeverType;
+        if (symbol.Name == "default")
+            return context.GetStringLiteralType("default");
         var name = symbol.ValueDeclaration is { } declaration ? LateMembers.Name(declaration) : null;
         var type = name switch
         {

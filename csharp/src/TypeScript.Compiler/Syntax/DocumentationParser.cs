@@ -152,7 +152,7 @@ internal sealed class DocumentationParser(
             value = scanner.Value;
         }
         Diagnostics.AddRange(scanner.Diagnostics);
-        if (pos == start && reportMissing)
+        if (pos == start && reportMissing && (Diagnostics.Count == 0 || Diagnostics[^1].Start != pos))
             Diagnostics.Add(new(Messages.Identifier_expected, pos, 0, []));
         var node = Finish(factory.NewIdentifier(value), start, pos);
         if (pos == start && reportMissing)

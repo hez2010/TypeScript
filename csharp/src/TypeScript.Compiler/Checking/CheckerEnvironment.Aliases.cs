@@ -238,7 +238,7 @@ internal sealed partial class CheckerEnvironment
     public async ValueTask<Symbol?> AliasExpressionAsync(SyntaxNode expression, CancellationToken cancellation)
     {
         var checker = SemanticChecker ?? throw new InvalidOperationException("Checker requires expression checking for alias targets");
-        await checker.Expressions.CheckAsync(expression, cancellation: cancellation).ConfigureAwait(false);
+        await checker.CachedExpressionAsync(expression, 0, cancellation).ConfigureAwait(false);
         return expression is ClassExpressionNode ? Symbols.Declaration(expression) : links.SymbolNodes.TryGet(expression)?.ResolvedSymbol;
     }
 

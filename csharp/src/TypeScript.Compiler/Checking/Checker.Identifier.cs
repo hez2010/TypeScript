@@ -39,7 +39,7 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
         ReferenceNarrowing.GetAsync(type, node, mode, cancellation);
 
     public void IdentifierError(SyntaxNode node, int code, Symbol symbol, Type? type = null)
-        => Error(node, code, code is 2454 or 2628 or 2629 or 2630 or 2631 or 2588 or 2540 ? [TypeDisplay.SymbolName(symbol)]
+        => Error(node, code, code is 2454 or 2628 or 2629 or 2630 or 2631 or 2632 or 2588 or 2540 or 2539 ? [TypeDisplay.SymbolName(symbol)]
             : code is 7034 or 7005 ? [TypeDisplay.SymbolName(symbol), type == context.AutoType ? "any" : "any[]"] : []);
 
     public void CircularInitializer(Symbol symbol) => CircularSymbol(symbol);
