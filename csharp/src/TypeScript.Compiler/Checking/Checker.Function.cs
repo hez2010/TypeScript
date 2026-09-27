@@ -88,7 +88,7 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
                     }
                 }
             }
-            else if (item.Node is PropertySignatureDeclarationNode)
+            else if (item.Node is PropertySignatureDeclarationNode or GetAccessorDeclarationNode or SetAccessorDeclarationNode)
                 await CheckSourceElementAsync(item.Node, cancellation);
             else
             {

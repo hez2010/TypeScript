@@ -115,8 +115,6 @@ internal sealed partial class Checker
         {
             if (ModuleAugmentation(node))
                 Error(attributes, 1551);
-            else if (node.Name is StringLiteralNode name && !name.Text.Contains('*'))
-                Error(attributes, 1550);
             foreach (var member in attributes.Members!)
             {
                 if (member is not PropertySignatureDeclarationNode property)

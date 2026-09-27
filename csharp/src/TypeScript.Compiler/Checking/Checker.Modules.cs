@@ -1,6 +1,7 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
+using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -41,7 +42,7 @@ internal sealed partial class Checker
         if (node.Parent is SourceFileNode or ModuleBlockNode or ModuleDeclarationNode)
             return true;
         if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
-            Error(node, code);
+            ErrorOnFirstToken(node, code);
         return false;
     }
 
@@ -60,7 +61,7 @@ internal sealed partial class Checker
             Error(specifier, node is ExportDeclarationNode ? 1194 : 1147);
             return false;
         }
-        if (ambient && (literal.Text.StartsWith(".", StringComparison.Ordinal) || literal.Text.StartsWith('/'))
+        if (ambient && RelativeModuleName(literal.Text)
             && !ModuleAugmentation(node.Parent!.Parent!))
         {
             Error(node, 2439);
@@ -76,6 +77,28 @@ internal sealed partial class Checker
 
     private bool ModuleAugmentation(SyntaxNode node) => node is ModuleDeclarationNode && AmbientModule(node)
         && SemanticSyntax.Source(node)?.ModuleAugmentations.Contains(SemanticSyntax.Name(node)!) == true;
+
+    private static bool RelativeModulePath(string name) => name is "." or ".."
+        || name.StartsWith("./", StringComparison.Ordinal) || name.StartsWith("../", StringComparison.Ordinal)
+        || name.StartsWith(".\\", StringComparison.Ordinal) || name.StartsWith("..\\", StringComparison.Ordinal);
+
+    private static bool RelativeModuleName(string name) => RelativeModulePath(name) || CompilerPath.EncodedRootLength(name) > 0;
+
+    private async ValueTask CheckMisplacedModuleNameAsync(SyntaxNode node, CancellationToken cancellation)
+    {
+        if (node is ImportDeclarationNode { ImportClause: null }
+            or ImportEqualsDeclarationNode { ModuleReference: not ExternalModuleReferenceNode }
+            || DeclarationOrder.Ancestor(node.Parent, Binder.IsContainer) is not SourceFileNode)
+            return;
+        var specifier = node is ImportEqualsDeclarationNode ? AliasTargets.ModuleSpecifier(node) : AliasTargets.Specifier(node);
+        if (specifier is not null)
+            await program.ExternalModuleAsync(node, specifier, node switch
+            {
+                ImportDeclarationNode import => import.Attributes,
+                ExportDeclarationNode export => export.Attributes,
+                _ => null
+            }, cancellation);
+    }
 
     private void ExportedDeclaration(SyntaxNode node, bool value)
     {
@@ -123,7 +146,7 @@ internal sealed partial class Checker
             if (ErasableSyntaxOnly && (node.Flags & NodeFlags.JavaScriptFile) == 0)
                 Error(node, 1294);
             if (IsolatedModules && program.Symbols.Binding(node)?.IsModule != true)
-                Error(node.Name!, 1280);
+                Error(node.Name!, 1280, IsolatedModuleOptionName);
             var first = symbol.Declarations.FirstOrDefault(
                 d => (d is ClassDeclarationNode || d is FunctionDeclarationNode { Body: not null }) && (d.Flags & NodeFlags.Ambient) == 0);
             if (first is not null)
@@ -142,17 +165,24 @@ internal sealed partial class Checker
                 if (node.Body is ModuleBlockNode block && (global || (symbol.Flags & SymbolFlags.Transient) != 0))
                     foreach (var statement in block.Statements!)
                     {
-                        if (statement is ImportDeclarationNode or ImportEqualsDeclarationNode)
-                            Error(statement, 2667);
+                        if (statement is ImportDeclarationNode
+                            or ImportEqualsDeclarationNode { ModuleReference: ExternalModuleReferenceNode })
+                        {
+                            if (SemanticSyntax.Source(statement)?.ParseDiagnostics.Count == 0)
+                                ErrorOnFirstToken(statement, 2667);
+                        }
                         else if (statement is ExportDeclarationNode or ExportAssignmentNode)
-                            Error(statement, 2666);
+                        {
+                            if (SemanticSyntax.Source(statement)?.ParseDiagnostics.Count == 0)
+                                ErrorOnFirstToken(statement, 2666);
+                        }
                     }
             }
             else if (node.Parent is SourceFileNode file && program.Symbols.Binding(file)?.IsModule != true)
             {
                 if (global)
                     Error(node.Name!, 2669);
-                else if (node.Name is StringLiteralNode name && (name.Text.StartsWith('.') || name.Text.StartsWith('/')))
+                else if (node.Name is StringLiteralNode name && RelativeModuleName(name.Text))
                     Error(name, 2436);
             }
             else
@@ -163,7 +193,10 @@ internal sealed partial class Checker
     private async ValueTask CheckImportEqualsSourceAsync(ImportEqualsDeclarationNode node, CancellationToken cancellation)
     {
         if (!ModuleContext(node, (node.Flags & NodeFlags.JavaScriptFile) != 0 ? 1473 : 1232))
+        {
+            await CheckMisplacedModuleNameAsync(node, cancellation);
             return;
+        }
         ExportedDeclaration(node, false);
         if (ErasableSyntaxOnly && (node.Flags & NodeFlags.Ambient) == 0)
             Error(node, 1294);
@@ -201,9 +234,12 @@ internal sealed partial class Checker
     private async ValueTask CheckImportSourceAsync(ImportDeclarationNode node, CancellationToken cancellation)
     {
         if (!ModuleContext(node, (node.Flags & NodeFlags.JavaScriptFile) != 0 ? 1473 : 1232))
+        {
+            await CheckMisplacedModuleNameAsync(node, cancellation);
             return;
+        }
         if (!DeclarationModifiers(node) && node.Modifiers is { Count: > 0 })
-            Error(node, 1191);
+            ErrorOnFirstToken(node, 1191);
         bool validModule = ExternalModuleSyntax(node, node.ModuleSpecifier);
         await CheckImportAttributesAsync(node, node.Attributes, cancellation).ConfigureAwait(false);
         if (!validModule)
@@ -428,9 +464,12 @@ internal sealed partial class Checker
     private async ValueTask CheckExportSourceAsync(ExportDeclarationNode node, CancellationToken cancellation)
     {
         if (!ModuleContext(node, (node.Flags & NodeFlags.JavaScriptFile) != 0 ? 1474 : 1233))
+        {
+            await CheckMisplacedModuleNameAsync(node, cancellation);
             return;
+        }
         if (!DeclarationModifiers(node) && node.Modifiers is { Count: > 0 })
-            Error(node, 1193);
+            ErrorOnFirstToken(node, 1193);
         await CheckImportAttributesAsync(node, node.Attributes, cancellation).ConfigureAwait(false);
         if (node.ModuleSpecifier is not null && !ExternalModuleSyntax(node, node.ModuleSpecifier))
             return;
@@ -488,7 +527,7 @@ internal sealed partial class Checker
     private async ValueTask CheckExportAssignmentSourceAsync(ExportAssignmentNode node, CancellationToken cancellation)
     {
         var type = await CachedExpressionAsync(node.Expression!, 0, cancellation).ConfigureAwait(false);
-        if (!ModuleContext(node, node.IsExportEquals ? 1063 : 1258))
+        if (!ModuleContext(node, node.IsExportEquals ? 1231 : 1258))
             return;
         if (node.Parent is ModuleBlockNode && !AmbientModule(node.Parent.Parent))
         {
@@ -498,7 +537,7 @@ internal sealed partial class Checker
         if (node.IsExportEquals && ErasableSyntaxOnly && (node.Flags & NodeFlags.Ambient) == 0)
             Error(node, 1294);
         if (!DeclarationModifiers(node) && node.Modifiers is { Count: > 0 })
-            Error(node, 1120);
+            ErrorOnFirstToken(node, 1120);
         bool verbatim = program.Symbols.Program.Configuration.Options.Boolean("verbatimModuleSyntax") == true;
         bool illegalDefault = !node.IsExportEquals && (node.Flags & NodeFlags.Ambient) == 0 && verbatim && EmitModuleKind(node) == 1;
         if (node.Expression is IdentifierNode identifier)
@@ -586,7 +625,21 @@ internal sealed partial class Checker
                     value = true;
                     break;
                 }
-            if (value && (AliasResolver.Declaration(assignment) ?? assignment.ValueDeclaration) is { } declaration)
+            if (!value && (assignment.Flags & (SymbolFlags.NamespaceModule | SymbolFlags.Alias))
+                == (SymbolFlags.NamespaceModule | SymbolFlags.Alias))
+            {
+                var target = await program.Aliases.ResolveAsync(assignment, cancellation);
+                if ((target.Flags & SymbolFlags.Namespace) != 0)
+                    foreach (var exported in target.Exports.Values)
+                        if (exported.Name != "export=" && (await program.Aliases.FlagsAsync(exported, cancellation: cancellation)
+                            & (SymbolFlags.Type | SymbolFlags.Namespace)) != 0)
+                        {
+                            value = true;
+                            break;
+                        }
+            }
+            if (value && (AliasResolver.Declaration(assignment) ?? assignment.ValueDeclaration) is { } declaration
+                && !(declaration.Parent is ModuleBlockNode { Parent: { } module } && ModuleAugmentation(module)))
                 Error(declaration, 2309);
         }
         foreach (var (name, exported) in await program.ModuleExports.ResolveAsync(symbol, cancellation).ConfigureAwait(false))

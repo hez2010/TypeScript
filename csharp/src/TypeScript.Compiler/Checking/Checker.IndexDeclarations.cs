@@ -9,6 +9,13 @@ internal sealed partial class Checker : IIndexDeclarationHost
 {
     private readonly HashSet<(SyntaxNode Node, int Code, string First, string Second, string Third, string Fourth)> indexConstraintDiagnostics = [];
 
+    public async ValueTask DuplicateIndexErrorAsync(SyntaxNode node, Type type, CancellationToken cancellation)
+    {
+        string name = await TypeDisplay.GetAsync(type, cancellation);
+        if (indexConstraintDiagnostics.Add((node, 2374, name, "", "", "")))
+            TrackDiagnostic(node, 2374, name);
+    }
+
     public async ValueTask IndexPropertyErrorAsync(
         SyntaxNode node,
         Symbol property,

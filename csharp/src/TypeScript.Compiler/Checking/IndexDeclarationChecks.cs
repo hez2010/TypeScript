@@ -13,6 +13,8 @@ internal interface IIndexDeclarationHost
     ValueTask IndexPropertyErrorAsync(SyntaxNode node, Symbol property, Type value, IndexInfo index, CancellationToken cancellation);
 
     ValueTask IndexSignatureErrorAsync(SyntaxNode node, IndexInfo source, IndexInfo target, CancellationToken cancellation);
+
+    ValueTask DuplicateIndexErrorAsync(SyntaxNode node, Type type, CancellationToken cancellation);
 }
 
 internal sealed class IndexDeclarationChecks(CheckerSymbols symbols, TypeNodes nodes, StructuredMembers members,
@@ -165,9 +167,9 @@ internal sealed class IndexDeclarationChecks(CheckerSymbols symbols, TypeNodes n
                     declarations.Add(declaration);
                 }
             }
-        foreach (var declarations in groups.Values)
+        foreach (var (type, declarations) in groups)
             if (declarations.Count > 1)
                 foreach (var declaration in declarations)
-                    error(declaration, 2374);
+                    await host.DuplicateIndexErrorAsync(declaration, type, cancellation).ConfigureAwait(false);
     }
 }

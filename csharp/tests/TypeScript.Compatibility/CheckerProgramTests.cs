@@ -17,6 +17,101 @@ namespace TypeScript.Compatibility;
 
 internal static class CheckerProgramTests
 {
+    internal static async Task<int> DeclarationBlockSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Declaration block assertion {checks + 1}");
+            checks++;
+        }
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("allowUnreachableCode", "false");
+        var files = new Dictionary<string, byte[]>
+        {
+            ["/project/main.ts"] = Wtf8.Encode(
+                "interface Object{}interface Function{}abstract class A{a=1}class B{b=1}declare const C:typeof A|typeof B;new C();class Static{public static{}}if(true)type T=string;if(true)interface I{}type Accessor={get value(){return 0}};"),
+            ["/project/unreachable.ts"] = Wtf8.Encode("function f(){return;const first=1;const second=2;}"),
+            ["/project/recovery.ts"] = Wtf8.Encode("const object={'missing'};")
+        };
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
+            new("/project/tsconfig.json", options, files.Keys.ToArray(), [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var main = program.GetFile("/project/main.ts")!.Syntax;
+        var snapshot = main.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
+        await checker.CheckProgramAsync();
+        var diagnostics = checker.DetailedDiagnosticsForProgramFile(main);
+        Check(diagnostics.Count(d => d.Code == 2511) == 1);
+        Check(diagnostics.Count(d => d.Code == 1184) == 1);
+        Check(diagnostics.Where(d => d.Code == 1156).SelectMany(d => d.Arguments).Order().SequenceEqual(["interface", "type"]));
+        var accessor = diagnostics.Single(d => d.Code == 1183);
+        Check(main.Source.Text.Substring(accessor.Start, accessor.Length) == "{return 0}");
+        var unreachable = program.GetFile("/project/unreachable.ts")!.Syntax;
+        var range = checker.DetailedDiagnosticsForProgramFile(unreachable).Single(d => d.Code == 7027);
+        Check(unreachable.Source.Text.Substring(range.Start, range.Length) == "const first=1;const second=2;");
+        var recovery = program.GetFile("/project/recovery.ts")!.Syntax;
+        Check(recovery.ParseDiagnostics.Count != 0 && checker.DetailedDiagnosticsForProgramFile(recovery).All(d => d.Code != 18004));
+        await checker.CheckProgramAsync();
+        Check(checker.DetailedDiagnosticsForProgramFile(main).SequenceEqual(diagnostics, DiagnosticEqualityComparer.Instance));
+        Check(snapshot.All(n => n.Node.Parent == n.Parent && n.Node.Pos == n.Pos && n.Node.End == n.End && n.Node.Flags == n.Flags));
+        return checks;
+    }
+
+    internal static async Task<int> ModuleContextSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Module context assertion {checks + 1}");
+            checks++;
+        }
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("module", "\"nodenext\"");
+        options.SetRaw("moduleDetection", "\"legacy\"");
+        options.SetRaw("rewriteRelativeImportExtensions", "true");
+        var files = new Dictionary<string, byte[]>
+        {
+            ["/project/main.ts"] = Wtf8.Encode("export {};{import Missing=require('not-found');export=Missing;}"),
+            ["/project/rewrite.ts"] = Wtf8.Encode("import {value} from './folder.ts';value;"),
+            ["/project/folder.ts/index.ts"] = Wtf8.Encode("export const value=1;"),
+            ["/project/paths.ts"] = Wtf8.Encode(
+                "declare module './relative'{}declare module '.\\\\relative'{}declare module 'q:/absolute'{}"),
+            ["/project/augmentation.ts"] = Wtf8.Encode(
+                "export {};namespace N{export interface I{}}declare module './target'{import I=N.I;interface Item{value:I}}"),
+            ["/project/target.ts"] = Wtf8.Encode("export interface Item{}"),
+            ["/project/indexes.ts"] = Wtf8.Encode("interface A{[key:string|symbol]:number;[key:string|symbol]:number}"),
+            ["/project/recovery.ts"] = Wtf8.Encode("module {unknown;}")
+        };
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
+            new("/project/tsconfig.json", options, files.Keys.ToArray(), [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var snapshot = program.SourceFiles.SelectMany(f => f.Syntax.DescendantsAndSelf())
+            .Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
+        await checker.CheckProgramAsync();
+        IReadOnlyList<Diagnostic> Diagnostics(string name) =>
+            checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/" + name)!.Syntax);
+        var main = Diagnostics("main.ts");
+        Check(main.Any(d => d.Code == 1231 && d.Length == 6));
+        Check(main.Any(d => d.Code == 1232 && d.Length == 6));
+        Check(main.Any(d => d.Code == 2307 && d.Arguments.SequenceEqual(["not-found"])));
+        Check(Diagnostics("paths.ts").Count(d => d.Code == 2436) == 3);
+        Check(Diagnostics("augmentation.ts").All(d => d.Code != 2667));
+        Check(Diagnostics("rewrite.ts").Single(d => d.Code == 2876).Arguments.SequenceEqual(["./folder.ts/index.ts"]));
+        var duplicate = Diagnostics("indexes.ts").Where(d => d.Code == 2374).ToArray();
+        Check(duplicate.Length == 4);
+        Check(duplicate.Count(d => d.Arguments.SequenceEqual(["string"])) == 2
+            && duplicate.Count(d => d.Arguments.SequenceEqual(["symbol"])) == 2);
+        Check(Diagnostics("recovery.ts").Any(d => d.Code == 2591) && Diagnostics("recovery.ts").All(d => d.Code != 1540));
+        await checker.CheckProgramAsync();
+        Check(Diagnostics("main.ts").SequenceEqual(main, DiagnosticEqualityComparer.Instance));
+        Check(snapshot.All(n => n.Node.Parent == n.Parent && n.Node.Pos == n.Pos && n.Node.End == n.End && n.Node.Flags == n.Flags));
+        return checks;
+    }
+
     internal static async Task<int> RelationContextSafety()
     {
         int checks = 0;

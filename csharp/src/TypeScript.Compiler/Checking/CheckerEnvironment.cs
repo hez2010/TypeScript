@@ -156,6 +156,9 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
 
     public ValueTask<Symbol?> ResolveAugmentationAsync(SyntaxNode moduleName, bool reportNotFound, CancellationToken cancellation)
     {
+        if (SemanticChecker is { } checker)
+            return checker.ResolveImportModuleAsync(moduleName, moduleName, null, cancellation,
+                missingModuleCode: 2664, reportUnresolved: reportNotFound);
         var file = Symbols.Binding(moduleName)!.SourceFile;
         var programFile = Symbols.Program.GetFile(file.FileName)!;
         var resolution = programFile.Resolutions.FirstOrDefault(r => r.Node == moduleName)?.Resolution;

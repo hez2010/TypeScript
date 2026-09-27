@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -135,7 +136,7 @@ internal sealed partial class Checker
         if ((node.Flags & NodeFlags.Ambient) == 0 && node.Parent is not TypeLiteralNode and not InterfaceDeclarationNode && body is null
             && !SemanticSyntax.HasModifier(node, SyntaxKind.AbstractKeyword))
         {
-            Error(node, 1005);
+            Error(node, CheckerDiagnostic.Create(node, Messages.X_0_expected, "{") with { Start = node.End - 1, Length = 1 });
             return;
         }
         if (body is not null)
@@ -147,7 +148,7 @@ internal sealed partial class Checker
             }
             if (node.Parent is TypeLiteralNode or InterfaceDeclarationNode)
             {
-                ErrorOnFirstToken(body, 1183);
+                Error(body, 1183);
                 return;
             }
         }

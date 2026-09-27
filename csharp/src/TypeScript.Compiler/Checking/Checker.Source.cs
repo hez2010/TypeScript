@@ -173,7 +173,7 @@ internal sealed partial class Checker
                     await CheckAccessorSourceAsync(node, cancellation).ConfigureAwait(false);
                     break;
                 case ClassStaticBlockDeclarationNode block:
-                    DecoratorGrammar(block);
+                    DeclarationModifiers(block);
                     await CheckSourceElementAsync(block.Body, cancellation).ConfigureAwait(false);
                     break;
                 case { Kind: SyntaxKind.SemicolonClassElement }:
@@ -311,6 +311,8 @@ internal sealed partial class Checker
                         JumpGrammar(node);
                     break;
                 case TypeAliasDeclarationNode alias:
+                    if (!AllowsBlockScopedDeclaration(alias.Parent) && SemanticSyntax.Source(alias)?.ParseDiagnostics.Count == 0)
+                        Error(alias, 1156, "type");
                     RegisterUnused(alias);
                     ExportedDeclaration(alias, false);
                     await CheckMergedExportsAsync(alias, cancellation).ConfigureAwait(false);

@@ -235,8 +235,9 @@ public sealed partial class Parser
             case K.GlobalKeyword:
                 if (Peek(() =>
                 {
+                    bool globalModule = Token == K.GlobalKeyword;
                     Next();
-                    return !LineBreak && (IsIdentifier || Token is K.StringLiteral or K.OpenBraceToken);
+                    return !LineBreak && (IsIdentifier || Token == K.StringLiteral || globalModule && Token == K.OpenBraceToken);
                 }))
                     return (await ModuleCore(modifiers, start).ConfigureAwait(false));
                 break;

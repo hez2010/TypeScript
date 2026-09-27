@@ -174,7 +174,9 @@ internal sealed partial class CallResolution(TypeContext context, CheckerLinks l
             {
                 if (!await host.ConstructorAccessibleAsync(node, constructors, cancellation).ConfigureAwait(false))
                     return await UntypedAsync(node, true, cancellation).ConfigureAwait(false);
-                if (constructors.Any(s => (s.Flags & SignatureFlags.Abstract) != 0)
+                if (constructors.Any(s => s.Composite is { IsUnion: true } union
+                        ? union.Signatures.Any(part => (part.Flags & SignatureFlags.Abstract) != 0)
+                        : s.Composite is null && (s.Flags & SignatureFlags.Abstract) != 0)
                     || apparent.Symbol?.Declarations.Any(
                         d => SemanticSyntax.ClassLike(d) && SemanticSyntax.HasModifier(d, SyntaxKind.AbstractKeyword)) == true)
                 {

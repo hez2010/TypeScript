@@ -443,7 +443,10 @@ public sealed partial class Parser
                 NodeList properties;
                 try
                 {
-                    properties = (await DelimitedCore(K.CloseBraceToken, ObjectPropertyCore).ConfigureAwait(false));
+                    properties = await DelimitedCore(K.CloseBraceToken, ObjectPropertyCore,
+                        startsElement: () => Token >= K.Identifier || Token is K.OpenBracketToken or K.AsteriskToken
+                            or K.DotDotDotToken or K.DotToken or K.StringLiteral or K.NumericLiteral or K.BigIntLiteral,
+                        elementExpected: Messages.Property_assignment_expected).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -646,7 +649,7 @@ public sealed partial class Parser
         bool shorthand = IsIdentifier;
         SyntaxNode name = (await NameCore().ConfigureAwait(false));
         var postfix = Token is K.QuestionToken or K.ExclamationToken ? ParseToken() : null;
-        if (Token is K.OpenParenToken or K.LessThanToken || accessor != K.Unknown)
+        if (star is not null || Token is K.OpenParenToken or K.LessThanToken || accessor != K.Unknown)
         {
             NodeFlags signatureFlags = (star is not null
                 ? NodeFlags.YieldContext
@@ -663,19 +666,20 @@ public sealed partial class Parser
             };
         }
 
-        if (Take(K.ColonToken))
+        if (!shorthand || Token == K.ColonToken)
+        {
+            Expected(K.ColonToken);
             return Finish(
                 factory.NewPropertyAssignment(
                     modifiers,
                     name,
                     postfix,
                     null,
-                    (await ExpressionCore(2).ConfigureAwait(false))),
+                    await Initializer().ConfigureAwait(false)),
                 start);
-        if (!shorthand)
-            Error(Messages.X_0_expected, ":");
+        }
         var equals = OptionalToken(K.EqualsToken);
-        SyntaxNode? initializer = equals is null ? null : (await ExpressionCore(2).ConfigureAwait(false));
+        SyntaxNode? initializer = equals is null ? null : await Initializer().ConfigureAwait(false);
         return Finish(
             factory.NewShorthandPropertyAssignment(
                 modifiers,
@@ -685,6 +689,20 @@ public sealed partial class Parser
                 equals,
                 initializer),
             start);
+
+        async ValueTask<SyntaxNode> Initializer()
+        {
+            var saved = context;
+            context &= ~NodeFlags.DisallowInContext;
+            try
+            {
+                return await ExpressionCore(2).ConfigureAwait(false);
+            }
+            finally
+            {
+                context = saved;
+            }
+        }
     }
 
     private async ValueTask<SyntaxNode> TemplateCore(bool type, bool tagged)

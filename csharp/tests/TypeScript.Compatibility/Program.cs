@@ -124,6 +124,18 @@ internal static class Program
                     $"Relation context safety: {CheckerProgramTests.RelationContextSafety().GetAwaiter().GetResult()} assertions passed");
                 return 0;
             }
+            if (args is ["--checker-module-context-safety"])
+            {
+                Console.WriteLine(
+                    $"Module context safety: {CheckerProgramTests.ModuleContextSafety().GetAwaiter().GetResult()} assertions passed");
+                return 0;
+            }
+            if (args is ["--checker-declaration-block-safety"])
+            {
+                Console.WriteLine(
+                    $"Declaration block safety: {CheckerProgramTests.DeclarationBlockSafety().GetAwaiter().GetResult()} assertions passed");
+                return 0;
+            }
             if (args is ["--checker-pool-safety"])
             {
                 Console.WriteLine($"Checker pool safety: {CheckerPoolTests.Safety().GetAwaiter().GetResult()} assertions passed");

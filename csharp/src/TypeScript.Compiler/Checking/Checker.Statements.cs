@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -18,6 +19,7 @@ internal sealed partial class Checker
         if (!await UnreachableAsync(node, cancellation).ConfigureAwait(false))
             return false;
         reportedUnreachable.Add(node);
+        var endNode = node;
         var statements = Statements(node.Parent);
         if (statements is not null)
         {
@@ -27,10 +29,15 @@ internal sealed partial class Checker
                 if (!Executable(statements[i]) || !await UnreachableAsync(statements[i], cancellation).ConfigureAwait(false))
                     break;
                 reportedUnreachable.Add(statements[i]);
+                endNode = statements[i];
             }
         }
         if (program.Symbols.Program.Configuration.Options.Boolean("allowUnreachableCode") == false)
-            Error(node, 7027);
+        {
+            var source = SemanticSyntax.Source(node)!;
+            int start = CheckerDiagnostic.TokenRange(source, node.Pos).Start;
+            Error(node, new Diagnostic(Messages.Unreachable_code_detected, start, endNode.End - start, []) { FileName = source.FileName });
+        }
         else
             ExpressionSuggestion(node, 7027);
         return true;
@@ -43,6 +50,13 @@ internal sealed partial class Checker
         {
             if (node is EnumDeclarationNode && SemanticSyntax.HasModifier(node, SyntaxKind.ConstKeyword))
                 return program.Symbols.Program.Configuration.Options.Boolean("preserveConstEnums") == true || IsolatedModules;
+            if (node is ModuleDeclarationNode module)
+            {
+                int state = Binder.ModuleState(module);
+                return state == 2
+                    || state == 1
+                        && (program.Symbols.Program.Configuration.Options.Boolean("preserveConstEnums") == true || IsolatedModules);
+            }
             return true;
         }
         return data?.Flow is { } flow && !await FlowTypes.Reachability.ReachableAsync(flow, cancellation).ConfigureAwait(false);

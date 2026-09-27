@@ -29,7 +29,8 @@ internal sealed partial class Checker
             resolved ??= program.Symbols.PatternAugmentations.GetValueOrDefault("tslib") ?? program.Symbols.Globals.GetValueOrDefault("\"tslib\"");
             module = program.Symbols.Merger.GetMergedSymbol(resolved) ?? UnknownSymbol;
             if (module == UnknownSymbol)
-                Error(node, reference?.Resolution.IsResolved == true ? 2306 : 2354);
+                Error(node, reference?.Resolution.IsResolved == true ? 2306 : 2354,
+                    reference?.Resolution.IsResolved == true ? reference.Resolution.FileName : "tslib");
             externalHelperModules.Add(file, module);
         }
         if (module == UnknownSymbol)

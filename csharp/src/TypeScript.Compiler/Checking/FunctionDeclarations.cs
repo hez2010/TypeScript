@@ -351,6 +351,8 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
         var symbol = symbols.Declaration(node)!;
         if (await host.VariableAliasAsync(node, symbol, cancellation).ConfigureAwait(false))
             return;
+        if (name is BigIntLiteralNode)
+            host.ExpressionError(name, 1539);
         host.CheckDeclarationFlags(node, symbol, cancellation);
         var type = await values.GetAsync(symbol, cancellation).ConfigureAwait(false);
         if (type == context.AutoType)

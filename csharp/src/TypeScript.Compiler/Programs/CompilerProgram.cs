@@ -58,6 +58,7 @@ public sealed partial class CompilerProgram
     public ParsedConfig Configuration { get; }
     public int ReusedSourceFiles { get; }
     public string CommonSourceDirectory { get; }
+    internal bool UseCaseSensitiveFileNames => fileSystem.CaseSensitive;
 
     private CompilerProgram(Builder builder, ProgramFile[] ordered)
     {

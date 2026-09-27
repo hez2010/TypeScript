@@ -74,7 +74,8 @@ internal sealed partial class Checker
                     ? program.Symbols.PatternAugmentations.GetValueOrDefault(name) ?? target : target;
             }
         }
-        if (module is null && !ignoreErrors && reportUnresolved)
+        if (module is null && !ignoreErrors && (reportUnresolved || missingModuleCode == 2664
+            && reference?.Resolution is { IsResolved: true, Extension: ".js" or ".jsx" or ".mjs" or ".cjs" }))
             ReportUnresolvedImport(implicitImport ? location : specifier!, name, file, reference, missingModuleCode);
         return program.Symbols.Merger.GetMergedSymbol(module);
     }
@@ -181,14 +182,14 @@ internal sealed partial class Checker
     {
         var options = program.Symbols.Program.Configuration.Options;
         if (JsxMode == 0 && reference.Resolution.Extension is ".tsx" or ".jsx")
-            Error(specifier, 6142);
+            Error(specifier, 6142, name, reference.Resolution.FileName);
         var import = DeclarationOrder.Ancestor(
             location,
             n => n is ImportDeclarationNode or ExportDeclarationNode or ImportEqualsDeclarationNode or ImportTypeNode
             || n is CallExpressionNode call && IsImportCall(call));
         bool emitted = import switch
         {
-            ImportDeclarationNode declaration => declaration.ImportClause is { } clause && !SemanticSyntax.TypeOnly(clause),
+            ImportDeclarationNode declaration => declaration.ImportClause is not { } clause || !SemanticSyntax.TypeOnly(clause),
             ExportDeclarationNode declaration => !declaration.IsTypeOnly,
             ImportEqualsDeclarationNode declaration => !declaration.IsTypeOnly,
             CallExpressionNode => true,
@@ -199,12 +200,52 @@ internal sealed partial class Checker
         if (reference.Resolution.UsingTsExtension && emitted)
         {
             if (declarationExtension)
-                Error(specifier, 2846);
+            {
+                string extension = TypeScriptImportExtension(name);
+                string suggested = name[..^extension.Length];
+                if (ModuleKind is >= 5 and <= 99 || reference.Mode == ReferenceResolutionMode.Import)
+                {
+                    bool preferTs = options.Boolean("allowImportingTsExtensions") == true
+                        || options.Boolean("rewriteRelativeImportExtensions") == true;
+                    suggested += extension is ".mts" or ".d.mts" ? preferTs ? ".mts" : ".mjs"
+                        : extension is ".cts" or ".d.cts" ? preferTs ? ".cts" : ".cjs" : preferTs ? ".ts" : ".js";
+                }
+                Error(specifier, 2846, suggested);
+            }
             else if (!source.IsDeclarationFile && options.Boolean("allowImportingTsExtensions") != true
                 && options.Boolean("rewriteRelativeImportExtensions") != true)
-                Error(specifier, 5097);
+                Error(specifier, 5097, TypeScriptImportExtension(name));
         }
         var target = program.Symbols.Program.GetFile(reference.Resolution.FileName);
+        if (target is not null && options.Boolean("rewriteRelativeImportExtensions") == true
+            && (location.Flags & NodeFlags.Ambient) == 0 && !declarationExtension && emitted)
+        {
+            var compiler = program.Symbols.Program;
+            bool rewrite = RelativeModulePath(name) && CompilerPath.Extension(name) is ".ts" or ".tsx" or ".mts" or ".cts";
+            if (!reference.Resolution.UsingTsExtension && rewrite)
+            {
+                string relative = CompilerPath.Relative(CompilerPath.DirectoryName(source.FileName), reference.Resolution.FileName,
+                    compiler.UseCaseSensitiveFileNames);
+                Error(specifier, 2876, RelativeModuleName(relative) ? relative : "./" + relative);
+            }
+            else if (reference.Resolution.UsingTsExtension && !rewrite && compiler.SourceFileMayBeEmitted(target.Syntax))
+                Error(specifier, 2877, CompilerPath.Extension(name));
+            else if (reference.Resolution.UsingTsExtension && rewrite
+                && (compiler.ProjectReferences.Sources.GetValueOrDefault(target.Syntax.FileName)
+                    ?? compiler.ProjectReferences.Outputs.GetValueOrDefault(target.Syntax.FileName)) is { } redirect)
+            {
+                var project = redirect.Project;
+                string otherRoot = project.Options.String("rootDir") ?? (project.Options.Boolean("composite") == true
+                    ? CompilerPath.DirectoryName(project.FileName) : Programs.ProjectReferences.CommonDirectory(
+                        project.FileNames.Where(f => !CompilerPath.IsDeclarationFile(f)), compiler.UseCaseSensitiveFileNames));
+                string ownRoot = compiler.CommonSourceDirectory;
+                string roots = CompilerPath.Relative(ownRoot, otherRoot, compiler.UseCaseSensitiveFileNames);
+                string outputs = CompilerPath.Relative(options.String("outDir") ?? ownRoot,
+                    project.Options.String("outDir") ?? otherRoot, compiler.UseCaseSensitiveFileNames);
+                if (roots != outputs)
+                    Error(specifier, 2878);
+            }
+        }
         if (target is null || ModuleKind is not (100 or 101) || target.ImpliedFormat != ReferenceResolutionMode.Import)
             return;
         bool sync = import is ImportEqualsDeclarationNode || import is not CallExpressionNode
@@ -224,5 +265,19 @@ internal sealed partial class Checker
             _ => 1479
         };
         Error(specifier, code, code is 1471 or 1479 ? [name] : []);
+    }
+
+    private static string TypeScriptImportExtension(string name)
+    {
+        foreach (string declaration in new[] { ".d.ts", ".d.cts", ".d.mts" })
+            if (name.EndsWith(declaration, StringComparison.Ordinal))
+                return declaration;
+        string extension = CompilerPath.Extension(name);
+        if (extension is ".ts" or ".tsx" or ".mts" or ".cts")
+            return extension;
+        foreach (string candidate in new[] { ".ts", ".tsx", ".d.ts", ".cts", ".d.cts", ".mts", ".d.mts" })
+            if (name.Contains(candidate, StringComparison.Ordinal))
+                return candidate;
+        return extension;
     }
 }

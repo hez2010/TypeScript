@@ -13,6 +13,8 @@ internal sealed partial class Checker
 
     private async ValueTask CheckInterfaceSourceAsync(InterfaceDeclarationNode node, CancellationToken cancellation)
     {
+        if (!AllowsBlockScopedDeclaration(node.Parent) && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
+            Error(node, 1156, "interface");
         HeritageGrammar(node, node.HeritageClauses, isInterface: true);
         ExportedDeclaration(node, false);
         await CheckMergedExportsAsync(node, cancellation).ConfigureAwait(false);

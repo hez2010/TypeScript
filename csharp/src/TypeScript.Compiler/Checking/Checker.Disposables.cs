@@ -36,9 +36,9 @@ internal sealed partial class Checker
         bool grammar = SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0;
         bool usingDeclaration = kind is NodeFlags.Using or NodeFlags.AwaitUsing;
         bool awaitUsing = kind == NodeFlags.AwaitUsing;
-        bool modifierError = grammar && usingDeclaration && node.Parent is VariableStatementNode statement
-            && statement.Modifiers?.Any(
-                m => m.Kind is SyntaxKind.ExportKeyword or SyntaxKind.DefaultKeyword or SyntaxKind.DeclareKeyword) == true;
+        bool modifierError = node.Parent is VariableStatementNode statement && (DeclarationModifiers(statement)
+            || grammar && usingDeclaration && statement.Modifiers?.Any(
+                m => m.Kind is SyntaxKind.ExportKeyword or SyntaxKind.DefaultKeyword or SyntaxKind.DeclareKeyword) == true);
         bool invalid = modifierError;
         if (!modifierError)
         {
@@ -65,16 +65,21 @@ internal sealed partial class Checker
                 invalid = AwaitUsingGrammar(node);
             if (!invalid && kind != 0 && node.Parent is VariableStatementNode variable)
             {
-                var container = variable.Parent;
-                while (container is LabeledStatementNode)
-                    container = container.Parent;
-                if (container is IfStatementNode or DoStatementNode or WhileStatementNode or WithStatementNode or ForStatementNode
-                    or ForInOrOfStatementNode)
-                    Error(variable, 1156);
+                if (!AllowsBlockScopedDeclaration(variable.Parent))
+                    Error(variable, 1156, kind == NodeFlags.Let ? "let" : kind == NodeFlags.Const ? "const"
+                        : kind == NodeFlags.Using ? "using" : "await using");
             }
         }
         if (usingDeclaration && TargetYear < int.MaxValue)
             await ExternalHelpersAsync(node, ["__addDisposableResource", "__disposeResources"], cancellation);
+    }
+
+    private static bool AllowsBlockScopedDeclaration(SyntaxNode? parent)
+    {
+        while (parent is LabeledStatementNode)
+            parent = parent.Parent;
+        return parent is not (IfStatementNode or DoStatementNode or WhileStatementNode or WithStatementNode or ForStatementNode
+            or ForInOrOfStatementNode);
     }
 
     private bool AwaitUsingGrammar(VariableDeclarationListNode node)
