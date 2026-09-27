@@ -54,7 +54,7 @@ internal sealed partial class Checker
                     await TypeDisplay.GetAsync(await DeclaringClassAsync(symbol, cancellation) ?? type!, cancellation)
                 ],
             2446 => [name, await TypeDisplay.GetAsync(enclosing!, cancellation), await TypeDisplay.GetAsync(type!, cancellation)],
-            2715 => [name, TypeDisplay.SymbolName(program.Symbols.Parent(symbol)!)],
+            2715 => [name, await SymbolDisplayNameAsync(program.Symbols.Parent(symbol)!, null, SymbolFlags.All, cancellation)],
             _ => throw new InvalidOperationException($"Unsupported member diagnostic {code}")
         };
         var diagnostic = CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), arguments);

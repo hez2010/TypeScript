@@ -32,6 +32,19 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
 
     public async ValueTask<Type> CheckedFunctionTypeAsync(SyntaxNode node, CancellationToken cancellation)
     {
+        var previous = CurrentSourceNode;
+        try
+        {
+            return await CheckedFunctionTypeWorkerAsync(node, cancellation);
+        }
+        finally
+        {
+            CurrentSourceNode = previous;
+        }
+    }
+
+    private async ValueTask<Type> CheckedFunctionTypeWorkerAsync(SyntaxNode node, CancellationToken cancellation)
+    {
         var pending = new Stack<(SyntaxNode Node, bool Visited)>();
         pending.Push((node, false));
         while (pending.TryPop(out var item))
@@ -39,6 +52,7 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
             cancellation.ThrowIfCancellationRequested();
             if (item.Visited)
             {
+                CurrentSourceNode = item.Node;
                 if (item.Node is TypeReferenceNode reference)
                 {
                     InstantiationGrammar(reference, reference.TypeArguments);
@@ -106,6 +120,7 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
                 }
             }
         }
+        CurrentSourceNode = node;
         return await Nodes.FromNodeAsync(node, cancellation);
     }
 
@@ -322,6 +337,8 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
     {
         if (SemanticSyntax.Generator(node))
         {
+            if (SemanticSyntax.Body(node) is null)
+                return;
             if (type == context.VoidType)
                 Error(annotation, 2505);
             else

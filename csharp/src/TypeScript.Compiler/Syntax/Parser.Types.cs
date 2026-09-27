@@ -281,7 +281,7 @@ public sealed partial class Parser
                 NodeList members = await ListCore(
                     K.CloseBraceToken,
                     () => TypeMemberCore(false),
-                    stop: () => !Peek(ScanTypeMemberStart)).ConfigureAwait(false);
+                    typeMembers: true).ConfigureAwait(false);
                 Expected(K.CloseBraceToken);
                 return Finish(factory.NewTypeLiteralNode(members), start);
             case K.AsteriskToken:
@@ -365,15 +365,16 @@ public sealed partial class Parser
     private bool StartsFunctionType() => Token is K.LessThanToken or K.NewKeyword
             || Token == K.AbstractKeyword && NextIs(K.NewKeyword) || Token == K.OpenParenToken && IsFunctionType();
 
-    private async ValueTask<NodeList?> TypeArgumentsCore(bool rescan = true)
+    private async ValueTask<NodeList?> TypeArgumentsCore(bool rescan = true, bool requireClose = false, bool allowLineBreak = false)
     {
         await ParseStack;
-        if (LineBreak || (rescan ? scanner.RescanLessThanToken() : Token) != K.LessThanToken)
+        if (!allowLineBreak && LineBreak || (rescan ? scanner.RescanLessThanToken() : Token) != K.LessThanToken)
             return null;
         Next();
-        NodeList args = await DelimitedCore(K.GreaterThanToken, TypeCore).ConfigureAwait(false);
-        Expected(K.GreaterThanToken);
-        return args;
+        NodeList args = await DelimitedCore(K.GreaterThanToken, TypeCore,
+            stop: () => Token != K.CommaToken && !StartsType()).ConfigureAwait(false);
+        bool closed = Expected(K.GreaterThanToken);
+        return requireClose && !closed ? null : args;
     }
 
     private bool IsIndexSignature() => Token == K.OpenBracketToken && Peek(() =>
@@ -518,6 +519,8 @@ public sealed partial class Parser
         }
         var rest = OptionalToken(K.DotDotDotToken);
         SyntaxNode name = await BindingNameCore(Messages.Private_identifiers_cannot_be_used_as_parameters).ConfigureAwait(false);
+        if (name.Pos == name.End && modifiers is null && IsModifierKind(Token))
+            Next();
         return await WithJSDocCore(
             Finish(
                 factory.NewParameterDeclaration(
@@ -644,7 +647,7 @@ public sealed partial class Parser
         NodeList members = await ListCore(
             K.CloseBraceToken,
             () => TypeMemberCore(false),
-            stop: () => !Peek(ScanTypeMemberStart)).ConfigureAwait(false);
+            typeMembers: true).ConfigureAwait(false);
         Expected(K.CloseBraceToken);
         return Finish(factory.NewMappedTypeNode(readOnly, parameter, nameType, question, type, members), start);
     }

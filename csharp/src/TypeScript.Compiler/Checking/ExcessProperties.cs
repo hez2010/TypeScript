@@ -42,7 +42,12 @@ internal sealed class ExcessProperties(TypeContext context, TypeAlgebra algebra,
                 || property.ValueDeclaration.Parent != source.Symbol.ValueDeclaration || jsx && property.Name.Contains('-'))
                 continue;
             if (!await KnownAsync(reduced, property.Name, jsx, cancellation).ConfigureAwait(false))
+            {
+                if (!jsx && operation.ReportErrors)
+                    operation.Explain(2353, target: await algebra.FilterAsync(reduced,
+                        part => ValueTask.FromResult(Target(part)), cancellation).ConfigureAwait(false), property: property);
                 return true;
+            }
             if (checkTypes is not null)
             {
                 var types = new List<Type>();
@@ -91,6 +96,10 @@ internal sealed class ExcessProperties(TypeContext context, TypeAlgebra algebra,
         TypeRelations relations,
         CancellationToken cancellation = default)
     {
+        await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
+            ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
+        while (target is SubstitutionType { Constraint.Flags: TypeFlags.Unknown } substitution)
+            target = substitution.BaseType;
         if ((source.ObjectFlags & (ObjectFlags.ObjectLiteral | ObjectFlags.FreshLiteral)) != (ObjectFlags.ObjectLiteral | ObjectFlags.FreshLiteral)
             || !Target(target) || !host.NoImplicitAny && (target.ObjectFlags & ObjectFlags.JSLiteral) != 0)
             return null;
@@ -99,6 +108,7 @@ internal sealed class ExcessProperties(TypeContext context, TypeAlgebra algebra,
             && (target == host.GlobalObject || target is UnionType objectUnion && objectUnion.Types.Contains(host.GlobalObject)
                 || !jsx && await views.EmptyObjectAsync(target, cancellation).ConfigureAwait(false)))
             return null;
+        bool checkPropertyTypes = target is UnionType;
         if (target is UnionType union)
             target = await discrimination.MatchAsync(
                 source,
@@ -107,13 +117,34 @@ internal sealed class ExcessProperties(TypeContext context, TypeAlgebra algebra,
                 cancellation).ConfigureAwait(false)
                 ?? FilterPrimitives(union);
         foreach (var property in await properties.GetAsync(source, cancellation).ConfigureAwait(false))
+        {
             if (property.ValueDeclaration is not null && source.Symbol?.ValueDeclaration is not null
-                && property.ValueDeclaration.Parent == source.Symbol.ValueDeclaration && !(jsx && property.Name.Contains('-'))
-                && !await KnownAsync(target, property.Name, jsx, cancellation).ConfigureAwait(false))
-                return (property, await algebra.FilterAsync(
-                    target,
-                    part => ValueTask.FromResult(Target(part)),
-                    cancellation).ConfigureAwait(false));
+                && property.ValueDeclaration.Parent == source.Symbol.ValueDeclaration && !(jsx && property.Name.Contains('-')))
+            {
+                if (!await KnownAsync(target, property.Name, jsx, cancellation).ConfigureAwait(false))
+                    return (property, await algebra.FilterAsync(target, part => ValueTask.FromResult(Target(part)),
+                        cancellation).ConfigureAwait(false));
+                if (checkPropertyTypes)
+                {
+                    var types = new List<Type>();
+                    foreach (var part in target is UnionType parts ? parts.Types : [target])
+                    {
+                        var apparent = await views.ApparentAsync(part, cancellation).ConfigureAwait(false);
+                        var member = await properties.PropertyAsync(
+                            apparent,
+                            property.Name,
+                            cancellation: cancellation).ConfigureAwait(false);
+                        types.Add(member is not null ? await values.GetAsync(member, cancellation).ConfigureAwait(false)
+                            : (await host.ApplicableIndexAsync(apparent, property.Name, cancellation).ConfigureAwait(false))?.ValueType
+                                ?? context.UndefinedType);
+                    }
+                    var sourceType = await values.GetAsync(property, cancellation).ConfigureAwait(false);
+                    var targetType = await algebra.UnionAsync(types, cancellation: cancellation).ConfigureAwait(false);
+                    if (!await relations.RelatedAsync(sourceType, targetType, kind, cancellation).ConfigureAwait(false))
+                        return await UnknownPropertyAsync(sourceType, targetType, kind, relations, cancellation).ConfigureAwait(false);
+                }
+            }
+        }
         return null;
     }
 

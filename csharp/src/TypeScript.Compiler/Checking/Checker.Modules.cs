@@ -604,11 +604,13 @@ internal sealed partial class Checker
         bool ambient = (node.Flags & NodeFlags.Ambient) != 0;
         var format = ModuleTargetMode(SemanticSyntax.Source(node)!);
         if (node.IsExportEquals
+            && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0
             && ModuleKind >= 5
             && ModuleKind != 200
             && (ambient ? format == ReferenceResolutionMode.Import : format != ReferenceResolutionMode.Require))
             Error(node, 1203);
-        else if (node.IsExportEquals && ModuleKind == 4 && (node.Flags & NodeFlags.Ambient) == 0)
+        else if (node.IsExportEquals && ModuleKind == 4 && (node.Flags & NodeFlags.Ambient) == 0
+            && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
             Error(node, 1218);
     }
 

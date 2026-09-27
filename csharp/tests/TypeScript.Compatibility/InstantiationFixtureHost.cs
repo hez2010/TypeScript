@@ -268,7 +268,12 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
     public ValueTask<Type> ConditionalInstantiationAsync(ConditionalType type, TypeMapper mapper, CancellationToken cancellation)
         => ConditionalInstantiationAsync(type, mapper, null, cancellation);
 
-    public void CircularProperty(Symbol symbol, MappedType type) => Diagnostics.Add(2615);
+    public ValueTask CircularPropertyAsync(Symbol symbol, MappedType type, CancellationToken cancellation)
+    {
+        cancellation.ThrowIfCancellationRequested();
+        Diagnostics.Add(2615);
+        return ValueTask.CompletedTask;
+    }
 
     public async ValueTask<Type> TypeFromNodeAsync(SyntaxNode node, CancellationToken cancellation)
     {

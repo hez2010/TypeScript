@@ -85,8 +85,6 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
 
     public SymbolFlags GetSymbolFlags(Symbol symbol) => Aliases.FlagsAsync(symbol).GetAwaiter().GetResult();
 
-    internal Dictionary<(SyntaxNode Node, int Code), List<SyntaxNode>> MergeRelatedDeclarations { get; } = [];
-
     public void MergeConflict(Symbol target, Symbol source, bool namespaceConflict)
     {
         static SyntaxNode? Location(SyntaxNode? declaration) => declaration is null ? null : LateMembers.Name(declaration) ?? declaration;
@@ -114,15 +112,21 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
             foreach (var declaration in symbol.Declarations)
             {
                 var node = Location(declaration)!;
-                Error(node, message, source.Name.Length == 0 ? "(Missing)" : source.Name);
-                if (!MergeRelatedDeclarations.TryGetValue((node, message.Code), out var related))
-                    MergeRelatedDeclarations[(node, message.Code)] = related = [];
+                var sourceName = SemanticSyntax.Name(source.ValueDeclaration ?? source.Declarations.FirstOrDefault());
+                string name = sourceName is ComputedPropertyNameNode or StringLiteralNode or NumericLiteralNode
+                    ? CheckerDiagnostic.DeclarationName(sourceName) : source.Name.Length == 0 ? "(Missing)" : source.Name;
+                var related = new List<Diagnostic>();
+                var locations = new HashSet<SyntaxNode>();
                 foreach (var otherDeclaration in other.Declarations)
                 {
                     var otherNode = Location(otherDeclaration)!;
-                    if (otherNode != node && related.Count < 5 && !related.Contains(otherNode))
-                        related.Add(otherNode);
+                    if (otherNode != node && related.Count < 5 && locations.Add(otherNode))
+                        related.Add(related.Count == 0
+                            ? CheckerDiagnostic.Create(otherNode, Messages.X_0_was_also_declared_here, name)
+                            : CheckerDiagnostic.Create(otherNode, Messages.X_and_here));
                 }
+                Diagnostics.Add(message.Code);
+                DiagnosticFiles.Add((node, CheckerDiagnostic.Create(node, message, name) with { RelatedInformation = related }));
             }
         }
     }

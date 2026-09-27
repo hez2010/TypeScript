@@ -53,7 +53,7 @@ internal sealed partial class Checker : IIteratorProtocolHost, IIterationElement
 
     private static Diagnostic IteratorDiagnostic(IterationDiagnostic diagnostic) => CheckerDiagnostic.Create(
         diagnostic.Node, DiagnosticLocalization.GetMessage(diagnostic.Code),
-        diagnostic.Code is 2490 or 2547 or 2767 or 2768 ? [diagnostic.Member!] : []);
+        diagnostic.Code is 2489 or 2490 or 2519 or 2547 or 2767 or 2768 ? [diagnostic.Member!] : []);
 
     public ValueTask<bool> ReportGeneratorReturnAsync(Type source, Type target, SyntaxNode node, CancellationToken cancellation)
         => RelationDiagnostics.CheckAsync(source, target, RelationKind.Assignable, node, null, cancellation: cancellation);

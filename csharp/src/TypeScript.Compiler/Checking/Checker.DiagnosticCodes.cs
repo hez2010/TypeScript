@@ -22,6 +22,12 @@ internal sealed partial class Checker
     {
         if (node is null)
             return diagnostic;
+        if (diagnostic.Code == 2775 && AssertionRelatedDeclarations.TryGetValue(node, out var assertionDeclarations))
+            diagnostic = diagnostic with
+            {
+                RelatedInformation = assertionDeclarations.Select(d => CheckerDiagnostic.Create(d.Declaration,
+                    Messages.X_0_needs_an_explicit_type_annotation, TypeDisplay.SymbolName(d.Symbol))).ToArray()
+            };
         if (IterationAwaitHints.Contains((node, diagnostic.Code)))
             diagnostic = diagnostic with
             {
@@ -59,13 +65,6 @@ internal sealed partial class Checker
                 && d.Start == related.Start && d.Length == related.Length && d.Arguments.SequenceEqual(related.Arguments))
                 ? diagnostic : diagnostic with { RelatedInformation = [.. diagnostic.RelatedInformation, related] };
         }
-        if (program.MergeRelatedDeclarations.TryGetValue((node, diagnostic.Code), out var declarations))
-            return diagnostic with
-            {
-                RelatedInformation = declarations.Select((declaration, i) => i == 0
-                    ? CheckerDiagnostic.Create(declaration, Messages.X_0_was_also_declared_here, diagnostic.Arguments)
-                    : CheckerDiagnostic.Create(declaration, Messages.X_and_here)).ToArray()
-            };
         return diagnostic;
     }
 

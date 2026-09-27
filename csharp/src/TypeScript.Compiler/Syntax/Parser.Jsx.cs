@@ -46,7 +46,8 @@ public sealed partial class Parser
         }
 
         SyntaxNode name = (await JsxNameCore().ConfigureAwait(false));
-        NodeList? typeArguments = (context & NodeFlags.JavaScriptFile) == 0 ? await TypeArgumentsCore(false).ConfigureAwait(false) : null;
+        NodeList? typeArguments = (context & NodeFlags.JavaScriptFile) == 0
+            ? await TypeArgumentsCore(false, allowLineBreak: true).ConfigureAwait(false) : null;
         int attributesStart = Pos;
         var attributes = new List<SyntaxNode>();
         while (Token is not (K.GreaterThanToken or K.SlashToken or K.EndOfFile))
@@ -55,7 +56,7 @@ public sealed partial class Parser
             if (Token != K.OpenBraceToken && Token != K.Identifier && Token is not (>= K.FirstKeyword and <= K.LastKeyword))
             {
                 Error(Messages.Identifier_expected);
-                if (StartsStatement())
+                if (!expressionContext || StartsStatement())
                     break;
                 Next();
                 continue;

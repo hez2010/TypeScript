@@ -163,6 +163,8 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
                 return true;
             }
         }
+        if (!grammarError && node is MethodDeclarationNode { Parent: ObjectLiteralExpressionNode, Body: null })
+            Error(node, 1005);
         return grammarError;
     }
 

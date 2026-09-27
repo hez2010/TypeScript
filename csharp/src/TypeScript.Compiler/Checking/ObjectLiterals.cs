@@ -383,8 +383,8 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
             var name = ((INamedNode)property).Name!;
             if (name is ComputedPropertyNameNode { Expression: BinaryExpressionNode { OperatorToken.Kind: SyntaxKind.CommaToken } comma })
                 Error(comma, 1171);
-            if (!destructuring && property is ShorthandPropertyAssignmentNode { ObjectAssignmentInitializer: not null })
-                Error(property, 1312);
+            if (!destructuring && property is ShorthandPropertyAssignmentNode { ObjectAssignmentInitializer: not null } shorthand)
+                Error(shorthand.EqualsToken!, 1312);
             if (name is PrivateIdentifierNode)
                 Error(name, 18016);
             if (property is IModifiedNode { Modifiers: { } modifiers })

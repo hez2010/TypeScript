@@ -387,19 +387,31 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
         if (state.Node is DecoratorNode decorator)
         {
             int? previous = relationDiagnosticHead;
-            relationDiagnosticHead = DecoratorHead(decorator);
+            var previousOutput = callDiagnosticOutput;
+            var output = new List<(SyntaxNode Node, Diagnostic Diagnostic)>();
+            relationDiagnosticHead = null;
+            callDiagnosticOutput = output;
             try
             {
                 if (state.ArgumentErrors.Count != 0)
                     await CallResolution.ApplicableAsync(state.Node, state.Arguments, state.ArgumentErrors[^1], RelationKind.Assignable, 0,
-                        true, DecoratorHead(decorator), cancellation);
+                        true, 2345, cancellation);
                 else
-                    Error(decorator, DecoratorHead(decorator));
+                    await ReportArgumentArityAsync(state, state.ArgumentArityError is { } arityError ? [arityError] : original,
+                        cancellation, DecoratorHead(decorator));
             }
             finally
             {
                 relationDiagnosticHead = previous;
+                callDiagnosticOutput = previousOutput;
             }
+            foreach (var (_, detail) in output)
+                Error(decorator, detail with
+                {
+                    Message = DiagnosticLocalization.GetMessage(DecoratorHead(decorator)),
+                    Arguments = [],
+                    MessageChain = [detail with { RelatedInformation = [] }]
+                });
             return;
         }
         if (state.ArgumentErrors.Count != 0)

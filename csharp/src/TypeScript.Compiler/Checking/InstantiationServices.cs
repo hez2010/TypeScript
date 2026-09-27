@@ -212,10 +212,11 @@ internal sealed class InstantiationServices : ITypeInstantiationHost, ITupleType
         checker.TrackDiagnostic(declaration, diagnostic);
     }
 
-    public void CircularProperty(Symbol symbol, MappedType type)
+    public async ValueTask CircularPropertyAsync(Symbol symbol, MappedType type, CancellationToken cancellation)
     {
         Diagnostics.Add(2615);
-        checker.TrackDiagnostic(checker.DiagnosticNode, 2615);
+        checker.TrackDiagnostic(checker.DiagnosticNode, 2615, checker.TypeDisplay.SymbolName(symbol),
+            await checker.TypeDisplay.GetAsync(type, cancellation));
     }
 
     public void InstantiationLimit(int depth, int count)

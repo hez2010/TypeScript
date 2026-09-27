@@ -35,7 +35,7 @@ internal interface IMappedMemberHost : IMappedTypeHost
 
     ValueTask<Type> ConditionalInstantiationAsync(ConditionalType type, TypeMapper mapper, CancellationToken cancellation);
 
-    void CircularProperty(Symbol symbol, MappedType type);
+    ValueTask CircularPropertyAsync(Symbol symbol, MappedType type, CancellationToken cancellation);
 }
 
 internal sealed class MappedMembers(TypeContext context, TypeAlgebra algebra, TypeInstantiation instantiation,
@@ -329,7 +329,7 @@ internal sealed class MappedMembers(TypeContext context, TypeAlgebra algebra, Ty
             if (values.ResolvedType is null)
                 values.ResolvedType = assigned = resolved ? result : context.ErrorType;
             if (!resolved)
-                host.CircularProperty(symbol, type);
+                await host.CircularPropertyAsync(symbol, type, cancellation).ConfigureAwait(false);
             return values.ResolvedType;
         }
         catch

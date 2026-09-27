@@ -589,9 +589,7 @@ public sealed partial class Parser
                 && Token is K.LessThanToken or K.LessThanLessThanToken && (await PeekCore(async () =>
             {
                 scanner.RescanLessThanToken();
-                int errorsBefore = diagnostics.Count;
-                await TypeArgumentsCore().ConfigureAwait(false);
-                if (diagnostics.Count != errorsBefore)
+                if (await TypeArgumentsCore(requireClose: true).ConfigureAwait(false) is null)
                     return false;
                 if (Token == K.EqualsToken && scanner.TokenStart == Pos && Pos > 0 && source.Text[Pos - 1] == '>')
                     return false;

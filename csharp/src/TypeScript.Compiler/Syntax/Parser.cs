@@ -40,6 +40,7 @@ public sealed partial class Parser
     private int statementDepth;
     private int objectLiteralDepth;
     private int variableDeclarationDepth;
+    private bool reparsingTopLevelAwait;
     private bool possibleTopLevelAwait;
     private List<(int Start, int End)>? topLevelAwaitSpans;
     private readonly List<(int Start, int End)> possibleAwaitSpans = [];
@@ -173,7 +174,9 @@ public sealed partial class Parser
                 if (reparseAwait)
                     context |= NodeFlags.AwaitContext;
                 possibleTopLevelAwait = false;
+                reparsingTopLevelAwait = reparseAwait;
                 SyntaxNode statement = (await ParseStatementCore().ConfigureAwait(false));
+                reparsingTopLevelAwait = false;
                 context = statementContext;
                 if (topLevelAwaitSpans is null && possibleTopLevelAwait && (statement.Flags & NodeFlags.AwaitContext) == 0)
                 {
@@ -508,7 +511,18 @@ public sealed partial class Parser
                 Next();
                 NodeFlags saved = context;
                 context |= NodeFlags.DecoratorContext;
-                var expression = (await ExpressionCore(17).ConfigureAwait(false));
+                SyntaxNode expression;
+                if ((context & NodeFlags.AwaitContext) != 0 && Token == K.AwaitKeyword)
+                {
+                    Error(Messages.Expression_expected);
+                    var missing = Finish(factory.NewIdentifier(""), Pos, Pos);
+                    Next();
+                    expression = await MemberExpressionCore(missing, true).ConfigureAwait(false);
+                }
+                else
+                    expression = await MemberExpressionCore(
+                        await PrimaryExpressionCore().ConfigureAwait(false),
+                        true).ConfigureAwait(false);
                 context = saved;
                 (nodes ??= []).Add(Finish(factory.NewDecorator(expression), at));
                 continue;

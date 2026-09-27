@@ -49,7 +49,7 @@ internal sealed partial class Checker : ITypeKeyHost, IIndexedTypeHost
                 2493 => [receiver, CountText(((TupleType)((TypeReference)objectType).Target!).ElementInfos.Count), index],
                 2536 => [await TypeDisplay.GetAsync(indexType, cancellation), receiver],
                 2537 => [receiver, await TypeDisplay.GetAsync(indexType, cancellation)],
-                2538 => [await TypeDisplay.GetAsync(indexType, cancellation)],
+                2538 => [node is BigIntLiteralNode ? "bigint" : await TypeDisplay.GetAsync(indexType, cancellation)],
                 2551 => [index, receiver, suggestion!],
                 2576 =>
                     [

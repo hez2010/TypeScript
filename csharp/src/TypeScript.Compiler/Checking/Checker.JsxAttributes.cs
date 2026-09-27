@@ -158,11 +158,14 @@ internal sealed partial class Checker
                 declaration.Name.Parent = declaration;
                 child.ValueDeclaration = declaration;
                 links.Values.Get(child).ResolvedType = childType;
+                ObjectFlags childFlags = flags;
+                foreach (var childValue in children)
+                    childFlags |= childValue.ObjectFlags & ObjectFlags.PropagatingFlags;
                 spread = await ObjectSpreads.GetAsync(
                     spread,
                     JsxObject(symbol, new() { [childrenName] = child }),
                     symbol,
-                    flags,
+                    childFlags,
                     false,
                     cancellation);
             }

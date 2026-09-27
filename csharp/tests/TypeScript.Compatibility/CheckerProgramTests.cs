@@ -1075,9 +1075,9 @@ internal static class CheckerProgramTests
         foreach (var file in duplicates.SourceFiles)
             if (!duplicateChecker.DiagnosticCodesForFile(file.Syntax).SequenceEqual([2300, 2451, 2567]))
                 throw new InvalidOperationException("Merge diagnostics lost declaration file attribution");
-        var related = duplicateChecker.Environment.MergeRelatedDeclarations;
-        if (related.Count != 6 || related.Any(p => p.Value.Count != 1
-            || SemanticSyntax.Source(p.Key.Node) == SemanticSyntax.Source(p.Value[0])))
+        var related = duplicates.SourceFiles.SelectMany(file => duplicateChecker.DetailedDiagnosticsForFile(file.Syntax)).ToArray();
+        if (related.Length != 6 || related.Any(d => d.RelatedInformation.Count != 1
+            || d.FileName == d.RelatedInformation[0].FileName))
             throw new InvalidOperationException("Merge diagnostics lost related declarations");
         var plainJs = await Build(new()
         {

@@ -63,8 +63,15 @@ internal sealed class RelationSession(
     internal IReadOnlyList<Type> SourceStack => sourceStack;
     internal IReadOnlyList<Type> TargetStack => targetStack;
 
-    internal async ValueTask<Ternary> RecursiveAsync(Type source, Type target, IntersectionState intersection, RecursionFlags flags,
-        bool reportErrors, Func<ValueTask<Ternary>> structured, Action<Type, Type> reportOverflow, CancellationToken cancellation = default)
+    internal async ValueTask<Ternary> RecursiveAsync(
+        Type source,
+        Type target,
+        IntersectionState intersection,
+        RecursionFlags flags,
+        bool reportErrors,
+        Func<ValueTask<Ternary>> structured,
+        Func<Type, Type, CancellationToken, ValueTask> reportOverflow,
+        CancellationToken cancellation = default)
     {
         active++;
         try
@@ -91,8 +98,15 @@ internal sealed class RelationSession(
         }
     }
 
-    private async ValueTask<Ternary> RecursiveCoreAsync(Type source, Type target, IntersectionState intersection, RecursionFlags flags,
-        bool reportErrors, Func<ValueTask<Ternary>> structured, Action<Type, Type> reportOverflow, CancellationToken cancellation)
+    private async ValueTask<Ternary> RecursiveCoreAsync(
+        Type source,
+        Type target,
+        IntersectionState intersection,
+        RecursionFlags flags,
+        bool reportErrors,
+        Func<ValueTask<Ternary>> structured,
+        Func<Type, Type, CancellationToken, ValueTask> reportOverflow,
+        CancellationToken cancellation)
     {
         await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
             ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
@@ -113,7 +127,7 @@ internal sealed class RelationSession(
         {
             state.Reliability |= cached & RelationComparisonResult.ReportsMask;
             if (reportErrors && (cached & RelationComparisonResult.Overflow) != 0)
-                reportOverflow(source, target);
+                await reportOverflow(source, target, cancellation).ConfigureAwait(false);
             return (cached & RelationComparisonResult.Succeeded) != 0 ? Ternary.True : Ternary.False;
         }
         if (Remaining <= 0)
@@ -211,7 +225,7 @@ internal sealed class RelationSession(
     internal async ValueTask CompleteAsync(
         Type source,
         Type target,
-        Action<Type, Type> reportOverflow,
+        Func<Type, Type, CancellationToken, ValueTask> reportOverflow,
         CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
@@ -223,7 +237,7 @@ internal sealed class RelationSession(
                 identity: relation.Kind == RelationKind.Identity,
                 cancellation: cancellation).ConfigureAwait(false);
             Record(key, RelationComparisonResult.Failed | RelationComparisonResult.ComplexityOverflow);
-            reportOverflow(source, target);
+            await reportOverflow(source, target, cancellation).ConfigureAwait(false);
         }
         maybe.Clear();
         maybeSet.Clear();

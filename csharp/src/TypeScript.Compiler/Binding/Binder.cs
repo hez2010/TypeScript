@@ -288,7 +288,10 @@ public sealed partial class Binder
                     Anonymous(node, S.Class, Name(node) is { } className ? NameText(className) : Internal("class"));
                 var classSymbol = SymbolOf(node)!;
                 if (classSymbol.ExportTable.TryGetValue("prototype", out var old) && old.Declarations.Count != 0)
-                    Error(Name(old.Declarations[0]) ?? old.Declarations[0], Messages.Duplicate_identifier_0, "prototype");
+                    Error(
+                        Name(old.Declarations[0]) ?? old.Declarations[0],
+                        Messages.Duplicate_identifier_0,
+                        DisplayName(old.Declarations[0]));
                 classSymbol.ExportTable["prototype"] = NewSymbol(S.Property | S.Prototype, "prototype", classSymbol);
                 break;
             case InterfaceDeclarationNode:

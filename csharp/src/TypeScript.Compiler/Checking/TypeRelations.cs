@@ -12,7 +12,7 @@ internal interface ITypeRelationHost
     ValueTask<Ternary> RelatedAsync(RelationOperation operation, Type source, Type target, RecursionFlags recursion,
             IntersectionState intersection, CancellationToken cancellation);
 
-    void ComplexityOverflow(Type source, Type target);
+    ValueTask ComplexityOverflowAsync(Type source, Type target, CancellationToken cancellation);
 }
 
 internal sealed class TypeRelations(TypeContext context, TypeNormalization normalization, TypeViews views,
@@ -23,6 +23,13 @@ internal sealed class TypeRelations(TypeContext context, TypeNormalization norma
         k => new Relation(k));
     internal RelationState State { get; } = new();
 
+    internal async ValueTask<bool> HasOverflowAsync(Type source, Type target, RelationKind kind, CancellationToken cancellation)
+    {
+        var (key, _) = await keys.CreateAsync(source, target, identity: kind == RelationKind.Identity,
+            cancellation: cancellation).ConfigureAwait(false);
+        return (relations[kind].Get(key) & RelationComparisonResult.Overflow) != 0;
+    }
+
     internal Relation Cache(RelationKind kind) => relations[kind];
 
     internal async ValueTask<RelationExplanation?> ExplainAsync(Type source, Type target, RelationKind kind, CancellationToken cancellation)
@@ -32,7 +39,7 @@ internal sealed class TypeRelations(TypeContext context, TypeNormalization norma
         try
         {
             var result = await operation.CompareAsync(source, target, cancellation: cancellation).ConfigureAwait(false);
-            await session.CompleteAsync(source, target, host.ComplexityOverflow, cancellation).ConfigureAwait(false);
+            await session.CompleteAsync(source, target, host.ComplexityOverflowAsync, cancellation).ConfigureAwait(false);
             return result == Ternary.False ? operation.Explanation : null;
         }
         catch
@@ -58,7 +65,7 @@ internal sealed class TypeRelations(TypeContext context, TypeNormalization norma
                 target,
                 ignoreReturn ? SignatureCheckMode.IgnoreReturnTypes : 0,
                 cancellation: cancellation).ConfigureAwait(false);
-            await session.CompleteAsync(sourceType, targetType, host.ComplexityOverflow, cancellation).ConfigureAwait(false);
+            await session.CompleteAsync(sourceType, targetType, host.ComplexityOverflowAsync, cancellation).ConfigureAwait(false);
             return result != Ternary.False;
         }
         catch
@@ -113,7 +120,7 @@ internal sealed class TypeRelations(TypeContext context, TypeNormalization norma
         try
         {
             var result = await operation.CompareAsync(source, target, cancellation: cancellation).ConfigureAwait(false);
-            await session.CompleteAsync(source, target, host.ComplexityOverflow, cancellation).ConfigureAwait(false);
+            await session.CompleteAsync(source, target, host.ComplexityOverflowAsync, cancellation).ConfigureAwait(false);
             return result != Ternary.False;
         }
         catch
@@ -264,7 +271,16 @@ internal sealed class RelationOperation(
 
     internal ValueTask<Ternary> RecursiveAsync(Type source, Type target, RecursionFlags recursion, IntersectionState intersection,
         Func<ValueTask<Ternary>> compare, CancellationToken cancellation = default)
-        => session.RecursiveAsync(source, target, intersection, recursion, ReportErrors, compare, host.ComplexityOverflow, cancellation);
+        =>
+            session.RecursiveAsync(
+                source,
+                target,
+                intersection,
+                recursion,
+                ReportErrors,
+                compare,
+                host.ComplexityOverflowAsync,
+                cancellation);
 
     internal async ValueTask<Ternary> CompareAsync(Type source, Type target, RecursionFlags recursion = RecursionFlags.Both,
             IntersectionState intersection = 0, CancellationToken cancellation = default)
@@ -320,7 +336,7 @@ internal sealed class RelationOperation(
                 recursion,
                 false,
                 () => host.IdentityAsync(this, source, target, cancellation),
-                host.ComplexityOverflow,
+                host.ComplexityOverflowAsync,
                 cancellation).ConfigureAwait(false);
         }
         return await host.RelatedAsync(this, source, target, recursion, intersection, cancellation).ConfigureAwait(false);

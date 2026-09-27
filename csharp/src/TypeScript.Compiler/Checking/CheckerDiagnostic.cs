@@ -49,6 +49,9 @@ internal static class CheckerDiagnostic
                 return token.Start == file.Source.Bytes.Length ? (0, 0) : token;
             case FunctionDeclarationNode or MethodDeclarationNode when (node.Flags & NodeFlags.Reparsed) != 0:
                 break;
+            case FunctionExpressionNode function:
+                errorNode = function.Name ?? AssignedName(function);
+                break;
             case FunctionDeclarationNode or MethodDeclarationNode or VariableDeclarationNode or BindingElementNode
                 or ClassDeclarationNode or InterfaceDeclarationNode or ModuleDeclarationNode or EnumDeclarationNode
                 or EnumMemberNode or FunctionExpressionNode or GetAccessorDeclarationNode or SetAccessorDeclarationNode
@@ -91,6 +94,30 @@ internal static class CheckerDiagnostic
         if (position != errorNode.End && errorNode is not JsxTextNode)
             position = TokenRange(file, position).Start;
         return (position, errorNode.End);
+    }
+
+    private static SyntaxNode? AssignedName(SyntaxNode node)
+    {
+        if (node.Parent is PropertyAssignmentNode or BindingElementNode)
+            return SemanticSyntax.Name(node.Parent);
+        if (node.Parent is VariableDeclarationNode { Name: IdentifierNode name })
+            return name;
+        if (node.Parent is BinaryExpressionNode binary && binary.Right == node)
+        {
+            if (binary.Left is IdentifierNode)
+                return binary.Left;
+            if (binary.Left is PropertyAccessExpressionNode property)
+                return property.Name;
+            if (binary.Left is ElementAccessExpressionNode element)
+            {
+                var argument = element.ArgumentExpression;
+                while (argument is ParenthesizedExpressionNode parenthesized)
+                    argument = parenthesized.Expression;
+                if (argument is StringLiteralNode or NumericLiteralNode or NoSubstitutionTemplateLiteralNode)
+                    return argument;
+            }
+        }
+        return null;
     }
 
     private static JSDocSatisfiesTagNode? OriginatingSatisfiesTag(SourceFileNode file, SatisfiesExpressionNode node)

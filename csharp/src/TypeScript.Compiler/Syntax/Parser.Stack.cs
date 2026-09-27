@@ -30,6 +30,9 @@ public sealed partial class Parser
         await ParseStack;
         int start = Pos;
         var nodes = new List<SyntaxNode>();
+        // Speculative productions must keep their delimiters so a failed arrow
+        // or type-argument parse can return to the surrounding expression.
+        bool recoveringReparse = reparsingTopLevelAwait && speculationDepth == 0;
         while (Token != end && Token != K.EndOfFile && stop?.Invoke() != true)
         {
             if (startsElement?.Invoke() == false)
@@ -38,9 +41,9 @@ public sealed partial class Parser
                     reportInvalidElement();
                 else
                     Error(elementExpected!);
-                if ((recoveryBoundary?.Invoke() ?? (Token != K.SemicolonToken && StartsStatement()))
+                if ((recoveryBoundary?.Invoke() ?? (!recoveringReparse && Token != K.SemicolonToken && StartsStatement()))
                     || variableDeclarationDepth != 0 && Token == K.EqualsGreaterThanToken
-                    || Token is K.CloseBraceToken or K.CloseParenToken or K.CloseBracketToken)
+                    || !recoveringReparse && Token is K.CloseBraceToken or K.CloseParenToken or K.CloseBracketToken)
                     break;
                 Next();
                 continue;
@@ -52,7 +55,7 @@ public sealed partial class Parser
             if (!Take(K.CommaToken) && !(semicolons && (Take(K.SemicolonToken) || LineBreak)))
             {
                 Error(Messages.X_0_expected, semicolons ? ";" : ",");
-                if (Token is K.CloseBraceToken or K.CloseParenToken or K.CloseBracketToken)
+                if (!recoveringReparse && Token is K.CloseBraceToken or K.CloseParenToken or K.CloseBracketToken)
                     break;
             }
             if (Pos == before)
@@ -65,7 +68,8 @@ public sealed partial class Parser
         K end,
         Func<ValueTask<SyntaxNode>> element,
         bool statementList = false,
-        Func<bool>? stop = null)
+        Func<bool>? stop = null,
+        bool typeMembers = false)
     {
         await ParseStack;
         int start = Pos;
@@ -76,6 +80,14 @@ public sealed partial class Parser
         {
             while (Token != end && Token != K.EndOfFile && stop?.Invoke() != true)
             {
+                if (typeMembers && !Peek(ScanTypeMemberStart))
+                {
+                    Error(Messages.Property_or_signature_expected);
+                    if (Token is K.CloseParenToken or K.CloseBracketToken || Token != K.SemicolonToken && StartsStatement())
+                        break;
+                    Next();
+                    continue;
+                }
                 if (statementList && !StartsStatement())
                 {
                     Error(Messages.Declaration_or_statement_expected);

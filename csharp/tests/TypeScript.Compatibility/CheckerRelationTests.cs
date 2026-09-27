@@ -107,7 +107,8 @@ internal static class CheckerRelationTests
         var relation = new Relation(RelationKind.Assignable);
         var state = new RelationState();
         var session = new RelationSession(context, relation, host.RelationKeys, recursion, state);
-        void NoOverflow(Type _, Type __) => throw new InvalidOperationException("Unexpected comparison overflow");
+        ValueTask NoOverflow(Type _, Type __, CancellationToken cancellation) =>
+            throw new InvalidOperationException("Unexpected comparison overflow");
         var result = await session.RecursiveAsync(bp, op, 0, RecursionFlags.Both, false,
             () => session.RecursiveAsync(
                 bc,
@@ -213,9 +214,17 @@ internal static class CheckerRelationTests
                 RecursionFlags.Both,
                 false,
                 () => throw new InvalidOperationException("Budget ignored"),
-                (_, _) => overflows++) == Ternary.False
+                (_, _, _) =>
+                {
+                    overflows++;
+                    return ValueTask.CompletedTask;
+                }) == Ternary.False
                 && budget.Overflow);
-        await budget.CompleteAsync(bp, op, (_, _) => overflows++);
+        await budget.CompleteAsync(bp, op, (_, _, _) =>
+        {
+            overflows++;
+            return ValueTask.CompletedTask;
+        });
         Check(
             overflows == 1
                 && budgetRelation.Get(key.Key) == (RelationComparisonResult.Failed | RelationComparisonResult.ComplexityOverflow));
@@ -228,7 +237,11 @@ internal static class CheckerRelationTests
                 RecursionFlags.Both,
                 true,
                 () => throw new InvalidOperationException("Overflow cache ignored"),
-                (_, _) => overflows++) == Ternary.False
+                (_, _, _) =>
+                {
+                    overflows++;
+                    return ValueTask.CompletedTask;
+                }) == Ternary.False
                 && overflows == 2);
 
         var depthRelation = new Relation(RelationKind.Identity);

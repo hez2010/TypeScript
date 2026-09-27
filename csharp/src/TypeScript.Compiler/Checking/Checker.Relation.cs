@@ -106,10 +106,14 @@ internal sealed partial class Checker : ITypeNormalizationHost, ITypeRelationHos
         return enumRelations[key] = true;
     }
 
-    public void ComplexityOverflow(Type source, Type target)
+    public async ValueTask ComplexityOverflowAsync(Type source, Type target, CancellationToken cancellation)
     {
         Diagnostics.Add(2859);
-        TrackDiagnostic(DiagnosticNode, 2859);
+        TrackDiagnostic(
+            DiagnosticNode,
+            2859,
+            await TypeDisplay.GetAsync(source, cancellation),
+            await TypeDisplay.GetAsync(target, cancellation));
     }
 
     public ValueTask<Type> ConditionalBranchAsync(ConditionalType type, bool whenTrue, CancellationToken cancellation)

@@ -38,10 +38,20 @@ internal sealed partial class Checker : IBindingPatternHost, IExpressionContextH
         CancellationToken cancellation) =>
         await RelationDiagnostics.CheckAsync(source, target, RelationKind.Assignable, node, expression, cancellation: cancellation);
 
+    private readonly HashSet<(SyntaxNode Node, SyntaxNode Spread)> reportedSpreadOverrides = [];
+
     public void SpreadOverride(SyntaxNode node, Symbol property, SyntaxNode spread)
-        => Error(node, CheckerDiagnostic.Create(node, Messages.X_0_is_specified_more_than_once_so_this_usage_will_be_overwritten,
-            property.Name) with
-        { RelatedInformation = [CheckerDiagnostic.Create(spread, Messages.This_spread_always_overwrites_this_property)] });
+    {
+        if (!reportedSpreadOverrides.Add((node, spread)))
+            return;
+        var note = CheckerDiagnostic.Create(spread, Messages.This_spread_always_overwrites_this_property);
+        if (reported.Contains((node, 2783)))
+            AddRelationNote(node, note);
+        else
+            Error(node, CheckerDiagnostic.Create(node, Messages.X_0_is_specified_more_than_once_so_this_usage_will_be_overwritten,
+                property.Name) with
+            { RelatedInformation = [note] });
+    }
 
     public bool ContextSensitive(SyntaxNode node) => program.IsContextSensitive(node);
 

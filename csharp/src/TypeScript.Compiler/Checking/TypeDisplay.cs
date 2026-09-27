@@ -63,13 +63,15 @@ internal sealed class TypeDisplay(TypeContext context, CheckerLinks links, bool 
     internal string SymbolName(Symbol symbol)
     {
         var name = SemanticSyntax.Name(symbol.ValueDeclaration ?? symbol.Declarations.FirstOrDefault());
-        if (name is StringLiteralNode && SemanticSyntax.Source(name) is { } file)
+        if (name is StringLiteralNode or NumericLiteralNode && SemanticSyntax.Source(name) is { } file)
         {
             var (start, _) = CheckerDiagnostic.TokenRange(file, name.Pos);
             return file.Source.Text[file.Source.ToUtf16Position(start)..file.Source.ToUtf16Position(name.End)];
         }
         if (name is ComputedPropertyNameNode computed)
         {
+            if (computed.Expression is StringLiteralNode or NumericLiteralNode or NoSubstitutionTemplateLiteralNode)
+                return CheckerDiagnostic.DeclarationName(computed);
             static string? EntityName(SyntaxNode? expression)
             {
                 var parts = new Stack<string>();

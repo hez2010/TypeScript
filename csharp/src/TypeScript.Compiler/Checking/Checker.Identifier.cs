@@ -232,6 +232,15 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
         bool related = await Relations.RelatedAsync(source, target, kind, cancellation);
         if (!related && node is not null)
         {
+            if (await Relations.HasOverflowAsync(source, target, kind, cancellation))
+            {
+                RelationError(
+                    node,
+                    2859,
+                    await TypeDisplay.GetAsync(source, cancellation),
+                    await TypeDisplay.GetAsync(target, cancellation));
+                return false;
+            }
             if (headCode == 2747 && node is JsxTextNode && node.Parent is JsxElementNode element)
             {
                 RelationError(node, 2747, CheckerDiagnostic.DeclarationName(element.OpeningElement!.TagName!),

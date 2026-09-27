@@ -112,7 +112,7 @@ internal static class CheckerConditionalTests
                     async () => depth < 9 ? await Nest(depth + 1) : target
                         ? (await host.ConditionalRelations.TargetAsync(operation, context.NumberType, nested[depth], 0))!.Value
                         : await host.ConditionalRelations.SourceAsync(operation, nested[depth], context.NumberType),
-                    (_, _) => throw new InvalidOperationException("Conditional nesting overflowed"));
+                    (_, _, _) => throw new InvalidOperationException("Conditional nesting overflowed"));
             Check(await Nest(0) == Ternary.Maybe);
             Check(session.SourceStack.Count == 0 && session.TargetStack.Count == 0 && session.PendingCount == 0);
         }

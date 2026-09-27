@@ -10,7 +10,7 @@ internal sealed partial class Checker
 {
     private List<(SyntaxNode Node, Diagnostic Diagnostic)>? callDiagnosticOutput;
     private List<(SyntaxNode Node, Diagnostic Diagnostic)>? relationDiagnosticOutput;
-    private readonly HashSet<Diagnostic> heritageRelationDiagnostics = new(DiagnosticEqualityComparer.Instance);
+    private readonly HashSet<Diagnostic> reportedRelationDiagnostics = new(DiagnosticEqualityComparer.Instance);
 
     private void RelationError(SyntaxNode node, int code, params string[] arguments)
         => RelationError(node, CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), arguments));
@@ -19,16 +19,14 @@ internal sealed partial class Checker
     {
         if (relationDiagnosticOutput is { } output)
             output.Add((node, diagnostic));
-        else if (diagnostic.Code is 2415 or 2416 or 2417 or 2420 or 2430 or 2720)
+        else
         {
-            if (heritageRelationDiagnostics.Add(diagnostic))
+            if (reportedRelationDiagnostics.Add(diagnostic))
             {
                 Diagnostics.Add(diagnostic.Code);
                 diagnosticFiles.Add((node, diagnostic));
             }
         }
-        else
-            Error(node, diagnostic);
     }
 
     public async ValueTask ExpectedPropertyInfoAsync(
@@ -55,7 +53,7 @@ internal sealed partial class Checker
         }
         if (note is null)
             return;
-        AddRelationNote(node, note);
+        AddRelationNote(node.Parent is PropertyAssignmentNode assignment && assignment.Name == node ? assignment : node, note);
     }
 
     public void ExpectedReturnInfo(ArrowFunctionNode node, Type target, bool suggestAsync)
@@ -76,6 +74,8 @@ internal sealed partial class Checker
                 if (Contains(output[i].Node))
                 {
                     var diagnostic = output[i].Diagnostic;
+                    if (diagnostic.RelatedInformation.Contains(note, DiagnosticEqualityComparer.Instance))
+                        return;
                     output[i] = (output[i].Node, diagnostic with { RelatedInformation = [.. diagnostic.RelatedInformation, note] });
                     return;
                 }
@@ -85,6 +85,8 @@ internal sealed partial class Checker
                 if (Contains(diagnosticFiles[i].Node))
                 {
                     var diagnostic = diagnosticFiles[i].Diagnostic;
+                    if (diagnostic.RelatedInformation.Contains(note, DiagnosticEqualityComparer.Instance))
+                        return;
                     diagnosticFiles[i] = (diagnosticFiles[i].Node, diagnostic with
                     {
                         RelatedInformation =
@@ -162,7 +164,8 @@ internal sealed partial class Checker
     private async ValueTask ReportArgumentArityAsync(
         CallResolution.State state,
         IReadOnlyList<Signature> signatures,
-        CancellationToken cancellation)
+        CancellationToken cancellation,
+        int? head = null)
     {
         int spread = Checking.CallArguments.SpreadIndex(state.Arguments);
         if (spread >= 0)
@@ -202,7 +205,7 @@ internal sealed partial class Checker
             Error(node, 2575, CountText(count), CountText(below), CountText(above));
             return;
         }
-        int code = rest ? 2555 : promise ? 2794 : 2554;
+        int code = state.Node is DecoratorNode ? rest ? 1279 : 1278 : rest ? 2555 : promise ? 2794 : 2554;
         var diagnostic = CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), range, CountText(count));
         if (count < minimum && closest?.Declaration is IFunctionSignature { Parameters: { } parameters })
         {
@@ -228,7 +231,12 @@ internal sealed partial class Checker
             int start = CheckerDiagnostic.TokenRange(file, position).Start;
             diagnostic = diagnostic with { Start = start, Length = Math.Max(start, end) - start };
         }
-        Error(state.Node, diagnostic);
+        Error(state.Node, head is null ? diagnostic : diagnostic with
+        {
+            Message = DiagnosticLocalization.GetMessage(head.Value),
+            Arguments = [],
+            MessageChain = [diagnostic with { RelatedInformation = [] }]
+        });
     }
 
     private bool PromiseResolveArity(SyntaxNode node, CancellationToken cancellation)

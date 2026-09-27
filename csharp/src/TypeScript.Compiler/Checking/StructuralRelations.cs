@@ -216,7 +216,12 @@ internal sealed class StructuralRelations(TypeContext context, TypeAlgebra algeb
                 return advanced;
         }
         bool primitive = (source.Flags & TypeFlags.Primitive) != 0;
+        var originalSource = source;
         source = await views.ApparentAsync(source, cancellation).ConfigureAwait(false);
+        if (source != originalSource && await host.VarianceAsync(operation, source, target, intersection, operation.ReportErrors
+            ? () => AfterVarianceAsync(operation, source, target, intersection, previousExplanation, cancellation) : null,
+            cancellation).ConfigureAwait(false) is { } apparentVariance)
+            return apparentVariance;
         if (await host.ArrayRelationAsync(operation, source, target, intersection, cancellation).ConfigureAwait(false) is { } array)
             return array;
         if (operation.Kind is RelationKind.Subtype or RelationKind.StrictSubtype && (target.ObjectFlags & ObjectFlags.FreshLiteral) != 0

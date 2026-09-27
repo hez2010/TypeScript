@@ -116,6 +116,7 @@ internal sealed partial class Checker
             return diagnostic;
         bool matches = next.Code switch
         {
+            2353 or 2561 => true,
             4104 => next.Arguments.SequenceEqual(new[] { sourceText, targetText }),
             2559 or 2560 => true,
             2741 when diagnostic.Code is not (2415 or 2417 or 2430 or 2420 or 2720 or 2352 or 2787 or 2788 or 2789) => next.Arguments is [_, var s, var t]
@@ -153,6 +154,28 @@ internal sealed partial class Checker
         if (explanation is null)
             return null;
         var next = await RelationChainAsync(explanation.Next, location, cancellation);
+        if (explanation.Code == 2326 && next?.Code is 2353 or 2561)
+            return next;
+        if (explanation.Code == 2353)
+        {
+            var property = explanation.Property!;
+            var name = SemanticSyntax.Name(property.ValueDeclaration);
+            var target = explanation.Target!;
+            var suggestion = name is IdentifierNode identifier
+                ? await SymbolSuggestions.FindAsync(identifier.Text, await Properties.GetAsync(target, cancellation),
+                    SymbolFlags.Value, cancellation) : null;
+            var excessDiagnostic = name is not null && SemanticSyntax.Source(name)?.FileName == location.FileName
+                ? CheckerDiagnostic.Create(name, Messages.Object_literal_may_only_specify_known_properties_and_0_does_not_exist_in_type_1)
+                : location;
+            string propertyText = TypeDisplay.SymbolName(property), targetText = await TypeDisplay.GetAsync(target, cancellation);
+            return excessDiagnostic with
+            {
+                Message = DiagnosticLocalization.GetMessage(suggestion is null ? 2353 : 2561),
+                Arguments = suggestion is null ? [propertyText, targetText] : [propertyText, targetText, suggestion.Name],
+                MessageChain = [],
+                RelatedInformation = []
+            };
+        }
         var diagnostic = location with
         {
             Message = DiagnosticLocalization.GetMessage(explanation.Code),

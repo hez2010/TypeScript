@@ -347,7 +347,6 @@ internal sealed partial class Checker
                             Error(alias.Type, 2795);
                         break;
                     }
-                    await Declared.GetAsync(program.Symbols.Declaration(alias)!, cancellation).ConfigureAwait(false);
                     await CheckedFunctionTypeAsync(alias.Type!, cancellation).ConfigureAwait(false);
                     break;
                 case InterfaceDeclarationNode declaration:

@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -32,6 +33,7 @@ internal sealed partial class Checker
         if (node is not IModifiedNode { Modifiers: { } modifiers } || SemanticSyntax.Source(node)?.ParseDiagnostics.Count != 0)
             return false;
         bool leading = false, seenModifier = false, otherModifier = false, exportBeforeDecorator = false;
+        DecoratorNode? firstLeading = null, afterExport = null;
         foreach (var modifier in modifiers)
         {
             if (modifier is DecoratorNode)
@@ -63,19 +65,27 @@ internal sealed partial class Checker
                 }
                 if (leading && seenModifier)
                 {
-                    Error(modifier, 8038);
+                    Error(modifier, CheckerDiagnostic.Create(modifier,
+                        Messages.Decorators_may_not_appear_after_export_or_export_default_if_they_also_appear_before_export) with
+                    { RelatedInformation = [CheckerDiagnostic.Create(firstLeading!, Messages.Decorator_used_before_export_here)] });
                     return true;
                 }
                 if (!seenModifier)
+                {
                     leading = true;
+                    firstLeading ??= (DecoratorNode)modifier;
+                }
                 else
+                {
                     exportBeforeDecorator = true;
+                    afterExport ??= (DecoratorNode)modifier;
+                }
             }
             else
             {
                 if (modifier.Kind == SyntaxKind.DefaultKeyword && exportBeforeDecorator)
                 {
-                    Error(modifier, 1206);
+                    Error(afterExport!, 1206);
                     return true;
                 }
                 seenModifier = true;
@@ -133,7 +143,8 @@ internal sealed partial class Checker
         if (SemanticSyntax.Source(decorator)?.ParseDiagnostics.Count != 0 || decorator.Expression is ParenthesizedExpressionNode)
             return;
         var node = decorator.Expression!;
-        bool callAllowed = true, invalid = false;
+        bool callAllowed = true;
+        SyntaxNode? invalid = null;
         while (true)
         {
             if (node is ExpressionWithTypeArgumentsNode instantiated)
@@ -148,23 +159,30 @@ internal sealed partial class Checker
             }
             if (node is CallExpressionNode call)
             {
-                invalid |= !callAllowed || call.QuestionDotToken is not null;
+                if (!callAllowed)
+                    invalid = node;
+                if (call.QuestionDotToken is not null)
+                    invalid = call.QuestionDotToken;
                 node = call.Expression!;
                 callAllowed = false;
                 continue;
             }
             if (node is PropertyAccessExpressionNode property)
             {
-                invalid |= property.QuestionDotToken is not null;
+                if (property.QuestionDotToken is not null)
+                    invalid = property.QuestionDotToken;
                 node = property.Expression!;
                 callAllowed = false;
                 continue;
             }
-            invalid |= node is not IdentifierNode;
+            if (node is not IdentifierNode)
+                invalid = node;
             break;
         }
-        if (invalid)
-            Error(decorator.Expression!, 1497);
+        if (invalid is not null)
+            Error(decorator.Expression!, CheckerDiagnostic.Create(decorator.Expression!,
+                Messages.Expression_must_be_enclosed_in_parentheses_to_be_used_as_a_decorator) with
+            { RelatedInformation = [CheckerDiagnostic.Create(invalid, Messages.Invalid_syntax_in_decorator)] });
     }
 
     private async ValueTask<int> DecoratorArgumentCountAsync(DecoratorNode decorator, Signature signature, CancellationToken cancellation)

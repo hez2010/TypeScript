@@ -156,7 +156,7 @@ public sealed partial class Parser
                 Semicolon();
                 return Finish(factory.NewVariableStatement(modifiers, declarations), start);
             case K.UsingKeyword:
-                if (IsUsingDeclaration())
+                if (modifiers is not null || IsUsingDeclaration())
                 {
                     var usingDeclarations = (await VariableDeclarationsCore().ConfigureAwait(false));
                     Semicolon();
@@ -213,7 +213,8 @@ public sealed partial class Parser
             case K.EnumKeyword:
                 Next();
                 var enumName = Identifier();
-                Expected(K.OpenBraceToken);
+                if (!Expected(K.OpenBraceToken))
+                    return Finish(factory.NewEnumDeclaration(modifiers, enumName, new([], Pos, Pos, true)), start);
                 var enumContext = context;
                 context &= ~(NodeFlags.YieldContext | NodeFlags.AwaitContext);
                 NodeList members;
@@ -569,7 +570,8 @@ public sealed partial class Parser
             Next();
             return IsIdentifier && Next() == K.CloseParenToken;
         });
-        if (!emptyOf && Token is not (K.EndOfFile or K.SemicolonToken or K.CloseParenToken or K.InKeyword))
+        if (!emptyOf && Token is not (K.EndOfFile or K.SemicolonToken or K.CloseParenToken or K.InKeyword)
+            && (IsBindingIdentifier || Token is K.PrivateIdentifier or K.OpenBraceToken or K.OpenBracketToken))
             declarations.Add(await VariableDeclarationCore().ConfigureAwait(false));
         while (true)
         {
@@ -581,7 +583,8 @@ public sealed partial class Parser
                 continue;
             }
 
-            if (!LineBreak && IsIdentifier && Token is not (K.InKeyword or K.OfKeyword))
+            if (!LineBreak && (IsIdentifier && Token is not (K.InKeyword or K.OfKeyword)
+                || Token is K.PrivateIdentifier or K.OpenBraceToken or K.OpenBracketToken))
             {
                 Error(Messages.X_0_expected, ",");
                 declarations.Add((await VariableDeclarationCore().ConfigureAwait(false)));
@@ -590,7 +593,6 @@ public sealed partial class Parser
 
             if (!IsSemicolon()
                 && Token is not (K.InKeyword or K.OfKeyword or K.EqualsGreaterThanToken or K.CloseBracketToken)
-                && !(Token == K.CloseParenToken && (context & NodeFlags.DisallowInContext) != 0)
                 && !StartsStatement())
             {
                 Error(Messages.Variable_declaration_expected);
@@ -778,7 +780,7 @@ public sealed partial class Parser
         Expected(K.OpenBraceToken);
         var members = (await ListCore(
             K.CloseBraceToken,
-            async () => (await TypeMemberCore(false).ConfigureAwait(false)), stop: () => !Peek(ScanTypeMemberStart)).ConfigureAwait(false));
+            async () => (await TypeMemberCore(false).ConfigureAwait(false)), typeMembers: true).ConfigureAwait(false));
         Expected(K.CloseBraceToken);
         return Finish(factory.NewInterfaceDeclaration(modifiers, name, parameters, heritage, members), start);
     }
@@ -801,18 +803,36 @@ public sealed partial class Parser
                         () => Next() != K.CloseBraceToken
                             || Next() is K.OpenBraceToken or K.CommaToken or K.ExtendsKeyword or K.ImplementsKeyword)))
             {
+                if (!StartsHeritageExpression())
+                {
+                    Error(Messages.Expression_expected);
+                    if (!reparsingTopLevelAwait && StartsStatement())
+                        break;
+                    Next();
+                    continue;
+                }
                 types.Add(
                     await HeritageTypeCore(
                         isInterface && keyword == K.ExtendsKeyword
                             || !isInterface && keyword == K.ImplementsKeyword).ConfigureAwait(false));
                 if (!Take(K.CommaToken))
-                    break;
+                {
+                    if (Token is K.OpenBraceToken or K.CloseBraceToken or K.ExtendsKeyword or K.ImplementsKeyword or K.EndOfFile)
+                        break;
+                    Error(Messages.X_0_expected, ",");
+                }
             }
             clauses.Add(Finish(factory.NewHeritageClause(keyword, new(types.ToArray(), typesStart, Pos)), clauseStart));
         }
 
         return clauses.Count == 0 ? null : new(clauses.ToArray(), start, Pos);
     }
+
+    private bool StartsHeritageExpression() => IsIdentifier || Token is K.ThisKeyword or K.SuperKeyword or K.NullKeyword
+        or K.TrueKeyword or K.FalseKeyword or K.NumericLiteral or K.BigIntLiteral or K.StringLiteral
+        or K.NoSubstitutionTemplateLiteral or K.TemplateHead or K.OpenParenToken or K.OpenBracketToken or K.OpenBraceToken
+        or K.FunctionKeyword or K.ClassKeyword or K.NewKeyword or K.SlashToken or K.SlashEqualsToken
+        || Token == K.ImportKeyword && Peek(() => Next() is K.OpenParenToken or K.LessThanToken or K.DotToken);
 
     private async ValueTask<SyntaxNode> TypeMemberCore(bool inClass)
     {
@@ -940,7 +960,13 @@ public sealed partial class Parser
         context &= ~(NodeFlags.AwaitContext | NodeFlags.YieldContext | NodeFlags.DisallowInContext);
         var initializer = (await InitializerCore().ConfigureAwait(false));
         context = savedPropertyContext;
-        MemberSemicolon();
+        if (inClass && Token == K.OpenParenToken)
+        {
+            Error(Messages.Cannot_start_a_function_call_in_a_type_annotation);
+            Next();
+        }
+        else
+            MemberSemicolon();
         return inClass
             ? Finish(factory.NewPropertyDeclaration(modifiers, memberName, postfix, propertyType, initializer), start)
             : Finish(factory.NewPropertySignatureDeclaration(modifiers, memberName, postfix, propertyType, initializer), start);
@@ -1073,7 +1099,9 @@ public sealed partial class Parser
                         ? await DelimitedCore(
                             K.CloseBraceToken,
                             async () => await ImportExportSpecifierCore(false).ConfigureAwait(false),
-                            stop: () => Token == K.FromKeyword && NextIs(K.StringLiteral)).ConfigureAwait(false)
+                            stop: () => Token == K.FromKeyword && NextIs(K.StringLiteral),
+                            startsElement: () => Token >= K.Identifier || Token == K.StringLiteral,
+                            elementExpected: Messages.Identifier_expected).ConfigureAwait(false)
                         : new NodeList([], Pos, Pos, true);
                     if (opened)
                         Expected(K.CloseBraceToken);
@@ -1229,7 +1257,8 @@ public sealed partial class Parser
             if (Peek(() =>
             {
                 Next();
-                return Token is K.FunctionKeyword or K.ClassKeyword or K.InterfaceKeyword or K.AbstractKeyword or K.AtToken
+                return Token is K.FunctionKeyword or K.ClassKeyword or K.InterfaceKeyword or K.AtToken
+                    || Token == K.AbstractKeyword && NextIs(K.ClassKeyword)
                     || Token == K.AsyncKeyword && Peek(() => Next() == K.FunctionKeyword && !LineBreak);
             }))
             {
@@ -1270,7 +1299,9 @@ public sealed partial class Parser
                 NodeList elements = (await DelimitedCore(
                     K.CloseBraceToken,
                     async () => (await ImportExportSpecifierCore(true).ConfigureAwait(false)),
-                    stop: () => Token == K.FromKeyword && NextIs(K.StringLiteral)).ConfigureAwait(false));
+                    stop: () => Token == K.FromKeyword && NextIs(K.StringLiteral),
+                    startsElement: () => Token >= K.Identifier || Token == K.StringLiteral,
+                    elementExpected: Messages.Identifier_expected).ConfigureAwait(false));
                 Expected(K.CloseBraceToken);
                 clause = Finish(factory.NewNamedExports(elements), clauseStart);
                 if (Token == K.FromKeyword || Token == K.StringLiteral && !LineBreak)

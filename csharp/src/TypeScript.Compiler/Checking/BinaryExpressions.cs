@@ -34,7 +34,7 @@ internal interface IBinaryExpressionHost
 
     void ArithmeticError(SyntaxNode node, Type type, int code, bool suggestAwait);
 
-    void BinaryDiagnostic(SyntaxNode node, int code, bool suggestion = false);
+    void BinaryDiagnostic(SyntaxNode node, int code, bool suggestion = false, params string[] arguments);
 }
 
 internal sealed class BinaryExpressions(TypeContext context, TypeAlgebra algebra, TypePredicates predicates,
@@ -127,7 +127,8 @@ internal sealed class BinaryExpressions(TypeContext context, TypeAlgebra algebra
                         SyntaxNode? parent = right.Parent?.Parent;
                         while (parent?.Parent is ParenthesizedExpressionNode)
                             parent = parent.Parent;
-                        host.BinaryDiagnostic(node, 6807, parent is not EnumMemberNode);
+                        host.BinaryDiagnostic(node, 6807, parent is not EnumMemberNode,
+                            CheckerDiagnostic.DeclarationName(left), TokenFacts.Text(op), TokenFacts.NumberText(shift % 32));
                     }
                 }
                 return result;

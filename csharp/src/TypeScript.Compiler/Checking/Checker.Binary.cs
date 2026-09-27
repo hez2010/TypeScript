@@ -77,7 +77,7 @@ internal sealed partial class Checker : IBinaryExpressionHost, IAwaitedTypeHost
         Error(node, diagnostic);
     }
 
-    public void BinaryDiagnostic(SyntaxNode node, int code, bool suggestion = false)
+    public void BinaryDiagnostic(SyntaxNode node, int code, bool suggestion = false, params string[] suppliedArguments)
     {
         if (!suggestion)
         {
@@ -90,7 +90,7 @@ internal sealed partial class Checker : IBinaryExpressionHost, IAwaitedTypeHost
                         ? "false"
                         : "true"],
                 2469 when node.Parent is BinaryExpressionNode binary => [TokenFacts.Text(binary.OperatorToken!.Kind)!],
-                _ => []
+                _ => suppliedArguments
             };
             if (code == 2845 && node is BinaryExpressionNode comparison)
             {

@@ -20,6 +20,30 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
 
     public void ExpressionError(SyntaxNode node, int code)
     {
+        if (code == 1346 && node.Parent is { } function && SemanticSyntax.Body(function) is BlockNode body)
+        {
+            var directive = body.Statements!.OfType<ExpressionStatementNode>().First(n =>
+                n.Expression is StringLiteralNode { Text: "use strict" });
+            Error(node, CheckerDiagnostic.Create(node, Messages.This_parameter_is_not_allowed_with_use_strict_directive) with
+            { RelatedInformation = [CheckerDiagnostic.Create(directive, Messages.X_use_strict_directive_used_here)] });
+            return;
+        }
+        if (code == 1347 && node.Parent?.Parent is IFunctionSignature signatureWithDirective)
+        {
+            var parameters = signatureWithDirective.Parameters!.OfType<ParameterDeclarationNode>().Where(p =>
+                p.Initializer is not null || p.Name is BindingPatternNode || p.DotDotDotToken is not null);
+            Error(node, CheckerDiagnostic.Create(node, Messages.X_use_strict_directive_cannot_be_used_with_non_simple_parameter_list) with
+            {
+                RelatedInformation = parameters.Select((p, i) => CheckerDiagnostic.Create(p,
+                i == 0 ? Messages.Non_simple_parameter_declared_here : Messages.X_and_here)).ToArray()
+            });
+            return;
+        }
+        if (code == 1005 && node is MethodDeclarationNode { Parent: ObjectLiteralExpressionNode, Body: null })
+        {
+            Error(node, CheckerDiagnostic.Create(node, Messages.X_0_expected, "{") with { Start = node.End - 1, Length = 1 });
+            return;
+        }
         if (code == 1294 && node is TypeAssertionNode assertion && SemanticSyntax.Source(node) is { } assertionFile)
         {
             int start = CheckerDiagnostic.TokenRange(assertionFile, node.Pos).Start;
@@ -57,7 +81,9 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
             2469 when node.Parent is PrefixUnaryExpressionNode unary => [TokenFacts.Text(unary.Operator)!],
             2736 => ["+", "bigint"],
             17013 => ["new.target"],
-            18061 when node is MetaPropertyNode meta => [CheckerDiagnostic.DeclarationName(meta.Name!)],
+            18061 => [CheckerDiagnostic.DeclarationName(node is MetaPropertyNode meta ? meta.Name! : node)],
+            5076 when node is BinaryExpressionNode { OperatorToken.Kind: SyntaxKind.QuestionQuestionToken }
+                && node.Parent is BinaryExpressionNode outer => ["??", TokenFacts.Text(outer.OperatorToken!.Kind)!],
             5076 when node is BinaryExpressionNode mixed => node.Parent is BinaryExpressionNode parent && parent.Right == node
                 ? ["??", TokenFacts.Text(mixed.OperatorToken!.Kind)!]
                 : [TokenFacts.Text(mixed.OperatorToken!.Kind)!, "??"],

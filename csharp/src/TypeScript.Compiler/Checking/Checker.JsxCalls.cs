@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -83,11 +84,25 @@ internal sealed partial class Checker
             }
         if (maximum < 0)
             return true;
+        int minimum = int.MaxValue;
         foreach (var signature in calls)
-            if (await Parameters.MinimumAsync(signature, cancellation: cancellation) <= maximum)
+        {
+            minimum = Math.Min(minimum, await Parameters.MinimumAsync(signature, cancellation: cancellation));
+            if (minimum <= maximum)
                 return true;
+        }
         if (report)
-            Error(JsxTag(node)!, 6229);
+        {
+            var tagName = JsxTag(node)!;
+            string name = CheckerDiagnostic.DeclarationName(tagName);
+            var diagnostic = CheckerDiagnostic.Create(tagName,
+                Messages.Tag_0_expects_at_least_1_arguments_but_the_JSX_factory_2_provides_at_most_3,
+                name, CountText(minimum), JsxFactoryName(node), CountText(maximum));
+            if (await SymbolAtLocationAsync(tagName, cancellation) is { ValueDeclaration: { } declaration })
+                diagnostic = diagnostic with
+                { RelatedInformation = [CheckerDiagnostic.Create(declaration, Messages.X_0_is_declared_here, name)] };
+            RelationError(tagName, diagnostic);
+        }
         return false;
     }
 
@@ -154,7 +169,12 @@ internal sealed partial class Checker
             {
                 foreach (var argument in typeArguments)
                     await CheckedFunctionTypeAsync(argument, cancellation);
-                Error(node, 2558);
+                int start = CheckerDiagnostic.TokenRange(SemanticSyntax.Source(node)!, typeArguments.Pos).Start;
+                Error(
+                    node,
+                    CheckerDiagnostic.Create(node, Messages.Expected_0_type_arguments_but_got_1, "0", CountText(typeArguments.Count))
+                    with
+                    { Start = start, Length = Math.Max(0, typeArguments.End - start) });
             }
             return signature;
         }
