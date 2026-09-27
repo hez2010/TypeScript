@@ -17,7 +17,7 @@ internal interface IBaseTypeHost
 
     ValueTask<Type> IndexedAccessAsync(Type objectType, Type indexType, CancellationToken cancellation);
 
-    void CircularBase(SyntaxNode declaration, Type type);
+    ValueTask CircularBaseAsync(SyntaxNode declaration, Type type, CancellationToken cancellation);
 
     void InvalidInterfaceBase(SyntaxNode declaration);
 }
@@ -72,7 +72,7 @@ internal sealed class BaseTypes(TypeContext context, TypeAlgebra algebra, TypeCo
                                     if (!await ValidAsync(baseType, cancellation).ConfigureAwait(false))
                                         host.InvalidInterfaceBase(node);
                                     else if (type == baseType || await HasBaseAsync(baseType, type, cancellation).ConfigureAwait(false))
-                                        host.CircularBase(declaration, type);
+                                        await host.CircularBaseAsync(declaration, type, cancellation).ConfigureAwait(false);
                                     else
                                     {
                                         result.Add(baseType);
@@ -88,7 +88,7 @@ internal sealed class BaseTypes(TypeContext context, TypeAlgebra algebra, TypeCo
             if (!resolved && type.Symbol is { } circular)
                 foreach (var declaration in circular.Declarations.Where(
                     d => d.Kind is SyntaxKind.ClassDeclaration or SyntaxKind.InterfaceDeclaration))
-                    host.CircularBase(declaration, type);
+                    await host.CircularBaseAsync(declaration, type, cancellation).ConfigureAwait(false);
             cancellation.ThrowIfCancellationRequested();
             type.ObjectFlags &= ~ObjectFlags.MembersResolved;
             type.BaseTypesResolved = true;

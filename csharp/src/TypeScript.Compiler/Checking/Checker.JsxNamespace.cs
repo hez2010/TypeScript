@@ -175,7 +175,7 @@ internal sealed partial class Checker
         if (properties.Count == 1)
             return properties[0].Name;
         if (type.Symbol?.Declarations.FirstOrDefault() is { } declaration)
-            Error(declaration, 2608);
+            Error(declaration, 2608, container);
         return null;
     }
 }

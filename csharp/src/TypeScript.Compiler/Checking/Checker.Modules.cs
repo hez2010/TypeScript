@@ -114,7 +114,10 @@ internal sealed partial class Checker
             && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0
             && modifiers.FirstOrDefault(
                 m => m.Kind is SyntaxKind.ExportKeyword or SyntaxKind.DefaultKeyword or SyntaxKind.DeclareKeyword) is { } modifier)
-            Error(modifier, (declarations.Flags & NodeFlags.BlockScoped) == NodeFlags.AwaitUsing ? 1495 : 1491);
+            Error(
+                modifier,
+                (declarations.Flags & NodeFlags.BlockScoped) == NodeFlags.AwaitUsing ? 1495 : 1491,
+                TokenFacts.Text(modifier.Kind)!);
     }
 
     private async ValueTask CheckNamespaceSourceAsync(ModuleDeclarationNode node, CancellationToken cancellation)
@@ -514,7 +517,7 @@ internal sealed partial class Checker
             cancellation).ConfigureAwait(false) is { } module)
         {
             if (module.Exports.ContainsKey("export="))
-                Error(node.ModuleSpecifier!, 2498);
+                Error(node.ModuleSpecifier!, 2498, await SymbolDisplayNameAsync(module, null, SymbolFlags.All, cancellation));
             else if (node.ExportClause is NamespaceExportNode ns)
             {
                 await CheckAliasSourceAsync(ns, cancellation).ConfigureAwait(false);
@@ -562,9 +565,9 @@ internal sealed partial class Checker
                     if (verbatim)
                     {
                         if ((flags & SymbolFlags.Value) == 0)
-                            Error(identifier, node.IsExportEquals ? 1282 : 1284);
+                            Error(identifier, node.IsExportEquals ? 1282 : 1284, identifier.Text);
                         else if (typeOnly is not null)
-                            Error(identifier, node.IsExportEquals ? 1283 : 1285);
+                            Error(identifier, node.IsExportEquals ? 1283 : 1285, identifier.Text);
                     }
                     if (IsolatedModules && (symbol.Flags & SymbolFlags.Value) == 0)
                     {
@@ -577,9 +580,9 @@ internal sealed partial class Checker
                             && (nonLocal & SymbolFlags.Type) != 0
                             && (nonLocal & SymbolFlags.Value) == 0
                             && (typeOnly is null || otherFile))
-                            Error(identifier, node.IsExportEquals ? 1291 : 1292);
+                            Error(identifier, node.IsExportEquals ? 1291 : 1292, identifier.Text, IsolatedModuleOptionName);
                         else if (otherFile)
-                            Error(identifier, node.IsExportEquals ? 1289 : 1290);
+                            Error(identifier, node.IsExportEquals ? 1289 : 1290, identifier.Text, IsolatedModuleOptionName);
                     }
                 }
             }

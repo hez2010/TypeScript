@@ -2,9 +2,10 @@ namespace TypeScript.Compiler.Diagnostics;
 
 // Record equality compares argument arrays by identity. Diagnostic collections
 // instead compare their contents, including nested message and related records.
-internal sealed class DiagnosticEqualityComparer : IEqualityComparer<Diagnostic>
+internal sealed class DiagnosticEqualityComparer(bool relatedInformation = true) : IEqualityComparer<Diagnostic>
 {
     internal static DiagnosticEqualityComparer Instance { get; } = new();
+    internal static DiagnosticEqualityComparer WithoutRelatedInformation { get; } = new(false);
 
     public bool Equals(Diagnostic? left, Diagnostic? right)
     {
@@ -27,10 +28,11 @@ internal sealed class DiagnosticEqualityComparer : IEqualityComparer<Diagnostic>
             {
                 if ((a.FileName ?? "") != (b.FileName ?? "") || a.Start != b.Start || a.Length != b.Length
                     || a.Message.Category != b.Message.Category || (a.Source ?? "") != (b.Source ?? "")
-                    || Identity(a) != Identity(b) || a.RelatedInformation.Count != b.RelatedInformation.Count)
+                    || Identity(a) != Identity(b) || relatedInformation && a.RelatedInformation.Count != b.RelatedInformation.Count)
                     return false;
-                for (int i = 0; i < a.RelatedInformation.Count; i++)
-                    pending.Push((a.RelatedInformation[i], b.RelatedInformation[i], false));
+                if (relatedInformation)
+                    for (int i = 0; i < a.RelatedInformation.Count; i++)
+                        pending.Push((a.RelatedInformation[i], b.RelatedInformation[i], false));
             }
             for (int i = 0; i < a.MessageChain.Count; i++)
                 pending.Push((a.MessageChain[i], b.MessageChain[i], true));
@@ -51,9 +53,10 @@ internal sealed class DiagnosticEqualityComparer : IEqualityComparer<Diagnostic>
         foreach (string argument in diagnostic.Arguments)
             hash.Add(argument, StringComparer.Ordinal);
         hash.Add(diagnostic.MessageChain.Count);
-        hash.Add(diagnostic.RelatedInformation.Count);
+        if (relatedInformation)
+            hash.Add(diagnostic.RelatedInformation.Count);
         return hash.ToHashCode();
     }
 
-    private static string Identity(Diagnostic diagnostic) => diagnostic.Code == -1 ? diagnostic.Message.Text : diagnostic.Message.Key;
+    internal static string Identity(Diagnostic diagnostic) => diagnostic.Code == -1 ? diagnostic.Message.Text : diagnostic.Message.Key;
 }

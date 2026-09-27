@@ -214,7 +214,12 @@ public sealed partial class Parser
                 Next();
                 var enumName = Identifier();
                 Expected(K.OpenBraceToken);
-                NodeList members = (await DelimitedCore(K.CloseBraceToken, async () =>
+                var enumContext = context;
+                context &= ~(NodeFlags.YieldContext | NodeFlags.AwaitContext);
+                NodeList members;
+                try
+                {
+                    members = (await DelimitedCore(K.CloseBraceToken, async () =>
                 {
                     int memberStart = Pos;
                     TokenFlags memberTrivia = scanner.Flags;
@@ -228,6 +233,11 @@ public sealed partial class Parser
                 }, startsElement: () => Token is K.OpenBracketToken or K.StringLiteral or K.NumericLiteral or K.BigIntLiteral
                     || Token >= K.Identifier,
                     elementExpected: Messages.Enum_member_expected).ConfigureAwait(false));
+                }
+                finally
+                {
+                    context = enumContext;
+                }
                 Expected(K.CloseBraceToken);
                 return Finish(factory.NewEnumDeclaration(modifiers, enumName, members), start);
             case K.NamespaceKeyword:
@@ -1038,7 +1048,7 @@ public sealed partial class Parser
                 reference = Finish(factory.NewExternalModuleReference(expr), referenceStart);
             }
             else
-                reference = EntityName();
+                reference = EntityName(allowReserved: false);
             Semicolon();
             possibleTopLevelAwait = savedPossibleAwait;
             return Finish(factory.NewImportEqualsDeclaration(modifiers, phase == K.TypeKeyword, name, reference), start);

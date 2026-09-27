@@ -38,7 +38,7 @@ internal sealed partial class Checker
         if (result is not null)
         {
             if (arguments is { Count: > 0 })
-                Error(node, 2315);
+                Error(node, 2315, name.Text);
             return result;
         }
         if (name.Text == "Object")
@@ -59,7 +59,7 @@ internal sealed partial class Checker
             if (!NoImplicitAny)
             {
                 if (arguments is { Count: > 0 })
-                    Error(node, 2315);
+                    Error(node, 2315, name.Text);
                 return context.AnyType;
             }
         }
@@ -114,7 +114,7 @@ internal sealed partial class Checker
             var type = await Nodes.FromNodeAsync(annotation, cancellation).ConfigureAwait(false);
             if (type is TypeReference reference && (reference.Target == ArrayTarget(false) || reference.Target == ArrayTarget(true)))
                 return;
-            Error(name, 8029);
+            Error(name, 8029, CheckerDiagnostic.DeclarationName(name));
         }
         else
             for (int i = 0; i < documented.Length; i++)

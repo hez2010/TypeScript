@@ -85,14 +85,39 @@ internal sealed partial class Checker : IBinaryExpressionHost, IAwaitedTypeHost
             {
                 2447 => [TokenFacts.Text(node.Kind)!, node.Kind == SyntaxKind.BarToken ? "||"
                     : node.Kind == SyntaxKind.AmpersandToken ? "&&" : "!=="],
-                2839 when node is BinaryExpressionNode comparison =>
-                    [comparison.OperatorToken!.Kind is SyntaxKind.EqualsEqualsToken or SyntaxKind.EqualsEqualsEqualsToken
+                2839 or 2845 when node is BinaryExpressionNode equality =>
+                    [equality.OperatorToken!.Kind is SyntaxKind.EqualsEqualsToken or SyntaxKind.EqualsEqualsEqualsToken
                         ? "false"
                         : "true"],
                 2469 when node.Parent is BinaryExpressionNode binary => [TokenFacts.Text(binary.OperatorToken!.Kind)!],
                 _ => []
             };
-            Error(node, code, arguments);
+            if (code == 2845 && node is BinaryExpressionNode comparison)
+            {
+                bool IsNaN(SyntaxNode expression) => MemberAccessRules.SkipParentheses(expression) is IdentifierNode { Text: "NaN" } identifier
+                    && links.SymbolNodes.TryGet(identifier)?.ResolvedSymbol == program.Symbols.Globals.GetValueOrDefault("NaN");
+                bool left = IsNaN(comparison.Left!), right = IsNaN(comparison.Right!);
+                var diagnostic = CheckerDiagnostic.Create(node, Messages.This_condition_will_always_return_0, arguments);
+                if (left != right)
+                {
+                    var location = left ? comparison.Right! : comparison.Left!;
+                    string name = ExpressionChecks.EntityText(MemberAccessRules.SkipParentheses(location)) ?? "...";
+                    string prefix = comparison.OperatorToken!.Kind is SyntaxKind.ExclamationEqualsToken
+                        or SyntaxKind.ExclamationEqualsEqualsToken
+                        ? "!"
+                        : "";
+                    diagnostic = diagnostic with
+                    {
+                        RelatedInformation = [CheckerDiagnostic.Create(
+                        location,
+                        Messages.Did_you_mean_0,
+                        prefix + "Number.isNaN(" + name + ")")]
+                    };
+                }
+                Error(node, diagnostic);
+            }
+            else
+                Error(node, code, arguments);
         }
         else if (suggestionLocations.Add((node, code)))
             Suggestions.Add(code);
@@ -158,7 +183,7 @@ internal sealed partial class Checker : IBinaryExpressionHost, IAwaitedTypeHost
                             await Instantiation.Constraints.BaseConstraintOrTypeAsync(part, cancellation),
                             cancellation))
                     {
-                        Error(node.Right!, 2638);
+                        Error(node.Right!, 2638, await TypeDisplay.GetAsync(right, cancellation));
                         break;
                     }
         }

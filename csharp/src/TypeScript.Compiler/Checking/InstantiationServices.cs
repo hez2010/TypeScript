@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 
 namespace TypeScript.Compiler.Checking;
 
@@ -197,7 +198,18 @@ internal sealed class InstantiationServices : ITypeInstantiationHost, ITupleType
     public void CircularConstraint(TypeParameter parameter, SyntaxNode declaration)
     {
         ConstraintDiagnostics.Add(2313);
-        checker.TrackDiagnostic(declaration, 2313, checker.TypeDisplay.SymbolName(parameter.Symbol!));
+        var diagnostic = CheckerDiagnostic.Create(declaration, Messages.Type_parameter_0_has_a_circular_constraint,
+            checker.TypeDisplay.SymbolName(parameter.Symbol!));
+        if (checker.DiagnosticNode is { } current
+            && DeclarationOrder.Ancestor(declaration, n => n == current) is null
+            && DeclarationOrder.Ancestor(current, n => n == declaration) is null)
+            diagnostic = diagnostic with
+            {
+                RelatedInformation = [CheckerDiagnostic.Create(
+                current,
+                Messages.Circularity_originates_in_type_at_this_location)]
+            };
+        checker.TrackDiagnostic(declaration, diagnostic);
     }
 
     public void CircularProperty(Symbol symbol, MappedType type)

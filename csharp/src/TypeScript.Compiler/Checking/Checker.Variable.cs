@@ -9,6 +9,11 @@ internal sealed partial class Checker : IVariableTypeHost
 {
     internal VariableTypes Variables { get; }
     internal WideningDiagnostics WideningDiagnostics { get; }
+
+    private async ValueTask WideningPropertyErrorAsync(SyntaxNode node, Symbol property, Type type, CancellationToken cancellation) =>
+        Error(node, 7018, await SymbolDisplayNameAsync(property, null, SymbolFlags.All, cancellation),
+            await TypeDisplay.GetAsync(type, cancellation));
+
     internal PropertyInitialization PropertyInitializers { get; }
     internal Action<SyntaxNode>? BeforeInitializer { get; set; }
 

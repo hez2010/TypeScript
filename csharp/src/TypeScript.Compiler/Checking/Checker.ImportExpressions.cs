@@ -23,7 +23,7 @@ internal sealed partial class Checker
             for (int i = 2; i < arguments.Count; i++)
                 await CachedExpressionAsync(arguments[i], 0, cancellation);
             if ((specifierType.Flags & TypeFlags.Nullable) != 0 || !await AssignableAsync(specifierType, context.StringType, cancellation))
-                Error(specifier, 7036);
+                Error(specifier, 7036, await TypeDisplay.GetAsync(specifierType, cancellation));
             Type? attributes = null;
             if (options is not null)
             {

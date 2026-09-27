@@ -440,10 +440,10 @@ public sealed partial class Parser
         return Identifier(true);
     }
 
-    private SyntaxNode EntityName(bool allowPrivate = false)
+    private SyntaxNode EntityName(bool allowPrivate = false, bool allowReserved = true)
     {
         int start = Pos;
-        SyntaxNode name = Identifier(true);
+        SyntaxNode name = Identifier(allowReserved);
         while (Take(K.DotToken))
         {
             if (Token == K.LessThanToken)

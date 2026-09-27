@@ -401,10 +401,10 @@ public sealed partial class CompilerProgram
                                 {
                                     Start = reason.Position,
                                     Length = reason.Length,
-                                    Arguments = diagnostic.Code == 6053 && reason.Kind == FileIncludeKind.PathReference
+                                    Arguments = diagnostic.Code is 6053 or 6231 && reason.Kind == FileIncludeKind.PathReference
                                         && files.TryGetValue(reason.ContainingFile, out var containing)
                                         ? [containing.Syntax.Source.Text[containing.Syntax.Source.ToUtf16Position(reason.Position)
-                                            ..containing.Syntax.Source.ToUtf16Position(reason.Position + reason.Length)]] : diagnostic.Arguments,
+                                            ..containing.Syntax.Source.ToUtf16Position(reason.Position + reason.Length)], .. diagnostic.Arguments.Skip(1)] : diagnostic.Arguments,
                                     FileName = reason.ContainingFile.Length == 0 ? null : reason.ContainingFile
                                 });
             VerifyOutputPaths(ordered);
@@ -677,9 +677,10 @@ public sealed partial class CompilerProgram
             if (options.Boolean("allowNonTsExtensions") != true && !SupportedSource(path, project))
             {
                 bool js = ext is ".js" or ".jsx" or ".mjs" or ".cjs";
-                var diagnostic = new Diagnostic(js ? Messages.File_0_is_a_JavaScript_file_Did_you_mean_to_enable_the_allowJs_option
+                var diagnostic = new Diagnostic(ext.Length == 0 ? Messages.Could_not_resolve_the_path_0_with_the_extensions_Colon_1
+                    : js ? Messages.File_0_is_a_JavaScript_file_Did_you_mean_to_enable_the_allowJs_option
                     : Messages.File_0_has_an_unsupported_extension_The_only_supported_extensions_are_1, 0, 0,
-                    js ? [path] : [path, "'.ts', '.tsx', '.d.ts', '.cts', '.d.cts', '.mts', '.d.mts'"]);
+                    js ? [path] : [path, SupportedExtensionsText(project)]);
                 return new(null, parseOptions, format, scope?.Directory ?? "", type, Diagnostics: [diagnostic], FailedLookup: true);
             }
             byte[]? bytes = fs.ReadFile(path);

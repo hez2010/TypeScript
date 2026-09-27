@@ -155,7 +155,7 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
         ExpressionChecks = new(context, Facts, this);
         Expressions = new(context, Algebra, Facts, Relations, Instantiation.Engine, EnumValues.Evaluator, this);
         Variables = new(context, Algebra, Widening, program.Symbols, Signatures, this);
-        WideningDiagnostics = new(program.Symbols, Widening, Views, Properties, Values, this, (node, code) => Error(node, code));
+        WideningDiagnostics = new(program.Symbols, Widening, Views, Properties, Values, this, WideningPropertyErrorAsync);
         Awaited = new(context, Algebra, Instantiation.Constraints, Properties, Values, Parameters, Relations,
             Instantiation.Mapped, Predicates, Views, Facts, this);
         Iterators = new(context, Algebra, Views, Facts, Properties, Values, Parameters, Signatures, Relations, Awaited, this);
@@ -429,14 +429,15 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
 
     public void NotGeneric(SyntaxNode node, Symbol symbol) => Error(node, 2315, TypeDisplay.SymbolName(symbol));
 
-    public void CircularArguments(SyntaxNode? node, InterfaceType target) => Error(node!, target.Symbol is null ? 4110 : 4109);
+    public void CircularArguments(SyntaxNode? node, InterfaceType target) => Error(node!, target.Symbol is null ? 4110 : 4109,
+        target.Symbol is null ? [] : [TypeDisplay.SymbolName(target.Symbol)]);
 
     private void Error(SyntaxNode node, int code, params string[] arguments)
     {
         if (reported.Add((node, code)))
         {
             if (code == 2300 && arguments.Length == 0)
-                arguments = [node.Pos == node.End ? "(Missing)" : node is StringLiteralNode
+                arguments = [node.Pos == node.End ? "(Missing)" : node is StringLiteralNode or ComputedPropertyNameNode
                     ? CheckerDiagnostic.DeclarationName(node) : AliasTargets.Text(node) ?? CheckerDiagnostic.DeclarationName(node)];
             Diagnostics.Add(code);
             TrackDiagnostic(node, code, arguments);

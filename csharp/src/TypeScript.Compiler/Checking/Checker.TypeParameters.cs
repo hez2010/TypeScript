@@ -73,8 +73,7 @@ internal sealed partial class Checker
         VarianceTypeParameter = parameter;
         try
         {
-            if (!await Relations.RelatedAsync(source, target, RelationKind.Assignable, cancellation).ConfigureAwait(false))
-                Error(node, 2636);
+            await RelationDiagnostics.CheckAsync(source, target, RelationKind.Assignable, node, null, 2636, cancellation);
         }
         finally
         {

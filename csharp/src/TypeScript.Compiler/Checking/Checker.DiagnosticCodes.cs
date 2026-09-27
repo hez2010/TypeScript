@@ -72,6 +72,8 @@ internal sealed partial class Checker
     internal void TrackDiagnostic(SyntaxNode? node, int code, params string[] arguments)
         => diagnosticFiles.Add((node, CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), arguments)));
 
+    internal void TrackDiagnostic(SyntaxNode? node, Diagnostic diagnostic) => diagnosticFiles.Add((node, diagnostic));
+
     internal bool ReportTypeRecursionLimit()
     {
         var node = DiagnosticNode;
@@ -81,14 +83,15 @@ internal sealed partial class Checker
         return true;
     }
 
-    private void ErrorOnFirstToken(SyntaxNode node, int code)
+    private void ErrorOnFirstToken(SyntaxNode node, int code, params string[] arguments)
     {
         if (!reported.Add((node, code)))
             return;
         var file = SemanticSyntax.Source(node)!;
         var (start, end) = CheckerDiagnostic.TokenRange(file, node.Pos);
         Diagnostics.Add(code);
-        diagnosticFiles.Add((node, new(DiagnosticLocalization.GetMessage(code), start, end - start, []) { FileName = file.FileName }));
+        diagnosticFiles.Add(
+            (node, new(DiagnosticLocalization.GetMessage(code), start, end - start, arguments) { FileName = file.FileName }));
     }
 
     internal SyntaxNode? DiagnosticNode => Expressions.CurrentNode ?? CurrentSourceNode;
@@ -122,13 +125,13 @@ internal sealed partial class Checker
             program.Symbols.Program.IncludeDiagnostics.Where(d => d.FileName == file.FileName).ToArray(),
             false);
         if (program.Symbols.Program.GetFile(file.FileName)?.Mapping is not { } mapping)
-            return diagnostics.Concat(includes).Distinct(DiagnosticEqualityComparer.Instance).ToArray();
+            return DiagnosticCollection.SortAndDeduplicate(diagnostics.Concat(includes));
         IEnumerable<Diagnostic> mapped = diagnostics;
         if (!plainJavaScript)
             mapped = mapping.ApplyDiagnosticDirectives(mapped);
-        return mapped.Where(d => !d.Message.ReportsUnnecessary || d.Source is not null
+        return DiagnosticCollection.SortAndDeduplicate(mapped.Where(d => !d.Message.ReportsUnnecessary || d.Source is not null
             || mapping.Map.VirtualToOriginalSpan(d.Start, d.Start + d.Length).Fidelity != MappingFidelity.None)
-            .Concat(includes).Distinct(DiagnosticEqualityComparer.Instance).ToArray();
+            .Concat(includes));
     }
 
     private static List<Diagnostic> FilterCommentDirectives(SourceFileNode file, IReadOnlyList<Diagnostic> diagnostics, bool reportUnused)

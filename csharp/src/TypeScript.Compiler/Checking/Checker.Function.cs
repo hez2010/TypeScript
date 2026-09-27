@@ -338,7 +338,7 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
         var promise = await program.Globals.GetAsync("Promise", 1, true, cancellation);
         if (promise != context.EmptyGenericType && !(type is TypeReference reference && reference.Target == promise))
         {
-            var awaited = await Awaited.GetAsync(type, false, cancellation: cancellation) ?? context.UnknownType;
+            var awaited = await Awaited.GetAsync(type, false, cancellation: cancellation) ?? context.VoidType;
             Error(annotation, 1064, await TypeDisplay.GetAsync(awaited, cancellation));
             return;
         }
@@ -353,6 +353,8 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
             ClassMemberModifiers(node);
             if (ParameterProperty(node))
             {
+                if (ErasableSyntaxOnly && (node.Flags & NodeFlags.JavaScriptFile) == 0)
+                    Error(node, 1294);
                 if (node.Parent is ConstructorDeclarationNode && node.Name is IdentifierNode { Text: "constructor" })
                     Error(node.Name, 2398);
                 if (node.Parent is not ConstructorDeclarationNode { Body: not null })

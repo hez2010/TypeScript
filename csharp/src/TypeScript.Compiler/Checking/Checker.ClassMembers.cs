@@ -39,7 +39,7 @@ internal sealed partial class Checker
                 && (SemanticSyntax.HasModifier(node, SyntaxKind.PrivateKeyword) || node.Name is PrivateIdentifierNode)))
             await ReportImplicitAnyAsync(node, context.AnyType, cancellation).ConfigureAwait(false);
         if (SemanticSyntax.HasModifier(node, SyntaxKind.AbstractKeyword) && node.Body is not null)
-            Error(node, 1245);
+            Error(node, 1245, CheckerDiagnostic.DeclarationName(node.Name!));
         if (node.Type is null && node.Body is not null && SemanticSyntax.Generator(node))
             await Signatures.ReturnAsync(
                 await Signatures.FromDeclarationAsync(node, cancellation).ConfigureAwait(false),

@@ -23,7 +23,7 @@ internal sealed partial class Checker
         if (name is null)
             return null;
         if (!ignoreErrors && name.StartsWith("@types/", StringComparison.Ordinal))
-            Error(specifier!, 6137);
+            Error(specifier!, 6137, name[7..], name);
         var file = program.Symbols.Binding(location)!.SourceFile;
         var reference = program.Symbols.Program.GetFile(file.FileName)!.Resolutions.FirstOrDefault(
             r => resolutionMode is { } mode ? r.Specifier == name && r.Mode == mode
@@ -292,7 +292,26 @@ internal sealed partial class Checker
             ImportDeclarationNode { ImportClause: { } clause } when SemanticSyntax.TypeOnly(clause) => 1541,
             _ => 1479
         };
-        Error(specifier, code, code is 1471 or 1479 ? [name] : []);
+        var diagnostic = CheckerDiagnostic.Create(specifier, DiagnosticLocalization.GetMessage(code), name);
+        if (code != 1471 && !source.IsDeclarationFile && CompilerPath.Extension(source.FileName) is ".ts" or ".js" or ".tsx" or ".jsx")
+        {
+            var metadata = program.Symbols.Program.GetFile(source.FileName)!;
+            string extension = CompilerPath.Extension(source.FileName) switch { ".ts" => ".mts", ".js" => ".mjs", _ => "" };
+            bool package = metadata.PackageDirectory.Length != 0 && metadata.PackageType.Length == 0;
+            int detailCode = package ? extension.Length != 0 ? 1481 : 1482 : extension.Length != 0 ? 1480 : 1483;
+            string[] arguments = package ? extension.Length != 0
+                ? [extension, CompilerPath.Combine(metadata.PackageDirectory, "package.json")]
+                : [CompilerPath.Combine(metadata.PackageDirectory, "package.json")]
+                : extension.Length != 0 ? [extension] : [];
+            diagnostic = diagnostic with
+            {
+                MessageChain = [CheckerDiagnostic.Create(
+                specifier,
+                DiagnosticLocalization.GetMessage(detailCode),
+                arguments)]
+            };
+        }
+        Error(specifier, diagnostic);
     }
 
     private static string TypeScriptImportExtension(string name)

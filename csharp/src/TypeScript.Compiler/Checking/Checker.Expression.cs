@@ -20,6 +20,14 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
 
     public void ExpressionError(SyntaxNode node, int code)
     {
+        if (code == 1294 && node is TypeAssertionNode assertion && SemanticSyntax.Source(node) is { } assertionFile)
+        {
+            int start = CheckerDiagnostic.TokenRange(assertionFile, node.Pos).Start;
+            Error(node, CheckerDiagnostic.Create(node, Messages.This_syntax_is_not_allowed_when_erasableSyntaxOnly_is_enabled)
+                with
+            { Start = start, Length = assertion.Expression!.Pos - start });
+            return;
+        }
         if (code == 1308 && SemanticSyntax.Source(node) is { } file)
         {
             var (start, end) = CheckerDiagnostic.TokenRange(file, node.Pos);
@@ -43,6 +51,16 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
         string[] arguments = code switch
         {
             1042 => [TokenFacts.Text(node.Kind)!],
+            2680 => [SyntaxNameText.Get(((ParameterDeclarationNode)node).Name!)],
+            2716 => [SyntaxNameText.Get(((TypeParameterDeclarationNode)node.Parent!).Name!)],
+            2368 => [CheckerDiagnostic.DeclarationName(node)],
+            2469 when node.Parent is PrefixUnaryExpressionNode unary => [TokenFacts.Text(unary.Operator)!],
+            2736 => ["+", "bigint"],
+            17013 => ["new.target"],
+            18061 when node is MetaPropertyNode meta => [CheckerDiagnostic.DeclarationName(meta.Name!)],
+            5076 when node is BinaryExpressionNode mixed => node.Parent is BinaryExpressionNode parent && parent.Right == node
+                ? ["??", TokenFacts.Text(mixed.OperatorToken!.Kind)!]
+                : [TokenFacts.Text(mixed.OperatorToken!.Kind)!, "??"],
             17012 when node.Parent is MetaPropertyNode meta => [CheckerDiagnostic.DeclarationName(node),
                 TokenFacts.Text(meta.KeywordToken)!, meta.KeywordToken == SyntaxKind.NewKeyword ? "target" : "meta"],
             2564 => [CheckerDiagnostic.DeclarationName(node)],

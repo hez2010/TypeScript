@@ -149,13 +149,14 @@ internal sealed partial class Checker : ISignatureHost, IStructuredMemberHost, I
         ClassBases.GetAsync(type, cancellation);
 
     public async ValueTask ClassBaseErrorAsync(SyntaxNode node, int code, Type type, CancellationToken cancellation)
-        => Error(node, code, code == 2508 ? [] : [code is 2506 or 2310 && type.Symbol is { } symbol
+        => Error(node, code, code == 2508 ? [] : [code == 2506 && type.Symbol is { } symbol
             ? TypeDisplay.SymbolName(symbol) : await TypeDisplay.GetAsync(type, cancellation)]);
 
     public ValueTask<Type> IndexedAccessAsync(Type objectType, Type indexType, CancellationToken cancellation) =>
             Instantiation.IndexedAccessAsync(objectType, indexType, 0, null, cancellation);
 
-    public void CircularBase(SyntaxNode declaration, Type type) => Error(declaration, 2310, TypeDisplay.SymbolName(type.Symbol!));
+    public async ValueTask CircularBaseAsync(SyntaxNode declaration, Type type, CancellationToken cancellation) =>
+        Error(declaration, 2310, await TypeDisplay.GetAsync(type, NodeBuilderFlags.WriteArrayAsGenericType, cancellation));
 
     public void InvalidInterfaceBase(SyntaxNode declaration) => Error(declaration, 2312);
 

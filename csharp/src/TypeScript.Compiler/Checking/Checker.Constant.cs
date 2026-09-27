@@ -11,7 +11,10 @@ internal sealed partial class Checker : IEnumValueHost
     public bool IsolatedModules => program.Symbols.Program.Configuration.Options.Boolean("isolatedModules") == true
         || program.Symbols.Program.Configuration.Options.Boolean("verbatimModuleSyntax") == true;
 
-    public void EnumError(SyntaxNode node, int code) => Error(node, code);
+    public void EnumError(SyntaxNode node, int code) => Error(node, code,
+        code == 18055 && node.Parent is EnumMemberNode member
+            ? [SyntaxNameText.Get(((EnumDeclarationNode)member.Parent!).Name!) + "." + SyntaxNameText.Get(member.Name!)]
+            : code == 2565 ? [CheckerDiagnostic.DeclarationName(node is PropertyAccessExpressionNode access ? access.Name! : node)] : []);
 
     public ValueTask<bool> DeclaredBeforeUseAsync(SyntaxNode declaration, SyntaxNode use, CancellationToken cancellation)
     {
@@ -23,7 +26,7 @@ internal sealed partial class Checker : IEnumValueHost
     public async ValueTask CheckComputedEnumAsync(EnumMemberNode member, CancellationToken cancellation)
     {
         var type = await LiteralExpressionAsync(member.Initializer!, cancellation);
-        if (!await AssignableAsync(type, context.NumberType, cancellation))
-            Error(member.Initializer!, 18033, await TypeDisplay.GetAsync(type, cancellation), "number");
+        await RelationDiagnostics.CheckAsync(type, context.NumberType, RelationKind.Assignable,
+            member.Initializer!, null, 18033, cancellation);
     }
 }

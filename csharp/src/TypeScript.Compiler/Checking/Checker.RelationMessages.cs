@@ -17,12 +17,13 @@ internal sealed partial class Checker
         CancellationToken cancellation,
         Diagnostic? head = null)
     {
-        if (code is not (1360 or 2322 or 2344 or 2345 or 2352 or 2375 or 2379 or 2412 or 2415 or 2417 or 2430 or 2420 or 2678 or 2684
+        if (code is not (1270 or 1271 or 1360 or 2322 or 2344 or 2345 or 2352 or 2375 or 2379 or 2412 or 2415 or 2417 or 2418 or 2430
+            or 2420 or 2636 or 2678 or 2684
             or 2720 or 2739
             or 2740
             or 2741
             or 2787 or 2788
-            or 2789 or 18053 or 2850 or 2851))
+            or 2789 or 18033 or 18053 or 2850 or 2851 or 2861))
         {
             RelationError(node, code);
             return;
@@ -361,7 +362,7 @@ internal sealed partial class Checker
         var targetFlags = target is IndexedAccessType indexed && originalSource is not IndexedAccessType
             ? indexed.ObjectType.Flags
             : target.Flags;
-        if ((targetFlags & TypeFlags.TypeParameter) == 0 || target == context.MarkerSuper || target == context.MarkerSub)
+        if ((targetFlags & TypeFlags.TypeParameter) == 0 || target == context.VarianceCheckSuper || target == context.VarianceCheckSub)
             return diagnostic;
         var constraint = await Instantiation.Constraints.BaseConstraintAsync(target, cancellation);
         int code;

@@ -92,7 +92,7 @@ internal sealed partial class Checker
             var declaredDefault = await ResolveModuleExportAsync(module, "default", true, cancellation).ConfigureAwait(false);
             if (declaredDefault?.Declarations.Any(
                 d => d is ExportAssignmentNode { IsExportEquals: false } || SemanticSyntax.HasModifier(d, SyntaxKind.DefaultKeyword)
-                || d is ExportSpecifierNode export && AliasTargets.Text(export.Name) == "default") == true)
+                || d is ExportSpecifierNode or NamespaceExportNode) == true)
                 return false;
             return await ResolveModuleExportAsync(module, "__esModule", dontResolveAlias, cancellation).ConfigureAwait(false) is null;
         }

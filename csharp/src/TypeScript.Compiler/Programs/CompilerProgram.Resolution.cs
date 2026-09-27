@@ -40,10 +40,28 @@ public sealed partial class CompilerProgram
             path = CompilerPath.Resolve(cwd, path);
             if (CompilerPath.Extension(path).Length != 0)
                 return path;
-            foreach (string extension in new[] { ".ts", ".tsx", ".d.ts" })
+            if (config.Options.Boolean("allowNonTsExtensions") == true && resolutionFs.FileExists(path))
+                return path;
+            bool allowJs = config.Options.Boolean("allowJs") ?? config.Options.Boolean("checkJs") == true;
+            foreach (string extension in allowJs ? new[] { ".ts", ".tsx", ".d.ts", ".js", ".jsx" } : [".ts", ".tsx", ".d.ts"])
                 if (resolutionFs.FileExists(path + extension))
                     return path + extension;
             return path;
+        }
+
+        private string SupportedExtensionsText(ParsedConfig project)
+        {
+            bool allowJs = project.Options.Boolean("allowJs") ?? project.Options.Boolean("checkJs") == true;
+            var extensions = new List<string>(allowJs
+                ? [".ts", ".tsx", ".d.ts", ".js", ".jsx", ".cts", ".d.cts", ".cjs", ".mts", ".d.mts", ".mjs"]
+                : [".ts", ".tsx", ".d.ts", ".cts", ".d.cts", ".mts", ".d.mts"]);
+            foreach (var mapper in config.ContentMappers)
+                foreach (string extension in mapper.Extensions)
+                    if (!extensions.Contains(extension))
+                        extensions.Add(extension);
+            if (SupportedSource("file.json", project))
+                extensions.Add(".json");
+            return string.Join(", ", extensions.Select(extension => "'" + extension + "'"));
         }
 
         private static string DefaultLibrary(CompilerOptions options) => options.String("target") switch

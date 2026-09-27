@@ -144,7 +144,7 @@ internal sealed partial class Checker
                 }
                 if (ImportAttributeName(property.Name!) == "resolution-mode")
                 {
-                    Error(property.Name!, 1557);
+                    Error(property.Name!, 1557, ImportAttributeName(property.Name!));
                     break;
                 }
                 if (property.Type is not LiteralTypeNode { Literal: StringLiteralNode or NoSubstitutionTemplateLiteralNode })

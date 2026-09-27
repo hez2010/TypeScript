@@ -217,7 +217,7 @@ internal sealed partial class Checker
             }
         if (uncalled && decorator.Expression is not ParenthesizedExpressionNode)
         {
-            Error(decorator, 1329);
+            Error(decorator, 1329, CheckerDiagnostic.DeclarationName(decorator.Expression!));
             return await CallResolution.UntypedAsync(decorator, true, cancellation);
         }
         if (calls.Count == 0)

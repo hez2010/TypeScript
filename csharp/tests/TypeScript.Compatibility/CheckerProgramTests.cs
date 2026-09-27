@@ -442,6 +442,20 @@ internal static class CheckerProgramTests
         }
         Check(comparer.Equals(deep, sameDeep) && !comparer.Equals(deep, otherDeep));
         Check(new[] { first, copy, Make("other"), related }.Distinct(comparer).Count() == 3);
+        Check(DiagnosticEqualityComparer.WithoutRelatedInformation.Equals(first, related));
+        var early = Make("early") with { Start = 2 };
+        var late = Make("late") with { Start = 9 };
+        var unsorted = first with { RelatedInformation = [late, early] };
+        var duplicates = DiagnosticCollection.SortAndDeduplicate([unsorted, copy with { RelatedInformation = [early] }]);
+        Check(duplicates is [var combined] && combined.RelatedInformation.SequenceEqual([early, late], comparer));
+        Check(unsorted.RelatedInformation.SequenceEqual([late, early], comparer));
+        Check(ReferenceEquals(DiagnosticCollection.SortAndDeduplicate([unsorted])[0], unsorted));
+        Check(DiagnosticCollection.SortAndDeduplicate([first, Make("other"), related]).Length == 2);
+        Check(DiagnosticCollection.SortAndDeduplicate([deep, sameDeep]).Length == 1);
+        Check(DiagnosticCollection.Compare(deep, sameDeep) == 0 && DiagnosticCollection.Compare(deep, otherDeep) > 0);
+        Check(DiagnosticCollection.Compare(deep, first) < 0);
+        Check(DiagnosticCollection.Compare(Make("\uE000"), Make("\U00010000")) < 0);
+        Check(DiagnosticCollection.Compare(Make("\uD800"), Make("\uFFFD")) < 0);
         var options = new CompilerOptions();
         options.SetRaw("noLib", "true");
         var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(new Dictionary<string, byte[]>

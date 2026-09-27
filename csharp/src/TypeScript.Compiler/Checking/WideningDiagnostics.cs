@@ -4,8 +4,14 @@ using TypeScript.Compiler.Binding;
 
 namespace TypeScript.Compiler.Checking;
 
-internal sealed class WideningDiagnostics(CheckerSymbols symbols, TypeWidening widening, TypeViews views,
-    TypeProperties properties, SymbolTypes values, IVariableTypeHost host, Action<SyntaxNode, int> error)
+internal sealed class WideningDiagnostics(
+    CheckerSymbols symbols,
+    TypeWidening widening,
+    TypeViews views,
+    TypeProperties properties,
+    SymbolTypes values,
+    IVariableTypeHost host,
+    Func<SyntaxNode, Symbol, Type, CancellationToken, ValueTask> error)
 {
     internal async ValueTask ReportAsync(SyntaxNode declaration, Type type, CancellationToken cancellation = default)
     {
@@ -52,8 +58,8 @@ internal sealed class WideningDiagnostics(CheckerSymbols symbols, TypeWidening w
                         && own.Parent == type.Symbol?.ValueDeclaration);
                     if (declaration is not null)
                     {
-                        await widening.GetAsync(value, cancellation).ConfigureAwait(false);
-                        error(declaration, 7018);
+                        await error(declaration, property, await widening.GetAsync(value, cancellation).ConfigureAwait(false), cancellation)
+                            .ConfigureAwait(false);
                         reported = true;
                     }
                 }

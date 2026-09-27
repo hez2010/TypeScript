@@ -82,7 +82,7 @@ internal sealed partial class Checker
             if (name is "WeakMap" or "WeakSet")
             {
                 if (scope is not null && (links.Nodes.Get(scope).Flags & NodeCheckFlags.ContainsClassWithPrivateIdentifiers) != 0)
-                    Error(node, 18027);
+                    Error(node, 18027, name);
             }
             else
             {
@@ -94,7 +94,7 @@ internal sealed partial class Checker
                             ? node
                             : scope ?? node).Flags & NodeCheckFlags.ContainsSuperPropertyInStaticInitializer) != 0;
                 if (collision)
-                    Error(node, 2818);
+                    Error(node, 2818, name, "Reflect");
             }
         }
     }

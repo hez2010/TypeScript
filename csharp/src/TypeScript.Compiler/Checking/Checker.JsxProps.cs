@@ -57,7 +57,7 @@ internal sealed partial class Checker
             if (props is null)
             {
                 if (JsxAttributes(node)?.Properties?.Count > 0)
-                    Error(node, 2607);
+                    Error(node, 2607, name!);
                 return context.UnknownType;
             }
         }

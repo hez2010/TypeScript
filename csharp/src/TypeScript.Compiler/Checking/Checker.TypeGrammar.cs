@@ -26,7 +26,8 @@ internal sealed partial class Checker
             Error(node, 18016);
         if (SemanticSyntax.Name(node) is not ComputedPropertyNameNode computed)
             return;
-        if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0
+        if (node is not (GetAccessorDeclarationNode or SetAccessorDeclarationNode)
+            && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0
             && computed.Expression is not (StringLiteralNode or NumericLiteralNode or NoSubstitutionTemplateLiteralNode
                 or PrefixUnaryExpressionNode { Operator: K.PlusToken or K.MinusToken, Operand: NumericLiteralNode })
             && !LateMembers.LateSyntax(computed))
@@ -284,7 +285,7 @@ internal sealed partial class Checker
         if (node.Operator == K.ReadonlyKeyword)
         {
             if (node.Type is not (ArrayTypeNode or TupleTypeNode))
-                ErrorOnFirstToken(node, 1354);
+                ErrorOnFirstToken(node, 1354, "symbol");
             return;
         }
         if (node.Operator != K.UniqueKeyword)

@@ -71,7 +71,7 @@ internal sealed class CheckerPool
         else
             await Task.WhenAll(Enumerable.Range(0, Count).Select(index => Task.Run(() => CheckGroupAsync(index), cancellation)));
         cancellation.ThrowIfCancellationRequested();
-        return (semantic.SelectMany(d => d).ToArray(), globals.SelectMany(d => d).Distinct(DiagnosticEqualityComparer.Instance).ToArray());
+        return (semantic.SelectMany(d => d).ToArray(), DiagnosticCollection.SortAndDeduplicate(globals.SelectMany(d => d)));
     }
 
     internal sealed class Lease(Checker checker, SemaphoreSlim gate) : IDisposable

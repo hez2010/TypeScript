@@ -39,7 +39,7 @@ internal sealed partial class Checker
         var staticType = await Values.GetAsync(symbol, cancellation).ConfigureAwait(false);
         await CheckMergedTypeParametersAsync(symbol, type, cancellation).ConfigureAwait(false);
         await CheckOverloadDeclarationsAsync(symbol, cancellation).ConfigureAwait(false);
-        CheckClassDuplicates(node);
+        await CheckClassDuplicatesAsync(node, cancellation);
         var baseNode = ClassBases.BaseNode(type);
         if (baseNode is not null)
         {
@@ -59,7 +59,10 @@ internal sealed partial class Checker
                         && SemanticSyntax.HasModifier(ctor, SyntaxKind.PrivateKeyword)
                         && DeclarationOrder.Ancestor(node, n => n == ctor.Parent) is null)
                     {
-                        Error(baseNode, 2675);
+                        Error(
+                            baseNode,
+                            2675,
+                            await FullyQualifiedNameAsync(program.Symbols.Declaration(ctor.Parent!)!, null, cancellation));
                         break;
                     }
                 if (baseNode.TypeArguments is { Count: > 0 })
@@ -118,6 +121,9 @@ internal sealed partial class Checker
             if (clause.Token == SyntaxKind.ImplementsKeyword)
                 foreach (var reference in clause.Types!)
                 {
+                    if (TypeReferences.Arguments(reference) is { } arguments)
+                        foreach (var argument in arguments)
+                            await CheckedFunctionTypeAsync(argument, cancellation).ConfigureAwait(false);
                     if (reference is ExpressionWithTypeArgumentsNode heritage
                         && (!ConstantEvaluator.EntityName(heritage.Expression!)
                             || (heritage.Expression!.Flags & NodeFlags.OptionalChain) != 0))
@@ -230,7 +236,7 @@ internal sealed partial class Checker
             m => m.Kind is SyntaxKind.PublicKeyword or SyntaxKind.ProtectedKeyword or SyntaxKind.PrivateKeyword
                 or SyntaxKind.ReadonlyKeyword or SyntaxKind.OverrideKeyword);
 
-    private void CheckClassDuplicates(SyntaxNode node)
+    private async ValueTask CheckClassDuplicatesAsync(SyntaxNode node, CancellationToken cancellation)
     {
         var members = PropertyInitialization.Members(node);
         var seen = new Dictionary<(string, bool), int>();
@@ -251,7 +257,7 @@ internal sealed partial class Checker
                 && symbol?.Name is { } name
                 && (name == "prototype" || !UseDefineForClassFields && name is "name" or "length" or "caller" or "arguments"))
                 Error(SemanticSyntax.Name(member)!, 2699, name, program.Symbols.Declaration(node) is { } owner
-                    ? TypeDisplay.SymbolName(owner) : "(Anonymous class)");
+                    ? await SymbolDisplayNameAsync(owner, null, SymbolFlags.All, cancellation) : "(Anonymous class)");
             Check(
                 member,
                 @static,
@@ -271,7 +277,10 @@ internal sealed partial class Checker
                     if (flags == 3)
                         foreach (var duplicate in members)
                             if (program.Symbols.Declaration(duplicate)?.Name == symbol.Name)
-                                Error(SemanticSyntax.Name(duplicate)!, 2804);
+                                Error(
+                                    SemanticSyntax.Name(duplicate)!,
+                                    2804,
+                                    CheckerDiagnostic.DeclarationName(SemanticSyntax.Name(duplicate)!));
                 }
             }
         }

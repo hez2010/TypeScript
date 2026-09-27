@@ -143,9 +143,9 @@ internal sealed partial class Checker
                 if (location.Parent?.Parent is HeritageClauseNode heritage)
                 {
                     if (heritage.Parent is InterfaceDeclarationNode && heritage.Token == SyntaxKind.ExtendsKeyword)
-                        Error(location, 2840);
+                        Error(location, 2840, name);
                     else if (SemanticSyntax.ClassLike(heritage.Parent))
-                        Error(location, heritage.Token == SyntaxKind.ExtendsKeyword ? 2863 : 2864);
+                        Error(location, heritage.Token == SyntaxKind.ExtendsKeyword ? 2863 : 2864, name);
                 }
                 else
                     Error(location, 2693, name);
@@ -165,11 +165,20 @@ internal sealed partial class Checker
                     while (parent is ComputedPropertyNameNode or PropertySignatureDeclarationNode)
                         parent = parent.Parent;
                     if (parent is TypeLiteralNode { Members.Count: 1 }
-                        && await Declared.GetAsync(symbol).ConfigureAwait(false) is UnionType union
-                        && union.Types.All(t => (t.Flags & TypeFlags.StringOrNumberLiteral) != 0))
-                        code = 2690;
+                        && await Declared.GetAsync(symbol).ConfigureAwait(false) is UnionType union)
+                    {
+                        bool mapped = true;
+                        foreach (var part in union.Types)
+                            if (!await Predicates.AssignableAsync(part, TypeFlags.StringOrNumberLiteral, strict: true))
+                            {
+                                mapped = false;
+                                break;
+                            }
+                        if (mapped)
+                            code = 2690;
+                    }
                 }
-                Error(location, code, name);
+                Error(location, code, code == 2690 ? [name, name == "K" ? "P" : "K"] : [name]);
                 return true;
             }
         }

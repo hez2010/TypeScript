@@ -385,7 +385,10 @@ internal sealed partial class Checker
                     state.Symbols,
                     false,
                     cancellation)
-                    : f.NewTypeReferenceNode(f.NewIdentifier("?"), null);
+                    : f.NewTypeReferenceNode(f.NewIdentifier(
+                        (type == context.VarianceCheckSub || type == context.VarianceCheckSuper)
+                            && VarianceTypeParameter?.Symbol is { } variance
+                            ? (type == context.VarianceCheckSub ? "sub-" : "super-") + Symbol.EscapeName(variance.Name) : "?"), null);
             }
             if (type is UnionType { Origin: { } origin })
                 type = origin;

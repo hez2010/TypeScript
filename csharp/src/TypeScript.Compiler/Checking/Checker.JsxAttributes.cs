@@ -129,7 +129,7 @@ internal sealed partial class Checker
             if (!anySpread && !string.IsNullOrEmpty(childrenName))
             {
                 if (explicitChildren)
-                    Error(parent, 2710);
+                    Error(parent, 2710, childrenName);
                 var childContext = contextual is null
                     ? null
                     : await ContextualPropertyAsync(await Views.ApparentAsync(contextual, cancellation), childrenName, cancellation);
