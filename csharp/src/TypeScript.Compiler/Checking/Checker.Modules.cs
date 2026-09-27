@@ -221,7 +221,7 @@ internal sealed partial class Checker
                         SymbolFlags.Value | SymbolFlags.Namespace,
                         cancellation: cancellation).ConfigureAwait(false);
                     if (resolved is not null && (resolved.Flags & SymbolFlags.Namespace) == 0)
-                        Error(first, 2437);
+                        Error(first, 2437, CheckerDiagnostic.DeclarationName(first));
                 }
             }
             if (node.IsTypeOnly && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)

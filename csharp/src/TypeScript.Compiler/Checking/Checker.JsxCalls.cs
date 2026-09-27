@@ -173,7 +173,7 @@ internal sealed partial class Checker
             return await CallResolution.UntypedAsync(node, false, cancellation);
         if (signatures.Count == 0)
         {
-            Error(JsxTag(node) ?? node, 2604);
+            Error(JsxTag(node) ?? node, 2604, CheckerDiagnostic.DeclarationName(JsxTag(node) ?? node));
             return await CallResolution.UntypedAsync(node, true, cancellation);
         }
         return await CallResolution.OverloadAsync(node, signatures, candidates, mode, cancellation: cancellation);

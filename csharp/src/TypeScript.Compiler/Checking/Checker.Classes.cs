@@ -301,10 +301,13 @@ internal sealed partial class Checker
     {
         await FunctionDeclarations.GrammarAsync(node, cancellation).ConfigureAwait(false);
         await CheckFunctionDeclarationAsync(node, cancellation).ConfigureAwait(false);
-        if (node.TypeParameters is not null)
-            Error(node, 1092);
-        if (node.Type is not null)
-            Error(node.Type, 1093);
+        if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
+        {
+            if (node.TypeParameters is not null)
+                Error(node, 1092);
+            if (node.Type is not null)
+                Error(node.Type, 1093);
+        }
         await CheckSourceElementAsync(node.Body, cancellation).ConfigureAwait(false);
         await CheckOverloadDeclarationsAsync(program.Symbols.Declaration(node)!, cancellation).ConfigureAwait(false);
         if (node.Body is null)

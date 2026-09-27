@@ -86,7 +86,7 @@ internal sealed class EnumValues
         else
         {
             string text = NameText(member.Name!);
-            if (IndexSignatures.NumericName(text) && text is not ("Infinity" or "NaN"))
+            if (IndexSignatures.NumericName(text) && text is not ("Infinity" or "-Infinity" or "NaN"))
                 host.EnumError(member.Name!, 2452);
         }
         bool constant = SemanticSyntax.HasModifier(declaration, SyntaxKind.ConstKeyword);

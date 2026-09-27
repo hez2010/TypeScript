@@ -889,9 +889,9 @@ public sealed partial class Parser
         var postfix = Token is K.QuestionToken or K.ExclamationToken ? ParseToken() : null;
         if (Token is K.OpenParenToken or K.LessThanToken || accessor != K.Unknown || constructor || star is not null)
         {
-            NodeFlags signatureFlags = (star is not null
+            NodeFlags signatureFlags = (accessor == K.Unknown && star is not null
                 ? NodeFlags.YieldContext
-                : 0) | (modifiers?.Any(m => m.Kind == K.AsyncKeyword) == true ? NodeFlags.AwaitContext : 0);
+                : 0) | (accessor == K.Unknown && modifiers?.Any(m => m.Kind == K.AsyncKeyword) == true ? NodeFlags.AwaitContext : 0);
             var types = (await TypeParametersCore().ConfigureAwait(false));
             var parameters = (await ParametersCore(signatureFlags).ConfigureAwait(false));
             var type = (await ReturnAnnotationCore().ConfigureAwait(false));

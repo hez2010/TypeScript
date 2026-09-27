@@ -122,15 +122,19 @@ internal sealed partial class Checker
                 var tag = documented[i];
                 if (excluded.Contains(i) || tag.Name is IdentifierNode name && names.Contains(name.Text))
                     continue;
-                if (tag.Name is QualifiedNameNode)
+                if (tag.Name is QualifiedNameNode qualified)
                 {
                     if (javaScript)
-                        Error(tag.Name, 8032);
+                        Error(
+                            tag.Name,
+                            8032,
+                            CheckerDiagnostic.DeclarationName(tag.Name),
+                            CheckerDiagnostic.DeclarationName(qualified.Left!));
                 }
                 else if (!tag.IsNameFirst)
                 {
                     if (javaScript)
-                        Error(tag.Name!, 8024);
+                        Error(tag.Name!, 8024, CheckerDiagnostic.DeclarationName(tag.Name!));
                     else
                         ExpressionSuggestion(tag.Name!, 8024);
                 }

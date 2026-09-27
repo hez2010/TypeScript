@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -263,7 +264,10 @@ internal sealed partial class Checker
                     await CheckSwitchSourceAsync(statement, cancellation).ConfigureAwait(false);
                     break;
                 case ThrowStatementNode statement:
-                    AmbientStatement(statement);
+                    if (!AmbientStatement(statement) && statement.Expression is IdentifierNode { Text.Length: 0 } missingThrow
+                        && SemanticSyntax.Source(statement)?.ParseDiagnostics.Count == 0)
+                        Error(statement, CheckerDiagnostic.Create(statement, Messages.Line_break_not_permitted_here) with
+                        { Start = missingThrow.Pos, Length = 0 });
                     if (statement.Expression is not null)
                         await Expressions.CheckAsync(statement.Expression, cancellation: cancellation).ConfigureAwait(false);
                     break;

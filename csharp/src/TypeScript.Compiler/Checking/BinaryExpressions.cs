@@ -397,7 +397,8 @@ internal sealed class BinaryExpressions(TypeContext context, TypeAlgebra algebra
             or K.AmpersandAmpersandEqualsToken or K.BarBarEqualsToken or K.QuestionQuestionEqualsToken;
 
     private static bool LiteralObject(SyntaxNode node) =>
-        SkipParentheses(node).Kind is K.ObjectLiteralExpression or K.ArrayLiteralExpression or K.RegularExpressionLiteral;
+        node.Kind is K.ObjectLiteralExpression or K.ArrayLiteralExpression or K.RegularExpressionLiteral
+            or K.FunctionExpression or K.ClassExpression;
 
     private static SyntaxNode SkipParentheses(SyntaxNode node)
     {

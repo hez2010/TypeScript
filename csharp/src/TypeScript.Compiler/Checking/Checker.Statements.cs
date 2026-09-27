@@ -229,7 +229,16 @@ internal sealed partial class Checker
                     TopLevelAwait(awaitToken, 1431, 1432);
                 else
                 {
-                    Error(awaitToken, 1103);
+                    var diagnostic = CheckerDiagnostic.Create(awaitToken,
+                        Messages.X_for_await_loops_are_only_allowed_within_async_functions_and_at_the_top_levels_of_modules);
+                    if (container is not ConstructorDeclarationNode)
+                        diagnostic = diagnostic with
+                        {
+                            RelatedInformation = [CheckerDiagnostic.Create(
+                            container,
+                            Messages.Did_you_mean_to_mark_this_function_as_async)]
+                        };
+                    Error(awaitToken, diagnostic);
                     return;
                 }
             }

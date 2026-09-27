@@ -260,7 +260,8 @@ internal sealed partial class CallResolution(TypeContext context, CheckerLinks l
     internal async ValueTask<Signature> OverloadAsync(SyntaxNode node, IReadOnlyList<Signature> original, List<Signature>? candidatesOut,
         CheckMode mode, SignatureFlags chain = 0, CancellationToken cancellation = default)
     {
-        var typeNodes = (IReadOnlyList<SyntaxNode>?)CallArguments.TypeNodes(node) ?? [];
+        var typeNodes = node is CallExpressionNode { Expression.Kind: SyntaxKind.SuperKeyword }
+            ? [] : (IReadOnlyList<SyntaxNode>?)CallArguments.TypeNodes(node) ?? [];
         foreach (var typeNode in typeNodes)
             await host.CheckedFunctionTypeAsync(typeNode, cancellation).ConfigureAwait(false);
         var candidates = rules.Reorder(original, chain);

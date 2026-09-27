@@ -425,7 +425,8 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
         if (reported.Add((node, code)))
         {
             if (code == 2300 && arguments.Length == 0)
-                arguments = [node.Pos == node.End ? "(Missing)" : AliasTargets.Text(node) ?? CheckerDiagnostic.DeclarationName(node)];
+                arguments = [node.Pos == node.End ? "(Missing)" : node is StringLiteralNode
+                    ? CheckerDiagnostic.DeclarationName(node) : AliasTargets.Text(node) ?? CheckerDiagnostic.DeclarationName(node)];
             Diagnostics.Add(code);
             TrackDiagnostic(node, code, arguments);
         }

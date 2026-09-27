@@ -74,7 +74,18 @@ internal sealed partial class Checker : IBinaryExpressionHost, IAwaitedTypeHost
     public void BinaryDiagnostic(SyntaxNode node, int code, bool suggestion = false)
     {
         if (!suggestion)
-            Error(node, code);
+        {
+            string[] arguments = code switch
+            {
+                2839 when node is BinaryExpressionNode comparison =>
+                    [comparison.OperatorToken!.Kind is SyntaxKind.EqualsEqualsToken or SyntaxKind.EqualsEqualsEqualsToken
+                        ? "false"
+                        : "true"],
+                2469 when node.Parent is BinaryExpressionNode binary => [TokenFacts.Text(binary.OperatorToken!.Kind)!],
+                _ => []
+            };
+            Error(node, code, arguments);
+        }
         else if (suggestionLocations.Add((node, code)))
             Suggestions.Add(code);
     }
