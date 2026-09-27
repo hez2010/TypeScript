@@ -15,7 +15,7 @@ internal sealed class GenericRelations(TypeContext context, TypeAlgebra algebra,
         context.RequireOwned(source);
         context.RequireOwned(target);
         if (target is TypeParameter && source is MappedType mapping && mapping.Declaration!.NameType is null
-            && await operation.CompareAsync(await keys.GetAsync(target, cancellation: cancellation).ConfigureAwait(false),
+            && await operation.CompareWithoutErrorsAsync(await keys.GetAsync(target, cancellation: cancellation).ConfigureAwait(false),
                 await mapped.ConstraintAsync(mapping, cancellation).ConfigureAwait(false),
                 cancellation: cancellation).ConfigureAwait(false) != Ternary.False
             && (MappedTypes.Modifiers(mapping) & MappedTypeModifiers.IncludeOptional) == 0)
@@ -151,7 +151,7 @@ internal sealed class GenericRelations(TypeContext context, TypeAlgebra algebra,
                         : null;
                     if (optional && (filtered!.Flags & TypeFlags.Never) == 0
                         || !optional
-                            && await operation.CompareAsync(
+                            && await operation.CompareWithoutErrorsAsync(
                                 targetKeys,
                                 sourceKeys,
                                 cancellation: cancellation).ConfigureAwait(false) != Ternary.False)
@@ -194,7 +194,7 @@ internal sealed class GenericRelations(TypeContext context, TypeAlgebra algebra,
             if (target is IndexedAccessType)
                 return Ternary.False;
             var constraint = await constraints.ConstraintAsync(source, cancellation).ConfigureAwait(false) ?? context.UnknownType;
-            var result = await operation.CompareAsync(
+            var result = await operation.CompareWithoutErrorsAsync(
                 constraint,
                 target,
                 RecursionFlags.Source,
@@ -203,12 +203,14 @@ internal sealed class GenericRelations(TypeContext context, TypeAlgebra algebra,
             if (result != Ternary.False)
                 return result;
             var withThis = await bases.WithThisAsync(constraint, source, cancellation: cancellation).ConfigureAwait(false);
-            result = await operation.CompareAsync(
-                withThis,
-                target,
-                RecursionFlags.Source,
-                intersection,
-                cancellation).ConfigureAwait(false);
+            result = constraint == context.UnknownType
+                ? await operation.CompareWithoutErrorsAsync(
+                    withThis,
+                    target,
+                    RecursionFlags.Source,
+                    intersection,
+                    cancellation).ConfigureAwait(false)
+                : await operation.CompareAsync(withThis, target, RecursionFlags.Source, intersection, cancellation).ConfigureAwait(false);
             if (result != Ternary.False)
                 return result;
             if (await indexed.IsMappedGenericAccessAsync(access, cancellation).ConfigureAwait(false)
@@ -222,11 +224,11 @@ internal sealed class GenericRelations(TypeContext context, TypeAlgebra algebra,
         {
             bool deferredMap = await keys.ShouldDeferAsync(index.Target, index.IndexFlags, cancellation).ConfigureAwait(false)
                 && index.Target is MappedType;
-            var result = await operation.CompareAsync(
-                context.StringNumberSymbolType,
-                target,
-                RecursionFlags.Source,
-                cancellation: cancellation).ConfigureAwait(false);
+            var result = deferredMap
+                ? await operation.CompareWithoutErrorsAsync(context.StringNumberSymbolType, target, RecursionFlags.Source,
+                    cancellation: cancellation).ConfigureAwait(false)
+                : await operation.CompareAsync(context.StringNumberSymbolType, target, RecursionFlags.Source,
+                    cancellation: cancellation).ConfigureAwait(false);
             if (result != Ternary.False)
                 return result;
             if (deferredMap)

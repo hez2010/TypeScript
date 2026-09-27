@@ -9,6 +9,8 @@ internal interface IGeneratorTypeHost
     ValueTask<Type> IterationGlobalAsync(string name, int arity, bool report, CancellationToken cancellation);
 
     ValueTask<Type> CheckGeneratorOperandAsync(SyntaxNode node, CheckMode mode, CancellationToken cancellation);
+
+    ValueTask<bool> ReportGeneratorReturnAsync(Type source, Type target, SyntaxNode node, CancellationToken cancellation);
 }
 
 internal sealed class GeneratorTypes(TypeContext context, TypeAlgebra algebra, IteratorProtocols protocols, IterationElements elements,
@@ -86,7 +88,8 @@ internal sealed class GeneratorTypes(TypeContext context, TypeAlgebra algebra, I
         return context.CreateTypeReference((InterfaceType)target, [yield, result, next ?? context.UnknownType]);
     }
 
-    internal async ValueTask<bool> AssignableReturnAsync(Type type, bool async, CancellationToken cancellation = default)
+    internal async ValueTask<bool> AssignableReturnAsync(Type type, bool async, CancellationToken cancellation = default,
+        SyntaxNode? errorNode = null)
     {
         var iteration = await protocols.GeneratorAsync(type, async, cancellation).ConfigureAwait(false);
         var yield = iteration.Yield ?? context.AnyType;
@@ -96,7 +99,9 @@ internal sealed class GeneratorTypes(TypeContext context, TypeAlgebra algebra, I
             iteration.Next ?? context.UnknownType,
             async,
             cancellation).ConfigureAwait(false);
-        return await relations.RelatedAsync(generator, type, RelationKind.Assignable, cancellation).ConfigureAwait(false);
+        return errorNode is null
+            ? await relations.RelatedAsync(generator, type, RelationKind.Assignable, cancellation).ConfigureAwait(false)
+            : await host.ReportGeneratorReturnAsync(generator, type, errorNode, cancellation).ConfigureAwait(false);
     }
 
     internal ValueTask<Type> ContextReturnAsync(Type type, bool async, CancellationToken cancellation = default) =>

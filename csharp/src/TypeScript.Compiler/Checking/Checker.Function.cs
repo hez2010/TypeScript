@@ -322,8 +322,12 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
         {
             if (type == context.VoidType)
                 Error(annotation, 2505);
-            else if (!await Generators.AssignableReturnAsync(type, SemanticSyntax.HasModifier(node, SyntaxKind.AsyncKeyword), cancellation))
-                Error(annotation, 2322);
+            else
+                await Generators.AssignableReturnAsync(
+                    type,
+                    SemanticSyntax.HasModifier(node, SyntaxKind.AsyncKeyword),
+                    cancellation,
+                    annotation);
             return;
         }
         if (!SemanticSyntax.HasModifier(node, SyntaxKind.AsyncKeyword) || type == context.ErrorType

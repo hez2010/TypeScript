@@ -73,21 +73,35 @@ internal sealed partial class Checker
         if (relationDiagnosticOutput is { } output)
         {
             for (int i = output.Count - 1; i >= 0; i--)
-                if (output[i].Node == node)
+                if (Contains(output[i].Node))
                 {
                     var diagnostic = output[i].Diagnostic;
-                    output[i] = (node, diagnostic with { RelatedInformation = [.. diagnostic.RelatedInformation, note] });
+                    output[i] = (output[i].Node, diagnostic with { RelatedInformation = [.. diagnostic.RelatedInformation, note] });
                     return;
                 }
         }
         else
             for (int i = diagnosticFiles.Count - 1; i >= 0; i--)
-                if (diagnosticFiles[i].Node == node)
+                if (Contains(diagnosticFiles[i].Node))
                 {
                     var diagnostic = diagnosticFiles[i].Diagnostic;
-                    diagnosticFiles[i] = (node, diagnostic with { RelatedInformation = [.. diagnostic.RelatedInformation, note] });
+                    diagnosticFiles[i] = (diagnosticFiles[i].Node, diagnostic with
+                    {
+                        RelatedInformation =
+                        [
+                            .. diagnostic.RelatedInformation,
+                            note
+                        ]
+                    });
                     return;
                 }
+        bool Contains(SyntaxNode? location)
+        {
+            for (; location is not null; location = location.Parent)
+                if (location == node)
+                    return true;
+            return false;
+        }
     }
 
     private async ValueTask ReportOverloadFailureAsync(CallResolution.State state, CancellationToken cancellation)

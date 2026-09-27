@@ -3,12 +3,13 @@ namespace TypeScript.Compiler.Checking;
 internal sealed class BestMatchingTypes(TypeDiscrimination discrimination, TypeRelations relations, TypeAlgebra algebra,
     TypeKeys keys, IArrayLiteralHost arrays, ICallResolutionHost calls)
 {
-    internal async ValueTask<Type?> GetAsync(Type source, UnionType target, CancellationToken cancellation = default)
+    internal async ValueTask<Type?> GetAsync(Type source, UnionType target, CancellationToken cancellation = default,
+        Func<Type, Type, ValueTask<bool>>? related = null)
     {
         if (await discrimination.MatchAsync(
             source,
             target,
-            (s, t) => relations.RelatedAsync(s, t, RelationKind.Assignable, cancellation),
+            related ?? ((s, t) => relations.RelatedAsync(s, t, RelationKind.Assignable, cancellation)),
             cancellation).ConfigureAwait(false) is { } match)
             return match;
         if ((source.ObjectFlags & (ObjectFlags.Reference | ObjectFlags.Anonymous)) != 0)

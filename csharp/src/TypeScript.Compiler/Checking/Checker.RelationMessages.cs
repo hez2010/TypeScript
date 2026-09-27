@@ -117,10 +117,10 @@ internal sealed partial class Checker
         {
             4104 => next.Arguments.SequenceEqual(new[] { sourceText, targetText }),
             2559 or 2560 => true,
-            2741 when diagnostic.Code is not (2415 or 2417 or 2430 or 2420 or 2720 or 2352) => next.Arguments is [_, var s, var t]
+            2741 when diagnostic.Code is not (2415 or 2417 or 2430 or 2420 or 2720 or 2352 or 2787 or 2788 or 2789) => next.Arguments is [_, var s, var t]
                 && s == sourceText
                 && t == targetText,
-            2739 or 2740 when diagnostic.Code is not (2415 or 2417 or 2430 or 2420 or 2720 or 2352) => next.Arguments.Length >= 2
+            2739 or 2740 when diagnostic.Code is not (2415 or 2417 or 2430 or 2420 or 2720 or 2352 or 2787 or 2788 or 2789) => next.Arguments.Length >= 2
                 && next.Arguments[0] == sourceText
                 && next.Arguments[1] == targetText,
             _ => false

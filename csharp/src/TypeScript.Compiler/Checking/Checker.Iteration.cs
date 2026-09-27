@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -48,7 +49,14 @@ internal sealed partial class Checker : IIteratorProtocolHost, IIterationElement
         return Symbol.InternalPrefix + "@" + name;
     }
 
-    public void IterationDiagnostic(IterationDiagnostic diagnostic) => Error(diagnostic.Node, diagnostic.Code);
+    public void IterationDiagnostic(IterationDiagnostic diagnostic) => Error(diagnostic.Node, IteratorDiagnostic(diagnostic));
+
+    private static Diagnostic IteratorDiagnostic(IterationDiagnostic diagnostic) => CheckerDiagnostic.Create(
+        diagnostic.Node, DiagnosticLocalization.GetMessage(diagnostic.Code),
+        diagnostic.Code is 2490 or 2547 or 2767 or 2768 ? [diagnostic.Member!] : []);
+
+    public ValueTask<bool> ReportGeneratorReturnAsync(Type source, Type target, SyntaxNode node, CancellationToken cancellation)
+        => RelationDiagnostics.CheckAsync(source, target, RelationKind.Assignable, node, null, cancellation: cancellation);
 
     public ValueTask<Type> CheckGeneratorOperandAsync(SyntaxNode node, CheckMode mode, CancellationToken cancellation) =>
         Expressions.CheckAsync(node, mode, cancellation);
@@ -63,10 +71,12 @@ internal sealed partial class Checker : IIteratorProtocolHost, IIterationElement
         DeferredIterationDiagnostics.Add((node, type, async, related));
 
     public async ValueTask IterationErrorAsync(SyntaxNode node, int code, bool missingAwait, Type type, Type? other,
-        CancellationToken cancellation)
+        CancellationToken cancellation, IReadOnlyList<IterationDiagnostic>? related = null)
     {
         string text = await TypeDisplay.GetAsync(type, cancellation);
-        Error(node, code, other is null ? [text] : [text, await TypeDisplay.GetAsync(other, cancellation)]);
+        Error(node, CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code),
+            other is null ? [text] : [text, await TypeDisplay.GetAsync(other, cancellation)]) with
+        { RelatedInformation = related?.Select(IteratorDiagnostic).ToArray() ?? [] });
         if (missingAwait)
             IterationAwaitHints.Add((node, code));
     }

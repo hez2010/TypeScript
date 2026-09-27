@@ -31,14 +31,14 @@ internal sealed class ConditionalRelations(TypeContext context, TypeInstantiatio
             await instantiation.RestrictiveAsync(target.ExtendsType, cancellation).ConfigureAwait(false),
             RelationKind.Assignable,
             cancellation).ConfigureAwait(false);
-        var result = skipTrue ? Ternary.True : await operation.CompareAsync(source,
+        var result = skipTrue ? Ternary.True : await operation.CompareWithoutErrorsAsync(source,
             await constraints.ConditionalTrueAsync(target, cancellation: cancellation).ConfigureAwait(false),
             RecursionFlags.Target,
             intersection,
             cancellation).ConfigureAwait(false);
         if (result != Ternary.False)
         {
-            result &= skipFalse ? Ternary.True : await operation.CompareAsync(source,
+            result &= skipFalse ? Ternary.True : await operation.CompareWithoutErrorsAsync(source,
                 await constraints.ConditionalFalseAsync(target, cancellation).ConfigureAwait(false),
                 RecursionFlags.Target,
                 intersection,
@@ -76,11 +76,11 @@ internal sealed class ConditionalRelations(TypeContext context, TypeInstantiatio
                 conditional.ExtendsType,
                 RelationKind.Identity,
                 cancellation).ConfigureAwait(false)
-                && (await operation.CompareAsync(
+                && (await operation.CompareWithoutErrorsAsync(
                     source.CheckType,
                     conditional.CheckType,
                     cancellation: cancellation).ConfigureAwait(false) != Ternary.False
-                    || await operation.CompareAsync(
+                    || await operation.CompareWithoutErrorsAsync(
                         conditional.CheckType,
                         source.CheckType,
                         cancellation: cancellation).ConfigureAwait(false) != Ternary.False))

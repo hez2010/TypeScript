@@ -27,8 +27,8 @@ internal sealed partial class Checker
             {
                 RelatedInformation =
                 [
-                    .. diagnostic.RelatedInformation,
-                    CheckerDiagnostic.Create(node, Messages.Did_you_forget_to_use_await)
+                    CheckerDiagnostic.Create(node, Messages.Did_you_forget_to_use_await),
+                    .. diagnostic.RelatedInformation
                 ]
             };
         if (diagnostic.Code is 2322 or 2345 or 2559 or 2560 or 2739 or 2740 or 2741)

@@ -40,7 +40,7 @@ internal interface IStructuralRelationHost
 
     ValueTask<Type?> MatchingConstituentAsync(UnionType target, Type source, CancellationToken cancellation);
 
-    ValueTask<Type?> BestMatchingTypeAsync(Type source, UnionType target, CancellationToken cancellation);
+    ValueTask<Type?> BestMatchingTypeAsync(RelationOperation operation, Type source, UnionType target, CancellationToken cancellation);
 
     ValueTask<Ternary> DiscriminatedAsync(RelationOperation operation, Type source, UnionType target, CancellationToken cancellation);
 
@@ -144,7 +144,7 @@ internal sealed class StructuralRelations(TypeContext context, TypeAlgebra algeb
                 target is UnionType,
                 cancellation).ConfigureAwait(false);
             if (constraint is not null && (constraint is UnionType u ? u.Types.All(t => t != source) : constraint != source))
-                result = await operation.CompareAsync(
+                result = await operation.CompareWithoutErrorsAsync(
                     constraint,
                     target,
                     RecursionFlags.Source,
@@ -239,7 +239,8 @@ internal sealed class StructuralRelations(TypeContext context, TypeAlgebra algeb
                 union,
                 t => (t.Flags & (TypeFlags.Object | TypeFlags.Intersection | TypeFlags.Substitution)) != 0);
             if (filtered is UnionType objectUnion)
-                return await host.DiscriminatedAsync(operation, source, objectUnion, cancellation).ConfigureAwait(false);
+                return await operation.WithoutErrorsAsync(
+                    () => host.DiscriminatedAsync(operation, source, objectUnion, cancellation)).ConfigureAwait(false);
         }
         return Ternary.False;
     }
@@ -471,7 +472,7 @@ internal sealed class StructuralRelations(TypeContext context, TypeAlgebra algeb
                 return result;
         }
         if (operation.ReportErrors && ((source.Flags | target.Flags) & TypeFlags.Primitive) == 0
-            && await host.BestMatchingTypeAsync(source, target, cancellation).ConfigureAwait(false) is { } best)
+            && await host.BestMatchingTypeAsync(operation, source, target, cancellation).ConfigureAwait(false) is { } best)
             await operation.CompareAsync(source, best, RecursionFlags.Target, intersection, cancellation).ConfigureAwait(false);
         return Ternary.False;
     }

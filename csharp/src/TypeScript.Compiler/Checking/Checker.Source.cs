@@ -48,7 +48,12 @@ internal sealed partial class Checker
                 for (int i = 0; i < deferred.Count; i++)
                     await CheckDeferredSourceAsync(deferred[i], cancellation).ConfigureAwait(false);
             foreach (var diagnostic in DeferredIterationDiagnostics.Where(d => SemanticSyntax.Source(d.Node) == file).ToArray())
-                await Iteration.NotIterableAsync(diagnostic.Node, diagnostic.Type, diagnostic.Async, cancellation).ConfigureAwait(false);
+                await Iteration.NotIterableAsync(
+                    diagnostic.Node,
+                    diagnostic.Type,
+                    diagnostic.Async,
+                    cancellation,
+                    diagnostic.Related).ConfigureAwait(false);
             await CheckMissingPropertiesAsync(file, cancellation).ConfigureAwait(false);
             CheckDeferredDeclarationNames(file, cancellation);
             if (program.Symbols.Binding(file)?.IsModule == true)

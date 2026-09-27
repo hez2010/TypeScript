@@ -13,7 +13,8 @@ internal interface IIterationElementHost
 
     ValueTask<Type?> NumberIndexAsync(Type type, CancellationToken cancellation);
 
-    ValueTask IterationErrorAsync(SyntaxNode node, int code, bool missingAwait, Type type, Type? other, CancellationToken cancellation);
+    ValueTask IterationErrorAsync(SyntaxNode node, int code, bool missingAwait, Type type, Type? other, CancellationToken cancellation,
+        IReadOnlyList<IterationDiagnostic>? related = null);
 }
 
 internal sealed class IterationElements(TypeContext context, TypeAlgebra algebra, IteratorProtocols protocols,
@@ -124,7 +125,8 @@ internal sealed class IterationElements(TypeContext context, TypeAlgebra algebra
     internal ValueTask<Type> IncludeMissingAsync(Type type, CancellationToken cancellation = default) => host.NoUncheckedIndexedAccess
         ? algebra.UnionAsync([type, context.MissingType], cancellation: cancellation) : ValueTask.FromResult(type);
 
-    internal async ValueTask NotIterableAsync(SyntaxNode node, Type type, bool async, CancellationToken cancellation = default)
+    internal async ValueTask NotIterableAsync(SyntaxNode node, Type type, bool async, CancellationToken cancellation = default,
+        IReadOnlyList<IterationDiagnostic>? related = null)
     {
         bool hint = await awaited.OfPromiseAsync(type, cancellation: cancellation).ConfigureAwait(false) is not null;
         if (!hint && !async && node.Parent is ForInOrOfStatementNode { Kind: SyntaxKind.ForOfStatement } loop && loop.Expression == node)
@@ -136,6 +138,6 @@ internal sealed class IterationElements(TypeContext context, TypeAlgebra algebra
                     context.CreateTypeReference((InterfaceType)target, [context.AnyType, context.AnyType, context.AnyType]),
                     RelationKind.Assignable, cancellation).ConfigureAwait(false);
         }
-        await host.IterationErrorAsync(node, async ? 2504 : 2488, hint, type, null, cancellation).ConfigureAwait(false);
+        await host.IterationErrorAsync(node, async ? 2504 : 2488, hint, type, null, cancellation, related).ConfigureAwait(false);
     }
 }

@@ -23,7 +23,8 @@ internal sealed partial class Checker : IStructuralRelationHost, IObjectRelation
         if (source is TypeReference { Target: TupleType { ElementInfos.Count: 1, IsReadonly: false } }
             && TypeConstraints.IsGenericTuple(source))
         {
-            var result = await operation.CompareAsync((await References.TypeArgumentsAsync((TypeReference)source, cancellation))[0],
+            var result = await operation.CompareWithoutErrorsAsync(
+                (await References.TypeArgumentsAsync((TypeReference)source, cancellation))[0],
                 target, RecursionFlags.Source, cancellation: cancellation);
             if (result != Ternary.False)
                 return result;
@@ -40,7 +41,7 @@ internal sealed partial class Checker : IStructuralRelationHost, IObjectRelation
             }
             if (mutable)
             {
-                var result = await operation.CompareAsync(source,
+                var result = await operation.CompareWithoutErrorsAsync(source,
                     (await References.TypeArgumentsAsync((TypeReference)target, cancellation))[0], RecursionFlags.Target,
                     cancellation: cancellation);
                 if (result != Ternary.False)
@@ -175,8 +176,13 @@ internal sealed partial class Checker : IStructuralRelationHost, IObjectRelation
     public ValueTask<Type?> MatchingConstituentAsync(UnionType target, Type source, CancellationToken cancellation)
             => Discriminants.MatchAsync(target, source, cancellation);
 
-    public ValueTask<Type?> BestMatchingTypeAsync(Type source, UnionType target, CancellationToken cancellation)
-        => BestMatchingTypes.GetAsync(source, target, cancellation);
+    public ValueTask<Type?> BestMatchingTypeAsync(
+        RelationOperation operation,
+        Type source,
+        UnionType target,
+        CancellationToken cancellation)
+        => BestMatchingTypes.GetAsync(source, target, cancellation,
+            async (s, t) => await operation.CompareWithoutErrorsAsync(s, t, cancellation: cancellation) != Ternary.False);
 
     public ValueTask<Ternary> DiscriminatedAsync(RelationOperation operation, Type source, UnionType target, CancellationToken cancellation)
             => Discriminants.RelatedAsync(operation, source, target, cancellation);
