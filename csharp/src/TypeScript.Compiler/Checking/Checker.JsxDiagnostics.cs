@@ -1,4 +1,5 @@
 using TypeScript.Compiler.Ast;
+using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -80,12 +81,22 @@ internal sealed partial class Checker
                         () => Contexts.MutableAsync(expression, CheckMode.Contextual, cancellation), cancellation);
                     if (child is JsxTextNode)
                         RelationError(child, 2747, CheckerDiagnostic.DeclarationName(element.OpeningElement!.TagName!),
-                            nameOfChildren, await TypeDisplay.GetAsync(expected, cancellation));
+                            nameOfChildren, await TypeDisplay.GetAsync(childrenTarget, cancellation));
                     else if (context.ExactOptionalPropertyTypes && Predicates.Maybe(specific, TypeFlags.Undefined, cancellation)
                         && (expected == context.MissingType || expected is UnionType union && union.Types.Contains(context.MissingType)))
-                        RelationError(child, 2375);
+                        await LiteralRelationErrorAsync(child, 2375, specific, expected, cancellation);
                     else
-                        await ReportRelationAsync(specific, expected, relation, child, null, cancellation);
+                    {
+                        string propertyName = i.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                        bool targetOptional = (await Properties.PropertyAsync(indexedParts, propertyName, cancellation: cancellation))
+                            is { Flags: var flags } && (flags & SymbolFlags.Optional) != 0;
+                        bool sourceOptional = (await Properties.PropertyAsync(tuple, propertyName, cancellation: cancellation))
+                            is { Flags: var sourceFlags } && (sourceFlags & SymbolFlags.Optional) != 0;
+                        expected = Values.NonMissing(expected, targetOptional);
+                        actual = Values.NonMissing(actual, targetOptional && sourceOptional);
+                        if (await ReportRelationAsync(specific, expected, relation, child, null, cancellation) && specific != actual)
+                            await ReportRelationAsync(actual, expected, relation, child, null, cancellation);
+                    }
                     reported = true;
                 }
             }

@@ -25,7 +25,10 @@ internal sealed partial class Checker : ITypeAssertionHost, IInstantiationExpres
         string text = await TypeDisplay.GetAsync(type, cancellation);
         cancellation.ThrowIfCancellationRequested();
         InstantiationErrors[node] = text;
-        Error(node, 2635);
+        ListError(
+            node,
+            node is ExpressionWithTypeArgumentsNode expression ? expression.TypeArguments! : ((TypeQueryNode)node).TypeArguments!,
+            2635, text);
     }
 
     public void InstantiationGrammar(SyntaxNode node, NodeList? arguments)
@@ -35,7 +38,7 @@ internal sealed partial class Checker : ITypeAssertionHost, IInstantiationExpres
         if (node is ExpressionWithTypeArgumentsNode { Expression.Kind: SyntaxKind.ImportKeyword } && arguments is not null)
             Error(node, 1326);
         else if (arguments?.HasTrailingComma == true)
-            Error(node, 1009);
+            TrailingCommaError(node, arguments);
         else if (arguments?.Count == 0)
             EmptyTypeListError(node, arguments, 1099);
     }

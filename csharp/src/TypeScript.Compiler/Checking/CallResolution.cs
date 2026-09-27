@@ -513,6 +513,11 @@ internal sealed partial class CallResolution(TypeContext context, CheckerLinks l
             1 => EffectiveNode(args[count]),
             _ => CallArguments.Synthetic(node, spread)
         };
+        if (args.Count - count > 1)
+        {
+            errorNode.Pos = args[count].Pos;
+            errorNode.End = args[^1].End;
+        }
         bool related = await host.ArgumentRelatedAsync(
             spread,
             rest,
@@ -534,6 +539,9 @@ internal sealed partial class CallResolution(TypeContext context, CheckerLinks l
                 case SyntheticExpressionNode:
                     node = node.Parent!;
                     break;
+                case ParenthesizedExpressionNode { Expression: AsExpressionNode { Type: { } assertionType } }
+                    when (node.Flags & NodeFlags.JavaScriptFile) != 0 && (assertionType.Flags & NodeFlags.Reparsed) != 0:
+                    return node;
                 case ParenthesizedExpressionNode parentheses:
                     node = parentheses.Expression!;
                     break;

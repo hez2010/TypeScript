@@ -1,0 +1,160 @@
+{
+    "timestamp": "2026-09-27T08:34:27.576Z",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "configuration": "Release",
+    "managedExecutionOnly": true,
+    "phase4Complete": true,
+    "semantic": {
+        "record": "phase4-final-semantics.json",
+        "recordSha256": "28f71f5f89a7b5c21d8867d756f8f575d88d611f50535de9a4b898690f83e8f7",
+        "modes": [
+            {
+                "mode": "single",
+                "active": 13446,
+                "graphMatches": 13446,
+                "codeMatches": 13446,
+                "detailedMatches": 13446,
+                "nonemptyDetailedMatches": 6863,
+                "affectedConfigurations": 6588
+            },
+            {
+                "mode": "default",
+                "active": 13446,
+                "graphMatches": 13446,
+                "codeMatches": 13446,
+                "detailedMatches": 13446,
+                "nonemptyDetailedMatches": 6863,
+                "affectedConfigurations": 6588
+            }
+        ],
+        "modeDifferences": 0
+    },
+    "api": {
+        "record": "phase4-final-api-audit.json",
+        "recordSha256": "25c64cc6ae1361a2d52e86afcaa0717c12626ebc289c739d2a3fcfadbaa8674f",
+        "activeConfigurations": 1621,
+        "comparedQueries": 1189504,
+        "referenceFailureRecord": "phase4-type-queries-reference-failures.json"
+    },
+    "workloads": {
+        "record": "phase4-workloads.json",
+        "recordSha256": "ac10f4f5602453992ec9cbceb81b9865b0be9a44076547fcde3b28073236da36",
+        "passed": true,
+        "nativeAotExecuted": false,
+        "releasePerformanceGateClaimed": false
+    },
+    "managedBuild": {
+        "log": "logs/phase4-documentation-ranges-final-build.log",
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "sha256": "8011c2a65d83593bbbb3c963266434128ddae68d1828b2baf17f8e3bef63f4b2",
+        "candidateSha256": "d9830e95b459714d0c42c999b757799ed7ccef743596829295f49e6b496aed53",
+        "compilerSha256": "4aacb99b6260576107fc14ba2201c904f925dfa2163600d13d0da1b73db3695f"
+    },
+    "nativeAot": {
+        "command": "dotnet publish csharp/tests/TypeScript.Compatibility/TypeScript.Compatibility.csproj -c Release -r win-x64 --no-restore -p:IlcInstructionSet=native -o built/csharp/phase4-native-final",
+        "sdk": "11.0.100-rc.2.26470.103",
+        "log": "logs/phase4-final-native-publish.log",
+        "logSha256": "823f89b89b48b51d4b3ddb97c6d2d4d1298bd42fe67d194bd690b82c2534e750",
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "artifact": "built/csharp/phase4-native-final/TypeScript.Compatibility.exe",
+        "artifactSha256": "3f662c643c3db3809601f0ddc2baca3f516c96c6213500600730e579d54a2ce3",
+        "artifactBytes": 27269120,
+        "executed": false
+    },
+    "safety": {
+        "checks": [
+            {
+                "scope": "parser",
+                "log": "logs/phase4-final-parser-safety.log",
+                "count": 39,
+                "sha256": "f79e63e69617ad0c718a5f8448eee56a19d365fb48a17a97eb86eaac8aab5dec"
+            },
+            {
+                "scope": "relation diagnostics",
+                "log": "logs/phase4-final-relation-diagnostics-safety.log",
+                "count": 10,
+                "sha256": "eb84a3231573356e76b50178ff9d5ecfd6c3d78105e827ff36ed3bd630fb6ee2"
+            },
+            {
+                "scope": "type renderer",
+                "log": "logs/phase4-recursive-type-renderer-safety.log",
+                "count": 52,
+                "sha256": "649470e3a61e23e2ebce9c05117f5dce98024b4a06de81ad152cee2d8d58f305"
+            },
+            {
+                "scope": "flow",
+                "log": "logs/phase4-flow-location-safety.log",
+                "count": 52,
+                "sha256": "e315fba81105e1e7bf607b4cf9c65e9730c44a0fa7d1d84c04527a31fad6aa18"
+            },
+            {
+                "scope": "binary",
+                "log": "logs/phase4-diagnostic-notes-binary-safety.log",
+                "count": 31,
+                "sha256": "d40d269568107ec49cafc575ed04a1a4931bc7813c714c5b91ec516cef843d9e"
+            },
+            {
+                "scope": "grammar",
+                "log": "logs/phase4-diagnostic-ranges-grammar-safety.log",
+                "count": 13,
+                "sha256": "f095daa928371526302c18a9c595371fb3d8e93cd4023eff3669a312cdc2fe8a"
+            }
+        ],
+        "reusedOwnershipAndCancellationRecord": "phase4-semantic-services-validation.json",
+        "parserNodes": 1421841,
+        "parserDepth": 21000
+    },
+    "formatting": {
+        "files": 61,
+        "libraryConfigurations": 2,
+        "tokensCommentsAndSyntaxIdentical": true,
+        "indexLineEndingsPreserved": true,
+        "log": "logs/phase4-final-format.log",
+        "logSha256": "3f42cf75ba0fd2e0c19cc868fabe77c508ddaae562cd8f9893e8c178098c5d5c",
+        "whitespaceCommand": "git -c core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol diff --check",
+        "compilerWhitespace": {
+            "exitCode": 0,
+            "log": "logs/phase4-final-whitespace.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "harnessWhitespace": {
+            "exitCode": 0,
+            "log": "logs/phase4-final-harness-whitespace.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "artifactFormatting": {
+            "exitCode": 0,
+            "log": "logs/phase4-final-artifact-format.log",
+            "sha256": "c05f66dd5f34ff774214ef89f046f522635be48c39abfbb6b452523589c46aa2"
+        }
+    },
+    "reuse": {
+        "previousCheckpoint": "3cbc1ea85d",
+        "unchangedCandidateResultsRetained": true,
+        "unchangedReferenceResultsRetained": true,
+        "preEmitReferenceRefresh": "Needed after tracing emission-induced diagnostic changes; all old post-emit diagnostics and source graphs reproduced exactly.",
+        "mapperInputCorrection": "phase4-preemit-mapper-input-correction.json",
+        "noRuntimeRerunAfterEquivalentFormatting": true,
+        "protectedSourceComparedWith": "00d370e5b0",
+        "protectedPathsUnchanged": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ]
+    },
+    "toolSyntaxChecks": {
+        "exitCode": 0,
+        "files": [
+            "csharp/tools/checker-corpus.mjs",
+            "csharp/tools/checker-node-builder-tracking.mjs",
+            "csharp/tools/checker-workloads.mjs",
+            "csharp/tools/prepare-checker-corpus-oracle.mjs"
+        ]
+    },
+    "intermediateEvidence": "built/csharp/phase4-final-stage-evidence"
+}

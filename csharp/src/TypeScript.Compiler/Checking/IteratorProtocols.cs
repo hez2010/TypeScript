@@ -17,7 +17,12 @@ internal readonly record struct IterationTypes(Type? Yield, Type? Return, Type? 
     };
 }
 
-internal readonly record struct IterationDiagnostic(SyntaxNode Node, int Code, string? Member = null);
+internal readonly record struct IterationDiagnostic(
+    SyntaxNode Node,
+    int Code,
+    string? Member = null,
+    Type? Source = null,
+    Type? Target = null);
 
 internal interface IIteratorProtocolHost
 {
@@ -35,7 +40,7 @@ internal interface IIteratorProtocolHost
 
     ValueTask<Symbol?> AwaitedSymbolAsync(bool reportErrors, CancellationToken cancellation);
 
-    void IterationDiagnostic(IterationDiagnostic diagnostic);
+    ValueTask IterationDiagnosticAsync(IterationDiagnostic diagnostic, CancellationToken cancellation);
 
     void DeferIteratorDiagnostic(SyntaxNode node, Type type, bool async, IReadOnlyList<IterationDiagnostic> related);
 }
@@ -122,7 +127,7 @@ internal sealed class IteratorProtocols(TypeContext context, TypeAlgebra algebra
             if (result.HasTypes)
             {
                 foreach (var diagnostic in diagnostics)
-                    host.IterationDiagnostic(diagnostic);
+                    await host.IterationDiagnosticAsync(diagnostic, cancellation).ConfigureAwait(false);
                 return result;
             }
         }
@@ -136,7 +141,7 @@ internal sealed class IteratorProtocols(TypeContext context, TypeAlgebra algebra
             if (result.HasTypes)
             {
                 foreach (var diagnostic in diagnostics)
-                    host.IterationDiagnostic(diagnostic);
+                    await host.IterationDiagnosticAsync(diagnostic, cancellation).ConfigureAwait(false);
                 return (use & IterationUse.AllowsAsyncIterablesFlag) != 0
                     ? await AsyncFromSyncAsync(result, node, cancellation).ConfigureAwait(false) : result;
             }
@@ -225,12 +230,12 @@ internal sealed class IteratorProtocols(TypeContext context, TypeAlgebra algebra
                 diagnostics,
                 cancellation).ConfigureAwait(false);
         }
-        if (node is not null && all.Count != 0
-            && !await relations.RelatedAsync(
-                type,
-                await host.IterationGlobalAsync(async ? "AsyncIterable" : "Iterable", 3, true, cancellation).ConfigureAwait(false),
-                RelationKind.Assignable, cancellation).ConfigureAwait(false))
-            diagnostics.Add(new(node, 2322));
+        if (node is not null && all.Count != 0)
+        {
+            var target = await host.IterationGlobalAsync(async ? "AsyncIterable" : "Iterable", 3, true, cancellation).ConfigureAwait(false);
+            if (!await relations.RelatedAsync(type, target, RelationKind.Assignable, cancellation).ConfigureAwait(false))
+                diagnostics.Add(new(node, 2322, Source: type, Target: target));
+        }
         return default;
     }
 
@@ -268,7 +273,7 @@ internal sealed class IteratorProtocols(TypeContext context, TypeAlgebra algebra
         var methodSignatures = methodType is null ? [] : await host.SignaturesAsync(methodType, false, cancellation).ConfigureAwait(false);
         if (methodSignatures.Count == 0)
         {
-            Report(name == "next" ? async ? 2519 : 2489 : async ? 2768 : 2767);
+            await ReportAsync(name == "next" ? async ? 2519 : 2489 : async ? 2768 : 2767).ConfigureAwait(false);
             return default;
         }
         if (methodSignatures.Count == 1 && methodType!.Symbol is { } symbol)
@@ -326,7 +331,7 @@ internal sealed class IteratorProtocols(TypeContext context, TypeAlgebra algebra
         Type? yield = result.Yield;
         if (!result.HasTypes)
         {
-            Report(async ? 2547 : 2490);
+            await ReportAsync(async ? 2547 : 2490).ConfigureAwait(false);
             yield = context.AnyType;
             returns.Add(context.AnyType);
         }
@@ -334,13 +339,13 @@ internal sealed class IteratorProtocols(TypeContext context, TypeAlgebra algebra
             returns.Add(result.Return);
         return new(yield, await algebra.UnionAsync(returns, cancellation: cancellation).ConfigureAwait(false), nextType);
 
-        void Report(int code)
+        async ValueTask ReportAsync(int code)
         {
             if (node is null)
                 return;
             var diagnostic = new IterationDiagnostic(node, code, name);
             if (diagnostics is null)
-                host.IterationDiagnostic(diagnostic);
+                await host.IterationDiagnosticAsync(diagnostic, cancellation).ConfigureAwait(false);
             else
                 diagnostics.Add(diagnostic);
         }

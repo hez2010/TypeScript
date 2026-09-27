@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -53,7 +54,14 @@ internal sealed partial class Checker
                 && await program.Aliases.TypeOnlyAsync(symbol, cancellation: cancellation) is null)
                 await AliasReferences.MarkAsync(symbol, entity, cancellation);
             else if (IsolatedModules && ModuleKind >= 5 && !value && !symbol.Declarations.Any(AliasResolver.IsTypeOnly))
-                Error(entity, 1272);
+            {
+                var diagnostic = CheckerDiagnostic.Create(entity,
+                    Messages.A_type_referenced_in_a_decorated_signature_must_be_imported_with_import_type_or_a_namespace_import_when_isolatedModules_and_emitDecoratorMetadata_are_enabled);
+                if (AliasResolver.Declaration(symbol) is { } declaration)
+                    diagnostic = diagnostic with
+                    { RelatedInformation = [CheckerDiagnostic.Create(declaration, Messages.X_0_was_imported_here, symbol.Name)] };
+                Error(entity, diagnostic);
+            }
         }
         void AddParameters(SyntaxNode function)
         {

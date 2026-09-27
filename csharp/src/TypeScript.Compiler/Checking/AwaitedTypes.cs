@@ -16,7 +16,7 @@ internal interface IAwaitedTypeHost
 
     ValueTask<IReadOnlyList<Signature>> SignaturesAsync(Type type, bool construct, CancellationToken cancellation);
 
-    void AwaitedError(SyntaxNode node, int code, Type type, Type? thisType = null);
+    ValueTask AwaitedErrorAsync(SyntaxNode node, int code, Type type, Type? thisType, CancellationToken cancellation);
 }
 
 internal sealed class AwaitedTypes(TypeContext context, TypeAlgebra algebra, TypeConstraints constraints,
@@ -74,7 +74,7 @@ internal sealed class AwaitedTypes(TypeContext context, TypeAlgebra algebra, Typ
         if (signatures.Count == 0)
         {
             if (errorNode is not null)
-                host.AwaitedError(errorNode, 1059, type);
+                await host.AwaitedErrorAsync(errorNode, 1059, type, null, cancellation).ConfigureAwait(false);
             return (null, null);
         }
         Type? thisError = null;
@@ -93,7 +93,7 @@ internal sealed class AwaitedTypes(TypeContext context, TypeAlgebra algebra, Typ
             if (thisError is null)
                 throw new InvalidOperationException("Promise signatures rejected without a this type");
             if (errorNode is not null)
-                host.AwaitedError(errorNode, 2684, type, thisError);
+                await host.AwaitedErrorAsync(errorNode, 2684, type, thisError, cancellation).ConfigureAwait(false);
             return (null, thisError);
         }
         var callbacks = new List<Type>();
@@ -109,7 +109,7 @@ internal sealed class AwaitedTypes(TypeContext context, TypeAlgebra algebra, Typ
         if (callbackSignatures.Count == 0)
         {
             if (errorNode is not null)
-                host.AwaitedError(errorNode, 1060, type);
+                await host.AwaitedErrorAsync(errorNode, 1060, type, null, cancellation).ConfigureAwait(false);
             return (null, null);
         }
         var results = new List<Type>();
@@ -138,7 +138,7 @@ internal sealed class AwaitedTypes(TypeContext context, TypeAlgebra algebra, Typ
         if (type is UnionType)
         {
             if (stack.Contains(type))
-                return Circular();
+                return await CircularAsync().ConfigureAwait(false);
             stack.Add(type);
             Type? result;
             try
@@ -166,7 +166,7 @@ internal sealed class AwaitedTypes(TypeContext context, TypeAlgebra algebra, Typ
         if (promisedType is not null)
         {
             if (type == promisedType || stack.Contains(promisedType))
-                return Circular();
+                return await CircularAsync().ConfigureAwait(false);
             stack.Add(type);
             Type? result;
             try
@@ -185,16 +185,16 @@ internal sealed class AwaitedTypes(TypeContext context, TypeAlgebra algebra, Typ
         if (await ThenableAsync(type, cancellation).ConfigureAwait(false))
         {
             if (errorNode is not null)
-                host.AwaitedError(errorNode, diagnosticCode, type, thisError);
+                await host.AwaitedErrorAsync(errorNode, diagnosticCode, type, thisError, cancellation).ConfigureAwait(false);
             return null;
         }
         cancellation.ThrowIfCancellationRequested();
         return awaited[type] = type;
 
-        Type? Circular()
+        async ValueTask<Type?> CircularAsync()
         {
             if (errorNode is not null)
-                host.AwaitedError(errorNode, 1062, type);
+                await host.AwaitedErrorAsync(errorNode, 1062, type, null, cancellation).ConfigureAwait(false);
             return null;
         }
     }

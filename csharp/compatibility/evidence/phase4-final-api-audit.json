@@ -1,0 +1,516 @@
+{
+    "timestamp": "2026-09-27T08:31:29.348Z",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "scope": "Phase 4 checker query and emit-resolver services. Full project/LSP/API host integration remains Phase 7; transforms and actual declaration/JS emit remain Phase 5.",
+    "families": [
+        {
+            "name": "type-queries",
+            "scope": "Type and symbol lookup; signatures, predicates, references and literal types",
+            "sources": [
+                "csharp/src/TypeScript.Compiler/Checking/Checker.TypeQueries.cs",
+                "csharp/src/TypeScript.Compiler/Checking/Checker.SymbolQueries.cs",
+                "csharp/src/TypeScript.Compiler/Checking/Checker.ContextQueries.cs"
+            ],
+            "record": "csharp/compatibility/evidence/phase4-type-queries.json",
+            "recordSha256": "82b531c61dfac70ab124014b35df4d56bbd1c1be8a5c36f930f69a53e7bc7111",
+            "configurations": 80,
+            "activeConfigurations": 76,
+            "exact": 76,
+            "referenceFailures": 4,
+            "comparedQueries": 3812,
+            "retained": true
+        },
+        {
+            "name": "symbol-queries",
+            "scope": "Original source and JSDoc symbol locations",
+            "sources": [
+                "csharp/src/TypeScript.Compiler/Checking/Checker.SymbolQueries.cs",
+                "csharp/src/TypeScript.Compiler/Checking/Checker.SymbolServices.cs"
+            ],
+            "record": "csharp/compatibility/evidence/phase4-symbol-queries.json",
+            "recordSha256": "db81855d9a10adf898317f13427b26f1fd096e54593e075bc54a4a8183906e5c",
+            "configurations": 104,
+            "activeConfigurations": 104,
+            "exact": 104,
+            "referenceFailures": 0,
+            "comparedQueries": 5312,
+            "retained": true
+        },
+        {
+            "name": "scope-queries",
+            "scope": "Scope lookup, aliases, module exports and symbol types",
+            "sources": [
+                "csharp/src/TypeScript.Compiler/Checking/Checker.ScopeQueries.cs",
+                "csharp/src/TypeScript.Compiler/Checking/Checker.SymbolServices.cs"
+            ],
+            "record": "csharp/compatibility/evidence/phase4-scope-queries.json",
+            "recordSha256": "d8a49e2c7cbb5b6a78c316ba44ab73b84b46809c556ff647ea37b53b9dc09a84",
+            "configurations": 104,
+            "activeConfigurations": 104,
+            "exact": 104,
+            "referenceFailures": 0,
+            "comparedQueries": 29500,
+            "retained": true
+        },
+        {
+            "name": "context-queries",
+            "scope": "Contextual types, call candidates and signature-help queries",
+            "sources": [
+                "csharp/src/TypeScript.Compiler/Checking/Checker.ContextQueries.cs"
+            ],
+            "record": "csharp/compatibility/evidence/phase4-context-queries.json",
+            "recordSha256": "7af96834e35db7fce7e07c50ec81df87128dfe18dc1912f707ed8c404181817a",
+            "configurations": 112,
+            "activeConfigurations": 112,
+            "exact": 112,
+            "referenceFailures": 0,
+            "comparedQueries": 7644,
+            "retained": true
+        },
+        {
+            "name": "declaration-visibility",
+            "scope": "Declaration visibility and alias visibility propagation",
+            "sources": [
+                "csharp/src/TypeScript.Compiler/Checking/Checker.DeclarationVisibility.cs"
+            ],
+            "record": "csharp/compatibility/evidence/phase4-declaration-visibility.json",
+            "recordSha256": "9851914a9cdc6ca50ac8b7b6afd01638d34f8ce373de3490b127d860b04441a8",
+            "configurations": 112,
+            "activeConfigurations": 112,
+            "exact": 112,
+            "referenceFailures": 0,
+            "comparedQueries": 24832,
+            "retained": true
+        },
+        {
+            "name": "symbol-chains",
+            "scope": "Symbol qualification and accessible alias chains",
+            "sources": [
+                "csharp/src/TypeScript.Compiler/Checking/Checker.SymbolChains.cs"
+            ],
+            "record": "csharp/compatibility/evidence/phase4-symbol-chains.json",
+            "recordSha256": "0cc371945ab63065aa96e62d5253e076abfec8889c59383318bb1be9331182dc",
+            "configurations": 112,
+            "activeConfigurations": 112,
+            "exact": 112,
+            "referenceFailures": 0,
+            "comparedQueries": 60216,
+            "retained": true
+        },
+        {
+            "name": "accessibility",
+            "scope": "Symbol and entity-name accessibility",
+            "sources": [
+                "csharp/src/TypeScript.Compiler/Checking/Checker.SymbolAccessibility.cs"
+            ],
+            "record": "csharp/compatibility/evidence/phase4-accessibility.json",
+            "recordSha256": "4d6881b940151419260b065519fd2ae770aa3680e66648751c2ee63b83df3b35",
+            "configurations": 156,
+            "activeConfigurations": 156,
+            "exact": 156,
+            "referenceFailures": 0,
+            "comparedQueries": 125544,
+            "retained": true
+        },
+        {
+            "name": "symbol-display",
+            "scope": "Symbol names and display contexts",
+            "sources": [
+                "csharp/src/TypeScript.Compiler/Checking/Checker.SymbolDisplay.cs"
+            ],
+            "record": "csharp/compatibility/evidence/phase4-symbol-display.json",
+            "recordSha256": "b1ae13e266cbf77095c3cd223ba51eb39b1ae5f88ab46d74578e6add364a07c0",
+            "configurations": 172,
+            "activeConfigurations": 172,
+            "exact": 172,
+            "referenceFailures": 0,
+            "comparedQueries": 122012,
+            "retained": true
+        },
+        {
+            "name": "symbol-type-nodes",
+            "scope": "Symbol-to-type/expression nodes and display flags",
+            "sources": [
+                "csharp/src/TypeScript.Compiler/Checking/Checker.SymbolNodePrinter.cs"
+            ],
+            "record": "csharp/compatibility/evidence/phase4-symbol-type-nodes.json",
+            "recordSha256": "d4383c4fc7dfb85858d471d4827921612db02b4a2baebcc71a9ea8d76f4dd8eb",
+            "configurations": 68,
+            "activeConfigurations": 68,
+            "exact": 68,
+            "referenceFailures": 0,
+            "comparedQueries": 490752,
+            "retained": true
+        },
+        {
+            "name": "symbol-format-modes",
+            "scope": "Symbol-format flag combinations",
+            "sources": [
+                "csharp/src/TypeScript.Compiler/Checking/Checker.SymbolDisplay.cs"
+            ],
+            "record": "csharp/compatibility/evidence/phase4-symbol-format-modes.json",
+            "recordSha256": "2aba119ff887434d64c6ade1a8a516dfa80bab5b9983f8f89be8492e3dc037af",
+            "configurations": 72,
+            "activeConfigurations": 72,
+            "exact": 72,
+            "referenceFailures": 0,
+            "comparedQueries": 275728,
+            "retained": true
+        },
+        {
+            "name": "type-syntax-core",
+            "scope": "Type node builder",
+            "sources": [
+                "csharp/src/TypeScript.Compiler/Checking/Checker.TypeSyntax.cs"
+            ],
+            "record": "built/csharp/checker-type-syntax/summary.json",
+            "recordSha256": "22ca0ba53acc88b681eb7d64f219eaf3b882bc491403a783951010d5a5eab646",
+            "configurations": 32,
+            "activeConfigurations": 32,
+            "exact": 32,
+            "referenceFailures": 0,
+            "comparedQueries": 2880,
+            "retained": false
+        },
+        {
+            "name": "conditional-syntax",
+            "scope": "Conditional and recursive type syntax",
+            "sources": [
+                "csharp/src/TypeScript.Compiler/Checking/Checker.TypeSyntax.cs"
+            ],
+            "record": "built/csharp/checker-conditional-syntax/summary.json",
+            "recordSha256": "92600f18b634d5f4046cfabb7877236df18f2fbada6494c008f9a84bdee79f5b",
+            "configurations": 28,
+            "activeConfigurations": 28,
+            "exact": 28,
+            "referenceFailures": 0,
+            "comparedQueries": 1344,
+            "retained": false
+        },
+        {
+            "name": "mapped-syntax",
+            "scope": "Mapped type syntax",
+            "sources": [
+                "csharp/src/TypeScript.Compiler/Checking/Checker.TypeSyntax.cs"
+            ],
+            "record": "csharp/compatibility/evidence/phase4-mapped-syntax.json",
+            "recordSha256": "518560fc1a57259b398b7c1ceea95db7db04c6bcf04676be608744d1ef5f0207",
+            "configurations": 24,
+            "activeConfigurations": 24,
+            "exact": 24,
+            "referenceFailures": 0,
+            "comparedQueries": 1280,
+            "retained": true
+        },
+        {
+            "name": "signature-syntax",
+            "scope": "Signature and predicate syntax",
+            "sources": [
+                "csharp/src/TypeScript.Compiler/Checking/Checker.SignatureSyntax.cs"
+            ],
+            "record": "csharp/compatibility/evidence/phase4-signature-syntax.json",
+            "recordSha256": "02645265f340ed91e323eea6295ed60ca861b28f819757e4a84af9063bb6b43a",
+            "configurations": 48,
+            "activeConfigurations": 48,
+            "exact": 48,
+            "referenceFailures": 0,
+            "comparedQueries": 2496,
+            "retained": true
+        },
+        {
+            "name": "anonymous-syntax",
+            "scope": "Anonymous/object/class syntax",
+            "sources": [
+                "csharp/src/TypeScript.Compiler/Checking/Checker.TypeSyntax.cs"
+            ],
+            "record": "csharp/compatibility/evidence/phase4-anonymous-syntax.json",
+            "recordSha256": "6cdb9c3888c32c8c8d58a9a6b09edb2fda84da099e1b1ba97b5ddbb0adfc1d89",
+            "configurations": 44,
+            "activeConfigurations": 44,
+            "exact": 44,
+            "referenceFailures": 0,
+            "comparedQueries": 2448,
+            "retained": true
+        },
+        {
+            "name": "syntax-options",
+            "scope": "Node-builder options and contexts",
+            "sources": [
+                "csharp/src/TypeScript.Compiler/Checking/Checker.TypeSyntax.cs"
+            ],
+            "record": "csharp/compatibility/evidence/phase4-syntax-options.json",
+            "recordSha256": "1f3b45b53abdc1e1d5f0f213d48588f9126e10f4dfd4fc5fb0129c8bb9dc7a2b",
+            "configurations": 45,
+            "activeConfigurations": 45,
+            "exact": 45,
+            "referenceFailures": 0,
+            "comparedQueries": 13064,
+            "retained": true
+        },
+        {
+            "name": "syntax-names",
+            "scope": "Generated and shadowed names",
+            "sources": [
+                "csharp/src/TypeScript.Compiler/Checking/Checker.TypeSyntax.cs"
+            ],
+            "record": "csharp/compatibility/evidence/phase4-syntax-names.json",
+            "recordSha256": "1ad15cd71e530ddefc58740ceefd1f96c35fecdc534153b6f260c96c17ba0480",
+            "configurations": 24,
+            "activeConfigurations": 24,
+            "exact": 24,
+            "referenceFailures": 0,
+            "comparedQueries": 4800,
+            "retained": true
+        },
+        {
+            "name": "emit-queries",
+            "scope": "Declaration kinds, overloads, optional parameters, late binding and aliases",
+            "sources": [
+                "csharp/src/TypeScript.Compiler/Checking/Checker.EmitQueries.cs"
+            ],
+            "record": "csharp/compatibility/evidence/phase4-emit-queries.json",
+            "recordSha256": "e4c76f8ebe43b50cb9b81b46ad5609f437de794771b0ffa692f5e43cc1fc14de",
+            "configurations": 40,
+            "activeConfigurations": 40,
+            "exact": 40,
+            "referenceFailures": 0,
+            "comparedQueries": 2136,
+            "retained": true
+        },
+        {
+            "name": "emit-queries-js",
+            "scope": "JavaScript emit query behavior",
+            "sources": [
+                "csharp/src/TypeScript.Compiler/Checking/Checker.EmitQueries.cs"
+            ],
+            "record": "csharp/compatibility/evidence/phase4-emit-queries-js.json",
+            "recordSha256": "91fdfd89b4ab13a4e3d4e456d7984c73bb700f93d994b0fae5b903333966ed17",
+            "configurations": 4,
+            "activeConfigurations": 4,
+            "exact": 4,
+            "referenceFailures": 0,
+            "comparedQueries": 164,
+            "retained": true
+        },
+        {
+            "name": "emit-references",
+            "scope": "Referenced import/export/value declarations and expando functions",
+            "sources": [
+                "csharp/src/TypeScript.Compiler/Checking/Checker.EmitReferences.cs"
+            ],
+            "record": "csharp/compatibility/evidence/phase4-emit-references.json",
+            "recordSha256": "1f3fbe15b4ad447c3b2df3730fc93cccf5fb3124880ff786c317b773351341d1",
+            "configurations": 24,
+            "activeConfigurations": 24,
+            "exact": 24,
+            "referenceFailures": 0,
+            "comparedQueries": 528,
+            "retained": true
+        },
+        {
+            "name": "emit-serialization",
+            "scope": "Runtime type-reference serialization kinds",
+            "sources": [
+                "csharp/src/TypeScript.Compiler/Checking/Checker.EmitSerialization.cs"
+            ],
+            "record": "csharp/compatibility/evidence/phase4-emit-serialization.json",
+            "recordSha256": "bb7e55538df7e1d636602c7d63f4f9cfd7cbcda27e048eb3ee7475c4452e6de4",
+            "configurations": 24,
+            "activeConfigurations": 24,
+            "exact": 24,
+            "referenceFailures": 0,
+            "comparedQueries": 600,
+            "retained": true
+        },
+        {
+            "name": "emit-links",
+            "scope": "Alias and linked-reference marking",
+            "sources": [
+                "csharp/src/TypeScript.Compiler/Checking/Checker.EmitLinks.cs"
+            ],
+            "record": "csharp/compatibility/evidence/phase4-emit-links.json",
+            "recordSha256": "1376a82d3e2a090645df883c7e5c1fdd8ae93575726042bcb7cb81045c43800c",
+            "configurations": 48,
+            "activeConfigurations": 48,
+            "exact": 48,
+            "referenceFailures": 0,
+            "comparedQueries": 420,
+            "retained": true
+        },
+        {
+            "name": "emit-jsx",
+            "scope": "JSX factory and fragment entities",
+            "sources": [
+                "csharp/src/TypeScript.Compiler/Checking/Checker.EmitJsx.cs"
+            ],
+            "record": "csharp/compatibility/evidence/phase4-emit-jsx.json",
+            "recordSha256": "2acb30046c112a5a8533ff907ef73159e851c07ae18785cda76a810e62c97767",
+            "configurations": 28,
+            "activeConfigurations": 28,
+            "exact": 28,
+            "referenceFailures": 0,
+            "comparedQueries": 280,
+            "retained": true
+        },
+        {
+            "name": "emit-services",
+            "scope": "Constants, declaration flags, globals and redundant assignments",
+            "sources": [
+                "csharp/src/TypeScript.Compiler/Checking/Checker.EmitConstants.cs"
+            ],
+            "record": "csharp/compatibility/evidence/phase4-emit-services.json",
+            "recordSha256": "2234a35d609e5def55b5b1f4d98ff3c972c77bf68444beef7b385c87c3fded44",
+            "configurations": 20,
+            "activeConfigurations": 20,
+            "exact": 20,
+            "referenceFailures": 0,
+            "comparedQueries": 944,
+            "retained": true
+        },
+        {
+            "name": "emit-syntax",
+            "scope": "Expression, declaration, return, parameter and late-bound-index serialization",
+            "sources": [
+                "csharp/src/TypeScript.Compiler/Checking/Checker.EmitSyntax.cs",
+                "csharp/src/TypeScript.Compiler/Checking/Checker.EmitIndexes.cs"
+            ],
+            "record": "csharp/compatibility/evidence/phase4-emit-syntax.json",
+            "recordSha256": "cf776613a7f59173efdb7a9a708cbc16ac9ec57e2cbd30d88aaacbb5248b0890",
+            "configurations": 44,
+            "activeConfigurations": 44,
+            "exact": 44,
+            "referenceFailures": 0,
+            "comparedQueries": 7096,
+            "retained": true
+        },
+        {
+            "name": "emit-recovery",
+            "scope": "JSDoc and malformed/inferred syntax recovery",
+            "sources": [
+                "csharp/src/TypeScript.Compiler/Checking/Checker.SyntaxRecovery.cs",
+                "csharp/src/TypeScript.Compiler/Checking/Checker.ReturnSyntax.cs"
+            ],
+            "record": "built/csharp/checker-emit-recovery/summary.json",
+            "recordSha256": "d2fc3c00ac245b88cf4067c735144a4054e43c5421008f2a88b035bdd277d81e",
+            "configurations": 56,
+            "activeConfigurations": 56,
+            "exact": 56,
+            "referenceFailures": 0,
+            "comparedQueries": 3672,
+            "retained": false
+        }
+    ],
+    "symbolLocationCorrections": [
+        {
+            "name": "jsdoc:false:1",
+            "record": "built/csharp/checker-symbol-locations/candidate-a4de9a3d34a256f19effafca9965421f63d28b2bc7c82cc5535768b72e146e36.json",
+            "sha256": "c64119e6cb29cac6197373b5bf5b460ee0c314c4a5c85bbf30ddb5efc22f1b2c",
+            "exact": true
+        },
+        {
+            "name": "jsdoc:false:4",
+            "record": "built/csharp/checker-symbol-locations/candidate-86aec42035a7cd2c5d60a5b31f240d879f376e31dcd10eba1801f50a7ba19396.json",
+            "sha256": "c64119e6cb29cac6197373b5bf5b460ee0c314c4a5c85bbf30ddb5efc22f1b2c",
+            "exact": true
+        },
+        {
+            "name": "jsdoc:true:1",
+            "record": "built/csharp/checker-symbol-locations/candidate-e373eff253dfc7c2a12b2461b571d56fbe2d771c80da07bdfc40cf09ad90aba9.json",
+            "sha256": "24ad420de66ebae4b89dda9f1bcbaa41cac1a23b146cb928e789d355cbcb1cf4",
+            "exact": true
+        },
+        {
+            "name": "jsdoc:true:4",
+            "record": "built/csharp/checker-symbol-locations/candidate-2c501e4ce7c266349e351f60983a7820a98c71eb5e21808b022c6981e863939d.json",
+            "sha256": "24ad420de66ebae4b89dda9f1bcbaa41cac1a23b146cb928e789d355cbcb1cf4",
+            "exact": true
+        },
+        {
+            "name": "jsdocReferences:false:1",
+            "record": "built/csharp/checker-symbol-locations/results.json",
+            "sha256": "ec50231168a2b7fb178365ec28758ef99f21c189fe69705d3293e01bef24fc5a",
+            "exact": true
+        },
+        {
+            "name": "jsdocReferences:false:4",
+            "record": "built/csharp/checker-symbol-locations/results.json",
+            "sha256": "ec50231168a2b7fb178365ec28758ef99f21c189fe69705d3293e01bef24fc5a",
+            "exact": true
+        },
+        {
+            "name": "jsdocReferences:true:1",
+            "record": "built/csharp/checker-symbol-locations/results.json",
+            "sha256": "ec50231168a2b7fb178365ec28758ef99f21c189fe69705d3293e01bef24fc5a",
+            "exact": true
+        },
+        {
+            "name": "jsdocReferences:true:4",
+            "record": "built/csharp/checker-symbol-locations/results.json",
+            "sha256": "ec50231168a2b7fb178365ec28758ef99f21c189fe69705d3293e01bef24fc5a",
+            "exact": true
+        }
+    ],
+    "nodeBuilder": {
+        "publicFlagMask": "0x7fffffff",
+        "internalFlagMask": "0x0000000f",
+        "tracking": {
+            "timestamp": "2026-09-27T08:23:05.585Z",
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "managed": true,
+            "concurrency": 1,
+            "cases": 26,
+            "queries": 2436,
+            "differences": [],
+            "oracleSha256": "72c924cf8822c5b2db21a97286b33cecab7f06f3496fb28c56bcc6f40ce1ebce",
+            "candidateSha256": "0be6e4181c9c56ba2846878ebba562803a4d26a5b1eaf14c7b5c650008fdb779",
+            "referenceExecuted": 26,
+            "referenceReused": 0,
+            "candidateExecuted": 26,
+            "candidateReused": 0
+        },
+        "internalFlagsRecord": "phase4-builder-internal-flags-validation.json",
+        "contextFlags": {
+            "single": {
+                "cases": 6,
+                "queries": 336,
+                "exact": 6,
+                "retainedCases": 4,
+                "correctedCases": {
+                    "timestamp": "2026-09-27T06:46:04.720Z",
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "managed": true,
+                    "cases": 2,
+                    "queries": 144,
+                    "differences": [],
+                    "oracleSha256": "72c924cf8822c5b2db21a97286b33cecab7f06f3496fb28c56bcc6f40ce1ebce",
+                    "candidateSha256": "cf4cd2bb22497b67619e3555f20ff51bf50760739b7f214d36575b2cdf9d2483",
+                    "referenceExecuted": 0,
+                    "referenceReused": 2,
+                    "candidateExecuted": 2,
+                    "candidateReused": 0
+                }
+            },
+            "default": {
+                "timestamp": "2026-09-27T07:04:00.772Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "managed": true,
+                "concurrency": 4,
+                "cases": 6,
+                "queries": 336,
+                "differences": [],
+                "oracleSha256": "72c924cf8822c5b2db21a97286b33cecab7f06f3496fb28c56bcc6f40ce1ebce",
+                "candidateSha256": "290f06c160c21a55a11f6d9b640c4fd1dde1de881e16837a1299b4c240460a02",
+                "referenceExecuted": 6,
+                "referenceReused": 0,
+                "candidateExecuted": 6,
+                "candidateReused": 0
+            }
+        }
+    },
+    "activeConfigurations": 1621,
+    "comparedQueries": 1189504,
+    "referenceFailureRecord": "phase4-type-queries-reference-failures.json",
+    "referenceFailuresAcceptedAsPassing": false,
+    "unimplementedSuccessPathsFound": false,
+    "gateComplete": true
+}

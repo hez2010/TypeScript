@@ -252,7 +252,7 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
             {
                 var excess = unknown.Property;
                 if ((source.ObjectFlags & ObjectFlags.JsxAttributes) != 0)
-                    await ReportRelationMessageAsync(node, relationDiagnosticHead ?? headCode ?? 2322, source, target, kind, cancellation);
+                    await ReportJsxExcessAsync(node, source, target, excess, unknown.Target, cancellation);
                 else if (relationDiagnosticHead is null)
                 {
                     var location = (excess.ValueDeclaration as INamedNode)?.Name ?? node;

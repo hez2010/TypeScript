@@ -212,7 +212,15 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
         throw new InvalidOperationException("Checker requires import/tagged-template/decorator/JSX/instanceof call resolution");
     }
 
-    public async ValueTask InvocationErrorAsync(SyntaxNode node, Type type, bool construct, CancellationToken cancellation)
+    public ValueTask InvocationErrorAsync(SyntaxNode node, Type type, bool construct, CancellationToken cancellation)
+        => InvocationErrorWithHeadAsync(node, type, construct, null, cancellation);
+
+    private async ValueTask InvocationErrorWithHeadAsync(
+        SyntaxNode node,
+        Type type,
+        bool construct,
+        int? head,
+        CancellationToken cancellation)
     {
         var awaited = await Awaited.GetAsync(type, cancellation: cancellation);
         bool missingAwait = awaited is not null && (await SignaturesAsync(awaited, construct, cancellation)).Count != 0;
@@ -250,6 +258,23 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
         var related = new List<Diagnostic>();
         if (missingAwait)
             related.Add(CheckerDiagnostic.Create(node, Messages.Did_you_forget_to_use_await));
+        if (!construct && node.Parent is CallExpressionNode { Arguments.Count: 1 } call && call.Expression == node
+            && SemanticSyntax.Source(node) is { } file)
+        {
+            var scanner = new Scanner(file.Source, false);
+            scanner.ResetPosition(file.Source.ToUtf16Position(node.End));
+            while (scanner.Position < file.Source.ToUtf16Position(call.Arguments.Pos))
+            {
+                var token = scanner.Scan();
+                if (token == SyntaxKind.NewLineTrivia || token != SyntaxKind.MultiLineCommentTrivia && scanner.HasPrecedingLineBreak)
+                {
+                    related.Add(CheckerDiagnostic.Create(node, Messages.Are_you_missing_a_semicolon));
+                    break;
+                }
+                if (token is not (SyntaxKind.SingleLineCommentTrivia or SyntaxKind.MultiLineCommentTrivia or SyntaxKind.WhitespaceTrivia))
+                    break;
+            }
+        }
         if (type.Symbol is { } symbol && links.ExportTypes.TryGet(symbol) is { OriginatingImport: { } import, Target: { } target }
             && import is not CallExpressionNode && (await SignaturesAsync(
                 await Values.GetAsync(target, cancellation),
@@ -257,8 +282,10 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
                 cancellation)).Count != 0)
             related.Add(CheckerDiagnostic.Create(import,
                 Messages.Type_originates_at_this_import_A_namespace_style_import_cannot_be_called_or_constructed_and_will_cause_a_failure_at_runtime_Consider_using_a_default_import_or_import_require_here_instead));
-        Error(location, CheckerDiagnostic.Create(location, DiagnosticLocalization.GetMessage(code)) with
-        { MessageChain = [detail], RelatedInformation = related });
+        var diagnostic = CheckerDiagnostic.Create(location, DiagnosticLocalization.GetMessage(code)) with
+        { MessageChain = [detail], RelatedInformation = related };
+        Error(location, head is null ? diagnostic : diagnostic with
+        { Message = DiagnosticLocalization.GetMessage(head.Value), MessageChain = [diagnostic with { RelatedInformation = [] }] });
     }
 
     public async ValueTask<bool> ArgumentRelatedAsync(Type source, Type target, RelationKind relation, SyntaxNode? errorNode,
@@ -294,7 +321,7 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
         if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0 && Checking.CallArguments.TypeNodes(node) is { } types)
         {
             if (types.HasTrailingComma)
-                Error(node, 1009);
+                TrailingCommaError(node, types);
             else if (types.Count == 0)
                 EmptyTypeListError(node, types, 1099);
         }

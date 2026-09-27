@@ -77,7 +77,7 @@ internal sealed partial class Checker : IIndexDeclarationHost
             }
             var parameter = (ParameterDeclarationNode)parameters[0];
             if (parameters.HasTrailingComma)
-                Error(node, 1025);
+                TrailingCommaError(node, parameters, 1025);
             if (parameter.DotDotDotToken is not null)
             {
                 Error(parameter.DotDotDotToken, 1017);

@@ -399,6 +399,13 @@ internal sealed partial class Checker
                 && declaration is ITypedNode { Type: null } and IInitializedNode { Initializer: { } initializer }
                 && await ReuseInitializerTypeSyntaxAsync(value, initializer, state, cancellation) is { } inferred)
                 return inferred;
+            if (value == context.ErrorType && state.Symbols.Enclosing is not null
+                && declaration is PropertyAssignmentNode or ShorthandPropertyAssignmentNode
+                && program.Symbols.Declaration(declaration) is { } property)
+            {
+                state.Tracker.ReportInferenceFallback(declaration);
+                value = await Values.GetAsync(property, cancellation);
+            }
             return await TypeSyntaxAsync(value, state, cancellation);
         }
         finally
@@ -419,10 +426,11 @@ internal sealed partial class Checker
             left = qualified.Left;
         if (left is not IdentifierNode identifier)
             return null;
-        var original = await program.EntityNames.ResolveAsync(identifier, SymbolFlags.Value, true, true, cancellation: cancellation);
+        var original = await program.EntityNames.ResolveAsync(identifier, SymbolFlags.Value | SymbolFlags.ExportValue,
+            true, true, cancellation: cancellation);
         var current = await program.EntityNames.ResolveAsync(
             identifier,
-            SymbolFlags.Value,
+            SymbolFlags.Value | SymbolFlags.ExportValue,
             true,
             true,
             state.Symbols.Enclosing,

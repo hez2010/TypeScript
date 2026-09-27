@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -399,7 +400,11 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
                 if (node.PropertyName is not null)
                     Error(node.Name!, 2566);
                 else if (node.Initializer is not null)
-                    Error(node.Initializer, 1186);
+                {
+                    var (start, end) = CheckerDiagnostic.TokenRange(SemanticSyntax.Source(node)!, node.Name!.End);
+                    Error(node, CheckerDiagnostic.Create(node, Messages.A_rest_element_cannot_have_an_initializer) with
+                    { Start = start, Length = end - start });
+                }
             }
         }
         if (node.PropertyName is PrivateIdentifierNode && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)

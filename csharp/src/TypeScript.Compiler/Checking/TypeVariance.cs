@@ -313,7 +313,8 @@ internal sealed class TypeVariance(
             var varianceExplanation = operation.Explanation;
             operation.RestoreExplanation(previousExplanation);
             if (await structuralFallback().ConfigureAwait(false) != Ternary.False)
-                operation.RestoreExplanation(varianceExplanation);
+                operation.RestoreExplanation(
+                    varianceExplanation is null ? null : varianceExplanation with { SuppressRelatedInformation = true });
         }
         return Ternary.False;
     }

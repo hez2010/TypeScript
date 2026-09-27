@@ -300,7 +300,14 @@ public sealed partial class Parser
         if (Token != K.Identifier && Token is not (>= K.FirstKeyword and <= K.LastKeyword))
         {
             Error(Messages.Type_expected);
-            return Finish(factory.NewTypeReferenceNode(Finish(factory.NewIdentifier(""), Pos, Pos), null), start, start);
+            SyntaxNode missing = Finish(factory.NewIdentifier(""), Pos, Pos);
+            while (Take(K.DotToken))
+            {
+                if (Token == K.LessThanToken)
+                    break;
+                missing = Finish(factory.NewQualifiedName(missing, RightOfDot(false)), start);
+            }
+            return Finish(factory.NewTypeReferenceNode(missing, await TypeArgumentsCore().ConfigureAwait(false)), start);
         }
         SyntaxNode name = EntityName();
         return Finish(factory.NewTypeReferenceNode(name, await TypeArgumentsCore().ConfigureAwait(false)), start);

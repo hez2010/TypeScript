@@ -31,6 +31,7 @@ internal sealed class DocumentationParser(
             || hostKind is K.Parameter or K.TypeParameter or K.FunctionExpression or K.ArrowFunction or K.ParenthesizedExpression
                 or K.VariableDeclaration or K.ExportSpecifier;
         var comments = new List<JSDocNode>();
+        int fullStart = Math.Max(0, start);
         while (true)
         {
             cancellation.ThrowIfCancellationRequested();
@@ -43,7 +44,10 @@ internal sealed class DocumentationParser(
                 && kind == K.MultiLineCommentTrivia
                 && scanner.TokenText.StartsWith("/**", StringComparison.Ordinal)
                 && !scanner.TokenText.StartsWith("/**/", StringComparison.Ordinal))
-                comments.Add(await ParseAsync(scanner.TokenStart, scanner.Position).ConfigureAwait(false));
+            {
+                comments.Add(await ParseAsync(scanner.TokenStart, scanner.Position, fullStart).ConfigureAwait(false));
+                fullStart = scanner.Position;
+            }
             else if (kind is not (K.WhitespaceTrivia or K.NewLineTrivia or K.SingleLineCommentTrivia or K.MultiLineCommentTrivia))
                 break;
         }
@@ -60,7 +64,7 @@ internal sealed class DocumentationParser(
         return node;
     }
 
-    private async ValueTask<JSDocNode> ParseAsync(int start, int end)
+    private async ValueTask<JSDocNode> ParseAsync(int start, int end, int fullStart)
     {
         int contentStart = start + 3, contentEnd = text.AsSpan(start, end - start).EndsWith("*/", StringComparison.Ordinal) ? end - 2 : end;
         var positions = new List<int>();
@@ -112,7 +116,7 @@ internal sealed class DocumentationParser(
                 tag.Flags |= NodeFlags.ThisNodeHasError;
             }
         NodeList? tagList = tags.Count == 0 ? null : new(tags.ToArray(), tags[0].Pos, tags[^1].End);
-        return Finish(factory.NewJSDoc(comment, tagList), start, end);
+        return Finish(factory.NewJSDoc(comment, tagList), fullStart, end);
     }
 
     private int SkipSpace(int pos, int end, bool preserveTrailing = true)
@@ -153,7 +157,7 @@ internal sealed class DocumentationParser(
         }
         Diagnostics.AddRange(scanner.Diagnostics);
         if (pos == start && reportMissing && (Diagnostics.Count == 0 || Diagnostics[^1].Start != pos))
-            Diagnostics.Add(new(Messages.Identifier_expected, pos, 0, []));
+            Diagnostics.Add(new(Messages.Identifier_expected, scanner.TokenStart, scanner.Position - scanner.TokenStart, []));
         var node = Finish(factory.NewIdentifier(value), start, pos);
         if (pos == start && reportMissing)
             node.Flags |= NodeFlags.ThisNodeHasError;
@@ -329,7 +333,9 @@ internal sealed class DocumentationParser(
             pos,
             end,
             preserveLineIndentation: type is not null && (type.Flags & NodeFlags.ThisNodeHasError) != 0,
-            baseIndent: commentIndent);
+            baseIndent: commentIndent,
+            rangeStart: tag is "param" or "arg" or "argument" or "property" or "prop" && (type is null || !nameFirst)
+                ? SkipSpace(pos, end, false) : null);
         if (tag == "typedef" && comment is null)
             nodeEnd = name?.End ?? type?.End ?? tagName.End;
         SyntaxNode result = tag switch
@@ -427,9 +433,10 @@ internal sealed class DocumentationParser(
                             Diagnostics.Add(
                                 new(
                                     Messages.A_JSDoc_typedef_comment_may_not_contain_multiple_type_tags,
-                                    typed.Pos,
-                                    typed.End - typed.Pos,
-                                    []));
+                                    typed.TypeExpression!.End,
+                                    1,
+                                    [])
+                                { RelatedInformation = [new(Messages.The_tag_was_first_specified_here, 0, 0, [])] });
                     }
                     else
                         children.Add(child);
@@ -567,7 +574,8 @@ internal sealed class DocumentationParser(
         return pos - start;
     }
 
-    private NodeList? Comments(int start, int end, bool fullComment = false, bool preserveLineIndentation = false, int? baseIndent = null)
+    private NodeList? Comments(int start, int end, bool fullComment = false, bool preserveLineIndentation = false, int? baseIndent = null,
+        int? rangeStart = null)
     {
         int untrimmedStart = start;
         start = SkipSpace(start, end, false);
@@ -640,7 +648,7 @@ internal sealed class DocumentationParser(
         }
         if (fullComment && nodes.Count != 0 && nodes[^1].Kind is K.JSDocLink or K.JSDocLinkCode or K.JSDocLinkPlain)
             AddText(end, end, true);
-        return nodes.Count == 0 ? null : new(nodes.ToArray(), start, end);
+        return nodes.Count == 0 ? null : new(nodes.ToArray(), rangeStart ?? (fullComment ? untrimmedStart - 3 : untrimmedStart), rawEnd);
         void AddText(int from, int to, bool force = false)
         {
             if (from == to && !force)
@@ -687,7 +695,8 @@ internal sealed class DocumentationParser(
                 value = value.TrimEnd();
             if (value.Length == 0 && !force)
                 return;
-            nodes.Add(Finish(factory.NewJSDocText([value]), from, to));
+            int nodeStart = nodes.Count == 0 ? rangeStart ?? (fullComment ? untrimmedStart - 3 : untrimmedStart) : from;
+            nodes.Add(Finish(factory.NewJSDocText([value]), nodeStart, to == end ? rawEnd : to));
         }
     }
 }

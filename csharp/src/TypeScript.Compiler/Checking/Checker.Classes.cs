@@ -314,7 +314,7 @@ internal sealed partial class Checker
         if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
         {
             if (node.TypeParameters is not null)
-                Error(node, 1092);
+                ListError(node, node.TypeParameters, 1092);
             if (node.Type is not null)
                 Error(node.Type, 1093);
         }

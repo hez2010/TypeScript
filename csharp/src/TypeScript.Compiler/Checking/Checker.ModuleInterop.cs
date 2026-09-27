@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -133,8 +134,23 @@ internal sealed partial class Checker
             if (node is ImportClauseNode clause)
             {
                 bool named = module.Exports.ContainsKey(clause.Name!.Text);
-                Error(clause.Name!, named ? 2613 : 1192,
+                var diagnostic = CheckerDiagnostic.Create(clause.Name!, DiagnosticLocalization.GetMessage(named ? 2613 : 1192),
                     named ? [TypeDisplay.SymbolName(module), clause.Name.Text] : [TypeDisplay.SymbolName(module)]);
+                if (!named && module.Exports.TryGetValue(Symbol.InternalPrefix + "export", out var stars))
+                    foreach (var export in stars.Declarations.OfType<ExportDeclarationNode>())
+                        if (export.ModuleSpecifier is not null
+                            && await program.ExportStarModuleAsync(export, cancellation) is { } exported
+                            && exported.Exports.ContainsKey("default"))
+                        {
+                            diagnostic = diagnostic with
+                            {
+                                RelatedInformation = [CheckerDiagnostic.Create(
+                                export,
+                                Messages.X_export_Asterisk_does_not_re_export_a_default)]
+                            };
+                            break;
+                        }
+                Error(clause.Name!, diagnostic);
             }
             else
                 await program.MissingModuleMemberAsync(

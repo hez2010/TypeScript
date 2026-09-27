@@ -52,6 +52,7 @@ internal sealed class ConditionalRelations(TypeContext context, TypeInstantiatio
     internal async ValueTask<Ternary> SourceAsync(RelationOperation operation, ConditionalType source, Type target,
         CancellationToken cancellation = default)
     {
+        var previousExplanation = operation.Explanation;
         cancellation.ThrowIfCancellationRequested();
         context.RequireOwned(source);
         context.RequireOwned(target);
@@ -102,7 +103,7 @@ internal sealed class ConditionalRelations(TypeContext context, TypeInstantiatio
             }
         }
         var defaultConstraint = await constraints.DefaultConditionalConstraintAsync(source, cancellation).ConfigureAwait(false);
-        var constrained = await operation.CompareAsync(
+        var constrained = await operation.CompareContinuingAsync(
             defaultConstraint,
             target,
             RecursionFlags.Source,
@@ -111,11 +112,14 @@ internal sealed class ConditionalRelations(TypeContext context, TypeInstantiatio
             return constrained;
         if (target is not ConditionalType && await constraints.HasNonCircularConstraintAsync(source, cancellation).ConfigureAwait(false)
             && await constraints.DistributiveConstraintAsync(source, cancellation).ConfigureAwait(false) is { } distributed)
+        {
+            operation.RestoreExplanation(previousExplanation);
             return await operation.CompareAsync(
                 distributed,
                 target,
                 RecursionFlags.Source,
                 cancellation: cancellation).ConfigureAwait(false);
+        }
         return Ternary.False;
     }
 

@@ -63,6 +63,8 @@ internal sealed class TypeDisplay(TypeContext context, CheckerLinks links, bool 
     internal string SymbolName(Symbol symbol)
     {
         var name = SemanticSyntax.Name(symbol.ValueDeclaration ?? symbol.Declarations.FirstOrDefault());
+        if (name is IdentifierNode && CheckerDiagnostic.DeclarationName(name) is { } written && written.Contains('\\'))
+            return written;
         if (name is StringLiteralNode or NumericLiteralNode && SemanticSyntax.Source(name) is { } file)
         {
             var (start, _) = CheckerDiagnostic.TokenRange(file, name.Pos);

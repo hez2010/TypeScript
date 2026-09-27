@@ -256,7 +256,7 @@ internal sealed partial class Checker
             return;
         if (declarations.Count > 1)
         {
-            Error(declarations[1], forOf ? 1188 : 1091);
+            ErrorOnFirstToken(declarations[1], forOf ? 1188 : 1091);
             return;
         }
         var variable = (VariableDeclarationNode)declarations[0];

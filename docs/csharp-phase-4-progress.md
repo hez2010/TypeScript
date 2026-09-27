@@ -1,30 +1,31 @@
-# Phase 4: checker port in progress
+# Phase 4: complete semantic checker
 
-**Phase 4 is incomplete.** Production checker creation, internal queries and source-file semantic traversal use the implemented type system, scope, instantiation, inference, flow and expression services. This does not satisfy the complete semantic-checker gate in the [rewrite plan](csharp-rewrite-plan.md). Semantic coverage, exact diagnostic formatting and complete query/emit APIs still have gaps.
+**Phase 4 is complete.** The normal Release build passes the active semantic corpus and the checker/query/emit-resolver gates. The final Windows x64 NativeAOT publish succeeds with no warnings or errors; the native binary was not executed.
 
-## Current overall status
+## Completion status
 
-The Release corpus with actual parallel checker scheduling records **13,446 matches out of 13,446 active compiler configurations**, up from 13,416 before the semantic services batch and 9,365 at the original baseline. Both concurrency modes cover the full corpus, with unchanged earlier results retained and affected configurations replayed. **All 13,446 configurations now finish execution and match source graphs.** **No active configuration has a diagnostic-code difference.** One exported input was corrected to reproduce the reference harness's duplicate-filename overwrite order; the reference's expected graph and diagnostics were unchanged.
-
-These comparisons cover source graphs and diagnostic codes. **100% matching on this measure closes the graph/code gate; it is not a Phase-4 completion percentage.** The remaining gates are:
-
-| Completion requirement | Current status |
+| Requirement | Result |
 | --- | --- |
-| Execute active corpus and match source graphs | Complete: 13,446 configurations |
-| Match semantic diagnostic codes | Complete: 13,446 match in each mode; zero differences |
-| Match diagnostic text, locations and related information | Incomplete: both modes have detailed records for all 13,446 configurations; 13,288 match exactly, including 6,710 with nonempty semantic diagnostics; 158 differ. Retained single/default results agree for every configuration |
-| Complete type/symbol comparisons, type display, node builders, accessibility and emit-resolver APIs | Incomplete; diagnostic type/signature/predicate rendering now shares the node builder. Query families, visibility, accessibility and symbol-format flags have fixture comparisons; formatting flag/scope APIs have exact comparisons; symbol/error tracking and serialized-node caches now have callback/output comparisons; internal serialization flags have cross-scope comparisons; remaining resolver and flag coverage is open |
-| Validate actual parallel checker scheduling | Implemented and validated: actual default four-checker scheduling, explicit overrides, exclusive leases and full default corpus execution; semantic differences remain in the row above |
-| Meet complete semantic workload memory/performance budgets | Incomplete |
-| Verify warning-free NativeAOT publishing | Deferred until final completion; no native execution |
+| Program graphs and semantic/global diagnostic codes | 13,446 of 13,446 active configurations match in each concurrency mode |
+| Complete diagnostic records | 13,446 exact matches per mode, including 6,863 with nonempty semantic diagnostics; zero differences between modes |
+| Checker queries, type/symbol display, node builders, accessibility and emit resolvers | 1,621 active fixture configurations and 1,189,504 comparisons pass; ordered builder callbacks, all public/internal flag bits and cross-scope contexts also have differential coverage |
+| Actual parallel scheduling | Single-checker and reference-default four-checker corpus results agree; retained ownership, cancellation and lease checks pass |
+| Complete semantic workload budgets | All six workload/mode combinations pass the limits declared in [the workload manifest](../csharp/compatibility/phase4-workloads.json) before measurement |
+| NativeAOT | Windows x64 publish: zero warnings and errors; build verification only |
 
-The remaining API and workload gates are not yet verified, so these corpus totals do not establish a completion estimate. Completed results are retained: each implementation checkpoint replays affected inputs against cached oracle results. A failed check is repeated after a relevant fix; unchanged checks are reused.
+The API gate retains four configurations that crash in the pinned Go query API as recorded reference failures; they are not counted as passing. The semantic corpus retains the reference runner's 1,762 skips, with no new exclusions. Phase 5 still owns transformations and actual JavaScript/declaration emission; phase 7 owns complete project/LSP/API host integration.
 
-**Current implementation focus:** close the remaining 158 detailed diagnostic differences, audit remaining query/emit API coverage, and measure complete semantic workloads. The latest batch closes all 30 remaining diagnostic-code differences and 93 detailed differences across 5,970 distinct affected configurations in each mode, with zero retained regressions. Both modes have complete measurements and identical retained diagnostic records. NativeAOT publishing remains deferred until all other gates pass.
+The corpus oracle now captures the runner's original pre-emit semantic diagnostics. A trace established that emission changed three diagnostic records through checker-cache side effects. A complete reference refresh reproduced every old post-emit diagnostic and source graph exactly. Both snapshots are retained. Content-mapper exports now use original foreign text, preserving the harness's input/auxiliary-file overwrite order and avoiding a second transformation of already-mapped input. These corrections change neither expected source graphs nor the reference implementation.
 
-The next implementation priorities are missing diagnostic arguments and relation chains, remaining declaration/expression checks, and the unfinished checker APIs. The sections below are historical implementation checkpoints; their individual passing counts do not represent whole-phase completion.
+The final batch fixes diagnostic arguments, ranges, chains and related notes; recursive type display and reverse-mapped property ordering; interface comparison/cache order; JSX/JSDoc recovery and original documentation-node spans. The final API audit closes the eight previously failing documentation-symbol records. 6,588 distinct affected configurations were replayed per corpus mode across the batch; unchanged results were retained.
 
-**Validation policy, updated 2026-09-24.** At the user's request, all further execution and validation use the normal Release build. NativeAOT publishing is deferred until the final completion check, when it must finish without warnings or errors. NativeAOT binaries are no longer executed for validation. Earlier NativeAOT results below remain historical evidence.
+Release workload p95 is at most **342.7 ms**, peak process RSS at most **148.4 MiB**, and released-heap growth remains below 11 KiB across repeated requests. CoreCLR median latency is **4.8–8.6 times Go** on these inputs. The provisional Phase-4 operability limits pass; the stricter replacement-performance gates and a NativeAOT performance claim remain Phase 8 work. Raw paired samples and runtime settings are retained. An earlier measurement set is retained separately because its reference contained diagnostic tracing; only the final uninstrumented reference run is used here.
+
+Evidence: [full semantic rollup](../csharp/compatibility/evidence/phase4-final-semantics.json), [API audit](../csharp/compatibility/evidence/phase4-final-api-audit.json), [workloads](../csharp/compatibility/evidence/phase4-workloads.json), [raw samples](../csharp/compatibility/evidence/phase4-workload-samples.jsonl), [input corrections](../csharp/compatibility/evidence/phase4-preemit-mapper-input-correction.json), and [final validation](../csharp/compatibility/evidence/phase4-final-validation.json).
+
+Validation follows the user's policy: runtime execution uses the normal Release build, unchanged results are reused, and NativeAOT is published only at final completion and is never executed. Formatting was proven to preserve tokens, comments and syntax for 61 C# files under both library configurations, so runtime checks were not repeated for formatting.
+
+The sections below preserve historical checkpoints, including failures that were subsequently corrected. Their old incomplete statuses describe those checkpoints.
 
 ## Implemented checkpoint
 

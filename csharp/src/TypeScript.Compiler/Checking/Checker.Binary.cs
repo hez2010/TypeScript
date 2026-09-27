@@ -29,7 +29,7 @@ internal sealed partial class Checker : IBinaryExpressionHost, IAwaitedTypeHost
             if (reportErrors)
             {
                 Diagnostics.Add(2318);
-                TrackDiagnostic(null, 2318);
+                TrackDiagnostic(null, 2318, "Awaited");
             }
             return awaitedSymbols[reportErrors] = null;
         }
@@ -46,7 +46,17 @@ internal sealed partial class Checker : IBinaryExpressionHost, IAwaitedTypeHost
     public ValueTask<Type> AliasInstantiationAsync(Symbol symbol, Type argument, CancellationToken cancellation)
             => References.AliasInstantiationAsync(symbol, [argument], cancellation: cancellation);
 
-    public void AwaitedError(SyntaxNode node, int code, Type type, Type? thisType = null) => Error(node, code);
+    public async ValueTask AwaitedErrorAsync(SyntaxNode node, int code, Type type, Type? thisType, CancellationToken cancellation)
+    {
+        var diagnostic = CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code));
+        if (thisType is not null)
+        {
+            var detail = CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(2684),
+                await TypeDisplay.GetAsync(type, cancellation), await TypeDisplay.GetAsync(thisType, cancellation));
+            diagnostic = code == 2684 ? detail : diagnostic with { MessageChain = [detail] };
+        }
+        Error(node, diagnostic);
+    }
 
     public ValueTask<Type?> AwaitedAsync(Type type, bool promiseOnly, CancellationToken cancellation)
             =>
@@ -61,7 +71,7 @@ internal sealed partial class Checker : IBinaryExpressionHost, IAwaitedTypeHost
             return;
         bool comparison = op is SyntaxKind.EqualsEqualsToken or SyntaxKind.EqualsEqualsEqualsToken
             or SyntaxKind.ExclamationEqualsToken or SyntaxKind.ExclamationEqualsEqualsToken;
-        string leftText = await TypeDisplay.GetAsync(left, cancellation), rightText = await TypeDisplay.GetAsync(right, cancellation);
+        var (leftText, rightText) = await RelationTypeNamesAsync(left, right, cancellation);
         var diagnostic = CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(comparison ? 2367 : 2365),
             comparison ? [leftText, rightText] : [TokenFacts.Text(op), leftText, rightText]);
         if (suggestAwait)
@@ -83,8 +93,8 @@ internal sealed partial class Checker : IBinaryExpressionHost, IAwaitedTypeHost
         {
             string[] arguments = code switch
             {
-                2447 => [TokenFacts.Text(node.Kind)!, node.Kind == SyntaxKind.BarToken ? "||"
-                    : node.Kind == SyntaxKind.AmpersandToken ? "&&" : "!=="],
+                2447 => [TokenFacts.Text(node.Kind)!, node.Kind is SyntaxKind.BarToken or SyntaxKind.BarEqualsToken ? "||"
+                    : node.Kind is SyntaxKind.AmpersandToken or SyntaxKind.AmpersandEqualsToken ? "&&" : "!=="],
                 2839 or 2845 when node is BinaryExpressionNode equality =>
                     [equality.OperatorToken!.Kind is SyntaxKind.EqualsEqualsToken or SyntaxKind.EqualsEqualsEqualsToken
                         ? "false"

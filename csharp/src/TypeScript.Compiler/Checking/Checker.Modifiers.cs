@@ -187,7 +187,7 @@ internal sealed partial class Checker
             return Report(modifiers.First(m => m.Kind == SyntaxKind.AsyncKeyword), 1042);
         if (node is MethodDeclarationNode { Parent: ObjectLiteralExpressionNode }
             && (modifiers.Count != 1 || first.Kind != SyntaxKind.AsyncKeyword))
-            return Report(node, 1184);
+            return Report(first, 1184);
         return false;
 
         string Seen(params SyntaxKind[] kinds) => TokenFacts.Text(kinds.First(seen.Contains));

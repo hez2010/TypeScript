@@ -154,7 +154,7 @@ internal sealed partial class Checker
             | NodeBuilderFlags.WriteTypeArgumentsOfSignature | NodeBuilderFlags.WriteCallStyleSignature
             | NodeBuilderFlags.OmitParameterModifiers | NodeBuilderFlags.WriteClassExpressionAsTypeLiteral
             | NodeBuilderFlags.UseInstantiationExpressions | NodeBuilderFlags.MultilineObjectLiterals
-            | NodeBuilderFlags.WriteTypeParametersInQualifiedName;
+            | NodeBuilderFlags.WriteTypeParametersInQualifiedName | NodeBuilderFlags.InObjectTypeLiteral | NodeBuilderFlags.InInitialEntityName;
         if ((flags & ~supported) != 0)
             throw new NotSupportedException("The requested node-builder options are not implemented");
         context.RequireOwned(type);
@@ -337,7 +337,8 @@ internal sealed partial class Checker
                 && await NamedFunctionSyntaxAsync(objectSymbol, state, cancellation) is { } functionNode)
                 return functionNode;
         }
-        if (!state.Active.Add(type))
+        bool trackRecursion = type is not UnionType;
+        if (trackRecursion && !state.Active.Add(type))
             return await RecursiveTypeSyntaxAsync(type, state, cancellation);
         var activeType = type;
         try
@@ -475,11 +476,11 @@ internal sealed partial class Checker
                     }
                     if (extends is ConditionalTypeNode)
                         extends = f.NewParenthesizedTypeNode(extends);
-                    var whenTrue = await TypeSyntaxAsync(
+                    var whenTrue = await ConditionalBranchSyntaxAsync(
                         await Instantiation.Constraints.ConditionalTrueAsync(conditional, cancellation: cancellation),
                         state,
                         cancellation);
-                    var whenFalse = await TypeSyntaxAsync(
+                    var whenFalse = await ConditionalBranchSyntaxAsync(
                         await Instantiation.Constraints.ConditionalFalseAsync(conditional, cancellation),
                         state,
                         cancellation);
@@ -500,7 +501,24 @@ internal sealed partial class Checker
         }
         finally
         {
-            state.Active.Remove(activeType);
+            if (trackRecursion)
+                state.Active.Remove(activeType);
+        }
+    }
+
+    private async ValueTask<SyntaxNode> ConditionalBranchSyntaxAsync(Type type, TypeSyntaxContext state, CancellationToken cancellation)
+    {
+        if (type is not UnionType)
+            return await TypeSyntaxAsync(type, state, cancellation);
+        if (!state.Active.Add(type))
+            return await RecursiveTypeSyntaxAsync(type, state, cancellation);
+        try
+        {
+            return await TypeSyntaxAsync(type, state, cancellation);
+        }
+        finally
+        {
+            state.Active.Remove(type);
         }
     }
 
@@ -691,7 +709,7 @@ internal sealed partial class Checker
         {
             var source = await Instantiation.Engine.InstantiateAsync(await Nodes.FromNodeAsync(node, cancellation), state.Mapper,
                 cancellation: cancellation);
-            return await TypeSyntaxAsync(
+            return await ConditionalBranchSyntaxAsync(
                 (await Instantiation.Engine.InstantiateAsync(source, mapper, cancellation: cancellation))!,
                 state,
                 cancellation);
@@ -860,9 +878,7 @@ internal sealed partial class Checker
             else
                 propertyName = f.NewStringLiteral(name, singleQuote ? TokenFlags.SingleQuote : TokenFlags.None);
             state.Length.Add(Symbol.EscapeName(property.Name), 1);
-            bool readOnly = (property.CheckFlags & Binding.CheckFlags.Readonly) != 0
-                || property.Declarations.Any(d => SemanticSyntax.HasModifier(d, K.ReadonlyKeyword))
-                || (property.Flags & SymbolFlags.GetAccessor) != 0 && (property.Flags & SymbolFlags.SetAccessor) == 0;
+            bool readOnly = IsReadonly(property);
             if ((property.Flags & SymbolFlags.Accessor) != 0)
             {
                 var write = await Values.WriteAsync(property, cancellation);

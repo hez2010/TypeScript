@@ -55,7 +55,7 @@ public sealed record MappedSourceFile(SourceFileNode Syntax, SourceText Original
             if (!used[i] && directive.Expect)
                 result.Add(
                     new(
-                    new(directive.UnusedCode, DiagnosticCategory.Error, directive.Source + directive.UnusedCode, directive.UnusedMessage),
+                    new(directive.UnusedCode, DiagnosticCategory.Error, "", directive.UnusedMessage),
                     directive.OriginalStart, directive.OriginalEnd - directive.OriginalStart, [])
                     { FileName = Syntax.FileName, Source = directive.Source });
         }

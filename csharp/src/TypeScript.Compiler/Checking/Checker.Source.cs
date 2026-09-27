@@ -589,12 +589,13 @@ internal sealed partial class Checker
         }
         if (SemanticSyntax.HasModifier(function, SyntaxKind.AsyncKeyword))
             value = await Awaited.GetAsync(value, false, node, 1058, cancellation).ConfigureAwait(false) ?? context.ErrorType;
+        var effectiveExpression = expression is null ? null : CallResolution.EffectiveNode(expression);
         await RelationDiagnostics.CheckAsync(
             value,
             target,
             RelationKind.Assignable,
-            node is ReturnStatementNode && !conditional ? node : expression,
-            expression, cancellation: cancellation).ConfigureAwait(false);
+            node is ReturnStatementNode && !conditional ? node : effectiveExpression,
+            effectiveExpression, cancellation: cancellation).ConfigureAwait(false);
     }
 
     private async ValueTask<bool> EmptyReturnTypeAsync(SyntaxNode function, Type type, CancellationToken cancellation) =>

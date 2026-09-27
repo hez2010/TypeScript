@@ -12,6 +12,28 @@ internal sealed partial class Checker
     private List<(SyntaxNode Node, Diagnostic Diagnostic)>? relationDiagnosticOutput;
     private readonly HashSet<Diagnostic> reportedRelationDiagnostics = new(DiagnosticEqualityComparer.Instance);
 
+    private async ValueTask ReportJsxExcessAsync(SyntaxNode node, Type source, Type target, Symbol property, Type errorTarget,
+        CancellationToken cancellation)
+    {
+        var location = property.ValueDeclaration is JsxAttributeNode attribute
+            && SemanticSyntax.Source(attribute) == SemanticSyntax.Source(node) ? attribute.Name! : node;
+        string name = TypeDisplay.SymbolName(property), targetText = await TypeDisplay.GetAsync(errorTarget, cancellation);
+        var properties = await Properties.GetAsync(errorTarget, cancellation);
+        string? jsxName = name == "class" ? "className" : name == "for" ? "htmlFor" : null;
+        var suggestion = (jsxName is null ? null : properties.FirstOrDefault(p => p.Name == jsxName))
+            ?? await SymbolSuggestions.FindAsync(name, properties, SymbolFlags.Value, cancellation);
+        var detail = CheckerDiagnostic.Create(location, DiagnosticLocalization.GetMessage(suggestion is null ? 2339 : 2551),
+            suggestion is null ? [name, targetText] : [name, targetText, TypeDisplay.SymbolName(suggestion)]);
+        var (errorSource, errorDestination) = await RelationErrorTypesAsync(source, target, cancellation);
+        var (sourceText, destinationText) = await RelationTypeNamesAsync(errorSource, errorDestination, cancellation);
+        var diagnostic = CheckerDiagnostic.Create(location, Messages.Type_0_is_not_assignable_to_type_1, sourceText, destinationText)
+            with
+        { MessageChain = [detail] };
+        if (relationDiagnosticHead is { } head)
+            diagnostic = diagnostic with { Message = DiagnosticLocalization.GetMessage(head), Arguments = [], MessageChain = [diagnostic] };
+        RelationError(location, diagnostic);
+    }
+
     private void RelationError(SyntaxNode node, int code, params string[] arguments)
         => RelationError(node, CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), arguments));
 
@@ -115,7 +137,7 @@ internal sealed partial class Checker
         try
         {
             await CallResolution.ApplicableAsync(state.Node, state.Arguments, last, RelationKind.Assignable, 0,
-                true, state.Node is BinaryExpressionNode ? 2860 : 2345, cancellation);
+                true, 2345, cancellation);
         }
         finally
         {
@@ -152,6 +174,9 @@ internal sealed partial class Checker
             }
             if (implementationNote is not null)
                 diagnostic = diagnostic with { RelatedInformation = [.. diagnostic.RelatedInformation, implementationNote] };
+            if (state.Node is BinaryExpressionNode)
+                diagnostic = diagnostic with
+                { Message = DiagnosticLocalization.GetMessage(2860), Arguments = [], MessageChain = [diagnostic] };
             Error(node, diagnostic);
         }
     }

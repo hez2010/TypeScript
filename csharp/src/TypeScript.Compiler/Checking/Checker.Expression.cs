@@ -20,6 +20,16 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
 
     public void ExpressionError(SyntaxNode node, int code)
     {
+        if (code == 1005 && node is IdentifierNode { Text: "defer", Parent: MetaPropertyNode { KeywordToken: SyntaxKind.ImportKeyword } })
+        {
+            Error(node, CheckerDiagnostic.Create(node, Messages.X_0_expected, "(") with { Start = node.End, Length = 0 });
+            return;
+        }
+        if (code == 1013 && node is ParameterDeclarationNode && node.Parent is IFunctionSignature { Parameters: { } trailingParameters })
+        {
+            TrailingCommaError(node, trailingParameters, code);
+            return;
+        }
         if (code == 1346 && node.Parent is { } function && SemanticSyntax.Body(function) is BlockNode body)
         {
             var directive = body.Statements!.OfType<ExpressionStatementNode>().First(n =>
@@ -52,12 +62,12 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
             { Start = start, Length = assertion.Expression!.Pos - start });
             return;
         }
-        if (code == 1308 && SemanticSyntax.Source(node) is { } file)
+        if (code is 1308 or 2852 && SemanticSyntax.Source(node) is { } file)
         {
             var (start, end) = CheckerDiagnostic.TokenRange(file, node.Pos);
             var diagnostic = CheckerDiagnostic.Create(
                 node,
-                Messages.X_await_expressions_are_only_allowed_within_async_functions_and_at_the_top_levels_of_modules)
+                DiagnosticLocalization.GetMessage(code))
                 with
             { Start = start, Length = end - start };
             var container = DeclarationOrder.Ancestor(node.Parent, n => n is IFunctionSignature);
@@ -79,7 +89,6 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
             2716 => [SyntaxNameText.Get(((TypeParameterDeclarationNode)node.Parent!).Name!)],
             2368 => [CheckerDiagnostic.DeclarationName(node)],
             2469 when node.Parent is PrefixUnaryExpressionNode unary => [TokenFacts.Text(unary.Operator)!],
-            2736 => ["+", "bigint"],
             17013 => ["new.target"],
             18061 => [CheckerDiagnostic.DeclarationName(node is MetaPropertyNode meta ? meta.Name! : node)],
             5076 when node is BinaryExpressionNode { OperatorToken.Kind: SyntaxKind.QuestionQuestionToken }
@@ -100,8 +109,11 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
 
     public async ValueTask TypeExpressionErrorAsync(SyntaxNode node, int code, Type type, CancellationToken cancellation)
     {
+        if (code == 2736)
+            type = await Widening.LiteralBaseAsync(type, cancellation);
         string display = await TypeDisplay.GetAsync(type, cancellation);
-        Error(node, code, code == 2353 ? [CheckerDiagnostic.DeclarationName(node), display] : [display]);
+        Error(node, code, code == 2353 ? [CheckerDiagnostic.DeclarationName(node), display]
+            : code == 2736 ? ["+", display] : [display]);
     }
 
     public void DeferExpression(SyntaxNode node)

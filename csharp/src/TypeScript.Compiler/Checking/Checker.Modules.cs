@@ -270,7 +270,8 @@ internal sealed partial class Checker
                     if (DefaultOnlyModule(module, node.ModuleSpecifier!)
                         && imports.Elements?.Any(
                             e => (e as ImportSpecifierNode)?.PropertyName is not IdentifierNode { Text: "default" }) == true)
-                        Error(imports, 1544);
+                        ListError(imports, imports.Elements!, 1544,
+                            ModuleKind switch { 100 => "Node16", 101 => "Node18", 102 => "Node20", _ => "NodeNext" });
                     foreach (var binding in imports.Elements!)
                         await CheckAliasSourceAsync(binding, cancellation).ConfigureAwait(false);
                 }
@@ -582,7 +583,15 @@ internal sealed partial class Checker
                             && (typeOnly is null || otherFile))
                             Error(identifier, node.IsExportEquals ? 1291 : 1292, identifier.Text, IsolatedModuleOptionName);
                         else if (otherFile)
-                            Error(identifier, node.IsExportEquals ? 1289 : 1290, identifier.Text, IsolatedModuleOptionName);
+                            Error(identifier, CheckerDiagnostic.Create(identifier,
+                                DiagnosticLocalization.GetMessage(node.IsExportEquals ? 1289 : 1290),
+                                identifier.Text,
+                                IsolatedModuleOptionName) with
+                            {
+                                RelatedInformation = [CheckerDiagnostic.Create(typeOnly,
+                                typeOnly is ExportSpecifierNode or ExportDeclarationNode ? Messages.X_0_was_exported_here
+                                    : Messages.X_0_was_imported_here, identifier.Text)]
+                            });
                     }
                 }
             }

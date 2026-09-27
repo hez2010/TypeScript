@@ -243,7 +243,17 @@ internal sealed partial class CheckerEnvironment
     }
 
     public void TypeOnlyImportAlias(ImportEqualsDeclarationNode declaration, SyntaxNode typeOnlyDeclaration, bool exported)
-        => AddDiagnostic(declaration, exported ? 1379 : 1380);
+    {
+        int code = exported ? 1379 : 1380;
+        var node = declaration.ModuleReference!;
+        var name = SemanticSyntax.Name(typeOnlyDeclaration) ?? declaration.Name!;
+        Diagnostics.Add(code);
+        DiagnosticFiles.Add((node, CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code)) with
+        {
+            RelatedInformation = [CheckerDiagnostic.Create(typeOnlyDeclaration,
+            exported ? Messages.X_0_was_exported_here : Messages.X_0_was_imported_here, SyntaxNameText.Get(name))]
+        }));
+    }
 
     public bool UsesRequireModuleExports => Symbols.Program.Configuration.Options.String("module") is "node20" or "nodenext";
 

@@ -17,6 +17,7 @@ import {
     sha256,
 } from "./common.mjs";
 import { sameDiagnostics } from "./compare-checker-diagnostics.mjs";
+import { prepareCheckerCorpusOracle } from "./prepare-checker-corpus-oracle.mjs";
 
 const option = (key, fallback) => process.argv.includes(key) ? process.argv[process.argv.indexOf(key) + 1] : fallback;
 const tag = option("--tag", "current");
@@ -70,6 +71,7 @@ const mode = option("--mode", "both");
 if (!["single", "default", "both"].includes(mode)) throw Error("Invalid corpus mode");
 const modes = mode === "both" ? ["single", "default"] : [mode];
 if (!process.argv.includes("--no-build")) {
+    await prepareCheckerCorpusOracle(source);
     await copyFile(path.join(root, "csharp/oracle/semantic-corpus/bridge_test.go"), path.join(source, "internal/testrunner/csharp_semantic_corpus_test.go"));
     await run(go, ["-C", source, "test", "-c", "-o", oracle, "./internal/testrunner"], { env: { ...process.env, GOWORK: "off", GOTOOLCHAIN: "local" } });
     await run(

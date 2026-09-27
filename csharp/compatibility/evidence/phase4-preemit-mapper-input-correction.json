@@ -1,0 +1,428 @@
+{
+    "timestamp": "2026-09-27T08:18:26.876Z",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "oracleSha256": "40f82bc520b7ea321c786d9f8e4da2f29c181097b491ef89478a2c32edf11230",
+    "reason": "The Go runner replaces content-mapped TestFile.Content with transformed text for diagnostic baselines. Export OriginalText so the candidate mapper receives the original foreign input exactly once.",
+    "corrections": [
+        {
+            "mode": "single",
+            "name": "compiler/contentMapperAliasDiagnostic.ts",
+            "changes": [
+                {
+                    "file": "/expression.lisp",
+                    "before": "11aea54913554e8e85ca9e97de82bea8df17add4549b9cfc8df93c73e4e1e6bf",
+                    "after": "c6af91f2db27cfce5b88db1ec0079642748e56f1604803381c3d4d740de81d60"
+                }
+            ],
+            "expectedOutputsUnchanged": true
+        },
+        {
+            "mode": "single",
+            "name": "compiler/contentMapperSupplementalDiagnostics.ts",
+            "changes": [
+                {
+                    "file": "/component.astro",
+                    "before": "2e29cd9a98755c46896f7a2d56524db2d6d96b248e36db46de14c30bf47c8d05",
+                    "after": "f4559a5d54602af2a69720eae340f2f03668cc2f72b204248c6dec5560f67f49"
+                }
+            ],
+            "expectedOutputsUnchanged": true
+        },
+        {
+            "mode": "single",
+            "name": "compiler/contentMapperSymlink.ts",
+            "changes": [
+                {
+                    "file": "/app.box",
+                    "before": "5c1a38f17c0486ec25ea715caf1f2c4f305778d2dc4c0fdbcc650b18124c316c",
+                    "after": "f413fc2e568dc4c15ddca5bb52bb62fb743d672929513bdbfb89549faec673af"
+                }
+            ],
+            "expectedOutputsUnchanged": true
+        },
+        {
+            "mode": "single",
+            "name": "compiler/contentMapperTransform.ts",
+            "changes": [
+                {
+                    "file": "/app.box",
+                    "before": "3bb6b108f0e488ca1d4351f7faba116ac79bb9ff982a228eff6e67a12529df69",
+                    "after": "bce5223b6eb9c9ff8775c06dc5a262fe8941355c34bc66491601dd5f73bc844e"
+                }
+            ],
+            "expectedOutputsUnchanged": true
+        },
+        {
+            "mode": "single",
+            "name": "compiler/contentMapperSynthesizedUnusedDiagnostics.ts",
+            "changes": [
+                {
+                    "file": "/widget.box",
+                    "before": "355ec4a91421352f0ab9ae7ed5e343de542b21fc5870ac16dd5b337aece7efac",
+                    "after": "6fdd884a574b20959eafd9ff128e17e80b1741bd2c49b299acbc988d498a2348"
+                }
+            ],
+            "expectedOutputsUnchanged": true
+        },
+        {
+            "mode": "single",
+            "name": "compiler/contentMapperDiagnostics.ts",
+            "changes": [
+                {
+                    "file": "/widget.box",
+                    "before": "4255f99ecd9c4a65a8f1d8b6acf21f801b4be5af365fa7f27d42c97328f56fc7",
+                    "after": "297ff3017b527585ef30fca48d6b41f8fb62a08605ba2c8165e549ed6c28ab59"
+                }
+            ],
+            "expectedOutputsUnchanged": true
+        },
+        {
+            "mode": "single",
+            "name": "compiler/contentMapperInvalidExtension.ts",
+            "changes": [
+                {
+                    "file": "/component.box",
+                    "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                    "after": "98dfbaddd00ec7b95a980e8487b97f79c305b73a0854e0e97f163f13b41c80e2"
+                }
+            ],
+            "expectedOutputsUnchanged": true
+        },
+        {
+            "mode": "single",
+            "name": "compiler/contentMapperPerFileExtension.ts",
+            "changes": [
+                {
+                    "file": "/component.box",
+                    "before": "13ec1f693cc9a04ce8f327e740fff6224bb794286612f1c1820b5b1ef75cd79e",
+                    "after": "d5a5ef9b8bc9d545174b307e035bff08b85a0a2dfd4d1320ab589b86ce01102c"
+                },
+                {
+                    "file": "/script.box",
+                    "before": "3303462f215fe3749dcddd12ee6dfea3686dd3f81b4b02b19caae3c44a1b1f28",
+                    "after": "dcd94e68c5b91138fe6d7a55f281c3ddfa38ffc421dd3b458bb32f86a5228213"
+                }
+            ],
+            "expectedOutputsUnchanged": true
+        },
+        {
+            "mode": "single",
+            "name": "compiler/contentMapperInvalidDiagnosticDirectives.ts",
+            "changes": [
+                {
+                    "file": "/expectWithoutUnusedDiagnostic.expectmissing",
+                    "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                    "after": "8ee5a44f823b61ac1136108b825a287a257d7ac0d26d261c18627c2835a917d9"
+                },
+                {
+                    "file": "/invalidPolicy.invalidpolicy",
+                    "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                    "after": "f2c73a332f5694b5b2dcf3de4577c5184cf858fa7098f70dbc6e635f64789200"
+                },
+                {
+                    "file": "/invalidRange.invalidrange",
+                    "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                    "after": "486e1714fce7baee015d7dd66e9d42447d0d7707f58e3681b5e8ca304223e00f"
+                },
+                {
+                    "file": "/invalidUnusedDiagnosticIndex.invalidunusedindex",
+                    "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                    "after": "eae1d34e428db39814f615bc5da60c8a220bf7310e305933d368cc0d80f63727"
+                },
+                {
+                    "file": "/overlap.overlap",
+                    "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                    "after": "a6b06bbee229cf1bc7c0eb7ef8c544f46c04d15a5e23cce773dc36e59f8a56f9"
+                }
+            ],
+            "expectedOutputsUnchanged": true
+        },
+        {
+            "mode": "single",
+            "name": "compiler/contentMapperDeclarationEmitFailure.ts",
+            "changes": [
+                {
+                    "file": "/component.vue",
+                    "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                    "after": "75d7db453c2eb0e8c679075dd5c87a8314398b0407a2759d121acff1917bdac8"
+                }
+            ],
+            "expectedOutputsUnchanged": true
+        },
+        {
+            "mode": "single",
+            "name": "compiler/contentMapperDiagnosticDirectives.ts",
+            "changes": [
+                {
+                    "file": "/widget.box",
+                    "before": "bdae3795961bd0fd6395f6ef0b46e880ee682e9eb01635dc6fa311d7bffad46a",
+                    "after": "7fc98aac901150dd56c004d9d3de00cd43b9f2d555eb8299202809f0b6ee2dfe"
+                }
+            ],
+            "expectedOutputsUnchanged": true
+        },
+        {
+            "mode": "single",
+            "name": "compiler/contentMapperDeclarationEmit.ts",
+            "changes": [
+                {
+                    "file": "/component.y.z",
+                    "before": "ff7955075d43bd1e3a6995830005ee357ffce61a7d1fca420efc8df6831e9709",
+                    "after": "4f22b192a9f6397f9b3d391fe01fa1e8b975613b683f4b3776b0cb4f4c1fd680"
+                }
+            ],
+            "expectedOutputsUnchanged": true
+        },
+        {
+            "mode": "single",
+            "name": "compiler/contentMapperSupplementalGlobals.ts",
+            "changes": [
+                {
+                    "file": "/a.vue",
+                    "before": "b4c2b124418a0d4d30329e6bf4f9192641f335e772e70a2b83bd771e0922547e",
+                    "after": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7"
+                },
+                {
+                    "file": "/b.vue",
+                    "before": "b4c2b124418a0d4d30329e6bf4f9192641f335e772e70a2b83bd771e0922547e",
+                    "after": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f"
+                }
+            ],
+            "expectedOutputsUnchanged": true
+        },
+        {
+            "mode": "single",
+            "name": "compiler/contentMapperSupplementalModule.ts",
+            "changes": [
+                {
+                    "file": "/component.vue",
+                    "before": "56332e0a55734bc2b73df56a2df8635ed5c5b24b6d7a456b41de7cab9a2f3814",
+                    "after": "7268af0957e9a4f82beae9ca2bcf7a135885ad5a29cbca33abc0b9314eebd666"
+                }
+            ],
+            "expectedOutputsUnchanged": true
+        },
+        {
+            "mode": "single",
+            "name": "compiler/contentMapperSupplementalFileCollision.ts",
+            "changes": [
+                {
+                    "file": "/component.astro",
+                    "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                    "after": "8de5c07db8deb3b75dedd9b5bc999669936cea181ae0033c27c4e2071a6e434d"
+                }
+            ],
+            "expectedOutputsUnchanged": true
+        },
+        {
+            "mode": "default",
+            "name": "compiler/contentMapperSupplementalDiagnostics.ts",
+            "changes": [
+                {
+                    "file": "/component.astro",
+                    "before": "2e29cd9a98755c46896f7a2d56524db2d6d96b248e36db46de14c30bf47c8d05",
+                    "after": "f4559a5d54602af2a69720eae340f2f03668cc2f72b204248c6dec5560f67f49"
+                }
+            ],
+            "expectedOutputsUnchanged": true
+        },
+        {
+            "mode": "default",
+            "name": "compiler/contentMapperAliasDiagnostic.ts",
+            "changes": [
+                {
+                    "file": "/expression.lisp",
+                    "before": "11aea54913554e8e85ca9e97de82bea8df17add4549b9cfc8df93c73e4e1e6bf",
+                    "after": "c6af91f2db27cfce5b88db1ec0079642748e56f1604803381c3d4d740de81d60"
+                }
+            ],
+            "expectedOutputsUnchanged": true
+        },
+        {
+            "mode": "default",
+            "name": "compiler/contentMapperSymlink.ts",
+            "changes": [
+                {
+                    "file": "/app.box",
+                    "before": "5c1a38f17c0486ec25ea715caf1f2c4f305778d2dc4c0fdbcc650b18124c316c",
+                    "after": "f413fc2e568dc4c15ddca5bb52bb62fb743d672929513bdbfb89549faec673af"
+                }
+            ],
+            "expectedOutputsUnchanged": true
+        },
+        {
+            "mode": "default",
+            "name": "compiler/contentMapperTransform.ts",
+            "changes": [
+                {
+                    "file": "/app.box",
+                    "before": "3bb6b108f0e488ca1d4351f7faba116ac79bb9ff982a228eff6e67a12529df69",
+                    "after": "bce5223b6eb9c9ff8775c06dc5a262fe8941355c34bc66491601dd5f73bc844e"
+                }
+            ],
+            "expectedOutputsUnchanged": true
+        },
+        {
+            "mode": "default",
+            "name": "compiler/contentMapperSynthesizedUnusedDiagnostics.ts",
+            "changes": [
+                {
+                    "file": "/widget.box",
+                    "before": "355ec4a91421352f0ab9ae7ed5e343de542b21fc5870ac16dd5b337aece7efac",
+                    "after": "6fdd884a574b20959eafd9ff128e17e80b1741bd2c49b299acbc988d498a2348"
+                }
+            ],
+            "expectedOutputsUnchanged": true
+        },
+        {
+            "mode": "default",
+            "name": "compiler/contentMapperSupplementalGlobals.ts",
+            "changes": [
+                {
+                    "file": "/a.vue",
+                    "before": "b4c2b124418a0d4d30329e6bf4f9192641f335e772e70a2b83bd771e0922547e",
+                    "after": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7"
+                },
+                {
+                    "file": "/b.vue",
+                    "before": "b4c2b124418a0d4d30329e6bf4f9192641f335e772e70a2b83bd771e0922547e",
+                    "after": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f"
+                }
+            ],
+            "expectedOutputsUnchanged": true
+        },
+        {
+            "mode": "default",
+            "name": "compiler/contentMapperSupplementalModule.ts",
+            "changes": [
+                {
+                    "file": "/component.vue",
+                    "before": "56332e0a55734bc2b73df56a2df8635ed5c5b24b6d7a456b41de7cab9a2f3814",
+                    "after": "7268af0957e9a4f82beae9ca2bcf7a135885ad5a29cbca33abc0b9314eebd666"
+                }
+            ],
+            "expectedOutputsUnchanged": true
+        },
+        {
+            "mode": "default",
+            "name": "compiler/contentMapperDiagnostics.ts",
+            "changes": [
+                {
+                    "file": "/widget.box",
+                    "before": "4255f99ecd9c4a65a8f1d8b6acf21f801b4be5af365fa7f27d42c97328f56fc7",
+                    "after": "297ff3017b527585ef30fca48d6b41f8fb62a08605ba2c8165e549ed6c28ab59"
+                }
+            ],
+            "expectedOutputsUnchanged": true
+        },
+        {
+            "mode": "default",
+            "name": "compiler/contentMapperPerFileExtension.ts",
+            "changes": [
+                {
+                    "file": "/component.box",
+                    "before": "13ec1f693cc9a04ce8f327e740fff6224bb794286612f1c1820b5b1ef75cd79e",
+                    "after": "d5a5ef9b8bc9d545174b307e035bff08b85a0a2dfd4d1320ab589b86ce01102c"
+                },
+                {
+                    "file": "/script.box",
+                    "before": "3303462f215fe3749dcddd12ee6dfea3686dd3f81b4b02b19caae3c44a1b1f28",
+                    "after": "dcd94e68c5b91138fe6d7a55f281c3ddfa38ffc421dd3b458bb32f86a5228213"
+                }
+            ],
+            "expectedOutputsUnchanged": true
+        },
+        {
+            "mode": "default",
+            "name": "compiler/contentMapperInvalidExtension.ts",
+            "changes": [
+                {
+                    "file": "/component.box",
+                    "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                    "after": "98dfbaddd00ec7b95a980e8487b97f79c305b73a0854e0e97f163f13b41c80e2"
+                }
+            ],
+            "expectedOutputsUnchanged": true
+        },
+        {
+            "mode": "default",
+            "name": "compiler/contentMapperInvalidDiagnosticDirectives.ts",
+            "changes": [
+                {
+                    "file": "/expectWithoutUnusedDiagnostic.expectmissing",
+                    "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                    "after": "8ee5a44f823b61ac1136108b825a287a257d7ac0d26d261c18627c2835a917d9"
+                },
+                {
+                    "file": "/invalidPolicy.invalidpolicy",
+                    "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                    "after": "f2c73a332f5694b5b2dcf3de4577c5184cf858fa7098f70dbc6e635f64789200"
+                },
+                {
+                    "file": "/invalidRange.invalidrange",
+                    "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                    "after": "486e1714fce7baee015d7dd66e9d42447d0d7707f58e3681b5e8ca304223e00f"
+                },
+                {
+                    "file": "/invalidUnusedDiagnosticIndex.invalidunusedindex",
+                    "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                    "after": "eae1d34e428db39814f615bc5da60c8a220bf7310e305933d368cc0d80f63727"
+                },
+                {
+                    "file": "/overlap.overlap",
+                    "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                    "after": "a6b06bbee229cf1bc7c0eb7ef8c544f46c04d15a5e23cce773dc36e59f8a56f9"
+                }
+            ],
+            "expectedOutputsUnchanged": true
+        },
+        {
+            "mode": "default",
+            "name": "compiler/contentMapperDiagnosticDirectives.ts",
+            "changes": [
+                {
+                    "file": "/widget.box",
+                    "before": "bdae3795961bd0fd6395f6ef0b46e880ee682e9eb01635dc6fa311d7bffad46a",
+                    "after": "7fc98aac901150dd56c004d9d3de00cd43b9f2d555eb8299202809f0b6ee2dfe"
+                }
+            ],
+            "expectedOutputsUnchanged": true
+        },
+        {
+            "mode": "default",
+            "name": "compiler/contentMapperSupplementalFileCollision.ts",
+            "changes": [
+                {
+                    "file": "/component.astro",
+                    "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                    "after": "8de5c07db8deb3b75dedd9b5bc999669936cea181ae0033c27c4e2071a6e434d"
+                }
+            ],
+            "expectedOutputsUnchanged": true
+        },
+        {
+            "mode": "default",
+            "name": "compiler/contentMapperDeclarationEmit.ts",
+            "changes": [
+                {
+                    "file": "/component.y.z",
+                    "before": "ff7955075d43bd1e3a6995830005ee357ffce61a7d1fca420efc8df6831e9709",
+                    "after": "4f22b192a9f6397f9b3d391fe01fa1e8b975613b683f4b3776b0cb4f4c1fd680"
+                }
+            ],
+            "expectedOutputsUnchanged": true
+        },
+        {
+            "mode": "default",
+            "name": "compiler/contentMapperDeclarationEmitFailure.ts",
+            "changes": [
+                {
+                    "file": "/component.vue",
+                    "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                    "after": "75d7db453c2eb0e8c679075dd5c87a8314398b0407a2759d121acff1917bdac8"
+                }
+            ],
+            "expectedOutputsUnchanged": true
+        }
+    ]
+}

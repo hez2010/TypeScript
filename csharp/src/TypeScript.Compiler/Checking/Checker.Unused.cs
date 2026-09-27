@@ -62,7 +62,7 @@ internal sealed partial class Checker
         }
     }
 
-    private void ReportUnused(SyntaxNode declaration, SyntaxNode location, int code, bool parameter)
+    private void ReportUnused(SyntaxNode declaration, SyntaxNode location, int code, bool parameter, NodeList? typeParameters = null)
     {
         if (((declaration.Flags | (program.Symbols.Binding(declaration)?.Get(declaration)?.Flags ?? 0)) & (NodeFlags.Ambient | NodeFlags.ThisNodeOrAnySubNodesHasError)) != 0)
             return;
@@ -76,7 +76,17 @@ internal sealed partial class Checker
                     : program.Symbols.Declaration(declaration) is { } symbol ? TypeDisplay.SymbolName(symbol)
                     : CheckerDiagnostic.DeclarationName(name)];
             }
-            Error(location, code, arguments);
+            if (typeParameters is not null)
+            {
+                var file = SemanticSyntax.Source(declaration)!;
+                int start = typeParameters.Pos - 1;
+                int end = Math.Min(file.Source.Bytes.Length, CheckerDiagnostic.TokenRange(file, typeParameters.End).Start + 1);
+                Error(location, CheckerDiagnostic.Create(location, DiagnosticLocalization.GetMessage(code), arguments)
+                    with
+                { Start = start, Length = end - start });
+            }
+            else
+                Error(location, code, arguments);
         }
         else
             ExpressionSuggestion(location, code);
@@ -248,7 +258,7 @@ internal sealed partial class Checker
         if (parameters is null)
             return;
         if (parameters.Count > 1 && parameters.All(UnreferencedTypeParameter))
-            ReportUnused(node, node, 6205, true);
+            ReportUnused(node, node, 6205, true, parameters);
         else
             foreach (var parameter in parameters)
                 if (UnreferencedTypeParameter(parameter))

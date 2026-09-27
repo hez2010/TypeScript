@@ -97,7 +97,12 @@ internal sealed class RelationSupport(
                     RecursionFlags.Source,
                     intersection,
                     cancellation).ConfigureAwait(false)
-                : await operation.CompareAsync(withThis, target, RecursionFlags.Source, intersection, cancellation).ConfigureAwait(false);
+                : await operation.CompareContinuingAsync(
+                    withThis,
+                    target,
+                    RecursionFlags.Source,
+                    intersection,
+                    cancellation).ConfigureAwait(false);
         }
         return target is TypeParameter && (source.Flags & TypeFlags.Instantiable) == 0 && source is not MappedType ? Ternary.False : null;
     }

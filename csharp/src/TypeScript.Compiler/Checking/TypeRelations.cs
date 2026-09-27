@@ -208,7 +208,7 @@ internal sealed class TypeRelations(TypeContext context, TypeNormalization norma
 }
 
 internal sealed record RelationExplanation(int Code, Type? Source = null, Type? Target = null, Symbol? Property = null,
-    RelationExplanation? Next = null, IReadOnlyList<object>? Arguments = null);
+    RelationExplanation? Next = null, IReadOnlyList<object>? Arguments = null, bool SuppressRelatedInformation = false);
 
 internal sealed class RelationOperation(
     TypeContext context,
@@ -282,8 +282,12 @@ internal sealed class RelationOperation(
                 host.ComplexityOverflowAsync,
                 cancellation);
 
+    internal ValueTask<Ternary> CompareContinuingAsync(Type source, Type target, RecursionFlags recursion = RecursionFlags.Both,
+        IntersectionState intersection = 0, CancellationToken cancellation = default)
+        => CompareAsync(source, target, recursion, intersection, cancellation, true);
+
     internal async ValueTask<Ternary> CompareAsync(Type source, Type target, RecursionFlags recursion = RecursionFlags.Both,
-            IntersectionState intersection = 0, CancellationToken cancellation = default)
+            IntersectionState intersection = 0, CancellationToken cancellation = default, bool preservePriorExplanation = false)
     {
         if (!ReportErrors)
             return await CompareCoreAsync(source, target, recursion, intersection, cancellation).ConfigureAwait(false);
@@ -292,6 +296,15 @@ internal sealed class RelationOperation(
         try
         {
             var result = await CompareCoreAsync(source, target, recursion, intersection, cancellation).ConfigureAwait(false);
+            if (result == Ternary.False && preservePriorExplanation && previous is not null)
+            {
+                var pending = new Stack<RelationExplanation>();
+                for (var current = Explanation; current is not null; current = current.Next)
+                    pending.Push(current);
+                Explanation = previous;
+                while (pending.TryPop(out var current))
+                    Explanation = current with { Next = Explanation };
+            }
             Explanation = result == Ternary.False
                 ? new(kind == RelationKind.Comparable ? 2678 : 2322, source, target, Next: Explanation)
                 : previous;

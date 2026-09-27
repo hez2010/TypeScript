@@ -67,6 +67,16 @@ public sealed partial class Parser
         ImportDeclarationNode node = parser.Finish(
             parser.factory.NewImportDeclaration(K.ImportDeclaration, null, clause, specifier, attributes),
             start);
+        if (clause is null && specifier.Pos == specifier.End)
+        {
+            var tokenScanner = new Scanner(source, false);
+            tokenScanner.SetTextRange(clauseStart, end);
+            tokenScanner.ScanJSDocToken();
+            for (int i = 0; i < parser.diagnostics.Count; i++)
+                if (parser.diagnostics[i] is { Code: 1109, Length: 0 } diagnostic)
+                    parser.diagnostics[i] = diagnostic with
+                    { Start = tokenScanner.TokenStart, Length = tokenScanner.Position - tokenScanner.TokenStart };
+        }
         return (node, parser.Pos, parser.diagnostics.ToArray());
     }
 
@@ -118,6 +128,8 @@ public sealed partial class Parser
         var node = parser.Finish(parser.factory.NewExpressionWithTypeArguments(expression, arguments), pos);
         if (braces)
             parser.Expected(K.CloseBraceToken);
+        foreach (var missing in expression.DescendantsAndSelf().OfType<IdentifierNode>().Where(n => n.Text.Length == 0))
+            CorrectMissingDocumentationName(parser, missing == expression && !braces ? start : missing.Pos, end);
         return (node, parser.Pos, parser.diagnostics.ToArray(), parser.sourceFlags);
     }
 
@@ -148,6 +160,32 @@ public sealed partial class Parser
         TypeParameterDeclarationNode? node = name.Text.Length == 0
             ? null
             : parser.Finish(parser.factory.NewTypeParameterDeclaration(modifiers, name, null, null, defaultType), pos);
+        if (name.Text.Length == 0)
+            CorrectMissingDocumentationName(parser, !bracketed && modifiers is null ? start : name.Pos, end);
         return (node, parser.Pos, parser.diagnostics.ToArray(), parser.sourceFlags);
+    }
+
+    private static void CorrectMissingDocumentationName(Parser parser, int position, int end)
+    {
+        if (!parser.diagnostics.Any(d => d.Length == 0 && d.Code is 1003 or 1069))
+            return;
+        var scanner = new Scanner(parser.source, false);
+        scanner.SetTextRange(position, end);
+        scanner.ScanJSDocToken();
+        while (scanner.Kind is K.WhitespaceTrivia or K.NewLineTrivia)
+        {
+            var previous = scanner.Mark();
+            scanner.ScanJSDocToken();
+            if (scanner.Kind == K.EndOfFile)
+            {
+                scanner.Rewind(previous);
+                break;
+            }
+        }
+        if (scanner.Kind == K.EndOfFile)
+            return;
+        for (int i = 0; i < parser.diagnostics.Count; i++)
+            if (parser.diagnostics[i] is { Length: 0, Code: 1003 or 1069 } diagnostic)
+                parser.diagnostics[i] = diagnostic with { Start = scanner.TokenStart, Length = scanner.Position - scanner.TokenStart };
     }
 }

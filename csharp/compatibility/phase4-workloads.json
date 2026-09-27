@@ -1,0 +1,20 @@
+{
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "execution": "Release CoreCLR; no NativeAOT execution",
+    "scope": "Fresh program construction, binding and complete semantic checking in warm processes; input decoding excluded",
+    "processorCount": 4,
+    "modes": ["single", "default"],
+    "warmups": 3,
+    "samples": 9,
+    "provisionalBudgets": {
+        "p95ElapsedMs": 5000,
+        "peakRssBytes": 536870912,
+        "releasedHeapGrowthBytes": 16777216
+    },
+    "budgetScope": "Phase 4 operability limits for these fixed inputs, declared before measurement. These do not replace the final release performance gates or establish a speedup over Go.",
+    "cases": [
+        "compiler/jsxComplexSignatureHasApplicabilityError.tsx",
+        "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+        "conformance/superInStaticMembers1.ts target=es2022"
+    ]
+}

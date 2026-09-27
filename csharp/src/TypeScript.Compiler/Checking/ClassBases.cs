@@ -105,7 +105,7 @@ internal sealed class ClassBases(TypeContext context, DeclaredTypes declared, Ty
         var reduced = await views.ReducedAsync(baseType, cancellation).ConfigureAwait(false);
         if (!await bases.ValidAsync(reduced, cancellation).ConfigureAwait(false))
         {
-            await host.ClassBaseErrorAsync(node.Expression!, 2509, reduced, cancellation).ConfigureAwait(false);
+            await host.ClassBaseErrorAsync(node.Expression!, 2509, baseType, cancellation).ConfigureAwait(false);
             return [];
         }
         if (type == reduced || await bases.HasBaseAsync(reduced, type, cancellation).ConfigureAwait(false))

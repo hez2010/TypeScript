@@ -137,7 +137,15 @@ public sealed partial class Parser
             while (Token != K.EndOfFile)
             {
                 int before = Pos;
-                expressions.Add((await UnaryExpressionCore().ConfigureAwait(false)));
+                var expression = Token switch
+                {
+                    K.OpenBracketToken or K.TrueKeyword or K.FalseKeyword or K.NullKeyword => await PrimaryExpressionCore().ConfigureAwait(false),
+                    K.MinusToken when Peek(() => Next() == K.NumericLiteral && Next() != K.ColonToken)
+                        => await UnaryExpressionCore().ConfigureAwait(false),
+                    K.NumericLiteral or K.StringLiteral when !NextIs(K.ColonToken) => Literal(),
+                    _ => await ObjectLiteralCore().ConfigureAwait(false)
+                };
+                expressions.Add(expression);
                 if (Token != K.EndOfFile)
                     Error(Messages.Unexpected_token);
                 if (Pos == before)
@@ -235,6 +243,12 @@ public sealed partial class Parser
             {
                 Start = source.ToBytePosition(d.Start),
                 Length = source.ToBytePosition(d.Start + d.Length) - source.ToBytePosition(d.Start),
+                RelatedInformation = d.RelatedInformation.Select(r => r with
+                {
+                    Start = source.ToBytePosition(r.Start),
+                    Length = source.ToBytePosition(r.Start + r.Length) - source.ToBytePosition(r.Start),
+                    FileName = options.FileName
+                }).ToArray(),
                 FileName = options.FileName
             }).ToArray();
         file.ReparsedClones = reparsedClones.OrderBy(n => n.Pos).ThenBy(n => n.End).ToArray();

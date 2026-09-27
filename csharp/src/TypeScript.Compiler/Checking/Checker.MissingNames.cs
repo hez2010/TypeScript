@@ -98,7 +98,8 @@ internal sealed partial class Checker
                 SuggestedNameDeclarations[location] = suggestion;
             return;
         }
-        program.Error(location, message, name);
+        program.Error(location, message, location is IdentifierNode identifier && identifier.Text == name && location.End > location.Pos
+            ? CheckerDiagnostic.DeclarationName(location) : name);
     }
 
     private async ValueTask<bool> WrongNameMeaningAsync(SyntaxNode location, string name, S meaning)

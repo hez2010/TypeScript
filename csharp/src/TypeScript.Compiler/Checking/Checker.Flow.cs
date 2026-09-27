@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -62,7 +63,24 @@ internal sealed partial class Checker : IFlowTypeHost, IFlowReferenceHost, IFlow
     public ValueTask<Type> ReturnTypeAsync(Signature signature, CancellationToken cancellation) =>
         Signatures.ReturnAsync(signature, cancellation);
 
-    public void FlowControlError(SyntaxNode reference) => Error(reference, 2563);
+    public void FlowControlError(SyntaxNode reference)
+    {
+        var block = DeclarationOrder.Ancestor(reference, n => n is SourceFileNode or ModuleBlockNode
+            || n is BlockNode && n.Parent is IFunctionSignature)!;
+        var statements = block switch
+        {
+            SourceFileNode file => file.Statements!,
+            ModuleBlockNode module => module.Statements!,
+            BlockNode body => body.Statements!,
+            _ => throw new InvalidOperationException("Missing control-flow container")
+        };
+        var (start, end) = CheckerDiagnostic.TokenRange(SemanticSyntax.Source(reference)!, statements.Pos);
+        Error(
+            reference,
+            CheckerDiagnostic.Create(block, Messages.The_containing_function_or_module_body_is_too_large_for_control_flow_analysis)
+            with
+            { Start = start, Length = end - start });
+    }
 
     public ValueTask<Type> ArrayAsync(Type element, CancellationToken cancellation) =>
         ValueTask.FromResult<Type>(context.CreateTypeReference((InterfaceType)Instantiation.ArrayTarget(false), [element]));

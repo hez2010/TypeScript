@@ -512,27 +512,33 @@ public sealed partial class Parser
                 Expected(K.CloseBracketToken);
                 return Finish(factory.NewArrayLiteralExpression(elements, arrayLines), start);
             case K.OpenBraceToken:
-                Next();
-                bool objectLines = LineBreak;
-                objectLiteralDepth++;
-                NodeList properties;
-                try
-                {
-                    properties = await DelimitedCore(K.CloseBraceToken, ObjectPropertyCore,
-                        startsElement: () => Token >= K.Identifier || Token is K.OpenBracketToken or K.AsteriskToken
-                            or K.DotDotDotToken or K.DotToken or K.StringLiteral or K.NumericLiteral or K.BigIntLiteral,
-                        elementExpected: Messages.Property_assignment_expected).ConfigureAwait(false);
-                }
-                finally
-                {
-                    objectLiteralDepth--;
-                }
-
-                Expected(K.CloseBraceToken);
-                return Finish(factory.NewObjectLiteralExpression(properties, objectLines), start);
+                return await ObjectLiteralCore().ConfigureAwait(false);
         }
 
         return Identifier();
+    }
+
+    private async ValueTask<SyntaxNode> ObjectLiteralCore()
+    {
+        await ParseStack;
+        int start = Pos;
+        Expected(K.OpenBraceToken);
+        bool objectLines = LineBreak;
+        objectLiteralDepth++;
+        NodeList properties;
+        try
+        {
+            properties = await DelimitedCore(K.CloseBraceToken, ObjectPropertyCore,
+                startsElement: () => Token >= K.Identifier || Token is K.OpenBracketToken or K.AsteriskToken
+                    or K.DotDotDotToken or K.DotToken or K.StringLiteral or K.NumericLiteral or K.BigIntLiteral,
+                elementExpected: Messages.Property_assignment_expected).ConfigureAwait(false);
+        }
+        finally
+        {
+            objectLiteralDepth--;
+        }
+        Expected(K.CloseBraceToken);
+        return Finish(factory.NewObjectLiteralExpression(properties, objectLines), start);
     }
 
     private async ValueTask<SyntaxNode> MemberExpressionCore(SyntaxNode left, bool calls)

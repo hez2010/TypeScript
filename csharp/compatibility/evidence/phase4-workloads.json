@@ -1,0 +1,201 @@
+{
+    "timestamp": "2026-09-27T08:27:03.682Z",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "manifest": {
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "execution": "Release CoreCLR; no NativeAOT execution",
+        "scope": "Fresh program construction, binding and complete semantic checking in warm processes; input decoding excluded",
+        "processorCount": 4,
+        "modes": [
+            "single",
+            "default"
+        ],
+        "warmups": 3,
+        "samples": 9,
+        "provisionalBudgets": {
+            "p95ElapsedMs": 5000,
+            "peakRssBytes": 536870912,
+            "releasedHeapGrowthBytes": 16777216
+        },
+        "budgetScope": "Phase 4 operability limits for these fixed inputs, declared before measurement. These do not replace the final release performance gates or establish a speedup over Go.",
+        "cases": [
+            "compiler/jsxComplexSignatureHasApplicabilityError.tsx",
+            "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+            "conformance/superInStaticMembers1.ts target=es2022"
+        ]
+    },
+    "manifestSha256": "0e3ec507391af0b04eb10a7d1a19a8d4188b052c7276d6ca9a31093729355731",
+    "candidateSha256": "d9830e95b459714d0c42c999b757799ed7ccef743596829295f49e6b496aed53",
+    "compilerSha256": "4aacb99b6260576107fc14ba2201c904f925dfa2163600d13d0da1b73db3695f",
+    "oracleSha256": "3b24ab2a8765063a904a578271c8def1a0f9607104913f99f17f8801533a2d7a",
+    "samplesSha256": "b1a79318f1f48b636235bebe7ec9d1ca6ad85cd93e95f735d62115bf8d1c30a8",
+    "machine": {
+        "platform": "win32",
+        "architecture": "x64",
+        "os": "Windows 11 Pro for Workstations",
+        "cpu": "13th Gen Intel(R) Core(TM) i7-13700K",
+        "availableMemoryBytes": 68399497216
+    },
+    "runtime": {
+        "dotnet": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+        "tieredCompilation": false,
+        "processorCount": 4,
+        "nativeAotExecuted": false
+    },
+    "groups": [
+        {
+            "name": "compiler/jsxComplexSignatureHasApplicabilityError.tsx",
+            "mode": "single",
+            "go": {
+                "samples": 9,
+                "medianMs": 20.9651,
+                "p95Ms": 30.555200000000003,
+                "medianCpuMs": 15.625,
+                "medianAllocatedBytes": 21998112,
+                "peakRssBytes": 46399488,
+                "releasedHeapGrowthBytes": 208
+            },
+            "release": {
+                "samples": 9,
+                "medianMs": 137.769,
+                "p95Ms": 152.2456,
+                "medianCpuMs": 125,
+                "medianAllocatedBytes": 95373656,
+                "peakRssBytes": 143663104,
+                "releasedHeapGrowthBytes": 512
+            },
+            "passed": true,
+            "elapsedRatio": 6.57134952850213
+        },
+        {
+            "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+            "mode": "single",
+            "go": {
+                "samples": 9,
+                "medianMs": 63.9763,
+                "p95Ms": 69.0904,
+                "medianCpuMs": 62.5,
+                "medianAllocatedBytes": 34390144,
+                "peakRssBytes": 58408960,
+                "releasedHeapGrowthBytes": 160
+            },
+            "release": {
+                "samples": 9,
+                "medianMs": 331.0507,
+                "p95Ms": 342.6617,
+                "medianCpuMs": 296.875,
+                "medianAllocatedBytes": 209615776,
+                "peakRssBytes": 148348928,
+                "releasedHeapGrowthBytes": 512
+            },
+            "passed": true,
+            "elapsedRatio": 5.174583400415466
+        },
+        {
+            "name": "conformance/superInStaticMembers1.ts target=es2022",
+            "mode": "single",
+            "go": {
+                "samples": 9,
+                "medianMs": 19.6379,
+                "p95Ms": 22.7668,
+                "medianCpuMs": 31.25,
+                "medianAllocatedBytes": 21002560,
+                "peakRssBytes": 44683264,
+                "releasedHeapGrowthBytes": 240
+            },
+            "release": {
+                "samples": 9,
+                "medianMs": 131.72,
+                "p95Ms": 143.0182,
+                "medianCpuMs": 125,
+                "medianAllocatedBytes": 89569184,
+                "peakRssBytes": 139669504,
+                "releasedHeapGrowthBytes": 504
+            },
+            "passed": true,
+            "elapsedRatio": 6.7074381680322235
+        },
+        {
+            "name": "compiler/jsxComplexSignatureHasApplicabilityError.tsx",
+            "mode": "default",
+            "go": {
+                "samples": 9,
+                "medianMs": 18.7015,
+                "p95Ms": 21.898999999999997,
+                "medianCpuMs": 15.625,
+                "medianAllocatedBytes": 22712304,
+                "peakRssBytes": 49168384,
+                "releasedHeapGrowthBytes": 18784
+            },
+            "release": {
+                "samples": 9,
+                "medianMs": 161.0578,
+                "p95Ms": 172.5515,
+                "medianCpuMs": 156.25,
+                "medianAllocatedBytes": 97360392,
+                "peakRssBytes": 152170496,
+                "releasedHeapGrowthBytes": 8296
+            },
+            "passed": true,
+            "elapsedRatio": 8.61202577333369
+        },
+        {
+            "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+            "mode": "default",
+            "go": {
+                "samples": 9,
+                "medianMs": 62.3157,
+                "p95Ms": 73.9959,
+                "medianCpuMs": 62.5,
+                "medianAllocatedBytes": 35106288,
+                "peakRssBytes": 57462784,
+                "releasedHeapGrowthBytes": 22280
+            },
+            "release": {
+                "samples": 9,
+                "medianMs": 300.3431,
+                "p95Ms": 304.9754,
+                "medianCpuMs": 296.875,
+                "medianAllocatedBytes": 211553360,
+                "peakRssBytes": 155656192,
+                "releasedHeapGrowthBytes": 5000
+            },
+            "passed": true,
+            "elapsedRatio": 4.819701937072038
+        },
+        {
+            "name": "conformance/superInStaticMembers1.ts target=es2022",
+            "mode": "default",
+            "go": {
+                "samples": 9,
+                "medianMs": 17.8916,
+                "p95Ms": 22.5653,
+                "medianCpuMs": 15.625,
+                "medianAllocatedBytes": 22016128,
+                "peakRssBytes": 47980544,
+                "releasedHeapGrowthBytes": 6264
+            },
+            "release": {
+                "samples": 9,
+                "medianMs": 127.8129,
+                "p95Ms": 142.0878,
+                "medianCpuMs": 125,
+                "medianAllocatedBytes": 92481160,
+                "peakRssBytes": 144687104,
+                "releasedHeapGrowthBytes": 10448
+            },
+            "passed": true,
+            "elapsedRatio": 7.143737843457265
+        }
+    ],
+    "passed": true,
+    "discardedRun": {
+        "path": "built/csharp/checker-workloads-initial",
+        "reason": "Reference binary contained temporary relation-diagnostic tracing. Candidate also preceded the interface-comparison ordering fix. Not used for final performance conclusions."
+    },
+    "referenceImplementation": {
+        "checkerBlob": "8aec6df21d7af00dae77b0e831dcb4d34149893e",
+        "relaterBlob": "9d71d2504ca0cfcbc4e3fcf05d736951135ff5e4",
+        "matchesPinnedProductionSource": true
+    }
+}

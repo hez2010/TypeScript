@@ -77,8 +77,8 @@ internal sealed partial class Checker
             if (ns is not null && program.Symbols.Lookup(ns.Exports, "IntrinsicClassAttributes", SymbolFlags.Type) is { } symbol)
             {
                 var intrinsic = await Declared.GetAsync(symbol, cancellation);
-                IReadOnlyList<TypeParameter> parameters = intrinsic is InterfaceType face ? face.AllTypeParameters.OfType<TypeParameter>().Where(p => !p.IsThisType).ToArray()
-                    : links.TypeAliases.TryGet(symbol)?.TypeParameters ?? [];
+                IReadOnlyList<TypeParameter> parameters = intrinsic.Symbol is { } intrinsicSymbol
+                    ? program.Scopes.Local(intrinsicSymbol, cancellation).OfType<TypeParameter>().ToArray() : [];
                 if (parameters.Count != 0)
                 {
                     var arguments = await Instantiation.Constraints.FillMissingArgumentsAsync(

@@ -92,6 +92,8 @@ internal sealed partial class Checker
                 parameters[parameterName] = program.Scopes.Parameter(parameterSymbol);
             if (node is not TypeReferenceNode reference)
                 continue;
+            if (await DocumentationTypeReferenceAsync(reference, cancellation) is not null)
+                return null;
             var first = reference.TypeName;
             while (first is QualifiedNameNode qualified)
                 first = qualified.Left;

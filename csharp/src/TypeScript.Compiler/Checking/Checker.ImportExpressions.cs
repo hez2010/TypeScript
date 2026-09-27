@@ -59,7 +59,7 @@ internal sealed partial class Checker
         }
         if (program.Symbols.Lookup(program.Symbols.Globals, "Promise", SymbolFlags.Value) is null)
         {
-            program.Error(null, TypeScript.Compiler.Diagnostics.Messages.Cannot_find_global_value_0, "Promise");
+            program.Error(null, TypeScript.Compiler.Diagnostics.Messages.Cannot_find_global_value_0, "Promise", "es2015");
             Error(node, 2712);
         }
         return promise;
@@ -93,7 +93,7 @@ internal sealed partial class Checker
         if (ModuleKind is not (>= 100 and <= 199 or 99 or 200))
         {
             if (arguments.HasTrailingComma)
-                Error(node, 1009);
+                TrailingCommaError(node, arguments);
             if (arguments.Count > 1)
             {
                 Error(arguments[1], 1324);
@@ -116,7 +116,10 @@ internal sealed partial class Checker
             return cached;
         if (node.Argument is not LiteralTypeNode { Literal: StringLiteralNode literal })
         {
-            Error(node.Argument!, 1141);
+            if (node.Argument!.Pos == node.Argument.End)
+                ErrorOnFirstToken(node.Argument, 1141);
+            else
+                Error(node.Argument, 1141);
             links.SymbolNodes.Get(node).ResolvedSymbol = UnknownSymbol;
             return data.ResolvedType = context.ErrorType;
         }

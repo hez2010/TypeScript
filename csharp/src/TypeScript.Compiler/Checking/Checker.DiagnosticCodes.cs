@@ -22,6 +22,12 @@ internal sealed partial class Checker
     {
         if (node is null)
             return diagnostic;
+        if (diagnostic.Code == 2801 || MissingAwaitHints.Contains(node))
+        {
+            var hint = CheckerDiagnostic.Create(node, Messages.Did_you_forget_to_use_await);
+            if (!diagnostic.RelatedInformation.Contains(hint, DiagnosticEqualityComparer.Instance))
+                diagnostic = diagnostic with { RelatedInformation = [.. diagnostic.RelatedInformation, hint] };
+        }
         if (diagnostic.Code == 2775 && AssertionRelatedDeclarations.TryGetValue(node, out var assertionDeclarations))
             diagnostic = diagnostic with
             {
@@ -72,6 +78,16 @@ internal sealed partial class Checker
         => diagnosticFiles.Add((node, CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), arguments)));
 
     internal void TrackDiagnostic(SyntaxNode? node, Diagnostic diagnostic) => diagnosticFiles.Add((node, diagnostic));
+
+    private void ListError(SyntaxNode node, NodeList list, int code, params string[] arguments)
+    {
+        int start = list.Count == 0 ? list.Pos : CheckerDiagnostic.TokenRange(SemanticSyntax.Source(node)!, list.Pos).Start;
+        Error(node, CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), arguments) with
+        { Start = start, Length = Math.Max(0, list.End - start) });
+    }
+
+    private void TrailingCommaError(SyntaxNode node, NodeList list, int code = 1009)
+        => Error(node, CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code)) with { Start = list.End - 1, Length = 1 });
 
     internal bool ReportTypeRecursionLimit()
     {

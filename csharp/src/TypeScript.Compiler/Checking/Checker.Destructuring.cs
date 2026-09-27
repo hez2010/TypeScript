@@ -182,6 +182,6 @@ internal sealed partial class Checker
     private void DestructuringTrailingComma(NodeList nodes, SyntaxNode node)
     {
         if (nodes.HasTrailingComma && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
-            Error(node, 1013);
+            TrailingCommaError(node, nodes, 1013);
     }
 }

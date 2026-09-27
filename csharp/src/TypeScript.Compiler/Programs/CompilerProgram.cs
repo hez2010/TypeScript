@@ -404,7 +404,8 @@ public sealed partial class CompilerProgram
                                     Arguments = diagnostic.Code is 6053 or 6231 && reason.Kind == FileIncludeKind.PathReference
                                         && files.TryGetValue(reason.ContainingFile, out var containing)
                                         ? [containing.Syntax.Source.Text[containing.Syntax.Source.ToUtf16Position(reason.Position)
-                                            ..containing.Syntax.Source.ToUtf16Position(reason.Position + reason.Length)], .. diagnostic.Arguments.Skip(1)] : diagnostic.Arguments,
+                                            ..containing.Syntax.Source.ToUtf16Position(reason.Position + reason.Length)].Replace('\\', '/'),
+                                            .. diagnostic.Arguments.Skip(1)] : diagnostic.Arguments,
                                     FileName = reason.ContainingFile.Length == 0 ? null : reason.ContainingFile
                                 });
             VerifyOutputPaths(ordered);

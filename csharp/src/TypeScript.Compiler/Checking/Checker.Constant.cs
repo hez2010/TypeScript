@@ -14,7 +14,9 @@ internal sealed partial class Checker : IEnumValueHost
     public void EnumError(SyntaxNode node, int code) => Error(node, code,
         code == 18055 && node.Parent is EnumMemberNode member
             ? [SyntaxNameText.Get(((EnumDeclarationNode)member.Parent!).Name!) + "." + SyntaxNameText.Get(member.Name!)]
-            : code == 2565 ? [CheckerDiagnostic.DeclarationName(node is PropertyAccessExpressionNode access ? access.Name! : node)] : []);
+            : code == 2565 ? [node is ElementAccessExpressionNode element ? element.ArgumentExpression is StringLiteralNode text ? text.Text
+                : CheckerDiagnostic.DeclarationName(element.ArgumentExpression!)
+                : CheckerDiagnostic.DeclarationName(node is PropertyAccessExpressionNode access ? access.Name! : node)] : []);
 
     public ValueTask<bool> DeclaredBeforeUseAsync(SyntaxNode declaration, SyntaxNode use, CancellationToken cancellation)
     {

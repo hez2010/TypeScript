@@ -35,6 +35,8 @@ internal interface IExpressionTypeHost
     void DeferExpression(SyntaxNode node);
 
     void ExpressionError(SyntaxNode node, int code);
+
+    ValueTask TypeExpressionErrorAsync(SyntaxNode node, int code, Type type, CancellationToken cancellation);
 }
 
 internal sealed class ExpressionTypes(TypeContext context, TypeAlgebra algebra, TypeFactQueries facts, TypeRelations relations,
@@ -149,7 +151,7 @@ internal sealed class ExpressionTypes(TypeContext context, TypeAlgebra algebra, 
                 if (node.Operator == SyntaxKind.PlusToken)
                 {
                     if (await host.MaybeKindAsync(operand, TypeFlags.BigIntLike, true, cancellation).ConfigureAwait(false))
-                        host.ExpressionError(node.Operand!, 2736);
+                        await host.TypeExpressionErrorAsync(node.Operand!, 2736, operand, cancellation).ConfigureAwait(false);
                     return context.NumberType;
                 }
                 return await UnaryResultAsync(operand, cancellation).ConfigureAwait(false);

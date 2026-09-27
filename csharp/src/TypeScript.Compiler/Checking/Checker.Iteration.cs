@@ -49,11 +49,29 @@ internal sealed partial class Checker : IIteratorProtocolHost, IIterationElement
         return Symbol.InternalPrefix + "@" + name;
     }
 
-    public void IterationDiagnostic(IterationDiagnostic diagnostic) => Error(diagnostic.Node, IteratorDiagnostic(diagnostic));
+    public async ValueTask IterationDiagnosticAsync(IterationDiagnostic diagnostic, CancellationToken cancellation)
+        => Error(diagnostic.Node, await IteratorDiagnosticAsync(diagnostic, cancellation));
 
-    private static Diagnostic IteratorDiagnostic(IterationDiagnostic diagnostic) => CheckerDiagnostic.Create(
-        diagnostic.Node, DiagnosticLocalization.GetMessage(diagnostic.Code),
-        diagnostic.Code is 2489 or 2490 or 2519 or 2547 or 2767 or 2768 ? [diagnostic.Member!] : []);
+    private async ValueTask<Diagnostic> IteratorDiagnosticAsync(IterationDiagnostic diagnostic, CancellationToken cancellation)
+    {
+        if (diagnostic.Source is { } source && diagnostic.Target is { } target)
+        {
+            var previous = relationDiagnosticOutput;
+            var output = new List<(SyntaxNode Node, Diagnostic Diagnostic)>();
+            relationDiagnosticOutput = output;
+            try
+            {
+                await ReportRelationMessageAsync(diagnostic.Node, diagnostic.Code, source, target, RelationKind.Assignable, cancellation);
+                return output.Single().Diagnostic;
+            }
+            finally
+            {
+                relationDiagnosticOutput = previous;
+            }
+        }
+        return CheckerDiagnostic.Create(diagnostic.Node, DiagnosticLocalization.GetMessage(diagnostic.Code),
+            diagnostic.Code is 2489 or 2490 or 2519 or 2547 or 2767 or 2768 ? [diagnostic.Member!] : []);
+    }
 
     public ValueTask<bool> ReportGeneratorReturnAsync(Type source, Type target, SyntaxNode node, CancellationToken cancellation)
         => RelationDiagnostics.CheckAsync(source, target, RelationKind.Assignable, node, null, cancellation: cancellation);
@@ -74,9 +92,13 @@ internal sealed partial class Checker : IIteratorProtocolHost, IIterationElement
         CancellationToken cancellation, IReadOnlyList<IterationDiagnostic>? related = null)
     {
         string text = await TypeDisplay.GetAsync(type, cancellation);
+        var information = new List<Diagnostic>();
+        if (related is not null)
+            foreach (var item in related)
+                information.Add(await IteratorDiagnosticAsync(item, cancellation));
         Error(node, CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code),
             other is null ? [text] : [text, await TypeDisplay.GetAsync(other, cancellation)]) with
-        { RelatedInformation = related?.Select(IteratorDiagnostic).ToArray() ?? [] });
+        { RelatedInformation = information });
         if (missingAwait)
             IterationAwaitHints.Add((node, code));
     }

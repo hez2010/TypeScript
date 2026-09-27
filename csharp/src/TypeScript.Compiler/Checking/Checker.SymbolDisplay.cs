@@ -353,6 +353,12 @@ internal sealed partial class Checker
                 result.Append(c).Append(text[++i]);
                 continue;
             }
+            if (quote == '`' && c == '\r' && i + 1 < text.Length && text[i + 1] == '\n')
+            {
+                result.Append("\\r\\n");
+                i++;
+                continue;
+            }
             if (quote == '`' && c == '$' && i + 1 < text.Length && text[i + 1] == '{')
                 result.Append("\\$");
             else if (c == quote)

@@ -16,6 +16,8 @@ import {
 
 const directory = path.join(output, "checker-node-builder-tracking");
 const internalOptions = process.argv.includes("--internal-flags");
+const contextOptions = process.argv.includes("--context-flags");
+const concurrency = process.argv.includes("--default-concurrency") ? 4 : 1;
 const reference = JSON.parse(await readFile(path.join(output, "reference.json"), "utf8"));
 const source = path.join(output, reference.sourceRelativePath, "tsc");
 const go = "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe";
@@ -47,7 +49,11 @@ interface String{} interface Number{} interface Boolean{} interface RegExp{}
 interface Array<T>{length:number;[n:number]:T} interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T}
 interface Symbol{} interface SymbolConstructor{():symbol;readonly iterator:unique symbol} declare var Symbol:SymbolConstructor;type ReturnType<T extends (...args:any)=>any>=T extends (...args:any)=>infer R?R:any;
 type NoInfer<T>=intrinsic;type Uppercase<T extends string>=intrinsic;`;
-const fixtures = internalOptions ? {
+const fixtures = contextOptions ? {
+    contextThis: "class C{field!:{owner:this};value(){return {owner:this}}}declare let showThis:C['field'];declare let showReturn:ReturnType<C['value']>;",
+    contextDefaults: "export default class C{value=1}declare let showInstance:C;declare let showConstructor:typeof C;declare let showNested:{value:C;ctor:typeof C};",
+    contextNames: "namespace N{export interface A<T>{value:T}export class C{value=1}}declare let showType:N.A<N.C>;declare let showFunction:<T extends N.C>(value:T)=>N.A<T>;",
+} : internalOptions ? {
     internalSignatures: "namespace N{export interface A{value:string}}const showGeneric=<T extends N.A>(value:T):N.A=>value;const showReturn=():N.A=>({value:'x'});",
     internalQualified: "namespace N{export interface A{value:string}export class C{value=1}}declare let showType:N.A;declare let showObject:{a:N.A;c:N.C};declare let showConstructor:typeof N.C;",
     internalUnresolved: "declare const key:any;declare const nested:{key:any};declare const numeric:number;declare let showAny:{[key]:string;[nested.key]:number;regular:boolean};declare let showRemoved:{[numeric]:string;[key()]:number};",
@@ -70,13 +76,14 @@ const fixtures = internalOptions ? {
 };
 const dependency = "export interface External<T>{item:T}export interface Item{value:string}";
 const ignore = 2 ** 15 + 2 ** 16 + 2 ** 17 + 2 ** 18 + 2 ** 19 + 2 ** 21 + 2 ** 26;
-const flags = internalOptions ? [ignore + 1] : [0, 1, ignore, ignore + 1, 1 + 2 ** 20, 1 + 2 ** 11, ignore + 1 + 2 ** 23];
+const flags = contextOptions ? [1 + 2 ** 22, ignore + 1 + 2 ** 22, ignore + 1 + 2 ** 24, ignore + 1 + 2 ** 22 + 2 ** 24]
+    : internalOptions ? [ignore + 1] : [0, 1, ignore, ignore + 1, 1 + 2 ** 20, 1 + 2 ** 11, ignore + 1 + 2 ** 23];
 const filterIndex = process.argv.indexOf("--filter");
 const filter = filterIndex < 0 ? "" : process.argv[filterIndex + 1];
 const cases = [];
 for (const [fixture, text] of Object.entries(fixtures)) {
     for (const strict of [false, true]) {
-        const name = `${fixture}-strict-${strict}-full-false`;
+        const name = `${fixture}-strict-${strict}-full-false${concurrency == 1 ? "" : "-default-concurrency"}`;
         if (filter && !new RegExp(filter).test(name)) continue;
         const input = {
             files: Object.fromEntries(
@@ -85,7 +92,7 @@ for (const [fixture, text] of Object.entries(fixtures)) {
             ),
             roots: ["/project/globals.d.ts", "/project/main.ts"],
             options: { noLib: true, strict, noErrorTruncation: false, target: "esnext" },
-            concurrency: 1,
+            concurrency,
             typeNodes: true,
             nodeBuilderTracking: true,
             ...(internalOptions ? { nodeBuilderInternalFlags: [0, 1, 2, 4, 8, 15] } : {}),
@@ -148,8 +155,8 @@ for (const item of cases) {
     if (mismatches.length || JSON.stringify(reference.diagnostics) !== JSON.stringify(candidate.diagnostics)) differences.push({ name: item.name, mismatches, referenceDiagnostics: reference.diagnostics, candidateDiagnostics: candidate.diagnostics });
 }
 await json(path.join(directory, "differences.json"), differences);
-const summary = { timestamp: new Date().toISOString(), referenceRevision, managed: true, cases: cases.length, queries, differences: differences.map(d => ({ name: d.name, count: d.mismatches.length })), oracleSha256: oracleHash, candidateSha256: candidateHash, referenceExecuted: expected.executed, referenceReused: expected.reused, candidateExecuted: actual.executed, candidateReused: actual.reused };
+const summary = { timestamp: new Date().toISOString(), referenceRevision, managed: true, concurrency, cases: cases.length, queries, differences: differences.map(d => ({ name: d.name, count: d.mismatches.length })), oracleSha256: oracleHash, candidateSha256: candidateHash, referenceExecuted: expected.executed, referenceReused: expected.reused, candidateExecuted: actual.executed, candidateReused: actual.reused };
 await json(path.join(directory, "summary.json"), summary);
-await json(path.join(directory, `summary-tracking${internalOptions ? "-internal-flags" : ""}${filter ? "-" + filter.replace(/[^a-z0-9-]/gi, "_") : ""}.json`), summary);
+await json(path.join(directory, `summary-tracking${contextOptions ? "-context-flags" : internalOptions ? "-internal-flags" : ""}${concurrency == 1 ? "" : "-default-concurrency"}${filter ? "-" + filter.replace(/[^a-z0-9-]/gi, "_") : ""}.json`), summary);
 console.log(summary);
 if (differences.length) process.exitCode = 1;

@@ -59,8 +59,6 @@ public sealed partial class CompilerProgram
                 foreach (string extension in mapper.Extensions)
                     if (!extensions.Contains(extension))
                         extensions.Add(extension);
-            if (SupportedSource("file.json", project))
-                extensions.Add(".json");
             return string.Join(", ", extensions.Select(extension => "'" + extension + "'"));
         }
 

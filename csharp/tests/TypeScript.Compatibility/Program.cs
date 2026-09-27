@@ -13,6 +13,11 @@ internal static class Program
     {
         try
         {
+            if (args is ["--checker-workload-lines"])
+            {
+                CheckerWorkloadTests.Lines();
+                return 0;
+            }
             if (args is ["--module-specifiers-lines"])
             {
                 ModuleSpecifierTests.Lines();

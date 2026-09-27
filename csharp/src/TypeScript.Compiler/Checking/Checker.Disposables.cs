@@ -58,7 +58,12 @@ internal sealed partial class Checker
             }
             if (grammar && code != 0)
             {
-                Error(node, code);
+                if (code == 1009)
+                    TrailingCommaError(node, node.Declarations!);
+                else if (code == 1123)
+                    ListError(node, node.Declarations!, code);
+                else
+                    Error(node, code);
                 invalid = true;
             }
             else if (awaitUsing)
@@ -94,7 +99,7 @@ internal sealed partial class Checker
         {
             if (MissingNamePrefixes.ThisContainer(node, true, false) is SourceFileNode)
                 return TopLevelAwait(node, 2853, 2854);
-            Error(node, 2852);
+            ExpressionError(node, 2852);
             return true;
         }
         return false;

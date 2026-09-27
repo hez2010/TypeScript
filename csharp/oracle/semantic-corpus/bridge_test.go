@@ -128,11 +128,20 @@ func TestCSharpSemanticCorpus(t *testing.T) {
 					c := newCompilerTest(t, name, filename, &payload, config)
 					harnessutil.SkipUnsupportedCompilerOptions(t, c.options)
 					program := c.result.Program.Program()
+					// Emit-resolver queries populate caches and can change diagnostic
+					// attribution. The development-only harness patch captures diagnostics
+					// at the original pre-emit call, before any declaration or JS emission.
+					row["postEmitSemanticDiagnostics"] = csharpCorpusDiagnostics(program.GetSemanticDiagnostics(context.Background(), nil))
+					row["postEmitGlobalDiagnostics"] = csharpCorpusDiagnostics(program.GetGlobalDiagnostics(context.Background()))
 					files := map[string]string{}
 					// Match the harness filesystem's input-then-other-file overwrite order.
 					for _, group := range [][]*harnessutil.TestFile{c.toBeCompiled, c.otherFiles} {
 						for _, unit := range group {
-							files[tspath.GetNormalizedAbsolutePath(unit.UnitName, c.currentDirectory)] = blob(unit.Content)
+							content := unit.Content
+							if file := program.GetSourceFile(unit.UnitName); file != nil && file.ContentMapper() != "" {
+								content = file.OriginalText()
+							}
+							files[tspath.GetNormalizedAbsolutePath(unit.UnitName, c.currentDirectory)] = blob(content)
 						}
 					}
 					if unit := payload.tsConfigFileUnitData; unit != nil {
@@ -164,8 +173,8 @@ func TestCSharpSemanticCorpus(t *testing.T) {
 						hash := sha256.Sum256([]byte(file.Text()))
 						sources = append(sources, map[string]any{"file": file.FileName(), "sha256": hex.EncodeToString(hash[:]), "library": program.IsSourceFileDefaultLibrary(file.Path())})
 					}
-					semantic := program.GetSemanticDiagnostics(context.Background(), nil)
-					global := program.GetGlobalDiagnostics(context.Background())
+					semantic := c.result.CSharpSemanticDiagnostics
+					global := c.result.CSharpGlobalDiagnostics
 					row["files"], row["symlinks"], row["sources"] = files, links, sources
 					row["currentDirectory"], row["caseSensitive"], row["libraryDirectory"] = c.currentDirectory, c.harnessOptions.UseCaseSensitiveFileNames, bundled.LibPath()
 					row["roots"], row["options"] = program.CommandLine().FileNames(), csharpCorpusOptions(c.options)

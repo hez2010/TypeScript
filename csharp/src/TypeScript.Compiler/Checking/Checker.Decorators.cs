@@ -240,7 +240,7 @@ internal sealed partial class Checker
         }
         if (calls.Count == 0)
         {
-            Error(decorator.Expression!, DecoratorHead(decorator));
+            await InvocationErrorWithHeadAsync(decorator.Expression!, apparent, false, DecoratorHead(decorator), cancellation);
             return await CallResolution.UntypedAsync(decorator, true, cancellation);
         }
         if (await DecoratorSignatureAsync(decorator, cancellation) is null)

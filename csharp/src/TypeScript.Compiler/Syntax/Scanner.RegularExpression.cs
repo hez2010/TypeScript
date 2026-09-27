@@ -39,6 +39,7 @@ public sealed partial class Scanner
     // use heap stacks, including recovery for missing closing tokens.
     private sealed partial class RegularExpressionValidator(Scanner scanner, int start, int end, bool unicode, bool sets)
     {
+        private readonly int expressionStart = start;
         private int at = start;
         private int captures;
         private bool hasNamedCaptures;
@@ -70,8 +71,18 @@ public sealed partial class Scanner
             return ch;
         }
 
-        private void Error(DiagnosticMessage message, int location, int length = 0, params string[] args) =>
-            scanner.Error(message, location, length, args);
+        private void Error(DiagnosticMessage message, int location, int length = 0, params string[] args)
+        {
+            int finish = DiagnosticPosition(location + length);
+            location = DiagnosticPosition(location);
+            scanner.Error(message, location, finish - location, args);
+        }
+
+        // The reference keeps its UTF-8 cursor at the scalar start between the
+        // high- and low-surrogate visits in non-Unicode regular expressions.
+        private int DiagnosticPosition(int position) => !unicode && position > expressionStart && position < end
+            && char.IsLowSurrogate(scanner.text[position]) && char.IsHighSurrogate(scanner.text[position - 1])
+                ? position - 1 : position;
 
         private void Unexpected(int ch, int location) =>
             Error(Messages.Unexpected_0_Did_you_mean_to_escape_it_with_backslash, location, 1, ((char)ch).ToString());

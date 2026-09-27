@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -149,8 +150,29 @@ internal sealed partial class Checker : ISignatureHost, IStructuredMemberHost, I
         ClassBases.GetAsync(type, cancellation);
 
     public async ValueTask ClassBaseErrorAsync(SyntaxNode node, int code, Type type, CancellationToken cancellation)
-        => Error(node, code, code == 2508 ? [] : [code == 2506 && type.Symbol is { } symbol
-            ? TypeDisplay.SymbolName(symbol) : await TypeDisplay.GetAsync(type, cancellation)]);
+    {
+        var displayedType = code == 2509 ? await Views.ReducedAsync(type, cancellation) : type;
+        var diagnostic = CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), code == 2508 ? []
+            : [code == 2506 && type.Symbol is { } symbol
+                ? TypeDisplay.SymbolName(symbol)
+                : await TypeDisplay.GetAsync(displayedType, cancellation)]);
+        if (code == 2509)
+            diagnostic = await NeverIntersectionNoteAsync(diagnostic, type, cancellation);
+        if (code == 2507 && type is TypeParameter { Symbol: { Declarations.Count: > 0 } parameterSymbol })
+        {
+            Type result = context.UnknownType;
+            if (await Instantiation.Constraints.ConstraintAsync(type, cancellation) is { } constraint
+                && (await SignaturesAsync(constraint, true, cancellation)).FirstOrDefault() is { } constructor)
+                result = await Signatures.ReturnAsync(constructor, cancellation);
+            diagnostic = diagnostic with
+            {
+                RelatedInformation = [CheckerDiagnostic.Create(parameterSymbol.Declarations[0],
+                Messages.Did_you_mean_for_0_to_be_constrained_to_type_new_args_Colon_any_1,
+                TypeDisplay.SymbolName(parameterSymbol), await TypeDisplay.GetAsync(result, cancellation))]
+            };
+        }
+        Error(node, diagnostic);
+    }
 
     public ValueTask<Type> IndexedAccessAsync(Type objectType, Type indexType, CancellationToken cancellation) =>
             Instantiation.IndexedAccessAsync(objectType, indexType, 0, null, cancellation);

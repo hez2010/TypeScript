@@ -15,7 +15,8 @@ internal sealed partial class Checker
         Type target,
         RelationKind kind,
         CancellationToken cancellation,
-        Diagnostic? head = null)
+        Diagnostic? head = null,
+        RelationExplanation? preparedExplanation = null)
     {
         if (code is not (1270 or 1271 or 1360 or 2322 or 2344 or 2345 or 2352 or 2375 or 2379 or 2412 or 2415 or 2417 or 2418 or 2430
             or 2420 or 2636 or 2678 or 2684
@@ -28,6 +29,7 @@ internal sealed partial class Checker
             RelationError(node, code);
             return;
         }
+        var originalTarget = target;
         (source, target) = await RelationErrorTypesAsync(source, target, cancellation);
         if (code == 2345 && context.ExactOptionalPropertyTypes
             && (await RelationDiagnostics.ExactOptionalPropertiesAsync(source, target, cancellation)).Count != 0)
@@ -63,31 +65,48 @@ internal sealed partial class Checker
             };
         if (code is not (2739 or 2740 or 2741))
         {
-            var explanation = await Relations.ExplainAsync(originalSource, target, kind, cancellation);
+            var explanation = preparedExplanation ?? await Relations.ExplainAsync(originalSource, target, kind, cancellation);
             if (await RelationChainAsync(explanation?.Next, diagnostic, cancellation) is { } chain)
             {
                 diagnostic = diagnostic with { MessageChain = [chain], RelatedInformation = chain.RelatedInformation };
-                if ((originalSource.ObjectFlags & ObjectFlags.JsxAttributes) != 0 && target is IntersectionType intersection)
+                if (await OmitJsxRelationHeadAsync(originalSource, target, node, cancellation))
                 {
-                    var intrinsic = await JsxTypeAsync("IntrinsicAttributes", node, cancellation);
-                    var classIntrinsic = await JsxTypeAsync("IntrinsicClassAttributes", node, cancellation);
-                    if (intrinsic != context.ErrorType && classIntrinsic != context.ErrorType
-                        && (intersection.Types.Contains(intrinsic) || intersection.Types.Contains(classIntrinsic)))
-                    {
-                        Report(StripRelationMarkers(chain));
-                        return;
-                    }
+                    Report(StripRelationMarkers(chain));
+                    return;
                 }
             }
+            diagnostic = ObjectRelationNote(diagnostic, originalSource, target);
+            diagnostic = await NeverIntersectionNoteAsync(diagnostic, originalTarget, cancellation);
             diagnostic = await ConstraintReasonAsync(diagnostic, originalSource, source, target, sourceText, targetText, cancellation);
         }
+        else
+            diagnostic = ObjectRelationNote(diagnostic, originalSource, target);
         diagnostic = await RelationMessageKindAsync(diagnostic, originalSource, target, sourceText, targetText, cancellation);
         diagnostic = SelectRelationDiagnostic(diagnostic, originalSource, target, sourceText, targetText);
         diagnostic = await SourceConstraintNoteAsync(diagnostic, originalSource, target, cancellation);
+        if (code is not (2322 or 2678) && originalSource.Symbol is { } symbol
+            && links.ExportTypes.TryGet(symbol) is { OriginatingImport: { } import, Target: { } imported }
+            && import is not CallExpressionNode
+            && await Relations.RelatedAsync(await Values.GetAsync(imported, cancellation), target, kind, cancellation))
+        {
+            var related = diagnostic.RelatedInformation.Append(CheckerDiagnostic.Create(import,
+                Messages.Type_originates_at_this_import_A_namespace_style_import_cannot_be_called_or_constructed_and_will_cause_a_failure_at_runtime_Consider_using_a_default_import_or_import_require_here_instead)).ToArray();
+            diagnostic = WithRelatedInformation(diagnostic, related);
+        }
         Report(StripRelationMarkers(diagnostic));
 
         void Report(Diagnostic detail) => RelationError(node, head is null ? detail
             : head with { MessageChain = [detail], RelatedInformation = detail.RelatedInformation });
+    }
+
+    private async ValueTask<bool> OmitJsxRelationHeadAsync(Type source, Type target, SyntaxNode node, CancellationToken cancellation)
+    {
+        if ((source.ObjectFlags & ObjectFlags.JsxAttributes) == 0 || target is not IntersectionType intersection)
+            return false;
+        var intrinsic = await JsxTypeAsync("IntrinsicAttributes", node, cancellation);
+        var classIntrinsic = await JsxTypeAsync("IntrinsicClassAttributes", node, cancellation);
+        return intrinsic != context.ErrorType && classIntrinsic != context.ErrorType
+            && (intersection.Types.Contains(intrinsic) || intersection.Types.Contains(classIntrinsic));
     }
 
     private bool ReadonlyAssignment(Type source, Type target) =>
@@ -102,15 +121,6 @@ internal sealed partial class Checker
                 Message = DiagnosticLocalization.GetMessage(4104),
                 Arguments = [sourceText, targetText],
                 MessageChain = diagnostic.Code is 2739 or 2740 or 2741 ? [diagnostic] : diagnostic.MessageChain
-            };
-        if (source == GlobalObject && (target.Flags & TypeFlags.Primitive) == 0)
-            return diagnostic with
-            {
-                MessageChain = [diagnostic with
-            {
-                Message = DiagnosticLocalization.GetMessage(2696),
-                Arguments = []
-            }]
             };
         if (diagnostic.MessageChain is not [var next])
             return diagnostic;
@@ -130,6 +140,40 @@ internal sealed partial class Checker
         return matches ? next : diagnostic;
     }
 
+    private Diagnostic ObjectRelationNote(Diagnostic diagnostic, Type source, Type target)
+        => source == GlobalObject && (target.Flags & TypeFlags.Primitive) == 0 ? diagnostic with
+        { MessageChain = [diagnostic with { Message = DiagnosticLocalization.GetMessage(2696), Arguments = [] }] } : diagnostic;
+
+    private async ValueTask<Diagnostic> NeverIntersectionNoteAsync(Diagnostic diagnostic, Type target, CancellationToken cancellation)
+    {
+        if (target is not IntersectionType intersection || (target.ObjectFlags & ObjectFlags.IsNeverIntersection) == 0)
+            return diagnostic;
+        Symbol? conflict = null;
+        int code = 18031;
+        var properties = await Properties.CompositePropertiesAsync(intersection, cancellation);
+        foreach (var property in properties)
+            if (property.ValueDeclaration is not null && await Views.NeverPropertyAsync(property, cancellation))
+            {
+                conflict = property;
+                break;
+            }
+        if (conflict is null)
+        {
+            conflict = properties.FirstOrDefault(
+                p => p.ValueDeclaration is null && (p.CheckFlags & Binding.CheckFlags.ContainsPrivate) != 0);
+            code = 18032;
+        }
+        return conflict is null ? diagnostic : diagnostic with
+        {
+            MessageChain = [diagnostic with { Message = DiagnosticLocalization.GetMessage(code),
+            Arguments =
+                [
+                    await TypeDisplay.GetAsync(target, NodeBuilderFlags.NoTypeReduction, cancellation),
+                    TypeDisplay.SymbolName(conflict)
+                ] }]
+        };
+    }
+
     private static Diagnostic StripRelationMarkers(Diagnostic diagnostic)
     {
         var children = new List<Diagnostic>();
@@ -147,13 +191,15 @@ internal sealed partial class Checker
     private async ValueTask<Diagnostic?> RelationChainAsync(
         RelationExplanation? explanation,
         Diagnostic location,
-        CancellationToken cancellation)
+        CancellationToken cancellation,
+        bool suppressRelatedInformation = false)
     {
         await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
             ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
         if (explanation is null)
             return null;
-        var next = await RelationChainAsync(explanation.Next, location, cancellation);
+        suppressRelatedInformation |= explanation.SuppressRelatedInformation;
+        var next = await RelationChainAsync(explanation.Next, location, cancellation, suppressRelatedInformation);
         if (explanation.Code == 2326 && next?.Code is 2353 or 2561)
             return next;
         if (explanation.Code == 2353)
@@ -186,6 +232,8 @@ internal sealed partial class Checker
         if (explanation.Code is 2322 or 2678)
         {
             var (source, target) = await RelationErrorTypesAsync(explanation.Source!, explanation.Target!, cancellation);
+            if (next is not null && DiagnosticNode is { } node && await OmitJsxRelationHeadAsync(source, target, node, cancellation))
+                return next;
             var originalSource = source;
             var (sourceText, targetText) = await RelationTypeNamesAsync(source, target, cancellation);
             if ((target.Flags & TypeFlags.Never) == 0 && source.IsLiteral && !await CouldHaveSingletonTypesAsync(target, cancellation))
@@ -195,6 +243,8 @@ internal sealed partial class Checker
             }
             diagnostic = diagnostic with { Arguments = [sourceText, targetText] };
             diagnostic = await PrimitiveWrapperNoteAsync(diagnostic, originalSource, target, cancellation);
+            diagnostic = ObjectRelationNote(diagnostic, originalSource, target);
+            diagnostic = await NeverIntersectionNoteAsync(diagnostic, explanation.Target!, cancellation);
             diagnostic = await ConstraintReasonAsync(diagnostic, originalSource, source, target, sourceText, targetText, cancellation);
             diagnostic = await RelationMessageKindAsync(diagnostic, originalSource, target, sourceText, targetText, cancellation);
             return await SourceConstraintNoteAsync(SelectRelationDiagnostic(diagnostic, originalSource, target, sourceText, targetText),
@@ -235,7 +285,14 @@ internal sealed partial class Checker
                     _ => throw new InvalidOperationException($"Unsupported relation explanation {explanation.Code}")
                 }
             };
-        if (explanation.Code == 2741 && explanation.Property!.Declarations.FirstOrDefault() is { } declaration)
+        if (explanation.Code == 2741)
+        {
+            var (sourceText, targetText) = await RelationTypeNamesAsync(explanation.Source!, explanation.Target!, cancellation);
+            diagnostic = diagnostic with { Arguments = [TypeDisplay.SymbolName(explanation.Property!), sourceText, targetText] };
+        }
+        if (!suppressRelatedInformation
+            && explanation.Code == 2741
+            && explanation.Property!.Declarations.FirstOrDefault() is { } declaration)
             diagnostic = diagnostic with
             {
                 RelatedInformation = [CheckerDiagnostic.Create(declaration, Messages.X_0_is_declared_here,
@@ -251,20 +308,33 @@ internal sealed partial class Checker
                 2204 => name + "()",
                 _ => "new " + name + "()"
             };
-            return diagnostic with
+            diagnostic = diagnostic with
             {
                 Message = DiagnosticLocalization.GetMessage(2201),
                 Arguments = [path],
                 MessageChain = marker.MessageChain
             };
+            next = diagnostic.MessageChain.Count == 1 ? diagnostic.MessageChain[0] : null;
         }
-        if (explanation.Code == 2326 && next is { MessageChain.Count: 1 } && next.MessageChain[0] is { Code: 2326 or 2200 } inner)
+        if (explanation.Code == 2326 && next is { MessageChain.Count: 1 } && next.MessageChain[0] is { Code: 2326 or 2200 or 2201 } inner)
         {
             string head = PropertyPath(diagnostic.Arguments[0]), tail = PropertyPath(inner.Arguments[0]);
+            if (head.StartsWith("new ", StringComparison.Ordinal))
+                head = "(" + head + ")";
+            int pos = 0;
+            while (pos < tail.Length)
+            {
+                if (tail[pos] == '(')
+                    pos++;
+                else if (tail.AsSpan(pos).StartsWith("new ", StringComparison.Ordinal))
+                    pos += 4;
+                else
+                    break;
+            }
             diagnostic = diagnostic with
             {
-                Message = DiagnosticLocalization.GetMessage(2200),
-                Arguments = [head + (tail.StartsWith('[') ? "" : ".") + tail],
+                Message = DiagnosticLocalization.GetMessage(diagnostic.Code == 2326 ? 2200 : diagnostic.Code),
+                Arguments = [tail[..pos] + head + (tail.AsSpan(pos).StartsWith("[", StringComparison.Ordinal) ? "" : ".") + tail[pos..]],
                 MessageChain = inner.MessageChain
             };
         }
@@ -272,6 +342,20 @@ internal sealed partial class Checker
     }
 
     private static string PropertyPath(string name) => name.Length != 0 && name[0] is '\'' or '"' or '`' ? "[" + name + "]" : name;
+
+    private static Diagnostic WithRelatedInformation(Diagnostic diagnostic, IReadOnlyList<Diagnostic> related)
+    {
+        var chain = new Stack<Diagnostic>();
+        while (diagnostic.MessageChain is [var child])
+        {
+            chain.Push(diagnostic);
+            diagnostic = child;
+        }
+        diagnostic = diagnostic with { RelatedInformation = related };
+        while (chain.TryPop(out var parent))
+            diagnostic = parent with { RelatedInformation = related, MessageChain = [diagnostic] };
+        return diagnostic;
+    }
 
     private async ValueTask<Diagnostic> PrimitiveWrapperNoteAsync(
         Diagnostic diagnostic,

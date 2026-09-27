@@ -219,7 +219,7 @@ internal sealed class ReverseMappedInference(TypeContext context, TypeAlgebra al
         }
         cancellation.ThrowIfCancellationRequested();
         type.Members = members.AsReadOnly();
-        type.Properties = members.Values.ToArray();
+        type.Properties = members.Values.Order(algebra.Order).ToArray();
         type.CallSignatures = [];
         type.ConstructSignatures = [];
         type.IndexInfos = indexes;

@@ -20,7 +20,8 @@ internal sealed partial class Checker
             2542 or 7017 => [await ReceiverAsync()],
             2536 => [await TypeDisplay.GetAsync(index!, cancellation), await ReceiverAsync()],
             18013 => [CheckerDiagnostic.DeclarationName(node),
-                TypeDisplay.SymbolName(program.Symbols.Declaration(DeclarationOrder.ContainingClass(symbol!.ValueDeclaration!)!)!)],
+                await SymbolDisplayNameAsync(program.Symbols.Declaration(DeclarationOrder.ContainingClass(symbol!.ValueDeclaration!)!)!,
+                    null, SymbolFlags.All, cancellation)],
             18014 => [CheckerDiagnostic.DeclarationName(node), await ReceiverAsync()],
             18016 or 2476 or 2806 => [],
             _ => throw new InvalidOperationException($"Unsupported access diagnostic {code}")

@@ -31,6 +31,7 @@ internal sealed class GenericRelations(TypeContext context, TypeAlgebra algebra,
         }
         if (target is IndexedAccessType targetAccess)
         {
+            RelationExplanation? directExplanation = null;
             if (source is IndexedAccessType sourceAccess)
             {
                 var result = await operation.CompareAsync(
@@ -44,6 +45,7 @@ internal sealed class GenericRelations(TypeContext context, TypeAlgebra algebra,
                         cancellation: cancellation).ConfigureAwait(false);
                 if (result != Ternary.False)
                     return result;
+                directExplanation = operation.Explanation;
             }
             if (operation.Kind is RelationKind.Assignable or RelationKind.Comparable)
             {
@@ -69,6 +71,9 @@ internal sealed class GenericRelations(TypeContext context, TypeAlgebra algebra,
                             cancellation).ConfigureAwait(false);
                         if (result != Ternary.False)
                             return result;
+                        if (directExplanation is not null && operation.Explanation is { } constraintExplanation
+                            && Depth(directExplanation) <= Depth(constraintExplanation))
+                            operation.RestoreExplanation(directExplanation);
                     }
                 }
             }
@@ -142,6 +147,7 @@ internal sealed class GenericRelations(TypeContext context, TypeAlgebra algebra,
                     return Ternary.True;
                 if (!(source is MappedType sourceMap && await mapped.IsGenericAsync(sourceMap, cancellation).ConfigureAwait(false)))
                 {
+                    var previousExplanation = operation.Explanation;
                     var targetKeys = remapped ? (await mapped.NameAsync(targetMap, cancellation).ConfigureAwait(false))!
                         : await mapped.ConstraintAsync(targetMap, cancellation).ConfigureAwait(false);
                     var sourceKeys = await keys.GetAsync(source, IndexFlags.NoIndexSignatures, cancellation).ConfigureAwait(false);
@@ -177,10 +183,19 @@ internal sealed class GenericRelations(TypeContext context, TypeAlgebra algebra,
                         if (result != Ternary.False)
                             return result;
                     }
+                    operation.RestoreExplanation(previousExplanation);
                 }
             }
         }
         return null;
+
+        static int Depth(RelationExplanation? explanation)
+        {
+            int depth = 0;
+            for (; explanation is not null; explanation = explanation.Next)
+                depth++;
+            return depth;
+        }
     }
 
     internal async ValueTask<Ternary?> SourceAsync(RelationOperation operation, Type source, Type target,
@@ -210,12 +225,17 @@ internal sealed class GenericRelations(TypeContext context, TypeAlgebra algebra,
                     RecursionFlags.Source,
                     intersection,
                     cancellation).ConfigureAwait(false)
-                : await operation.CompareAsync(withThis, target, RecursionFlags.Source, intersection, cancellation).ConfigureAwait(false);
+                : await operation.CompareContinuingAsync(
+                    withThis,
+                    target,
+                    RecursionFlags.Source,
+                    intersection,
+                    cancellation).ConfigureAwait(false);
             if (result != Ternary.False)
                 return result;
             if (await indexed.IsMappedGenericAccessAsync(access, cancellation).ConfigureAwait(false)
                 && await constraints.ConstraintAsync(access.IndexType, cancellation).ConfigureAwait(false) is { } indexConstraint)
-                return await operation.CompareAsync(
+                return await operation.CompareContinuingAsync(
                     await indexed.GetAsync(access.ObjectType, indexConstraint, cancellation: cancellation).ConfigureAwait(false),
                     target, RecursionFlags.Source, cancellation: cancellation).ConfigureAwait(false);
             return Ternary.False;
@@ -227,7 +247,7 @@ internal sealed class GenericRelations(TypeContext context, TypeAlgebra algebra,
             var result = deferredMap
                 ? await operation.CompareWithoutErrorsAsync(context.StringNumberSymbolType, target, RecursionFlags.Source,
                     cancellation: cancellation).ConfigureAwait(false)
-                : await operation.CompareAsync(context.StringNumberSymbolType, target, RecursionFlags.Source,
+                : await operation.CompareContinuingAsync(context.StringNumberSymbolType, target, RecursionFlags.Source,
                     cancellation: cancellation).ConfigureAwait(false);
             if (result != Ternary.False)
                 return result;
@@ -238,7 +258,7 @@ internal sealed class GenericRelations(TypeContext context, TypeAlgebra algebra,
                 var sourceKeys = name is not null && MappedMembers.HasKeyofConstraint(mapping)
                     ? await members.ApparentKeysAsync(name, mapping, cancellation).ConfigureAwait(false)
                     : name ?? await mapped.ConstraintAsync(mapping, cancellation).ConfigureAwait(false);
-                return await operation.CompareAsync(
+                return await operation.CompareContinuingAsync(
                     sourceKeys,
                     target,
                     RecursionFlags.Source,

@@ -74,10 +74,12 @@ internal sealed partial class Checker
                 if (identical)
                 {
                     foreach (var baseType in bases)
-                        await RelationDiagnostics.CheckAsync(
-                            withThis,
-                            await Bases.WithThisAsync(baseType, type.ThisType, cancellation: cancellation).ConfigureAwait(false),
-                            RelationKind.Assignable, node.Name, null, 2430, cancellation).ConfigureAwait(false);
+                    {
+                        var target = await Bases.WithThisAsync(baseType, type.ThisType, cancellation: cancellation).ConfigureAwait(false);
+                        if (await Relations.ExplainAsync(withThis, target, RelationKind.Assignable, cancellation) is { } explanation)
+                            await ReportRelationMessageAsync(node.Name, 2430, withThis, target, RelationKind.Assignable, cancellation,
+                                preparedExplanation: explanation);
+                    }
                     await IndexDeclarationChecks.CheckAsync(type, false, cancellation).ConfigureAwait(false);
                 }
             }

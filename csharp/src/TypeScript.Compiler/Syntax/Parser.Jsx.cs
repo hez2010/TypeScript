@@ -252,8 +252,12 @@ public sealed partial class Parser
         await ParseStack;
         int start = Pos;
         var children = new List<SyntaxNode>();
-        while (Token is not (K.LessThanSlashToken or K.EndOfFile))
+        while (true)
         {
+            scanner.ResetPosition(Pos);
+            NextJsx();
+            if (Token is K.LessThanSlashToken or K.EndOfFile)
+                break;
             int childStart = Pos;
             if (Token is K.JsxText or K.JsxTextAllWhiteSpaces)
             {

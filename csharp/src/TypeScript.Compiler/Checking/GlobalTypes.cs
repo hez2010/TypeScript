@@ -16,6 +16,9 @@ internal sealed class GlobalTypes(TypeContext context, CheckerLinks links, Check
     internal Type? AutoArrayType { get; private set; }
     internal Type? AnyReadonlyArrayType { get; private set; }
 
+    private static string[] MissingArguments(string name)
+        => LibraryFeatures.NameLibrary(name) is { } library ? [name, library] : [name];
+
     internal async ValueTask<Symbol?> AliasAsync(string name, int arity, DeclaredTypes declared, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
@@ -23,7 +26,7 @@ internal sealed class GlobalTypes(TypeContext context, CheckerLinks links, Check
             return cached;
         var symbol = symbols.Lookup(symbols.Globals, name, SymbolFlags.TypeAlias);
         if (symbol is null)
-            error(null, Messages.Cannot_find_global_type_0, [name]);
+            error(null, Messages.Cannot_find_global_type_0, MissingArguments(name));
         else
         {
             var declaration = symbol.Declarations.OfType<TypeAliasDeclarationNode>().First();
@@ -47,7 +50,7 @@ internal sealed class GlobalTypes(TypeContext context, CheckerLinks links, Check
         if (symbol is null)
         {
             if (reportErrors)
-                error(null, Messages.Cannot_find_global_type_0, [name]);
+                error(null, Messages.Cannot_find_global_type_0, MissingArguments(name));
         }
         else if ((symbol.Flags & (SymbolFlags.Class | SymbolFlags.Interface)) != 0)
         {
