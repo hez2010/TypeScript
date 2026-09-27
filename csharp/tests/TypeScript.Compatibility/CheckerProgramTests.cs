@@ -1269,7 +1269,9 @@ internal static class CheckerProgramTests
         if (input.TryGetProperty("nodeBuilderTracking", out var trackingOption) && trackingOption.GetBoolean())
         {
             await CheckerNodeBuilderTests.WriteAsync(typeHost!, program.GetFile("/project/main.ts")!.Syntax,
-                input.GetProperty("typeSyntaxFlags").EnumerateArray().Select(v => (NodeBuilderFlags)v.GetUInt32()).ToArray(), writer);
+                input.GetProperty("typeSyntaxFlags").EnumerateArray().Select(v => (NodeBuilderFlags)v.GetUInt32()).ToArray(), writer,
+                input.TryGetProperty("nodeBuilderInternalFlags", out var internalFlags)
+                    ? internalFlags.EnumerateArray().Select(v => (NodeBuilderInternalFlags)v.GetUInt32()).ToArray() : null);
             return;
         }
         if (input.TryGetProperty("displayFormats", out var formatOption) && formatOption.GetBoolean())

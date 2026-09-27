@@ -52,8 +52,12 @@ func (t *csharpSymbolTracker) PushErrorFallbackNode(n *ast.Node) {
 }
 func (t *csharpSymbolTracker) PopErrorFallbackNode() { t.events = append(t.events, "pop") }
 
-func (c *Checker) CSharpNodeBuilderTracking(file *ast.SourceFile, flags []nodebuilder.Flags) map[string]any {
+func (c *Checker) CSharpNodeBuilderTracking(file *ast.SourceFile, flags []nodebuilder.Flags, internalFlags []nodebuilder.InternalFlags) map[string]any {
 	rows := [][]any{}
+	includeInternal := len(internalFlags) != 0
+	if !includeInternal {
+		internalFlags = []nodebuilder.InternalFlags{nodebuilder.InternalFlagsNone}
+	}
 	var visit func(*ast.Node) bool
 	visit = func(n *ast.Node) bool {
 		if ast.IsVariableDeclaration(n) && ast.IsIdentifier(n.Name()) && strings.HasPrefix(n.Name().Text(), "show") {
@@ -63,25 +67,58 @@ func (c *Checker) CSharpNodeBuilderTracking(file *ast.SourceFile, flags []nodebu
 			}
 			for scope, enclosing := range []*ast.Node{nil, file.AsNode(), n} {
 				for _, flag := range flags {
-					for _, operation := range []string{"type", "declaration"} {
-						tracker := &csharpSymbolTracker{events: []string{}}
-						b, release := c.getNodeBuilder()
-						var node *ast.Node
-						if operation == "type" {
-							node = b.TypeToTypeNode(typ, enclosing, flag, nodebuilder.InternalFlagsNone, tracker)
-						} else {
-							node = b.SerializeTypeForDeclaration(n, c.getSymbolOfDeclaration(n), enclosing, flag|nodebuilder.FlagsMultilineObjectLiterals, nodebuilder.InternalFlagsNone, tracker)
+					for _, internalFlag := range internalFlags {
+						operations := []string{"type", "declaration"}
+						if includeInternal && n.Type() != nil {
+							operations = append(operations, "annotation")
+						} else if includeInternal && (ast.IsArrowFunction(n.Initializer()) || ast.IsFunctionExpression(n.Initializer())) {
+							operations = append(operations, "expression", "return", "parameters", "signature")
 						}
-						value := ""
-						if node != nil {
-							writer, put := printer.GetSingleLineStringWriter()
-							p := printer.NewPrinter(printer.PrinterOptions{RemoveComments: true, OmitTrailingSemicolon: true, NeverAsciiEscape: enclosing != nil && enclosing.Kind == ast.KindSourceFile}, printer.PrintHandlers{}, b.EmitContext())
-							p.Write(node, ast.GetSourceFileOfNode(enclosing), writer, nil)
-							value = writer.String()
-							put()
+						for _, operation := range operations {
+							tracker := &csharpSymbolTracker{events: []string{}}
+							b, release := c.getNodeBuilder()
+							var node *ast.Node
+							var parameterNodes []*ast.Node
+							if operation == "type" {
+								node = b.TypeToTypeNode(typ, enclosing, flag, internalFlag, tracker)
+							} else if operation == "annotation" {
+								node = c.GetEmitResolver().TryJSTypeNodeToTypeNode(b.EmitContext(), n.Type(), enclosing, flag, internalFlag, tracker)
+							} else if operation == "expression" {
+								node = c.GetEmitResolver().CreateTypeOfExpression(b.EmitContext(), n.Initializer(), enclosing, flag, internalFlag, tracker)
+							} else if operation == "return" {
+								node = c.GetEmitResolver().CreateReturnTypeOfSignatureDeclaration(b.EmitContext(), n.Initializer(), enclosing, flag, internalFlag, tracker)
+							} else if operation == "parameters" {
+								parameterNodes = c.GetEmitResolver().CreateTypeParametersOfSignatureDeclaration(b.EmitContext(), n.Initializer(), enclosing, flag, internalFlag, tracker)
+							} else if operation == "signature" {
+								node = b.SignatureToSignatureDeclaration(c.getSignatureFromDeclaration(n.Initializer()), ast.KindFunctionType, enclosing, flag, internalFlag, tracker)
+							} else {
+								node = b.SerializeTypeForDeclaration(n, c.getSymbolOfDeclaration(n), enclosing, flag|nodebuilder.FlagsMultilineObjectLiterals, internalFlag, tracker)
+							}
+							value := ""
+							for _, parameter := range parameterNodes {
+								writer, put := printer.GetSingleLineStringWriter()
+								p := printer.NewPrinter(printer.PrinterOptions{RemoveComments: true, OmitTrailingSemicolon: true, NeverAsciiEscape: enclosing != nil && enclosing.Kind == ast.KindSourceFile}, printer.PrintHandlers{}, b.EmitContext())
+								p.Write(parameter, ast.GetSourceFileOfNode(enclosing), writer, nil)
+								if value != "" {
+									value += ", "
+								}
+								value += writer.String()
+								put()
+							}
+							if node != nil {
+								writer, put := printer.GetSingleLineStringWriter()
+								p := printer.NewPrinter(printer.PrinterOptions{RemoveComments: true, OmitTrailingSemicolon: true, NeverAsciiEscape: enclosing != nil && enclosing.Kind == ast.KindSourceFile}, printer.PrintHandlers{}, b.EmitContext())
+								p.Write(node, ast.GetSourceFileOfNode(enclosing), writer, nil)
+								value = writer.String()
+								put()
+							}
+							release()
+							row := []any{n.Name().Text(), operation, scope, uint32(flag), value, tracker.events}
+							if includeInternal {
+								row = append(row, uint32(internalFlag))
+							}
+							rows = append(rows, row)
 						}
-						release()
-						rows = append(rows, []any{n.Name().Text(), operation, scope, uint32(flag), value, tracker.events})
 					}
 				}
 			}

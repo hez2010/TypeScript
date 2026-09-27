@@ -86,9 +86,11 @@ internal sealed partial class Checker
             bool aliasesOutsideScope,
             bool externalAliasesOnly = false,
             NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation,
-            INodeBuilderSymbolTracker? tracker = null)
+            INodeBuilderSymbolTracker? tracker = null,
+            NodeBuilderInternalFlags internalFlags = NodeBuilderInternalFlags.None)
         {
             Flags = flags;
+            InternalFlags = internalFlags;
             Tracker = new NodeBuilderTracker(this, tracker);
             HasTracker = tracker is not null;
             ParameterNames = (flags & NodeBuilderFlags.GenerateNamesForShadowedTypeParams) != 0 ? new() : null;
@@ -109,6 +111,7 @@ internal sealed partial class Checker
         }
 
         internal NodeBuilderFlags Flags { get; set; }
+        internal NodeBuilderInternalFlags InternalFlags { get; }
         internal INodeBuilderSymbolTracker Tracker { get; }
         internal bool HasTracker { get; }
         internal bool EncounteredError { get; set; }
@@ -138,7 +141,8 @@ internal sealed partial class Checker
             | (aliasesOutsideScope ? NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope : 0), cancellation);
 
     internal ValueTask<string> SerializeTypeSyntaxAsync(Type type, SyntaxNode? enclosing, NodeBuilderFlags flags,
-        CancellationToken cancellation = default, INodeBuilderSymbolTracker? tracker = null)
+        CancellationToken cancellation = default, INodeBuilderSymbolTracker? tracker = null,
+        NodeBuilderInternalFlags internalFlags = NodeBuilderInternalFlags.None)
     {
         const NodeBuilderFlags supported = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation
             | NodeBuilderFlags.WriteArrayAsGenericType | NodeBuilderFlags.UseOnlyExternalAliasing
@@ -157,7 +161,7 @@ internal sealed partial class Checker
         return VisibilityQueryAsync(enclosing, () => ChainOperationAsync(() => ContainerOperationAsync(async () =>
         {
             var state = new TypeSyntaxContext(enclosing, (flags & NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope) != 0,
-                (flags & NodeBuilderFlags.UseOnlyExternalAliasing) != 0, flags, tracker);
+                (flags & NodeBuilderFlags.UseOnlyExternalAliasing) != 0, flags, tracker, internalFlags);
             var node = await TypeSyntaxAsync(type, state, cancellation, (flags & NodeBuilderFlags.InTypeAlias) != 0);
             if (!FinishTypeSyntax(state))
                 return "";

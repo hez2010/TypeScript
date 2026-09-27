@@ -24,7 +24,8 @@ internal sealed partial class Checker
 
     internal async ValueTask<string> GetSymbolTypeReferenceAsync(Symbol symbol, SyntaxNode? enclosing, SymbolFlags meaning,
         IReadOnlyList<SyntaxNode>? typeArguments = null, bool externalAliasesOnly = false, bool aliasesOutsideScope = false,
-        bool forbidIndexedAccess = false, CancellationToken cancellation = default, INodeBuilderSymbolTracker? tracker = null)
+        bool forbidIndexedAccess = false, CancellationToken cancellation = default, INodeBuilderSymbolTracker? tracker = null,
+        NodeBuilderInternalFlags internalFlags = NodeBuilderInternalFlags.None)
     {
         using var query = await EnterQueryAsync(enclosing, cancellation).ConfigureAwait(false);
         var flags = (externalAliasesOnly ? SymbolFormatFlags.UseOnlyExternalAliasing : 0)
@@ -32,9 +33,14 @@ internal sealed partial class Checker
         var arguments = typeArguments is null ? null : new NodeList(typeArguments.ToArray());
         return await ChainOperationAsync(() => ContainerOperationAsync(async () =>
         {
-            var types = tracker is null
+            var types = tracker is null && internalFlags == NodeBuilderInternalFlags.None
                 ? null
-                : new TypeSyntaxContext(enclosing, aliasesOutsideScope, externalAliasesOnly, tracker: tracker);
+                : new TypeSyntaxContext(
+                    enclosing,
+                    aliasesOutsideScope,
+                    externalAliasesOnly,
+                    tracker: tracker,
+                    internalFlags: internalFlags);
             var node = await SymbolTypeNodeAsync(
                 symbol,
                 meaning,
@@ -58,7 +64,9 @@ internal sealed partial class Checker
         var factory = new NodeFactory();
         state.Types?.Tracker.TrackSymbol(symbol, state.Enclosing, meaning);
         forbidIndexed |= state.ForbidIndexedAccess;
-        List<Symbol> chain = state.Enclosing is null && !state.FullyQualified || (symbol.Flags & SymbolFlags.TypeParameter) != 0 ? [symbol]
+        List<Symbol> chain = state.Enclosing is null && !state.FullyQualified || (symbol.Flags & SymbolFlags.TypeParameter) != 0
+            || state.Types is { InternalFlags: var internalFlags }
+                && (internalFlags & NodeBuilderInternalFlags.DoNotIncludeSymbolChain) != 0 ? [symbol]
             : (await DisplaySymbolChainAsync(symbol, meaning, true, state, cancellation,
                 (state.Flags & SymbolFormatFlags.UseAliasDefinedOutsideCurrentScope) == 0))!;
         bool typeOf = meaning == SymbolFlags.Value;

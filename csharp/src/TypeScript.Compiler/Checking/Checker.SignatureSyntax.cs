@@ -13,14 +13,15 @@ internal sealed partial class Checker
 
     internal ValueTask<string> SerializeSignatureSyntaxAsync(Signature signature, K kind, SyntaxNode? enclosing,
         NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation, CancellationToken cancellation = default,
-        INodeBuilderSymbolTracker? tracker = null)
+        INodeBuilderSymbolTracker? tracker = null,
+        NodeBuilderInternalFlags internalFlags = NodeBuilderInternalFlags.None)
     {
         if (signature.Context != context)
             throw new ArgumentException("Signature belongs to another checker", nameof(signature));
         return VisibilityQueryAsync(enclosing, () => ChainOperationAsync(() => ContainerOperationAsync(async () =>
         {
             var state = new TypeSyntaxContext(enclosing, (flags & NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope) != 0,
-                (flags & NodeBuilderFlags.UseOnlyExternalAliasing) != 0, flags, tracker);
+                (flags & NodeBuilderFlags.UseOnlyExternalAliasing) != 0, flags, tracker, internalFlags);
             var node = await SignatureSyntaxAsync(signature, kind, state, cancellation);
             if (!FinishTypeSyntax(state))
                 return "";
@@ -156,7 +157,12 @@ internal sealed partial class Checker
             valueScope = EnterValueParameterScope(signature.Declaration, expanded, signature.Parameters, state, cancellation);
             generatedScope = EnterGeneratedParameterScope(signature.Declaration, signature.TypeParameters, state, cancellation);
             var typeParameters = new List<SyntaxNode>();
-            if ((state.Flags & NodeBuilderFlags.WriteTypeArgumentsOfSignature) != 0
+            if (preserveParameters && signature.Declaration is IFunctionSignature { TypeParameters: { } sourceTypeParameters })
+            {
+                foreach (var parameter in sourceTypeParameters)
+                    typeParameters.Add(await RecoverTypeSyntaxAsync(parameter, state, cancellation));
+            }
+            else if ((state.Flags & NodeBuilderFlags.WriteTypeArgumentsOfSignature) != 0
                 && signature.Target is { TypeParameters.Count: > 0 } target
                 && signature.Mapper is { } mapper)
             {

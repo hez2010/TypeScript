@@ -138,8 +138,12 @@ internal static class CheckerNodeBuilderTests
         return checks;
     }
 
-    internal static async Task WriteAsync(Checker checker, SourceFileNode file, NodeBuilderFlags[] flags, Utf8JsonWriter writer)
+    internal static async Task WriteAsync(Checker checker, SourceFileNode file, NodeBuilderFlags[] flags, Utf8JsonWriter writer,
+        NodeBuilderInternalFlags[]? internalFlags = null)
     {
+        bool includeInternal = internalFlags is { Length: > 0 };
+        if (!includeInternal)
+            internalFlags = [NodeBuilderInternalFlags.None];
         writer.WriteStartObject();
         writer.WriteStartArray("tracking");
         foreach (var declaration in file.DescendantsAndSelf().OfType<VariableDeclarationNode>())
@@ -151,24 +155,75 @@ internal static class CheckerNodeBuilderTests
             SyntaxNode?[] scopes = [null, file, declaration];
             for (int scope = 0; scope < scopes.Length; scope++)
                 foreach (var flag in flags)
-                    foreach (string operation in new[] { "type", "declaration" })
-                    {
-                        var tracker = new Tracker();
-                        string text = operation == "type"
-                            ? await checker.SerializeTypeSyntaxAsync(type, scopes[scope], flag, tracker: tracker)
-                            : await checker.SerializeDeclarationTypeForEmitAsync(declaration, scopes[scope], flag, tracker: tracker);
-                        writer.WriteStartArray();
-                        writer.WriteStringValue(name.Text);
-                        writer.WriteStringValue(operation);
-                        writer.WriteNumberValue(scope);
-                        writer.WriteNumberValue((uint)flag);
-                        writer.WriteStringValue(text);
-                        writer.WriteStartArray();
-                        foreach (var entry in tracker.Events)
-                            writer.WriteStringValue(entry);
-                        writer.WriteEndArray();
-                        writer.WriteEndArray();
-                    }
+                    foreach (var internalFlag in internalFlags!)
+                        foreach (string operation in includeInternal && declaration.Type is not null
+                            ? new[] { "type", "declaration", "annotation" }
+                            : includeInternal && declaration.Initializer is ArrowFunctionNode or FunctionExpressionNode
+                                ? ["type", "declaration", "expression", "return", "parameters", "signature"] : ["type", "declaration"])
+                        {
+                            var tracker = new Tracker();
+                            string text = operation switch
+                            {
+                                "type" => await checker.SerializeTypeSyntaxAsync(
+                                    type,
+                                    scopes[scope],
+                                    flag,
+                                    tracker: tracker,
+                                    internalFlags: internalFlag),
+                                "annotation" => await checker.SerializeJsTypeForEmitAsync(
+                                    declaration.Type!,
+                                    scopes[scope],
+                                    flag,
+                                    tracker: tracker,
+                                    internalFlags: internalFlag),
+                                "expression" => await checker.SerializeExpressionTypeForEmitAsync(
+                                    declaration.Initializer!,
+                                    scopes[scope],
+                                    flag,
+                                    tracker: tracker,
+                                    internalFlags: internalFlag),
+                                "return" => await checker.SerializeReturnTypeForEmitAsync(
+                                    declaration.Initializer!,
+                                    scopes[scope],
+                                    flag,
+                                    tracker: tracker,
+                                    internalFlags: internalFlag),
+                                "parameters" => string.Join(
+                                    ", ",
+                                    await checker.SerializeTypeParametersForEmitAsync(
+                                        declaration.Initializer!,
+                                        scopes[scope],
+                                        flag,
+                                        tracker: tracker,
+                                        internalFlags: internalFlag)),
+                                "signature" => await checker.SerializeSignatureSyntaxAsync(
+                                    await checker.Signatures.FromDeclarationAsync(declaration.Initializer!),
+                                    TypeScript.Compiler.Syntax.SyntaxKind.FunctionType,
+                                    scopes[scope],
+                                    flag,
+                                    tracker: tracker,
+                                    internalFlags: internalFlag),
+                                _ => await checker.SerializeDeclarationTypeForEmitAsync(
+                                    declaration,
+                                    scopes[scope],
+                                    flag,
+                                    tracker: tracker,
+                                    internalFlags: internalFlag)
+                            };
+                            writer.WriteStartArray();
+                            writer.WriteStringValue(name.Text);
+                            writer.WriteStringValue(operation);
+                            writer.WriteNumberValue(scope);
+                            writer.WriteNumberValue((uint)flag);
+                            writer.WriteStringValue(text);
+                            writer.WriteStartArray();
+                            foreach (var entry in tracker.Events)
+                                writer.WriteStringValue(entry);
+                            writer.WriteEndArray();
+                            if (includeInternal)
+                                writer.WriteNumberValue((uint)internalFlag);
+                            writer.WriteEndArray();
+                        }
         }
         writer.WriteEndArray();
         writer.WriteEndObject();

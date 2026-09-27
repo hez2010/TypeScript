@@ -5,7 +5,8 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
-    private readonly record struct SerializedTypeKey(SyntaxNode Enclosing, Type Type, NodeBuilderFlags Flags);
+    private readonly record struct SerializedTypeKey(SyntaxNode Enclosing, Type Type, NodeBuilderFlags Flags,
+        NodeBuilderInternalFlags InternalFlags);
 
     private readonly record struct TrackedTypeSymbol(Symbol Symbol, SyntaxNode? Enclosing, SymbolFlags Meaning);
 
@@ -24,7 +25,7 @@ internal sealed partial class Checker
             | ((state.Symbols.Flags & SymbolFormatFlags.UseAliasDefinedOutsideCurrentScope) != 0
                 ? NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope : 0)
             | ((state.Symbols.Flags & SymbolFormatFlags.UseOnlyExternalAliasing) != 0 ? NodeBuilderFlags.UseOnlyExternalAliasing : 0);
-        var key = new SerializedTypeKey(enclosing, type, flags);
+        var key = new SerializedTypeKey(enclosing, type, flags, state.InternalFlags);
         if (state.PendingTypes.TryGetValue(key, out var cached) || serializedTypeSyntax.TryGetValue(key, out cached))
         {
             foreach (var symbol in cached.Symbols)

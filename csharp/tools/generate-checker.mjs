@@ -14,7 +14,7 @@ const groups = {
     "types.go": ["TypeFlags", "ObjectFlags", "SignatureFlags", "ElementFlags", "AccessFlags", "IndexFlags", "VarianceFlags", "NodeCheckFlags", "TypePredicateKind", "SignatureKind", "Ternary", "ContextFlags", "SymbolFormatFlags", "TypeFormatFlags"],
     "checker.go": ["TypeSystemPropertyName", "UnionReduction", "IntersectionFlags", "MappedTypeModifiers", "MappedTypeNameTypeKind", "TypeFacts", "InferenceFlags", "InferencePriority", "CheckMode", "WideningKind", "IterationUse", "IterationTypeKind", "DeclarationSpaces"],
     "relater.go": ["SignatureCheckMode", "MinArgumentCountFlags", "IntersectionState", "RecursionFlags", "ExpandingFlags", "RelationComparisonResult"],
-    "../nodebuilder/types.go": ["Flags"],
+    "../nodebuilder/types.go": ["Flags", "InternalFlags"],
     "../printer/emitresolver.go": ["TypeReferenceSerializationKind"],
     "../ast/modifierflags.go": ["ModifierFlags"],
 };
@@ -28,7 +28,7 @@ for (const [file, names] of Object.entries(groups)) {
         if (!block) throw Error(`Missing ${name}`);
         const flags = name.endsWith("Flags") || ["MappedTypeModifiers", "SignatureCheckMode", "IntersectionState", "RelationComparisonResult", "TypeFacts", "InferencePriority", "CheckMode", "IterationUse", "DeclarationSpaces"].includes(name), backing = name === "Ternary" ? "sbyte" : name === "InferencePriority" ? "int" : flags ? "uint" : "int";
         if (flags) lines.push("[Flags]");
-        lines.push(`public enum ${name === "Flags" ? "NodeBuilderFlags" : name} : ${backing}`, "{");
+        lines.push(`public enum ${name === "Flags" ? "NodeBuilderFlags" : name === "InternalFlags" ? "NodeBuilderInternalFlags" : name} : ${backing}`, "{");
         let index = 0, previous;
         for (const row of block[1].split("\n").map(s => s.trim()).filter(Boolean)) {
             const match = row.match(new RegExp(`^${name}(\\w+)(?:\\s+${name})?(?:\\s*=\\s*(.*))?$`));

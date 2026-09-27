@@ -30,7 +30,8 @@ internal sealed partial class Checker
 
     internal ValueTask<IReadOnlyList<string>> SerializeLateBoundIndexesForEmitAsync(SyntaxNode container, SyntaxNode? enclosing,
         NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation, CancellationToken cancellation = default,
-        INodeBuilderSymbolTracker? tracker = null) =>
+        INodeBuilderSymbolTracker? tracker = null,
+        NodeBuilderInternalFlags internalFlags = NodeBuilderInternalFlags.None) =>
         EmitSyntaxQueryAsync<IReadOnlyList<string>>(container, enclosing, flags, async state =>
         {
             var symbol = program.Symbols.Binding(container)?.Get(container)?.Symbol ?? program.Symbols.Declaration(container);
@@ -42,7 +43,7 @@ internal sealed partial class Checker
                 ? await IndexInfosAsync(indexSymbol, members.Values.ToArray(), cancellation) : [];
             var results = new List<string>();
             TypeSyntaxContext FreshContext() => new(enclosing, (flags & NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope) != 0,
-                (flags & NodeBuilderFlags.UseOnlyExternalAliasing) != 0, flags, tracker);
+                (flags & NodeBuilderFlags.UseOnlyExternalAliasing) != 0, flags, tracker, internalFlags);
             foreach (var (infos, isStatic) in new[] { (staticInfos, true), (instanceInfos, false) })
                 foreach (var info in infos)
                 {
@@ -84,7 +85,7 @@ internal sealed partial class Checker
                     results.Add(FinishTypeSyntax(state) ? PrintEmitSyntax(index, enclosing, state, cancellation) : "");
                 }
             return results;
-        }, [], cancellation);
+        }, [], cancellation, tracker, internalFlags);
 
     private static NodeList? IndexModifiers(IndexInfo info, bool isStatic, TypeSyntaxContext state)
     {
@@ -118,6 +119,9 @@ internal sealed partial class Checker
                 {
                     if (await LateMembers.BindableAsync(component, cancellation))
                         continue;
+                    var computed = (ComputedPropertyNameNode)SemanticSyntax.Name(component)!;
+                    TrackComputedName(computed.Expression!, state, true, cancellation);
+                    TrackComputedName(computed.Expression!, state, false, cancellation);
                     var symbol = program.Symbols.Binding(component)?.Get(component)?.Symbol ?? program.Symbols.Declaration(component);
                     var typeNode = valueNode is null
                         ? await TypeSyntaxAsync(

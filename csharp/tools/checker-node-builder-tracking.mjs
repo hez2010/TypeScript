@@ -15,6 +15,7 @@ import {
 } from "./common.mjs";
 
 const directory = path.join(output, "checker-node-builder-tracking");
+const internalOptions = process.argv.includes("--internal-flags");
 const reference = JSON.parse(await readFile(path.join(output, "reference.json"), "utf8"));
 const source = path.join(output, reference.sourceRelativePath, "tsc");
 const go = "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe";
@@ -46,7 +47,13 @@ interface String{} interface Number{} interface Boolean{} interface RegExp{}
 interface Array<T>{length:number;[n:number]:T} interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T}
 interface Symbol{} interface SymbolConstructor{():symbol;readonly iterator:unique symbol} declare var Symbol:SymbolConstructor;type ReturnType<T extends (...args:any)=>any>=T extends (...args:any)=>infer R?R:any;
 type NoInfer<T>=intrinsic;type Uppercase<T extends string>=intrinsic;`;
-const fixtures = {
+const fixtures = internalOptions ? {
+    internalSignatures: "namespace N{export interface A{value:string}}const showGeneric=<T extends N.A>(value:T):N.A=>value;const showReturn=():N.A=>({value:'x'});",
+    internalQualified: "namespace N{export interface A{value:string}export class C{value=1}}declare let showType:N.A;declare let showObject:{a:N.A;c:N.C};declare let showConstructor:typeof N.C;",
+    internalUnresolved: "declare const key:any;declare const nested:{key:any};declare const numeric:number;declare let showAny:{[key]:string;[nested.key]:number;regular:boolean};declare let showRemoved:{[numeric]:string;[key()]:number};",
+    internalComputed: "declare const key:unique symbol;declare let showKeys:{[key]:number;['text']:string;[42]:boolean};",
+    internalCache: "namespace N{export interface A{x:number}}interface Box<T>{value:T}declare let showBox:Box<N.A>;declare let showNested:{a:Box<N.A>;b:Box<N.A>};",
+} : {
     templates: "declare const value:string;let showLet=`v${value}`;const showConst=`v${value}`;const showArrow=()=>`v${value}` as const;",
     genericCache: "interface Box<T>{value:T}function scope<T>(){let showGeneric:Box<T>;let showConditional:T extends string?Box<T>:T[];}type Tree<T>={next:Tree<T>};declare let showTree:Tree<number>;",
     unicode: 'type Text="雪";declare let showWide:{["雪"]:Text; callback:()=>{雪:Text}};',
@@ -63,7 +70,7 @@ const fixtures = {
 };
 const dependency = "export interface External<T>{item:T}export interface Item{value:string}";
 const ignore = 2 ** 15 + 2 ** 16 + 2 ** 17 + 2 ** 18 + 2 ** 19 + 2 ** 21 + 2 ** 26;
-const flags = [0, 1, ignore, ignore + 1, 1 + 2 ** 20, 1 + 2 ** 11, ignore + 1 + 2 ** 23];
+const flags = internalOptions ? [ignore + 1] : [0, 1, ignore, ignore + 1, 1 + 2 ** 20, 1 + 2 ** 11, ignore + 1 + 2 ** 23];
 const filterIndex = process.argv.indexOf("--filter");
 const filter = filterIndex < 0 ? "" : process.argv[filterIndex + 1];
 const cases = [];
@@ -81,6 +88,7 @@ for (const [fixture, text] of Object.entries(fixtures)) {
             concurrency: 1,
             typeNodes: true,
             nodeBuilderTracking: true,
+            ...(internalOptions ? { nodeBuilderInternalFlags: [0, 1, 2, 4, 8, 15] } : {}),
             typeSyntaxFlags: flags,
         };
         cases.push({ name, input, hash: sha256(JSON.stringify(input)) });
@@ -142,6 +150,6 @@ for (const item of cases) {
 await json(path.join(directory, "differences.json"), differences);
 const summary = { timestamp: new Date().toISOString(), referenceRevision, managed: true, cases: cases.length, queries, differences: differences.map(d => ({ name: d.name, count: d.mismatches.length })), oracleSha256: oracleHash, candidateSha256: candidateHash, referenceExecuted: expected.executed, referenceReused: expected.reused, candidateExecuted: actual.executed, candidateReused: actual.reused };
 await json(path.join(directory, "summary.json"), summary);
-await json(path.join(directory, `summary-tracking${filter ? "-" + filter.replace(/[^a-z0-9-]/gi, "_") : ""}.json`), summary);
+await json(path.join(directory, `summary-tracking${internalOptions ? "-internal-flags" : ""}${filter ? "-" + filter.replace(/[^a-z0-9-]/gi, "_") : ""}.json`), summary);
 console.log(summary);
 if (differences.length) process.exitCode = 1;

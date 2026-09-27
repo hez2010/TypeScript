@@ -27,58 +27,59 @@ func main() {
 	output := json.NewEncoder(os.Stdout)
 	for lines.Scan() {
 		var input struct {
-			NodeBuilderTracking   bool
-			TypeSyntax            bool
-			SignatureSyntax       bool
-			EmitQueries           bool
-			EmitReferences        bool
-			EmitSerialization     bool
-			EmitLinks             bool
-			EmitJsx               bool
-			EmitServices          bool
-			EmitSyntax            bool
-			EmitRecovery          bool
-			TypeSyntaxFlags       []nodebuilder.Flags
-			SymbolTypeNodes       bool
-			SymbolFormatFlags     []checker.SymbolFormatFlags
-			Files                 map[string]string
-			Roots                 []string
-			Options               map[string]any
-			Concurrency           int
-			Aliases               bool
-			TypeNodes             bool
-			Members               bool
-			Values                bool
-			Properties            bool
-			Signatures            bool
-			Identity              bool
-			Assignability         bool
-			Indexing              bool
-			Constants             bool
-			Expressions           bool
-			Awaited               bool
-			References            bool
-			Flow                  bool
-			Identifiers           bool
-			Access                bool
-			Calls                 bool
-			Assertions            bool
-			Semantic              bool
-			SemanticDetails       bool
-			TypeDisplays          bool
-			DisplayFormats        bool
-			TypeFormatFlags       []checker.TypeFormatFlags
-			Locations             bool
-			SymbolLocations       bool
-			DocumentationSymbols  bool
-			ScopeServices         bool
-			ContextQueries        bool
-			DeclarationVisibility bool
-			SymbolChains          bool
-			Accessibility         bool
-			SymbolDisplay         bool
-			SymbolFormats         bool
-			NumberStrings         []string
+			NodeBuilderTracking      bool
+			NodeBuilderInternalFlags []nodebuilder.InternalFlags
+			TypeSyntax               bool
+			SignatureSyntax          bool
+			EmitQueries              bool
+			EmitReferences           bool
+			EmitSerialization        bool
+			EmitLinks                bool
+			EmitJsx                  bool
+			EmitServices             bool
+			EmitSyntax               bool
+			EmitRecovery             bool
+			TypeSyntaxFlags          []nodebuilder.Flags
+			SymbolTypeNodes          bool
+			SymbolFormatFlags        []checker.SymbolFormatFlags
+			Files                    map[string]string
+			Roots                    []string
+			Options                  map[string]any
+			Concurrency              int
+			Aliases                  bool
+			TypeNodes                bool
+			Members                  bool
+			Values                   bool
+			Properties               bool
+			Signatures               bool
+			Identity                 bool
+			Assignability            bool
+			Indexing                 bool
+			Constants                bool
+			Expressions              bool
+			Awaited                  bool
+			References               bool
+			Flow                     bool
+			Identifiers              bool
+			Access                   bool
+			Calls                    bool
+			Assertions               bool
+			Semantic                 bool
+			SemanticDetails          bool
+			TypeDisplays             bool
+			DisplayFormats           bool
+			TypeFormatFlags          []checker.TypeFormatFlags
+			Locations                bool
+			SymbolLocations          bool
+			DocumentationSymbols     bool
+			ScopeServices            bool
+			ContextQueries           bool
+			DeclarationVisibility    bool
+			SymbolChains             bool
+			Accessibility            bool
+			SymbolDisplay            bool
+			SymbolFormats            bool
+			NumberStrings            []string
 		}
 		if err := json.Unmarshal(lines.Bytes(), &input); err != nil {
 			panic(err)
@@ -106,7 +107,7 @@ func main() {
 		program := compiler.NewProgram(options)
 		c, _ := checker.NewChecker(program, nil)
 		if input.NodeBuilderTracking {
-			if err := output.Encode(c.CSharpNodeBuilderTracking(program.GetSourceFile("/project/main.ts"), input.TypeSyntaxFlags)); err != nil {
+			if err := output.Encode(c.CSharpNodeBuilderTracking(program.GetSourceFile("/project/main.ts"), input.TypeSyntaxFlags, input.NodeBuilderInternalFlags)); err != nil {
 				panic(err)
 			}
 			continue

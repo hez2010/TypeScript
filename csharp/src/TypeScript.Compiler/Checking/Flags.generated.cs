@@ -611,6 +611,16 @@ public enum NodeBuilderFlags : uint
     InInitialEntityName = 1u << 24,
 }
 
+[Flags]
+public enum NodeBuilderInternalFlags : uint
+{
+    None = 0,
+    WriteComputedProps = 1u << 0,
+    NoSyntacticPrinter = 1u << 1,
+    DoNotIncludeSymbolChain = 1u << 2,
+    AllowUnresolvedNames = 1u << 3,
+}
+
 // ../printer/emitresolver.go SHA256 fca5be1776634a74e643e565ea599876be2c88c0bb5ac47bac70ddfdb19031c4
 public enum TypeReferenceSerializationKind : int
 {

@@ -1,0 +1,172 @@
+{
+    "timestamp": "2026-09-27T02:00:32.853Z",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "configuration": "Release",
+    "managed": true,
+    "scope": "Internal node-builder flags, qualified-name suppression, unresolved computed-name recovery, flag-aware syntax caches and ordered tracker callbacks",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/phase4-builder-flags-final-build.log",
+        "sha256": "42468a86840f8b5e6d0df9ff216e38390aade366f11203572799a9cac8d3e3b3"
+    },
+    "compilerSha256": "5962f643c687dbe786f395ed52d03aa5c6eb3b002f510752efd332b6f4e6fbe9",
+    "candidateSha256": "9877970ba08fe0093094b7f69f08fe56d7bd6077f78164f0a1d8f5fec8f1596e",
+    "internalFlagComparisons": {
+        "configurations": 10,
+        "queries": 1296,
+        "exact": 10,
+        "differences": 0,
+        "operations": [
+            "type",
+            "declaration",
+            "annotation",
+            "expression",
+            "return",
+            "parameters",
+            "signature"
+        ],
+        "flags": [
+            0,
+            1,
+            2,
+            4,
+            8,
+            15
+        ],
+        "scopes": [
+            "none",
+            "source file",
+            "declaration"
+        ],
+        "strictModes": [
+            false,
+            true
+        ],
+        "stages": [
+            {
+                "timestamp": "2026-09-27T01:50:55.606Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "managed": true,
+                "cases": 8,
+                "queries": 864,
+                "differences": [
+                    {
+                        "name": "internalUnresolved-strict-false-full-false",
+                        "count": 24
+                    },
+                    {
+                        "name": "internalUnresolved-strict-true-full-false",
+                        "count": 24
+                    },
+                    {
+                        "name": "internalCache-strict-false-full-false",
+                        "count": 36
+                    },
+                    {
+                        "name": "internalCache-strict-true-full-false",
+                        "count": 36
+                    }
+                ],
+                "oracleSha256": "592a70357bd5eecad1599c397fe5721ce91462576cb09ba6f2da643c2bfe550b",
+                "candidateSha256": "58a05d7f4bdaf44065f9491a0991aa92ecde0c39018c55780bd8c33bc879b229",
+                "referenceExecuted": 8,
+                "referenceReused": 0,
+                "candidateExecuted": 8,
+                "candidateReused": 0
+            },
+            {
+                "timestamp": "2026-09-27T01:52:50.835Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "managed": true,
+                "cases": 4,
+                "queries": 432,
+                "differences": [],
+                "oracleSha256": "592a70357bd5eecad1599c397fe5721ce91462576cb09ba6f2da643c2bfe550b",
+                "candidateSha256": "9b717d6303b62c5e33d59f33442eadc41475ce253fcf2dbbc82a10df40f22e3d",
+                "referenceExecuted": 0,
+                "referenceReused": 4,
+                "candidateExecuted": 4,
+                "candidateReused": 0
+            },
+            {
+                "timestamp": "2026-09-27T01:58:03.261Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "managed": true,
+                "cases": 2,
+                "queries": 432,
+                "differences": [],
+                "oracleSha256": "72c924cf8822c5b2db21a97286b33cecab7f06f3496fb28c56bcc6f40ce1ebce",
+                "candidateSha256": "e4e8f6ae49abd68575cd3943426e438bed6da6ee1ed350aead81b118096ab64b",
+                "referenceExecuted": 0,
+                "referenceReused": 2,
+                "candidateExecuted": 2,
+                "candidateReused": 0
+            }
+        ],
+        "reuse": "Four initially passing configurations are retained. Only the four failed computed-name/nested-reference configurations were replayed after their fixes. Two new signature configurations were added, then replayed after source type-parameter reuse was corrected. Reference outputs were reused on both follow-ups."
+    },
+    "recovery": {
+        "configurations": 56,
+        "queries": 3672,
+        "exact": 56,
+        "failed": 0,
+        "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+        "candidateHash": "9b717d6303b62c5e33d59f33442eadc41475ce253fcf2dbbc82a10df40f22e3d",
+        "inputHash": "d965845ae5589f096acf2209fe60523963047c5501bd5f1ea876c4b9d465dc09",
+        "resultHash": "ee2e25148e4ce8cc05fc896805ce217b6372b2d6a08ecde63b976877d7a19bc4",
+        "log": "logs/phase4-builder-flags-recovery.log",
+        "sha256": "9a532c17e8ed508dce00c48258cf00a2e0cc78c24c4449ec51dee6de1ca8e9f8",
+        "affectedFollowup": {
+            "configurations": 4,
+            "queries": 396,
+            "comparedQueries": 396,
+            "exact": 4,
+            "failed": 0,
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "referenceFailures": 0,
+            "candidateFailures": 0,
+            "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+            "candidateHash": "e4e8f6ae49abd68575cd3943426e438bed6da6ee1ed350aead81b118096ab64b",
+            "inputHash": "ef0c57f82fee5d6f585e7f894c38d782adeb60f400603e34490ddebf16d15cea",
+            "resultHash": "e745dae81c975a18c98339cdc0d93561fc73401a5249529ab73e16c4c51d06ab",
+            "managed": true
+        },
+        "reuse": "The final type-parameter change replayed only the affected annotation configurations; remaining recovery results are retained."
+    },
+    "safety": {
+        "assertions": 17,
+        "scope": "Tracker callbacks, scoped cache identity, callback failure, cancellation, retry, rejection, truncation, AST ownership",
+        "log": "logs/phase4-builder-flags-safety.log",
+        "sha256": "3c248011af9e0f6ccaa5f9becd5a0828f8ded4f56e966de17203daafb131e508"
+    },
+    "formatting": {
+        "csharpFiles": 10,
+        "libraryConfigurations": 2,
+        "tokensCommentsAndSyntaxIdentical": true,
+        "dotnetWhitespaceExitCode": 0,
+        "log": "logs/phase4-builder-flags-format.log",
+        "sha256": "315d439ee2ef057a3718c74ef167b3901370ed851d5fa5de52a911fdec366d9e",
+        "generatorFreshnessExitCode": 0
+    },
+    "reuse": {
+        "semanticRecord": "phase4-documentation-recovery-validation.json",
+        "reason": "Semantic checking is unchanged; this batch changes serialization options, recovered syntax and symbol tracking. No unchanged corpus replay.",
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ]
+    },
+    "limitations": [
+        "NoSyntacticPrinter is an unused flag in the pinned reference and remains inert here.",
+        "WriteComputedProps belongs to symbol-to-node display; existing symbol-format comparisons cover computed names. The new type/emit comparisons confirm its unchanged behavior in those operations.",
+        "Complete resolver and node-builder coverage and whole-phase completion remain unproven."
+    ],
+    "nativeAotVerification": "Deferred until whole phase 4 completion; no NativeAOT build or execution",
+    "phase4Complete": false
+}
