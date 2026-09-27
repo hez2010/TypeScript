@@ -531,6 +531,8 @@ public sealed partial class Parser
                 break;
             if (stopOnStaticBlock && Token == K.StaticKeyword && NextIs(K.OpenBraceToken))
                 break;
+            if (Token == K.StaticKeyword && nodes?.Any(n => n.Kind == K.StaticKeyword) == true)
+                break;
             K modifierKind = Token;
             if (!modifier || !Peek(() =>
             {
@@ -541,8 +543,6 @@ public sealed partial class Parser
                             or K.OpenBraceToken or K.DotDotDotToken or K.AsteriskToken or K.AtToken);
             }))
                 break;
-            if (Token == K.StaticKeyword && nodes?.Any(n => n.Kind == K.StaticKeyword) == true)
-                Error(Messages.Unexpected_keyword_or_identifier);
             (nodes ??= []).Add(ParseToken());
         }
 

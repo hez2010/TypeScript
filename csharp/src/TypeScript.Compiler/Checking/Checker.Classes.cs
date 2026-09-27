@@ -250,7 +250,8 @@ internal sealed partial class Checker
                 && @static
                 && symbol?.Name is { } name
                 && (name == "prototype" || !UseDefineForClassFields && name is "name" or "length" or "caller" or "arguments"))
-                Error(SemanticSyntax.Name(member)!, 2699);
+                Error(SemanticSyntax.Name(member)!, 2699, name, program.Symbols.Declaration(node) is { } owner
+                    ? TypeDisplay.SymbolName(owner) : "(Anonymous class)");
             Check(
                 member,
                 @static,
@@ -288,10 +289,10 @@ internal sealed partial class Checker
                     {
                         foreach (var parameter in ctor.Parameters!.Where(ParameterProperty))
                             if (program.Symbols.Declaration(parameter)?.Name == symbol.Name)
-                                Error(SemanticSyntax.Name(parameter)!, 2300);
+                                DuplicatePropertyError(SemanticSyntax.Name(parameter)!, program.Symbols.Declaration(parameter)!);
                     }
                     else if (program.Symbols.Declaration(duplicate)?.Name == symbol.Name && SemanticSyntax.IsStatic(duplicate) == @static)
-                        Error(SemanticSyntax.Name(duplicate)!, 2300);
+                        DuplicatePropertyError(SemanticSyntax.Name(duplicate)!, program.Symbols.Declaration(duplicate)!);
                 seen[(symbol.Name, @static)] = 3;
             }
         }

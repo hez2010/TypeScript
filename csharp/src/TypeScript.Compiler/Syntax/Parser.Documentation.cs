@@ -44,9 +44,18 @@ public sealed partial class Parser
             clause = parser.Finish(parser.factory.NewImportClause(K.TypeKeyword, name, bindings), clauseStart);
             parser.Expected(K.FromKeyword);
         }
+        SyntaxNode specifier;
         if (!parser.StartsExpression())
-            parser.Error(Messages.Expression_expected);
-        SyntaxNode specifier = await parser.ExpressionCore().ConfigureAwait(false);
+        {
+            if (clause is not null && parser.Token == K.EndOfFile)
+                parser.ErrorAt(Messages.Expression_expected, parser.Pos, 0);
+            else
+                parser.Error(Messages.Expression_expected);
+            specifier = parser.Token == K.EndOfFile ? parser.Finish(parser.factory.NewIdentifier(""), parser.Pos, parser.Pos)
+                : await parser.ExpressionCore().ConfigureAwait(false);
+        }
+        else
+            specifier = await parser.ExpressionCore().ConfigureAwait(false);
         ImportAttributesNode? attributes = null;
         if (parser.Token == K.WithKeyword || !parser.LineBreak && parser.Token == K.AssertKeyword)
         {

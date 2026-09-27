@@ -203,6 +203,7 @@ internal sealed partial class Checker
         if (node.ModuleReference is ExternalModuleReferenceNode external && !ExternalModuleSyntax(node, external.Expression))
             return;
         await CheckAliasSourceAsync(node, cancellation).ConfigureAwait(false);
+        await MarkLinkedReferenceForEmitAsync(node, cancellation).ConfigureAwait(false);
         if (node.ModuleReference is not ExternalModuleReferenceNode)
         {
             var target = await program.Aliases.ResolveAsync(program.Symbols.Declaration(node)!, cancellation).ConfigureAwait(false);

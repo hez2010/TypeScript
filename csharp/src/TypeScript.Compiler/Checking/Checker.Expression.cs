@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Semantics;
 using TypeScript.Compiler.Syntax;
 
@@ -19,6 +20,21 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
 
     public void ExpressionError(SyntaxNode node, int code)
     {
+        if (code == 1308 && SemanticSyntax.Source(node) is { } file)
+        {
+            var (start, end) = CheckerDiagnostic.TokenRange(file, node.Pos);
+            var diagnostic = CheckerDiagnostic.Create(
+                node,
+                Messages.X_await_expressions_are_only_allowed_within_async_functions_and_at_the_top_levels_of_modules)
+                with
+            { Start = start, Length = end - start };
+            var container = DeclarationOrder.Ancestor(node.Parent, n => n is IFunctionSignature);
+            if (container is not null and not ConstructorDeclarationNode && !SemanticSyntax.HasModifier(container, SyntaxKind.AsyncKeyword))
+                diagnostic = diagnostic with
+                { RelatedInformation = [CheckerDiagnostic.Create(container, Messages.Did_you_mean_to_mark_this_function_as_async)] };
+            Error(node, diagnostic);
+            return;
+        }
         if (code == 1098 && node is IFunctionSignature signature)
         {
             EmptyTypeListError(node, signature.TypeParameters, code);

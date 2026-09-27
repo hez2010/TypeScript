@@ -2,6 +2,7 @@ using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Hosts;
+using TypeScript.Compiler.Resolution;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -117,11 +118,13 @@ internal sealed partial class Checker
                 else if (!sideEffect)
                 {
                     if (NoImplicitAny)
-                        program.Error(
-                            node,
-                            Messages.Could_not_find_a_declaration_file_for_module_0_1_implicitly_has_an_any_type,
-                            name,
-                            resolved.FileName);
+                    {
+                        var diagnostic = CheckerDiagnostic.Create(node,
+                            Messages.Could_not_find_a_declaration_file_for_module_0_1_implicitly_has_an_any_type, name, resolved.FileName);
+                        if (!ModuleResolver.Relative(name) && resolved.PackageId is { Name.Length: > 0 } package)
+                            diagnostic = diagnostic with { MessageChain = [MissingPackageTypes(node, name, resolved, package.Name)] };
+                        Error(node, diagnostic);
+                    }
                     else
                         program.Suggestion(node, 7016, name);
                 }
@@ -160,6 +163,30 @@ internal sealed partial class Checker
                 ? 2580
                 : 2591;
         program.Error(node, DiagnosticLocalization.GetMessage(sideEffect && missingModuleCode == 2307 ? 2882 : missingModuleCode), name);
+    }
+
+    private Dictionary<string, bool>? resolvedPackages;
+
+    private Diagnostic MissingPackageTypes(SyntaxNode node, string moduleName, ResolvedModule resolved, string packageName)
+    {
+        string mangled = ModuleResolver.Mangle(packageName);
+        if (resolved.AlternateResult.Length != 0)
+            return CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(6278), resolved.AlternateResult,
+                resolved.AlternateResult.Contains("/node_modules/@types/", StringComparison.Ordinal) ? "@types/" + mangled : packageName);
+        if (resolvedPackages is null)
+        {
+            resolvedPackages = new(StringComparer.Ordinal);
+            foreach (var file in program.Symbols.Program.SourceFiles)
+                foreach (var reference in file.Resolutions)
+                    if (!reference.TypeReference && reference.Resolution.PackageId is { Name.Length: > 0 } package)
+                        resolvedPackages[package.Name] = resolvedPackages.GetValueOrDefault(package.Name)
+                            || reference.Resolution.Extension == ".d.ts";
+        }
+        if (resolvedPackages.ContainsKey("@types/" + mangled))
+            return CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(7040), packageName, mangled);
+        if (resolvedPackages.GetValueOrDefault(packageName))
+            return CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(7058), packageName, moduleName);
+        return CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(7035), moduleName, mangled);
     }
 
     internal string SuggestedImportExtension(string path)

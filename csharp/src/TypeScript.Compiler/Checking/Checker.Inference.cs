@@ -25,7 +25,7 @@ internal sealed partial class Checker : ITypeInferenceHost, IInferredConstraintH
             => Properties.ObjectPropertyAsync(type, name, cancellation);
 
     public async ValueTask<Type> EnumBaseAsync(Type type, CancellationToken cancellation)
-            => (type.Flags & TypeFlags.EnumLiteral) != 0 && type.Symbol is { Flags: var flags, Parent: { } parent }
+            => (type.Flags & TypeFlags.EnumLike) != 0 && type.Symbol is { Flags: var flags, Parent: { } parent }
                 && (flags & SymbolFlags.EnumMember) != 0 ? await Declared.GetAsync(parent, cancellation) : type;
 
     public ValueTask<Type?> IntraContextualTypeAsync(SyntaxNode node, CancellationToken cancellation)

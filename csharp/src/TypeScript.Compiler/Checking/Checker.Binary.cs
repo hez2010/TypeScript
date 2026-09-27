@@ -69,7 +69,13 @@ internal sealed partial class Checker : IBinaryExpressionHost, IAwaitedTypeHost
         Error(node, diagnostic);
     }
 
-    public void ArithmeticError(SyntaxNode node, Type type, int code, bool suggestAwait) => Error(node, code);
+    public void ArithmeticError(SyntaxNode node, Type type, int code, bool suggestAwait)
+    {
+        var diagnostic = CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code));
+        if (suggestAwait)
+            diagnostic = diagnostic with { RelatedInformation = [CheckerDiagnostic.Create(node, Messages.Did_you_forget_to_use_await)] };
+        Error(node, diagnostic);
+    }
 
     public void BinaryDiagnostic(SyntaxNode node, int code, bool suggestion = false)
     {

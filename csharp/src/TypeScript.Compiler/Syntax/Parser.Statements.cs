@@ -186,7 +186,7 @@ public sealed partial class Parser
                     return (await InterfaceCore(modifiers, start).ConfigureAwait(false));
                 break;
             case K.TypeKeyword:
-                if (Peek(() =>
+                if (modifiers is not null || Peek(() =>
                 {
                     Next();
                     return IsIdentifier && !LineBreak;

@@ -401,6 +401,10 @@ public sealed partial class CompilerProgram
                                 {
                                     Start = reason.Position,
                                     Length = reason.Length,
+                                    Arguments = diagnostic.Code == 6053 && reason.Kind == FileIncludeKind.PathReference
+                                        && files.TryGetValue(reason.ContainingFile, out var containing)
+                                        ? [containing.Syntax.Source.Text[containing.Syntax.Source.ToUtf16Position(reason.Position)
+                                            ..containing.Syntax.Source.ToUtf16Position(reason.Position + reason.Length)]] : diagnostic.Arguments,
                                     FileName = reason.ContainingFile.Length == 0 ? null : reason.ContainingFile
                                 });
             VerifyOutputPaths(ordered);

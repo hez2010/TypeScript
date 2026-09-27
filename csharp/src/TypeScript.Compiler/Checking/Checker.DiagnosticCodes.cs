@@ -22,6 +22,15 @@ internal sealed partial class Checker
     {
         if (node is null)
             return diagnostic;
+        if (IterationAwaitHints.Contains((node, diagnostic.Code)))
+            diagnostic = diagnostic with
+            {
+                RelatedInformation =
+                [
+                    .. diagnostic.RelatedInformation,
+                    CheckerDiagnostic.Create(node, Messages.Did_you_forget_to_use_await)
+                ]
+            };
         if (diagnostic.Code is 2322 or 2345 or 2559 or 2560 or 2739 or 2740 or 2741)
         {
             bool construct = AssignmentHints.Contains((node, true));

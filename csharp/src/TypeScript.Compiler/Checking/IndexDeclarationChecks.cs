@@ -15,11 +15,13 @@ internal interface IIndexDeclarationHost
     ValueTask IndexSignatureErrorAsync(SyntaxNode node, IndexInfo source, IndexInfo target, CancellationToken cancellation);
 
     ValueTask DuplicateIndexErrorAsync(SyntaxNode node, Type type, CancellationToken cancellation);
+
+    void DuplicatePropertyError(SyntaxNode node, Symbol symbol);
 }
 
 internal sealed class IndexDeclarationChecks(CheckerSymbols symbols, TypeNodes nodes, StructuredMembers members,
     TypeProperties properties, SymbolTypes values, IndexSignatures indexes, BaseTypes bases, TypeRelations relations,
-    Func<Symbol, CancellationToken, ValueTask<Type>> propertyName, Action<SyntaxNode, int> error, IIndexDeclarationHost host)
+    Func<Symbol, CancellationToken, ValueTask<Type>> propertyName, IIndexDeclarationHost host)
 {
     internal async ValueTask TypeLiteralAsync(TypeLiteralNode node, CancellationToken cancellation = default)
     {
@@ -49,7 +51,7 @@ internal sealed class IndexDeclarationChecks(CheckerSymbols symbols, TypeNodes n
             {
                 foreach (var duplicate in members)
                     if (symbols.Declaration(duplicate)?.Name == symbol.Name && duplicate is INamedNode { Name: { } name })
-                        error(name, 2300);
+                        host.DuplicatePropertyError(name, symbol);
                 names[symbol.Name] = 3;
             }
         }

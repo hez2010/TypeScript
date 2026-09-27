@@ -7,6 +7,10 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker : IIndexDeclarationHost
 {
+    public void DuplicatePropertyError(SyntaxNode node, Symbol symbol) => Error(node, 2300,
+        SemanticSyntax.Name(symbol.ValueDeclaration ?? symbol.Declarations.FirstOrDefault()) is ComputedPropertyNameNode name
+            ? CheckerDiagnostic.DeclarationName(name) : TypeDisplay.SymbolName(symbol));
+
     private readonly HashSet<(SyntaxNode Node, int Code, string First, string Second, string Third, string Fourth)> indexConstraintDiagnostics = [];
 
     public async ValueTask DuplicateIndexErrorAsync(SyntaxNode node, Type type, CancellationToken cancellation)

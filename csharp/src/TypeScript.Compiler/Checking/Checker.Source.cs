@@ -97,6 +97,12 @@ internal sealed partial class Checker
         try
         {
             BeforeSourceElement?.Invoke(node);
+            if ((node.Flags & NodeFlags.HasJSDoc) != 0)
+                foreach (var comment in await SemanticSyntax.Source(node)!.GetDocumentationAsync(node, cancellation).ConfigureAwait(false))
+                    foreach (var part in comment.DescendantsAndSelf())
+                        if (part is JSDocLinkNode or JSDocLinkCodeNode or JSDocLinkPlainNode
+                            && ((INamedNode)part).Name is IdentifierNode or QualifiedNameNode)
+                            await DocumentationMemberAsync(((INamedNode)part).Name!, cancellation).ConfigureAwait(false);
             if (!withinUnreachable && program.Symbols.Program.Configuration.Options.Boolean("allowUnreachableCode") != true
                 && await CheckUnreachableAsync(node, cancellation).ConfigureAwait(false))
                 withinUnreachable = true;

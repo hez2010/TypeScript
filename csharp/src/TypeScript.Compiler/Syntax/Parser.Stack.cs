@@ -74,6 +74,14 @@ public sealed partial class Parser
         {
             while (Token != end && Token != K.EndOfFile && stop?.Invoke() != true)
             {
+                if (statementList && !StartsStatement())
+                {
+                    Error(Messages.Declaration_or_statement_expected);
+                    if (classMemberBodyDepth != 0 && Peek(StartsClassMember))
+                        break;
+                    Next();
+                    continue;
+                }
                 int before = Pos;
                 SyntaxNode node = await element().ConfigureAwait(false);
                 foreach (SyntaxNode reparse in reparsedStatements)

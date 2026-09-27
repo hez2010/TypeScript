@@ -67,7 +67,7 @@ internal sealed class FunctionThis(CheckerSymbols symbols, FunctionContexts func
         var owner = node.Parent;
         while (owner is ParenthesizedExpressionNode)
             owner = owner.Parent;
-        if (owner is BinaryExpressionNode { OperatorToken.Kind: SyntaxKind.EqualsToken } assignment)
+        if (owner is BinaryExpressionNode assignment && BinaryExpressions.Assignment(assignment.OperatorToken!.Kind))
         {
             var expression = assignment.Left switch
             {
