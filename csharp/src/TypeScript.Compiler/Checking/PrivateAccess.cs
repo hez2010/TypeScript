@@ -37,7 +37,7 @@ internal sealed class PrivateAccess(TypeContext context, CheckerSymbols symbols,
         Symbol? lexical = null;
         for (var container = ContainingClass(name); container is not null; container = DeclarationOrder.ContainingClass(container))
         {
-            var owner = symbols.Binding(container)!.Get(container)!.Symbol!;
+            var owner = symbols.Binding(container)!.Get(container)!.Value.Symbol!;
             TextSlice key = Name(owner, name.Text);
             lexical = owner.Members.GetValueOrDefault(key) ?? owner.Exports.GetValueOrDefault(key);
             if (lexical is not null)

@@ -37,12 +37,12 @@ internal sealed partial class Checker
                     break;
                 case ClassExpressionNode or ClassDeclarationNode or InterfaceDeclarationNode:
                     if (current is ClassExpressionNode { Name: not null })
-                        Add(program.Symbols.Binding(current)!.Get(current)!.Symbol!, meaning);
+                        Add(program.Symbols.Binding(current)!.Get(current)!.Value.Symbol!, meaning);
                     if (!isStatic)
                         Copy(await MembersAsync(program.Symbols.Declaration(current)!, cancellation), meaning & SymbolFlags.Type);
                     break;
                 case FunctionExpressionNode { Name: not null }:
-                    Add(program.Symbols.Binding(current)!.Get(current)!.Symbol!, meaning);
+                    Add(program.Symbols.Binding(current)!.Get(current)!.Value.Symbol!, meaning);
                     break;
             }
             if (current.Kind is SyntaxKind.MethodDeclaration or SyntaxKind.MethodSignature or SyntaxKind.Constructor

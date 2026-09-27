@@ -34,7 +34,7 @@ internal sealed partial class Checker
         ? TextSlice.Concat(((IdentifierNode)namespaced.Namespace!).Text, ":", ((IdentifierNode)namespaced.Name!).Text) : SyntaxNameText.Get(node);
 
     private static TextSlice? JsxPragma(SourceFileNode file, TextSlice name) =>
-        TextSlice.FromNullable(file.Pragmas.LastOrDefault(p => p.Name == name)?.Arguments.GetValueOrDefault("factory")?.Value);
+        TextSlice.FromNullable(file.Pragmas.LastOrDefault(p => p.Name == name).Arguments?.GetValueOrDefault("factory").Value);
 
     private TextSlice JsxFactoryName(SyntaxNode node, bool fragment = false)
     {

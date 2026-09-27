@@ -13,7 +13,9 @@ internal enum RelationKind
 
 internal sealed class Relation(RelationKind kind)
 {
-    internal sealed record Entry(RelationComparisonResult Result);
+    internal readonly record struct Entry(RelationComparisonResult Result, long Version);
+
+    private long version;
 
     private readonly Dictionary<RelationKey, Entry> results = [];
     internal RelationKind Kind { get; } = kind;
@@ -21,20 +23,20 @@ internal sealed class Relation(RelationKind kind)
     internal IEnumerable<KeyValuePair<RelationKey, RelationComparisonResult>> Results =>
         results.Select(p => new KeyValuePair<RelationKey, RelationComparisonResult>(p.Key, p.Value.Result));
 
-    internal RelationComparisonResult Get(RelationKey key) => results.GetValueOrDefault(key)?.Result ?? 0;
+    internal RelationComparisonResult Get(RelationKey key) => results.GetValueOrDefault(key).Result;
 
-    internal Entry? Snapshot(RelationKey key) => results.GetValueOrDefault(key);
+    internal Entry? Snapshot(RelationKey key) => results.TryGetValue(key, out var entry) ? entry : null;
 
-    internal Entry Set(RelationKey key, RelationComparisonResult result) => results[key] = new(result);
+    internal Entry Set(RelationKey key, RelationComparisonResult result) => results[key] = new(result, ++version);
 
     internal void Restore(RelationKey key, Entry? before, Entry written)
     {
-        if (!ReferenceEquals(results.GetValueOrDefault(key), written))
+        if (!results.TryGetValue(key, out var current) || current.Version != written.Version)
             return;
         if (before is null)
             results.Remove(key);
         else
-            results[key] = before;
+            results[key] = before.Value;
     }
 }
 

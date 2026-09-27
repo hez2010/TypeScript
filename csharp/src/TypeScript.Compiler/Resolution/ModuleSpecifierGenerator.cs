@@ -16,7 +16,7 @@ internal enum ModuleSpecifierKind
     Relative,
     Ambient
 }
-internal sealed record ModuleSpecifierResult(IReadOnlyList<string> Specifiers, ModuleSpecifierKind Kind);
+internal readonly record struct ModuleSpecifierResult(IReadOnlyList<string> Specifiers, ModuleSpecifierKind Kind);
 internal sealed record ModuleSpecifierPreferences(string Relative = "shortest", string Ending = "", Func<string, bool>? Excluded = null);
 
 internal interface IModuleSpecifierHost

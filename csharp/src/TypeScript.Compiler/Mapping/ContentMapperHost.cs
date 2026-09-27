@@ -13,7 +13,7 @@ using TypeScript.Compiler.Text;
 namespace TypeScript.Compiler.Mapping;
 
 public sealed record MapperOptionDiagnostic(ContentMapper Mapper, JsonElement[] Path, string Source, DiagnosticCode Code, string Message);
-public sealed record MapperTiming(string Mapper, string Operation, long Count, TimeSpan Duration);
+public readonly record struct MapperTiming(string Mapper, string Operation, long Count, TimeSpan Duration);
 
 /// <summary>Owns lazily started mapper processes and retained project configurations.</summary>
 public sealed class ContentMapperHost : IAsyncDisposable

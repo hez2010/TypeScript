@@ -318,7 +318,7 @@ internal static class OptionValues
     }
 }
 
-public sealed record ParsedCommandLine(CompilerOptions Options, string[] FileNames, Diagnostic[] Diagnostics);
+public readonly record struct ParsedCommandLine(CompilerOptions Options, string[] FileNames, Diagnostic[] Diagnostics);
 
 public sealed class CommandLineParser(IFileSystem fileSystem, string currentDirectory)
 {

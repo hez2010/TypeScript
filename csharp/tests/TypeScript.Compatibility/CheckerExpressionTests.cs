@@ -496,7 +496,7 @@ internal static class CheckerExpressionTests
         var host = new Checker(context, links, scope);
         var nodes = program.SourceFiles[0].Syntax.DescendantsAndSelf().ToArray();
         var literal = nodes.OfType<ObjectLiteralExpressionNode>().Single();
-        var rawObject = symbols.Binding(literal)!.Get(literal)!.Symbol!;
+        var rawObject = symbols.Binding(literal)!.Get(literal)!.Value.Symbol!;
         int oldTables = host.LateMembers.CachedTableCount;
         using (var cancellation = new CancellationTokenSource())
         {
@@ -522,7 +522,7 @@ internal static class CheckerExpressionTests
         var table = await host.LateMembers.TableAsync(rawObject);
         Check(table.ContainsKey("left") && table.ContainsKey("right"));
         Check((table["left"].CheckFlags & CheckFlags.Late) != 0 && table["left"].Parent == rawObject);
-        Check(symbols.Binding(literal.Properties![0])!.Get(literal.Properties[0])!.Symbol!.Name == Symbol.InternalPrefix + "computed");
+        Check(symbols.Binding(literal.Properties![0])!.Get(literal.Properties[0])!.Value.Symbol!.Name == Symbol.InternalPrefix + "computed");
         Check(symbols.Declaration(literal.Properties[0]) == table["left"]);
         var array = nodes.OfType<ArrayLiteralExpressionNode>().Single();
         var inference = host.Inference.Create([context.NewTypeParameter()]);

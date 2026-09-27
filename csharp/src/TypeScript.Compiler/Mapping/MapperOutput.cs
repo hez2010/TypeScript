@@ -62,7 +62,7 @@ public sealed record MappedSourceFile(SourceFileNode Syntax, SourceText Original
         return result;
     }
 }
-public sealed record DiagnosticPresentation(SourceText Text, int Start, int Length, bool Synthesized, string Message);
+public readonly record struct DiagnosticPresentation(SourceText Text, int Start, int Length, bool Synthesized, string Message);
 public sealed record MappedSourceFiles(MappedSourceFile Canonical, IReadOnlyList<MappedSourceFile> Supplemental);
 
 internal static class MapperOutputDecoder

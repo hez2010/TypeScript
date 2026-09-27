@@ -163,6 +163,20 @@ internal static class ProgramGraphTests
         {
             Check(activeReads == 0, "Failed builds drain outstanding workers before returning");
         }
+        {
+            var storage = new BoundSourceFile(new SourceFileNode());
+            var original = new IdentifierNode();
+            ref var entry = ref storage.Data(original);
+            entry.Flags = NodeFlags.Synthesized;
+            var snapshot = storage.Get(original)!.Value;
+            for (int i = 0; i < 3000; i++)
+                storage.Data(new IdentifierNode()).Flags = NodeFlags.Ambient;
+            entry.Flags |= NodeFlags.ThisNodeHasError;
+            Check(storage.Get(original)!.Value.Flags == (NodeFlags.Synthesized | NodeFlags.ThisNodeHasError),
+                "Binding slots retain their identity when the node index and chunk storage grow");
+            Check(snapshot.Flags == NodeFlags.Synthesized, "Returned binding values are snapshots");
+            Check(storage.Get(new IdentifierNode()) is null, "An absent binding differs from a default binding value");
+        }
         const int depth = 12000;
         var deep = Parser.ParseSourceFile(
             new("/project/deep.ts"),

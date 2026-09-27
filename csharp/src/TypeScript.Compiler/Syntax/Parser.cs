@@ -18,7 +18,7 @@ public enum ScriptKind
     Deferred
 }
 
-public sealed record ParseOptions(
+public readonly record struct ParseOptions(
     string FileName,
     ScriptKind ScriptKind = ScriptKind.Unknown,
     int TargetYear = int.MaxValue,

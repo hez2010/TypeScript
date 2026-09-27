@@ -7,7 +7,7 @@ using TypeScript.Compiler.Resolution;
 
 namespace TypeScript.Compiler.Configuration;
 
-public sealed record ProjectReference(string Path, bool Prepend = false, bool Circular = false);
+public readonly record struct ProjectReference(string Path, bool Prepend = false, bool Circular = false);
 public sealed record ParsedConfig(string FileName, CompilerOptions Options, string[] FileNames,
     ProjectReference[] References, Diagnostic[] Diagnostics, string[] ExtendedConfigFiles)
 {

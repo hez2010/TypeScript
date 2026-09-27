@@ -415,7 +415,7 @@ public sealed class TypeContext
 
 // Keys retain the complete identity sequence: hash collisions cannot alias types.
 // Owning context is checked before constructing a key, so local IDs are sufficient.
-internal sealed class TypeCacheKey : IEquatable<TypeCacheKey>
+internal readonly struct TypeCacheKey : IEquatable<TypeCacheKey>
 {
     private readonly long[] values;
     private readonly int hash;
@@ -490,7 +490,7 @@ internal sealed class TypeCacheKey : IEquatable<TypeCacheKey>
         return hash.ToHashCode();
     }
 
-    public bool Equals(TypeCacheKey? other) => other is not null && hash == other.hash && values.AsSpan().SequenceEqual(other.values);
+    public bool Equals(TypeCacheKey other) => hash == other.hash && values.AsSpan().SequenceEqual(other.values);
 
     public override bool Equals(object? obj) => obj is TypeCacheKey other && Equals(other);
 

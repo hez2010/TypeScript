@@ -577,7 +577,7 @@ public sealed partial class CompilerProgram
                             || options.Boolean("verbatimModuleSyntax") == true)))
                         imports.Add((null, "tslib"));
                     string? Pragma(string name) =>
-                        syntax.Pragmas.LastOrDefault(p => p.Name == name)?.Arguments.GetValueOrDefault("factory")?.Value;
+                        syntax.Pragmas.LastOrDefault(p => p.Name == name).Arguments?.GetValueOrDefault("factory").Value;
                     if ((javaScript || syntax.ScriptKind == ScriptKind.TSX) && Pragma("jsxruntime") != "classic"
                         && (options.String("jsx") is "react-jsx" or "react-jsxdev" || options.String("jsxImportSource") is not null
                             || Pragma("jsximportsource") is not null || Pragma("jsxruntime") == "automatic"))

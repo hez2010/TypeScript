@@ -43,7 +43,7 @@ public sealed partial class Binder
     private bool explicitReturn, seenThis, assignmentPattern, hasFlowEffects;
     private NodeFlags emitFlags;
 
-    private sealed record ActiveLabel(TextSlice Name, FlowNode Break, FlowNode? Continue, bool Referenced = false);
+    private readonly record struct ActiveLabel(TextSlice Name, FlowNode Break, FlowNode? Continue, bool Referenced = false);
 
     private Binder(SourceFileNode file, CancellationToken cancellation)
     {
@@ -80,7 +80,7 @@ public sealed partial class Binder
         }
     }
 
-    private NodeBinding Data(SyntaxNode node) => result.Data(node);
+    private ref NodeBinding Data(SyntaxNode node) => ref result.Data(node);
 
     private Symbol? SymbolOf(SyntaxNode node) => result.Get(node)?.Symbol;
 

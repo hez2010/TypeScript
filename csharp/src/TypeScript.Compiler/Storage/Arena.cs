@@ -1,14 +1,15 @@
 namespace TypeScript.Compiler.Storage;
 
-// Owner identity stays with the handle; slots are never recycled. Chunk size is
-// an experiment parameter, not a compiler tuning constant or a wire identity.
+// Owner identity stays with the handle; slots are never recycled. Chunk size
+// changes storage allocation, not handle identity or wire representation.
 public readonly record struct Handle<T>(Arena<T>? Owner, int Index) where T : struct
 {
     public bool IsNull => Owner is null;
 }
 
-public sealed class Arena<T>(int chunkSize = 256) where T : struct
+public sealed class Arena<T>(int chunkSize = Arena<T>.DefaultChunkSize) where T : struct
 {
+    public const int DefaultChunkSize = 256;
     private readonly List<T[]> chunks = [];
     private readonly int chunkSize = chunkSize > 0 ? chunkSize : throw new ArgumentOutOfRangeException(nameof(chunkSize));
     public int Count { get; private set; }

@@ -92,6 +92,26 @@ internal static class CheckerRelationTests
         var host = new Checker(context, links, scope);
         var box = (InterfaceType)await host.Declared.GetAsync(symbols.Globals["Box"]);
         var other = (InterfaceType)await host.Declared.GetAsync(symbols.Globals["Other"]);
+        var directKey = new RelationKey(context.StringType, context.NumberType, IntersectionState.Source);
+        var expandedKey = new RelationKey([new((byte)'s'), new((byte)'t', context.StringType),
+            new((byte)'t', context.NumberType)], IntersectionState.Source);
+        Check(directKey.Equals(expandedKey) && directKey.GetHashCode() == expandedKey.GetHashCode());
+        Check(new Dictionary<RelationKey, int> { [directKey] = 1 }.TryGetValue(expandedKey, out int found) && found == 1);
+        Check(!directKey.Equals(new(context.NumberType, context.StringType, IntersectionState.Source)));
+        Check(default(RelationKey).Equals(default));
+        var typeKey = new TypeCacheKey([context.StringType, context.NumberType]);
+        Check(typeKey.Equals(new TypeCacheKey([context.StringType, context.NumberType])));
+        Check(!typeKey.Equals(new TypeCacheKey([context.NumberType, context.StringType])));
+        Check(default(TypeCacheKey).Equals(default));
+        var journal = new Relation(RelationKind.Assignable);
+        var firstWrite = journal.Set(directKey, RelationComparisonResult.Succeeded);
+        var laterWrite = journal.Set(directKey, RelationComparisonResult.Succeeded);
+        journal.Restore(directKey, null, firstWrite);
+        Check(journal.Get(directKey) == RelationComparisonResult.Succeeded);
+        journal.Restore(directKey, firstWrite, laterWrite);
+        Check(journal.Snapshot(directKey) == firstWrite);
+        journal.Restore(directKey, null, firstWrite);
+        Check(journal.Snapshot(directKey) is null);
         var p = context.NewTypeParameter();
         var q = context.NewTypeParameter();
         var constrained = context.NewTypeParameter();

@@ -224,7 +224,7 @@ internal sealed class FunctionBodies(TypeContext context, CheckerSymbols symbols
         for (int i = 0; i < parameters.Count; i++)
         {
             var parameter = (ParameterDeclarationNode)parameters[i];
-            var symbol = symbols.Binding(parameter)!.Get(parameter)!.Symbol!;
+            var symbol = symbols.Binding(parameter)!.Get(parameter)!.Value.Symbol!;
             var initial = await values.GetAsync(symbol, cancellation).ConfigureAwait(false);
             if ((initial.Flags & TypeFlags.Boolean) != 0 || parameter.Name is not IdentifierNode name
                 || await assignments.AssignedAsync(symbol, cancellation).ConfigureAwait(false) || parameter.DotDotDotToken is not null)

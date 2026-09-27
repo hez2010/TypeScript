@@ -6,22 +6,22 @@ using TypeScript.Compiler.Text;
 namespace TypeScript.Compiler.Ast;
 
 public readonly record struct SourceCommentRange(SyntaxKind Kind, int Pos, int End, bool HasTrailingNewLine);
-public sealed record PragmaArgument(string Name, string Value, int Pos, int End);
-public sealed record SourcePragma(string Name, SourceCommentRange Range, IReadOnlyDictionary<string, PragmaArgument> Arguments);
+public readonly record struct PragmaArgument(string Name, string Value, int Pos, int End);
+public readonly record struct SourcePragma(string Name, SourceCommentRange Range, IReadOnlyDictionary<string, PragmaArgument> Arguments);
 public enum ReferenceResolutionMode
 {
     Unspecified = 0,
     Require = 1,
     Import = 99
 }
-public sealed record FileReference(
+public readonly record struct FileReference(
     string FileName,
     int Pos,
     int End,
     ReferenceResolutionMode ResolutionMode = ReferenceResolutionMode.Unspecified,
     bool Preserve = false);
-public sealed record CheckJsDirective(bool Enabled, SourceCommentRange Range);
-public sealed record AmdDependency(string Path, string? Name);
+public readonly record struct CheckJsDirective(bool Enabled, SourceCommentRange Range);
+public readonly record struct AmdDependency(string Path, string? Name);
 
 public sealed partial class SourceFileNode
 {

@@ -1721,7 +1721,7 @@ internal static class CheckerProgramTests
                 writer.WriteNumberValue(
                     SymbolId(
                     input.TryGetProperty("references", out var referenceDeclarations) && referenceDeclarations.GetBoolean()
-                    ? environment.Merger.GetMergedSymbol(environment.Binding(node)!.Get(node)!.Symbol) : environment.Declaration(node)));
+                    ? environment.Merger.GetMergedSymbol(environment.Binding(node)!.Get(node)!.Value.Symbol) : environment.Declaration(node)));
                 writer.WriteEndArray();
             }
         writer.WriteEndArray();

@@ -13,7 +13,7 @@ public sealed record PackageId(string Name, string SubModuleName, string Version
     public override string ToString() => Name + (SubModuleName.Length == 0 ? "" : "/" + SubModuleName) + "@" + Version + PeerDependencies;
 }
 
-public sealed record ResolutionTrace(string Operation, string Path, string Detail = "");
+public readonly record struct ResolutionTrace(string Operation, string Path, string Detail = "");
 
 public sealed record ResolvedModule(string FileName = "", string Extension = "", PackageId? PackageId = null,
     string OriginalPath = "", bool External = false, bool UsingTsExtension = false, bool UsingExtraExtension = false)

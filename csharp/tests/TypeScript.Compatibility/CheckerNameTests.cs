@@ -61,7 +61,7 @@ internal static class CheckerNameTests
             new NameResolver(
                 legacyOptions,
                 _ => deepBinding)
-            { Globals = deepBinding.Locals }.Resolve(identifier, "x", SymbolFlags.Value) == deepBinding.Get(function)!.Locals["x"]);
+            { Globals = deepBinding.Locals }.Resolve(identifier, "x", SymbolFlags.Value) == deepBinding.Get(function)!.Value.Locals["x"]);
         Check(
             new NameResolver(
                 modernOptions,

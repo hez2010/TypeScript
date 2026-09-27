@@ -104,7 +104,7 @@ internal sealed class Signatures(TypeContext context, CheckerLinks links, Checke
             if (i == 0 && symbol.Name == "this")
             {
                 hasThis = true;
-                thisParameter = symbols.Binding(parameter)!.Get(parameter)!.Symbol;
+                thisParameter = symbols.Binding(parameter)!.Get(parameter)!.Value.Symbol;
             }
             else
                 parameters.Add(symbol);
@@ -137,7 +137,7 @@ internal sealed class Signatures(TypeContext context, CheckerLinks links, Checke
         {
             var full = await host.FullSignatureAsync(declaration, cancellation).ConfigureAwait(false);
             typeParameters = full?.TypeParameters ?? (declaration as IFunctionSignature)?.TypeParameters?.Select(n =>
-                scopes.Parameter(symbols.Binding(n)!.Get(n)!.Symbol!)).Distinct().ToArray() ?? [];
+                scopes.Parameter(symbols.Binding(n)!.Get(n)!.Value.Symbol!)).Distinct().ToArray() ?? [];
         }
         if (declarations is { Count: > 0 } && declarations[^1] is ParameterDeclarationNode { DotDotDotToken: not null })
             flags |= SignatureFlags.HasRestParameter;

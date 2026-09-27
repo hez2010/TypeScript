@@ -158,7 +158,7 @@ internal sealed class SymbolMerger(Symbol unknownSymbol, Symbol globalThisSymbol
     // alias resolution belong to the caller and retain their own request lifetime.
     private sealed class MergeJournal
     {
-        private sealed record Snapshot(S Flags, Symbol? Parent, SyntaxNode? Value, SyntaxNode[] Declarations);
+        private readonly record struct Snapshot(S Flags, Symbol? Parent, SyntaxNode? Value, SyntaxNode[] Declarations);
 
         private readonly Dictionary<Symbol, Snapshot> symbols = new(ReferenceEqualityComparer.Instance);
         private readonly Dictionary<Dictionary<TextSlice, Symbol>, KeyValuePair<TextSlice, Symbol>[]> tables = new(ReferenceEqualityComparer.Instance);

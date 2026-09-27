@@ -135,7 +135,7 @@ internal static class CheckerSymbolTypeTests
         Check(await host.Values.GetAsync(variable) == context.NumberType);
 
         var parameter = symbols.Globals["f"].Declarations.OfType<FunctionDeclarationNode>().Single().Parameters![0];
-        var parameterSymbol = symbols.Binding(parameter)!.Get(parameter)!.Symbol!;
+        var parameterSymbol = symbols.Binding(parameter)!.Get(parameter)!.Value.Symbol!;
         host.SensitiveParameter = symbol => symbol == parameterSymbol;
         host.VariableBody = (_, reportErrors, _) =>
         {

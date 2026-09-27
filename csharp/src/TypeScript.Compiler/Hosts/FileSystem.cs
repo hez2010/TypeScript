@@ -1,7 +1,7 @@
 namespace TypeScript.Compiler.Hosts;
 
-public sealed record FileEntry(string Name, bool IsDirectory, long Length, DateTime LastWriteTimeUtc, bool IsSymbolicLink = false);
-public sealed record DirectoryEntries(string[] Files, string[] Directories, IReadOnlySet<string>? SymbolicLinks = null);
+public readonly record struct FileEntry(string Name, bool IsDirectory, long Length, DateTime LastWriteTimeUtc, bool IsSymbolicLink = false);
+public readonly record struct DirectoryEntries(string[] Files, string[] Directories, IReadOnlySet<string>? SymbolicLinks = null);
 
 public interface IFileSystem
 {

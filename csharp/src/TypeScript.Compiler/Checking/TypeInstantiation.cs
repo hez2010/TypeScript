@@ -113,10 +113,10 @@ internal sealed partial class TypeInstantiation(TypeContext context, TypeAlgebra
             cache = active[index].Cache;
         // A newly opened scope has an empty cache and never stores its own result.
         // Alias keys still assign the symbol's lazy identity in reference order.
-        var key = ownsScope && alias is null ? null : TypeCacheKey.Union([type], null, alias);
+        TypeCacheKey? key = ownsScope && alias is null ? null : TypeCacheKey.Union([type], null, alias);
         try
         {
-            if (key is not null && cache.TryGetValue(key, out var cached))
+            if (key is not null && cache.TryGetValue(key.Value, out var cached))
                 return cached;
             TotalCount++;
             count++;
@@ -132,7 +132,7 @@ internal sealed partial class TypeInstantiation(TypeContext context, TypeAlgebra
             }
             context.RequireOwned(result);
             if (!ownsScope)
-                cache[key!] = result;
+                cache[key!.Value] = result;
             return result;
         }
         finally

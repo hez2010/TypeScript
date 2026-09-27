@@ -91,7 +91,7 @@ public sealed partial class Binder
             labels = [];
             explicitReturn = seenThis = false;
             await Children(node).ConfigureAwait(false);
-            var data = Data(node);
+            ref var data = ref Data(node);
             data.Flags &= ~(NodeFlags.ReachabilityAndEmitFlags | NodeFlags.ContainsThis);
             if ((currentFlow.Flags & F.Unreachable) == 0 && FunctionLike(node) && Body(node) is { } body && body.End > body.Pos)
             {

@@ -42,7 +42,7 @@ internal interface ICheckerSymbolHost
     void SuccessfulResolution(SyntaxNode? location, Symbol symbol, S meaning, SyntaxNode? last, SyntaxNode? declaration, bool deferred);
 }
 
-internal sealed record PatternModule(TextSlice Pattern, Symbol Symbol);
+internal readonly record struct PatternModule(TextSlice Pattern, Symbol Symbol);
 
 // A checker owns these tables. Program syntax and bindings remain shared and
 // immutable; a canceled initialization is discarded before publication.

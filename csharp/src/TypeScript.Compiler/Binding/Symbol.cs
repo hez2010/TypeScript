@@ -1,6 +1,7 @@
 using TypeScript.Compiler.Text;
 using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
+using TypeScript.Compiler.Storage;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
@@ -102,7 +103,7 @@ public sealed class FlowNode
     }
 }
 
-public sealed class NodeBinding
+public struct NodeBinding
 {
     public Symbol? Symbol { get; internal set; }
     public Symbol? LocalSymbol { get; internal set; }
@@ -127,16 +128,17 @@ public sealed class NodeBinding
     private Dictionary<TextSlice, Symbol>? locals;
     private IReadOnlyDictionary<TextSlice, Symbol>? localsView;
     internal bool HasLocals => locals is not null;
-    public IReadOnlyDictionary<TextSlice, Symbol> Locals => localsView ?? ReadOnlyDictionary<TextSlice, Symbol>.Empty;
+    public readonly IReadOnlyDictionary<TextSlice, Symbol> Locals => localsView ?? ReadOnlyDictionary<TextSlice, Symbol>.Empty;
 }
 
 /// <summary>Binding state is owned separately from the immutable parsed tree and published only after a successful bind.</summary>
 public sealed class BoundSourceFile
 {
-    private readonly Dictionary<SyntaxNode, NodeBinding> nodes = new(ReferenceEqualityComparer.Instance);
+    private readonly Dictionary<SyntaxNode, int> nodes = new(ReferenceEqualityComparer.Instance);
+    private readonly Arena<NodeBinding> bindings;
     public SourceFileNode SourceFile { get; }
     public Symbol? Symbol => Get(SourceFile)?.Symbol;
-    public IReadOnlyDictionary<TextSlice, Symbol> Locals => Get(SourceFile)!.Locals;
+    public IReadOnlyDictionary<TextSlice, Symbol> Locals => Get(SourceFile)!.Value.Locals;
     public SyntaxNode? CommonJSModuleIndicator { get; internal set; }
     public bool IsModule => SourceFile.ExternalModuleIndicator is not null || CommonJSModuleIndicator is not null;
     public IReadOnlyList<Diagnostic> Diagnostics { get; internal set; } = [];
@@ -144,13 +146,20 @@ public sealed class BoundSourceFile
     public IReadOnlyDictionary<TextSlice, Symbol> GlobalExports { get; internal set; } = ReadOnlyDictionary<TextSlice, Symbol>.Empty;
     public int SymbolCount { get; internal set; }
 
-    internal BoundSourceFile(SourceFileNode file) => SourceFile = file;
-
-    public NodeBinding? Get(SyntaxNode node) => nodes.GetValueOrDefault(node);
-
-    internal NodeBinding Data(SyntaxNode node)
+    internal BoundSourceFile(SourceFileNode file)
     {
-        ref NodeBinding? data = ref CollectionsMarshal.GetValueRefOrAddDefault(nodes, node, out _);
-        return data ??= new() { Flags = node.Flags };
+        SourceFile = file;
+        bindings = new(Math.Clamp(file.NodeCount, 1, Arena<NodeBinding>.DefaultChunkSize));
+    }
+
+    public NodeBinding? Get(SyntaxNode node) => nodes.TryGetValue(node, out int index) ? bindings[new(bindings, index)] : null;
+
+    internal ref NodeBinding Data(SyntaxNode node)
+    {
+        ref int index = ref CollectionsMarshal.GetValueRefOrAddDefault(nodes, node, out bool exists);
+        if (!exists)
+            index = bindings.Add(new() { Flags = node.Flags }).Index;
+        // Arena slots stay valid when recursive binding adds more nodes.
+        return ref bindings[new(bindings, index)];
     }
 }
