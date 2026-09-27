@@ -63,9 +63,9 @@ internal sealed class CheckerSymbols
     internal Symbol GlobalThisSymbol { get; } = new(S.Module | S.Transient, "globalThis") { CheckFlags = CheckFlags.Readonly };
     internal SymbolMerger Merger { get; }
     internal IReadOnlyDictionary<string, Symbol> Globals { get; }
-    internal IReadOnlyList<PatternModule> PatternModules => patterns.AsReadOnly();
-    internal IReadOnlyDictionary<string, Symbol> PatternAugmentations => patternAugmentations.AsReadOnly();
-    internal IReadOnlyDictionary<string, Symbol> PatternTargets => patternTargets.AsReadOnly();
+    internal IReadOnlyList<PatternModule> PatternModules { get; }
+    internal IReadOnlyDictionary<string, Symbol> PatternAugmentations { get; }
+    internal IReadOnlyDictionary<string, Symbol> PatternTargets { get; }
     internal CompilerProgram Program => program;
 
     private CheckerSymbols(CompilerProgram program, CheckerLinks links, ICheckerSymbolHost host)
@@ -76,6 +76,9 @@ internal sealed class CheckerSymbols
         globals = GlobalThisSymbol.ExportTable;
         globals.Add(GlobalThisSymbol.Name, GlobalThisSymbol);
         Globals = globals.AsReadOnly();
+        PatternModules = patterns.AsReadOnly();
+        PatternAugmentations = patternAugmentations.AsReadOnly();
+        PatternTargets = patternTargets.AsReadOnly();
         Merger = new(UnknownSymbol, GlobalThisSymbol, host.ResolveSymbol, host.MergeConflict);
         foreach (var file in program.SourceFiles)
             bindings.Add(file.Syntax, file.Binding);
@@ -95,16 +98,12 @@ internal sealed class CheckerSymbols
     {
         if (bindings.TryGetValue(node, out var binding))
             return binding;
-        var path = new List<SyntaxNode>();
         SyntaxNode? current = node;
         while (current is not null && !bindings.TryGetValue(current, out binding))
-        {
-            path.Add(current);
             current = current.Parent;
-        }
         if (current is null)
             return null;
-        foreach (var child in path)
+        for (var child = node; child != current; child = child.Parent!)
             bindings.Add(child, binding!);
         return binding;
     }
@@ -168,7 +167,8 @@ internal sealed class CheckerSymbols
                     else
                         await MergeGlobalAsync(symbol, cancellation).ConfigureAwait(false);
             }
-            foreach (var node in file.Syntax.DescendantsAndSelf().OfType<ModuleDeclarationNode>())
+            // Binding already records module containers in visitation order.
+            foreach (var node in bound.Containers.OfType<ModuleDeclarationNode>())
             {
                 if (node.Name is not StringLiteralNode name || file.Syntax.ModuleAugmentations.Contains(name))
                     continue;

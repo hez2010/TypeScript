@@ -1,0 +1,3075 @@
+{
+    "timestamp": "2026-09-27T09:56:09.505Z",
+    "baseCommit": "a8ef31d228c69150c9cf5f6d3c6256dfc4031a10",
+    "scope": "C# Phase 4 performance pass: complete active semantic corpus, every checker-location API family, safety suites, type-state/algebra differential suites, and node-builder tracking/flag suites.",
+    "configuration": "Release CoreCLR",
+    "candidateSha256": "627f927ccdea89bfa89bba635438d118df3bcac7a7bb59ed8f8bdee598b71405",
+    "compilerSha256": "7692f8921b807ed0525719977159b1cc3db45a31b0c8ef2e621f919d6cdffb7a",
+    "sourceFiles": [
+        {
+            "path": "csharp/src/TypeScript.Compiler/Checking/Checker.CallDiagnostics.cs",
+            "sha256": "ef89dc758989bc97fe03d42d633d7f29e31b35ca4be0ea6b51bffac6bce6f2fb"
+        },
+        {
+            "path": "csharp/src/TypeScript.Compiler/Checking/Checker.DiagnosticCodes.cs",
+            "sha256": "0ab430f6977d214940a41d7ac3548031a8ba77759571124119e78ad5a9dc7c2b"
+        },
+        {
+            "path": "csharp/src/TypeScript.Compiler/Checking/Checker.TypeSyntax.cs",
+            "sha256": "37ca1daebbf117e81a3e1a9d7a714fb4737e20750baa15143e68335616fe6d54"
+        },
+        {
+            "path": "csharp/src/TypeScript.Compiler/Checking/CheckerPool.cs",
+            "sha256": "577af62e9eeb341118d5f9787ca2fe0c16498550793f7a63a4531e2b66d8c2b4"
+        },
+        {
+            "path": "csharp/src/TypeScript.Compiler/Checking/CheckerSymbols.cs",
+            "sha256": "bda2644ca2ddb10bbd830de1e4e8b77883410a155157ce24bf6c7800f09d5749"
+        },
+        {
+            "path": "csharp/src/TypeScript.Compiler/Checking/GlobalTypes.cs",
+            "sha256": "931bf2b2951638abed586b758ef8ffc82a49bd21b55a1b3c67efff71fecd0ee5"
+        },
+        {
+            "path": "csharp/src/TypeScript.Compiler/Checking/TypeContext.cs",
+            "sha256": "9b8765e492aebab03a6d0047e6ee0fb135c4919420ec02c27a2a72ecbb7da8fb"
+        },
+        {
+            "path": "csharp/src/TypeScript.Compiler/Checking/TypeDisplay.cs",
+            "sha256": "6154a49a19ab2a4438a4d297bb2dd5e707f203aeab9a7ea25e2ee0973933a0c7"
+        },
+        {
+            "path": "csharp/src/TypeScript.Compiler/Diagnostics/DiagnosticCollection.cs",
+            "sha256": "bca14d83abfd6f6d7dcb9a1f00f19e82eb13c3ab3ef05a08cd9551e471a0f9c7"
+        },
+        {
+            "path": "csharp/tests/TypeScript.Compatibility/CheckerProgramTests.cs",
+            "sha256": "e4a304f48c80ece271226e78430760ffe3cfce17c457affec059e2a55f6cbd3c"
+        }
+    ],
+    "changes": [
+        "Reuse binder container metadata for ambient module discovery.",
+        "Remove temporary ancestry lists and repeated read-only wrappers.",
+        "Build immutable type-cache key arrays once and hash instantiation keys once.",
+        "Group diagnostic snapshots once for bulk requests without retaining a cache across requests.",
+        "Compact sorted diagnostics in place and allocate traversal stacks only for nested comparisons.",
+        "Discard relation diagnostics at the reference type-serialization recursion limit; preserve mapped-property undefined when the original declaration is required."
+    ],
+    "semantic": {
+        "complete": true,
+        "activePerMode": 13446,
+        "detailedMatchesPerMode": 13446,
+        "modeDifferences": 0,
+        "referenceSkips": 1762,
+        "newExclusions": 0,
+        "modes": [
+            {
+                "mode": "single",
+                "activeConfigurations": 13446,
+                "graphAndCodeMatches": 13446,
+                "detailedDiagnosticMatches": 13446,
+                "batches": [
+                    {
+                        "path": "built/csharp/semantic-corpus-phase4-performance-confirmation/single/summary.json",
+                        "sha256": "9cd003aafba37096519b6ee3c26bd29a492f957f794b28f0275579d1a536e9e1",
+                        "result": {
+                            "timestamp": "2026-09-27T09:53:43.575Z",
+                            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                            "mode": "single",
+                            "filter": "",
+                            "managed": true,
+                            "reuseSyntax": true,
+                            "referenceJobs": 2,
+                            "scope": "Original compiler test program graphs and semantic/global diagnostics in the selected checker concurrency mode; checker query APIs are validated separately",
+                            "referenceExitCode": 0,
+                            "exportedConfigurations": 15208,
+                            "readyConfigurations": 13444,
+                            "availableConfigurations": 13446,
+                            "selectionSha256": "64fda8e6f543433bf025832c9af18eb73dda5c409e7425535a62d8aba4dd81b7",
+                            "referenceInventoryFiles": 12730,
+                            "plannedConfigurations": 15208,
+                            "referenceMissingFiles": [],
+                            "referenceMissingConfigurations": [],
+                            "referenceSkipped": 1762,
+                            "referenceFailed": 0,
+                            "candidateFailures": 0,
+                            "graphMismatches": 0,
+                            "diagnosticMismatches": 0,
+                            "graphAndCodeMatches": 13444,
+                            "detailedDiagnosticMatches": 13444,
+                            "detailedDiagnosticMismatches": 0,
+                            "detailedComparison": "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized",
+                            "errorGroups": [],
+                            "inputSha256": "df21bccda8a3bc5da534586c352dae0175cf4bf260c93ee15694afe19353d5bd",
+                            "referenceInputCorrectionsSha256": "796d2ff79dfe5dfb5d35cd192946d4a1da669b6cea211d31b2b4696d84aa0c0c",
+                            "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+                            "candidateSha256": "627f927ccdea89bfa89bba635438d118df3bcac7a7bb59ed8f8bdee598b71405",
+                            "compilerSha256": "7692f8921b807ed0525719977159b1cc3db45a31b0c8ef2e621f919d6cdffb7a",
+                            "mapperFixture": {
+                                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                                "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+                                "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+                                "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+                            },
+                            "candidateOutputSha256": "fb4a880a92c2052bc9ac2660eb3fcf3b502dcefbff500d1579e32f41a9c9bcf1",
+                            "fullSemanticCorpusGateComplete": false
+                        }
+                    },
+                    {
+                        "path": "built/csharp/semantic-corpus-phase4-performance-recursion-fixed/single/summary.json",
+                        "sha256": "66c561a0e291ea8d05f35cc782a3038617065f6de2703c835cad7efc9ab4348d",
+                        "result": {
+                            "timestamp": "2026-09-27T09:39:55.287Z",
+                            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                            "mode": "single",
+                            "filter": "",
+                            "managed": true,
+                            "reuseSyntax": true,
+                            "referenceJobs": 2,
+                            "scope": "Original compiler test program graphs and semantic/global diagnostics in the selected checker concurrency mode; checker query APIs are validated separately",
+                            "referenceExitCode": 0,
+                            "exportedConfigurations": 15208,
+                            "readyConfigurations": 2,
+                            "availableConfigurations": 13446,
+                            "selectionSha256": "23cd50ba25831a85f2df81f73a06174a82f2164f02714d8f902abe21c3d9d05a",
+                            "referenceInventoryFiles": 12730,
+                            "plannedConfigurations": 15208,
+                            "referenceMissingFiles": [],
+                            "referenceMissingConfigurations": [],
+                            "referenceSkipped": 1762,
+                            "referenceFailed": 0,
+                            "candidateFailures": 0,
+                            "graphMismatches": 0,
+                            "diagnosticMismatches": 0,
+                            "graphAndCodeMatches": 2,
+                            "detailedDiagnosticMatches": 2,
+                            "detailedDiagnosticMismatches": 0,
+                            "detailedComparison": "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized",
+                            "errorGroups": [],
+                            "inputSha256": "df21bccda8a3bc5da534586c352dae0175cf4bf260c93ee15694afe19353d5bd",
+                            "referenceInputCorrectionsSha256": "796d2ff79dfe5dfb5d35cd192946d4a1da669b6cea211d31b2b4696d84aa0c0c",
+                            "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+                            "candidateSha256": "627f927ccdea89bfa89bba635438d118df3bcac7a7bb59ed8f8bdee598b71405",
+                            "compilerSha256": "7692f8921b807ed0525719977159b1cc3db45a31b0c8ef2e621f919d6cdffb7a",
+                            "candidateOutputSha256": "4ea87f9e7a53df8cc7a466b621591f627487c25cd73094ea3845df719e59f65f",
+                            "fullSemanticCorpusGateComplete": false
+                        }
+                    }
+                ]
+            },
+            {
+                "mode": "default",
+                "activeConfigurations": 13446,
+                "graphAndCodeMatches": 13446,
+                "detailedDiagnosticMatches": 13446,
+                "batches": [
+                    {
+                        "path": "built/csharp/semantic-corpus-phase4-performance-final/default/summary.json",
+                        "sha256": "5e19c563d77c99e69e31fd5d6e7704a2f1269b535f8a4c62c38275bd4f5d4e0a",
+                        "result": {
+                            "timestamp": "2026-09-27T09:46:01.048Z",
+                            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                            "mode": "default",
+                            "filter": "",
+                            "managed": true,
+                            "reuseSyntax": true,
+                            "referenceJobs": 2,
+                            "scope": "Original compiler test program graphs and semantic/global diagnostics in the selected checker concurrency mode; checker query APIs are validated separately",
+                            "referenceExitCode": 0,
+                            "exportedConfigurations": 15208,
+                            "readyConfigurations": 13444,
+                            "availableConfigurations": 13446,
+                            "selectionSha256": "64fda8e6f543433bf025832c9af18eb73dda5c409e7425535a62d8aba4dd81b7",
+                            "referenceInventoryFiles": 12730,
+                            "plannedConfigurations": 15208,
+                            "referenceMissingFiles": [],
+                            "referenceMissingConfigurations": [],
+                            "referenceSkipped": 1762,
+                            "referenceFailed": 0,
+                            "candidateFailures": 0,
+                            "graphMismatches": 0,
+                            "diagnosticMismatches": 0,
+                            "graphAndCodeMatches": 13444,
+                            "detailedDiagnosticMatches": 13444,
+                            "detailedDiagnosticMismatches": 0,
+                            "detailedComparison": "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized",
+                            "errorGroups": [],
+                            "inputSha256": "b51e79a2ebc4428367c89bceb367fd82a86bdd85b43b847bc17f875b51743a77",
+                            "referenceInputCorrectionsSha256": "f0e9fd99f75e8ac0c3db7ef4ccef21980f74b7b1adcfe189a01c8a762e4613a6",
+                            "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+                            "candidateSha256": "627f927ccdea89bfa89bba635438d118df3bcac7a7bb59ed8f8bdee598b71405",
+                            "compilerSha256": "7692f8921b807ed0525719977159b1cc3db45a31b0c8ef2e621f919d6cdffb7a",
+                            "mapperFixture": {
+                                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                                "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+                                "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+                                "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+                            },
+                            "candidateOutputSha256": "fb4a880a92c2052bc9ac2660eb3fcf3b502dcefbff500d1579e32f41a9c9bcf1",
+                            "fullSemanticCorpusGateComplete": false
+                        }
+                    },
+                    {
+                        "path": "built/csharp/semantic-corpus-phase4-performance-recursion-fixed/default/summary.json",
+                        "sha256": "efb8f5e8326d26cad9ae136b755c6b1509175a23beed652ab79c6d44a57afa19",
+                        "result": {
+                            "timestamp": "2026-09-27T09:39:56.437Z",
+                            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                            "mode": "default",
+                            "filter": "",
+                            "managed": true,
+                            "reuseSyntax": true,
+                            "referenceJobs": 2,
+                            "scope": "Original compiler test program graphs and semantic/global diagnostics in the selected checker concurrency mode; checker query APIs are validated separately",
+                            "referenceExitCode": 0,
+                            "exportedConfigurations": 15208,
+                            "readyConfigurations": 2,
+                            "availableConfigurations": 13446,
+                            "selectionSha256": "23cd50ba25831a85f2df81f73a06174a82f2164f02714d8f902abe21c3d9d05a",
+                            "referenceInventoryFiles": 12730,
+                            "plannedConfigurations": 15208,
+                            "referenceMissingFiles": [],
+                            "referenceMissingConfigurations": [],
+                            "referenceSkipped": 1762,
+                            "referenceFailed": 0,
+                            "candidateFailures": 0,
+                            "graphMismatches": 0,
+                            "diagnosticMismatches": 0,
+                            "graphAndCodeMatches": 2,
+                            "detailedDiagnosticMatches": 2,
+                            "detailedDiagnosticMismatches": 0,
+                            "detailedComparison": "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized",
+                            "errorGroups": [],
+                            "inputSha256": "b51e79a2ebc4428367c89bceb367fd82a86bdd85b43b847bc17f875b51743a77",
+                            "referenceInputCorrectionsSha256": "f0e9fd99f75e8ac0c3db7ef4ccef21980f74b7b1adcfe189a01c8a762e4613a6",
+                            "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+                            "candidateSha256": "627f927ccdea89bfa89bba635438d118df3bcac7a7bb59ed8f8bdee598b71405",
+                            "compilerSha256": "7692f8921b807ed0525719977159b1cc3db45a31b0c8ef2e621f919d6cdffb7a",
+                            "candidateOutputSha256": "4ea87f9e7a53df8cc7a466b621591f627487c25cd73094ea3845df719e59f65f",
+                            "fullSemanticCorpusGateComplete": false
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    "api": {
+        "families": 31,
+        "activeConfigurations": 1945,
+        "comparisons": 1649908,
+        "referenceFailures": 4,
+        "referenceFailuresAcceptedAsPassing": false,
+        "records": [
+            {
+                "name": "api-locations",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs"
+                ],
+                "log": "logs/phase4-performance-api-locations.log",
+                "exitCode": 1,
+                "summary": {
+                    "configurations": 80,
+                    "queries": 3956,
+                    "comparedQueries": 3812,
+                    "exact": 76,
+                    "failed": 4,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 4,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "0fd113eea7c38f18959452244fe0c41c1ef8ea5c9891c58ff69e06b3cc6cadb5",
+                    "resultHash": "1523b8710cb43e877e57adafa92428c137213ee4bd956528838fd04ab35c3394",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-symbol-locations",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--symbols"
+                ],
+                "log": "logs/phase4-performance-api-symbol-locations.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 104,
+                    "queries": 5312,
+                    "comparedQueries": 5312,
+                    "exact": 104,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "68eb6b0ac9f7ef354d82a509fe7dfa06df8b3a3d5c7c9bb70a1021376773d09b",
+                    "resultHash": "b6095f3092801a0df026197d97476f053bd5d17e38c89ea33f5fc8296f7a251f",
+                    "managed": true,
+                    "symbolAnswerMatches": 104,
+                    "locationMetadataDifferences": []
+                },
+                "passed": true
+            },
+            {
+                "name": "api-scope-services",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--scopes"
+                ],
+                "log": "logs/phase4-performance-api-scope-services.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 104,
+                    "queries": 29500,
+                    "comparedQueries": 29500,
+                    "exact": 104,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "1e81170626ed44a62ddceef58ac1cf0de04bfcdb72d380ab4cdc531521707610",
+                    "resultHash": "6dbc664b5fb4ae6b6572518a667d1a3f961f9ebbb118e137522a77d914bf1e51",
+                    "managed": true,
+                    "services": {
+                        "scopes": 27440,
+                        "symbolTypesAtLocation": 1904,
+                        "symbolTypesWithoutLocation": 1904,
+                        "moduleExports": 52,
+                        "aliasTargets": 60,
+                        "localExportTargets": 16,
+                        "shorthandValues": 16,
+                        "parameterPropertyPairs": 12
+                    }
+                },
+                "passed": true
+            },
+            {
+                "name": "api-context-queries",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--contexts"
+                ],
+                "log": "logs/phase4-performance-api-context-queries.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 112,
+                    "queries": 7644,
+                    "comparedQueries": 7644,
+                    "exact": 112,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "c65794a9e5217beddd1f9d63dda5108cbe813f00abaccd4dfcb349ece37e1507",
+                    "resultHash": "017ecbd34b2b995f5f210639dc284b5e0355dcfc594185ec89b80a643b062b25",
+                    "managed": true,
+                    "contextRecords": {
+                        "expressionTypes": 6768,
+                        "objectElements": 36,
+                        "arrayPositions": 108,
+                        "jsxAttributes": 16,
+                        "resolvedSignaturesAndReturns": 108,
+                        "argumentTypes": 240,
+                        "signatureHelp": 324,
+                        "stringCompletions": 44
+                    }
+                },
+                "passed": true
+            },
+            {
+                "name": "api-declaration-visibility",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--visibility"
+                ],
+                "log": "logs/phase4-performance-api-declaration-visibility.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 112,
+                    "queries": 24832,
+                    "comparedQueries": 24832,
+                    "exact": 112,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "939873780e0df71241bbf0f9332fcb6a48c303841baa84c1e74f629ea7430cfd",
+                    "resultHash": "68148641cb59a3a77c64840b6da23facc9e202c3139e32864d14df3b9bdc2aa6",
+                    "managed": true,
+                    "visibilityRecords": {
+                        "initial": 5628,
+                        "afterPrecalculation": 5628,
+                        "aliasRetention": 2320,
+                        "afterRetention": 5628,
+                        "afterRepeatedPrecalculation": 5628
+                    }
+                },
+                "passed": true
+            },
+            {
+                "name": "api-symbol-chains",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--chains"
+                ],
+                "log": "logs/phase4-performance-api-symbol-chains.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 112,
+                    "queries": 60216,
+                    "comparedQueries": 60216,
+                    "exact": 112,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "179f897a4eb341fc06182bbd343b7fd839685ff1531f5e8bc02b0298feca051a",
+                    "resultHash": "8ac6caa2d6184f867ff53659b9869f5eade4fb9a27d93d22771377742ee731d1",
+                    "managed": true,
+                    "chains": {
+                        "found": 17340,
+                        "absent": 42876,
+                        "longest": 4
+                    }
+                },
+                "passed": true
+            },
+            {
+                "name": "api-accessibility",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--accessibility"
+                ],
+                "log": "logs/phase4-performance-api-accessibility.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 156,
+                    "queries": 125544,
+                    "comparedQueries": 125544,
+                    "exact": 156,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "877c6c3ffe48dcc29fcd87366800dc2290d7afcef94cb9caba6bbaa56109490f",
+                    "resultHash": "b18a73d367feb754d56994b7ad9305480336dea83dc64718bc44205743448912",
+                    "managed": true,
+                    "accessibilityRecords": {
+                        "containers": 19452,
+                        "decisions": 77808,
+                        "flagQueries": 19452,
+                        "typeAndValueQueries": 6484,
+                        "entityNames": 2348,
+                        "decisionStates": [
+                            49616,
+                            12808,
+                            15384,
+                            0
+                        ]
+                    },
+                    "symbolDiagnosticNamesCompared": false,
+                    "entityNameVisibilityComparedCompletely": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-symbol-display",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--symbol-display"
+                ],
+                "log": "logs/phase4-performance-api-symbol-display.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 172,
+                    "queries": 122012,
+                    "comparedQueries": 122012,
+                    "exact": 172,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "ba123b64cdae9651326bb1ccd33cb16d35a53963a0ae6c98889689c55199b70e",
+                    "resultHash": "8593fcf5040b5a988143d2bbb7b826fab3099ca81af77ac59004b263931eb5c4",
+                    "managed": true,
+                    "symbolDisplayRecords": {
+                        "names": 27116,
+                        "accessibilityResults": 94896
+                    }
+                },
+                "passed": true
+            },
+            {
+                "name": "api-symbol-type-nodes",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--symbol-type-nodes"
+                ],
+                "log": "logs/phase4-performance-api-symbol-type-nodes.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 68,
+                    "queries": 490752,
+                    "comparedQueries": 490752,
+                    "exact": 68,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "6fd684bd322350d99d9da928cfbc79dd013d606c5d0928ef6be8d69f506b9479",
+                    "resultHash": "18ccdcf3783dc40d823895f1d00550de981e4b864de88f73950bbea00938ece5",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-computed-symbols",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--computed-symbols"
+                ],
+                "log": "logs/phase4-performance-api-computed-symbols.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 32,
+                    "queries": 62688,
+                    "comparedQueries": 62688,
+                    "exact": 32,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "da7fa60b82f001f6ee888c9993235719547dda9429caafe36e8a94876a05bc00",
+                    "resultHash": "6cf4f6f974b41bc5b9d01c5cf253c6a4008bbda38d7bcccc6481fae08e4d4af2",
+                    "managed": true,
+                    "symbolFormatFlags": [
+                        20,
+                        22,
+                        28,
+                        30,
+                        52,
+                        54,
+                        60,
+                        62
+                    ]
+                },
+                "passed": true
+            },
+            {
+                "name": "api-symbol-formats",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--symbol-formats"
+                ],
+                "log": "logs/phase4-performance-api-symbol-formats.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 72,
+                    "queries": 275728,
+                    "comparedQueries": 275728,
+                    "exact": 72,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "e281739a187c150c5ae4d1827b67645fa25f7dace7094441ffa24de96740fb45",
+                    "resultHash": "1d3a1277a7ed857bb69f3fc5f8bf90a6f2ce8afc5f7fdf1b4471e27accb36501",
+                    "managed": true,
+                    "symbolFormatFlags": [
+                        0,
+                        1,
+                        2,
+                        6,
+                        8,
+                        10,
+                        12,
+                        14,
+                        16,
+                        17,
+                        32,
+                        34,
+                        36,
+                        38,
+                        40,
+                        42,
+                        44,
+                        46,
+                        64
+                    ]
+                },
+                "passed": true
+            },
+            {
+                "name": "api-type-syntax",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--type-syntax"
+                ],
+                "log": "logs/phase4-performance-api-type-syntax.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 32,
+                    "queries": 2880,
+                    "comparedQueries": 2880,
+                    "exact": 32,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "ae3bcf95f95ce4d05a03b702b9758907e5246cecf377d14e9d90fd4b457f9d78",
+                    "resultHash": "94f573fc9d1c0e6be202de52d9b76d730b0684e8decfb12cf3fbffb2022ed52f",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-conditional-syntax",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--conditional-syntax"
+                ],
+                "log": "logs/phase4-performance-api-conditional-syntax.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 28,
+                    "queries": 1344,
+                    "comparedQueries": 1344,
+                    "exact": 28,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "2d651fa59427b689aa9298f8d6e8d9f7ba2c42261c69412705eba964fabefd8c",
+                    "resultHash": "ec6aa1c8272d02ba194e7f9628c5a29d2ca12b2d5d4ce8f17e74ffc1898e49a7",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-mapped-syntax",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--mapped-syntax"
+                ],
+                "log": "logs/phase4-performance-api-mapped-syntax.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 24,
+                    "queries": 1280,
+                    "comparedQueries": 1280,
+                    "exact": 24,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "0fb5d40db8653694d30d2122eda123a8123c6465a51f17f2b57710aa12ce3c5e",
+                    "resultHash": "71f159275faac2467c93561332efcb2dd7aab7ea9b6fba31459ad2191859670b",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-symbol-type-arguments",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--symbol-type-arguments"
+                ],
+                "log": "logs/phase4-performance-api-symbol-type-arguments.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 88,
+                    "queries": 347200,
+                    "comparedQueries": 347200,
+                    "exact": 88,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "30fad4b1c15904d9832c0d59d2bd8e1406038b0624f19337cac6bd5b0abb3b02",
+                    "resultHash": "f36a5fac37ae4dedf945348904af5bbb5c3b95b85392a65b9576bac60dc3214b",
+                    "managed": true,
+                    "symbolFormatFlags": [
+                        5,
+                        7,
+                        13,
+                        15,
+                        21,
+                        23,
+                        29,
+                        31,
+                        37,
+                        39,
+                        45,
+                        47,
+                        53,
+                        55,
+                        61,
+                        63
+                    ]
+                },
+                "passed": true
+            },
+            {
+                "name": "api-signature-syntax",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--signature-syntax"
+                ],
+                "log": "logs/phase4-performance-api-signature-syntax.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 48,
+                    "queries": 2496,
+                    "comparedQueries": 2496,
+                    "exact": 48,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "63ebe3a59fd6479734fa22ac874383b8fc8a1a97358c4dd4cc33099e6bf25a6d",
+                    "resultHash": "dca60b6faab5a8b23748371762fb271c281625f3f35bd8842e8556435c7adcd5",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-anonymous-syntax",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--anonymous-syntax"
+                ],
+                "log": "logs/phase4-performance-api-anonymous-syntax.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 44,
+                    "queries": 2448,
+                    "comparedQueries": 2448,
+                    "exact": 44,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "09eb7fdf9b133b0453d90bdbb3133251dcae819c635890611ab2ee44cfaf967f",
+                    "resultHash": "f8fc52d96f37b61966b748c7bc35be422d2972ef0b7dee606a10ec9ffa2ad6d4",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-syntax-names",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--syntax-names"
+                ],
+                "log": "logs/phase4-performance-api-syntax-names.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 24,
+                    "queries": 4800,
+                    "comparedQueries": 4800,
+                    "exact": 24,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "1a740d3915f2332284a94adff85dda665eb284d2c53da10945df4f8818901818",
+                    "resultHash": "c8f56b3f3d69a632eb864c88f1d312a4d6321ec3bebb3404384d3a467ed55676",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-syntax-options",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--syntax-options"
+                ],
+                "log": "logs/phase4-performance-api-syntax-options.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 45,
+                    "queries": 13064,
+                    "comparedQueries": 13064,
+                    "exact": 45,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "f56128d1ec4d24baf4e7e0c40c9f98c8ca5010e2806218b0b6ba35afe6db1e60",
+                    "resultHash": "2992128230c5bee7c72f587ddca36441deee87460ac7096f13d4f58c338d0e7a",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-function-options",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--function-options"
+                ],
+                "log": "logs/phase4-performance-api-function-options.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 24,
+                    "queries": 12544,
+                    "comparedQueries": 12544,
+                    "exact": 24,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "ca5bd2098666cc60e999bb39c5ae2f025cf267cc5d03843f04ef509c83ff9909",
+                    "resultHash": "39d04a890bb2be58e36236f698f7944e9d7aeb6f177f1310066b8af638a8bbca",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-generated-names",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--generated-names"
+                ],
+                "log": "logs/phase4-performance-api-generated-names.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 40,
+                    "queries": 3584,
+                    "comparedQueries": 3584,
+                    "exact": 40,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "fa138e554a4d067694970b0061f66826fe8ef19b7f3c25701e56b39169a3db9b",
+                    "resultHash": "05229883ce448f796c1a41f9614e0649d1b278bae456dc6b29f69f30232b1619",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-signature-declarations",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--signature-declarations"
+                ],
+                "log": "logs/phase4-performance-api-signature-declarations.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 20,
+                    "queries": 13520,
+                    "comparedQueries": 13520,
+                    "exact": 20,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "a855bfe713fb0c1509318b3a166f46cec79bb86865422d1f87eb152b00aeacc6",
+                    "resultHash": "4560fb95bb5394e78394b9927fb064b3f19da1f067d51bcf06f0828db0822378",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-class-options",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--class-options"
+                ],
+                "log": "logs/phase4-performance-api-class-options.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 28,
+                    "queries": 7776,
+                    "comparedQueries": 7776,
+                    "exact": 28,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "d11fc4c41a2b2b61a864ee2f245c0504f01ee7c59e62d5e4cbe5f5f1f5a2a415",
+                    "resultHash": "93bf1622611c4b8769b1f5eda43992bccc6472cfd4c881df5d166c9b5497ac7c",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-emit-references",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--emit-references"
+                ],
+                "log": "logs/phase4-performance-api-emit-references.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 24,
+                    "queries": 528,
+                    "comparedQueries": 528,
+                    "exact": 24,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "b88fd3f42ef00ae34389a8fbb5f8c3ac8613bf1977d6bf65872880334f86b7ed",
+                    "resultHash": "587a53ae5877097dcf91f48b33c10f3a70b5d241c1977079f52ebe2b23736ac6",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-emit-queries",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--emit-queries"
+                ],
+                "log": "logs/phase4-performance-api-emit-queries.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 44,
+                    "queries": 2300,
+                    "comparedQueries": 2300,
+                    "exact": 44,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "77ef181936807b6744541c8277edb58601c5f050c0b1c0ea858531235c68fa09",
+                    "resultHash": "48d53534a15d7b140e0085f0605a917f90c0dcd7224d86373864588005aa4733",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-emit-serialization",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--emit-serialization"
+                ],
+                "log": "logs/phase4-performance-api-emit-serialization.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 24,
+                    "queries": 600,
+                    "comparedQueries": 600,
+                    "exact": 24,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "08d11649d6ccac357204b3914e63549fd6f049cfcdf8faa63efcd9c2513660fc",
+                    "resultHash": "50963a323ab0e06adc2fffb19b39acee620879b9558ab78baa129401f45c53f5",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-emit-jsx",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--emit-jsx"
+                ],
+                "log": "logs/phase4-performance-api-emit-jsx.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 28,
+                    "queries": 280,
+                    "comparedQueries": 280,
+                    "exact": 28,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "7771f1a0bbf5b5ee4dc44eb07a84df40125e9a49d23f5ade6c495c49c0cac4f3",
+                    "resultHash": "cd54b64e292238cd33a8f0ec1fa8eb2a1033484973c6de7f71e771f99a9ccf28",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-emit-links",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--emit-links"
+                ],
+                "log": "logs/phase4-performance-api-emit-links.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 48,
+                    "queries": 420,
+                    "comparedQueries": 420,
+                    "exact": 48,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "6cf171db0d98e85a795c0d6c8d9645cf73aca03a01086b26862f0a9926a1032a",
+                    "resultHash": "6db50e1396765ab9f77ffba4d9c983bb4549776d64284099cdda7c4a415bb882",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-emit-services",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--emit-services"
+                ],
+                "log": "logs/phase4-performance-api-emit-services.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 20,
+                    "queries": 944,
+                    "comparedQueries": 944,
+                    "exact": 20,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "f150889aa2f7519da00f8afdc6a098a12797bd7ed45cfe9c04426980b420e543",
+                    "resultHash": "4529b00f9be817e8d720d102e2f009e159cb5befe528323c94c3324e679f7a38",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-emit-recovery",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--emit-recovery"
+                ],
+                "log": "logs/phase4-performance-api-emit-recovery.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 56,
+                    "queries": 3672,
+                    "comparedQueries": 3672,
+                    "exact": 56,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "d965845ae5589f096acf2209fe60523963047c5501bd5f1ea876c4b9d465dc09",
+                    "resultHash": "ee2e25148e4ce8cc05fc896805ce217b6372b2d6a08ecde63b976877d7a19bc4",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-emit-syntax",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--emit-syntax"
+                ],
+                "log": "logs/phase4-performance-api-emit-syntax.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 136,
+                    "queries": 20188,
+                    "comparedQueries": 20188,
+                    "exact": 136,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                    "inputHash": "435847869a0a2602aadd883b15432cc9629da72b9ac608685449a1605837fa2b",
+                    "resultHash": "e225a861451d661eb55d3656d94bb2ab471cc4abaf7a039ef974771bea35df05",
+                    "managed": true
+                },
+                "passed": true
+            }
+        ]
+    },
+    "safety": {
+        "suites": 74,
+        "records": [
+            {
+                "name": "checker-state",
+                "assertions": 1493,
+                "exitCode": 0,
+                "passed": true,
+                "initialCheck": true,
+                "evidence": "Captured in the initial Release safety tool result; unchanged tested implementation reused."
+            },
+            {
+                "name": "checker-diagnostic-identity-safety",
+                "assertions": 38,
+                "exitCode": 0,
+                "passed": true,
+                "initialCheck": true,
+                "evidence": "logs/phase4-performance-final-checker-diagnostic-identity-safety.log"
+            },
+            {
+                "name": "checker-program-relations-safety",
+                "assertions": 12,
+                "exitCode": 0,
+                "passed": true,
+                "initialCheck": true,
+                "evidence": "logs/phase4-performance-final-checker-program-relations-safety.log"
+            },
+            {
+                "name": "checker-pool-safety",
+                "assertions": 19,
+                "exitCode": 0,
+                "passed": true,
+                "initialCheck": true,
+                "evidence": "Captured in the initial Release safety tool result; unchanged tested implementation reused."
+            },
+            {
+                "name": "checker-pool-cancellation",
+                "assertions": 6,
+                "exitCode": 0,
+                "passed": true,
+                "initialCheck": true,
+                "evidence": "Captured in the initial Release safety tool result; unchanged tested implementation reused."
+            },
+            {
+                "name": "module-specifiers-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--module-specifiers-safety"
+                ],
+                "log": "logs/phase4-performance-module-specifiers-safety.log",
+                "exitCode": 0,
+                "output": "20 module naming/path/extension/cancellation assertions\r\n",
+                "passed": true
+            },
+            {
+                "name": "module-program-specifiers-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--module-program-specifiers-safety"
+                ],
+                "log": "logs/phase4-performance-module-program-specifiers-safety.log",
+                "exitCode": 0,
+                "output": "Program module specifier safety: 12 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "diagnostic-node-printer-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--diagnostic-node-printer-safety"
+                ],
+                "log": "logs/phase4-performance-diagnostic-node-printer-safety.log",
+                "exitCode": 0,
+                "output": "Diagnostic node printer safety: 11 assertions passed; depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "computed-symbols-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--computed-symbols-safety"
+                ],
+                "log": "logs/phase4-performance-computed-symbols-safety.log",
+                "exitCode": 0,
+                "output": "Computed symbol safety: 7 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "module-generation-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--module-generation-safety"
+                ],
+                "log": "logs/phase4-performance-module-generation-safety.log",
+                "exitCode": 0,
+                "output": "Module generation safety: 12 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "module-node-specifiers-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--module-node-specifiers-safety"
+                ],
+                "log": "logs/phase4-performance-module-node-specifiers-safety.log",
+                "exitCode": 0,
+                "output": "Node module specifier safety: 10 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "module-package-specifiers-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--module-package-specifiers-safety"
+                ],
+                "log": "logs/phase4-performance-module-package-specifiers-safety.log",
+                "exitCode": 0,
+                "output": "19 package-map/output-path/cancellation assertions; depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-emit-syntax-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-emit-syntax-safety"
+                ],
+                "log": "logs/phase4-performance-checker-emit-syntax-safety.log",
+                "exitCode": 0,
+                "output": "Emit syntax safety: 13 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-node-builder-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-node-builder-safety"
+                ],
+                "log": "logs/phase4-performance-checker-node-builder-safety.log",
+                "exitCode": 0,
+                "output": "Node builder tracking safety: 17 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-return-syntax-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-return-syntax-safety"
+                ],
+                "log": "logs/phase4-performance-checker-return-syntax-safety.log",
+                "exitCode": 0,
+                "output": "Return recovery safety: 14 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-module-grammar-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-module-grammar-safety"
+                ],
+                "log": "logs/phase4-performance-checker-module-grammar-safety.log",
+                "exitCode": 0,
+                "output": "Module grammar safety: 12 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-mapped-exports-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-mapped-exports-safety"
+                ],
+                "log": "logs/phase4-performance-checker-mapped-exports-safety.log",
+                "exitCode": 0,
+                "output": "Mapped/export safety: 17 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-private-declarations-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-private-declarations-safety"
+                ],
+                "log": "logs/phase4-performance-checker-private-declarations-safety.log",
+                "exitCode": 0,
+                "output": "Private/declaration safety: 16 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-diagnostic-values-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-diagnostic-values-safety"
+                ],
+                "log": "logs/phase4-performance-checker-diagnostic-values-safety.log",
+                "exitCode": 0,
+                "output": "Diagnostic value safety: 16 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-declaration-grammar-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-declaration-grammar-safety"
+                ],
+                "log": "logs/phase4-performance-checker-declaration-grammar-safety.log",
+                "exitCode": 0,
+                "output": "Declaration grammar safety: 13 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-relation-context-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-relation-context-safety"
+                ],
+                "log": "logs/phase4-performance-checker-relation-context-safety.log",
+                "exitCode": 0,
+                "output": "Relation context safety: 14 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-module-context-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-module-context-safety"
+                ],
+                "log": "logs/phase4-performance-checker-module-context-safety.log",
+                "exitCode": 0,
+                "output": "Module context safety: 11 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-declaration-block-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-declaration-block-safety"
+                ],
+                "log": "logs/phase4-performance-checker-declaration-block-safety.log",
+                "exitCode": 0,
+                "output": "Declaration block safety: 8 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-recovery-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-recovery-safety"
+                ],
+                "log": "logs/phase4-performance-checker-recovery-safety.log",
+                "exitCode": 0,
+                "output": "Syntax recovery safety: 10 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-emit-links-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-emit-links-safety"
+                ],
+                "log": "logs/phase4-performance-checker-emit-links-safety.log",
+                "exitCode": 0,
+                "output": "Emit linking safety: 14 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-emit-queries-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-emit-queries-safety"
+                ],
+                "log": "logs/phase4-performance-checker-emit-queries-safety.log",
+                "exitCode": 0,
+                "output": "Emit query safety: 18 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-signature-declarations-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-signature-declarations-safety"
+                ],
+                "log": "logs/phase4-performance-checker-signature-declarations-safety.log",
+                "exitCode": 0,
+                "output": "Signature declaration safety: 10 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-syntax-names-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-syntax-names-safety"
+                ],
+                "log": "logs/phase4-performance-checker-syntax-names-safety.log",
+                "exitCode": 0,
+                "output": "Type syntax names safety: 10 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-syntax-options-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-syntax-options-safety"
+                ],
+                "log": "logs/phase4-performance-checker-syntax-options-safety.log",
+                "exitCode": 0,
+                "output": "Type syntax options safety: 10 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-symbol-type-arguments-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-symbol-type-arguments-safety"
+                ],
+                "log": "logs/phase4-performance-checker-symbol-type-arguments-safety.log",
+                "exitCode": 0,
+                "output": "Symbol type arguments safety: 9 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-signature-syntax-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-signature-syntax-safety"
+                ],
+                "log": "logs/phase4-performance-checker-signature-syntax-safety.log",
+                "exitCode": 0,
+                "output": "Signature syntax safety: 9 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-conditional-syntax-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-conditional-syntax-safety"
+                ],
+                "log": "logs/phase4-performance-checker-conditional-syntax-safety.log",
+                "exitCode": 0,
+                "output": "Conditional/property syntax safety: 9 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-type-syntax-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-type-syntax-safety"
+                ],
+                "log": "logs/phase4-performance-checker-type-syntax-safety.log",
+                "exitCode": 0,
+                "output": "Type syntax core safety: 9 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-type-renderer-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-type-renderer-safety"
+                ],
+                "log": "logs/phase4-performance-checker-type-renderer-safety.log",
+                "exitCode": 0,
+                "output": "Diagnostic renderer safety: 52 assertions passed; array depth 5000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-display-formats-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-display-formats-safety"
+                ],
+                "log": "logs/phase4-performance-checker-display-formats-safety.log",
+                "exitCode": 0,
+                "output": "Display format safety: 15 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-symbol-type-nodes-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-symbol-type-nodes-safety"
+                ],
+                "log": "logs/phase4-performance-checker-symbol-type-nodes-safety.log",
+                "exitCode": 0,
+                "output": "Symbol type node safety: 14 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-symbol-formats-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-symbol-formats-safety"
+                ],
+                "log": "logs/phase4-performance-checker-symbol-formats-safety.log",
+                "exitCode": 0,
+                "output": "Symbol format mode safety: 9 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-symbol-display-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-symbol-display-safety"
+                ],
+                "log": "logs/phase4-performance-checker-symbol-display-safety.log",
+                "exitCode": 0,
+                "output": "Symbol display/accessibility safety: 17 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-access-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-access-safety"
+                ],
+                "log": "logs/phase4-performance-checker-access-safety.log",
+                "exitCode": 0,
+                "output": "82 access/optional/member/class/cancellation/spelling assertions; 20,000-level traversal.\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-identifiers-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-identifiers-safety"
+                ],
+                "log": "logs/phase4-performance-checker-identifiers-safety.log",
+                "exitCode": 0,
+                "output": "39 identifier/binding/default/alias/cancellation/ownership assertions; 20,000-level reference traversal.\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-flow-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-flow-safety"
+                ],
+                "log": "logs/phase4-performance-checker-flow-safety.log",
+                "exitCode": 0,
+                "output": "52 flow/cache/reachability/assignment/cancellation assertions; 20,000-node traversal and exact 2,000 recursion limit.\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-references-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-references-safety"
+                ],
+                "log": "logs/phase4-performance-checker-references-safety.log",
+                "exitCode": 0,
+                "output": "23 reference safety assertions; 20,000-level syntax traversal.\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-binary-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-binary-safety"
+                ],
+                "log": "logs/phase4-performance-checker-binary-safety.log",
+                "exitCode": 0,
+                "output": "31 binary/awaited/recursion/cancellation assertions; 20000-level binary expressions\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-expressions-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-expressions-safety"
+                ],
+                "log": "logs/phase4-performance-checker-expressions-safety.log",
+                "exitCode": 0,
+                "output": "81 expression/literal/context/enum/cache/cancellation assertions; 20000-level expression, constant and context traversal\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-inference-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-inference-safety"
+                ],
+                "log": "logs/phase4-performance-checker-inference-safety.log",
+                "exitCode": 0,
+                "output": "37 inference/priority/fixing/cancellation/widening/reverse-map assertions; 20000-level traversal\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-conditional-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-conditional-safety"
+                ],
+                "log": "logs/phase4-performance-checker-conditional-safety.log",
+                "exitCode": 0,
+                "output": "24 conditional/cache/cancellation assertions; exact 1000 tail and 10 relation nesting limits\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-generic-relations-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-generic-relations-safety"
+                ],
+                "log": "logs/phase4-performance-checker-generic-relations-safety.log",
+                "exitCode": 0,
+                "output": "27 generic relation/optionality/key variance/cancellation assertions\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-indexing-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-indexing-safety"
+                ],
+                "log": "logs/phase4-performance-checker-indexing-safety.log",
+                "exitCode": 0,
+                "output": "Checker indexed type safety: 51 assertions; 20,000-level simplification and key traversal\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-assignability-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-assignability-safety"
+                ],
+                "log": "logs/phase4-performance-checker-assignability-safety.log",
+                "exitCode": 0,
+                "output": "57 structural relation/variance/facts/cancellation assertions\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-relations-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-relations-safety"
+                ],
+                "log": "logs/phase4-performance-checker-relations-safety.log",
+                "exitCode": 0,
+                "output": "48 relation key/cache/normalization/cancellation assertions; exact 100-level comparison cutoff; key and base chains depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-relation-diagnostics-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-relation-diagnostics-safety"
+                ],
+                "log": "logs/phase4-performance-checker-relation-diagnostics-safety.log",
+                "exitCode": 0,
+                "output": "Relation diagnostic safety: 10 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-signatures-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-signatures-safety"
+                ],
+                "log": "logs/phase4-performance-checker-signatures-safety.log",
+                "exitCode": 0,
+                "output": "148 signature/function/call/iteration/inference/context/cancellation assertions; binding and return traversal depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-properties-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-properties-safety"
+                ],
+                "log": "logs/phase4-performance-checker-properties-safety.log",
+                "exitCode": 0,
+                "output": "49 property/view/index/cache/cancellation assertions; reduction chain depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-values-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-values-safety"
+                ],
+                "log": "logs/phase4-performance-checker-values-safety.log",
+                "exitCode": 0,
+                "output": "32 symbol read/write/cache/cancellation assertions; instantiated symbol chain depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-members-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-members-safety"
+                ],
+                "log": "logs/phase4-performance-checker-members-safety.log",
+                "exitCode": 0,
+                "output": "38 structured member/signature assertions; base and signature chains depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-type-nodes-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-type-nodes-safety"
+                ],
+                "log": "logs/phase4-performance-checker-type-nodes-safety.log",
+                "exitCode": 0,
+                "output": "25 source-type/cache/cancellation assertions; array and alias ancestry depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-alias-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-alias-safety"
+                ],
+                "log": "logs/phase4-performance-checker-alias-safety.log",
+                "exitCode": 0,
+                "output": "31 alias/cycle/cancellation/module-export assertions; alias chain depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-query-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-query-safety"
+                ],
+                "log": "logs/phase4-performance-checker-query-safety.log",
+                "exitCode": 0,
+                "output": "20 type-location query ownership/cancellation assertions; depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-symbol-query-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-symbol-query-safety"
+                ],
+                "log": "logs/phase4-performance-checker-symbol-query-safety.log",
+                "exitCode": 0,
+                "output": "25 symbol-location query identity/ownership/cancellation assertions\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-scope-query-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-scope-query-safety"
+                ],
+                "log": "logs/phase4-performance-checker-scope-query-safety.log",
+                "exitCode": 0,
+                "output": "23 scope/symbol-type query identity/cancellation assertions\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-context-query-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-context-query-safety"
+                ],
+                "log": "logs/phase4-performance-checker-context-query-safety.log",
+                "exitCode": 0,
+                "output": "24 context/signature query cache/cancellation assertions\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-visibility-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-visibility-safety"
+                ],
+                "log": "logs/phase4-performance-checker-visibility-safety.log",
+                "exitCode": 0,
+                "output": "33 declaration visibility/alias/rollback assertions; depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-symbol-chains-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-symbol-chains-safety"
+                ],
+                "log": "logs/phase4-performance-checker-symbol-chains-safety.log",
+                "exitCode": 0,
+                "output": "18 accessible-chain identity/qualification/rollback assertions; depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-accessibility-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-accessibility-safety"
+                ],
+                "log": "logs/phase4-performance-checker-accessibility-safety.log",
+                "exitCode": 0,
+                "output": "24 accessibility/container/entity-visibility/rollback assertions\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-program-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-program-safety"
+                ],
+                "log": "logs/phase4-performance-checker-program-safety.log",
+                "exitCode": 0,
+                "output": "294 program/checker ownership assertions; interface and scope depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-mapped-members-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-mapped-members-safety"
+                ],
+                "log": "logs/phase4-performance-checker-mapped-members-safety.log",
+                "exitCode": 0,
+                "output": "30 mapped member assertions; key validity, lower-bound and modifier chains at depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-mapped-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-mapped-safety"
+                ],
+                "log": "logs/phase4-performance-checker-mapped-safety.log",
+                "exitCode": 0,
+                "output": "37 mapped type assertions; actual-variable, generic-flag, kind and unary-tuple analysis depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-objects-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-objects-safety"
+                ],
+                "log": "logs/phase4-performance-checker-objects-safety.log",
+                "exitCode": 0,
+                "output": "40 object instantiation assertions; reference, parent and entity-name depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-instantiation-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-instantiation-safety"
+                ],
+                "log": "logs/phase4-performance-checker-instantiation-safety.log",
+                "exitCode": 0,
+                "output": "26 instantiation/signature/tuple assertions; exact 100-depth, 5,000,000-work and 10,000-tuple limits\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-constraints-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-constraints-safety"
+                ],
+                "log": "logs/phase4-performance-checker-constraints-safety.log",
+                "exitCode": 0,
+                "output": "21 constraint/default/recursion state assertions; default and indexed identity depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-algebra-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-algebra-safety"
+                ],
+                "log": "logs/phase4-performance-checker-algebra-safety.log",
+                "exitCode": 0,
+                "output": "15 algebra ownership/limit/cancellation assertions; template, intersection and origin depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-names-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-names-safety"
+                ],
+                "log": "logs/phase4-performance-checker-names-safety.log",
+                "exitCode": 0,
+                "output": "21 name/symbol state assertions; scope, initializer and merge depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "program-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--program-safety"
+                ],
+                "log": "logs/phase4-performance-program-safety.log",
+                "exitCode": 0,
+                "output": "Program reuse, invalidation and stack safety: 20 assertions; 12000 syntax levels; 3000 files\r\n",
+                "passed": true
+            },
+            {
+                "name": "parser-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--parser-safety"
+                ],
+                "log": "logs/phase4-performance-parser-safety.log",
+                "exitCode": 0,
+                "output": "Async documentation: single-worker parsing, lazy queries, cloning and cache identity passed.\r\nparentheses.ts: 71 ms\r\nparenthesis-precedence.ts: 0 ms\r\nawait-spans.ts: 2 ms\r\nawait-overlap.ts: 0 ms\r\nawait-end.ts: 0 ms\r\nindex-signatures.ts: 4 ms\r\ngeneric-function-types.ts: 3 ms\r\nheritage-expressions.ts: 3 ms\r\nprivate-type-query.ts: 2 ms\r\nthis-parameters.ts: 0 ms\r\ntuples.ts: 51 ms\r\ngenerics.ts: 77 ms\r\nindexed-access.ts: 59 ms\r\noperators.ts: 15 ms\r\nfunctions.ts: 57 ms\r\nconditionals.ts: 130 ms\r\nmapped.ts: 177 ms\r\ntype-literals.ts: 159 ms\r\ntemplate-types.ts: 137 ms\r\ncompound-types.ts: 150 ms\r\nblocks.ts: 56 ms\r\nif-statements.ts: 75 ms\r\nexpression-parentheses.ts: 48 ms\r\narray-expressions.ts: 58 ms\r\nobject-expressions.ts: 117 ms\r\nbinary-expressions.ts: 46 ms\r\nfunction-expressions.ts: 278 ms\r\njsx.tsx: 134 ms\r\njsx-qualified.tsx: 73 ms\r\njsx-names.tsx: 1 ms\r\nnested.json: 60 ms\r\ndocumentation.js: 164 ms\r\ndocumentation-array.js: 45 ms\r\ndocumentation-host.js: 57 ms\r\ndocumentation-names.js: 26 ms\r\ndocumentation-heritage.js: 108 ms\r\ndocumentation-properties.js: 108 ms\r\ndocumentation-typedef.js: 0 ms\r\nsynchronization-context.ts: 176 ms\r\nParser safety: 39 cases, 1421841 nodes; depth 21000, source positions, parents and cancellation passed.\r\n",
+                "passed": true
+            }
+        ]
+    },
+    "components": [
+        {
+            "name": "component-types",
+            "command": "C:\\Program Files\\nodejs\\node.exe",
+            "args": [
+                "csharp/tools/checker-types.mjs",
+                "--managed",
+                "--no-build"
+            ],
+            "log": "logs/phase4-performance-component-types.log",
+            "exitCode": 0,
+            "summary": {
+                "timestamp": "2026-09-27T09:43:24.134Z",
+                "scope": "checker type constructors, identity, order, mapper composition and resolution state; not complete semantic checking",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "managed": true,
+                "runtime": "managed development run",
+                "cases": 2904,
+                "operations": 1333980,
+                "passed": 2904,
+                "failed": 0,
+                "inputSha256": "fe27e1e1f476dd2af15580accca06a83d2f5e5e18bbe25319d7bf624d83a0b2b",
+                "referenceOutputSha256": "d3b720f113d1d27d163a9c8feb67c041f7cddc423327d53fc5d0931fd0ef9a59",
+                "outputSha256": "f21979d22a442df29852f64a095f3603bc7c0634061a9051371fd288233b1c28",
+                "oracleSha256": "d1b28e149f126839bc73264d58f78751e3ccbeb6caf32cb2c6887b51eb3df7f2",
+                "candidateSha256": "627f927ccdea89bfa89bba635438d118df3bcac7a7bb59ed8f8bdee598b71405",
+                "sdk": "11.0.100-rc.2.26470.103",
+                "go": "go version go1.27.1 windows/amd64"
+            },
+            "passed": true
+        },
+        {
+            "name": "component-algebra",
+            "command": "C:\\Program Files\\nodejs\\node.exe",
+            "args": [
+                "csharp/tools/checker-algebra.mjs",
+                "--managed",
+                "--no-build"
+            ],
+            "log": "logs/phase4-performance-component-algebra.log",
+            "exitCode": 0,
+            "summary": {
+                "timestamp": "2026-09-27T09:43:30.020Z",
+                "scope": "Union/intersection/template/string-mapping normalization with explicit fixture relation services; full semantic checker remains incomplete",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "managed": true,
+                "runtime": "managed development run",
+                "cases": 3885,
+                "operations": 259745,
+                "passed": 3885,
+                "failed": 0,
+                "inputSha256": "c1751d5b1dd803361abec44ebb64ab227a87c1c0c3c1a152f169ba880a0bfb5e",
+                "referenceOutputSha256": "83aea4b6543704520e86520cb64bc4b77d41a0578f12faac807ce068c2883464",
+                "outputSha256": "63097656a9cf2e490af99613930c518cb2957a2aecd7af221c8193c3f513eb06",
+                "oracleSha256": "d1b28e149f126839bc73264d58f78751e3ccbeb6caf32cb2c6887b51eb3df7f2",
+                "candidateSha256": "627f927ccdea89bfa89bba635438d118df3bcac7a7bb59ed8f8bdee598b71405",
+                "sdk": "11.0.100-rc.2.26470.103",
+                "go": "go version go1.27.1 windows/amd64"
+            },
+            "passed": true
+        },
+        {
+            "name": "tracking-public-single",
+            "command": "C:\\Program Files\\nodejs\\node.exe",
+            "args": [
+                "csharp/tools/checker-node-builder-tracking.mjs"
+            ],
+            "log": "logs/phase4-performance-tracking-public-single.log",
+            "exitCode": 0,
+            "summary": {
+                "timestamp": "2026-09-27T09:43:31.373Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "managed": true,
+                "concurrency": 1,
+                "cases": 26,
+                "queries": 2436,
+                "differences": [],
+                "oracleSha256": "72c924cf8822c5b2db21a97286b33cecab7f06f3496fb28c56bcc6f40ce1ebce",
+                "candidateSha256": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                "referenceExecuted": 0,
+                "referenceReused": 26,
+                "candidateExecuted": 26,
+                "candidateReused": 0
+            },
+            "passed": true
+        },
+        {
+            "name": "tracking-public-default",
+            "command": "C:\\Program Files\\nodejs\\node.exe",
+            "args": [
+                "csharp/tools/checker-node-builder-tracking.mjs",
+                "--default-concurrency"
+            ],
+            "log": "logs/phase4-performance-tracking-public-default.log",
+            "exitCode": 0,
+            "summary": {
+                "timestamp": "2026-09-27T09:43:32.326Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "managed": true,
+                "concurrency": 4,
+                "cases": 26,
+                "queries": 2436,
+                "differences": [],
+                "oracleSha256": "72c924cf8822c5b2db21a97286b33cecab7f06f3496fb28c56bcc6f40ce1ebce",
+                "candidateSha256": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                "referenceExecuted": 26,
+                "referenceReused": 0,
+                "candidateExecuted": 26,
+                "candidateReused": 0
+            },
+            "passed": true
+        },
+        {
+            "name": "tracking-internal-flags-single",
+            "command": "C:\\Program Files\\nodejs\\node.exe",
+            "args": [
+                "csharp/tools/checker-node-builder-tracking.mjs",
+                "--internal-flags"
+            ],
+            "log": "logs/phase4-performance-tracking-internal-flags-single.log",
+            "exitCode": 0,
+            "summary": {
+                "timestamp": "2026-09-27T09:43:33.044Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "managed": true,
+                "concurrency": 1,
+                "cases": 10,
+                "queries": 1296,
+                "differences": [],
+                "oracleSha256": "72c924cf8822c5b2db21a97286b33cecab7f06f3496fb28c56bcc6f40ce1ebce",
+                "candidateSha256": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                "referenceExecuted": 8,
+                "referenceReused": 2,
+                "candidateExecuted": 10,
+                "candidateReused": 0
+            },
+            "passed": true
+        },
+        {
+            "name": "tracking-internal-flags-default",
+            "command": "C:\\Program Files\\nodejs\\node.exe",
+            "args": [
+                "csharp/tools/checker-node-builder-tracking.mjs",
+                "--internal-flags",
+                "--default-concurrency"
+            ],
+            "log": "logs/phase4-performance-tracking-internal-flags-default.log",
+            "exitCode": 0,
+            "summary": {
+                "timestamp": "2026-09-27T09:43:33.767Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "managed": true,
+                "concurrency": 4,
+                "cases": 10,
+                "queries": 1296,
+                "differences": [],
+                "oracleSha256": "72c924cf8822c5b2db21a97286b33cecab7f06f3496fb28c56bcc6f40ce1ebce",
+                "candidateSha256": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                "referenceExecuted": 10,
+                "referenceReused": 0,
+                "candidateExecuted": 10,
+                "candidateReused": 0
+            },
+            "passed": true
+        },
+        {
+            "name": "tracking-context-flags-single",
+            "command": "C:\\Program Files\\nodejs\\node.exe",
+            "args": [
+                "csharp/tools/checker-node-builder-tracking.mjs",
+                "--context-flags"
+            ],
+            "log": "logs/phase4-performance-tracking-context-flags-single.log",
+            "exitCode": 0,
+            "summary": {
+                "timestamp": "2026-09-27T09:43:34.495Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "managed": true,
+                "concurrency": 1,
+                "cases": 6,
+                "queries": 336,
+                "differences": [],
+                "oracleSha256": "72c924cf8822c5b2db21a97286b33cecab7f06f3496fb28c56bcc6f40ce1ebce",
+                "candidateSha256": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                "referenceExecuted": 0,
+                "referenceReused": 6,
+                "candidateExecuted": 6,
+                "candidateReused": 0
+            },
+            "passed": true
+        },
+        {
+            "name": "tracking-context-flags-default",
+            "command": "C:\\Program Files\\nodejs\\node.exe",
+            "args": [
+                "csharp/tools/checker-node-builder-tracking.mjs",
+                "--context-flags",
+                "--default-concurrency"
+            ],
+            "log": "logs/phase4-performance-tracking-context-flags-default.log",
+            "exitCode": 0,
+            "summary": {
+                "timestamp": "2026-09-27T09:43:35.186Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "managed": true,
+                "concurrency": 4,
+                "cases": 6,
+                "queries": 336,
+                "differences": [],
+                "oracleSha256": "72c924cf8822c5b2db21a97286b33cecab7f06f3496fb28c56bcc6f40ce1ebce",
+                "candidateSha256": "5261fa77036f79e1048e48e8cc121dbfe535b010c368429407a601aacd3f37a7",
+                "referenceExecuted": 0,
+                "referenceReused": 6,
+                "candidateExecuted": 6,
+                "candidateReused": 0
+            },
+            "passed": true
+        }
+    ],
+    "workloads": {
+        "path": "csharp/compatibility/evidence/phase4-performance-workloads.json",
+        "sha256": "d7310588d3037506876f535d28f067624723f7b75a0790cea162c08d2ea46a92",
+        "samples": {
+            "path": "csharp/compatibility/evidence/phase4-performance-samples.jsonl",
+            "sha256": "365b03b72af9c0bc02019f251f5d11a11fffa76960581a0d5aec5deb06c1cb9b"
+        },
+        "endToEndSpeedupClaimed": false,
+        "initial": {
+            "path": "built/csharp/phase4-performance-initial/workloads.json",
+            "sha256": "3052b7a4b89fb93d462317aabfa6cc1d0ecce5b7070ad683e82f073c569232e5",
+            "result": {
+                "timestamp": "2026-09-27T09:28:24.780Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "manifest": {
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "execution": "Paired Release CoreCLR processes before and after the performance pass; no NativeAOT execution",
+                    "scope": "Fresh program construction, binding and complete semantic checking in warm processes; input decoding excluded",
+                    "processorCount": 4,
+                    "modes": [
+                        "single",
+                        "default"
+                    ],
+                    "warmups": 3,
+                    "samples": 9,
+                    "provisionalBudgets": {
+                        "p95ElapsedMs": 5000,
+                        "peakRssBytes": 536870912,
+                        "releasedHeapGrowthBytes": 16777216
+                    },
+                    "budgetScope": "Existing Phase 4 operability budgets, applied before measurement to the three original workloads and two diagnostic-bearing programs. Comparative timings are reported separately from these limits.",
+                    "cases": [
+                        "compiler/jsxComplexSignatureHasApplicabilityError.tsx",
+                        "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+                        "conformance/superInStaticMembers1.ts target=es2022",
+                        "conformance/nodeModulesAllowJs1.ts module=node18",
+                        "compiler/giant.ts"
+                    ]
+                },
+                "manifestSha256": "5b9372d3609e2d70a252ec06fa96ad15931b8729ec2b648360608a2a8b3ecc50",
+                "candidateSha256": "f00ac9695fd903e191a71e9f6d53c3a4598db1a36ae0c5df0bcb06de74f68e82",
+                "compilerSha256": "095bc78f93efe3a0f78308cb17b990fb5478a5d75a22bdc33d95d70c195f493e",
+                "baseline": {
+                    "directory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase4-performance-before",
+                    "candidateSha256": "c1b3b0401acc737509fcafc414f36e6415eeaf0724af8bbaf664a0a04686ac84",
+                    "compilerSha256": "5673ddd04dda4962037acefd894bba933b87ed21979247606daa7875f01adff6"
+                },
+                "samplesSha256": "dda0f895ceaa5e0c62a343c15a0713d12ad4ecfba83ca1ccf1c5e67ebbb019de",
+                "machine": {
+                    "platform": "win32",
+                    "architecture": "x64",
+                    "os": "Windows 11 Pro for Workstations",
+                    "cpu": "13th Gen Intel(R) Core(TM) i7-13700K",
+                    "availableMemoryBytes": 68399497216
+                },
+                "runtime": {
+                    "dotnet": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                    "tieredCompilation": false,
+                    "processorCount": 4,
+                    "nativeAotExecuted": false
+                },
+                "groups": [
+                    {
+                        "name": "compiler/jsxComplexSignatureHasApplicabilityError.tsx",
+                        "mode": "single",
+                        "before": {
+                            "samples": 9,
+                            "medianMs": 144.9688,
+                            "p95Ms": 153.6905,
+                            "medianCpuMs": 125,
+                            "medianAllocatedBytes": 95368384,
+                            "peakRssBytes": 143888384,
+                            "releasedHeapGrowthBytes": 512
+                        },
+                        "after": {
+                            "samples": 9,
+                            "medianMs": 137.0941,
+                            "p95Ms": 148.8008,
+                            "medianCpuMs": 125,
+                            "medianAllocatedBytes": 94860800,
+                            "peakRssBytes": 143486976,
+                            "releasedHeapGrowthBytes": 512
+                        },
+                        "passed": true,
+                        "elapsedRatio": 0.9456800359801558,
+                        "allocationRatio": 0.9946776491462831
+                    },
+                    {
+                        "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+                        "mode": "single",
+                        "before": {
+                            "samples": 9,
+                            "medianMs": 314.3083,
+                            "p95Ms": 334.8861,
+                            "medianCpuMs": 265.625,
+                            "medianAllocatedBytes": 209613056,
+                            "peakRssBytes": 148160512,
+                            "releasedHeapGrowthBytes": 8288
+                        },
+                        "after": {
+                            "samples": 9,
+                            "medianMs": 321.2304,
+                            "p95Ms": 327.9044,
+                            "medianCpuMs": 281.25,
+                            "medianAllocatedBytes": 197221896,
+                            "peakRssBytes": 148131840,
+                            "releasedHeapGrowthBytes": 8736
+                        },
+                        "passed": true,
+                        "elapsedRatio": 1.022023280963309,
+                        "allocationRatio": 0.9408855524724566
+                    },
+                    {
+                        "name": "conformance/superInStaticMembers1.ts target=es2022",
+                        "mode": "single",
+                        "before": {
+                            "samples": 9,
+                            "medianMs": 137.1433,
+                            "p95Ms": 158.2611,
+                            "medianCpuMs": 125,
+                            "medianAllocatedBytes": 89554200,
+                            "peakRssBytes": 140263424,
+                            "releasedHeapGrowthBytes": 504
+                        },
+                        "after": {
+                            "samples": 9,
+                            "medianMs": 132.36,
+                            "p95Ms": 150.8632,
+                            "medianCpuMs": 125,
+                            "medianAllocatedBytes": 89372640,
+                            "peakRssBytes": 138874880,
+                            "releasedHeapGrowthBytes": 504
+                        },
+                        "passed": true,
+                        "elapsedRatio": 0.9651218834605847,
+                        "allocationRatio": 0.9979726243995256
+                    },
+                    {
+                        "name": "conformance/nodeModulesAllowJs1.ts module=node18",
+                        "mode": "single",
+                        "before": {
+                            "samples": 9,
+                            "medianMs": 130.4774,
+                            "p95Ms": 135.2904,
+                            "medianCpuMs": 125,
+                            "medianAllocatedBytes": 88033864,
+                            "peakRssBytes": 136220672,
+                            "releasedHeapGrowthBytes": 0
+                        },
+                        "after": {
+                            "samples": 9,
+                            "medianMs": 125.8067,
+                            "p95Ms": 128.6873,
+                            "medianCpuMs": 125,
+                            "medianAllocatedBytes": 87839512,
+                            "peakRssBytes": 135344128,
+                            "releasedHeapGrowthBytes": 0
+                        },
+                        "passed": true,
+                        "elapsedRatio": 0.9642029960744161,
+                        "allocationRatio": 0.9977923041069741
+                    },
+                    {
+                        "name": "compiler/giant.ts",
+                        "mode": "single",
+                        "before": {
+                            "samples": 9,
+                            "medianMs": 113.4003,
+                            "p95Ms": 127.8117,
+                            "medianCpuMs": 109.375,
+                            "medianAllocatedBytes": 85644128,
+                            "peakRssBytes": 131518464,
+                            "releasedHeapGrowthBytes": 504
+                        },
+                        "after": {
+                            "samples": 9,
+                            "medianMs": 112.6638,
+                            "p95Ms": 118.3761,
+                            "medianCpuMs": 93.75,
+                            "medianAllocatedBytes": 85230256,
+                            "peakRssBytes": 130928640,
+                            "releasedHeapGrowthBytes": 8344
+                        },
+                        "passed": true,
+                        "elapsedRatio": 0.9935053081870153,
+                        "allocationRatio": 0.9951675379309134
+                    },
+                    {
+                        "name": "compiler/jsxComplexSignatureHasApplicabilityError.tsx",
+                        "mode": "default",
+                        "before": {
+                            "samples": 9,
+                            "medianMs": 150.6873,
+                            "p95Ms": 164.2407,
+                            "medianCpuMs": 140.625,
+                            "medianAllocatedBytes": 97353904,
+                            "peakRssBytes": 151748608,
+                            "releasedHeapGrowthBytes": 17192
+                        },
+                        "after": {
+                            "samples": 9,
+                            "medianMs": 149.3961,
+                            "p95Ms": 152.9859,
+                            "medianCpuMs": 140.625,
+                            "medianAllocatedBytes": 96561992,
+                            "peakRssBytes": 152403968,
+                            "releasedHeapGrowthBytes": 8800
+                        },
+                        "passed": true,
+                        "elapsedRatio": 0.9914312619577097,
+                        "allocationRatio": 0.9918656369445646
+                    },
+                    {
+                        "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+                        "mode": "default",
+                        "before": {
+                            "samples": 9,
+                            "medianMs": 291.3706,
+                            "p95Ms": 302.3034,
+                            "medianCpuMs": 296.875,
+                            "medianAllocatedBytes": 211551200,
+                            "peakRssBytes": 155660288,
+                            "releasedHeapGrowthBytes": 5920
+                        },
+                        "after": {
+                            "samples": 9,
+                            "medianMs": 315.1688,
+                            "p95Ms": 328.6713,
+                            "medianCpuMs": 296.875,
+                            "medianAllocatedBytes": 198818864,
+                            "peakRssBytes": 150016000,
+                            "releasedHeapGrowthBytes": 5280
+                        },
+                        "passed": true,
+                        "elapsedRatio": 1.0816767374608143,
+                        "allocationRatio": 0.9398143995401586
+                    },
+                    {
+                        "name": "conformance/superInStaticMembers1.ts target=es2022",
+                        "mode": "default",
+                        "before": {
+                            "samples": 9,
+                            "medianMs": 130.461,
+                            "p95Ms": 140.1085,
+                            "medianCpuMs": 156.25,
+                            "medianAllocatedBytes": 92461328,
+                            "peakRssBytes": 144142336,
+                            "releasedHeapGrowthBytes": 5656
+                        },
+                        "after": {
+                            "samples": 9,
+                            "medianMs": 132.4906,
+                            "p95Ms": 153.1893,
+                            "medianCpuMs": 109.375,
+                            "medianAllocatedBytes": 91956984,
+                            "peakRssBytes": 143192064,
+                            "releasedHeapGrowthBytes": 12776
+                        },
+                        "passed": true,
+                        "elapsedRatio": 1.0155571396815906,
+                        "allocationRatio": 0.9945453519767745
+                    },
+                    {
+                        "name": "conformance/nodeModulesAllowJs1.ts module=node18",
+                        "mode": "default",
+                        "before": {
+                            "samples": 9,
+                            "medianMs": 130.4128,
+                            "p95Ms": 138.0507,
+                            "medianCpuMs": 125,
+                            "medianAllocatedBytes": 90778888,
+                            "peakRssBytes": 140255232,
+                            "releasedHeapGrowthBytes": 10624
+                        },
+                        "after": {
+                            "samples": 9,
+                            "medianMs": 126.8249,
+                            "p95Ms": 154.547,
+                            "medianCpuMs": 125,
+                            "medianAllocatedBytes": 90264848,
+                            "peakRssBytes": 139657216,
+                            "releasedHeapGrowthBytes": 16152
+                        },
+                        "passed": true,
+                        "elapsedRatio": 0.9724881299995092,
+                        "allocationRatio": 0.9943374499145661
+                    },
+                    {
+                        "name": "compiler/giant.ts",
+                        "mode": "default",
+                        "before": {
+                            "samples": 9,
+                            "medianMs": 114.4034,
+                            "p95Ms": 124.2019,
+                            "medianCpuMs": 109.375,
+                            "medianAllocatedBytes": 87479416,
+                            "peakRssBytes": 135118848,
+                            "releasedHeapGrowthBytes": 12128
+                        },
+                        "after": {
+                            "samples": 9,
+                            "medianMs": 114.315,
+                            "p95Ms": 117.218,
+                            "medianCpuMs": 109.375,
+                            "medianAllocatedBytes": 86814584,
+                            "peakRssBytes": 134299648,
+                            "releasedHeapGrowthBytes": 9072
+                        },
+                        "passed": true,
+                        "elapsedRatio": 0.9992272956922609,
+                        "allocationRatio": 0.9924001321636624
+                    }
+                ],
+                "passed": true
+            }
+        },
+        "initialSamples": {
+            "path": "built/csharp/phase4-performance-initial/samples.jsonl",
+            "sha256": "dda0f895ceaa5e0c62a343c15a0713d12ad4ecfba83ca1ccf1c5e67ebbb019de"
+        },
+        "identicalBinaryControl": {
+            "path": "built/csharp/phase4-performance-initial/control.json",
+            "sha256": "bb55406bf2dbfd37aea5d4674fa513289fe49bcd9bbe0451dfbacc0b7aac2a67",
+            "result": {
+                "timestamp": "2026-09-27T09:40:54.446Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "manifest": {
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "execution": "Paired Release CoreCLR processes before and after the performance pass; no NativeAOT execution",
+                    "scope": "Identical saved baseline binaries in two warm processes; control for process-to-process timing variation in the conditional-type workload",
+                    "processorCount": 4,
+                    "modes": [
+                        "single",
+                        "default"
+                    ],
+                    "warmups": 5,
+                    "samples": 15,
+                    "provisionalBudgets": {
+                        "p95ElapsedMs": 5000,
+                        "peakRssBytes": 536870912,
+                        "releasedHeapGrowthBytes": 16777216
+                    },
+                    "budgetScope": "Existing Phase 4 operability budgets, applied before measurement to the three original workloads and two diagnostic-bearing programs. Comparative timings are reported separately from these limits.",
+                    "cases": [
+                        "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts"
+                    ]
+                },
+                "manifestSha256": "547f371e1e2ba02fe3b30e4bc3a35e4d802088d2ad093d86b560601cf1233a00",
+                "candidateSha256": "c1b3b0401acc737509fcafc414f36e6415eeaf0724af8bbaf664a0a04686ac84",
+                "compilerSha256": "5673ddd04dda4962037acefd894bba933b87ed21979247606daa7875f01adff6",
+                "baseline": {
+                    "directory": "D:\\source\\repos\\TypeScript\\built\\csharp\\phase4-performance-before",
+                    "candidateSha256": "c1b3b0401acc737509fcafc414f36e6415eeaf0724af8bbaf664a0a04686ac84",
+                    "compilerSha256": "5673ddd04dda4962037acefd894bba933b87ed21979247606daa7875f01adff6"
+                },
+                "samplesSha256": "d1c3513af6213711c73a3ae70eea4e4404478d204adb7956b4dbaafc36b14d50",
+                "machine": {
+                    "platform": "win32",
+                    "architecture": "x64",
+                    "os": "Windows 11 Pro for Workstations",
+                    "cpu": "13th Gen Intel(R) Core(TM) i7-13700K",
+                    "availableMemoryBytes": 68399497216
+                },
+                "runtime": {
+                    "dotnet": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                    "tieredCompilation": false,
+                    "processorCount": 4,
+                    "nativeAotExecuted": false
+                },
+                "groups": [
+                    {
+                        "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+                        "mode": "single",
+                        "before": {
+                            "samples": 15,
+                            "medianMs": 311.8271,
+                            "medianProgramMs": 125.9078,
+                            "medianCheckerMs": 185.6147,
+                            "p95Ms": 334.4247,
+                            "medianCpuMs": 281.25,
+                            "medianAllocatedBytes": 209613992,
+                            "peakRssBytes": 147943424,
+                            "releasedHeapGrowthBytes": 8864
+                        },
+                        "after": {
+                            "samples": 15,
+                            "medianMs": 317.513,
+                            "medianProgramMs": 129.0808,
+                            "medianCheckerMs": 188.4521,
+                            "p95Ms": 331.8896,
+                            "medianCpuMs": 296.875,
+                            "medianAllocatedBytes": 209613984,
+                            "peakRssBytes": 148066304,
+                            "releasedHeapGrowthBytes": 896
+                        },
+                        "passed": true,
+                        "elapsedRatio": 1.0182341432159039,
+                        "allocationRatio": 0.9999999618346088
+                    },
+                    {
+                        "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+                        "mode": "default",
+                        "before": {
+                            "samples": 15,
+                            "medianMs": 302.6738,
+                            "medianProgramMs": 106.652,
+                            "medianCheckerMs": 193.7181,
+                            "p95Ms": 321.9805,
+                            "medianCpuMs": 296.875,
+                            "medianAllocatedBytes": 211550848,
+                            "peakRssBytes": 155639808,
+                            "releasedHeapGrowthBytes": 7016
+                        },
+                        "after": {
+                            "samples": 15,
+                            "medianMs": 303.4973,
+                            "medianProgramMs": 105.7621,
+                            "medianCheckerMs": 196.6447,
+                            "p95Ms": 319.1861,
+                            "medianCpuMs": 296.875,
+                            "medianAllocatedBytes": 211551080,
+                            "peakRssBytes": 155570176,
+                            "releasedHeapGrowthBytes": 3672
+                        },
+                        "passed": true,
+                        "elapsedRatio": 1.0027207508545501,
+                        "allocationRatio": 1.0000010966630586
+                    }
+                ],
+                "passed": true
+            }
+        },
+        "controlSamples": {
+            "path": "built/csharp/phase4-performance-initial/control-samples.jsonl",
+            "sha256": "d1c3513af6213711c73a3ae70eea4e4404478d204adb7956b4dbaafc36b14d50"
+        }
+    },
+    "discoveredFailures": {
+        "initialCorpus": [
+            {
+                "path": "built/csharp/semantic-corpus-phase4-performance-full/single/summary.json",
+                "sha256": "0744b9ade484867fb0914cf658a4acde676cf591b884b2ce6ee2016c25e17067",
+                "result": {
+                    "timestamp": "2026-09-27T09:32:55.587Z",
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "mode": "single",
+                    "filter": "",
+                    "managed": true,
+                    "reuseSyntax": true,
+                    "referenceJobs": 2,
+                    "scope": "Original compiler test program graphs and semantic/global diagnostics in the selected checker concurrency mode; checker query APIs are validated separately",
+                    "referenceExitCode": 0,
+                    "exportedConfigurations": 15208,
+                    "readyConfigurations": 13446,
+                    "availableConfigurations": 13446,
+                    "referenceInventoryFiles": 12730,
+                    "plannedConfigurations": 15208,
+                    "referenceMissingFiles": [],
+                    "referenceMissingConfigurations": [],
+                    "referenceSkipped": 1762,
+                    "referenceFailed": 0,
+                    "candidateFailures": 0,
+                    "graphMismatches": 0,
+                    "diagnosticMismatches": 2,
+                    "graphAndCodeMatches": 13444,
+                    "detailedDiagnosticMatches": 13444,
+                    "detailedDiagnosticMismatches": 2,
+                    "detailedComparison": "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized",
+                    "errorGroups": [],
+                    "inputSha256": "df21bccda8a3bc5da534586c352dae0175cf4bf260c93ee15694afe19353d5bd",
+                    "referenceInputCorrectionsSha256": "796d2ff79dfe5dfb5d35cd192946d4a1da669b6cea211d31b2b4696d84aa0c0c",
+                    "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+                    "candidateSha256": "f00ac9695fd903e191a71e9f6d53c3a4598db1a36ae0c5df0bcb06de74f68e82",
+                    "compilerSha256": "095bc78f93efe3a0f78308cb17b990fb5478a5d75a22bdc33d95d70c195f493e",
+                    "mapperFixture": {
+                        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                        "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+                        "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+                        "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+                    },
+                    "candidateOutputSha256": "9c0c1f50741f6998f07761e45ae329bbdd409737f001a48d14816c2771795efe",
+                    "fullSemanticCorpusGateComplete": false
+                }
+            },
+            {
+                "path": "built/csharp/semantic-corpus-phase4-performance-full/default/summary.json",
+                "sha256": "0b9941a1c57175201f1a186666c0de566454558e2311b1f8b04f08b10e01801b",
+                "result": {
+                    "timestamp": "2026-09-27T09:36:05.958Z",
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "mode": "default",
+                    "filter": "",
+                    "managed": true,
+                    "reuseSyntax": true,
+                    "referenceJobs": 2,
+                    "scope": "Original compiler test program graphs and semantic/global diagnostics in the selected checker concurrency mode; checker query APIs are validated separately",
+                    "referenceExitCode": 0,
+                    "exportedConfigurations": 15208,
+                    "readyConfigurations": 13446,
+                    "availableConfigurations": 13446,
+                    "referenceInventoryFiles": 12730,
+                    "plannedConfigurations": 15208,
+                    "referenceMissingFiles": [],
+                    "referenceMissingConfigurations": [],
+                    "referenceSkipped": 1762,
+                    "referenceFailed": 0,
+                    "candidateFailures": 0,
+                    "graphMismatches": 0,
+                    "diagnosticMismatches": 2,
+                    "graphAndCodeMatches": 13444,
+                    "detailedDiagnosticMatches": 13444,
+                    "detailedDiagnosticMismatches": 2,
+                    "detailedComparison": "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized",
+                    "errorGroups": [],
+                    "inputSha256": "b51e79a2ebc4428367c89bceb367fd82a86bdd85b43b847bc17f875b51743a77",
+                    "referenceInputCorrectionsSha256": "f0e9fd99f75e8ac0c3db7ef4ccef21980f74b7b1adcfe189a01c8a762e4613a6",
+                    "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+                    "candidateSha256": "f00ac9695fd903e191a71e9f6d53c3a4598db1a36ae0c5df0bcb06de74f68e82",
+                    "compilerSha256": "095bc78f93efe3a0f78308cb17b990fb5478a5d75a22bdc33d95d70c195f493e",
+                    "mapperFixture": {
+                        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                        "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+                        "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+                        "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+                    },
+                    "candidateOutputSha256": "9c0c1f50741f6998f07761e45ae329bbdd409737f001a48d14816c2771795efe",
+                    "fullSemanticCorpusGateComplete": false
+                }
+            }
+        ],
+        "baselineRecursiveDiagnostics": [
+            {
+                "path": "built/csharp/semantic-corpus-phase4-performance-baseline-recursion/single/summary.json",
+                "sha256": "de63ee7219ea15ebd4fbfa1d39a5c6436b280ccb4e6a16db10af88e93c140544",
+                "result": {
+                    "timestamp": "2026-09-27T09:32:43.292Z",
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "mode": "single",
+                    "filter": "",
+                    "managed": true,
+                    "reuseSyntax": true,
+                    "referenceJobs": 2,
+                    "scope": "Original compiler test program graphs and semantic/global diagnostics in the selected checker concurrency mode; checker query APIs are validated separately",
+                    "referenceExitCode": 0,
+                    "exportedConfigurations": 15208,
+                    "readyConfigurations": 2,
+                    "availableConfigurations": 13446,
+                    "selectionSha256": "23cd50ba25831a85f2df81f73a06174a82f2164f02714d8f902abe21c3d9d05a",
+                    "referenceInventoryFiles": 12730,
+                    "plannedConfigurations": 15208,
+                    "referenceMissingFiles": [],
+                    "referenceMissingConfigurations": [],
+                    "referenceSkipped": 1762,
+                    "referenceFailed": 0,
+                    "candidateFailures": 0,
+                    "graphMismatches": 0,
+                    "diagnosticMismatches": 2,
+                    "graphAndCodeMatches": 0,
+                    "detailedDiagnosticMatches": 0,
+                    "detailedDiagnosticMismatches": 2,
+                    "detailedComparison": "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized",
+                    "errorGroups": [],
+                    "inputSha256": "df21bccda8a3bc5da534586c352dae0175cf4bf260c93ee15694afe19353d5bd",
+                    "referenceInputCorrectionsSha256": "796d2ff79dfe5dfb5d35cd192946d4a1da669b6cea211d31b2b4696d84aa0c0c",
+                    "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+                    "candidateSha256": "c1b3b0401acc737509fcafc414f36e6415eeaf0724af8bbaf664a0a04686ac84",
+                    "compilerSha256": "5673ddd04dda4962037acefd894bba933b87ed21979247606daa7875f01adff6",
+                    "candidateOutputSha256": "1788e12e916a877ddd4cf615fec0612a93eaf2cfef874be8c4ddc84e9847f6f3",
+                    "fullSemanticCorpusGateComplete": false
+                }
+            },
+            {
+                "path": "built/csharp/semantic-corpus-phase4-performance-baseline-recursion/default/summary.json",
+                "sha256": "3517a9c20ce730bda244fa520387cc3ccd941e4ef97bc6e8ec98d7b791da3d1f",
+                "result": {
+                    "timestamp": "2026-09-27T09:32:44.656Z",
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "mode": "default",
+                    "filter": "",
+                    "managed": true,
+                    "reuseSyntax": true,
+                    "referenceJobs": 2,
+                    "scope": "Original compiler test program graphs and semantic/global diagnostics in the selected checker concurrency mode; checker query APIs are validated separately",
+                    "referenceExitCode": 0,
+                    "exportedConfigurations": 15208,
+                    "readyConfigurations": 2,
+                    "availableConfigurations": 13446,
+                    "selectionSha256": "23cd50ba25831a85f2df81f73a06174a82f2164f02714d8f902abe21c3d9d05a",
+                    "referenceInventoryFiles": 12730,
+                    "plannedConfigurations": 15208,
+                    "referenceMissingFiles": [],
+                    "referenceMissingConfigurations": [],
+                    "referenceSkipped": 1762,
+                    "referenceFailed": 0,
+                    "candidateFailures": 0,
+                    "graphMismatches": 0,
+                    "diagnosticMismatches": 2,
+                    "graphAndCodeMatches": 0,
+                    "detailedDiagnosticMatches": 0,
+                    "detailedDiagnosticMismatches": 2,
+                    "detailedComparison": "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized",
+                    "errorGroups": [],
+                    "inputSha256": "b51e79a2ebc4428367c89bceb367fd82a86bdd85b43b847bc17f875b51743a77",
+                    "referenceInputCorrectionsSha256": "f0e9fd99f75e8ac0c3db7ef4ccef21980f74b7b1adcfe189a01c8a762e4613a6",
+                    "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+                    "candidateSha256": "c1b3b0401acc737509fcafc414f36e6415eeaf0724af8bbaf664a0a04686ac84",
+                    "compilerSha256": "5673ddd04dda4962037acefd894bba933b87ed21979247606daa7875f01adff6",
+                    "candidateOutputSha256": "1788e12e916a877ddd4cf615fec0612a93eaf2cfef874be8c4ddc84e9847f6f3",
+                    "fullSemanticCorpusGateComplete": false
+                }
+            }
+        ],
+        "baselineMappedDisplay": {
+            "path": "built/csharp/phase4-performance-baseline-mapped.json",
+            "sha256": "3ded94a52de2aa6f7c7462a8fb6c3d4097694c39ee643907ec4099493eea208a"
+        },
+        "baselineStaleAssertion": {
+            "path": "logs/phase4-performance-baseline-relations-safety.log",
+            "sha256": "1d2e5ebd884ce5d2a86b4ac9299aa37894024d03dd88271e3952569ceac07077"
+        },
+        "fixes": [
+            "Suppress reentrant relation diagnostics after the type formatter reaches its recursion limit.",
+            "Base optional-annotation reuse on the original property declaration instead of optionality introduced by a mapped type.",
+            "Update the include-diagnostic safety assertion to expect the original relative reference spelling."
+        ],
+        "transientGraphHash": {
+            "case": "conformance/scannerES3NumericLiteral7.ts",
+            "source": "bundled:///libs/lib.dom.d.ts",
+            "initial": {
+                "path": "built/csharp/semantic-corpus-phase4-performance-final/single/summary.json",
+                "sha256": "8a6409749d31a2f1009774cc2a76aeb7fbf0e487697e4005a41f579039fba12f",
+                "result": {
+                    "timestamp": "2026-09-27T09:45:45.656Z",
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "mode": "single",
+                    "filter": "",
+                    "managed": true,
+                    "reuseSyntax": true,
+                    "referenceJobs": 2,
+                    "scope": "Original compiler test program graphs and semantic/global diagnostics in the selected checker concurrency mode; checker query APIs are validated separately",
+                    "referenceExitCode": 0,
+                    "exportedConfigurations": 15208,
+                    "readyConfigurations": 13444,
+                    "availableConfigurations": 13446,
+                    "selectionSha256": "64fda8e6f543433bf025832c9af18eb73dda5c409e7425535a62d8aba4dd81b7",
+                    "referenceInventoryFiles": 12730,
+                    "plannedConfigurations": 15208,
+                    "referenceMissingFiles": [],
+                    "referenceMissingConfigurations": [],
+                    "referenceSkipped": 1762,
+                    "referenceFailed": 0,
+                    "candidateFailures": 0,
+                    "graphMismatches": 1,
+                    "diagnosticMismatches": 0,
+                    "graphAndCodeMatches": 13443,
+                    "detailedDiagnosticMatches": 13444,
+                    "detailedDiagnosticMismatches": 0,
+                    "detailedComparison": "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized",
+                    "errorGroups": [],
+                    "inputSha256": "df21bccda8a3bc5da534586c352dae0175cf4bf260c93ee15694afe19353d5bd",
+                    "referenceInputCorrectionsSha256": "796d2ff79dfe5dfb5d35cd192946d4a1da669b6cea211d31b2b4696d84aa0c0c",
+                    "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+                    "candidateSha256": "627f927ccdea89bfa89bba635438d118df3bcac7a7bb59ed8f8bdee598b71405",
+                    "compilerSha256": "7692f8921b807ed0525719977159b1cc3db45a31b0c8ef2e621f919d6cdffb7a",
+                    "mapperFixture": {
+                        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                        "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+                        "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+                        "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+                    },
+                    "candidateOutputSha256": "7f2008bb66e4c3bb78f9eab717fa6dbbc796d30f20fdfff3d0d2129f80d6ca25",
+                    "fullSemanticCorpusGateComplete": false
+                }
+            },
+            "differences": {
+                "path": "built/csharp/semantic-corpus-phase4-performance-final/single/differences.jsonl",
+                "sha256": "bffd1cc3b0b898be0a29959bbe6ab33508329ed55a65b0b3a06cb4580fc38ff4"
+            },
+            "sequenceReplay": {
+                "path": "built/csharp/semantic-corpus-phase4-performance-graph-control/single/summary.json",
+                "sha256": "2387ad7cfbc7bad75169c2f6f8f977eeabe0c9626fc08a2bdb66b8c868eb3fcb",
+                "result": {
+                    "timestamp": "2026-09-27T09:49:55.871Z",
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "mode": "single",
+                    "filter": "",
+                    "managed": true,
+                    "reuseSyntax": true,
+                    "referenceJobs": 2,
+                    "scope": "Original compiler test program graphs and semantic/global diagnostics in the selected checker concurrency mode; checker query APIs are validated separately",
+                    "referenceExitCode": 0,
+                    "exportedConfigurations": 15208,
+                    "readyConfigurations": 11,
+                    "availableConfigurations": 13446,
+                    "selectionSha256": "bf5430be098063bb395cb9a6f4d37a25481bec3816fc487467cfffc3395286be",
+                    "referenceInventoryFiles": 12730,
+                    "plannedConfigurations": 15208,
+                    "referenceMissingFiles": [],
+                    "referenceMissingConfigurations": [],
+                    "referenceSkipped": 1762,
+                    "referenceFailed": 0,
+                    "candidateFailures": 0,
+                    "graphMismatches": 0,
+                    "diagnosticMismatches": 0,
+                    "graphAndCodeMatches": 11,
+                    "detailedDiagnosticMatches": 11,
+                    "detailedDiagnosticMismatches": 0,
+                    "detailedComparison": "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized",
+                    "errorGroups": [],
+                    "inputSha256": "df21bccda8a3bc5da534586c352dae0175cf4bf260c93ee15694afe19353d5bd",
+                    "referenceInputCorrectionsSha256": "796d2ff79dfe5dfb5d35cd192946d4a1da669b6cea211d31b2b4696d84aa0c0c",
+                    "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+                    "candidateSha256": "627f927ccdea89bfa89bba635438d118df3bcac7a7bb59ed8f8bdee598b71405",
+                    "compilerSha256": "7692f8921b807ed0525719977159b1cc3db45a31b0c8ef2e621f919d6cdffb7a",
+                    "candidateOutputSha256": "18124dbccfedd8df2f04a57e41b70109d4b7a521f29a19955ce93bcf551e45a8",
+                    "fullSemanticCorpusGateComplete": false
+                }
+            },
+            "fullReplay": {
+                "path": "built/csharp/semantic-corpus-phase4-performance-confirmation/single/summary.json",
+                "sha256": "9cd003aafba37096519b6ee3c26bd29a492f957f794b28f0275579d1a536e9e1",
+                "result": {
+                    "timestamp": "2026-09-27T09:53:43.575Z",
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "mode": "single",
+                    "filter": "",
+                    "managed": true,
+                    "reuseSyntax": true,
+                    "referenceJobs": 2,
+                    "scope": "Original compiler test program graphs and semantic/global diagnostics in the selected checker concurrency mode; checker query APIs are validated separately",
+                    "referenceExitCode": 0,
+                    "exportedConfigurations": 15208,
+                    "readyConfigurations": 13444,
+                    "availableConfigurations": 13446,
+                    "selectionSha256": "64fda8e6f543433bf025832c9af18eb73dda5c409e7425535a62d8aba4dd81b7",
+                    "referenceInventoryFiles": 12730,
+                    "plannedConfigurations": 15208,
+                    "referenceMissingFiles": [],
+                    "referenceMissingConfigurations": [],
+                    "referenceSkipped": 1762,
+                    "referenceFailed": 0,
+                    "candidateFailures": 0,
+                    "graphMismatches": 0,
+                    "diagnosticMismatches": 0,
+                    "graphAndCodeMatches": 13444,
+                    "detailedDiagnosticMatches": 13444,
+                    "detailedDiagnosticMismatches": 0,
+                    "detailedComparison": "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized",
+                    "errorGroups": [],
+                    "inputSha256": "df21bccda8a3bc5da534586c352dae0175cf4bf260c93ee15694afe19353d5bd",
+                    "referenceInputCorrectionsSha256": "796d2ff79dfe5dfb5d35cd192946d4a1da669b6cea211d31b2b4696d84aa0c0c",
+                    "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+                    "candidateSha256": "627f927ccdea89bfa89bba635438d118df3bcac7a7bb59ed8f8bdee598b71405",
+                    "compilerSha256": "7692f8921b807ed0525719977159b1cc3db45a31b0c8ef2e621f919d6cdffb7a",
+                    "mapperFixture": {
+                        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                        "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+                        "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+                        "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+                    },
+                    "candidateOutputSha256": "fb4a880a92c2052bc9ac2660eb3fcf3b502dcefbff500d1579e32f41a9c9bcf1",
+                    "fullSemanticCorpusGateComplete": false
+                }
+            },
+            "cause": "Undetermined. Not reproduced by the neighboring-input sequence or a complete same-binary single-checker replay. All detailed diagnostics matched in the initial run."
+        }
+    },
+    "releaseBuild": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": {
+            "path": "logs/phase4-performance-final-release-build.log",
+            "sha256": "bca7edd6e0a8c13474472882a91783493112ebdff83191790529f685036db51c"
+        }
+    },
+    "nativeAot": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "executed": false,
+        "publishes": 1,
+        "log": {
+            "path": "logs/phase4-performance-native-publish.log",
+            "sha256": "b03be931bffac83cc134dee0009240f2637eb7fff9e05c13fd6a277a293292a9"
+        },
+        "executable": {
+            "path": "built/csharp/phase4-performance-native/TypeScript.Compatibility.exe",
+            "sha256": "34065a97c0f511bb7e1af67c4874241f4220db40311f26d3ed057edc9fa95009",
+            "bytes": 27280384
+        }
+    },
+    "formatting": [
+        {
+            "path": "logs/phase4-performance-whitespace.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+            "path": "logs/phase4-performance-final-whitespace.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+            "path": "logs/phase4-performance-final-test-whitespace.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+            "path": "logs/phase4-performance-tool-format.log",
+            "sha256": "d7358d5e8e6e7d97184fb36f55e479af1195d94dcbc7e2313eaf73e07fe91210"
+        }
+    ],
+    "protectedPathsUnchanged": true
+}

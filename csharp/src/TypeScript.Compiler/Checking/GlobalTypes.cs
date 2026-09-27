@@ -11,7 +11,8 @@ internal sealed class GlobalTypes(TypeContext context, CheckerLinks links, Check
 {
     private readonly Dictionary<string, Type> types = new(StringComparer.Ordinal);
     private readonly Dictionary<(string Name, int Arity), Symbol?> aliases = [];
-    internal IReadOnlyDictionary<string, Type> Types => types.AsReadOnly();
+    private IReadOnlyDictionary<string, Type>? typesView;
+    internal IReadOnlyDictionary<string, Type> Types => typesView ??= types.AsReadOnly();
     internal Type? AnyArrayType { get; private set; }
     internal Type? AutoArrayType { get; private set; }
     internal Type? AnyReadonlyArrayType { get; private set; }

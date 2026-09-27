@@ -795,6 +795,8 @@ internal sealed partial class Checker
                 : Values.NonMissing(await Values.GetAsync(property, cancellation), (property.Flags & SymbolFlags.Optional) != 0);
             SyntaxNode? reusedType = null;
             var declaration = property.ValueDeclaration ?? property.Declarations.FirstOrDefault();
+            bool optionalDeclaration = declaration is PropertyDeclarationNode { PostfixToken.Kind: K.QuestionToken }
+                or PropertySignatureDeclarationNode { PostfixToken.Kind: K.QuestionToken };
             if (LateName(property.Name)
                 && SemanticSyntax.Name(declaration) is ComputedPropertyNameNode { Expression: { } computedExpression }
                 && ConstantEvaluator.EntityName(computedExpression))
@@ -806,9 +808,7 @@ internal sealed partial class Checker
                 var annotated = await Nodes.FromNodeAsync(annotation, cancellation);
                 if (annotated != value)
                 {
-                    bool optional = declaration is PropertyDeclarationNode { PostfixToken.Kind: K.QuestionToken }
-                        or PropertySignatureDeclarationNode { PostfixToken.Kind: K.QuestionToken };
-                    var comparable = optional ? await Facts.FilterAsync(value, TypeFacts.NEUndefined, cancellation) : value;
+                    var comparable = optionalDeclaration ? await Facts.FilterAsync(value, TypeFacts.NEUndefined, cancellation) : value;
                     if (annotated == comparable || annotated is UnionType && comparable is UnionType
                         && await Relations.RelatedAsync(annotated, comparable, RelationKind.Identity, cancellation))
                         value = annotated;
@@ -927,7 +927,7 @@ internal sealed partial class Checker
                         : await DeclarationTypeSyntaxAsync(
                             value,
                             declaration,
-                            (property.Flags & SymbolFlags.Optional) != 0,
+                            optionalDeclaration,
                             state,
                             cancellation));
                 }

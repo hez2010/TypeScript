@@ -434,44 +434,48 @@ internal sealed class TypeCacheKey : IEquatable<TypeCacheKey>
     }
 
     internal static TypeCacheKey Union(ReadOnlySpan<Type> types, Type? origin, TypeAlias? alias)
+        => new(UnionValues(types, origin, alias));
+
+    private static long[] UnionValues(ReadOnlySpan<Type> types, Type? origin, TypeAlias? alias, int suffixLength = 0)
     {
-        var values = new List<long>();
+        int typeCount = origin is UnionOrIntersectionType compositeOrigin ? compositeOrigin.Types.Count : types.Length;
+        int prefixLength = origin is IndexType ? 2 : 1;
+        var values = new long[prefixLength + typeCount + 1 + (alias is null ? 0 : alias.TypeArguments.Count + 1) + suffixLength];
+        int offset = 0;
         switch (origin)
         {
             case null:
-                values.Add(0);
+                values[offset++] = 0;
                 foreach (var type in types)
-                    values.Add(type.Id);
+                    values[offset++] = type.Id;
                 break;
             case UnionOrIntersectionType composite:
-                values.Add(composite is UnionType ? 1 : 2);
+                values[offset++] = composite is UnionType ? 1 : 2;
                 foreach (var type in composite.Types)
-                    values.Add(type.Id);
+                    values[offset++] = type.Id;
                 break;
             case IndexType index:
-                values.Add(3);
-                values.Add(index.Id);
+                values[offset++] = 3;
+                values[offset++] = index.Id;
                 foreach (var type in types)
-                    values.Add(type.Id);
+                    values[offset++] = type.Id;
                 break;
             default:
                 throw new ArgumentException("Invalid union origin", nameof(origin));
         }
-        values.Add(-1);
+        values[offset++] = -1;
         if (alias is not null)
         {
-            values.Add(alias.Symbol.Id);
+            values[offset++] = alias.Symbol.Id;
             foreach (var type in alias.TypeArguments)
-                values.Add(type.Id);
+                values[offset++] = type.Id;
         }
-        return new(values.ToArray());
+        return values;
     }
 
     internal static TypeCacheKey Instantiation(ReadOnlySpan<Type> types, TypeAlias? alias, bool singleSignature)
     {
-        var prefix = Union(types, null, alias).values;
-        var values = new long[prefix.Length + 2];
-        prefix.CopyTo(values, 0);
+        var values = UnionValues(types, null, alias, suffixLength: 2);
         values[^2] = -2;
         values[^1] = singleSignature ? 1 : 0;
         return new(values);

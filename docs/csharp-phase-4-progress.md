@@ -33,7 +33,13 @@ The display builder and printer now share their truncation limits. Checker-count
 
 Release validation passes 914 selected semantic configurations in each concurrency mode, 19,264 API comparisons across 340 active configurations, and 1,679 safety assertions. This includes 1,452 new comparisons against actual WTF-8 byte ordering. The four known reference query failures remain excluded from passing counts. Unchanged reference results and unrelated validation were reused. NativeAOT was published once at completion with zero warnings or errors and was not executed. This pass does not establish a measured speedup.
 
-Evidence: [quality validation](../csharp/compatibility/evidence/phase4-quality-validation.json). The sections below preserve historical checkpoints, including failures that were subsequently corrected. Their old incomplete statuses describe those checkpoints.
+Evidence: [quality validation](../csharp/compatibility/evidence/phase4-quality-validation.json).
+
+## Performance pass and full validation
+
+The subsequent [performance report](csharp-phase-4-performance.md) records reduced traversal, diagnostic collection and cache-key allocation work, paired Release measurements, and a fresh full validation. It also documents existing diagnostic/display defects found and fixed by that run, and a transient library-hash discrepancy that did not reproduce in sequence and full-run checks. Allocations decreased across the measured workloads; whole-program timings remain mixed.
+
+The sections below preserve historical checkpoints, including failures that were subsequently corrected. Their old incomplete statuses describe those checkpoints.
 
 ## Implemented checkpoint
 

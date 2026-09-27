@@ -389,8 +389,8 @@ internal static class CheckerProgramTests
         IReadOnlyList<Diagnostic> Errors(string name) =>
             checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/" + name)!.Syntax);
         Check(Errors("a.ts").Count(d => d.Code == 6053) == 1 && Errors("b.ts").Count(d => d.Code == 6053) == 1);
-        Check(Errors("a.ts").Single(d => d.Code == 6053).Arguments.SequenceEqual(["/project/missing.ts"]));
-        Check(program.IncludeDiagnostics.Count(d => d.Code == 6053 && d.Arguments.SequenceEqual(["/project/missing.ts"])) == 2);
+        Check(Errors("a.ts").Single(d => d.Code == 6053).Arguments.SequenceEqual(["./missing.ts"]));
+        Check(program.IncludeDiagnostics.Count(d => d.Code == 6053 && d.Arguments.SequenceEqual(["./missing.ts"])) == 2);
         Check(Errors("ignore.ts").Count == 0);
         Check(Errors("expect.ts").Select(d => d.Code).SequenceEqual([2578]));
         Check(Errors("self.ts").Select(d => d.Code).SequenceEqual([1006]));
@@ -462,8 +462,9 @@ internal static class CheckerProgramTests
         {
             ["/project/main.ts"] = Wtf8.Encode(
                 "class B{x!:number;y!:number}interface I extends B{[key:string]:string}class C{p:number;p:string}interface O{m(x:number):void;m?(x:string):void}"),
+            ["/project/recursive.ts"] = Wtf8.Encode("const recursive = () => 42 satisfies typeof recursive;"),
             ["/project/recovery.ts"] = Wtf8.Encode("const f: () => { return 1; };")
-        }), "/project", new("/project/tsconfig.json", options, ["/project/main.ts", "/project/recovery.ts"], [], [], []));
+        }), "/project", new("/project/tsconfig.json", options, ["/project/main.ts", "/project/recursive.ts", "/project/recovery.ts"], [], [], []));
         var checker = await program.CreateCheckerAsync();
         var source = program.GetFile("/project/main.ts")!.Syntax;
         var recovery = program.GetFile("/project/recovery.ts")!.Syntax;
@@ -478,8 +479,24 @@ internal static class CheckerProgramTests
         Check(properties[0].Start == properties[1].Start && properties[0].Length == properties[1].Length);
         Check(diagnostics.Count(d => d.Code == 2386) == 1);
         Check(checker.DetailedDiagnosticsForProgramFile(recovery).All(d => d.Code != 7008));
+        Check(checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/recursive.ts")!.Syntax)
+            .Where(d => d.Code == 1360).Single().Arguments.SequenceEqual(["number", "() => any"]));
         await checker.CheckProgramAsync();
         Check(checker.DetailedDiagnosticsForProgramFile(source).Count == diagnostics.Count);
+        var grouped = checker.GroupDiagnosticsByFile();
+        foreach (var file in program.SourceFiles)
+            Check(checker.DetailedDiagnosticsForProgramFile(file.Syntax, grouped[file.Syntax])
+                .SequenceEqual(checker.DetailedDiagnosticsForProgramFile(file.Syntax), comparer));
+        int previousCount = grouped[source].Count();
+        checker.TrackDiagnostic(source, Make("late"));
+        var afterAppend = checker.GroupDiagnosticsByFile();
+        Check(afterAppend[source].Count() == previousCount + 1 && grouped[source].Count() == previousCount);
+        checker.MissingAwaitHints.Add(source);
+        var afterNote = checker.GroupDiagnosticsByFile();
+        Check(afterNote[source].Single(d => d.Arguments.SequenceEqual(["late"])).RelatedInformation.Count == 1);
+        Check(afterAppend[source].Single(d => d.Arguments.SequenceEqual(["late"])).RelatedInformation.Count == 0);
+        checker.TrackDiagnostic(null, Make("global") with { FileName = null });
+        Check(checker.GroupDiagnosticsByFile()[null].Any(d => d.Arguments.SequenceEqual(["global"])));
         return checks;
     }
 

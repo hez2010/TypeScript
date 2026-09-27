@@ -74,9 +74,13 @@ internal sealed class CheckerPool
                     await checker.CheckSourceFileAsync(file, cancellation);
             }
             // Later files can add diagnostics to earlier files in the same partition.
+            var diagnostics = checker.GroupDiagnosticsByFile();
             foreach (int i in filesByChecker[index])
-                semantic[i] = checker.DetailedDiagnosticsForProgramFile(program.SourceFiles[i].Syntax);
-            globals[index] = checker.DetailedDiagnosticsForFile(null);
+            {
+                var file = program.SourceFiles[i].Syntax;
+                semantic[i] = checker.DetailedDiagnosticsForProgramFile(file, diagnostics[file]);
+            }
+            globals[index] = diagnostics[null].ToArray();
         }
         if (Count == 1)
             await CheckGroupAsync(0);

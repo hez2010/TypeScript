@@ -14,6 +14,7 @@ internal sealed class TypeDisplay(TypeContext context, CheckerLinks links, bool 
     internal const int DefaultMaximumTruncationLength = 160;
     internal const int NoTruncationMaximumTruncationLength = 1_000_000;
     private int serializationLevel;
+    internal bool AtRecursionLimit => serializationLevel >= 2;
 
     internal ValueTask<string> GetSignatureAsync(Signature signature, CancellationToken cancellation = default)
         => GetSignatureAsync(signature, null, TypeFormatFlags.None, cancellation);
@@ -44,7 +45,7 @@ internal sealed class TypeDisplay(TypeContext context, CheckerLinks links, bool 
     private async ValueTask<string> GetCoreAsync(Type type, SyntaxNode? enclosing, NodeBuilderFlags flags, CancellationToken cancellation)
     {
         // Lazy member resolution can report another diagnostic while building a diagnostic type.
-        if (serializationLevel >= 2)
+        if (AtRecursionLimit)
             return "?";
         serializationLevel++;
         try

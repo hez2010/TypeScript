@@ -8,7 +8,7 @@ internal static class DiagnosticCollection
         if (sorted.Length < 2)
             return sorted;
         Array.Sort(sorted, Compare);
-        var result = new List<Diagnostic>(sorted.Length);
+        int count = 0;
         for (int i = 0; i < sorted.Length;)
         {
             var diagnostic = sorted[i];
@@ -27,22 +27,27 @@ internal static class DiagnosticCollection
                         compact.Add(item);
                 diagnostic = diagnostic with { RelatedInformation = compact.ToArray() };
             }
-            result.Add(diagnostic);
+            sorted[count++] = diagnostic;
             i = end;
         }
-        return result.ToArray();
+        Array.Resize(ref sorted, count);
+        return sorted;
     }
 
     internal static int Compare(Diagnostic left, Diagnostic right)
     {
-        var pending = new Stack<(Diagnostic Left, Diagnostic Right)>();
-        pending.Push((left, right));
-        while (pending.TryPop(out var pair))
+        Stack<(Diagnostic Left, Diagnostic Right)>? pending = null;
+        while (true)
         {
-            var a = pair.Left;
-            var b = pair.Right;
+            var a = left;
+            var b = right;
             if (ReferenceEquals(a, b))
+            {
+                if (pending is null || !pending.TryPop(out var next))
+                    return 0;
+                (left, right) = next;
                 continue;
+            }
             int result = CompareText(a.FileName ?? "", b.FileName ?? "");
             if (result == 0)
                 result = a.Start.CompareTo(b.Start);
@@ -66,14 +71,22 @@ internal static class DiagnosticCollection
                 result = b.RelatedInformation.Count.CompareTo(a.RelatedInformation.Count);
             if (result != 0)
                 return result;
-            for (int i = a.RelatedInformation.Count - 1; i >= 0; i--)
-                pending.Push((a.RelatedInformation[i], b.RelatedInformation[i]));
+            if (a.RelatedInformation.Count != 0)
+            {
+                pending ??= new();
+                for (int i = a.RelatedInformation.Count - 1; i >= 0; i--)
+                    pending.Push((a.RelatedInformation[i], b.RelatedInformation[i]));
+            }
+            if (pending is null || !pending.TryPop(out var pair))
+                return 0;
+            (left, right) = pair;
         }
-        return 0;
     }
 
     private static int CompareChains(IReadOnlyList<Diagnostic> left, IReadOnlyList<Diagnostic> right, bool size)
     {
+        if (ReferenceEquals(left, right) || left.Count == 0 && right.Count == 0)
+            return 0;
         var pending = new Stack<(IReadOnlyList<Diagnostic> Left, IReadOnlyList<Diagnostic> Right, int Index)>();
         pending.Push((left, right, -1));
         while (pending.TryPop(out var pair))
@@ -116,6 +129,8 @@ internal static class DiagnosticCollection
     // UTF-8 and WTF-8 sort by code point, including unpaired surrogate values.
     private static int CompareText(string left, string right)
     {
+        if (ReferenceEquals(left, right))
+            return 0;
         int i = 0, j = 0;
         while (i < left.Length && j < right.Length)
         {

@@ -39,6 +39,9 @@ internal sealed partial class Checker
 
     private void RelationError(SyntaxNode node, Diagnostic diagnostic)
     {
+        // Match the reference's addDiagnostic guard during recursive TypeToString calls.
+        if (TypeDisplay.AtRecursionLimit)
+            return;
         if (relationDiagnosticOutput is { } output)
             output.Add((node, diagnostic));
         else

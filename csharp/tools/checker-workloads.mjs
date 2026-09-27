@@ -10,12 +10,15 @@ import path from "node:path";
 import { createInterface } from "node:readline";
 
 const root = process.cwd();
-const output = path.join(root, "built/csharp/checker-workloads");
+const option = (name, fallback) => process.argv.includes(name) ? process.argv[process.argv.indexOf(name) + 1] : fallback;
+const baselineDirectory = option("--baseline-directory");
+const backends = baselineDirectory ? ["before", "after"] : ["go", "release"];
+const output = path.join(root, baselineDirectory ? "built/csharp/checker-workloads-comparison" : "built/csharp/checker-workloads");
 await mkdir(output, { recursive: true });
-const manifestText = await readFile("csharp/compatibility/phase4-workloads.json", "utf8");
+const manifestText = await readFile(option("--manifest", "csharp/compatibility/phase4-workloads.json"), "utf8");
 const manifest = JSON.parse(manifestText);
 const dotnet = "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe";
-const dll = path.join(root, "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll");
+const dll = path.resolve(option("--candidate-directory", "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0"), "TypeScript.Compatibility.dll");
 const compilerDll = path.join(path.dirname(dll), "TypeScript.Compiler.dll");
 const oracle = path.join(root, "built/csharp/checker-workload-oracle.exe");
 const sha256 = value => createHash("sha256").update(value).digest("hex");
@@ -69,28 +72,31 @@ for (const mode of manifest.modes) {
     );
     for (const name of manifest.cases) {
         const reference = references.get(name);
-        if (!reference || reference.status !== "ready" || reference.semanticDiagnostics.length || reference.globalDiagnostics.length) {
-            throw Error(`Workload must be diagnostic-free: ${name}`);
+        if (!reference || reference.status !== "ready") {
+            throw Error(`Workload has no active reference: ${name}`);
         }
+        const diagnosticCount = reference.semanticDiagnostics.length + reference.globalDiagnostics.length;
         const graphSha256 = sha256(reference.sources.map(s => `${s.file}\0${s.sha256}\n`).join(""));
         const input = { ...reference, blobDirectory: path.join(directory, "blobs"), singleThreaded: mode === "single" };
-        const processes = { go: server(oracle, []), release: server(dotnet, [dll, "--checker-workload-lines"]) };
+        const processes = baselineDirectory ? {
+            before: server(dotnet, [path.resolve(baselineDirectory, "TypeScript.Compatibility.dll"), "--checker-workload-lines"]),
+            after: server(dotnet, [dll, "--checker-workload-lines"]),
+        } : { go: server(oracle, []), release: server(dotnet, [dll, "--checker-workload-lines"]) };
         try {
             for (let iteration = -manifest.warmups; iteration < manifest.samples; iteration++) {
-                for (const backend of iteration % 2 ? ["release", "go"] : ["go", "release"]) {
+                for (const backend of iteration % 2 ? backends.toReversed() : backends) {
                     const measurement = await processes[backend].request(input);
                     const sample = { name, mode, backend, iteration, inputSha256: sha256(JSON.stringify(input)), ...measurement };
                     samples.push(sample);
                     await writeFile(path.join(output, "samples.jsonl"), samples.map(s => JSON.stringify(s)).join("\n") + "\n");
-                    if (measurement.graphSha256 !== graphSha256 || measurement.diagnosticCount !== 0) {
+                    if (measurement.graphSha256 !== graphSha256 || measurement.diagnosticCount !== diagnosticCount) {
                         throw Error(`Workload correctness differs: ${name} ${mode} ${backend}`);
                     }
                 }
             }
         }
         finally {
-            await processes.go.close();
-            await processes.release.close();
+            for (const backend of backends) await processes[backend].close();
         }
         console.log(`${mode}: ${name}`);
     }
@@ -101,11 +107,13 @@ const groups = [];
 for (const mode of manifest.modes) {
     for (const name of manifest.cases) {
         const group = { name, mode };
-        for (const backend of ["go", "release"]) {
+        for (const backend of backends) {
             const rows = samples.filter(s => s.name === name && s.mode === mode && s.backend === backend && s.iteration >= 0);
             group[backend] = {
                 samples: rows.length,
                 medianMs: percentile(rows.map(s => s.elapsedMs), 0.5),
+                medianProgramMs: percentile(rows.map(s => s.programMs), 0.5),
+                medianCheckerMs: percentile(rows.map(s => s.elapsedMs - s.programMs), 0.5),
                 p95Ms: percentile(rows.map(s => s.elapsedMs), 0.95),
                 medianCpuMs: percentile(rows.map(s => s.cpuMs), 0.5),
                 medianAllocatedBytes: percentile(rows.map(s => s.allocatedBytes), 0.5),
@@ -114,9 +122,11 @@ for (const mode of manifest.modes) {
             };
         }
         const budgets = manifest.provisionalBudgets;
-        group.passed = group.release.p95Ms <= budgets.p95ElapsedMs && group.release.peakRssBytes <= budgets.peakRssBytes
-            && group.release.releasedHeapGrowthBytes <= budgets.releasedHeapGrowthBytes;
-        group.elapsedRatio = group.release.medianMs / group.go.medianMs;
+        const before = group[backends[0]], after = group[backends[1]];
+        group.passed = after.p95Ms <= budgets.p95ElapsedMs && after.peakRssBytes <= budgets.peakRssBytes
+            && after.releasedHeapGrowthBytes <= budgets.releasedHeapGrowthBytes;
+        group.elapsedRatio = after.medianMs / before.medianMs;
+        group.allocationRatio = after.medianAllocatedBytes / before.medianAllocatedBytes;
         groups.push(group);
     }
 }
@@ -127,13 +137,26 @@ const summary = {
     manifestSha256: sha256(manifestText),
     candidateSha256: sha256(await readFile(dll)),
     compilerSha256: sha256(await readFile(compilerDll)),
-    oracleSha256: sha256(await readFile(oracle)),
+    ...(baselineDirectory ? {
+        baseline: {
+            directory: path.resolve(baselineDirectory),
+            candidateSha256: sha256(await readFile(path.join(baselineDirectory, "TypeScript.Compatibility.dll"))),
+            compilerSha256: sha256(await readFile(path.join(baselineDirectory, "TypeScript.Compiler.dll"))),
+        },
+    } : { oracleSha256: sha256(await readFile(oracle)) }),
     samplesSha256: sha256(await readFile(path.join(output, "samples.jsonl"))),
     machine: { platform: process.platform, architecture: process.arch, os: os.version(), cpu: os.cpus()[0].model, availableMemoryBytes: os.totalmem() },
     runtime: { dotnet, tieredCompilation: false, processorCount: manifest.processorCount, nativeAotExecuted: false },
     groups,
     passed: groups.every(g => g.passed),
 };
-await writeFile("csharp/compatibility/evidence/phase4-workloads.json", JSON.stringify(summary, null, 4) + "\n");
+await writeFile(
+    option(
+        "--record",
+        baselineDirectory ? "csharp/compatibility/evidence/phase4-performance-workloads.json"
+            : "csharp/compatibility/evidence/phase4-workloads.json",
+    ),
+    JSON.stringify(summary, null, 4) + "\n",
+);
 console.log(JSON.stringify(groups, null, 2));
 if (!summary.passed) process.exitCode = 1;

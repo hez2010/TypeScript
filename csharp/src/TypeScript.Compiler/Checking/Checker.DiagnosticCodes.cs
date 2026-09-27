@@ -11,6 +11,14 @@ internal sealed partial class Checker
     private readonly List<(SyntaxNode? Node, Diagnostic Diagnostic)> diagnosticFiles = [];
     private readonly List<(SourceFileNode File, Diagnostic Diagnostic)> sourceDiagnostics = [];
 
+    // A snapshot for bulk program queries. Later queries rebuild it so appended diagnostics
+    // and related-information updates remain visible without cache invalidation machinery.
+    internal ILookup<SourceFileNode?, Diagnostic> GroupDiagnosticsByFile()
+        => diagnosticFiles.Concat(program.DiagnosticFiles)
+            .Select(d => (File: SemanticSyntax.Source(d.Node), Diagnostic: WithRelatedInformation(d.Node, d.Diagnostic)))
+            .Concat(sourceDiagnostics.Select(d => (File: (SourceFileNode?)d.File, d.Diagnostic)))
+            .ToLookup(d => d.File, d => d.Diagnostic);
+
     internal IReadOnlyList<Diagnostic> DetailedDiagnosticsForFile(SourceFileNode? file)
         => diagnosticFiles.Concat(program.DiagnosticFiles)
             .Where(d => SemanticSyntax.Source(d.Node) == file)
@@ -117,11 +125,11 @@ internal sealed partial class Checker
     internal IReadOnlyList<int> DiagnosticCodesForProgramFile(SourceFileNode file)
         => DetailedDiagnosticsForProgramFile(file).Select(d => d.Code).Order().ToArray();
 
-    internal IReadOnlyList<Diagnostic> DetailedDiagnosticsForProgramFile(SourceFileNode file)
+    internal IReadOnlyList<Diagnostic> DetailedDiagnosticsForProgramFile(SourceFileNode file, IEnumerable<Diagnostic>? fileDiagnostics = null)
     {
         if (SkipProgramFile(file))
             return [];
-        var diagnostics = new List<Diagnostic>(DetailedDiagnosticsForFile(file));
+        var diagnostics = new List<Diagnostic>(fileDiagnostics ?? DetailedDiagnosticsForFile(file));
         foreach (var diagnostic in program.Symbols.Binding(file)!.Diagnostics)
             diagnostics.Add(diagnostic with { FileName = file.FileName });
         if ((file.Flags & NodeFlags.JavaScriptFile) != 0
