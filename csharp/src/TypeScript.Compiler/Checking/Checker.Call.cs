@@ -296,7 +296,7 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
             if (types.HasTrailingComma)
                 Error(node, 1009);
             else if (types.Count == 0)
-                Error(node, 1099);
+                EmptyTypeListError(node, types, 1099);
         }
         return ValueTask.CompletedTask;
     }

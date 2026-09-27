@@ -40,7 +40,10 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
             if (item.Visited)
             {
                 if (item.Node is TypeReferenceNode reference)
+                {
+                    InstantiationGrammar(reference, reference.TypeArguments);
                     await TypeReferenceChecks.CheckAsync(reference, cancellation);
+                }
                 else if (item.Node.Kind == SyntaxKind.ThisType
                     && !(item.Node.Parent is TypePredicateNode thisPredicate && thisPredicate.ParameterName == item.Node))
                     await Nodes.FromNodeAsync(item.Node, cancellation);
@@ -117,7 +120,7 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
             && options.String("moduleDetection") != "force"
             && options.Number("moduleDetection") != 3;
         if (invalid)
-            Error(node, moduleRequired);
+            ErrorOnFirstToken(node, moduleRequired);
         var module = options.String("module") ?? options.Number("module") switch
         {
             4 => "system",
@@ -136,12 +139,12 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
         bool nodeModule = module is "node16" or "node18" or "node20" or "nodenext";
         if (nodeModule && program.Symbols.Program.SourceFiles.First(f => f.Syntax == file).ImpliedFormat == ReferenceResolutionMode.Require)
         {
-            Error(node, 1309);
+            ErrorOnFirstToken(node, 1309);
             invalid = true;
         }
         else if (TargetYear < 2017 || !nodeModule && module is not ("es2022" or "esnext" or "preserve" or "system"))
         {
-            Error(node, invalidMode);
+            ErrorOnFirstToken(node, invalidMode);
             invalid = true;
         }
         return invalid;
@@ -329,8 +332,8 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
         var promise = await program.Globals.GetAsync("Promise", 1, true, cancellation);
         if (promise != context.EmptyGenericType && !(type is TypeReference reference && reference.Target == promise))
         {
-            await Awaited.GetAsync(type, false, cancellation: cancellation);
-            Error(annotation, 1064);
+            var awaited = await Awaited.GetAsync(type, false, cancellation: cancellation) ?? context.UnknownType;
+            Error(annotation, 1064, await TypeDisplay.GetAsync(awaited, cancellation));
             return;
         }
         await Awaited.GetAsync(type, false, node, 1058, cancellation);

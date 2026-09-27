@@ -189,7 +189,7 @@ internal sealed partial class Checker
             || n is CallExpressionNode call && IsImportCall(call));
         bool emitted = import switch
         {
-            ImportDeclarationNode declaration => declaration.ImportClause is not { } clause || !SemanticSyntax.TypeOnly(clause),
+            ImportDeclarationNode declaration => declaration.ImportClause is { } clause && !SemanticSyntax.TypeOnly(clause),
             ExportDeclarationNode declaration => !declaration.IsTypeOnly,
             ImportEqualsDeclarationNode declaration => !declaration.IsTypeOnly,
             CallExpressionNode => true,
@@ -218,7 +218,8 @@ internal sealed partial class Checker
         }
         var target = program.Symbols.Program.GetFile(reference.Resolution.FileName);
         if (target is not null && options.Boolean("rewriteRelativeImportExtensions") == true
-            && (location.Flags & NodeFlags.Ambient) == 0 && !declarationExtension && emitted)
+            && (location.Flags & NodeFlags.Ambient) == 0 && !declarationExtension
+            && (emitted || import is ImportDeclarationNode { ImportClause: null }))
         {
             var compiler = program.Symbols.Program;
             bool rewrite = RelativeModulePath(name) && CompilerPath.Extension(name) is ".ts" or ".tsx" or ".mts" or ".cts";

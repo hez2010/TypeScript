@@ -358,11 +358,11 @@ public sealed partial class Parser
         return expression;
     }
 
-    private async ValueTask<BlockNode> BlockCore()
+    private async ValueTask<BlockNode> BlockCore(bool ignoreMissingOpenBrace = false)
     {
         await ParseStack;
         int start = Pos;
-        if (!Expected(K.OpenBraceToken))
+        if (!Expected(K.OpenBraceToken) && !ignoreMissingOpenBrace)
             return Finish(factory.NewBlock(new NodeList([], Pos, Pos, true), false), start, start);
         bool multiline = LineBreak;
         statementDepth++;
@@ -386,7 +386,7 @@ public sealed partial class Parser
         return Finish(factory.NewBlock(statements, multiline), start);
     }
 
-    private async ValueTask<BlockNode?> FunctionBodyCore(NodeFlags signatureFlags = 0, bool classMember = false)
+    private async ValueTask<BlockNode?> FunctionBodyCore(NodeFlags signatureFlags = 0, bool classMember = false, bool allowSemicolon = true)
     {
         await ParseStack;
         NodeFlags saved = context;
@@ -395,7 +395,7 @@ public sealed partial class Parser
             classMemberBodyDepth++;
         try
         {
-            if (Token == K.OpenBraceToken)
+            if (Token == K.OpenBraceToken || !allowSemicolon || !IsSemicolon())
                 return (await BlockCore().ConfigureAwait(false));
             Semicolon();
             return null;
@@ -600,11 +600,11 @@ public sealed partial class Parser
             trivia).ConfigureAwait(false);
     }
 
-    private async ValueTask<SyntaxNode> BindingNameCore()
+    private async ValueTask<SyntaxNode> BindingNameCore(DiagnosticMessage? privateIdentifierDiagnostic = null)
     {
         await ParseStack;
         if (Token is not (K.OpenBraceToken or K.OpenBracketToken))
-            return Identifier(binding: true);
+            return Identifier(binding: true, privateIdentifierDiagnostic: privateIdentifierDiagnostic);
         int start = Pos;
         bool objectPattern = Token == K.OpenBraceToken;
         K end = objectPattern ? K.CloseBraceToken : K.CloseBracketToken;
@@ -623,18 +623,24 @@ public sealed partial class Parser
             {
                 bool binding = IsBindingIdentifier;
                 name = (await NameCore().ConfigureAwait(false));
-                if (Take(K.ColonToken))
+                if (!binding || Token == K.ColonToken)
                 {
+                    Expected(K.ColonToken);
                     property = name;
                     name = (await BindingNameCore().ConfigureAwait(false));
                 }
-                else if (!binding)
-                    Error(Messages.X_0_expected, ":");
             }
             else
                 name = (await BindingNameCore().ConfigureAwait(false));
             return Finish(factory.NewBindingElement(rest, property, name, (await InitializerCore().ConfigureAwait(false))), elementStart);
-        }).ConfigureAwait(false));
+        }, startsElement: () => objectPattern
+            ? Token >= K.Identifier
+                || Token is K.OpenBracketToken or K.DotDotDotToken or K.StringLiteral or K.NumericLiteral or K.BigIntLiteral
+            : Token is K.CommaToken or K.DotDotDotToken or K.OpenBraceToken or K.OpenBracketToken or K.PrivateIdentifier
+                || IsBindingIdentifier,
+            elementExpected: objectPattern
+                ? Messages.Property_destructuring_pattern_expected
+                : Messages.Array_element_destructuring_pattern_expected).ConfigureAwait(false));
         context = saved;
         Expected(end);
         return Finish(factory.NewBindingPattern(objectPattern ? K.ObjectBindingPattern : K.ArrayBindingPattern, elements), start);
@@ -663,7 +669,7 @@ public sealed partial class Parser
             context |= NodeFlags.AwaitContext;
         var parameters = (await ParametersCore(signatureFlags).ConfigureAwait(false));
         var type = (await ReturnAnnotationCore().ConfigureAwait(false));
-        var body = (await FunctionBodyCore(signatureFlags).ConfigureAwait(false));
+        var body = (await FunctionBodyCore(signatureFlags, allowSemicolon: !expression).ConfigureAwait(false));
         context = old;
         return expression
             ? Finish(factory.NewFunctionExpression(modifiers, star, name, typeParameters, parameters, type, null, body), start)
@@ -1158,13 +1164,14 @@ public sealed partial class Parser
         {
             int at = Pos;
             SyntaxNode? name = Token == K.StringLiteral ? Literal()
-                : Token == K.Identifier || Token is >= K.FirstKeyword and <= K.LastKeyword ? Identifier(true) : null;
+                : Token >= K.Identifier ? Identifier(true) : null;
             if (name is not null)
                 Expected(K.ColonToken);
             else
                 Error(Messages.Identifier_or_string_literal_expected);
             return Finish(factory.NewImportAttribute(name, (await ExpressionCore(2).ConfigureAwait(false))), at);
-        }).ConfigureAwait(false));
+        }, startsElement: () => Token >= K.Identifier || Token == K.StringLiteral,
+            elementExpected: Messages.Identifier_or_string_literal_expected).ConfigureAwait(false));
         Expected(K.CloseBraceToken);
         return Finish(factory.NewImportAttributes(token, attributes, multiline), start);
     }

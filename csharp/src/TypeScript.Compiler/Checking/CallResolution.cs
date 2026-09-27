@@ -23,6 +23,8 @@ internal interface ICallResolutionHost
 
     ValueTask<bool> ConstructorAccessibleAsync(SyntaxNode node, IReadOnlyList<Signature> signatures, CancellationToken cancellation);
 
+    ValueTask TypeExpressionErrorAsync(SyntaxNode node, int code, Type type, CancellationToken cancellation);
+
     ValueTask<Signature> SpecialCallAsync(SyntaxNode node, List<Signature>? candidates, CheckMode mode, CancellationToken cancellation);
 
     ValueTask InvocationErrorAsync(SyntaxNode node, Type type, bool construct, CancellationToken cancellation);
@@ -230,7 +232,7 @@ internal sealed partial class CallResolution(TypeContext context, CheckerLinks l
             }
             if (constructors.Count != 0)
             {
-                host.ExpressionError(node, 2348);
+                await host.TypeExpressionErrorAsync(node, 2348, apparent, cancellation).ConfigureAwait(false);
                 return await UntypedAsync(node, true, cancellation).ConfigureAwait(false);
             }
         }

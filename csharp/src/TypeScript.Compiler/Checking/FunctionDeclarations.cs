@@ -312,7 +312,8 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
         var root = SemanticSyntax.RootDeclaration(node);
         var function = root.Parent!;
         bool parameterDeclaration = root is ParameterDeclarationNode;
-        if (initializer is not null && parameterDeclaration && SemanticSyntax.Body(function) is null)
+        var body = SemanticSyntax.Body(function);
+        if (initializer is not null && parameterDeclaration && (body is null || body.Pos == body.End))
         {
             host.ExpressionError(node, 2371);
             return;

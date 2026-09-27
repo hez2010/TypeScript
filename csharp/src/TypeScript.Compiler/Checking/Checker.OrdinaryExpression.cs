@@ -37,6 +37,6 @@ internal sealed partial class Checker : ITypeAssertionHost, IInstantiationExpres
         else if (arguments?.HasTrailingComma == true)
             Error(node, 1009);
         else if (arguments?.Count == 0)
-            Error(node, 1099);
+            EmptyTypeListError(node, arguments, 1099);
     }
 }

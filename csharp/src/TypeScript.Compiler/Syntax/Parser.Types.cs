@@ -402,7 +402,8 @@ public sealed partial class Parser
     {
         await ParseStack;
         Expected(K.OpenBracketToken);
-        NodeList parameters = await DelimitedCore(K.CloseBracketToken, () => ParameterCore()).ConfigureAwait(false);
+        NodeList parameters = await DelimitedCore(K.CloseBracketToken, () => ParameterCore(),
+            startsElement: StartsParameter, reportInvalidElement: ParameterExpected).ConfigureAwait(false);
         Expected(K.CloseBracketToken);
         SyntaxNode? type = await AnnotationCore().ConfigureAwait(false);
         MemberSemicolon();
@@ -438,7 +439,10 @@ public sealed partial class Parser
         await ParseStack;
         if (!Take(K.LessThanToken))
             return null;
-        NodeList parameters = await DelimitedCore(K.GreaterThanToken, TypeParameterCore).ConfigureAwait(false);
+        NodeList parameters = await DelimitedCore(K.GreaterThanToken, TypeParameterCore,
+            stop: () => Token is K.OpenParenToken or K.OpenBraceToken or K.ExtendsKeyword,
+            startsElement: () => IsIdentifier || Token is K.InKeyword or K.ConstKeyword,
+            elementExpected: Messages.Type_parameter_declaration_expected).ConfigureAwait(false);
         Expected(K.GreaterThanToken);
         return parameters;
     }
@@ -465,7 +469,8 @@ public sealed partial class Parser
                 return new([], Pos, Pos, true);
             NodeList list = await DelimitedCore(
                 K.CloseParenToken,
-                () => ParameterCore(saved & NodeFlags.AwaitContext)).ConfigureAwait(false);
+                () => ParameterCore(saved & NodeFlags.AwaitContext), stop: () => Token == K.CloseBracketToken,
+                startsElement: StartsParameter, reportInvalidElement: ParameterExpected).ConfigureAwait(false);
             Expected(K.CloseParenToken);
             return list;
         }
@@ -473,6 +478,19 @@ public sealed partial class Parser
         {
             context = saved;
         }
+    }
+
+    private bool StartsParameter() => Token is K.DotDotDotToken or K.OpenBraceToken or K.OpenBracketToken or K.PrivateIdentifier
+        or K.AtToken
+        || IsBindingIdentifier || IsModifierKind(Token)
+        || Token is not (K.FunctionKeyword or K.MinusToken or K.OpenParenToken) && StartsType();
+
+    private void ParameterExpected()
+    {
+        if (Token is >= K.FirstKeyword and <= K.LastKeyword)
+            Error(Messages.X_0_is_not_allowed_as_a_parameter_name, TokenFacts.Text(Token));
+        else
+            Error(Messages.Parameter_declaration_expected);
     }
 
     private async ValueTask<SyntaxNode> ParameterCore(NodeFlags outerAwait = 0)
@@ -498,7 +516,7 @@ public sealed partial class Parser
                 trivia).ConfigureAwait(false);
         }
         var rest = OptionalToken(K.DotDotDotToken);
-        SyntaxNode name = await BindingNameCore().ConfigureAwait(false);
+        SyntaxNode name = await BindingNameCore(Messages.Private_identifiers_cannot_be_used_as_parameters).ConfigureAwait(false);
         return await WithJSDocCore(
             Finish(
                 factory.NewParameterDeclaration(

@@ -66,6 +66,21 @@ internal static class ParserSafetyTests
             ((TypeAliasDeclarationNode)precedence.Statements![0]).Type is ParenthesizedTypeNode { Type: UnionTypeNode { Types.Count: 2 } union }
             && union.Types[0] is ParenthesizedTypeNode, "parenthesized union structure");
 
+        SourceFileNode awaitSpans = Parse("await-spans.ts",
+            "/*é😀*/export {}; await value; await (value); const untouched=1; await [value]; const last=2;");
+        Check(awaitSpans.Statements!.Select(n => (n.Flags & NodeFlags.AwaitContext) != 0)
+            .SequenceEqual([false, false, true, false, true, false]), "only ambiguous await statements are reparsed");
+        Check(awaitSpans.DescendantsAndSelf().OfType<AwaitExpressionNode>().Count() == 3, "await expression shapes");
+
+        SourceFileNode awaitOverlap = Parse("await-overlap.ts",
+            "export {}; await\nvalue; const between=1; await (value); const after=2;");
+        Check(awaitOverlap.Statements!.Select(n => (n.Flags & NodeFlags.AwaitContext) != 0)
+            .SequenceEqual([false, true, true, true, false]), "await reparse extends to the next marked span");
+
+        SourceFileNode awaitEnd = Parse("await-end.ts", "export {}; await\nvalue; const tail=1;");
+        Check(awaitEnd.Statements!.Select(n => (n.Flags & NodeFlags.AwaitContext) != 0)
+            .SequenceEqual([false, true, true]), "await reparse extends to EOF after consuming the last boundary");
+
         SourceFileNode signatures = Parse("index-signatures.ts", """
             type Index = {
                 [key: string,]: number;

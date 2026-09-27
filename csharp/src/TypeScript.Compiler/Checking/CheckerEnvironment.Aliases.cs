@@ -12,7 +12,8 @@ internal sealed partial class CheckerEnvironment
         => AliasTargets.TargetAsync(declaration, cancellation);
 
     public void CircularAlias(Symbol symbol, SyntaxNode declaration)
-        => AddDiagnostic(declaration, Messages.Circular_definition_of_import_alias_0, [symbol.Name]);
+        => AddDiagnostic(declaration, Messages.Circular_definition_of_import_alias_0,
+            [declaration is ExportAssignmentNode { Expression: IdentifierNode exported } ? exported.Text : symbol.Name]);
 
     public bool IsDeprecated(Symbol symbol) => Deprecations.Symbol(symbol);
 

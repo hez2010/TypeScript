@@ -30,11 +30,11 @@ internal sealed class ConstructorAccess(CheckerSymbols symbols, DeclaredTypes de
                     await declared.GetAsync(symbols.Declaration(containing)!, cancellation).ConfigureAwait(false),
                     cancellation).ConfigureAwait(false))
                 continue;
-            await declared.GetAsync(target, cancellation).ConfigureAwait(false);
+            var type = await declared.GetAsync(target, cancellation).ConfigureAwait(false);
             if (privateAccess)
-                host.ExpressionError(node, 2673);
+                await host.TypeExpressionErrorAsync(node, 2673, type, cancellation).ConfigureAwait(false);
             if (protectedAccess)
-                host.ExpressionError(node, 2674);
+                await host.TypeExpressionErrorAsync(node, 2674, type, cancellation).ConfigureAwait(false);
             return false;
         }
         return true;

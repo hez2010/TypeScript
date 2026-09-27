@@ -187,7 +187,7 @@ internal sealed partial class Checker
 
     private async ValueTask CheckClassOverridesAsync(SyntaxNode node, InterfaceType type, Type baseType, CancellationToken cancellation)
     {
-        int missing = 0;
+        var missing = new List<string>();
         foreach (var inherited in await Properties.GetAsync(baseType, cancellation).ConfigureAwait(false))
         {
             var original = OriginalProperty(inherited);
@@ -214,7 +214,7 @@ internal sealed partial class Checker
                             break;
                         }
                     if (!implementedElsewhere)
-                        missing++;
+                        missing.Add(TypeDisplay.SymbolName(original));
                 }
                 continue;
             }
@@ -257,24 +257,41 @@ internal sealed partial class Checker
                             type,
                             constructor,
                             cancellation).ConfigureAwait(false))
-                        Error(at, 2612);
+                        Error(at, 2612, TypeDisplay.SymbolName(original), await TypeDisplay.GetAsync(baseType, cancellation));
                 }
             }
             else if ((original.Flags & SymbolFlags.Method) != 0 || (original.CheckFlags & CheckFlags.SyntheticMethod) != 0)
             {
                 if ((derived.Flags & (SymbolFlags.Method | SymbolFlags.Property)) == 0
                     && (derived.CheckFlags & CheckFlags.SyntheticMethod) == 0)
-                    Error(at, 2423);
+                    Error(at, 2423, await TypeDisplay.GetAsync(baseType, cancellation), TypeDisplay.SymbolName(original),
+                        await TypeDisplay.GetAsync(type, cancellation));
             }
             else
-                Error(at, (original.Flags & SymbolFlags.Accessor) != 0 ? 2426 : 2425);
+                Error(at, (original.Flags & SymbolFlags.Accessor) != 0 ? 2426 : 2425,
+                    await TypeDisplay.GetAsync(baseType, cancellation), TypeDisplay.SymbolName(original),
+                    await TypeDisplay.GetAsync(type, cancellation));
         }
-        if (missing != 0)
-            Error(
-                node,
-                node is ClassExpressionNode
-                    ? missing == 1 ? 2653 : missing > 5 ? 2650 : 2656
-                    : missing == 1 ? 2515 : missing > 5 ? 2655 : 2654);
+        if (missing.Count != 0)
+        {
+            bool expression = node is ClassExpressionNode;
+            string baseName = await TypeDisplay.GetAsync(baseType, cancellation);
+            var arguments = new List<string>();
+            if (!expression)
+                arguments.Add(await TypeDisplay.GetAsync(type, cancellation));
+            if (missing.Count == 1)
+                arguments.AddRange([missing[0], baseName]);
+            else
+            {
+                arguments.Add(baseName);
+                arguments.Add(string.Join(", ", (missing.Count > 5 ? missing.Take(4) : missing).Select(name => "'" + name + "'")));
+                if (missing.Count > 5)
+                    arguments.Add((missing.Count - 4).ToString(System.Globalization.CultureInfo.InvariantCulture));
+            }
+            Error(node, expression
+                ? missing.Count == 1 ? 2653 : missing.Count > 5 ? 2650 : 2656
+                : missing.Count == 1 ? 2515 : missing.Count > 5 ? 2655 : 2654, arguments.ToArray());
+        }
 
         var staticType = await Values.GetAsync(type.Symbol!, cancellation).ConfigureAwait(false);
         var staticBase = await ClassBases.ConstructorAsync(type, cancellation).ConfigureAwait(false);

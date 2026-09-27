@@ -40,7 +40,8 @@ public sealed partial class Parser
     private int statementDepth;
     private int objectLiteralDepth;
     private bool possibleTopLevelAwait;
-    private bool topLevelAwait;
+    private List<(int Start, int End)>? topLevelAwaitSpans;
+    private readonly List<(int Start, int End)> possibleAwaitSpans = [];
     private int speculationDepth;
     private readonly Dictionary<SyntaxNode, JSDocNode[]> documentation = new(ReferenceEqualityComparer.Instance);
     private readonly List<Diagnostic> documentationDiagnostics = [];
@@ -111,12 +112,12 @@ public sealed partial class Parser
     {
         var parser = new Parser(options, source, cancellation);
         var file = await parser.ParseFileCore().ConfigureAwait(false);
-        if (parser.possibleTopLevelAwait
+        if (parser.possibleAwaitSpans.Count != 0
             && file.ExternalModuleIndicator is not null
             && !file.IsDeclarationFile
             && file.ScriptKind != ScriptKind.JSON)
         {
-            parser = new Parser(options, source, cancellation) { topLevelAwait = true };
+            parser = new Parser(options, source, cancellation) { topLevelAwaitSpans = parser.possibleAwaitSpans };
             file = await parser.ParseFileCore().ConfigureAwait(false);
         }
         return file;
@@ -126,6 +127,7 @@ public sealed partial class Parser
     {
         await ParseStack;
         int start = Pos;
+        int awaitSpan = 0;
         var statements = new List<SyntaxNode>();
         if (options.ScriptKind == ScriptKind.JSON)
         {
@@ -165,10 +167,35 @@ public sealed partial class Parser
                 }
                 int before = Pos;
                 NodeFlags statementContext = context;
-                if (topLevelAwait)
+                bool reparseAwait = topLevelAwaitSpans is not null && awaitSpan < topLevelAwaitSpans.Count
+                    && before >= topLevelAwaitSpans[awaitSpan].Start;
+                if (reparseAwait)
                     context |= NodeFlags.AwaitContext;
+                possibleTopLevelAwait = false;
                 SyntaxNode statement = (await ParseStatementCore().ConfigureAwait(false));
                 context = statementContext;
+                if (topLevelAwaitSpans is null && possibleTopLevelAwait && (statement.Flags & NodeFlags.AwaitContext) == 0)
+                {
+                    if (possibleAwaitSpans.Count != 0 && possibleAwaitSpans[^1].End == before)
+                        possibleAwaitSpans[^1] = (possibleAwaitSpans[^1].Start, Pos);
+                    else
+                        possibleAwaitSpans.Add((before, Pos));
+                }
+                if (reparseAwait)
+                {
+                    // A changed parse can consume the boundary; extend through the next
+                    // marked span (or EOF) before returning to the original context.
+                    while (awaitSpan < topLevelAwaitSpans!.Count && Pos > topLevelAwaitSpans[awaitSpan].End)
+                    {
+                        int spanStart = topLevelAwaitSpans[awaitSpan++].Start;
+                        if (awaitSpan == topLevelAwaitSpans.Count)
+                            topLevelAwaitSpans.Add((spanStart, source.Text.Length));
+                        else
+                            topLevelAwaitSpans[awaitSpan] = (spanStart, topLevelAwaitSpans[awaitSpan].End);
+                    }
+                    if (Pos == topLevelAwaitSpans[awaitSpan].End)
+                        awaitSpan++;
+                }
                 statements.AddRange(reparsedStatements);
                 reparsedStatements.Clear();
                 statements.Add(statement);
@@ -309,7 +336,10 @@ public sealed partial class Parser
             or K.ExportKeyword or K.InKeyword or K.OutKeyword or K.PrivateKeyword or K.ProtectedKeyword or K.PublicKeyword
             or K.ReadonlyKeyword or K.OverrideKeyword or K.StaticKeyword;
 
-    private IdentifierNode Identifier(bool allowKeywords = false, bool binding = false)
+    private IdentifierNode Identifier(
+        bool allowKeywords = false,
+        bool binding = false,
+        DiagnosticMessage? privateIdentifierDiagnostic = null)
     {
         int start = Pos;
         if (IsIdentifier || binding && IsBindingIdentifier || allowKeywords && Token is >= K.FirstKeyword and <= K.LastKeyword)
@@ -321,6 +351,13 @@ public sealed partial class Parser
             return Finish(node, start);
         }
 
+        if (Token == K.PrivateIdentifier)
+        {
+            Error(privateIdentifierDiagnostic ?? Messages.Private_identifiers_are_not_allowed_outside_class_bodies);
+            var node = factory.NewIdentifier(scanner.Value);
+            Next(false);
+            return Finish(node, start);
+        }
         if (binding && Token is >= K.FirstReservedWord and <= K.LastReservedWord)
             Error(Messages.Identifier_expected_0_is_a_reserved_word_that_cannot_be_used_here, TokenFacts.Text(Token));
         else

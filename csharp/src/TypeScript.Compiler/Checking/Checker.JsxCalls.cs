@@ -110,7 +110,7 @@ internal sealed partial class Checker
                 : await FlowPropertyTypeAsync(intrinsic, name, true, cancellation);
             if (props is null)
             {
-                Error(node, 2339);
+                Error(node, 2339, name, "JSX.IntrinsicElements");
                 return [];
             }
             return [await JsxIntrinsicSignatureAsync(node, props, cancellation)];

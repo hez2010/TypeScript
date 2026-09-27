@@ -15,9 +15,12 @@ internal sealed partial class Checker
             && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
             Error(node, 1211);
         if (!CheckClassModifiers(node))
+        {
             HeritageGrammar(
                 node,
                 node is ClassDeclarationNode classNode ? classNode.HeritageClauses : ((ClassExpressionNode)node).HeritageClauses);
+            EmptyTypeListError(node, node is ClassDeclarationNode c ? c.TypeParameters : ((ClassExpressionNode)node).TypeParameters, 1098);
+        }
         CheckDeclarationName(node);
         MarkPrivateIdentifierScopes(node);
         ExportedDeclaration(node, true);
@@ -25,7 +28,7 @@ internal sealed partial class Checker
         if (!expression)
             await CheckMergedExportsAsync(node, cancellation).ConfigureAwait(false);
         if (SemanticSyntax.Name(node) is IdentifierNode name && ReservedTypeName(name.Text))
-            Error(name, 2414);
+            Error(name, 2414, name.Text);
         var parameters = node is ClassDeclarationNode declaration ? declaration.TypeParameters : ((ClassExpressionNode)node).TypeParameters;
         if (parameters is not null)
             foreach (TypeParameterDeclarationNode parameter in parameters)

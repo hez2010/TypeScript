@@ -140,8 +140,13 @@ public sealed partial class Parser
     private async ValueTask<bool> IsArrowCore(bool allowReturnType = true)
     {
         await ParseStack;
+        if (Token == K.EqualsGreaterThanToken)
+            return true;
         if (!IsBindingIdentifier && Token is not (K.OpenParenToken or K.LessThanToken))
             return false;
+        int certainty = ArrowCertainty();
+        if (certainty != 0)
+            return certainty > 0;
         var key = (Pos, context, allowReturnType);
         if (notArrows?.Contains(key) == true)
             return false;
@@ -198,7 +203,7 @@ public sealed partial class Parser
                     return false;
             }
 
-            if (Token != K.EqualsGreaterThanToken)
+            if (Token is not (K.EqualsGreaterThanToken or K.OpenBraceToken))
                 return false;
             if (!allowReturnType
                 && hasReturnColon
@@ -220,11 +225,70 @@ public sealed partial class Parser
         return result;
     }
 
+    private int ArrowCertainty()
+    {
+        if (Token is not (K.OpenParenToken or K.LessThanToken or K.AsyncKeyword))
+            return 0;
+        if (Token == K.AsyncKeyword && !Peek(() => Next() is K.OpenParenToken or K.LessThanToken))
+            return 0;
+        int result = 0;
+        Peek(() =>
+        {
+            result = Worker();
+            return false;
+        });
+        return result;
+
+        int Worker()
+        {
+            if (Token == K.AsyncKeyword)
+            {
+                Next();
+                if (LineBreak || Token is not (K.OpenParenToken or K.LessThanToken))
+                    return -1;
+            }
+            K first = Token, second = Next();
+            if (first == K.OpenParenToken)
+            {
+                if (second == K.CloseParenToken)
+                    return Next() is K.EqualsGreaterThanToken or K.ColonToken or K.OpenBraceToken ? 1 : -1;
+                if (second is K.OpenBracketToken or K.OpenBraceToken)
+                    return 0;
+                if (second == K.DotDotDotToken)
+                    return 1;
+                if (IsModifierKind(second) && second != K.AsyncKeyword && Peek(() =>
+                {
+                    Next();
+                    return IsIdentifier;
+                }))
+                    return Next() == K.AsKeyword ? -1 : 1;
+                if (!IsIdentifier && second != K.ThisKeyword)
+                    return -1;
+                return Next() switch
+                {
+                    K.ColonToken => 1,
+                    K.QuestionToken => Next() is K.ColonToken or K.CommaToken or K.EqualsToken or K.CloseParenToken ? 1 : -1,
+                    K.CommaToken or K.EqualsToken or K.CloseParenToken => 0,
+                    _ => -1
+                };
+            }
+            if (!IsIdentifier && Token != K.ConstKeyword)
+                return -1;
+            if (!scanner.Jsx)
+                return 0;
+            Take(K.ConstKeyword);
+            K third = Next();
+            return third == K.ExtendsKeyword ? Next() is K.EqualsToken or K.GreaterThanToken or K.SlashToken ? -1 : 1
+                : third is K.CommaToken or K.EqualsToken ? 1 : -1;
+        }
+    }
+
     private async ValueTask<SyntaxNode> ArrowCore(bool allowReturnType = true)
     {
         await ParseStack;
         int start = Pos;
         TokenFlags trivia = scanner.Flags;
+        allowReturnType |= ArrowCertainty() > 0;
         NodeList? modifiers = null;
         if (Token == K.AsyncKeyword && !NextIs(K.EqualsGreaterThanToken))
         {
@@ -245,10 +309,14 @@ public sealed partial class Parser
             parameters = (await ParametersCore(modifiers is not null ? NodeFlags.AwaitContext : 0).ConfigureAwait(false));
         SyntaxNode? type = await ReturnAnnotationCore().ConfigureAwait(false);
         context = old;
+        K beforeArrow = Token;
         var arrow = ExpectedToken(K.EqualsGreaterThanToken);
         context = (old & ~(NodeFlags.YieldContext | NodeFlags.AwaitContext)) | (modifiers is not null ? NodeFlags.AwaitContext : 0);
-        SyntaxNode body = Token == K.OpenBraceToken
-            ? (await BlockCore().ConfigureAwait(false))
+        bool missingBlock = Token is not (K.SemicolonToken or K.FunctionKeyword or K.ClassKeyword)
+            && StartsStatement() && (Token == K.AtToken || !StartsExpression());
+        SyntaxNode body = beforeArrow is not (K.EqualsGreaterThanToken or K.OpenBraceToken) ? Identifier()
+            : Token == K.OpenBraceToken || missingBlock
+            ? (await BlockCore(missingBlock).ConfigureAwait(false))
             : (await ExpressionCore(2, allowReturnType).ConfigureAwait(false));
         context = old;
         return await WithJSDocCore(

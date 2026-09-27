@@ -22,7 +22,7 @@ internal sealed partial class Checker
             or 2740
             or 2741
             or 2787 or 2788
-            or 2789))
+            or 2789 or 18053))
         {
             RelationError(node, code);
             return;
@@ -39,9 +39,7 @@ internal sealed partial class Checker
             sourceText = await TypeDisplay.GetAsync(source, NodeBuilderFlags.UseFullyQualifiedType, cancellation);
         }
         string[] arguments;
-        if (code is 2787 or 2788 or 2789)
-            arguments = [sourceText];
-        else if (code is 2739 or 2740 or 2741 && RequiredPropertyDeclarations.TryGetValue(node, out var missing))
+        if (code is 2739 or 2740 or 2741 && RequiredPropertyDeclarations.TryGetValue(node, out var missing))
         {
             if (code == 2741)
                 arguments = [TypeDisplay.SymbolName(missing[0]), sourceText, targetText];

@@ -24,6 +24,6 @@ internal sealed partial class Checker : IEnumValueHost
     {
         var type = await LiteralExpressionAsync(member.Initializer!, cancellation);
         if (!await AssignableAsync(type, context.NumberType, cancellation))
-            Error(member.Initializer!, 18033);
+            Error(member.Initializer!, 18033, await TypeDisplay.GetAsync(type, cancellation), "number");
     }
 }

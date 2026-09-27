@@ -155,7 +155,7 @@ internal sealed partial class Checker : ISignatureHost, IStructuredMemberHost, I
     public ValueTask<Type> IndexedAccessAsync(Type objectType, Type indexType, CancellationToken cancellation) =>
             Instantiation.IndexedAccessAsync(objectType, indexType, 0, null, cancellation);
 
-    public void CircularBase(SyntaxNode declaration, Type type) => Error(declaration, 2310);
+    public void CircularBase(SyntaxNode declaration, Type type) => Error(declaration, 2310, TypeDisplay.SymbolName(type.Symbol!));
 
     public void InvalidInterfaceBase(SyntaxNode declaration) => Error(declaration, 2312);
 
@@ -273,7 +273,8 @@ internal sealed partial class Checker : ISignatureHost, IStructuredMemberHost, I
                 Error(declaration, 7022, TypeDisplay.SymbolName(symbol));
         }
         else if ((symbol.Flags & SymbolFlags.Alias) != 0 && AliasResolver.Declaration(symbol) is { } alias)
-            Error(alias, 2303, TypeDisplay.SymbolName(symbol));
+            Error(alias, 2303, alias is ExportAssignmentNode { Expression: IdentifierNode exported }
+                ? exported.Text : TypeDisplay.SymbolName(symbol));
         return context.AnyType;
     }
 

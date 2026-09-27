@@ -25,6 +25,8 @@ internal interface IObjectLiteralHost
 
     void ExpressionError(SyntaxNode node, int code);
 
+    ValueTask TypeExpressionErrorAsync(SyntaxNode node, int code, Type type, CancellationToken cancellation);
+
     void DuplicateObjectProperty(SyntaxNode node, string name);
 
     void SpreadOverride(SyntaxNode node, Symbol property, SyntaxNode spread);
@@ -102,7 +104,11 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
                         else if (!(await host.IndexesAsync(
                             contextual,
                             cancellation).ConfigureAwait(false)).Any(i => i.KeyType == context.StringType))
-                            host.ExpressionError(((INamedNode)declaration).Name!, 2353);
+                            await host.TypeExpressionErrorAsync(
+                                ((INamedNode)declaration).Name!,
+                                2353,
+                                contextual,
+                                cancellation).ConfigureAwait(false);
                     }
                     property.DeclarationList.AddRange(member.Declarations);
                     property.Parent = member.Parent;

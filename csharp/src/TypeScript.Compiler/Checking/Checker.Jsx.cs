@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -73,6 +74,7 @@ internal sealed partial class Checker
             && program.Symbols.Lookup(ns.Exports, "ElementType", SymbolFlags.Type) is { } elementSymbol)
             constraint = await JsxInstantiateAsync(elementSymbol, [], node, cancellation);
         Type checkedType;
+        int relationCode = 18053;
         if (constraint is not null && constraint != context.ErrorType)
             checkedType = IntrinsicJsx(JsxTag(node))
                 ? context.GetStringLiteralType(JsxName(JsxTag(node)!))
@@ -81,6 +83,7 @@ internal sealed partial class Checker
         {
             checkedType = await Signatures.ReturnAsync(signature, cancellation);
             int kind = await JsxReferenceKindAsync(node, cancellation);
+            relationCode = kind == 0 ? 2788 : kind == 1 ? 2787 : 2789;
             var result = await JsxTypeAsync("Element", node, cancellation);
             var instance = await JsxTypeAsync("ElementClass", node, cancellation);
             var function = await Algebra.UnionAsync([result, context.NullType], cancellation: cancellation);
@@ -88,7 +91,12 @@ internal sealed partial class Checker
                 : instance == context.ErrorType ? null : await Algebra.UnionAsync([function, instance], cancellation: cancellation);
         }
         if (constraint is not null && constraint != context.ErrorType && !await AssignableAsync(checkedType, constraint, cancellation))
-            Error(JsxTag(node)!, 2786);
+        {
+            var tag = JsxTag(node)!;
+            var head = CheckerDiagnostic.Create(tag, Messages.X_0_cannot_be_used_as_a_JSX_component,
+                CheckerDiagnostic.DeclarationName(tag));
+            await ReportRelationMessageAsync(tag, relationCode, checkedType, constraint, RelationKind.Assignable, cancellation, head);
+        }
     }
 
     private void JsxGrammar(SyntaxNode node)

@@ -110,7 +110,7 @@ internal sealed partial class Checker : IAccessExpressionHost, IIndexedAccessVal
         if (expression is null
             || await program.EntityNames.ResolveAsync(expression, SymbolFlags.Interface, true, cancellation: cancellation) is null)
             return false;
-        Error(node, 2689);
+        Error(node, 2689, CheckerDiagnostic.DeclarationName(expression));
         return true;
     }
 

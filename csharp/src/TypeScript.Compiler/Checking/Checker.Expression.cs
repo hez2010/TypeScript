@@ -15,12 +15,20 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
     internal List<int> Suggestions { get; } = [];
     private readonly HashSet<(SyntaxNode, int)> suggestionLocations = [];
 
-    public void DuplicateObjectProperty(SyntaxNode node, string name) => Error(node, 1117, name);
+    public void DuplicateObjectProperty(SyntaxNode node, string name) => Error(node, 1117, CheckerDiagnostic.DeclarationName(node));
 
     public void ExpressionError(SyntaxNode node, int code)
     {
+        if (code == 1098 && node is IFunctionSignature signature)
+        {
+            EmptyTypeListError(node, signature.TypeParameters, code);
+            return;
+        }
         string[] arguments = code switch
         {
+            1042 => [TokenFacts.Text(node.Kind)!],
+            17012 when node.Parent is MetaPropertyNode meta => [CheckerDiagnostic.DeclarationName(node),
+                TokenFacts.Text(meta.KeywordToken)!, meta.KeywordToken == SyntaxKind.NewKeyword ? "target" : "meta"],
             2564 => [CheckerDiagnostic.DeclarationName(node)],
             18046 or 18047 or 18048 or 18049 => [ExpressionChecks.EntityText(node)!],
             18050 => [node.Kind == SyntaxKind.NullKeyword ? "null" : "undefined"],
@@ -28,6 +36,12 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
             _ => []
         };
         Error(node, code, arguments);
+    }
+
+    public async ValueTask TypeExpressionErrorAsync(SyntaxNode node, int code, Type type, CancellationToken cancellation)
+    {
+        string display = await TypeDisplay.GetAsync(type, cancellation);
+        Error(node, code, code == 2353 ? [CheckerDiagnostic.DeclarationName(node), display] : [display]);
     }
 
     public void DeferExpression(SyntaxNode node)

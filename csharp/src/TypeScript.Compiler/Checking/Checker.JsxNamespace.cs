@@ -154,7 +154,7 @@ internal sealed partial class Checker
                 result = index.ValueType;
             }
             else
-                Error(node, 2339);
+                Error(node, 2339, name, "JSX.IntrinsicElements");
         }
         else if (NoImplicitAny)
             Error(node, 7026, "IntrinsicElements");

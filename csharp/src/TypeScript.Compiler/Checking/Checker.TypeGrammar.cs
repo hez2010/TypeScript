@@ -10,6 +10,15 @@ internal sealed partial class Checker
 {
     private readonly HashSet<Symbol> checkedInferParameters = [];
 
+    private void EmptyTypeListError(SyntaxNode node, NodeList? list, int code)
+    {
+        if (list is not { Count: 0 } || SemanticSyntax.Source(node) is not { ParseDiagnostics.Count: 0 } file)
+            return;
+        int start = list.Pos - 1, end = CheckerDiagnostic.TokenRange(file, list.End).Start + 1;
+        Error(node, CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code)) with
+        { Start = start, Length = end - start });
+    }
+
     private async ValueTask CheckMethodNameAsync(SyntaxNode node, CancellationToken cancellation)
     {
         if (SemanticSyntax.Name(node) is PrivateIdentifierNode

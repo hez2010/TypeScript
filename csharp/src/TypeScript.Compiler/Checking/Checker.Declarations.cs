@@ -22,7 +22,7 @@ internal sealed partial class Checker
             foreach (TypeParameterDeclarationNode parameter in node.TypeParameters)
                 await FunctionDeclarations.TypeParameterAsync(parameter, cancellation).ConfigureAwait(false);
         if (ReservedTypeName(node.Name!.Text))
-            Error(node.Name, 2427);
+            Error(node.Name, 2427, node.Name.Text);
         var symbol = program.Symbols.Declaration(node)!;
         var type = (InterfaceType)await Declared.GetAsync(symbol, cancellation).ConfigureAwait(false);
         await CheckMergedTypeParametersAsync(symbol, type, cancellation).ConfigureAwait(false);

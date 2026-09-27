@@ -43,7 +43,7 @@ internal sealed partial class Checker
                 }
                 if (!CanDecorate(node))
                 {
-                    Error(node, node is MethodDeclarationNode && SemanticSyntax.Body(node) is null ? 1249 : 1206);
+                    ErrorOnFirstToken(node, node is MethodDeclarationNode && SemanticSyntax.Body(node) is null ? 1249 : 1206);
                     return true;
                 }
                 if (LegacyDecorators && node is GetAccessorDeclarationNode or SetAccessorDeclarationNode)
@@ -52,7 +52,7 @@ internal sealed partial class Checker
                         n => n is GetAccessorDeclarationNode or SetAccessorDeclarationNode).ToArray();
                     if (accessors.Length > 1 && node == accessors[1] && HasDecorators(accessors[0]))
                     {
-                        Error(node, 1207);
+                        ErrorOnFirstToken(node, 1207);
                         return true;
                     }
                 }

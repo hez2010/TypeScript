@@ -113,7 +113,7 @@ internal sealed partial class Checker
             for (var parent = node.Parent; parent is not null && parent is not IFunctionSignature; parent = parent.Parent)
                 if (parent is LabeledStatementNode label && label.Label!.Text == node.Label!.Text)
                 {
-                    Error(node.Label, 1114);
+                    Error(node.Label, 1114, node.Label.Text);
                     break;
                 }
         if (((node.Label!.Flags | (program.Symbols.Binding(node.Label)?.Get(node.Label)?.Flags ?? 0)) & NodeFlags.Unreachable) != 0

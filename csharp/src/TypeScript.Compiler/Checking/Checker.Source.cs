@@ -317,7 +317,7 @@ internal sealed partial class Checker
                     ExportedDeclaration(alias, false);
                     await CheckMergedExportsAsync(alias, cancellation).ConfigureAwait(false);
                     if (ReservedTypeName(alias.Name!.Text))
-                        Error(alias.Name, 2457);
+                        Error(alias.Name, 2457, alias.Name.Text);
                     if (alias.TypeParameters is not null)
                         foreach (TypeParameterDeclarationNode parameter in alias.TypeParameters)
                             await FunctionDeclarations.TypeParameterAsync(parameter, cancellation).ConfigureAwait(false);
@@ -467,7 +467,7 @@ internal sealed partial class Checker
         }
         if ((flags & NodeFlags.Using) != 0 && node.Name is BindingPatternNode)
         {
-            Error(node, 1492);
+            Error(node, 1492, (flags & NodeFlags.BlockScoped) == NodeFlags.AwaitUsing ? "await using" : "using");
             return;
         }
         if (node.Parent?.Parent is not ForInOrOfStatementNode)
