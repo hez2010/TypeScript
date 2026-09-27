@@ -526,6 +526,19 @@ public sealed partial class Parser
 
     private async ValueTask<VariableDeclarationListNode> VariableDeclarationsCore()
     {
+        variableDeclarationDepth++;
+        try
+        {
+            return await VariableDeclarationsWorkerCore().ConfigureAwait(false);
+        }
+        finally
+        {
+            variableDeclarationDepth--;
+        }
+    }
+
+    private async ValueTask<VariableDeclarationListNode> VariableDeclarationsWorkerCore()
+    {
         await ParseStack;
         int start = Pos;
         NodeFlags flags = Token switch

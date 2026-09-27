@@ -274,8 +274,10 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
         return FunctionDeclarations.CheckAsync(node, cancellation);
     }
 
-    public ValueTask FunctionGrammarAsync(SyntaxNode node, CancellationToken cancellation) =>
-        FunctionDeclarations.GrammarAsync(node, cancellation);
+    public async ValueTask FunctionGrammarAsync(SyntaxNode node, CancellationToken cancellation)
+    {
+        await FunctionDeclarations.GrammarAsync(node, cancellation);
+    }
 
     private void GeneratorGrammar(SyntaxNode node)
     {

@@ -458,7 +458,7 @@ public sealed partial class Parser
         return Finish(factory.NewTypeParameterDeclaration(modifiers, name, constraint, null, defaultType), start);
     }
 
-    private async ValueTask<NodeList> ParametersCore(NodeFlags signatureFlags = 0)
+    private async ValueTask<NodeList> ParametersCore(NodeFlags signatureFlags = 0, bool requireComplete = false)
     {
         await ParseStack;
         NodeFlags saved = context;
@@ -471,7 +471,8 @@ public sealed partial class Parser
                 K.CloseParenToken,
                 () => ParameterCore(saved & NodeFlags.AwaitContext), stop: () => Token == K.CloseBracketToken,
                 startsElement: StartsParameter, reportInvalidElement: ParameterExpected).ConfigureAwait(false);
-            Expected(K.CloseParenToken);
+            if (!Expected(K.CloseParenToken) && requireComplete)
+                return new([], list.Pos, list.End, true);
             return list;
         }
         finally

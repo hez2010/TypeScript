@@ -208,8 +208,9 @@ public sealed partial class Scanner
     {
         if (Kind < SyntaxKind.Identifier)
             return Kind;
-        pos = TokenStart;
-        ScanIdentifier(false, true);
+        bool privateName = text[TokenStart] == '#';
+        pos = TokenStart + (privateName ? 1 : 0);
+        ScanIdentifier(privateName, true);
         return Kind = IdentifierKind(Value);
     }
 

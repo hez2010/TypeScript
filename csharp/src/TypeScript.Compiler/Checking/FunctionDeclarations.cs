@@ -66,21 +66,25 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
     SymbolTypes values, VariableTypes variables, BindingTypes bindings, TypeProperties properties,
     MemberAccessRules access, MemberAccessibility accessibility, IFunctionDeclarationHost host)
 {
-    internal async ValueTask GrammarAsync(SyntaxNode node, CancellationToken cancellation = default)
+    internal async ValueTask<bool> GrammarAsync(SyntaxNode node, CancellationToken cancellation = default)
     {
         if (await host.FunctionModifiersAsync(node, cancellation).ConfigureAwait(false))
-            return;
+            return true;
         var signature = (IFunctionSignature)node;
+        bool grammarError = false;
         bool grammar = SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0;
         void Error(SyntaxNode at, int code)
         {
             if (grammar)
+            {
+                grammarError = true;
                 host.ExpressionError(at, code);
+            }
         }
         if (signature.TypeParameters is { Count: 0 })
         {
             Error(node, 1098);
-            return;
+            return grammarError;
         }
         bool optional = false;
         var parameters = signature.Parameters!;
@@ -92,19 +96,19 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
                 if (i != parameters.Count - 1)
                 {
                     Error(parameter.DotDotDotToken, 1014);
-                    return;
+                    return grammarError;
                 }
                 if ((parameter.Flags & NodeFlags.Ambient) == 0 && parameters.HasTrailingComma)
                     Error(parameter, 1013);
                 if (parameter.QuestionToken is not null)
                 {
                     Error(parameter.QuestionToken, 1047);
-                    return;
+                    return grammarError;
                 }
                 if (parameter.Initializer is not null)
                 {
                     Error(parameter.Name!, 1048);
-                    return;
+                    return grammarError;
                 }
             }
             else if (parameter.QuestionToken is not null)
@@ -113,13 +117,13 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
                 if ((parameter.QuestionToken.Flags & NodeFlags.Reparsed) == 0 && parameter.Initializer is not null)
                 {
                     Error(parameter.Name!, 1015);
-                    return;
+                    return grammarError;
                 }
             }
             else if (optional && parameter.Initializer is null)
             {
                 Error(parameter.Name!, 1016);
-                return;
+                return grammarError;
             }
         }
         var file = SemanticSyntax.Source(node);
@@ -135,7 +139,7 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
             if (text.Any(c => c is '\n' or '\r' or '\u2028' or '\u2029'))
             {
                 Error(token, 1200);
-                return;
+                return grammarError;
             }
         }
         if (host.TargetYear >= 2016 && file is not null && SemanticSyntax.Body(node) is BlockNode { Statements: { } statements })
@@ -156,9 +160,10 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
                 foreach (var parameter in nonSimple)
                     host.ExpressionError(parameter, 1346);
                 host.ExpressionError(statement, 1347);
-                return;
+                return true;
             }
         }
+        return grammarError;
     }
 
     internal async ValueTask CheckAsync(SyntaxNode node, CancellationToken cancellation = default)

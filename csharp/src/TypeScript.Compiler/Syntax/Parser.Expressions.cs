@@ -152,7 +152,8 @@ public sealed partial class Parser
             return false;
         bool result = await PeekCore(async () =>
         {
-            if (Token == K.AsyncKeyword && !NextIs(K.EqualsGreaterThanToken))
+            bool async = Token == K.AsyncKeyword && !NextIs(K.EqualsGreaterThanToken);
+            if (async)
             {
                 Next();
                 if (LineBreak)
@@ -189,9 +190,8 @@ public sealed partial class Parser
                     && !IsModifierKind(Token);
             }))
                 return false;
-            int errorsBefore = diagnostics.Count;
-            NodeList parameters = await ParametersCore().ConfigureAwait(false);
-            if (diagnostics.Count != errorsBefore)
+            NodeList parameters = await ParametersCore(async ? NodeFlags.AwaitContext : 0, requireComplete: true).ConfigureAwait(false);
+            if (parameters.IsMissing || parameters.Any(p => p is ParameterDeclarationNode { Name: IdentifierNode { Text.Length: 0 } }))
                 return false;
             bool hasReturnColon = Token == K.ColonToken;
             if (hasReturnColon)
@@ -324,7 +324,7 @@ public sealed partial class Parser
             trivia).ConfigureAwait(false);
     }
 
-    private async ValueTask<SyntaxNode> UnaryExpressionCore(bool allowYield = false)
+    private async ValueTask<SyntaxNode> UnaryExpressionCore(bool allowYield = false, bool simple = false)
     {
         await ParseStack;
         int start = Pos;
@@ -340,17 +340,17 @@ public sealed partial class Parser
                 Next();
                 SyntaxNode operand = kind is K.PlusPlusToken or K.MinusMinusToken
                     ? await MemberExpressionCore(await PrimaryExpressionCore().ConfigureAwait(false), true).ConfigureAwait(false)
-                    : await UnaryExpressionCore().ConfigureAwait(false);
+                    : await UnaryExpressionCore(simple: true).ConfigureAwait(false);
                 return Finish(factory.NewPrefixUnaryExpression(kind, operand), start);
             case K.DeleteKeyword:
                 Next();
-                return Finish(factory.NewDeleteExpression((await UnaryExpressionCore().ConfigureAwait(false))), start);
+                return Finish(factory.NewDeleteExpression((await UnaryExpressionCore(simple: true).ConfigureAwait(false))), start);
             case K.TypeOfKeyword:
                 Next();
-                return Finish(factory.NewTypeOfExpression((await UnaryExpressionCore().ConfigureAwait(false))), start);
+                return Finish(factory.NewTypeOfExpression((await UnaryExpressionCore(simple: true).ConfigureAwait(false))), start);
             case K.VoidKeyword:
                 Next();
-                return Finish(factory.NewVoidExpression((await UnaryExpressionCore().ConfigureAwait(false))), start);
+                return Finish(factory.NewVoidExpression((await UnaryExpressionCore(simple: true).ConfigureAwait(false))), start);
             case K.AwaitKeyword:
                 if ((context & NodeFlags.AwaitContext) != 0 || Peek(() =>
                 {
@@ -359,7 +359,7 @@ public sealed partial class Parser
                 }))
                 {
                     Next();
-                    return Finish(factory.NewAwaitExpression((await UnaryExpressionCore().ConfigureAwait(false))), start);
+                    return Finish(factory.NewAwaitExpression((await UnaryExpressionCore(simple: true).ConfigureAwait(false))), start);
                 }
 
                 break;
@@ -387,7 +387,9 @@ public sealed partial class Parser
                 Next();
                 var type = (await TypeCore().ConfigureAwait(false));
                 Expected(K.GreaterThanToken);
-                return Finish(factory.NewTypeAssertion(type, (await UnaryExpressionCore().ConfigureAwait(false))), start);
+                return Finish(factory.NewTypeAssertion(type, (await UnaryExpressionCore(simple: true).ConfigureAwait(false))), start);
+            case K.LessThanToken when scanner.Jsx && (simple || Peek(() => Next() == K.GreaterThanToken || Token >= K.Identifier)):
+                return await JsxElementCore(true, mustBeUnary: simple).ConfigureAwait(false);
         }
 
         SyntaxNode left = (await MemberExpressionCore((await PrimaryExpressionCore().ConfigureAwait(false)), true).ConfigureAwait(false));
@@ -462,12 +464,15 @@ public sealed partial class Parser
                 SyntaxNode construct = (await MemberExpressionCore(
                     (await PrimaryExpressionCore().ConfigureAwait(false)),
                     false).ConfigureAwait(false));
-                NodeList? types = (context & NodeFlags.JavaScriptFile) == 0 && await PeekCore(async () =>
+                NodeList? types = null;
+                if (construct is ExpressionWithTypeArgumentsNode instantiation)
                 {
-                    int errorsBefore = diagnostics.Count;
-                    var arguments = await TypeArgumentsCore().ConfigureAwait(false);
-                    return arguments is not null && errorsBefore == diagnostics.Count;
-                }).ConfigureAwait(false) ? await TypeArgumentsCore().ConfigureAwait(false) : null;
+                    types = instantiation.TypeArguments;
+                    construct = instantiation.Expression!;
+                }
+                if (Token == K.QuestionDotToken)
+                    Error(Messages.Invalid_optional_chain_from_new_expression_Did_you_mean_to_call_0,
+                        source.Text[construct.Pos..construct.End].Trim());
                 NodeList? args = Token == K.OpenParenToken ? (await ArgumentsCore().ConfigureAwait(false)) : null;
                 return Finish(factory.NewNewExpression(construct, types, args), start);
             case K.ImportKeyword:
@@ -501,7 +506,9 @@ public sealed partial class Parser
             case K.OpenBracketToken:
                 Next();
                 bool arrayLines = LineBreak;
-                var elements = (await DelimitedCore(K.CloseBracketToken, ArgumentCore).ConfigureAwait(false));
+                var elements = await DelimitedCore(K.CloseBracketToken, ArgumentCore,
+                    startsElement: () => Token is K.CommaToken or K.DotToken or K.DotDotDotToken || StartsExpression(),
+                    elementExpected: Messages.Expression_or_comma_expected, recoveryBoundary: StartsStatement).ConfigureAwait(false);
                 Expected(K.CloseBracketToken);
                 return Finish(factory.NewArrayLiteralExpression(elements, arrayLines), start);
             case K.OpenBraceToken:
@@ -523,8 +530,6 @@ public sealed partial class Parser
 
                 Expected(K.CloseBraceToken);
                 return Finish(factory.NewObjectLiteralExpression(properties, objectLines), start);
-            case K.LessThanToken when scanner.Jsx:
-                return (await JsxElementCore(true).ConfigureAwait(false));
         }
 
         return Identifier();
@@ -536,14 +541,10 @@ public sealed partial class Parser
         int start = left.Pos;
         while (true)
         {
+            if (!calls && Token == K.QuestionDotToken)
+                return left;
             TokenNode? question = OptionalToken(K.QuestionDotToken);
             NodeFlags chain = question is not null || (left.Flags & NodeFlags.OptionalChain) != 0 ? NodeFlags.OptionalChain : 0;
-            if (!calls && question is not null)
-                ErrorAt(
-                    Messages.Invalid_optional_chain_from_new_expression_Did_you_mean_to_call_0,
-                    question.Pos,
-                    question.End - question.Pos,
-                    source.Text[start..question.Pos].Trim());
             if (Token == K.DotToken
                 || question is not null
                     && Token is not (K.OpenBracketToken or K.OpenParenToken or K.LessThanToken or K.NoSubstitutionTemplateLiteral
@@ -584,8 +585,7 @@ public sealed partial class Parser
             }
 
             NodeList? typeArguments = null;
-            if (calls
-                && (context & NodeFlags.JavaScriptFile) == 0
+            if ((context & NodeFlags.JavaScriptFile) == 0
                 && Token is K.LessThanToken or K.LessThanLessThanToken && (await PeekCore(async () =>
             {
                 scanner.RescanLessThanToken();
@@ -624,6 +624,8 @@ public sealed partial class Parser
                     if (typeArguments is not null)
                         ErrorOnNode(typeArguments, Messages.X_super_may_not_use_type_arguments);
                     Error(Messages.X_super_must_be_followed_by_an_argument_list_or_member_access);
+                    left = Finish(factory.NewPropertyAccessExpression(left, null, RightOfDot(true), 0), start);
+                    typeArguments = null;
                 }
                 left = Finish(
                     factory.NewTaggedTemplateExpression(
@@ -671,7 +673,9 @@ public sealed partial class Parser
             if (Token == K.CommaToken)
                 Error(Messages.Argument_expression_expected);
             return await ArgumentCore().ConfigureAwait(false);
-        }).ConfigureAwait(false);
+        }, stop: () => Token == K.SemicolonToken,
+            startsElement: () => Token is K.CommaToken or K.DotDotDotToken || StartsExpression(),
+            elementExpected: Messages.Argument_expression_expected).ConfigureAwait(false);
         Expected(K.CloseParenToken);
         return args;
     }

@@ -19,7 +19,7 @@ internal sealed partial class Checker
             await ComputedNameAsync(computed, cancellation).ConfigureAwait(false);
         await FunctionDeclarations.VariableAsync(node, cancellation).ConfigureAwait(false);
         if (SemanticSyntax.HasModifier(node, SyntaxKind.AbstractKeyword) && node.Initializer is not null)
-            Error(node, 1267);
+            Error(node, 1267, CheckerDiagnostic.DeclarationName(node.Name!));
     }
 
     private async ValueTask CheckMethodSourceAsync(MethodDeclarationNode node, CancellationToken cancellation)
@@ -49,8 +49,8 @@ internal sealed partial class Checker
     private async ValueTask CheckAccessorSourceAsync(SyntaxNode node, CancellationToken cancellation)
     {
         await CheckDecoratorsAsync(node, cancellation).ConfigureAwait(false);
-        await FunctionDeclarations.GrammarAsync(node, cancellation).ConfigureAwait(false);
-        AccessorGrammar(node);
+        if (!await FunctionDeclarations.GrammarAsync(node, cancellation).ConfigureAwait(false))
+            AccessorGrammar(node);
         await CheckFunctionDeclarationAsync(node, cancellation).ConfigureAwait(false);
         var name = SemanticSyntax.Name(node)!;
         if (name is IdentifierNode { Text: "constructor" } && SemanticSyntax.ClassLike(node.Parent))

@@ -24,7 +24,8 @@ public sealed partial class Parser
         Func<bool>? stop = null,
         Func<bool>? startsElement = null,
         DiagnosticMessage? elementExpected = null,
-        Action? reportInvalidElement = null)
+        Action? reportInvalidElement = null,
+        Func<bool>? recoveryBoundary = null)
     {
         await ParseStack;
         int start = Pos;
@@ -37,7 +38,8 @@ public sealed partial class Parser
                     reportInvalidElement();
                 else
                     Error(elementExpected!);
-                if (Token != K.SemicolonToken && StartsStatement()
+                if ((recoveryBoundary?.Invoke() ?? (Token != K.SemicolonToken && StartsStatement()))
+                    || variableDeclarationDepth != 0 && Token == K.EqualsGreaterThanToken
                     || Token is K.CloseBraceToken or K.CloseParenToken or K.CloseBracketToken)
                     break;
                 Next();

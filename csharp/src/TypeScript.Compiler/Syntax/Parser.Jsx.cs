@@ -17,7 +17,8 @@ public sealed partial class Parser
         }
     }
 
-    private async ValueTask<SyntaxNode> JsxElementCore(bool expressionContext, SyntaxNode? parentTagName = null, int invalidStart = -1)
+    private async ValueTask<SyntaxNode> JsxElementCore(bool expressionContext, SyntaxNode? parentTagName = null, int invalidStart = -1,
+        bool mustBeUnary = false)
     {
         await ParseStack;
         int start = Pos;
@@ -40,7 +41,7 @@ public sealed partial class Parser
             var closing = Finish(factory.NewJsxClosingFragment(), closingStart);
             return await JsxAdjacentElementsCore(
                 Finish(factory.NewJsxFragment(opening, children, closing), start),
-                expressionContext,
+                expressionContext && !mustBeUnary,
                 invalidStart).ConfigureAwait(false);
         }
 
@@ -54,7 +55,7 @@ public sealed partial class Parser
             if (Token != K.OpenBraceToken && Token != K.Identifier && Token is not (>= K.FirstKeyword and <= K.LastKeyword))
             {
                 Error(Messages.Identifier_expected);
-                if (Token == K.LessThanToken)
+                if (StartsStatement())
                     break;
                 Next();
                 continue;
@@ -82,7 +83,6 @@ public sealed partial class Parser
                     else
                     {
                         Error(Messages.X_or_JSX_element_expected);
-                        value = Finish(factory.NewIdentifier(""), Pos, Pos);
                     }
                 }
 
@@ -105,7 +105,7 @@ public sealed partial class Parser
                 NextJsx();
             return await JsxAdjacentElementsCore(
                 Finish(factory.NewJsxSelfClosingElement(name, typeArguments, attributeList), start),
-                expressionContext,
+                expressionContext && !mustBeUnary,
                 invalidStart).ConfigureAwait(false);
         }
 
@@ -172,7 +172,7 @@ public sealed partial class Parser
 
         return await JsxAdjacentElementsCore(
             Finish(factory.NewJsxElement(open, content, close), start),
-            expressionContext,
+            expressionContext && !mustBeUnary,
             invalidStart).ConfigureAwait(false);
     }
 
@@ -206,21 +206,7 @@ public sealed partial class Parser
         SyntaxNode result = propertyAccess && isThis ? Finish(factory.NewKeywordExpression(K.ThisKeyword), start, first.End) : first;
         while (propertyAccess && Take(K.DotToken))
         {
-            SyntaxNode right;
-            if (Token == K.PrivateIdentifier)
-            {
-                int privateStart = Pos;
-                right = factory.NewPrivateIdentifier(scanner.Value);
-                Next();
-                Finish(right, privateStart);
-                ErrorAt(Messages.Identifier_expected, Pos, 0);
-                right = Finish(factory.NewIdentifier(""), Pos, Pos);
-            }
-            else
-            {
-                scanner.ScanJsxIdentifier();
-                right = JsxIdentifier();
-            }
+            SyntaxNode right = RightOfDot(false, allowUnicodeEscape: false);
             result = Finish(factory.NewPropertyAccessExpression(result, null, right, 0), start);
         }
 

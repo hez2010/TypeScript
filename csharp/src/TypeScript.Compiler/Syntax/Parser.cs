@@ -39,6 +39,7 @@ public sealed partial class Parser
     private int scannedDiagnostics;
     private int statementDepth;
     private int objectLiteralDepth;
+    private int variableDeclarationDepth;
     private bool possibleTopLevelAwait;
     private List<(int Start, int End)>? topLevelAwaitSpans;
     private readonly List<(int Start, int End)> possibleAwaitSpans = [];
@@ -454,7 +455,7 @@ public sealed partial class Parser
         return name;
     }
 
-    private SyntaxNode RightOfDot(bool allowPrivate)
+    private SyntaxNode RightOfDot(bool allowPrivate, bool allowUnicodeEscape = true)
     {
         if (LineBreak && Token >= K.Identifier && Peek(() =>
         {
@@ -475,6 +476,8 @@ public sealed partial class Parser
             ErrorAt(Messages.Identifier_expected, Pos, 0);
             return Finish(factory.NewIdentifier(""), Pos, Pos);
         }
+        if (!allowUnicodeEscape && (scanner.Flags & (TokenFlags.UnicodeEscape | TokenFlags.ExtendedUnicodeEscape)) != 0)
+            Error(Messages.Unicode_escape_sequence_cannot_appear_here);
         return Identifier(true);
     }
 
