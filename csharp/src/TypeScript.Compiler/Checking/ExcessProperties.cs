@@ -49,7 +49,12 @@ internal sealed class ExcessProperties(TypeContext context, TypeAlgebra algebra,
                 foreach (var part in checkTypes)
                 {
                     var apparent = await views.ApparentAsync(part, cancellation).ConfigureAwait(false);
-                    var member = await properties.PropertyAsync(apparent, property.Name, cancellation: cancellation).ConfigureAwait(false);
+                    var member = apparent is UnionOrIntersectionType composite
+                        ? await properties.CompositePropertyAsync(
+                            composite,
+                            property.Name,
+                            cancellation: cancellation).ConfigureAwait(false)
+                        : await properties.ObjectPropertyAsync(apparent, property.Name, cancellation).ConfigureAwait(false);
                     types.Add(member is not null ? await values.GetAsync(member, cancellation).ConfigureAwait(false)
                         : (await host.ApplicableIndexAsync(
                             apparent,
@@ -59,7 +64,10 @@ internal sealed class ExcessProperties(TypeContext context, TypeAlgebra algebra,
                 if (await operation.CompareAsync(await values.GetAsync(property, cancellation).ConfigureAwait(false),
                     await algebra.UnionAsync(types, cancellation: cancellation).ConfigureAwait(false),
                     cancellation: cancellation).ConfigureAwait(false) == Ternary.False)
+                {
+                    operation.Explain(2326, property: property);
                     return true;
+                }
             }
         }
         return false;

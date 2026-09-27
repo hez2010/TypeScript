@@ -13,7 +13,8 @@ internal interface IStructuralRelationHost
 
     ValueTask<Type> ReturnTypeAsync(Signature signature, CancellationToken cancellation);
 
-    ValueTask<Ternary?> VarianceAsync(RelationOperation operation, Type source, Type target, CancellationToken cancellation);
+    ValueTask<Ternary?> VarianceAsync(RelationOperation operation, Type source, Type target,
+        IntersectionState intersection, Func<ValueTask<Ternary>>? structuralFallback, CancellationToken cancellation);
 
     ValueTask<Ternary?> AdvancedRelationAsync(
         RelationOperation operation,
@@ -70,23 +71,12 @@ internal sealed class StructuralRelations(TypeContext context, TypeAlgebra algeb
         cancellation.ThrowIfCancellationRequested();
         if (source is TypeParameter && await constraints.ConstraintAsync(source, cancellation).ConfigureAwait(false) == target)
             return Ternary.True;
-        if ((source.Flags & TypeFlags.DefinitelyNonNullable) != 0 && target is UnionType nullable)
-        {
-            var parts = nullable.Types;
-            Type? candidate = parts.Count == 2 && (parts[0].Flags & TypeFlags.Nullable) != 0 ? parts[1]
-                : parts.Count == 3 && (parts[0].Flags & TypeFlags.Nullable) != 0 && (parts[1].Flags & TypeFlags.Nullable) != 0
-                    ? parts[2]
-                    : null;
-            if (candidate is not null && (candidate.Flags & TypeFlags.Nullable) == 0)
-            {
-                target = await normalization.GetAsync(candidate, true, cancellation).ConfigureAwait(false);
-                if (source == target)
-                    return Ternary.True;
-            }
-        }
+        target = await normalization.RelationTargetAsync(source, target, cancellation).ConfigureAwait(false);
+        if (source == target)
+            return Ternary.True;
         if (operation.Kind == RelationKind.Comparable
             && (target.Flags & TypeFlags.Never) == 0
-            && await operation.SimpleAsync(target, source, cancellation).ConfigureAwait(false)
+            && await operation.SimpleAsync(target, source, cancellation, report: false).ConfigureAwait(false)
             || await operation.SimpleAsync(source, target, cancellation).ConfigureAwait(false))
             return Ternary.True;
         if (((source.Flags | target.Flags) & TypeFlags.StructuredOrInstantiable) == 0)
@@ -200,8 +190,16 @@ internal sealed class StructuralRelations(TypeContext context, TypeAlgebra algeb
                 || source is IntersectionType && (target.Flags & (TypeFlags.Object | TypeFlags.Union | TypeFlags.Instantiable)) != 0))
                 return Ternary.False;
         }
-        if (await host.VarianceAsync(operation, source, target, cancellation).ConfigureAwait(false) is { } variance)
+        if (await host.VarianceAsync(operation, source, target, intersection, operation.ReportErrors
+            ? () => AfterVarianceAsync(operation, source, target, intersection, previousExplanation, cancellation) : null,
+            cancellation).ConfigureAwait(false) is { } variance)
             return variance;
+        return await AfterVarianceAsync(operation, source, target, intersection, previousExplanation, cancellation).ConfigureAwait(false);
+    }
+
+    private async ValueTask<Ternary> AfterVarianceAsync(RelationOperation operation, Type source, Type target,
+        IntersectionState intersection, RelationExplanation? previousExplanation, CancellationToken cancellation)
+    {
         if (await host.GenericTupleRelationAsync(operation, source, target, cancellation).ConfigureAwait(false) is { } tuple)
             return tuple;
         if ((source.Flags & TypeFlags.Instantiable) != 0 && !(source is TemplateLiteralType && target is ObjectType)

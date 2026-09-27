@@ -244,7 +244,8 @@ internal sealed class TypeVariance(
         Type source,
         Type target,
         IntersectionState intersection = 0,
-        CancellationToken cancellation = default)
+        CancellationToken cancellation = default,
+        Func<ValueTask<Ternary>>? structuralFallback = null)
     {
         if (IsMarker(source) || IsMarker(target))
             return null;
@@ -306,6 +307,14 @@ internal sealed class TypeVariance(
         for (int i = 0; i < variances.Count; i++)
             if ((variances[i] & VarianceFlags.VarianceMask) == VarianceFlags.Covariant && (targetArguments[i].Flags & TypeFlags.Void) != 0)
                 return null;
+        if (operation.ReportErrors && structuralFallback is not null
+            && variances.Any(v => (v & VarianceFlags.VarianceMask) == VarianceFlags.Invariant))
+        {
+            var varianceExplanation = operation.Explanation;
+            operation.RestoreExplanation(previousExplanation);
+            if (await structuralFallback().ConfigureAwait(false) != Ternary.False)
+                operation.RestoreExplanation(varianceExplanation);
+        }
         return Ternary.False;
     }
 

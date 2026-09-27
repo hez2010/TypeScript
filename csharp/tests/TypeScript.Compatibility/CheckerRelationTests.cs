@@ -3,6 +3,7 @@ using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Checking;
 using TypeScript.Compiler.Configuration;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.Programs;
 using TypeScript.Compiler.Text;
@@ -12,6 +13,51 @@ namespace TypeScript.Compatibility;
 
 internal static class CheckerRelationTests
 {
+    internal static async Task<int> DiagnosticSafety()
+    {
+        int checks = 0;
+        void Check(bool condition)
+        {
+            if (!condition)
+                throw new InvalidOperationException($"Relation diagnostic assertion {checks + 1}");
+            checks++;
+        }
+        var options = new CompilerOptions();
+        options.SetRaw("noLib", "true");
+        options.SetRaw("strict", "true");
+        var files = new Dictionary<string, byte[]>
+        {
+            ["/project/globals.d.ts"] = Wtf8.Encode(
+                "interface Object{toString():string}interface Function{}interface Array<T>{length:number;[n:number]:T}interface ReadonlyArray<T>{readonly length:number;readonly[n:number]:T}interface String{length:number}interface Number{}interface Boolean{}interface RegExp{}"),
+            ["/project/main.ts"] = Wtf8.Encode(
+                "interface Inv<in out T>{f:(x:T)=>T}declare let a:Inv<string>;let b:Inv<unknown>=a;function missing<T>(x:T){let y:number=x;}interface Left{p:string}interface Right{p:number}interface Both extends Left,Right{p:boolean}declare let boxed:String;let primitive:string=boxed;namespace A{export enum E{X=1,Y=2}}namespace B{export enum E{X=1,Y=3}}declare let sourceEnum:B.E;let enumeration:A.E=sourceEnum;declare let optional:number|undefined;optional='bad';"),
+            ["/project/excess.ts"] = Wtf8.Encode(
+                "declare function accept<T>(x:{[key:string]:T}|{[key:number]:T}):void;accept({toString:123});type Basic={id:number};type Extra=Basic&{description:string};const data:{items:Basic[]}&{items:Extra[]}={items:[{id:1,description:'ok'}]};")
+        };
+        var program = await CompilerProgram.CreateAsync(new MemoryFileSystem(files), "/project",
+            new("/project/tsconfig.json", options, files.Keys.ToArray(), [], [], []));
+        var checker = await program.CreateCheckerAsync();
+        var source = program.GetFile("/project/main.ts")!.Syntax;
+        var snapshot = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
+        await checker.CheckProgramAsync();
+        var diagnostics = checker.DetailedDiagnosticsForProgramFile(source);
+        static bool Contains(Diagnostic d, int code) => d.Code == code || d.MessageChain.Any(c => Contains(c, code));
+        var invariant = diagnostics.Single(d => d.Arguments.SequenceEqual(["Inv<string>", "Inv<unknown>"]));
+        Check(Contains(invariant, 2326) && Contains(invariant, 2328));
+        var constraint = diagnostics.Single(d => d.Arguments.SequenceEqual(["T", "number"]));
+        Check(constraint.RelatedInformation is [var note] && note.Code == 2208 && note.Arguments.SequenceEqual(["number"]));
+        Check(diagnostics.Count(d => d.Code == 2430) == 2);
+        Check(diagnostics.Where(d => d.Code == 2430).Select(d => d.Arguments[1]).Order().SequenceEqual(["Left", "Right"]));
+        Check(diagnostics.Any(d => Contains(d, 2692)));
+        Check(diagnostics.Any(d => Contains(d, 4125)));
+        Check(diagnostics.Any(d => d.Code == 2322 && d.Arguments.SequenceEqual(["string", "number"])));
+        Check(checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/excess.ts")!.Syntax).Count == 0);
+        await checker.CheckProgramAsync();
+        Check(checker.DetailedDiagnosticsForProgramFile(source).SequenceEqual(diagnostics, DiagnosticEqualityComparer.Instance));
+        Check(snapshot.All(n => n.Node.Parent == n.Parent && n.Node.Pos == n.Pos && n.Node.End == n.End && n.Node.Flags == n.Flags));
+        return checks;
+    }
+
     internal static async Task Safety()
     {
         int checks = 0;

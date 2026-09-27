@@ -17,7 +17,8 @@ internal sealed partial class Checker
         CancellationToken cancellation,
         Diagnostic? head = null)
     {
-        if (code is not (2322 or 2344 or 2345 or 2352 or 2375 or 2412 or 2415 or 2417 or 2430 or 2420 or 2678 or 2684 or 2720 or 2739
+        if (code is not (1360 or 2322 or 2344 or 2345 or 2352 or 2375 or 2379 or 2412 or 2415 or 2417 or 2430 or 2420 or 2678 or 2684
+            or 2720 or 2739
             or 2740
             or 2741
             or 2787 or 2788
@@ -26,6 +27,10 @@ internal sealed partial class Checker
             RelationError(node, code);
             return;
         }
+        (source, target) = await RelationErrorTypesAsync(source, target, cancellation);
+        if (code == 2345 && context.ExactOptionalPropertyTypes
+            && (await RelationDiagnostics.ExactOptionalPropertiesAsync(source, target, cancellation)).Count != 0)
+            code = 2379;
         var originalSource = source;
         var (sourceText, targetText) = await RelationTypeNamesAsync(source, target, cancellation);
         if ((target.Flags & TypeFlags.Never) == 0 && source.IsLiteral && !await CouldHaveSingletonTypesAsync(target, cancellation))
@@ -49,6 +54,7 @@ internal sealed partial class Checker
         else
             arguments = [sourceText, targetText];
         var diagnostic = CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), arguments);
+        diagnostic = await PrimitiveWrapperNoteAsync(diagnostic, originalSource, target, cancellation);
         if (code == 2741 && RequiredPropertyDeclarations.TryGetValue(node, out var required)
             && required[0].Declarations.FirstOrDefault() is { } declaration)
             diagnostic = diagnostic with
@@ -78,6 +84,7 @@ internal sealed partial class Checker
         }
         diagnostic = await RelationMessageKindAsync(diagnostic, originalSource, target, sourceText, targetText, cancellation);
         diagnostic = SelectRelationDiagnostic(diagnostic, originalSource, target, sourceText, targetText);
+        diagnostic = await SourceConstraintNoteAsync(diagnostic, originalSource, target, cancellation);
         Report(StripRelationMarkers(diagnostic));
 
         void Report(Diagnostic detail) => RelationError(node, head is null ? detail
@@ -156,8 +163,7 @@ internal sealed partial class Checker
         };
         if (explanation.Code is 2322 or 2678)
         {
-            var source = explanation.Source!;
-            var target = explanation.Target!;
+            var (source, target) = await RelationErrorTypesAsync(explanation.Source!, explanation.Target!, cancellation);
             var originalSource = source;
             var (sourceText, targetText) = await RelationTypeNamesAsync(source, target, cancellation);
             if ((target.Flags & TypeFlags.Never) == 0 && source.IsLiteral && !await CouldHaveSingletonTypesAsync(target, cancellation))
@@ -166,9 +172,11 @@ internal sealed partial class Checker
                 sourceText = await TypeDisplay.GetAsync(source, NodeBuilderFlags.UseFullyQualifiedType, cancellation);
             }
             diagnostic = diagnostic with { Arguments = [sourceText, targetText] };
+            diagnostic = await PrimitiveWrapperNoteAsync(diagnostic, originalSource, target, cancellation);
             diagnostic = await ConstraintReasonAsync(diagnostic, originalSource, source, target, sourceText, targetText, cancellation);
             diagnostic = await RelationMessageKindAsync(diagnostic, originalSource, target, sourceText, targetText, cancellation);
-            return SelectRelationDiagnostic(diagnostic, originalSource, target, sourceText, targetText);
+            return await SourceConstraintNoteAsync(SelectRelationDiagnostic(diagnostic, originalSource, target, sourceText, targetText),
+                originalSource, target, cancellation);
         }
         if (explanation.Arguments is { } supplied)
         {
@@ -242,6 +250,76 @@ internal sealed partial class Checker
     }
 
     private static string PropertyPath(string name) => name.Length != 0 && name[0] is '\'' or '"' or '`' ? "[" + name + "]" : name;
+
+    private async ValueTask<Diagnostic> PrimitiveWrapperNoteAsync(
+        Diagnostic diagnostic,
+        Type source,
+        Type target,
+        CancellationToken cancellation)
+    {
+        string? name = target == context.StringType ? "String" : target == context.NumberType ? "Number"
+            : target == context.BooleanType ? "Boolean" : target == context.ESSymbolType ? "Symbol" : null;
+        if (name is null || source is not ObjectType || source != await program.Globals.GetAsync(name, 0, false, cancellation))
+            return diagnostic;
+        return diagnostic with
+        {
+            MessageChain = [diagnostic with
+            {
+                Message = Messages.X_0_is_a_primitive_but_1_is_a_wrapper_object_Prefer_using_0_when_possible,
+                Arguments = [await TypeDisplay.GetAsync(target, cancellation), await TypeDisplay.GetAsync(source, cancellation)]
+            }]
+        };
+    }
+
+    private async ValueTask<(Type Source, Type Target)> RelationErrorTypesAsync(Type source, Type target, CancellationToken cancellation)
+    {
+        var normalizedSource = await Normalization.GetAsync(source, false, cancellation);
+        var normalizedTarget = await Normalization.RelationTargetAsync(normalizedSource,
+            await Normalization.GetAsync(target, true, cancellation), cancellation);
+        bool preserveSource = source.Alias is not null
+            || source is TypeReference sr && await Normalization.SingleBaseAsync(sr, cancellation) is not null;
+        bool preserveTarget = target.Alias is not null
+            || target is TypeReference tr && await Normalization.SingleBaseAsync(tr, cancellation) is not null;
+        return (preserveSource ? source : normalizedSource, preserveTarget ? target : normalizedTarget);
+    }
+
+    private async ValueTask<Diagnostic> SourceConstraintNoteAsync(Diagnostic diagnostic, Type source, Type target,
+        CancellationToken cancellation)
+    {
+        if (source is not TypeParameter parameter || parameter.Symbol?.Declarations.FirstOrDefault() is not { } declaration
+            || await Instantiation.Constraints.ConstraintAsync(parameter, cancellation) is not null)
+            return diagnostic;
+        var synthetic = Instantiation.Engine.CloneParameter(parameter);
+        synthetic.Constraint = await Instantiation.Engine.InstantiateAsync(target, TypeMapper.Create([parameter], [synthetic]),
+            cancellation: cancellation);
+        if (!await Instantiation.Constraints.HasNonCircularConstraintAsync(synthetic, cancellation))
+            return diagnostic;
+        var note = CheckerDiagnostic.Create(declaration, Messages.This_type_parameter_might_need_an_extends_0_constraint,
+            await TypeDisplay.GetAsync(target, cancellation));
+        var copies = new Dictionary<Diagnostic, Diagnostic>(ReferenceEqualityComparer.Instance);
+        var pending = new Stack<(Diagnostic Node, bool Visited)>();
+        pending.Push((diagnostic, false));
+        while (pending.TryPop(out var item))
+        {
+            cancellation.ThrowIfCancellationRequested();
+            if (copies.ContainsKey(item.Node))
+                continue;
+            if (!item.Visited)
+            {
+                pending.Push((item.Node, true));
+                foreach (var child in item.Node.MessageChain)
+                    pending.Push((child, false));
+                continue;
+            }
+            copies[item.Node] = item.Node with
+            {
+                RelatedInformation = item.Node.RelatedInformation.Contains(note, DiagnosticEqualityComparer.Instance)
+                    ? item.Node.RelatedInformation : [.. item.Node.RelatedInformation, note],
+                MessageChain = item.Node.MessageChain.Select(child => copies[child]).ToArray()
+            };
+        }
+        return copies[diagnostic];
+    }
 
     private async ValueTask<Diagnostic> RelationMessageKindAsync(Diagnostic diagnostic, Type source, Type target,
         string sourceText, string targetText, CancellationToken cancellation)
@@ -321,7 +399,7 @@ internal sealed partial class Checker
             Message = DiagnosticLocalization.GetMessage(code),
             Arguments = arguments,
             MessageChain = code == 5082 ? [] : diagnostic.MessageChain,
-            RelatedInformation = []
+            RelatedInformation = diagnostic.RelatedInformation
         };
         return diagnostic with { MessageChain = [reason] };
     }

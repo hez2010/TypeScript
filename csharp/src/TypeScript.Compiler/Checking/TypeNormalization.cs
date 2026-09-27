@@ -17,6 +17,20 @@ internal sealed class TypeNormalization(TypeContext context, TypeAlgebra algebra
 {
     private readonly Dictionary<Type, Type> equivalentBases = [];
 
+    internal async ValueTask<Type> RelationTargetAsync(Type source, Type target, CancellationToken cancellation)
+    {
+        if ((source.Flags & TypeFlags.DefinitelyNonNullable) != 0 && target is UnionType union)
+        {
+            var parts = union.Types;
+            Type? candidate = parts.Count == 2 && (parts[0].Flags & TypeFlags.Nullable) != 0 ? parts[1]
+                : parts.Count == 3 && (parts[0].Flags & TypeFlags.Nullable) != 0 && (parts[1].Flags & TypeFlags.Nullable) != 0
+                    ? parts[2] : null;
+            if (candidate is not null && (candidate.Flags & TypeFlags.Nullable) == 0)
+                return await GetAsync(candidate, true, cancellation).ConfigureAwait(false);
+        }
+        return target;
+    }
+
     internal async ValueTask<Type> GetAsync(Type type, bool writing = false, CancellationToken cancellation = default)
     {
         await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()

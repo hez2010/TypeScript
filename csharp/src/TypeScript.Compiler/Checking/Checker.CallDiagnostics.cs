@@ -10,6 +10,7 @@ internal sealed partial class Checker
 {
     private List<(SyntaxNode Node, Diagnostic Diagnostic)>? callDiagnosticOutput;
     private List<(SyntaxNode Node, Diagnostic Diagnostic)>? relationDiagnosticOutput;
+    private readonly HashSet<Diagnostic> heritageRelationDiagnostics = new(DiagnosticEqualityComparer.Instance);
 
     private void RelationError(SyntaxNode node, int code, params string[] arguments)
         => RelationError(node, CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), arguments));
@@ -18,6 +19,14 @@ internal sealed partial class Checker
     {
         if (relationDiagnosticOutput is { } output)
             output.Add((node, diagnostic));
+        else if (diagnostic.Code is 2415 or 2416 or 2417 or 2420 or 2430 or 2720)
+        {
+            if (heritageRelationDiagnostics.Add(diagnostic))
+            {
+                Diagnostics.Add(diagnostic.Code);
+                diagnosticFiles.Add((node, diagnostic));
+            }
+        }
         else
             Error(node, diagnostic);
     }

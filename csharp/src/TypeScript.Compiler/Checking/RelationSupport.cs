@@ -72,7 +72,7 @@ internal sealed class RelationSupport(
                 var constraint = await constraints.ConstraintAsync(source, cancellation).ConfigureAwait(false);
                 if (constraint is not null
                     && (constraint is UnionType union ? union.Types.Any(t => t is TypeParameter) : constraint is TypeParameter))
-                    return await operation.CompareAsync(
+                    return await operation.CompareWithoutErrorsAsync(
                         constraint,
                         target,
                         RecursionFlags.Source,

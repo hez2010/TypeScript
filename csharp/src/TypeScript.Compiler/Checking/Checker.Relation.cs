@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
 
@@ -36,7 +37,11 @@ internal sealed partial class Checker : ITypeNormalizationHost, ITypeRelationHos
 
     private readonly Dictionary<(Symbol Source, Symbol Target), bool> enumRelations = [];
 
-    public async ValueTask<bool> EnumRelatedAsync(Symbol source, Symbol target, CancellationToken cancellation)
+    public async ValueTask<bool> EnumRelatedAsync(
+        Symbol source,
+        Symbol target,
+        CancellationToken cancellation,
+        RelationOperation? operation = null)
     {
         cancellation.ThrowIfCancellationRequested();
         source = (source.Flags & SymbolFlags.EnumMember) != 0 ? program.Symbols.Parent(source)! : source;
@@ -46,7 +51,7 @@ internal sealed partial class Checker : ITypeNormalizationHost, ITypeRelationHos
         if (source.Name != target.Name || (source.Flags & SymbolFlags.RegularEnum) == 0 || (target.Flags & SymbolFlags.RegularEnum) == 0)
             return false;
         var key = (source, target);
-        if (enumRelations.TryGetValue(key, out bool cached))
+        if (enumRelations.TryGetValue(key, out bool cached) && (cached || operation is null))
             return cached;
         var targetType = await Values.GetAsync(target, cancellation).ConfigureAwait(false);
         foreach (var member in await Properties.GetAsync(
@@ -57,7 +62,15 @@ internal sealed partial class Checker : ITypeNormalizationHost, ITypeRelationHos
                 continue;
             var other = await Properties.PropertyAsync(targetType, member.Name, cancellation: cancellation).ConfigureAwait(false);
             if (other is null || (other.Flags & SymbolFlags.EnumMember) == 0)
+            {
+                if (operation is not null)
+                    operation.ExplainArguments(2324, TypeDisplay.SymbolName(member),
+                        await TypeDisplay.GetAsync(
+                            await Declared.GetAsync(target, cancellation),
+                            NodeBuilderFlags.UseFullyQualifiedType,
+                            cancellation));
                 return enumRelations[key] = false;
+            }
             var value = (await EnumValues.GetAsync(
                 member.Declarations.OfType<EnumMemberNode>().First(),
                 cancellation).ConfigureAwait(false)).Value;
@@ -66,7 +79,29 @@ internal sealed partial class Checker : ITypeNormalizationHost, ITypeRelationHos
                 cancellation).ConfigureAwait(false)).Value;
             bool equal = value is double number && otherValue is double otherNumber ? number == otherNumber : Equals(value, otherValue);
             if (!equal && (value is not null && otherValue is not null || value is string || otherValue is string))
+            {
+                if (operation is not null)
+                {
+                    string ValueText(object v) => v switch
+                    {
+                        string text => QuoteSymbolText(text, '"', false),
+                        double number => TokenFacts.NumberText(number),
+                        bool boolean => boolean ? "true" : "false",
+                        System.Numerics.BigInteger integer => integer.ToString(System.Globalization.CultureInfo.InvariantCulture) + "n",
+                        _ => throw new InvalidOperationException("Unexpected enum constant")
+                    };
+                    if (value is not null && otherValue is not null)
+                        operation.ExplainArguments(4125, TypeDisplay.SymbolName(target), TypeDisplay.SymbolName(other),
+                            ValueText(otherValue), ValueText(value));
+                    else
+                        operation.ExplainArguments(
+                            4126,
+                            TypeDisplay.SymbolName(target),
+                            TypeDisplay.SymbolName(other),
+                            ValueText(value ?? otherValue!));
+                }
                 return enumRelations[key] = false;
+            }
         }
         return enumRelations[key] = true;
     }
@@ -83,4 +118,8 @@ internal sealed partial class Checker : ITypeNormalizationHost, ITypeRelationHos
 
     public ValueTask<Ternary?> VarianceAsync(RelationOperation operation, Type source, Type target, CancellationToken cancellation)
         => Variances.RelateAsync(operation, source, target, cancellation: cancellation);
+
+    public ValueTask<Ternary?> VarianceAsync(RelationOperation operation, Type source, Type target,
+        IntersectionState intersection, Func<ValueTask<Ternary>>? structuralFallback, CancellationToken cancellation)
+        => Variances.RelateAsync(operation, source, target, intersection, cancellation, structuralFallback);
 }

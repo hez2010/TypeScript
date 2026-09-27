@@ -992,9 +992,9 @@ internal sealed partial class Checker
                 SyntaxNode node = tupleNodes![i];
                 if ((info.Flags & ElementFlags.Rest) != 0)
                     node = f.NewArrayTypeNode(ParenthesizeType(node, f, postfix: true));
-                if (info.LabeledDeclaration is NamedTupleMemberNode label)
+                if (info.LabeledDeclaration is not null)
                     node = f.NewNamedTupleMember((info.Flags & ElementFlags.Variable) != 0 ? f.NewToken(K.DotDotDotToken) : null,
-                        f.NewIdentifier(label.Name!.Text),
+                        f.NewIdentifier(SignatureParameters.Label(info, null, i)),
                         (info.Flags & ElementFlags.Optional) != 0 ? f.NewToken(K.QuestionToken) : null,
                         node);
                 else if ((info.Flags & ElementFlags.Variable) != 0)
@@ -1010,6 +1010,15 @@ internal sealed partial class Checker
         if (reference.Target is not InterfaceType target || reference.Symbol is null)
             throw new InvalidOperationException("Unnamed type reference");
         int count = target.AllTypeParameters.Count - (target.ThisType is null ? 0 : 1);
+        if (target.Symbol is { Name: "Iterable" or "IterableIterator" or "AsyncIterable" or "AsyncIterableIterator" } iterable
+            && program.Symbols.Lookup(program.Symbols.Globals, iterable.Name, SymbolFlags.Type) == iterable
+            && (reference.Node is not TypeReferenceNode { TypeArguments: { } supplied } || supplied.Count < count))
+            while (count > target.OuterTypeParameterCount
+                && await Instantiation.Constraints.DefaultAsync(
+                    (TypeParameter)target.AllTypeParameters[count - 1],
+                    cancellation) is { } defaultType
+                && await Relations.RelatedAsync(arguments[count - 1], defaultType, RelationKind.Identity, cancellation))
+                count--;
         SyntaxNode? outer = null;
         int outerCount = target.OuterTypeParameterCount;
         for (int i = 0; i < outerCount;)

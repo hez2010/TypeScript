@@ -306,6 +306,12 @@ internal static class Program
                 CheckerRelationTests.Safety().GetAwaiter().GetResult();
                 return 0;
             }
+            if (args is ["--checker-relation-diagnostics-safety"])
+            {
+                Console.WriteLine(
+                    $"Relation diagnostic safety: {CheckerRelationTests.DiagnosticSafety().GetAwaiter().GetResult()} assertions passed");
+                return 0;
+            }
             if (args is ["--checker-signatures-safety"])
             {
                 CheckerSignatureTests.Safety().GetAwaiter().GetResult();

@@ -5,7 +5,7 @@ namespace TypeScript.Compiler.Checking;
 
 internal interface ITypeRelationHost
 {
-    ValueTask<bool> EnumRelatedAsync(Symbol source, Symbol target, CancellationToken cancellation);
+    ValueTask<bool> EnumRelatedAsync(Symbol source, Symbol target, CancellationToken cancellation, RelationOperation? operation = null);
 
     ValueTask<Ternary> IdentityAsync(RelationOperation operation, Type source, Type target, CancellationToken cancellation);
 
@@ -123,7 +123,8 @@ internal sealed class TypeRelations(TypeContext context, TypeNormalization norma
         }
     }
 
-    internal async ValueTask<bool> SimpleAsync(Type source, Type target, RelationKind relation, CancellationToken cancellation = default)
+    internal async ValueTask<bool> SimpleAsync(Type source, Type target, RelationKind relation, CancellationToken cancellation = default,
+        RelationOperation? operation = null)
     {
         cancellation.ThrowIfCancellationRequested();
         context.RequireOwned(source);
@@ -155,16 +156,16 @@ internal sealed class TypeRelations(TypeContext context, TypeNormalization norma
             || (s & TypeFlags.ESSymbolLike) != 0 && (t & TypeFlags.ESSymbol) != 0)
             return true;
         if ((s & TypeFlags.Enum) != 0 && (t & TypeFlags.Enum) != 0 && source.Symbol!.Name == target.Symbol!.Name
-            && await host.EnumRelatedAsync(source.Symbol, target.Symbol, cancellation).ConfigureAwait(false))
+            && await host.EnumRelatedAsync(source.Symbol, target.Symbol, cancellation, operation).ConfigureAwait(false))
             return true;
         if ((s & TypeFlags.EnumLiteral) != 0 && (t & TypeFlags.EnumLiteral) != 0)
         {
             if (source is UnionType
                 && target is UnionType
-                && await host.EnumRelatedAsync(source.Symbol!, target.Symbol!, cancellation).ConfigureAwait(false))
+                && await host.EnumRelatedAsync(source.Symbol!, target.Symbol!, cancellation, operation).ConfigureAwait(false))
                 return true;
             if (source is LiteralType a && target is LiteralType b && LiteralEqual(a.Value, b.Value)
-                && await host.EnumRelatedAsync(source.Symbol!, target.Symbol!, cancellation).ConfigureAwait(false))
+                && await host.EnumRelatedAsync(source.Symbol!, target.Symbol!, cancellation, operation).ConfigureAwait(false))
                 return true;
         }
         if ((s & TypeFlags.Undefined) != 0
@@ -258,8 +259,8 @@ internal sealed class RelationOperation(
         }
     }
 
-    internal ValueTask<bool> SimpleAsync(Type source, Type target, CancellationToken cancellation = default)
-        => relations.SimpleAsync(source, target, kind, cancellation);
+    internal ValueTask<bool> SimpleAsync(Type source, Type target, CancellationToken cancellation = default, bool report = true)
+        => relations.SimpleAsync(source, target, kind, cancellation, report && ReportErrors ? this : null);
 
     internal ValueTask<Ternary> RecursiveAsync(Type source, Type target, RecursionFlags recursion, IntersectionState intersection,
         Func<ValueTask<Ternary>> compare, CancellationToken cancellation = default)

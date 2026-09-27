@@ -146,7 +146,7 @@ internal sealed partial class Checker
             if (clause.Expression is { } value)
             {
                 var caseType = await Expressions.CheckAsync(value, cancellation: cancellation).ConfigureAwait(false);
-                if ((expression.Flags & TypeFlags.Nullable) == 0
+                if ((caseType.Flags & TypeFlags.Nullable) == 0
                     && !await Relations.RelatedAsync(expression, caseType, RelationKind.Comparable, cancellation).ConfigureAwait(false))
                     await RelationDiagnostics.CheckAsync(
                         caseType,
