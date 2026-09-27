@@ -4,6 +4,7 @@
     <LangVersion>15.0</LangVersion>
     <Features>$(Features);runtime-async=on</Features>
     <OptimizationPreference>Speed</OptimizationPreference>
+    <InvariantGlobalization>true</InvariantGlobalization>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <IsAotCompatible>true</IsAotCompatible>

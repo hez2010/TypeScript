@@ -1,0 +1,25 @@
+{
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "execution": "Paired Go and self-contained Release CoreCLR; stock Server GC then Satori runtime replacement; no NativeAOT execution",
+    "scope": "Fresh program construction, binding and complete semantic checking in warm processes; input decoding excluded",
+    "processorCount": 4,
+    "modes": [
+        "single",
+        "default"
+    ],
+    "warmups": 3,
+    "samples": 9,
+    "provisionalBudgets": {
+        "p95ElapsedMs": 5000,
+        "peakRssBytes": 536870912,
+        "releasedHeapGrowthBytes": 16777216
+    },
+    "budgetScope": "Existing Phase 4 operability budgets; timings compare runtime distributions, including their JIT and CoreLib, not an isolated collector substitution.",
+    "cases": [
+        "compiler/jsxComplexSignatureHasApplicabilityError.tsx",
+        "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+        "conformance/superInStaticMembers1.ts target=es2022",
+        "conformance/nodeModulesAllowJs1.ts module=node18",
+        "compiler/giant.ts"
+    ]
+}

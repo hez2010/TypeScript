@@ -140,6 +140,8 @@ internal static class CheckerAccessTests
         Check(GoUnicode.Lower(0x130) == 'i');
         Check(GoUnicode.EqualFold(GoUnicode.Runes("K"), GoUnicode.Runes("K")));
         Check(GoUnicode.Runes("\ud800").SequenceEqual([0xfffd, 0xfffd, 0xfffd]));
+        Check(GoUnicode.Runes("a😀\ud800\ud800\udfff\udfff").SequenceEqual(
+            ['a', 0x1f600, 0xfffd, 0xfffd, 0xfffd, 0x103ff, 0xfffd, 0xfffd, 0xfffd]));
         Check(
             await SpellingSuggestions.FindAsync(
                 "abcde",

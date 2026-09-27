@@ -22,7 +22,7 @@ import {
 } from "./compare-binding.mjs";
 const option = (key, fallback) => process.argv.includes(key) ? process.argv[process.argv.indexOf(key) + 1] : fallback;
 const go = option("--go", "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe");
-const dotnet = option("--dotnet", "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe");
+const dotnet = option("--dotnet", process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, "dotnet.exe") : "dotnet");
 const reference = JSON.parse(await readFile(path.join(output, "reference.json"), "utf8"));
 const source = path.join(output, reference.sourceRelativePath, "tsc");
 const oracle = path.join(output, "binding-oracle.exe");

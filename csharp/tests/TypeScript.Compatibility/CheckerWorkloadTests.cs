@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.Runtime;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -41,6 +43,8 @@ internal static class CheckerWorkloadTests
         using (var writer = new Utf8JsonWriter(stream))
         {
             writer.WriteStartObject();
+            writer.WriteString("runtime", RuntimeInformation.FrameworkDescription);
+            writer.WriteBoolean("serverGC", GCSettings.IsServerGC);
             writer.WriteNumber("elapsedMs", result.Elapsed);
             writer.WriteNumber("cpuMs", result.Cpu);
             writer.WriteNumber("programMs", result.Program);

@@ -59,6 +59,20 @@ internal static class FoundationTests
         Check(SourceEncoding.Decode([0xFF, 0xFE, 0, 0xD8, 0x41, 0]) == "\ud800A", "UTF-16 LE source preserves surrogate");
         Check(SourceEncoding.Decode([0xFE, 0xFF, 0xD8, 0, 0, 0x41]) == "\ud800A", "UTF-16 BE source preserves surrogate");
         Check(SourceEncoding.Decode([0xEF, 0xBB, 0xBF, 0x41]) == "A", "UTF-8 BOM");
+        foreach (string text in new[] { "", "ASCII", "名字😀", "\ud800", "\udfff", "\ud800\ud800\udfff\udfff" })
+        {
+            var fromString = new SourceText(text);
+            var fromBytes = new SourceText(Wtf8.Encode(text));
+            Check(ReferenceEquals(fromString.Text, text) && fromString.Text == fromBytes.Text, "Source retains UTF-16 string");
+            Check(fromString.Bytes.Span.SequenceEqual(fromBytes.Bytes.Span)
+                && fromString.Bytes.Length == Encoding.UTF8.GetByteCount(text), "Lossless source byte count");
+            for (int i = 0; i <= text.Length; i++)
+                Check(fromString.ToBytePosition(i) == fromBytes.ToBytePosition(i), "String source positions");
+        }
+        foreach (string locale in new[] { "en", "fr_fr", "ja-JP", "zh-Hant-TW", "i-klingon", "x-private", "en-US-u-ca-gregory", "en-t-h0" })
+            Check(LocaleIdentifier.IsValid(locale), "Locale without OS globalization");
+        foreach (string locale in new[] { "", "invalid-value", "zz", "en-foobar", "en-u", "en-u-ca-gregory-ca-buddhist" })
+            Check(!LocaleIdentifier.IsValid(locale), "Invalid locale without OS globalization");
         foreach (var (input, expected) in new[]
         {
             ("a/./b/../c", "a/c"),

@@ -1,3 +1,4 @@
+using System.Text;
 using TypeScript.Compiler.Text;
 
 namespace TypeScript.Compiler.Semantics;
@@ -26,7 +27,7 @@ internal static class SpellingSuggestions
             string? text = await getName(candidate).ConfigureAwait(false);
             if (string.IsNullOrEmpty(text))
                 continue;
-            int length = Wtf8.Encode(text).Length;
+            int length = Encoding.UTF8.GetByteCount(text);
             if (Math.Abs(length - input.Length) > maximumLengthDifference || text == name)
                 continue;
             var runes = GoUnicode.Runes(text);

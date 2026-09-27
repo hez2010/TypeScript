@@ -17,7 +17,12 @@ public sealed class SourceText
         map = new PositionMap(bytes);
     }
 
-    public SourceText(string text) : this(Wtf8.Encode(text)) { }
+    public SourceText(string text)
+    {
+        Text = text;
+        bytes = Wtf8.Encode(text);
+        map = new PositionMap(bytes);
+    }
 
     public int ToBytePosition(int utf16Position) => map.Utf16ToUtf8(utf16Position);
 

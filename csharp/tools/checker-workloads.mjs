@@ -13,16 +13,18 @@ const root = process.cwd();
 const option = (name, fallback) => process.argv.includes(name) ? process.argv[process.argv.indexOf(name) + 1] : fallback;
 const baselineDirectory = option("--baseline-directory");
 const backends = baselineDirectory ? ["before", "after"] : ["go", "release"];
-const output = path.join(root, baselineDirectory ? "built/csharp/checker-workloads-comparison" : "built/csharp/checker-workloads");
+const output = path.resolve(option("--output-directory", baselineDirectory ? "built/csharp/checker-workloads-comparison" : "built/csharp/checker-workloads"));
 await mkdir(output, { recursive: true });
 const manifestText = await readFile(option("--manifest", "csharp/compatibility/phase4-workloads.json"), "utf8");
 const manifest = JSON.parse(manifestText);
-const dotnet = "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe";
+const dotnet = option("--dotnet", process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, "dotnet.exe") : "dotnet");
+const executable = option("--candidate-executable");
+const serverGC = process.argv.includes("--server-gc");
 const dll = path.resolve(option("--candidate-directory", "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0"), "TypeScript.Compatibility.dll");
 const compilerDll = path.join(path.dirname(dll), "TypeScript.Compiler.dll");
 const oracle = path.join(root, "built/csharp/checker-workload-oracle.exe");
 const sha256 = value => createHash("sha256").update(value).digest("hex");
-const env = { ...process.env, DOTNET_PROCESSOR_COUNT: String(manifest.processorCount), GOMAXPROCS: String(manifest.processorCount), DOTNET_TieredCompilation: "0" };
+const env = { ...process.env, DOTNET_PROCESSOR_COUNT: String(manifest.processorCount), GOMAXPROCS: String(manifest.processorCount), DOTNET_TieredCompilation: "0", ...(serverGC ? { DOTNET_gcServer: "1" } : {}) };
 
 function server(command, args) {
     const child = spawn(command, args, { cwd: root, env, windowsHide: true, stdio: ["pipe", "pipe", "pipe"] });
@@ -81,7 +83,7 @@ for (const mode of manifest.modes) {
         const processes = baselineDirectory ? {
             before: server(dotnet, [path.resolve(baselineDirectory, "TypeScript.Compatibility.dll"), "--checker-workload-lines"]),
             after: server(dotnet, [dll, "--checker-workload-lines"]),
-        } : { go: server(oracle, []), release: server(dotnet, [dll, "--checker-workload-lines"]) };
+        } : { go: server(oracle, []), release: executable ? server(path.resolve(executable), ["--checker-workload-lines"]) : server(dotnet, [dll, "--checker-workload-lines"]) };
         try {
             for (let iteration = -manifest.warmups; iteration < manifest.samples; iteration++) {
                 for (const backend of iteration % 2 ? backends.toReversed() : backends) {
@@ -146,7 +148,7 @@ const summary = {
     } : { oracleSha256: sha256(await readFile(oracle)) }),
     samplesSha256: sha256(await readFile(path.join(output, "samples.jsonl"))),
     machine: { platform: process.platform, architecture: process.arch, os: os.version(), cpu: os.cpus()[0].model, availableMemoryBytes: os.totalmem() },
-    runtime: { dotnet, tieredCompilation: false, processorCount: manifest.processorCount, nativeAotExecuted: false },
+    runtime: { dotnet, tieredCompilation: false, processorCount: manifest.processorCount, nativeAotExecuted: false, serverGC, executable, label: option("--runtime-label", "CoreCLR") },
     groups,
     passed: groups.every(g => g.passed),
 };

@@ -7,7 +7,7 @@ public static class SourceEncoding
 {
     public static byte[] DecodeBytes(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.StartsWith((ReadOnlySpan<byte>)[0xEF, 0xBB, 0xBF]))
+        if (bytes.StartsWith("\uFEFF"u8))
             return bytes[3..].ToArray();
         if (bytes.StartsWith((ReadOnlySpan<byte>)[0xFF, 0xFE]) || bytes.StartsWith((ReadOnlySpan<byte>)[0xFE, 0xFF]))
             return Wtf8.Encode(Decode(bytes));
@@ -16,7 +16,7 @@ public static class SourceEncoding
 
     public static string Decode(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.StartsWith((ReadOnlySpan<byte>)[0xEF, 0xBB, 0xBF]))
+        if (bytes.StartsWith("\uFEFF"u8))
             return Wtf8.DecodeString(bytes[3..]);
         if (bytes.StartsWith((ReadOnlySpan<byte>)[0xFF, 0xFE]) || bytes.StartsWith((ReadOnlySpan<byte>)[0xFE, 0xFF]))
         {

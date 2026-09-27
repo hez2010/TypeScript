@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Text;
 using System.Text.Json;
 using TypeScript.Compiler.Syntax;
 using TypeScript.Compiler.Text;
@@ -63,10 +62,13 @@ public static class JsonStrings
         using var stream = new MemoryStream();
         stream.WriteByte((byte)'"');
         int start = 0;
+        Span<byte> escape = stackalloc byte[6];
+        "\\u"u8.CopyTo(escape);
         for (int unpaired = Unpaired(value, start); unpaired >= 0; unpaired = Unpaired(value, start))
         {
             stream.Write(JsonEncodedText.Encode(value.AsSpan(start, unpaired - start)).EncodedUtf8Bytes);
-            stream.Write(Encoding.ASCII.GetBytes("\\u" + ((int)value[unpaired]).ToString("X4", CultureInfo.InvariantCulture)));
+            ((ushort)value[unpaired]).TryFormat(escape[2..], out _, "X4", CultureInfo.InvariantCulture);
+            stream.Write(escape);
             start = unpaired + 1;
         }
         stream.Write(JsonEncodedText.Encode(value.AsSpan(start)).EncodedUtf8Bytes);

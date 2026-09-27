@@ -23,7 +23,7 @@ const option = (key, fallback) => process.argv.includes(key) ? process.argv[proc
 const tag = option("--tag", "current");
 if (!/^[a-z0-9-]+$/.test(tag)) throw Error("Invalid corpus tag");
 const go = option("--go", "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe");
-const dotnet = option("--dotnet", "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe");
+const dotnet = option("--dotnet", process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, "dotnet.exe") : "dotnet");
 const managed = !process.argv.includes("--native");
 const includeDiagnosticDetails = process.argv.includes("--diagnostics");
 const reference = JSON.parse(await readFile(path.join(output, "reference.json"), "utf8"));

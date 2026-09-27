@@ -19,7 +19,7 @@ const sourceFirst = process.argv.includes("--source-first");
 const reference = JSON.parse(await readFile(path.join(output, "reference.json"), "utf8"));
 const source = path.join(output, reference.sourceRelativePath, "tsc");
 const go = "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe";
-const dotnet = "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe";
+const dotnet = process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, "dotnet.exe") : "dotnet";
 const dll = path.join(root, "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll");
 await mkdir(directory, { recursive: true });
 const cases = [];

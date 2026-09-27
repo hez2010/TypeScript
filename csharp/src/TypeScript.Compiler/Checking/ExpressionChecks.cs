@@ -1,3 +1,4 @@
+using System.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -32,7 +33,7 @@ internal sealed class ExpressionChecks(TypeContext context, TypeFactQueries fact
         {
             host.ExpressionError(
                 node,
-                name is not null && Wtf8.Encode(name).Length < 100
+                name is not null && Encoding.UTF8.GetByteCount(name) < 100
                     ? DiagnosticCode.X0IsOfTypeUnknown
                     : DiagnosticCode.ObjectIsOfTypeUnknown);
             return context.ErrorType;
@@ -48,7 +49,7 @@ internal sealed class ExpressionChecks(TypeContext context, TypeFactQueries fact
             : DiagnosticCode.CannotInvokeAnObjectWhichIsPossiblyNull
             : node.Kind == SyntaxKind.NullKeyword || node is IdentifierNode { Text: "undefined" } ? DiagnosticCode.TheValue0CannotBeUsedHere
             : name is { Length: > 0 }
-                && Wtf8.Encode(name).Length < 100 ? undefined
+                && Encoding.UTF8.GetByteCount(name) < 100 ? undefined
                     ? nullValue ? DiagnosticCode.X0IsPossiblyNullOrUndefined : DiagnosticCode.X0IsPossiblyUndefined
                     : DiagnosticCode.X0IsPossiblyNull
             : undefined

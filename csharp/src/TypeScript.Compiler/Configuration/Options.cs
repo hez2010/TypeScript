@@ -1,7 +1,6 @@
 using System.Collections.Frozen;
 using System.Globalization;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Hosts;
 
@@ -236,25 +235,6 @@ internal static class OptionValues
                     Messages.Argument_for_0_option_must_be_Colon_1,
                     ["--" + definition.Name, string.Join(", ", definition.Values.Select(v => "'" + v + "'"))]);
 
-    private static bool IsLocale(string text)
-    {
-        if (!Regex.IsMatch(
-            text,
-            @"^(?:[A-Za-z]{2,8}|[iIxX])(?:[-_][A-Za-z0-9]{1,8})*$",
-            RegexOptions.CultureInvariant | RegexOptions.NonBacktracking))
-            return false;
-        if (text.StartsWith("x-", StringComparison.OrdinalIgnoreCase))
-            return true;
-        try
-        {
-            return CultureInfo.GetCultureInfo(text.Replace('_', '-')).ThreeLetterISOLanguageName.Length != 0;
-        }
-        catch (CultureNotFoundException)
-        {
-            return false;
-        }
-    }
-
     internal static JsonElement? Convert(
         OptionDefinition definition,
         JsonElement value,
@@ -325,7 +305,7 @@ internal static class OptionValues
                 error(diagnostic, [text]);
                 return null;
             }
-            if (definition.Validation == OptionValidation.Locale && !IsLocale(text))
+            if (definition.Validation == OptionValidation.Locale && !LocaleIdentifier.IsValid(text))
             {
                 error(Messages.Locale_must_be_an_IETF_BCP_47_language_tag_Examples_Colon_0_1, ["en", "ja-jp"]);
                 return null;

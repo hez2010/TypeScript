@@ -1,3 +1,4 @@
+using System.Text;
 using System.Collections.Frozen;
 using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Storage;
@@ -436,7 +437,7 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
         NodeHeader header = file.Store.Header(id);
         int pos = header.Pos;
         if (header.Kind == SyntaxKind.Identifier)
-            pos = header.End - Wtf8.Encode(file.Store.Get<IdentifierData>(id).Text).Length;
+            pos = header.End - Encoding.UTF8.GetByteCount(file.Store.Get<IdentifierData>(id).Text);
         else if (header.End > header.Pos)
             pos += new SliceLexer<Utf8Source>(new(file.Text.AsMemory(header.Pos, header.End - header.Pos)), []).Scan().Start;
         var diagnostic = new ProjectDiagnostic(file.Name, code, pos, header.End - pos, message);
