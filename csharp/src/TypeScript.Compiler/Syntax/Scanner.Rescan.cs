@@ -210,8 +210,7 @@ public sealed partial class Scanner
             return Kind;
         bool privateName = text[TokenStart] == '#';
         pos = TokenStart + (privateName ? 1 : 0);
-        ScanIdentifier(privateName, true);
-        return Kind = IdentifierKind(Value);
+        return Kind = ScanIdentifier(privateName, true, out SyntaxKind identifierKind) ? identifierKind : IdentifierKind(Value);
     }
 
     public SyntaxKind ScanJsxAttributeValue()
@@ -257,8 +256,8 @@ public sealed partial class Scanner
         if (ch is '@' or '*' or '{' or '}' or '[' or ']' or '(' or ')' or '<' or '>' or '=' or ',' or '.' or '`' or '#')
             return Kind = FromText(text.AsSpan(TokenStart, width));
         pos = TokenStart;
-        if (ScanIdentifier(false, true))
-            return Kind = IdentifierKind(Value);
+        if (ScanIdentifier(false, true, out SyntaxKind identifierKind))
+            return Kind = identifierKind;
         pos += width;
         return Kind = SyntaxKind.Unknown;
     }

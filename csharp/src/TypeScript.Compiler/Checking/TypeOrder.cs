@@ -9,6 +9,7 @@ namespace TypeScript.Compiler.Checking;
 internal sealed class TypeOrder : IComparer<Type>, IComparer<Symbol>
 {
     private readonly Dictionary<SourceFileNode, int> files = new(ReferenceEqualityComparer.Instance);
+    private Stack<Part>? reusableParts;
 
     internal TypeOrder(IEnumerable<SourceFileNode> sourceFiles)
     {
@@ -33,7 +34,20 @@ internal sealed class TypeOrder : IComparer<Type>, IComparer<Symbol>
     {
         if (ReferenceEquals(left, right))
             return 0;
-        var pending = new Stack<Part>();
+        var pending = Interlocked.Exchange(ref reusableParts, null) ?? new Stack<Part>();
+        try
+        {
+            return CompareCore(left, right, pending);
+        }
+        finally
+        {
+            pending.Clear();
+            Interlocked.CompareExchange(ref reusableParts, pending, null);
+        }
+    }
+
+    private int CompareCore(Type? left, Type? right, Stack<Part> pending)
+    {
         pending.Push(new(PartKind.Type, left, right));
         while (pending.TryPop(out var part))
         {

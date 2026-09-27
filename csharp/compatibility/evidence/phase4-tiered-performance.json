@@ -1,0 +1,2067 @@
+{
+    "timestamp": "2026-09-27T11:58:46.295Z",
+    "baseCommit": "7db2124e38",
+    "baselineSourceCommit": "35ca38f85a",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "sdk": "11.0.100-rtm.26473.115",
+    "go": "go1.27.1",
+    "manifest": {
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "execution": "Tiered compilation enabled; paired Release CoreCLR and Go, fresh programs in warm processes",
+        "scope": "Fresh program construction, binding and complete semantic checking in warm processes; input decoding excluded",
+        "processorCount": 4,
+        "modes": [
+            "single",
+            "default"
+        ],
+        "warmups": 20,
+        "samples": 15,
+        "provisionalBudgets": {
+            "p95ElapsedMs": 5000,
+            "peakRssBytes": 536870912,
+            "releasedHeapGrowthBytes": 16777216
+        },
+        "budgetScope": "Existing Phase 4 operability budgets; timings compare runtime distributions, including their JIT and CoreLib, not an isolated collector substitution.",
+        "cases": [
+            "compiler/jsxComplexSignatureHasApplicabilityError.tsx",
+            "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+            "conformance/superInStaticMembers1.ts target=es2022",
+            "conformance/nodeModulesAllowJs1.ts module=node18",
+            "compiler/giant.ts"
+        ]
+    },
+    "machine": {
+        "platform": "win32",
+        "architecture": "x64",
+        "os": "Windows 11 Pro for Workstations",
+        "cpu": "13th Gen Intel(R) Core(TM) i7-13700K",
+        "availableMemoryBytes": 68399497216
+    },
+    "tieredCompilation": true,
+    "tieredPGO": "runtime default",
+    "serverGC": true,
+    "nativeAotExecuted": false,
+    "activityPolicy": "User requested continuing during ordinary keyboard/mouse activity. No builds, profiling or validation ran alongside these timing batches.",
+    "scope": "Fresh programs in warm processes; input decoding, startup, graph verification and forced cleanup excluded from the timer.",
+    "control": {
+        "sampleCount": 1750,
+        "allGraphHashesAndDiagnosticCountsMatched": true,
+        "passed": true,
+        "baseline": {
+            "directory": "D:\\source\\repos\\TypeScript\\built\\sdk-gc\\server",
+            "candidateSha256": "64a2322f9b502045a93c1713d8e97857de6465525e5c157e5b16c4064607ba00",
+            "compilerSha256": "2d72d8c088670229da4055442ef3041eba0f4662fdd9b2f81e74877ea1c6840f"
+        },
+        "candidateSha256": "23889b72478b5ac632c038306286e97160e94741f19bcc6ae3ea6c32e64e486b",
+        "compilerSha256": "e37357f2926197ede91f4649af36a27d8667c761266e824b3fb78ed5bd97ad87",
+        "oracleSha256": "3b24ab2a8765063a904a578271c8def1a0f9607104913f99f17f8801533a2d7a"
+    },
+    "satori": {
+        "runtime": ".NET 11.0.0-dev",
+        "stockRuntime": ".NET 11.0.0-rtm.26473.115",
+        "gcNameUsed": false,
+        "replacedFiles": [
+            "coreclr.dll",
+            "clrjit.dll",
+            "System.Private.CoreLib.dll"
+        ],
+        "note": "Application/configuration identical; replacing JIT/CoreLib with CoreCLR compares runtime packages, not just collectors."
+    },
+    "artifacts": [
+        {
+            "flavor": "candidate",
+            "name": "TypeScript.Compatibility.dll",
+            "sha256": "23889b72478b5ac632c038306286e97160e94741f19bcc6ae3ea6c32e64e486b",
+            "bytes": 980992
+        },
+        {
+            "flavor": "candidate",
+            "name": "TypeScript.Compiler.dll",
+            "sha256": "e37357f2926197ede91f4649af36a27d8667c761266e824b3fb78ed5bd97ad87",
+            "bytes": 8721920
+        },
+        {
+            "flavor": "candidate",
+            "name": "TypeScript.Compatibility.runtimeconfig.json",
+            "sha256": "ec0a19e14f3487420fe00a635e70f8146102c64cd9a72753f5b5cce1bcfe079d",
+            "bytes": 672
+        },
+        {
+            "flavor": "candidate",
+            "name": "coreclr.dll",
+            "sha256": "dc3d45cc7601c3e6958403ee01bd18b2b1db44ab9fcf9fdef3b6a41d0506ead6",
+            "bytes": 4888360
+        },
+        {
+            "flavor": "candidate",
+            "name": "clrjit.dll",
+            "sha256": "8cc8e98a26d3810b64d0d65b4c146cfe6b6f75f3489bd1759a5ba11255c139c5",
+            "bytes": 2416424
+        },
+        {
+            "flavor": "candidate",
+            "name": "System.Private.CoreLib.dll",
+            "sha256": "febf061885c5d6f2d3534ae798fd256bcd97c7bae0c3e5665dba7e7278cabbd2",
+            "bytes": 18224936
+        },
+        {
+            "flavor": "satori",
+            "name": "TypeScript.Compatibility.dll",
+            "sha256": "23889b72478b5ac632c038306286e97160e94741f19bcc6ae3ea6c32e64e486b",
+            "bytes": 980992
+        },
+        {
+            "flavor": "satori",
+            "name": "TypeScript.Compiler.dll",
+            "sha256": "e37357f2926197ede91f4649af36a27d8667c761266e824b3fb78ed5bd97ad87",
+            "bytes": 8721920
+        },
+        {
+            "flavor": "satori",
+            "name": "TypeScript.Compatibility.runtimeconfig.json",
+            "sha256": "ec0a19e14f3487420fe00a635e70f8146102c64cd9a72753f5b5cce1bcfe079d",
+            "bytes": 672
+        },
+        {
+            "flavor": "satori",
+            "name": "coreclr.dll",
+            "sha256": "2eaae907ea6d54be5447fa9d90378c6f4cb26b0cdcda3cd8e02f040d0de96961",
+            "bytes": 4396032
+        },
+        {
+            "flavor": "satori",
+            "name": "clrjit.dll",
+            "sha256": "71d149ef52d113ed9cf9f54b8fb9604560d701d5c6caac12a76c27857f37b0bd",
+            "bytes": 2406400
+        },
+        {
+            "flavor": "satori",
+            "name": "System.Private.CoreLib.dll",
+            "sha256": "5b2a04988d047dc78713a96d7fc049e295af9e6200ea32071327d409c1aee219",
+            "bytes": 18214912
+        }
+    ],
+    "profiles": {
+        "items": [
+            {
+                "name": "giant",
+                "tracePath": "built/tiered-performance/giant.nettrace",
+                "traceSha256": "a33d19bc655ceb7b27e3e22c624d89c9c69311cad632cc2634630babc9d1c1da",
+                "managedLeads": [
+                    {
+                        "name": "TypeScript.Compiler!TypeScript.Compiler.Binding.Binder.Visit(class TypeScript.Compiler.Ast.SyntaxNode)",
+                        "ms": 1862.619349908356,
+                        "pct": 6.207639926540899
+                    },
+                    {
+                        "name": "TypeScript.Compiler!TypeScript.Compiler.Binding.Binder.Declare(class System.Collections.Generic.Dictionary`2<class System.String,class TypeScript.Compiler.Binding.Symbol>,class TypeScript.Compiler.Binding.Symbol,class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags,class System.String,bool)",
+                        "ms": 1294.4983446119486,
+                        "pct": 4.314236083314395
+                    },
+                    {
+                        "name": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.ParseFileCore()",
+                        "ms": 1015.0120793855546,
+                        "pct": 3.382778939897236
+                    },
+                    {
+                        "name": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Scanner.ScanIdentifier(bool,bool)",
+                        "ms": 690.843318182322,
+                        "pct": 2.302406321046531
+                    },
+                    {
+                        "name": "TypeScript.Compiler!TypeScript.Compiler.Binding.BoundSourceFile.Data(class TypeScript.Compiler.Ast.SyntaxNode)",
+                        "ms": 476.19864772516524,
+                        "pct": 1.587049838566835
+                    },
+                    {
+                        "name": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.PrimaryTypeCore()",
+                        "ms": 340.1821513189152,
+                        "pct": 1.1337412042496906
+                    },
+                    {
+                        "name": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.ParametersCore(value class TypeScript.Compiler.Syntax.NodeFlags,bool)",
+                        "ms": 313.3095599581494,
+                        "pct": 1.044181643371664
+                    },
+                    {
+                        "name": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.ModifiersCore(bool,bool)",
+                        "ms": 246.24654244369623,
+                        "pct": 0.8206775413996138
+                    },
+                    {
+                        "name": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.ListCore(value class TypeScript.Compiler.Syntax.SyntaxKind,class System.Func`1<value class System.Threading.Tasks.ValueTask`1<class TypeScript.Compiler.Ast.SyntaxNode>>,bool,class System.Func`1<bool>,bool)",
+                        "ms": 224.66575977759618,
+                        "pct": 0.7487542425620517
+                    },
+                    {
+                        "name": "TypeScript.Compiler!TypeScript.Compiler.Text.Wtf8.DecodeString(value class System.ReadOnlySpan`1<unsigned int8>)",
+                        "ms": 166.8432985454067,
+                        "pct": 0.5560465811638904
+                    },
+                    {
+                        "name": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.TypeMemberWorkerCore(bool)",
+                        "ms": 146.70487759193838,
+                        "pct": 0.4889303096753609
+                    },
+                    {
+                        "name": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.DelimitedCore(value class TypeScript.Compiler.Syntax.SyntaxKind,class System.Func`1<value class System.Threading.Tasks.ValueTask`1<class TypeScript.Compiler.Ast.SyntaxNode>>,bool,class System.Func`1<bool>,class System.Func`1<bool>,class TypeScript.Compiler.Diagnostics.DiagnosticMessage,class System.Action,class System.Func`1<bool>)",
+                        "ms": 139.94457364448627,
+                        "pct": 0.46639992379602346
+                    }
+                ]
+            },
+            {
+                "name": "conditional",
+                "tracePath": "built/tiered-performance/conditional.nettrace",
+                "traceSha256": "f43ecc5e0baa45403093bd608e9a7045cc2436c14507944e7824fa34c456fbc2",
+                "managedLeads": [
+                    {
+                        "name": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.ParseFileCore()",
+                        "ms": 1181.6000854068704,
+                        "pct": 4.045929407670383
+                    },
+                    {
+                        "name": "TypeScript.Compiler!TypeScript.Compiler.Checking.TypeInstantiation.InstantiateAsync(class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.TypeMapper,class TypeScript.Compiler.Checking.TypeAlias,value class System.Threading.CancellationToken)",
+                        "ms": 809.9655272748504,
+                        "pct": 2.773411568324443
+                    },
+                    {
+                        "name": "TypeScript.Compiler!TypeScript.Compiler.Binding.Binder.Visit(class TypeScript.Compiler.Ast.SyntaxNode)",
+                        "ms": 716.428792169254,
+                        "pct": 2.453131439763946
+                    },
+                    {
+                        "name": "System.Collections.il!System.Collections.Generic.Stack`1[TypeScript.Compiler.Checking.TypeOrder+Part].PushWithResize(!0)",
+                        "ms": 505.28249366921796,
+                        "pct": 1.7301431555104947
+                    },
+                    {
+                        "name": "TypeScript.Compiler!TypeScript.Compiler.Binding.Binder.Declare(class System.Collections.Generic.Dictionary`2<class System.String,class TypeScript.Compiler.Binding.Symbol>,class TypeScript.Compiler.Binding.Symbol,class TypeScript.Compiler.Ast.SyntaxNode,value class TypeScript.Compiler.Binding.SymbolFlags,value class TypeScript.Compiler.Binding.SymbolFlags,class System.String,bool)",
+                        "ms": 418.0715949831134,
+                        "pct": 1.4315233906498879
+                    },
+                    {
+                        "name": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Scanner.ScanIdentifier(bool,bool)",
+                        "ms": 354.1792655327385,
+                        "pct": 1.212748986483504
+                    },
+                    {
+                        "name": "TypeScript.Compiler!TypeScript.Compiler.Checking.RelationKeys.CreateAsync(class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.Type,value class TypeScript.Compiler.Checking.IntersectionState,bool,bool,value class System.Threading.CancellationToken)",
+                        "ms": 322.94127377325833,
+                        "pct": 1.1057866469769644
+                    },
+                    {
+                        "name": "TypeScript.Compiler!TypeScript.Compiler.Checking.TypeProperties.CreateAsync(class TypeScript.Compiler.Checking.UnionOrIntersectionType,class System.String,bool,value class System.Threading.CancellationToken)",
+                        "ms": 260.99216307879186,
+                        "pct": 0.8936660388005828
+                    },
+                    {
+                        "name": "TypeScript.Compiler!TypeScript.Compiler.Checking.CheckerSymbols.NameResolver(value class System.Threading.CancellationToken,class System.Func`4<class System.Collections.Generic.IReadOnlyDictionary`2<class System.String,class TypeScript.Compiler.Binding.Symbol>,class System.String,value class TypeScript.Compiler.Binding.SymbolFlags,class TypeScript.Compiler.Binding.Symbol>)",
+                        "ms": 235.52589222725047,
+                        "pct": 0.8064667101830062
+                    },
+                    {
+                        "name": "TypeScript.Compiler!TypeScript.Compiler.Checking.StructuralRelations.RelatedAsync(class TypeScript.Compiler.Checking.RelationOperation,class TypeScript.Compiler.Checking.Type,class TypeScript.Compiler.Checking.Type,value class TypeScript.Compiler.Checking.RecursionFlags,value class TypeScript.Compiler.Checking.IntersectionState,value class System.Threading.CancellationToken)",
+                        "ms": 221.3923796827914,
+                        "pct": 0.7580719997022475
+                    },
+                    {
+                        "name": "TypeScript.Compiler!TypeScript.Compiler.Syntax.Parser.PrimaryTypeCore()",
+                        "ms": 212.65268302675307,
+                        "pct": 0.7281463115176464
+                    },
+                    {
+                        "name": "TypeScript.Compiler!TypeScript.Compiler.Checking.TypeAlgebra.AddIntersectionTypes(class System.Collections.Generic.IReadOnlyList`1<class TypeScript.Compiler.Checking.Type>,value class System.Threading.CancellationToken)",
+                        "ms": 187.84569213426272,
+                        "pct": 0.643204430413112
+                    }
+                ]
+            }
+        ],
+        "allocationSamples": [
+            {
+                "type": "System.String",
+                "bytes": 1523199424,
+                "samples": 7849
+            },
+            {
+                "type": "System.Byte[]",
+                "bytes": 1119750504,
+                "samples": 1332
+            },
+            {
+                "type": "System.Func`2[System.Int32,System.Int32]",
+                "bytes": 971458920,
+                "samples": 9117
+            },
+            {
+                "type": "System.Func`2[System.Int32,System.Boolean]",
+                "bytes": 968415720,
+                "samples": 9084
+            },
+            {
+                "type": "TypeScript.Compiler.Binding.NodeBinding",
+                "bytes": 794343416,
+                "samples": 7451
+            },
+            {
+                "type": "<>c__DisplayClass44_0",
+                "bytes": 637778656,
+                "samples": 5982
+            },
+            {
+                "type": "TypeScript.Compiler.Ast.SyntaxNode[]",
+                "bytes": 608555240,
+                "samples": 5652
+            },
+            {
+                "type": "Entry[TypeScript.Compiler.Ast.SyntaxNode,TypeScript.Compiler.Binding.NodeBinding][]",
+                "bytes": 578542880,
+                "samples": 1387
+            },
+            {
+                "type": "TypeScript.Compiler.Binding.Symbol",
+                "bytes": 477311888,
+                "samples": 4476
+            },
+            {
+                "type": "System.Func`1[System.Boolean]",
+                "bytes": 408024440,
+                "samples": 3829
+            },
+            {
+                "type": "Entry[System.String,TypeScript.Compiler.Binding.Symbol][]",
+                "bytes": 356014160,
+                "samples": 3098
+            },
+            {
+                "type": "RangeIterator`1[System.Int32]",
+                "bytes": 318415192,
+                "samples": 2986
+            },
+            {
+                "type": "TypeScript.Compiler.Ast.IdentifierNode",
+                "bytes": 275157096,
+                "samples": 2583
+            },
+            {
+                "type": "System.Collections.Generic.List`1[TypeScript.Compiler.Ast.SyntaxNode]",
+                "bytes": 250820664,
+                "samples": 2354
+            },
+            {
+                "type": "System.Int32[]",
+                "bytes": 216683096,
+                "samples": 1694
+            },
+            {
+                "type": "<>c__DisplayClass59_0",
+                "bytes": 150016440,
+                "samples": 1408
+            },
+            {
+                "type": "TypeScript.Compiler.Ast.ParameterDeclarationNode",
+                "bytes": 131014760,
+                "samples": 1230
+            },
+            {
+                "type": "TypeScript.Compiler.Ast.TypeReferenceNode",
+                "bytes": 124006112,
+                "samples": 1164
+            },
+            {
+                "type": "TypeScript.Compiler.Ast.NodeList",
+                "bytes": 117106744,
+                "samples": 1099
+            },
+            {
+                "type": "<>c__DisplayClass36_0",
+                "bytes": 104341848,
+                "samples": 979
+            }
+        ],
+        "scope": "Profiles include forced collections and other untimed harness work. Sampled allocation type attribution is approximate. The profiles identify leads; paired unprofiled timings and allocation counters establish the retained batch results."
+    },
+    "experiments": {
+        "initialBatch": {
+            "timestamp": "2026-09-27T11:37:26.972Z",
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "manifest": {
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "execution": "Tiered compilation enabled; paired Release CoreCLR and Go, fresh programs in warm processes",
+                "scope": "Fresh program construction, binding and complete semantic checking in warm processes; input decoding excluded",
+                "processorCount": 4,
+                "modes": [
+                    "single",
+                    "default"
+                ],
+                "warmups": 20,
+                "samples": 15,
+                "provisionalBudgets": {
+                    "p95ElapsedMs": 5000,
+                    "peakRssBytes": 536870912,
+                    "releasedHeapGrowthBytes": 16777216
+                },
+                "budgetScope": "Existing Phase 4 operability budgets; timings compare runtime distributions, including their JIT and CoreLib, not an isolated collector substitution.",
+                "cases": [
+                    "compiler/jsxComplexSignatureHasApplicabilityError.tsx",
+                    "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+                    "conformance/superInStaticMembers1.ts target=es2022",
+                    "conformance/nodeModulesAllowJs1.ts module=node18",
+                    "compiler/giant.ts"
+                ]
+            },
+            "manifestSha256": "3588d4679fb3c4eef312c32bc11491d55bc56cbdddcde07fe23c7784e26056eb",
+            "candidateSha256": "9c2a7da54fc13b97c3ccf1c08afa019923f6267881dd328d264e6d993551b54b",
+            "compilerSha256": "1686f42564924db8b21fbdb1bb3a0cd934a366c0e125d7aa84ad48ad45771604",
+            "baseline": {
+                "directory": "D:\\source\\repos\\TypeScript\\built\\sdk-gc\\server",
+                "candidateSha256": "64a2322f9b502045a93c1713d8e97857de6465525e5c157e5b16c4064607ba00",
+                "compilerSha256": "2d72d8c088670229da4055442ef3041eba0f4662fdd9b2f81e74877ea1c6840f"
+            },
+            "samplesSha256": "dc5a5cab088d1d9a926aeddb97afbbcd2d6bd1ff69a4219ca40b946546850dd9",
+            "machine": {
+                "platform": "win32",
+                "architecture": "x64",
+                "os": "Windows 11 Pro for Workstations",
+                "cpu": "13th Gen Intel(R) Core(TM) i7-13700K",
+                "availableMemoryBytes": 68399497216
+            },
+            "runtime": {
+                "dotnet": "D:\\dotnet-sdk-11.0.100-rtm.26473.115-win-x64\\dotnet.exe",
+                "tieredCompilation": true,
+                "processorCount": 4,
+                "nativeAotExecuted": false,
+                "serverGC": true,
+                "label": "tiered-before-after"
+            },
+            "groups": [
+                {
+                    "name": "compiler/jsxComplexSignatureHasApplicabilityError.tsx",
+                    "mode": "single",
+                    "before": {
+                        "samples": 15,
+                        "medianMs": 75.2144,
+                        "medianProgramMs": 67.6033,
+                        "medianCheckerMs": 7.450099999999992,
+                        "p95Ms": 78.2042,
+                        "medianCpuMs": 187.5,
+                        "medianAllocatedBytes": 94604952,
+                        "peakRssBytes": 161464320,
+                        "releasedHeapGrowthBytes": 0
+                    },
+                    "after": {
+                        "samples": 15,
+                        "medianMs": 68.8494,
+                        "medianProgramMs": 56.9328,
+                        "medianCheckerMs": 11.916600000000003,
+                        "p95Ms": 72.0706,
+                        "medianCpuMs": 140.625,
+                        "medianAllocatedBytes": 71129216,
+                        "peakRssBytes": 156942336,
+                        "releasedHeapGrowthBytes": 0
+                    },
+                    "passed": true,
+                    "elapsedRatio": 0.9153752472930716,
+                    "allocationRatio": 0.7518551037370644
+                },
+                {
+                    "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+                    "mode": "single",
+                    "before": {
+                        "samples": 15,
+                        "medianMs": 171.018,
+                        "medianProgramMs": 69.7341,
+                        "medianCheckerMs": 100.81930000000001,
+                        "p95Ms": 186.869,
+                        "medianCpuMs": 296.875,
+                        "medianAllocatedBytes": 196886424,
+                        "peakRssBytes": 223383552,
+                        "releasedHeapGrowthBytes": 8928
+                    },
+                    "after": {
+                        "samples": 15,
+                        "medianMs": 178.9988,
+                        "medianProgramMs": 56.8269,
+                        "medianCheckerMs": 119.0393,
+                        "p95Ms": 187.6973,
+                        "medianCpuMs": 281.25,
+                        "medianAllocatedBytes": 172386760,
+                        "peakRssBytes": 227246080,
+                        "releasedHeapGrowthBytes": 8672
+                    },
+                    "passed": true,
+                    "elapsedRatio": 1.0466664327731583,
+                    "allocationRatio": 0.8755644828005003
+                },
+                {
+                    "name": "conformance/superInStaticMembers1.ts target=es2022",
+                    "mode": "single",
+                    "before": {
+                        "samples": 15,
+                        "medianMs": 72.2063,
+                        "medianProgramMs": 68.9508,
+                        "medianCheckerMs": 3.2745000000000033,
+                        "p95Ms": 74.9036,
+                        "medianCpuMs": 140.625,
+                        "medianAllocatedBytes": 89083560,
+                        "peakRssBytes": 164917248,
+                        "releasedHeapGrowthBytes": 864
+                    },
+                    "after": {
+                        "samples": 15,
+                        "medianMs": 66.322,
+                        "medianProgramMs": 63.3318,
+                        "medianCheckerMs": 2.9551000000000016,
+                        "p95Ms": 70.239,
+                        "medianCpuMs": 109.375,
+                        "medianAllocatedBytes": 66707792,
+                        "peakRssBytes": 160174080,
+                        "releasedHeapGrowthBytes": 864
+                    },
+                    "passed": true,
+                    "elapsedRatio": 0.9185071108753669,
+                    "allocationRatio": 0.7488227008440166
+                },
+                {
+                    "name": "conformance/nodeModulesAllowJs1.ts module=node18",
+                    "mode": "single",
+                    "before": {
+                        "samples": 15,
+                        "medianMs": 69.821,
+                        "medianProgramMs": 68.3016,
+                        "medianCheckerMs": 1.488500000000002,
+                        "p95Ms": 86.9075,
+                        "medianCpuMs": 125,
+                        "medianAllocatedBytes": 87568200,
+                        "peakRssBytes": 151719936,
+                        "releasedHeapGrowthBytes": 0
+                    },
+                    "after": {
+                        "samples": 15,
+                        "medianMs": 65.3723,
+                        "medianProgramMs": 63.9064,
+                        "medianCheckerMs": 1.5548000000000002,
+                        "p95Ms": 68.4502,
+                        "medianCpuMs": 109.375,
+                        "medianAllocatedBytes": 65310688,
+                        "peakRssBytes": 152485888,
+                        "releasedHeapGrowthBytes": 0
+                    },
+                    "passed": true,
+                    "elapsedRatio": 0.9362842124862147,
+                    "allocationRatio": 0.7458265443391551
+                },
+                {
+                    "name": "compiler/giant.ts",
+                    "mode": "single",
+                    "before": {
+                        "samples": 15,
+                        "medianMs": 65.8296,
+                        "medianProgramMs": 63.4043,
+                        "medianCheckerMs": 2.4566000000000088,
+                        "p95Ms": 73.5605,
+                        "medianCpuMs": 93.75,
+                        "medianAllocatedBytes": 84970496,
+                        "peakRssBytes": 151191552,
+                        "releasedHeapGrowthBytes": 864
+                    },
+                    "after": {
+                        "samples": 15,
+                        "medianMs": 60.3963,
+                        "medianProgramMs": 58.0687,
+                        "medianCheckerMs": 2.5058000000000007,
+                        "p95Ms": 65.5081,
+                        "medianCpuMs": 93.75,
+                        "medianAllocatedBytes": 63520456,
+                        "peakRssBytes": 148553728,
+                        "releasedHeapGrowthBytes": 864
+                    },
+                    "passed": true,
+                    "elapsedRatio": 0.9174641802471836,
+                    "allocationRatio": 0.7475589644669133
+                },
+                {
+                    "name": "compiler/jsxComplexSignatureHasApplicabilityError.tsx",
+                    "mode": "default",
+                    "before": {
+                        "samples": 15,
+                        "medianMs": 74.7617,
+                        "medianProgramMs": 67.167,
+                        "medianCheckerMs": 7.524600000000007,
+                        "p95Ms": 81.8257,
+                        "medianCpuMs": 140.625,
+                        "medianAllocatedBytes": 96317648,
+                        "peakRssBytes": 176336896,
+                        "releasedHeapGrowthBytes": 72
+                    },
+                    "after": {
+                        "samples": 15,
+                        "medianMs": 69.4804,
+                        "medianProgramMs": 56.6062,
+                        "medianCheckerMs": 12.135199999999998,
+                        "p95Ms": 90.1177,
+                        "medianCpuMs": 140.625,
+                        "medianAllocatedBytes": 72829368,
+                        "peakRssBytes": 171610112,
+                        "releasedHeapGrowthBytes": 0
+                    },
+                    "passed": true,
+                    "elapsedRatio": 0.9293582141658094,
+                    "allocationRatio": 0.7561373176388194
+                },
+                {
+                    "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+                    "mode": "default",
+                    "before": {
+                        "samples": 15,
+                        "medianMs": 169.7343,
+                        "medianProgramMs": 68.7404,
+                        "medianCheckerMs": 100.6259,
+                        "p95Ms": 186.7457,
+                        "medianCpuMs": 281.25,
+                        "medianAllocatedBytes": 198491232,
+                        "peakRssBytes": 216342528,
+                        "releasedHeapGrowthBytes": 1688
+                    },
+                    "after": {
+                        "samples": 15,
+                        "medianMs": 181.7241,
+                        "medianProgramMs": 63.1278,
+                        "medianCheckerMs": 118.1026,
+                        "p95Ms": 194.2121,
+                        "medianCpuMs": 281.25,
+                        "medianAllocatedBytes": 173978064,
+                        "peakRssBytes": 229416960,
+                        "releasedHeapGrowthBytes": 4544
+                    },
+                    "passed": true,
+                    "elapsedRatio": 1.0706386393321798,
+                    "allocationRatio": 0.8765025147307263
+                },
+                {
+                    "name": "conformance/superInStaticMembers1.ts target=es2022",
+                    "mode": "default",
+                    "before": {
+                        "samples": 15,
+                        "medianMs": 70.5422,
+                        "medianProgramMs": 68.3482,
+                        "medianCheckerMs": 2.324700000000007,
+                        "p95Ms": 80.68,
+                        "medianCpuMs": 125,
+                        "medianAllocatedBytes": 91646856,
+                        "peakRssBytes": 170336256,
+                        "releasedHeapGrowthBytes": 936
+                    },
+                    "after": {
+                        "samples": 15,
+                        "medianMs": 64.1101,
+                        "medianProgramMs": 62.0608,
+                        "medianCheckerMs": 2.0874000000000024,
+                        "p95Ms": 83.1195,
+                        "medianCpuMs": 109.375,
+                        "medianAllocatedBytes": 69270480,
+                        "peakRssBytes": 167149568,
+                        "releasedHeapGrowthBytes": 6480
+                    },
+                    "passed": true,
+                    "elapsedRatio": 0.9088191182015872,
+                    "allocationRatio": 0.7558413133124828
+                },
+                {
+                    "name": "conformance/nodeModulesAllowJs1.ts module=node18",
+                    "mode": "default",
+                    "before": {
+                        "samples": 15,
+                        "medianMs": 72.1144,
+                        "medianProgramMs": 64.8834,
+                        "medianCheckerMs": 7.301899999999989,
+                        "p95Ms": 88.7254,
+                        "medianCpuMs": 140.625,
+                        "medianAllocatedBytes": 89983768,
+                        "peakRssBytes": 161742848,
+                        "releasedHeapGrowthBytes": 2224
+                    },
+                    "after": {
+                        "samples": 15,
+                        "medianMs": 66.7083,
+                        "medianProgramMs": 50.7403,
+                        "medianCheckerMs": 16.691600000000008,
+                        "p95Ms": 73.2089,
+                        "medianCpuMs": 125,
+                        "medianAllocatedBytes": 67725216,
+                        "peakRssBytes": 155275264,
+                        "releasedHeapGrowthBytes": 8280
+                    },
+                    "passed": true,
+                    "elapsedRatio": 0.9250343898028687,
+                    "allocationRatio": 0.7526381424703176
+                },
+                {
+                    "name": "compiler/giant.ts",
+                    "mode": "default",
+                    "before": {
+                        "samples": 15,
+                        "medianMs": 68.9369,
+                        "medianProgramMs": 65.679,
+                        "medianCheckerMs": 2.3337999999999965,
+                        "p95Ms": 82.8988,
+                        "medianCpuMs": 125,
+                        "medianAllocatedBytes": 86548120,
+                        "peakRssBytes": 164614144,
+                        "releasedHeapGrowthBytes": 3568
+                    },
+                    "after": {
+                        "samples": 15,
+                        "medianMs": 56.5478,
+                        "medianProgramMs": 53.3187,
+                        "medianCheckerMs": 3.043699999999994,
+                        "p95Ms": 71.2193,
+                        "medianCpuMs": 62.5,
+                        "medianAllocatedBytes": 65096904,
+                        "peakRssBytes": 165990400,
+                        "releasedHeapGrowthBytes": 800
+                    },
+                    "passed": true,
+                    "elapsedRatio": 0.8202834766286271,
+                    "allocationRatio": 0.752146944381923
+                }
+            ],
+            "passed": true
+        },
+        "enumeratorControl": {
+            "timestamp": "2026-09-27T11:41:44.148Z",
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "manifest": {
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "execution": "Tiered compilation enabled; paired Release CoreCLR and Go, fresh programs in warm processes",
+                "scope": "Fresh program construction, binding and complete semantic checking in warm processes; input decoding excluded",
+                "processorCount": 4,
+                "modes": [
+                    "single",
+                    "default"
+                ],
+                "warmups": 20,
+                "samples": 15,
+                "provisionalBudgets": {
+                    "p95ElapsedMs": 5000,
+                    "peakRssBytes": 536870912,
+                    "releasedHeapGrowthBytes": 16777216
+                },
+                "budgetScope": "Existing Phase 4 operability budgets; timings compare runtime distributions, including their JIT and CoreLib, not an isolated collector substitution.",
+                "cases": [
+                    "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+                    "compiler/giant.ts"
+                ]
+            },
+            "manifestSha256": "77bf479723f8b92b1e2199ba8e3e42c2e8aebfa85acb76ca74ddad8f3a108786",
+            "candidateSha256": "b098930900d0ae01e94f75f7476a0d5880005c099e0a33d41ebfec8535ff596c",
+            "compilerSha256": "77bc3cd0c49fc408cb85059c10b06176e5d4e4c18dec83e1fffd030837330ca6",
+            "baseline": {
+                "directory": "D:\\source\\repos\\TypeScript\\built\\tiered-performance\\batch1",
+                "candidateSha256": "9c2a7da54fc13b97c3ccf1c08afa019923f6267881dd328d264e6d993551b54b",
+                "compilerSha256": "1686f42564924db8b21fbdb1bb3a0cd934a366c0e125d7aa84ad48ad45771604"
+            },
+            "samplesSha256": "e0e9fbb7bfc40dea9ac2ae1133c335b983f1e706f2cc63b70d2b2bce471179ac",
+            "machine": {
+                "platform": "win32",
+                "architecture": "x64",
+                "os": "Windows 11 Pro for Workstations",
+                "cpu": "13th Gen Intel(R) Core(TM) i7-13700K",
+                "availableMemoryBytes": 68399497216
+            },
+            "runtime": {
+                "dotnet": "D:\\dotnet-sdk-11.0.100-rtm.26473.115-win-x64\\dotnet.exe",
+                "tieredCompilation": true,
+                "processorCount": 4,
+                "nativeAotExecuted": false,
+                "serverGC": true,
+                "label": "CoreCLR"
+            },
+            "groups": [
+                {
+                    "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+                    "mode": "single",
+                    "before": {
+                        "samples": 15,
+                        "medianMs": 171.9736,
+                        "medianProgramMs": 55.7235,
+                        "medianCheckerMs": 116.9081,
+                        "p95Ms": 189.2251,
+                        "medianCpuMs": 265.625,
+                        "medianAllocatedBytes": 172387784,
+                        "peakRssBytes": 226623488,
+                        "releasedHeapGrowthBytes": 896
+                    },
+                    "after": {
+                        "samples": 15,
+                        "medianMs": 179.9495,
+                        "medianProgramMs": 56.1366,
+                        "medianCheckerMs": 123.0757,
+                        "p95Ms": 191.1229,
+                        "medianCpuMs": 250,
+                        "medianAllocatedBytes": 172486416,
+                        "peakRssBytes": 226226176,
+                        "releasedHeapGrowthBytes": 896
+                    },
+                    "passed": true,
+                    "elapsedRatio": 1.0463786302083575,
+                    "allocationRatio": 1.0005721519107178
+                },
+                {
+                    "name": "compiler/giant.ts",
+                    "mode": "single",
+                    "before": {
+                        "samples": 15,
+                        "medianMs": 56.2779,
+                        "medianProgramMs": 53.2484,
+                        "medianCheckerMs": 2.978499999999997,
+                        "p95Ms": 61.7032,
+                        "medianCpuMs": 62.5,
+                        "medianAllocatedBytes": 63516304,
+                        "peakRssBytes": 156925952,
+                        "releasedHeapGrowthBytes": 864
+                    },
+                    "after": {
+                        "samples": 15,
+                        "medianMs": 55.3649,
+                        "medianProgramMs": 52.4368,
+                        "medianCheckerMs": 2.9416999999999973,
+                        "p95Ms": 60.1777,
+                        "medianCpuMs": 62.5,
+                        "medianAllocatedBytes": 63579208,
+                        "peakRssBytes": 150073344,
+                        "releasedHeapGrowthBytes": 864
+                    },
+                    "passed": true,
+                    "elapsedRatio": 0.9837769355288665,
+                    "allocationRatio": 1.0009903598924774
+                },
+                {
+                    "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+                    "mode": "default",
+                    "before": {
+                        "samples": 15,
+                        "medianMs": 175.218,
+                        "medianProgramMs": 56.4045,
+                        "medianCheckerMs": 119.7507,
+                        "p95Ms": 196.6465,
+                        "medianCpuMs": 265.625,
+                        "medianAllocatedBytes": 173979312,
+                        "peakRssBytes": 230551552,
+                        "releasedHeapGrowthBytes": 3104
+                    },
+                    "after": {
+                        "samples": 15,
+                        "medianMs": 169.6278,
+                        "medianProgramMs": 56.95,
+                        "medianCheckerMs": 112.73080000000002,
+                        "p95Ms": 193.9208,
+                        "medianCpuMs": 265.625,
+                        "medianAllocatedBytes": 174078256,
+                        "peakRssBytes": 230653952,
+                        "releasedHeapGrowthBytes": 4928
+                    },
+                    "passed": true,
+                    "elapsedRatio": 0.9680957435879877,
+                    "allocationRatio": 1.000568711295973
+                },
+                {
+                    "name": "compiler/giant.ts",
+                    "mode": "default",
+                    "before": {
+                        "samples": 15,
+                        "medianMs": 60.0786,
+                        "medianProgramMs": 57.6175,
+                        "medianCheckerMs": 2.461100000000002,
+                        "p95Ms": 80.2132,
+                        "medianCpuMs": 109.375,
+                        "medianAllocatedBytes": 65097576,
+                        "peakRssBytes": 163889152,
+                        "releasedHeapGrowthBytes": 7472
+                    },
+                    "after": {
+                        "samples": 15,
+                        "medianMs": 62.0281,
+                        "medianProgramMs": 59.0938,
+                        "medianCheckerMs": 2.897999999999996,
+                        "p95Ms": 82.079,
+                        "medianCpuMs": 93.75,
+                        "medianAllocatedBytes": 65159808,
+                        "peakRssBytes": 166187008,
+                        "releasedHeapGrowthBytes": 936
+                    },
+                    "passed": true,
+                    "elapsedRatio": 1.0324491582693338,
+                    "allocationRatio": 1.0009559802964092
+                }
+            ],
+            "passed": true
+        },
+        "checkerBatch": {
+            "timestamp": "2026-09-27T11:45:31.897Z",
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "manifest": {
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "execution": "Tiered compilation enabled; paired Release CoreCLR and Go, fresh programs in warm processes",
+                "scope": "Fresh program construction, binding and complete semantic checking in warm processes; input decoding excluded",
+                "processorCount": 4,
+                "modes": [
+                    "single",
+                    "default"
+                ],
+                "warmups": 20,
+                "samples": 15,
+                "provisionalBudgets": {
+                    "p95ElapsedMs": 5000,
+                    "peakRssBytes": 536870912,
+                    "releasedHeapGrowthBytes": 16777216
+                },
+                "budgetScope": "Existing Phase 4 operability budgets; timings compare runtime distributions, including their JIT and CoreLib, not an isolated collector substitution.",
+                "cases": [
+                    "compiler/jsxComplexSignatureHasApplicabilityError.tsx",
+                    "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+                    "conformance/superInStaticMembers1.ts target=es2022",
+                    "conformance/nodeModulesAllowJs1.ts module=node18",
+                    "compiler/giant.ts"
+                ]
+            },
+            "manifestSha256": "3588d4679fb3c4eef312c32bc11491d55bc56cbdddcde07fe23c7784e26056eb",
+            "candidateSha256": "23889b72478b5ac632c038306286e97160e94741f19bcc6ae3ea6c32e64e486b",
+            "compilerSha256": "33c07bedc4f49eaf62fda897e137b6a5c8a8a324a79430ed08d1d30d562ae7bf",
+            "baseline": {
+                "directory": "D:\\source\\repos\\TypeScript\\built\\sdk-gc\\server",
+                "candidateSha256": "64a2322f9b502045a93c1713d8e97857de6465525e5c157e5b16c4064607ba00",
+                "compilerSha256": "2d72d8c088670229da4055442ef3041eba0f4662fdd9b2f81e74877ea1c6840f"
+            },
+            "samplesSha256": "76ce08a578c8888cd4eb0d5612642f832355b932b95452626c9383d82b8f8fed",
+            "machine": {
+                "platform": "win32",
+                "architecture": "x64",
+                "os": "Windows 11 Pro for Workstations",
+                "cpu": "13th Gen Intel(R) Core(TM) i7-13700K",
+                "availableMemoryBytes": 68399497216
+            },
+            "runtime": {
+                "dotnet": "D:\\dotnet-sdk-11.0.100-rtm.26473.115-win-x64\\dotnet.exe",
+                "tieredCompilation": true,
+                "processorCount": 4,
+                "nativeAotExecuted": false,
+                "serverGC": true,
+                "label": "tiered-before-after"
+            },
+            "groups": [
+                {
+                    "name": "compiler/jsxComplexSignatureHasApplicabilityError.tsx",
+                    "mode": "single",
+                    "before": {
+                        "samples": 15,
+                        "medianMs": 77.5775,
+                        "medianProgramMs": 69.9091,
+                        "medianCheckerMs": 7.569800000000001,
+                        "p95Ms": 86.9948,
+                        "medianCpuMs": 156.25,
+                        "medianAllocatedBytes": 94602480,
+                        "peakRssBytes": 160219136,
+                        "releasedHeapGrowthBytes": 0
+                    },
+                    "after": {
+                        "samples": 15,
+                        "medianMs": 69.3925,
+                        "medianProgramMs": 57.0957,
+                        "medianCheckerMs": 11.716999999999992,
+                        "p95Ms": 75.4338,
+                        "medianCpuMs": 125,
+                        "medianAllocatedBytes": 70145944,
+                        "peakRssBytes": 155340800,
+                        "releasedHeapGrowthBytes": 0
+                    },
+                    "passed": true,
+                    "elapsedRatio": 0.8944926041700235,
+                    "allocationRatio": 0.7414810267130417
+                },
+                {
+                    "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+                    "mode": "single",
+                    "before": {
+                        "samples": 15,
+                        "medianMs": 169.6935,
+                        "medianProgramMs": 70.4522,
+                        "medianCheckerMs": 99.3443,
+                        "p95Ms": 188.3444,
+                        "medianCpuMs": 234.375,
+                        "medianAllocatedBytes": 196885632,
+                        "peakRssBytes": 210120704,
+                        "releasedHeapGrowthBytes": 896
+                    },
+                    "after": {
+                        "samples": 15,
+                        "medianMs": 164.6305,
+                        "medianProgramMs": 58.2138,
+                        "medianCheckerMs": 106.4503,
+                        "p95Ms": 169.2134,
+                        "medianCpuMs": 265.625,
+                        "medianAllocatedBytes": 143193792,
+                        "peakRssBytes": 209358848,
+                        "releasedHeapGrowthBytes": 896
+                    },
+                    "passed": true,
+                    "elapsedRatio": 0.9701638542430913,
+                    "allocationRatio": 0.7272942700054416
+                },
+                {
+                    "name": "conformance/superInStaticMembers1.ts target=es2022",
+                    "mode": "single",
+                    "before": {
+                        "samples": 15,
+                        "medianMs": 73.1426,
+                        "medianProgramMs": 69.5678,
+                        "medianCheckerMs": 3.300200000000004,
+                        "p95Ms": 75.3018,
+                        "medianCpuMs": 125,
+                        "medianAllocatedBytes": 89083560,
+                        "peakRssBytes": 166240256,
+                        "releasedHeapGrowthBytes": 864
+                    },
+                    "after": {
+                        "samples": 15,
+                        "medianMs": 66.2763,
+                        "medianProgramMs": 63.4475,
+                        "medianCheckerMs": 3.0579000000000036,
+                        "p95Ms": 76.7896,
+                        "medianCpuMs": 109.375,
+                        "medianAllocatedBytes": 66737584,
+                        "peakRssBytes": 163565568,
+                        "releasedHeapGrowthBytes": 50016
+                    },
+                    "passed": true,
+                    "elapsedRatio": 0.9061244746563563,
+                    "allocationRatio": 0.74915712843088
+                },
+                {
+                    "name": "conformance/nodeModulesAllowJs1.ts module=node18",
+                    "mode": "single",
+                    "before": {
+                        "samples": 15,
+                        "medianMs": 71.5328,
+                        "medianProgramMs": 70.011,
+                        "medianCheckerMs": 1.5829000000000093,
+                        "p95Ms": 82.0934,
+                        "medianCpuMs": 125,
+                        "medianAllocatedBytes": 87568216,
+                        "peakRssBytes": 150986752,
+                        "releasedHeapGrowthBytes": 0
+                    },
+                    "after": {
+                        "samples": 15,
+                        "medianMs": 65.887,
+                        "medianProgramMs": 64.3809,
+                        "medianCheckerMs": 1.5170000000000101,
+                        "p95Ms": 69.452,
+                        "medianCpuMs": 140.625,
+                        "medianAllocatedBytes": 65264320,
+                        "peakRssBytes": 152576000,
+                        "releasedHeapGrowthBytes": 0
+                    },
+                    "passed": true,
+                    "elapsedRatio": 0.9210739688646328,
+                    "allocationRatio": 0.7452969008755415
+                },
+                {
+                    "name": "compiler/giant.ts",
+                    "mode": "single",
+                    "before": {
+                        "samples": 15,
+                        "medianMs": 68.7603,
+                        "medianProgramMs": 66.2162,
+                        "medianCheckerMs": 2.4388000000000005,
+                        "p95Ms": 70.5953,
+                        "medianCpuMs": 125,
+                        "medianAllocatedBytes": 84967520,
+                        "peakRssBytes": 151113728,
+                        "releasedHeapGrowthBytes": 96
+                    },
+                    "after": {
+                        "samples": 15,
+                        "medianMs": 55.6701,
+                        "medianProgramMs": 52.6091,
+                        "medianCheckerMs": 2.8334999999999937,
+                        "p95Ms": 60.6115,
+                        "medianCpuMs": 109.375,
+                        "medianAllocatedBytes": 63521304,
+                        "peakRssBytes": 149532672,
+                        "releasedHeapGrowthBytes": 864
+                    },
+                    "passed": true,
+                    "elapsedRatio": 0.8096256124536978,
+                    "allocationRatio": 0.7475951281148373
+                },
+                {
+                    "name": "compiler/jsxComplexSignatureHasApplicabilityError.tsx",
+                    "mode": "default",
+                    "before": {
+                        "samples": 15,
+                        "medianMs": 74.2952,
+                        "medianProgramMs": 66.7434,
+                        "medianCheckerMs": 7.445499999999996,
+                        "p95Ms": 78.3619,
+                        "medianCpuMs": 109.375,
+                        "medianAllocatedBytes": 96318432,
+                        "peakRssBytes": 165220352,
+                        "releasedHeapGrowthBytes": 6688
+                    },
+                    "after": {
+                        "samples": 15,
+                        "medianMs": 69.439,
+                        "medianProgramMs": 57.3252,
+                        "medianCheckerMs": 12.035000000000004,
+                        "p95Ms": 89.6616,
+                        "medianCpuMs": 140.625,
+                        "medianAllocatedBytes": 71844760,
+                        "peakRssBytes": 160751616,
+                        "releasedHeapGrowthBytes": 50272
+                    },
+                    "passed": true,
+                    "elapsedRatio": 0.9346364233490185,
+                    "allocationRatio": 0.7459087373847614
+                },
+                {
+                    "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+                    "mode": "default",
+                    "before": {
+                        "samples": 15,
+                        "medianMs": 167.7002,
+                        "medianProgramMs": 66.8252,
+                        "medianCheckerMs": 99.7934,
+                        "p95Ms": 174.0187,
+                        "medianCpuMs": 281.25,
+                        "medianAllocatedBytes": 198492856,
+                        "peakRssBytes": 216915968,
+                        "releasedHeapGrowthBytes": 904
+                    },
+                    "after": {
+                        "samples": 15,
+                        "medianMs": 162.5822,
+                        "medianProgramMs": 56.6105,
+                        "medianCheckerMs": 105.81110000000001,
+                        "p95Ms": 177.958,
+                        "medianCpuMs": 265.625,
+                        "medianAllocatedBytes": 144784184,
+                        "peakRssBytes": 215924736,
+                        "releasedHeapGrowthBytes": 968
+                    },
+                    "passed": true,
+                    "elapsedRatio": 0.9694812528547969,
+                    "allocationRatio": 0.7294176068482787
+                },
+                {
+                    "name": "conformance/superInStaticMembers1.ts target=es2022",
+                    "mode": "default",
+                    "before": {
+                        "samples": 15,
+                        "medianMs": 69.8797,
+                        "medianProgramMs": 67.4897,
+                        "medianCheckerMs": 2.0039000000000016,
+                        "p95Ms": 78.6798,
+                        "medianCpuMs": 125,
+                        "medianAllocatedBytes": 91647472,
+                        "peakRssBytes": 167813120,
+                        "releasedHeapGrowthBytes": 50016
+                    },
+                    "after": {
+                        "samples": 15,
+                        "medianMs": 63.514,
+                        "medianProgramMs": 61.4622,
+                        "medianCheckerMs": 1.9428999999999945,
+                        "p95Ms": 67.6468,
+                        "medianCpuMs": 109.375,
+                        "medianAllocatedBytes": 69294680,
+                        "peakRssBytes": 167133184,
+                        "releasedHeapGrowthBytes": 1376
+                    },
+                    "passed": true,
+                    "elapsedRatio": 0.9089048750924804,
+                    "allocationRatio": 0.7561002882872754
+                },
+                {
+                    "name": "conformance/nodeModulesAllowJs1.ts module=node18",
+                    "mode": "default",
+                    "before": {
+                        "samples": 15,
+                        "medianMs": 70.2176,
+                        "medianProgramMs": 62.5192,
+                        "medianCheckerMs": 7.187599999999996,
+                        "p95Ms": 81.5186,
+                        "medianCpuMs": 156.25,
+                        "medianAllocatedBytes": 89983168,
+                        "peakRssBytes": 157667328,
+                        "releasedHeapGrowthBytes": 0
+                    },
+                    "after": {
+                        "samples": 15,
+                        "medianMs": 65.5373,
+                        "medianProgramMs": 49.6104,
+                        "medianCheckerMs": 16.240000000000002,
+                        "p95Ms": 85.8308,
+                        "medianCpuMs": 125,
+                        "medianAllocatedBytes": 67663184,
+                        "peakRssBytes": 155316224,
+                        "releasedHeapGrowthBytes": 536
+                    },
+                    "passed": true,
+                    "elapsedRatio": 0.9333457708608668,
+                    "allocationRatio": 0.7519537876239254
+                },
+                {
+                    "name": "compiler/giant.ts",
+                    "mode": "default",
+                    "before": {
+                        "samples": 15,
+                        "medianMs": 66.4115,
+                        "medianProgramMs": 63.6751,
+                        "medianCheckerMs": 2.4662000000000006,
+                        "p95Ms": 83.9609,
+                        "medianCpuMs": 109.375,
+                        "medianAllocatedBytes": 86547768,
+                        "peakRssBytes": 164052992,
+                        "releasedHeapGrowthBytes": 3632
+                    },
+                    "after": {
+                        "samples": 15,
+                        "medianMs": 60.0867,
+                        "medianProgramMs": 57.6794,
+                        "medianCheckerMs": 2.4072999999999993,
+                        "p95Ms": 65.5993,
+                        "medianCpuMs": 109.375,
+                        "medianAllocatedBytes": 65098120,
+                        "peakRssBytes": 165924864,
+                        "releasedHeapGrowthBytes": 872
+                    },
+                    "passed": true,
+                    "elapsedRatio": 0.9047634822282286,
+                    "allocationRatio": 0.7521640534970238
+                }
+            ],
+            "passed": true
+        },
+        "identifierInterning": {
+            "timestamp": "2026-09-27T11:48:49.086Z",
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "manifest": {
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "execution": "Tiered compilation enabled; paired Release CoreCLR and Go, fresh programs in warm processes",
+                "scope": "Fresh program construction, binding and complete semantic checking in warm processes; input decoding excluded",
+                "processorCount": 4,
+                "modes": [
+                    "single",
+                    "default"
+                ],
+                "warmups": 20,
+                "samples": 15,
+                "provisionalBudgets": {
+                    "p95ElapsedMs": 5000,
+                    "peakRssBytes": 536870912,
+                    "releasedHeapGrowthBytes": 16777216
+                },
+                "budgetScope": "Existing Phase 4 operability budgets; timings compare runtime distributions, including their JIT and CoreLib, not an isolated collector substitution.",
+                "cases": [
+                    "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+                    "compiler/giant.ts"
+                ]
+            },
+            "manifestSha256": "77bf479723f8b92b1e2199ba8e3e42c2e8aebfa85acb76ca74ddad8f3a108786",
+            "candidateSha256": "23889b72478b5ac632c038306286e97160e94741f19bcc6ae3ea6c32e64e486b",
+            "compilerSha256": "988c5cfb2d0c946f96109a6024f0e646bebb0ce946f94ade30418a29a87fc730",
+            "baseline": {
+                "directory": "D:\\source\\repos\\TypeScript\\built\\tiered-performance\\batch3",
+                "candidateSha256": "23889b72478b5ac632c038306286e97160e94741f19bcc6ae3ea6c32e64e486b",
+                "compilerSha256": "33c07bedc4f49eaf62fda897e137b6a5c8a8a324a79430ed08d1d30d562ae7bf"
+            },
+            "samplesSha256": "03c7273a52b86dea28b87cc6aad2e2ffe5bc9d0c33be251b2299d37012c4c047",
+            "machine": {
+                "platform": "win32",
+                "architecture": "x64",
+                "os": "Windows 11 Pro for Workstations",
+                "cpu": "13th Gen Intel(R) Core(TM) i7-13700K",
+                "availableMemoryBytes": 68399497216
+            },
+            "runtime": {
+                "dotnet": "D:\\dotnet-sdk-11.0.100-rtm.26473.115-win-x64\\dotnet.exe",
+                "tieredCompilation": true,
+                "processorCount": 4,
+                "nativeAotExecuted": false,
+                "serverGC": true,
+                "label": "CoreCLR"
+            },
+            "groups": [
+                {
+                    "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+                    "mode": "single",
+                    "before": {
+                        "samples": 15,
+                        "medianMs": 162.0469,
+                        "medianProgramMs": 56.0896,
+                        "medianCheckerMs": 104.14530000000002,
+                        "p95Ms": 177.8714,
+                        "medianCpuMs": 250,
+                        "medianAllocatedBytes": 143196272,
+                        "peakRssBytes": 208629760,
+                        "releasedHeapGrowthBytes": 9056
+                    },
+                    "after": {
+                        "samples": 15,
+                        "medianMs": 159.1499,
+                        "medianProgramMs": 57.5126,
+                        "medianCheckerMs": 101.74890000000002,
+                        "p95Ms": 161.7953,
+                        "medianCpuMs": 265.625,
+                        "medianAllocatedBytes": 140368688,
+                        "peakRssBytes": 200613888,
+                        "releasedHeapGrowthBytes": 896
+                    },
+                    "passed": true,
+                    "elapsedRatio": 0.9821224596089158,
+                    "allocationRatio": 0.9802537876125713
+                },
+                {
+                    "name": "compiler/giant.ts",
+                    "mode": "single",
+                    "before": {
+                        "samples": 15,
+                        "medianMs": 55.7431,
+                        "medianProgramMs": 52.4285,
+                        "medianCheckerMs": 2.8939999999999984,
+                        "p95Ms": 61.165,
+                        "medianCpuMs": 93.75,
+                        "medianAllocatedBytes": 63519272,
+                        "peakRssBytes": 151060480,
+                        "releasedHeapGrowthBytes": 864
+                    },
+                    "after": {
+                        "samples": 15,
+                        "medianMs": 62.1189,
+                        "medianProgramMs": 59.858,
+                        "medianCheckerMs": 2.239699999999999,
+                        "p95Ms": 63.4826,
+                        "medianCpuMs": 125,
+                        "medianAllocatedBytes": 60638768,
+                        "peakRssBytes": 145158144,
+                        "releasedHeapGrowthBytes": 864
+                    },
+                    "passed": true,
+                    "elapsedRatio": 1.114378281796312,
+                    "allocationRatio": 0.9546514953760805
+                },
+                {
+                    "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+                    "mode": "default",
+                    "before": {
+                        "samples": 15,
+                        "medianMs": 162.3882,
+                        "medianProgramMs": 56.806,
+                        "medianCheckerMs": 105.34900000000002,
+                        "p95Ms": 170.1749,
+                        "medianCpuMs": 265.625,
+                        "medianAllocatedBytes": 144785136,
+                        "peakRssBytes": 212267008,
+                        "releasedHeapGrowthBytes": 3032
+                    },
+                    "after": {
+                        "samples": 15,
+                        "medianMs": 164.5257,
+                        "medianProgramMs": 58.9892,
+                        "medianCheckerMs": 105.8891,
+                        "p95Ms": 170.4276,
+                        "medianCpuMs": 265.625,
+                        "medianAllocatedBytes": 141961376,
+                        "peakRssBytes": 204673024,
+                        "releasedHeapGrowthBytes": 768
+                    },
+                    "passed": true,
+                    "elapsedRatio": 1.0131629022305808,
+                    "allocationRatio": 0.9804968929959772
+                },
+                {
+                    "name": "compiler/giant.ts",
+                    "mode": "default",
+                    "before": {
+                        "samples": 15,
+                        "medianMs": 61.4301,
+                        "medianProgramMs": 58.9575,
+                        "medianCheckerMs": 2.967399999999998,
+                        "p95Ms": 69.9972,
+                        "medianCpuMs": 109.375,
+                        "medianAllocatedBytes": 65096600,
+                        "peakRssBytes": 165031936,
+                        "releasedHeapGrowthBytes": 7200
+                    },
+                    "after": {
+                        "samples": 15,
+                        "medianMs": 63.3594,
+                        "medianProgramMs": 61.2196,
+                        "medianCheckerMs": 2.2291999999999987,
+                        "p95Ms": 65.5309,
+                        "medianCpuMs": 125,
+                        "medianAllocatedBytes": 62221008,
+                        "peakRssBytes": 155963392,
+                        "releasedHeapGrowthBytes": 8672
+                    },
+                    "passed": true,
+                    "elapsedRatio": 1.0314064277935409,
+                    "allocationRatio": 0.955825772774615
+                }
+            ],
+            "passed": true
+        },
+        "decisions": [
+            "Retained removal of per-node binder LINQ allocations and position-conversion delegates.",
+            "Retained single-probe binding insertion, reusable type-comparison scratch, cancellation-specific name resolver reuse and removal of unused cache keys/predicate closures.",
+            "Reverted struct node-list enumeration: no consistent timing advantage in isolation.",
+            "Reverted identifier interning: fewer strings but slower representative construction workload. Kept only canonical keyword strings and direct private-identifier slicing."
+        ]
+    },
+    "samplePath": "csharp/compatibility/evidence/phase4-tiered-samples.jsonl",
+    "samplesSha256": "4948ce69dde3a2e448f5b4c4d94bbb70874fbcac1104d9acb52f82098ecd6c11",
+    "groups": [
+        {
+            "mode": "single",
+            "name": "compiler/jsxComplexSignatureHasApplicabilityError.tsx",
+            "label": "JSX signatures",
+            "go": {
+                "samples": 15,
+                "medianMs": 20.853900000000003,
+                "medianProgramMs": 18.1232,
+                "medianCheckerMs": 2.565400000000004,
+                "p95Ms": 21.5976,
+                "medianCpuMs": 31.25,
+                "medianAllocatedBytes": 21998888,
+                "peakRssBytes": 46555136,
+                "releasedHeapGrowthBytes": 560
+            },
+            "before": {
+                "samples": 15,
+                "medianMs": 74.3047,
+                "medianProgramMs": 66.9208,
+                "medianCheckerMs": 7.395499999999998,
+                "p95Ms": 75.9052,
+                "medianCpuMs": 125,
+                "medianAllocatedBytes": 94604312,
+                "peakRssBytes": 160284672,
+                "releasedHeapGrowthBytes": 0
+            },
+            "after": {
+                "samples": 15,
+                "medianMs": 61.4685,
+                "medianProgramMs": 56.459,
+                "medianCheckerMs": 4.719500000000004,
+                "p95Ms": 63.9739,
+                "medianCpuMs": 109.375,
+                "medianAllocatedBytes": 68926360,
+                "peakRssBytes": 152944640,
+                "releasedHeapGrowthBytes": 0
+            },
+            "satoriGo": {
+                "samples": 15,
+                "medianMs": 20.728099999999998,
+                "medianProgramMs": 17.9757,
+                "medianCheckerMs": 2.777799999999999,
+                "p95Ms": 22.3591,
+                "medianCpuMs": 15.625,
+                "medianAllocatedBytes": 21998376,
+                "peakRssBytes": 46428160,
+                "releasedHeapGrowthBytes": 224
+            },
+            "satori": {
+                "samples": 15,
+                "medianMs": 55.0532,
+                "medianProgramMs": 47.1456,
+                "medianCheckerMs": 7.9375,
+                "p95Ms": 74.1687,
+                "medianCpuMs": 93.75,
+                "medianAllocatedBytes": 68927424,
+                "peakRssBytes": 307982336,
+                "releasedHeapGrowthBytes": 0
+            },
+            "medianReductionPercent": 17.27508488695869,
+            "allocationReductionPercent": 27.142475281676383,
+            "afterToGo": 2.947578150849481,
+            "satoriToGo": 2.6559694327989543
+        },
+        {
+            "mode": "single",
+            "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+            "label": "Large conditional type",
+            "go": {
+                "samples": 15,
+                "medianMs": 64.6734,
+                "medianProgramMs": 18.6428,
+                "medianCheckerMs": 45.963,
+                "p95Ms": 70.8654,
+                "medianCpuMs": 78.125,
+                "medianAllocatedBytes": 34393880,
+                "peakRssBytes": 58564608,
+                "releasedHeapGrowthBytes": 384
+            },
+            "before": {
+                "samples": 15,
+                "medianMs": 171.6381,
+                "medianProgramMs": 71.0099,
+                "medianCheckerMs": 100.17450000000001,
+                "p95Ms": 196.7256,
+                "medianCpuMs": 250,
+                "medianAllocatedBytes": 196885968,
+                "peakRssBytes": 205783040,
+                "releasedHeapGrowthBytes": 896
+            },
+            "after": {
+                "samples": 15,
+                "medianMs": 162.5113,
+                "medianProgramMs": 56.6187,
+                "medianCheckerMs": 105.21879999999999,
+                "p95Ms": 165.6625,
+                "medianCpuMs": 281.25,
+                "medianAllocatedBytes": 142079712,
+                "peakRssBytes": 211714048,
+                "releasedHeapGrowthBytes": 896
+            },
+            "satoriGo": {
+                "samples": 15,
+                "medianMs": 63.562099999999994,
+                "medianProgramMs": 18.5456,
+                "medianCheckerMs": 44.919399999999996,
+                "p95Ms": 65.02289999999999,
+                "medianCpuMs": 62.5,
+                "medianAllocatedBytes": 34393976,
+                "peakRssBytes": 58576896,
+                "releasedHeapGrowthBytes": 400
+            },
+            "satori": {
+                "samples": 15,
+                "medianMs": 145.7281,
+                "medianProgramMs": 48.0523,
+                "medianCheckerMs": 97.6113,
+                "p95Ms": 149.486,
+                "medianCpuMs": 187.5,
+                "medianAllocatedBytes": 142075808,
+                "peakRssBytes": 322887680,
+                "releasedHeapGrowthBytes": 936
+            },
+            "medianReductionPercent": 5.317467392146613,
+            "allocationReductionPercent": 27.836547498397646,
+            "afterToGo": 2.512799698175757,
+            "satoriToGo": 2.292688567558341
+        },
+        {
+            "mode": "single",
+            "name": "conformance/superInStaticMembers1.ts target=es2022",
+            "label": "Static members",
+            "go": {
+                "samples": 15,
+                "medianMs": 19.7104,
+                "medianProgramMs": 18.526,
+                "medianCheckerMs": 1.0266999999999982,
+                "p95Ms": 21.4226,
+                "medianCpuMs": 15.625,
+                "medianAllocatedBytes": 21002848,
+                "peakRssBytes": 45101056,
+                "releasedHeapGrowthBytes": 336
+            },
+            "before": {
+                "samples": 15,
+                "medianMs": 74.0195,
+                "medianProgramMs": 70.5196,
+                "medianCheckerMs": 3.467100000000002,
+                "p95Ms": 93.7405,
+                "medianCpuMs": 140.625,
+                "medianAllocatedBytes": 89083296,
+                "peakRssBytes": 165793792,
+                "releasedHeapGrowthBytes": 864
+            },
+            "after": {
+                "samples": 15,
+                "medianMs": 66.2386,
+                "medianProgramMs": 63.709,
+                "medianCheckerMs": 2.755899999999997,
+                "p95Ms": 71.3314,
+                "medianCpuMs": 125,
+                "medianAllocatedBytes": 65549536,
+                "peakRssBytes": 160055296,
+                "releasedHeapGrowthBytes": 50016
+            },
+            "satoriGo": {
+                "samples": 15,
+                "medianMs": 19.788,
+                "medianProgramMs": 18.6103,
+                "medianCheckerMs": 1.0320000000000036,
+                "p95Ms": 20.575400000000002,
+                "medianCpuMs": 15.625,
+                "medianAllocatedBytes": 21003600,
+                "peakRssBytes": 45178880,
+                "releasedHeapGrowthBytes": 608
+            },
+            "satori": {
+                "samples": 15,
+                "medianMs": 51.3842,
+                "medianProgramMs": 47.8746,
+                "medianCheckerMs": 3.4791999999999987,
+                "p95Ms": 53.0249,
+                "medianCpuMs": 109.375,
+                "medianAllocatedBytes": 65550560,
+                "peakRssBytes": 293703680,
+                "releasedHeapGrowthBytes": 864
+            },
+            "medianReductionPercent": 10.511959686298866,
+            "allocationReductionPercent": 26.41770237149734,
+            "afterToGo": 3.3605913629353035,
+            "satoriToGo": 2.5967353951890035
+        },
+        {
+            "mode": "single",
+            "name": "conformance/nodeModulesAllowJs1.ts module=node18",
+            "label": "Node modules with JS",
+            "go": {
+                "samples": 15,
+                "medianMs": 18.816599999999998,
+                "medianProgramMs": 17.6029,
+                "medianCheckerMs": 1.2206999999999972,
+                "p95Ms": 20.232,
+                "medianCpuMs": 15.625,
+                "medianAllocatedBytes": 20623720,
+                "peakRssBytes": 44613632,
+                "releasedHeapGrowthBytes": 224
+            },
+            "before": {
+                "samples": 15,
+                "medianMs": 68.7731,
+                "medianProgramMs": 67.2559,
+                "medianCheckerMs": 1.5172000000000025,
+                "p95Ms": 72.9616,
+                "medianCpuMs": 125,
+                "medianAllocatedBytes": 87568240,
+                "peakRssBytes": 149483520,
+                "releasedHeapGrowthBytes": 0
+            },
+            "after": {
+                "samples": 15,
+                "medianMs": 65.3667,
+                "medianProgramMs": 63.8293,
+                "medianCheckerMs": 1.4632000000000005,
+                "p95Ms": 67.272,
+                "medianCpuMs": 125,
+                "medianAllocatedBytes": 64088224,
+                "peakRssBytes": 154873856,
+                "releasedHeapGrowthBytes": 0
+            },
+            "satoriGo": {
+                "samples": 15,
+                "medianMs": 20.0282,
+                "medianProgramMs": 18.6769,
+                "medianCheckerMs": 1.030899999999999,
+                "p95Ms": 20.9971,
+                "medianCpuMs": 15.625,
+                "medianAllocatedBytes": 20623944,
+                "peakRssBytes": 44314624,
+                "releasedHeapGrowthBytes": 272
+            },
+            "satori": {
+                "samples": 15,
+                "medianMs": 48.6567,
+                "medianProgramMs": 46.7729,
+                "medianCheckerMs": 1.8977000000000004,
+                "p95Ms": 53.8217,
+                "medianCpuMs": 93.75,
+                "medianAllocatedBytes": 64089760,
+                "peakRssBytes": 289189888,
+                "releasedHeapGrowthBytes": 0
+            },
+            "medianReductionPercent": 4.953099394966931,
+            "allocationReductionPercent": 26.81339261814557,
+            "afterToGo": 3.473884761327764,
+            "satoriToGo": 2.429409532559092
+        },
+        {
+            "mode": "single",
+            "name": "compiler/giant.ts",
+            "label": "Large diagnostic program",
+            "go": {
+                "samples": 15,
+                "medianMs": 17.6436,
+                "medianProgramMs": 16.2878,
+                "medianCheckerMs": 1.0284999999999975,
+                "p95Ms": 18.7959,
+                "medianCpuMs": 15.625,
+                "medianAllocatedBytes": 19800368,
+                "peakRssBytes": 43524096,
+                "releasedHeapGrowthBytes": 496
+            },
+            "before": {
+                "samples": 15,
+                "medianMs": 65.6978,
+                "medianProgramMs": 63.3502,
+                "medianCheckerMs": 2.407500000000006,
+                "p95Ms": 70.7493,
+                "medianCpuMs": 109.375,
+                "medianAllocatedBytes": 84967224,
+                "peakRssBytes": 149581824,
+                "releasedHeapGrowthBytes": 864
+            },
+            "after": {
+                "samples": 15,
+                "medianMs": 54.4244,
+                "medianProgramMs": 51.4299,
+                "medianCheckerMs": 2.994499999999995,
+                "p95Ms": 69.4525,
+                "medianCpuMs": 93.75,
+                "medianAllocatedBytes": 62341232,
+                "peakRssBytes": 150110208,
+                "releasedHeapGrowthBytes": 864
+            },
+            "satoriGo": {
+                "samples": 15,
+                "medianMs": 18.119300000000003,
+                "medianProgramMs": 16.5264,
+                "medianCheckerMs": 1.5362000000000045,
+                "p95Ms": 19.206,
+                "medianCpuMs": 15.625,
+                "medianAllocatedBytes": 19799200,
+                "peakRssBytes": 43773952,
+                "releasedHeapGrowthBytes": 160
+            },
+            "satori": {
+                "samples": 15,
+                "medianMs": 48.162,
+                "medianProgramMs": 44.2866,
+                "medianCheckerMs": 3.5244,
+                "p95Ms": 51.4159,
+                "medianCpuMs": 109.375,
+                "medianAllocatedBytes": 62340480,
+                "peakRssBytes": 283496448,
+                "releasedHeapGrowthBytes": 864
+            },
+            "medianReductionPercent": 17.159478704005316,
+            "allocationReductionPercent": 26.629082291778772,
+            "afterToGo": 3.084653925502732,
+            "satoriToGo": 2.6580497039068836
+        },
+        {
+            "mode": "default",
+            "name": "compiler/jsxComplexSignatureHasApplicabilityError.tsx",
+            "label": "JSX signatures",
+            "go": {
+                "samples": 15,
+                "medianMs": 18.2304,
+                "medianProgramMs": 15.530999999999999,
+                "medianCheckerMs": 2.5976000000000035,
+                "p95Ms": 18.7983,
+                "medianCpuMs": 15.625,
+                "medianAllocatedBytes": 22714928,
+                "peakRssBytes": 48959488,
+                "releasedHeapGrowthBytes": 2448
+            },
+            "before": {
+                "samples": 15,
+                "medianMs": 74.096,
+                "medianProgramMs": 66.5963,
+                "medianCheckerMs": 7.495499999999993,
+                "p95Ms": 80.0497,
+                "medianCpuMs": 125,
+                "medianAllocatedBytes": 96315912,
+                "peakRssBytes": 165740544,
+                "releasedHeapGrowthBytes": 9504
+            },
+            "after": {
+                "samples": 15,
+                "medianMs": 68.4543,
+                "medianProgramMs": 56.5745,
+                "medianCheckerMs": 11.2547,
+                "p95Ms": 80.9652,
+                "medianCpuMs": 125,
+                "medianAllocatedBytes": 70628600,
+                "peakRssBytes": 157921280,
+                "releasedHeapGrowthBytes": 1976
+            },
+            "satoriGo": {
+                "samples": 15,
+                "medianMs": 18.4249,
+                "medianProgramMs": 15.7179,
+                "medianCheckerMs": 2.5815,
+                "p95Ms": 19.4115,
+                "medianCpuMs": 62.5,
+                "medianAllocatedBytes": 22716192,
+                "peakRssBytes": 48951296,
+                "releasedHeapGrowthBytes": 12656
+            },
+            "satori": {
+                "samples": 15,
+                "medianMs": 58.9477,
+                "medianProgramMs": 47.3222,
+                "medianCheckerMs": 10.756299999999996,
+                "p95Ms": 76.758,
+                "medianCpuMs": 156.25,
+                "medianAllocatedBytes": 70638736,
+                "peakRssBytes": 315625472,
+                "releasedHeapGrowthBytes": 2376
+            },
+            "medianReductionPercent": 7.614041243791836,
+            "allocationReductionPercent": 26.669852848405775,
+            "afterToGo": 3.754953264876251,
+            "satoriToGo": 3.199349792943245
+        },
+        {
+            "mode": "default",
+            "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+            "label": "Large conditional type",
+            "go": {
+                "samples": 15,
+                "medianMs": 61.2306,
+                "medianProgramMs": 15.983,
+                "medianCheckerMs": 46.2136,
+                "p95Ms": 69.16550000000001,
+                "medianCpuMs": 93.75,
+                "medianAllocatedBytes": 35125424,
+                "peakRssBytes": 57679872,
+                "releasedHeapGrowthBytes": 11872
+            },
+            "before": {
+                "samples": 15,
+                "medianMs": 166.6814,
+                "medianProgramMs": 67.7331,
+                "medianCheckerMs": 99.4348,
+                "p95Ms": 196.4301,
+                "medianCpuMs": 265.625,
+                "medianAllocatedBytes": 198488952,
+                "peakRssBytes": 212471808,
+                "releasedHeapGrowthBytes": 5000
+            },
+            "after": {
+                "samples": 15,
+                "medianMs": 162.9909,
+                "medianProgramMs": 57.172,
+                "medianCheckerMs": 106.34879999999998,
+                "p95Ms": 185.0701,
+                "medianCpuMs": 296.875,
+                "medianAllocatedBytes": 143667592,
+                "peakRssBytes": 212602880,
+                "releasedHeapGrowthBytes": 968
+            },
+            "satoriGo": {
+                "samples": 15,
+                "medianMs": 61.4595,
+                "medianProgramMs": 16.0284,
+                "medianCheckerMs": 45.9051,
+                "p95Ms": 63.310599999999994,
+                "medianCpuMs": 78.125,
+                "medianAllocatedBytes": 35121552,
+                "peakRssBytes": 59637760,
+                "releasedHeapGrowthBytes": 1568
+            },
+            "satori": {
+                "samples": 15,
+                "medianMs": 142.2394,
+                "medianProgramMs": 47.244,
+                "medianCheckerMs": 95.24709999999999,
+                "p95Ms": 146.6728,
+                "medianCpuMs": 171.875,
+                "medianAllocatedBytes": 143668528,
+                "peakRssBytes": 345800704,
+                "releasedHeapGrowthBytes": 2792
+            },
+            "medianReductionPercent": 2.214104273182238,
+            "allocationReductionPercent": 27.619350824120424,
+            "afterToGo": 2.66191904047976,
+            "satoriToGo": 2.314359862999211
+        },
+        {
+            "mode": "default",
+            "name": "conformance/superInStaticMembers1.ts target=es2022",
+            "label": "Static members",
+            "go": {
+                "samples": 15,
+                "medianMs": 16.62,
+                "medianProgramMs": 15.6599,
+                "medianCheckerMs": 1.0266999999999982,
+                "p95Ms": 25.4946,
+                "medianCpuMs": 15.625,
+                "medianAllocatedBytes": 22017128,
+                "peakRssBytes": 47464448,
+                "releasedHeapGrowthBytes": 3584
+            },
+            "before": {
+                "samples": 15,
+                "medianMs": 69.0682,
+                "medianProgramMs": 66.9001,
+                "medianCheckerMs": 2.2954000000000008,
+                "p95Ms": 72.7543,
+                "medianCpuMs": 125,
+                "medianAllocatedBytes": 91646552,
+                "peakRssBytes": 171491328,
+                "releasedHeapGrowthBytes": 1440
+            },
+            "after": {
+                "samples": 15,
+                "medianMs": 63.2594,
+                "medianProgramMs": 61.1678,
+                "medianCheckerMs": 1.9883000000000024,
+                "p95Ms": 64.3881,
+                "medianCpuMs": 125,
+                "medianAllocatedBytes": 68107752,
+                "peakRssBytes": 165978112,
+                "releasedHeapGrowthBytes": 864
+            },
+            "satoriGo": {
+                "samples": 15,
+                "medianMs": 16.735,
+                "medianProgramMs": 15.839700000000002,
+                "medianCheckerMs": 1.0268000000000015,
+                "p95Ms": 18.7265,
+                "medianCpuMs": 15.625,
+                "medianAllocatedBytes": 22021088,
+                "peakRssBytes": 48148480,
+                "releasedHeapGrowthBytes": 7856
+            },
+            "satori": {
+                "samples": 15,
+                "medianMs": 49.6661,
+                "medianProgramMs": 46.5662,
+                "medianCheckerMs": 3.1184999999999974,
+                "p95Ms": 58.2669,
+                "medianCpuMs": 125,
+                "medianAllocatedBytes": 68099736,
+                "peakRssBytes": 303206400,
+                "releasedHeapGrowthBytes": 4496
+            },
+            "medianReductionPercent": 8.410237996646796,
+            "allocationReductionPercent": 25.684326890988764,
+            "afterToGo": 3.8062214199759326,
+            "satoriToGo": 2.9677980280848524
+        },
+        {
+            "mode": "default",
+            "name": "conformance/nodeModulesAllowJs1.ts module=node18",
+            "label": "Node modules with JS",
+            "go": {
+                "samples": 15,
+                "medianMs": 16.5076,
+                "medianProgramMs": 15.711300000000001,
+                "medianCheckerMs": 1.017400000000002,
+                "p95Ms": 19.5556,
+                "medianCpuMs": 15.625,
+                "medianAllocatedBytes": 21682352,
+                "peakRssBytes": 46886912,
+                "releasedHeapGrowthBytes": 672
+            },
+            "before": {
+                "samples": 15,
+                "medianMs": 70.9145,
+                "medianProgramMs": 64.1001,
+                "medianCheckerMs": 7.072999999999993,
+                "p95Ms": 87.1812,
+                "medianCpuMs": 140.625,
+                "medianAllocatedBytes": 89984272,
+                "peakRssBytes": 160653312,
+                "releasedHeapGrowthBytes": 8296
+            },
+            "after": {
+                "samples": 15,
+                "medianMs": 66.6856,
+                "medianProgramMs": 49.9607,
+                "medianCheckerMs": 16.578699999999998,
+                "p95Ms": 91.3859,
+                "medianCpuMs": 125,
+                "medianAllocatedBytes": 66486296,
+                "peakRssBytes": 156975104,
+                "releasedHeapGrowthBytes": 72
+            },
+            "satoriGo": {
+                "samples": 15,
+                "medianMs": 16.7741,
+                "medianProgramMs": 15.9976,
+                "medianCheckerMs": 0.5457999999999963,
+                "p95Ms": 21.434,
+                "medianCpuMs": 15.625,
+                "medianAllocatedBytes": 21683048,
+                "peakRssBytes": 47296512,
+                "releasedHeapGrowthBytes": 7632
+            },
+            "satori": {
+                "samples": 15,
+                "medianMs": 48.3019,
+                "medianProgramMs": 46.5611,
+                "medianCheckerMs": 1.6098,
+                "p95Ms": 51.9216,
+                "medianCpuMs": 93.75,
+                "medianAllocatedBytes": 66502024,
+                "peakRssBytes": 310595584,
+                "releasedHeapGrowthBytes": 24536
+            },
+            "medianReductionPercent": 5.96337843459378,
+            "allocationReductionPercent": 26.113425688435864,
+            "afterToGo": 4.039690809081877,
+            "satoriToGo": 2.879552405196106
+        },
+        {
+            "mode": "default",
+            "name": "compiler/giant.ts",
+            "label": "Large diagnostic program",
+            "go": {
+                "samples": 15,
+                "medianMs": 16.051099999999998,
+                "medianProgramMs": 14.9678,
+                "medianCheckerMs": 1.035199999999998,
+                "p95Ms": 17.991799999999998,
+                "medianCpuMs": 15.625,
+                "medianAllocatedBytes": 20501640,
+                "peakRssBytes": 44613632,
+                "releasedHeapGrowthBytes": 18624
+            },
+            "before": {
+                "samples": 15,
+                "medianMs": 65.0418,
+                "medianProgramMs": 62.5801,
+                "medianCheckerMs": 2.3438000000000017,
+                "p95Ms": 75.7998,
+                "medianCpuMs": 125,
+                "medianAllocatedBytes": 86550832,
+                "peakRssBytes": 164159488,
+                "releasedHeapGrowthBytes": 792
+            },
+            "after": {
+                "samples": 15,
+                "medianMs": 60.8453,
+                "medianProgramMs": 58.6009,
+                "medianCheckerMs": 2.2849000000000004,
+                "p95Ms": 64.7143,
+                "medianCpuMs": 109.375,
+                "medianAllocatedBytes": 63921168,
+                "peakRssBytes": 161689600,
+                "releasedHeapGrowthBytes": 8520
+            },
+            "satoriGo": {
+                "samples": 15,
+                "medianMs": 16.0446,
+                "medianProgramMs": 15.013399999999999,
+                "medianCheckerMs": 1.022499999999999,
+                "p95Ms": 17.4012,
+                "medianCpuMs": 15.625,
+                "medianAllocatedBytes": 20503128,
+                "peakRssBytes": 44748800,
+                "releasedHeapGrowthBytes": 12768
+            },
+            "satori": {
+                "samples": 15,
+                "medianMs": 49.0763,
+                "medianProgramMs": 44.7622,
+                "medianCheckerMs": 4.165599999999998,
+                "p95Ms": 55.7457,
+                "medianCpuMs": 109.375,
+                "medianAllocatedBytes": 63921552,
+                "peakRssBytes": 300785664,
+                "releasedHeapGrowthBytes": 52528
+            },
+            "medianReductionPercent": 6.452004710816728,
+            "allocationReductionPercent": 26.14609643498286,
+            "afterToGo": 3.7907246232345453,
+            "satoriToGo": 3.05874250526657
+        }
+    ]
+}

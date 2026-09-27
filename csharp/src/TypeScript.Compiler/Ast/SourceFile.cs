@@ -76,10 +76,12 @@ public sealed partial class SourceFileNode
             Source.ToUtf16Position(node.Pos),
             Source.ToUtf16Position(node.End),
             node.Kind).ConfigureAwait(false);
+        Func<int, int>? toBytePosition = Source.IsAsciiOnly ? null : Source.ToBytePosition;
         foreach (JSDocNode comment in nodes)
         {
-            foreach (SyntaxNode child in comment.DescendantsAndSelf())
-                child.ConvertPositions(Source.ToBytePosition);
+            if (toBytePosition is not null)
+                foreach (SyntaxNode child in comment.DescendantsAndSelf())
+                    child.ConvertPositions(toBytePosition);
             comment.Parent = node;
         }
         return documentation.GetOrAdd(node, nodes);

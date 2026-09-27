@@ -12,7 +12,8 @@ import { createInterface } from "node:readline";
 const root = process.cwd();
 const option = (name, fallback) => process.argv.includes(name) ? process.argv[process.argv.indexOf(name) + 1] : fallback;
 const baselineDirectory = option("--baseline-directory");
-const backends = baselineDirectory ? ["before", "after"] : ["go", "release"];
+const includeGo = process.argv.includes("--include-go");
+const backends = baselineDirectory ? ["before", "after", ...includeGo ? ["go"] : []] : ["go", "release"];
 const output = path.resolve(option("--output-directory", baselineDirectory ? "built/csharp/checker-workloads-comparison" : "built/csharp/checker-workloads"));
 await mkdir(output, { recursive: true });
 const manifestText = await readFile(option("--manifest", "csharp/compatibility/phase4-workloads.json"), "utf8");
@@ -24,7 +25,7 @@ const dll = path.resolve(option("--candidate-directory", "csharp/tests/TypeScrip
 const compilerDll = path.join(path.dirname(dll), "TypeScript.Compiler.dll");
 const oracle = path.join(root, "built/csharp/checker-workload-oracle.exe");
 const sha256 = value => createHash("sha256").update(value).digest("hex");
-const env = { ...process.env, DOTNET_PROCESSOR_COUNT: String(manifest.processorCount), GOMAXPROCS: String(manifest.processorCount), DOTNET_TieredCompilation: "0", ...(serverGC ? { DOTNET_gcServer: "1" } : {}) };
+const env = { ...process.env, DOTNET_PROCESSOR_COUNT: String(manifest.processorCount), GOMAXPROCS: String(manifest.processorCount), DOTNET_TieredCompilation: "1", ...(serverGC ? { DOTNET_gcServer: "1" } : {}) };
 
 function server(command, args) {
     const child = spawn(command, args, { cwd: root, env, windowsHide: true, stdio: ["pipe", "pipe", "pipe"] });
@@ -83,6 +84,7 @@ for (const mode of manifest.modes) {
         const processes = baselineDirectory ? {
             before: server(dotnet, [path.resolve(baselineDirectory, "TypeScript.Compatibility.dll"), "--checker-workload-lines"]),
             after: server(dotnet, [dll, "--checker-workload-lines"]),
+            ...includeGo ? { go: server(oracle, []) } : {},
         } : { go: server(oracle, []), release: executable ? server(path.resolve(executable), ["--checker-workload-lines"]) : server(dotnet, [dll, "--checker-workload-lines"]) };
         try {
             for (let iteration = -manifest.warmups; iteration < manifest.samples; iteration++) {
@@ -145,10 +147,11 @@ const summary = {
             candidateSha256: sha256(await readFile(path.join(baselineDirectory, "TypeScript.Compatibility.dll"))),
             compilerSha256: sha256(await readFile(path.join(baselineDirectory, "TypeScript.Compiler.dll"))),
         },
-    } : { oracleSha256: sha256(await readFile(oracle)) }),
+    } : {}),
+    ...!baselineDirectory || includeGo ? { oracleSha256: sha256(await readFile(oracle)) } : {},
     samplesSha256: sha256(await readFile(path.join(output, "samples.jsonl"))),
     machine: { platform: process.platform, architecture: process.arch, os: os.version(), cpu: os.cpus()[0].model, availableMemoryBytes: os.totalmem() },
-    runtime: { dotnet, tieredCompilation: false, processorCount: manifest.processorCount, nativeAotExecuted: false, serverGC, executable, label: option("--runtime-label", "CoreCLR") },
+    runtime: { dotnet, tieredCompilation: true, processorCount: manifest.processorCount, nativeAotExecuted: false, serverGC, executable, label: option("--runtime-label", "CoreCLR") },
     groups,
     passed: groups.every(g => g.passed),
 };

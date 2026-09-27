@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Runtime.InteropServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
@@ -148,8 +149,7 @@ public sealed class BoundSourceFile
 
     internal NodeBinding Data(SyntaxNode node)
     {
-        if (!nodes.TryGetValue(node, out var data))
-            nodes.Add(node, data = new() { Flags = node.Flags });
-        return data;
+        ref NodeBinding? data = ref CollectionsMarshal.GetValueRefOrAddDefault(nodes, node, out _);
+        return data ??= new() { Flags = node.Flags };
     }
 }

@@ -1,0 +1,25 @@
+{
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "execution": "Tiered compilation enabled; paired Release CoreCLR and Go, fresh programs in warm processes",
+    "scope": "Fresh program construction, binding and complete semantic checking in warm processes; input decoding excluded",
+    "processorCount": 4,
+    "modes": [
+        "single",
+        "default"
+    ],
+    "warmups": 20,
+    "samples": 15,
+    "provisionalBudgets": {
+        "p95ElapsedMs": 5000,
+        "peakRssBytes": 536870912,
+        "releasedHeapGrowthBytes": 16777216
+    },
+    "budgetScope": "Existing Phase 4 operability budgets; timings compare runtime distributions, including their JIT and CoreLib, not an isolated collector substitution.",
+    "cases": [
+        "compiler/jsxComplexSignatureHasApplicabilityError.tsx",
+        "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+        "conformance/superInStaticMembers1.ts target=es2022",
+        "conformance/nodeModulesAllowJs1.ts module=node18",
+        "compiler/giant.ts"
+    ]
+}

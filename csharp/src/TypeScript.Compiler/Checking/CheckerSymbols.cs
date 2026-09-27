@@ -131,8 +131,14 @@ internal sealed class CheckerSymbols
 
     internal void MarkReferenced(Symbol symbol, S meaning) => references[symbol] = references.GetValueOrDefault(symbol) | meaning;
 
+    private NameResolver? nameResolver;
+
     internal NameResolver NameResolver(CancellationToken cancellation = default,
-        Func<IReadOnlyDictionary<string, Symbol>?, string, S, Symbol?>? lookup = null) => new(program.Configuration.Options, Binding)
+        Func<IReadOnlyDictionary<string, Symbol>?, string, S, Symbol?>? lookup = null)
+    {
+        if (lookup is null && nameResolver is { } cached && cached.Cancellation == cancellation)
+            return cached;
+        var resolver = new NameResolver(program.Configuration.Options, Binding)
         {
             Globals = Globals,
             ArgumentsSymbol = ArgumentsSymbol,
@@ -148,6 +154,10 @@ internal sealed class CheckerSymbols
             OnSuccessfullyResolvedSymbol = host.SuccessfulResolution,
             Cancellation = cancellation
         };
+        if (lookup is null)
+            nameResolver = resolver;
+        return resolver;
+    }
 
     private async ValueTask InitializeAsync(CancellationToken cancellation)
     {

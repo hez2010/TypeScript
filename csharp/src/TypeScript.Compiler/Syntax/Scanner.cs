@@ -209,15 +209,15 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
             if (ch == '#')
             {
                 pos++;
-                if (!ScanIdentifier(true, false))
+                if (!ScanIdentifier(true, false, out _))
                 {
                     Error(Messages.Invalid_character, pos - 1, 1);
                     Value = "#";
                 }
                 return Kind = SyntaxKind.PrivateIdentifier;
             }
-            if (ScanIdentifier(false, false))
-                return Kind = IdentifierKind(Value);
+            if (ScanIdentifier(false, false, out SyntaxKind identifierKind))
+                return Kind = identifierKind;
             if (ch == '>')
             {
                 pos++;
@@ -311,8 +311,9 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
             }
     }
 
-    private bool ScanIdentifier(bool privateName, bool jsxName)
+    private bool ScanIdentifier(bool privateName, bool jsxName, out SyntaxKind identifierKind)
     {
+        identifierKind = SyntaxKind.Unknown;
         int start = pos;
         int ch = CodePoint(out int width);
         StringBuilder? builder = null;
@@ -350,9 +351,23 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
             AppendCodePoint(builder, escaped);
             part = pos;
         }
-        Value = builder is null ? text[start..pos] : builder.Append(text.AsSpan(part, pos - part)).ToString();
-        if (privateName)
-            Value = "#" + Value;
+        if (builder is null)
+        {
+            int valueStart = privateName ? start - 1 : start;
+            ReadOnlySpan<char> valueText = text.AsSpan(valueStart, pos - valueStart);
+            identifierKind = IdentifierKind(valueText);
+            if (identifierKind != SyntaxKind.Identifier)
+                Value = TokenFacts.Text(identifierKind);
+            else
+                Value = valueText.ToString();
+        }
+        else
+        {
+            Value = builder.Append(text.AsSpan(part, pos - part)).ToString();
+            if (privateName)
+                Value = "#" + Value;
+            identifierKind = IdentifierKind(Value);
+        }
         return true;
     }
 
@@ -775,7 +790,7 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         {
             int idStart = pos;
             string saved = Value;
-            ScanIdentifier(false, false);
+            ScanIdentifier(false, false, out _);
             string identifier = Value;
             Value = saved;
             if (result != SyntaxKind.BigIntLiteral && identifier == "n")

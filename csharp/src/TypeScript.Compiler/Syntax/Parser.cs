@@ -232,11 +232,15 @@ public sealed partial class Parser
         ProcessSourceMetadata(file);
         file.NodeCount = factory.NodeCount;
         // Source positions remain bytes at the public AST boundary; scanning uses UTF-16.
-        foreach (SyntaxNode node in file.DescendantsAndSelf())
-            node.ConvertPositions(source.ToBytePosition);
-        foreach (JSDocNode comment in documentation.Values.SelectMany(nodes => nodes).Distinct())
-            foreach (SyntaxNode node in comment.DescendantsAndSelf())
-                node.ConvertPositions(source.ToBytePosition);
+        if (!source.IsAsciiOnly)
+        {
+            Func<int, int> toBytePosition = source.ToBytePosition;
+            foreach (SyntaxNode node in file.DescendantsAndSelf())
+                node.ConvertPositions(toBytePosition);
+            foreach (JSDocNode comment in documentation.Values.SelectMany(nodes => nodes).Distinct())
+                foreach (SyntaxNode node in comment.DescendantsAndSelf())
+                    node.ConvertPositions(toBytePosition);
+        }
         file.SetDocumentation(documentation);
         file.JSDocDiagnostics = documentationDiagnostics.Select(
             d => d with

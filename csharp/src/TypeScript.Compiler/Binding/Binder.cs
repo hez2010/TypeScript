@@ -158,10 +158,10 @@ public sealed partial class Binder
         DeclareNode(node);
         if (node.Kind > K.LastToken)
             await VisitContainer(node).ConfigureAwait(false);
-        if ((node.Flags & NodeFlags.ThisNodeHasError) != 0
-            || Enumerable.Range(
-                0,
-                node.ChildCount).Any(i => ((result.Get(node.GetChild(i))?.Flags ?? 0) & NodeFlags.ThisNodeOrAnySubNodesHasError) != 0))
+        bool hasError = (node.Flags & NodeFlags.ThisNodeHasError) != 0;
+        for (int i = 0, count = node.ChildCount; !hasError && i < count; i++)
+            hasError = ((result.Get(node.GetChild(i))?.Flags ?? 0) & NodeFlags.ThisNodeOrAnySubNodesHasError) != 0;
+        if (hasError)
             Data(node).Flags |= NodeFlags.ThisNodeOrAnySubNodesHasError;
     }
 

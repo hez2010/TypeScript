@@ -9,6 +9,7 @@ public sealed class SourceText
     public string Text { get; }
     public ReadOnlyMemory<byte> Bytes => bytes;
     public int Length => Text.Length;
+    internal bool IsAsciiOnly => map.IsAsciiOnly;
 
     public SourceText(ReadOnlySpan<byte> bytes)
     {
