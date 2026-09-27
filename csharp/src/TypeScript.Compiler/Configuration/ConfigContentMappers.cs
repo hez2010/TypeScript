@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Text.Json;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Diagnostics;
@@ -24,7 +25,7 @@ public sealed partial class ConfigParser
     {
         if (raw is null || raw.Value.ValueKind == JsonValueKind.Null)
             return [];
-        void Error(DiagnosticMessage message, params string[] args) =>
+        void Error(DiagnosticMessage message, params TextSlice[] args) =>
             errors.Add(source.Diagnostic(message, source.Value("contentMappers"), args));
         if (raw.Value.ValueKind != JsonValueKind.Array)
         {
@@ -92,7 +93,7 @@ public sealed partial class ConfigParser
             }
             SyntaxNode? optionSyntax = syntax is ObjectLiteralExpressionNode obj
                 ? obj.Properties?.OfType<PropertyAssignmentNode>().LastOrDefault(
-                    p => p.Name is StringLiteralNode { Text: "options" } || p.Name is IdentifierNode { Text: "options" })?.Initializer
+                    p => p.Name is StringLiteralNode { Text.Span: "options" } || p.Name is IdentifierNode { Text.Span: "options" })?.Initializer
                 : null;
             definitions.Add((JsonStrings.GetString(package), accepted.ToArray(), mapperOptions, optionSyntax));
         }

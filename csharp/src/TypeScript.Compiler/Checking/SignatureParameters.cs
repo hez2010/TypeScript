@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Globalization;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -198,7 +199,7 @@ internal sealed class SignatureParameters(TypeContext context, TypeAlgebra algeb
         return null;
     }
 
-    internal async ValueTask<string> NameAsync(Signature signature, int position, CancellationToken cancellation = default)
+    internal async ValueTask<TextSlice> NameAsync(Signature signature, int position, CancellationToken cancellation = default)
     {
         RequireOwned(signature);
         cancellation.ThrowIfCancellationRequested();
@@ -213,16 +214,16 @@ internal sealed class SignatureParameters(TypeContext context, TypeAlgebra algeb
             : parameter.Name;
     }
 
-    internal static string Label(TupleElementInfo element, Symbol? rest, int index)
+    internal static TextSlice Label(TupleElementInfo element, Symbol? rest, int index)
     {
         if (element.LabeledDeclaration is { } declaration)
             return ((IdentifierNode)((INamedNode)declaration).Name!).Text;
         if (rest?.ValueDeclaration is ParameterDeclarationNode parameter)
             return BindingLabel(parameter, index, element.Flags);
-        return (rest?.Name ?? "arg") + "_" + index.ToString(CultureInfo.InvariantCulture);
+        return TextSlice.Concat((rest?.Name ?? "arg"), "_", TextSlice.Format(index));
     }
 
-    private static string BindingLabel(SyntaxNode node, int index, ElementFlags flags)
+    private static TextSlice BindingLabel(SyntaxNode node, int index, ElementFlags flags)
     {
         while (true)
         {
@@ -231,8 +232,8 @@ internal sealed class SignatureParameters(TypeContext context, TypeAlgebra algeb
             if (name is IdentifierNode identifier)
                 return rest ? (flags & ElementFlags.Variable) != 0
                     ? identifier.Text
-                    : identifier.Text + "_" + index.ToString(CultureInfo.InvariantCulture)
-                    : (flags & ElementFlags.Fixed) != 0 ? identifier.Text : identifier.Text + "_n";
+                    : TextSlice.Concat(identifier.Text, "_", TextSlice.Format(index))
+                    : (flags & ElementFlags.Fixed) != 0 ? identifier.Text : TextSlice.Concat(identifier.Text, "_n");
             if (rest && name is BindingPatternNode { Kind: SyntaxKind.ArrayBindingPattern, Elements: { } elements })
             {
                 var last = elements.Count == 0 ? null : elements[^1];
@@ -250,7 +251,7 @@ internal sealed class SignatureParameters(TypeContext context, TypeAlgebra algeb
                     continue;
                 }
             }
-            return "arg_" + index.ToString(CultureInfo.InvariantCulture);
+            return TextSlice.Concat("arg_", TextSlice.Format(index));
         }
     }
 

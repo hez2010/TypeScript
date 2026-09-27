@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using K = TypeScript.Compiler.Syntax.SyntaxKind;
 using F = TypeScript.Compiler.Binding.FlowFlags;

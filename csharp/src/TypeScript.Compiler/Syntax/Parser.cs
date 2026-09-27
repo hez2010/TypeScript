@@ -100,7 +100,7 @@ public sealed partial class Parser
     public static SourceFileNode ParseSourceFile(ParseOptions options, SourceText source, CancellationToken cancellation = default) =>
         RunParse(ParseSourceFileAsync(options, source, cancellation));
 
-    internal static SyntaxNode? ParseIsolatedEntityName(string text)
+    internal static SyntaxNode? ParseIsolatedEntityName(TextSlice text)
     {
         var parser = new Parser(new("", ScriptKind.JS), new SourceText(text), default);
         var name = parser.EntityName();
@@ -286,10 +286,10 @@ public sealed partial class Parser
         return Token;
     }
 
-    private void Error(DiagnosticMessage message, params string[] args) =>
+    private void Error(DiagnosticMessage message, params TextSlice[] args) =>
         ErrorAt(message, scanner.TokenStart, scanner.Position - scanner.TokenStart, args);
 
-    private void ErrorAt(DiagnosticMessage message, int start, int length, params string[] args)
+    private void ErrorAt(DiagnosticMessage message, int start, int length, params TextSlice[] args)
     {
         if (diagnostics.Count == 0 || diagnostics[^1].Start != start)
             diagnostics.Add(new(message, start, length, args));
@@ -423,7 +423,7 @@ public sealed partial class Parser
     private SyntaxNode Literal()
     {
         int start = Pos;
-        string value = scanner.Value;
+        TextSlice value = scanner.Value;
         TokenFlags flags = scanner.Flags;
         SyntaxNode node = Token switch
         {

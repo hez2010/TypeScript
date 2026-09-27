@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using S = TypeScript.Compiler.Binding.SymbolFlags;
@@ -22,7 +23,7 @@ internal sealed class ModuleTypes(TypeContext context, CheckerLinks links, Alias
             result.ExportTable.Add(pair.Key, pair.Value);
         var declared = new List<Symbol>();
         var inherited = new List<Symbol>();
-        foreach (var (name, member) in resolved.Members ?? new Dictionary<string, Symbol>())
+        foreach (var (name, member) in resolved.Members ?? new Dictionary<TextSlice, Symbol>())
         {
             cancellation.ThrowIfCancellationRequested();
             if (!Named(name) || (member.Flags & S.Value) == 0
@@ -51,7 +52,7 @@ internal sealed class ModuleTypes(TypeContext context, CheckerLinks links, Alias
         return result;
     }
 
-    private static bool Named(string name) => !name.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal)
-        || name.StartsWith(Symbol.InternalPrefix + Symbol.InternalPrefix, StringComparison.Ordinal)
+    private static bool Named(TextSlice name) => !name.Span.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal)
+        || name.Span.StartsWith(Symbol.InternalPrefix + Symbol.InternalPrefix, StringComparison.Ordinal)
         || name.Length < 2 || name[1] is '@' or '#';
 }

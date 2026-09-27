@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -38,7 +39,7 @@ internal sealed partial class Checker
                 102 => "Node20",
                 199 => "NodeNext",
                 200 => "Preserve",
-                _ => "ModuleKind(" + ModuleKind.ToString(System.Globalization.CultureInfo.InvariantCulture) + ")"
+                _ => "ModuleKind(" + TextSlice.Format(ModuleKind) + ")"
             });
         if (ambient || node is PropertyDeclarationNode or PropertySignatureDeclarationNode or MethodDeclarationNode
             or MethodSignatureDeclarationNode
@@ -52,14 +53,14 @@ internal sealed partial class Checker
             && SemanticSyntax.DeclarationContainer(node) is SourceFileNode file && program.Symbols.Binding(file)?.IsModule == true)
         {
             int module = EmitModuleKind(node);
-            if (name.Text is "require" or "exports" && module < 5
+            if (name.Text.Span is "require" or "exports" && module < 5
                 || name.Text == "Object" && !SemanticSyntax.ClassLike(node) && module == 1)
                 Error(name, DiagnosticCode.DuplicateIdentifier0CompilerReservesName1InTopLevelScopeOfAModule, name.Text, name.Text);
             if (name.Text == "Promise" && TargetYear < 2017
                 && file.DescendantsAndSelf().Any(n => SemanticSyntax.HasModifier(n, SyntaxKind.AsyncKeyword)))
                 Error(name, DiagnosticCode.DuplicateIdentifier0CompilerReservesName1InTopLevelScopeOfAModuleContainingAsyncFunctions);
         }
-        if (TargetYear <= 2021 && name.Text is "WeakMap" or "WeakSet" or "Reflect")
+        if (TargetYear <= 2021 && name.Text.Span is "WeakMap" or "WeakSet" or "Reflect")
             deferredNameCollisions.Add(node);
     }
 
@@ -78,9 +79,9 @@ internal sealed partial class Checker
         foreach (var node in deferredNameCollisions.Where(n => SemanticSyntax.Source(n) == file))
         {
             cancellation.ThrowIfCancellationRequested();
-            string name = ((IdentifierNode)SemanticSyntax.Name(node)!).Text;
+            TextSlice name = ((IdentifierNode)SemanticSyntax.Name(node)!).Text;
             var scope = DeclarationOrder.BlockContainer(node);
-            if (name is "WeakMap" or "WeakSet")
+            if (name.Span is "WeakMap" or "WeakSet")
             {
                 if (scope is not null && (links.Nodes.Get(scope).Flags & NodeCheckFlags.ContainsClassWithPrivateIdentifiers) != 0)
                     Error(node, DiagnosticCode.CompilerReservesName0WhenEmittingPrivateIdentifierDownlevel, name);

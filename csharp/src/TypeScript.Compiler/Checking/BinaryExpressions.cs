@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
@@ -35,7 +36,7 @@ internal interface IBinaryExpressionHost
 
     void ArithmeticError(SyntaxNode node, Type type, DiagnosticCode code, bool suggestAwait);
 
-    void BinaryDiagnostic(SyntaxNode node, DiagnosticCode code, bool suggestion = false, params string[] arguments);
+    void BinaryDiagnostic(SyntaxNode node, DiagnosticCode code, bool suggestion = false, params TextSlice[] arguments);
 }
 
 internal sealed class BinaryExpressions(TypeContext context, TypeAlgebra algebra, TypePredicates predicates,
@@ -407,7 +408,7 @@ internal sealed class BinaryExpressions(TypeContext context, TypeAlgebra algebra
             : t == context.RegularFalseType
                 || t == context.FalseType
                 || (t.Flags & (TypeFlags.Void | TypeFlags.Nullable | TypeFlags.AnyOrUnknown)) != 0
-                || t is LiteralType { Value: "" or 0d } || t is LiteralType { Value: BigInteger integer }
+                || t is LiteralType { Value: TextSlice { IsEmpty: true } or 0d } || t is LiteralType { Value: BigInteger integer }
                     && integer.IsZero ? t : context.NeverType),
             cancellation: cancellation).ConfigureAwait(false) ?? context.NeverType;
 
@@ -462,7 +463,7 @@ internal sealed class BinaryExpressions(TypeContext context, TypeAlgebra algebra
     }
 
     private static bool IndirectCall(BinaryExpressionNode node) => node.Parent is ParenthesizedExpressionNode parent
-            && node.Left is NumericLiteralNode { Text: "0" }
+            && node.Left is NumericLiteralNode { Text.Span: "0" }
             && (parent.Parent is CallExpressionNode call && call.Expression == parent || parent.Parent is TaggedTemplateExpressionNode)
-            && (node.Right is PropertyAccessExpressionNode or ElementAccessExpressionNode or IdentifierNode { Text: "eval" });
+            && (node.Right is PropertyAccessExpressionNode or ElementAccessExpressionNode or IdentifierNode { Text.Span: "eval" });
 }

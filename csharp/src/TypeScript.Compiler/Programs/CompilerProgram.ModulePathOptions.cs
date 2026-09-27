@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Text.Json;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Configuration;
@@ -71,7 +72,7 @@ public sealed partial class CompilerProgram
             MessageChain = [new(Messages.Visit_https_Colon_Slash_Slashaka_ms_Slashts6_for_migration_information, -1, 0, [])]
         };
 
-        Diagnostic Create(DiagnosticMessage message, SyntaxNode? node, params string[] arguments)
+        Diagnostic Create(DiagnosticMessage message, SyntaxNode? node, params TextSlice[] arguments)
         {
             node ??= compilerProperty?.Name;
             if (node is null || source is null)

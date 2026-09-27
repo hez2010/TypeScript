@@ -41,8 +41,8 @@ internal static class CheckerAliasTests
             return ValueTask.FromResult<Symbol?>(Modules[declaration]);
         }
 
-        public void AmbiguousExport(ExportDeclarationNode declaration, string earlierSpecifierText, string name)
-                    => Conflicts.Add((earlierSpecifierText, name));
+        public void AmbiguousExport(ExportDeclarationNode declaration, TextSlice earlierSpecifierText, TextSlice name)
+                    => Conflicts.Add((earlierSpecifierText.ToString(), name.ToString()));
     }
 
     internal static async Task Safety()

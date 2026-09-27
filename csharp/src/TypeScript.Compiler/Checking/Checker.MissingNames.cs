@@ -1,3 +1,5 @@
+using TypeScript.Compiler.Semantics;
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -8,7 +10,7 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
-    private readonly Dictionary<string, Symbol> primitiveSuggestions = new(StringComparer.Ordinal);
+    private readonly Dictionary<TextSlice, Symbol> primitiveSuggestions = new();
     internal Dictionary<SyntaxNode, Symbol> SuggestedNameDeclarations { get; } = [];
 
     internal async ValueTask MissingQualifiedAsync(
@@ -18,8 +20,8 @@ internal sealed partial class Checker
         S meaning,
         CancellationToken cancellation)
     {
-        string namespaceName = await FullyQualifiedNameAsync(parent, null, cancellation);
-        string memberName = CheckerDiagnostic.DeclarationName(right);
+        TextSlice namespaceName = await FullyQualifiedNameAsync(parent, null, cancellation);
+        TextSlice memberName = CheckerDiagnostic.DeclarationName(right);
         var exports = await ExportsAsync(parent, cancellation);
         if (await SymbolSuggestions.FindAsync(memberName, exports.Values, S.ModuleMember, cancellation) is { } suggestion)
         {
@@ -77,7 +79,7 @@ internal sealed partial class Checker
         return symbol;
     }
 
-    internal async ValueTask FailedNameAsync(SyntaxNode? location, string name, S meaning, DiagnosticMessage message)
+    internal async ValueTask FailedNameAsync(SyntaxNode? location, TextSlice name, S meaning, DiagnosticMessage message)
     {
         if (location is not null)
         {
@@ -116,7 +118,7 @@ internal sealed partial class Checker
             ? CheckerDiagnostic.DeclarationName(location) : name);
     }
 
-    private async ValueTask<bool> WrongNameMeaningAsync(SyntaxNode location, string name, S meaning)
+    private async ValueTask<bool> WrongNameMeaningAsync(SyntaxNode location, TextSlice name, S meaning)
     {
         async ValueTask<Symbol?> Find(S flags) => await program.Aliases.SymbolAsync(
             program.Symbols.NameResolver().Resolve(location, name, flags)).ConfigureAwait(false);
@@ -135,7 +137,7 @@ internal sealed partial class Checker
                 Error(location, DiagnosticCode.X0OnlyRefersToATypeButIsBeingUsedAsANamespaceHere, name);
             return true;
         }
-        bool primitive = name is "any" or "string" or "number" or "boolean" or "never" or "unknown";
+        bool primitive = name.Span is "any" or "string" or "number" or "boolean" or "never" or "unknown";
         if (primitive && location.Parent is ExportSpecifierNode)
         {
             Error(location, DiagnosticCode.CannotExport0OnlyLocalDeclarationsCanBeExportedFromAModule, name);
@@ -184,7 +186,7 @@ internal sealed partial class Checker
                 if (ExportAssignmentName(location))
                     return true;
                 DiagnosticCode code = DiagnosticCode.X0OnlyRefersToATypeButIsBeingUsedAsAValueHere;
-                if (name is "Promise" or "Symbol" or "Map" or "WeakMap" or "Set" or "WeakSet")
+                if (name.Span is "Promise" or "Symbol" or "Map" or "WeakMap" or "Set" or "WeakSet")
                     code = DiagnosticCode.X0OnlyRefersToATypeButIsBeingUsedAsAValueHereDoYouNeedToChangeYourTargetLibraryTryChangingTheLibCompilerOptionToEs2015OrLater;
                 else
                 {
@@ -223,7 +225,7 @@ internal sealed partial class Checker
         return false;
     }
 
-    private Symbol? SuggestionLookup(IReadOnlyDictionary<string, Symbol>? table, string name, S meaning)
+    private Symbol? SuggestionLookup(IReadOnlyDictionary<TextSlice, Symbol>? table, TextSlice name, S meaning)
     {
         if (program.Symbols.Lookup(table, name, meaning) is { } exact)
             return exact;
@@ -233,11 +235,11 @@ internal sealed partial class Checker
         if ((meaning & S.GlobalLookup) != 0)
         {
             var extras = new List<Symbol>();
-            foreach (string builtin in new[] { "String", "Number", "Boolean", "Object", "BigInt", "Symbol" })
+            foreach (TextSlice builtin in new[] { "String", "Number", "Boolean", "Object", "BigInt", "Symbol" })
                 if (table.ContainsKey(builtin))
                 {
                     if (!primitiveSuggestions.TryGetValue(builtin, out var symbol))
-                        primitiveSuggestions[builtin] = symbol = new(S.TypeAlias | S.Transient, builtin.ToLowerInvariant());
+                        primitiveSuggestions[builtin] = symbol = new(S.TypeAlias | S.Transient, JsCase.Lower(builtin));
                     extras.Add(symbol);
                 }
             candidates = candidates.Concat(extras);

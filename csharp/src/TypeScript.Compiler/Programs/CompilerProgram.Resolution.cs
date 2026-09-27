@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Configuration;
 using TypeScript.Compiler.Diagnostics;
@@ -98,7 +99,7 @@ public sealed partial class CompilerProgram
             return result.IsResolved ? result.FileName : CompilerPath.Combine(libraryDirectory, name);
         }
 
-        private static string ImportText(SyntaxNode node) => node switch
+        private static TextSlice ImportText(SyntaxNode node) => node switch
         {
             StringLiteralNode n => n.Text,
             NoSubstitutionTemplateLiteralNode n => n.Text,
@@ -164,19 +165,19 @@ public sealed partial class CompilerProgram
             };
             if (attributes is not null)
                 foreach (var attribute in attributes.DescendantsAndSelf().OfType<ImportAttributeNode>())
-                    if (attribute.Name is StringLiteralNode { Text: "resolution-mode" } && attribute.Value is StringLiteralNode mode)
+                    if (attribute.Name is StringLiteralNode { Text.Span: "resolution-mode" } && attribute.Value is StringLiteralNode mode)
                         return mode.Text == "import"
                             ? ReferenceResolutionMode.Import
                             : mode.Text == "require" ? ReferenceResolutionMode.Require : 0;
             if (!SyntaxAffectsResolution(options))
                 return 0;
             if (node?.Parent is ExternalModuleReferenceNode
-                || node?.Parent is CallExpressionNode { Expression: IdentifierNode { Text: "require" } })
+                || node?.Parent is CallExpressionNode { Expression: IdentifierNode { Text.Span: "require" } })
                 return ReferenceResolutionMode.Require;
             string module = ModuleKind(options);
             ReferenceResolutionMode format = ImpliedMode(path, options, implied, packageType);
             if (node?.Parent is CallExpressionNode call && (call.Expression?.Kind == K.ImportKeyword
-                || call.Expression is MetaPropertyNode { KeywordToken: K.ImportKeyword, Name.Text: "defer" }))
+                || call.Expression is MetaPropertyNode { KeywordToken: K.ImportKeyword, Name.Text.Span: "defer" }))
                 return module is "node16" or "node18" or "node20" or "nodenext" or "preserve" ? ReferenceResolutionMode.Import
                     : format == ReferenceResolutionMode.Require || format == 0 && module is "commonjs" or "amd" or "system" or "umd"
                         ? ReferenceResolutionMode.Require

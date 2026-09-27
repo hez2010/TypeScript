@@ -35,7 +35,7 @@ internal sealed class ConfigSyntax
         var namePatches = new List<(int Start, int End, string Name)>();
         using (var writer = new Utf8JsonWriter(buffer, new() { MaxDepth = int.MaxValue }))
         {
-            var pending = new Stack<(SyntaxNode? Node, string? Name, byte Operation)>();
+            var pending = new Stack<(SyntaxNode? Node, TextSlice? Name, byte Operation)>();
             if (root is null)
             {
                 writer.WriteStartObject();
@@ -57,7 +57,7 @@ internal sealed class ConfigSyntax
                     continue;
                 }
                 if (item.Name is not null)
-                    JsonStrings.WriteName(writer, item.Name, namePatches);
+                    JsonStrings.WriteName(writer, item.Name.Value.ToString(), namePatches);
                 switch (item.Node)
                 {
                     case ObjectLiteralExpressionNode obj:
@@ -67,12 +67,12 @@ internal sealed class ConfigSyntax
                             for (int i = obj.Properties.Count - 1; i >= 0; i--)
                                 if (obj.Properties[i] is PropertyAssignmentNode property)
                                 {
-                                    string? name = property.Name switch
+                                    TextSlice? name = property.Name switch
                                     {
                                         StringLiteralNode text => text.Text,
                                         IdentifierNode identifier => identifier.Text,
                                         NumericLiteralNode number => number.Text,
-                                        _ => null
+                                        _ => (TextSlice?)null
                                     };
                                     if (name is null)
                                     {
@@ -94,7 +94,7 @@ internal sealed class ConfigSyntax
                         break;
                     case StringLiteralNode text:
                         CheckDoubleQuoted(text);
-                        JsonStrings.WriteString(writer, text.Text);
+                        JsonStrings.WriteString(writer, text.Text.Span);
                         break;
                     case NumericLiteralNode number:
                         WriteNumber(number, false);
@@ -199,7 +199,7 @@ internal sealed class ConfigSyntax
         return Source.Source.ToBytePosition(scanner.TokenStart);
     }
 
-    public Diagnostic Diagnostic(DiagnosticMessage message, SyntaxNode? node, params string[] arguments)
+    public Diagnostic Diagnostic(DiagnosticMessage message, SyntaxNode? node, params TextSlice[] arguments)
     {
         int start = node is null ? 0 : Start(node);
         return new(message, start, node is null ? 0 : Math.Max(0, node.End - start), arguments) { FileName = Source.FileName };

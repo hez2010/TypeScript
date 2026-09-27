@@ -112,7 +112,7 @@ internal static class SyntaxTests
                         writer.WriteNumberValue(file.Source.ToUtf16Position(node.Pos));
                         writer.WriteNumberValue(file.Source.ToUtf16Position(node.End));
                         writer.WriteNumberValue((uint)node.Flags);
-                        string value = node switch
+                        TextSlice value = node switch
                         {
                             IdentifierNode n => n.Text,
                             PrivateIdentifierNode n => n.Text,
@@ -229,8 +229,8 @@ internal static class SyntaxTests
         writer.WriteNumberValue(start);
         writer.WriteNumberValue(source.ToUtf16Position(diagnostic.Start + diagnostic.Length) - start);
         writer.WriteStartArray();
-        foreach (string argument in diagnostic.Arguments)
-            writer.WriteStringValue(argument);
+        foreach (TextSlice argument in diagnostic.Arguments)
+            writer.WriteStringValue(argument.Span);
         writer.WriteEndArray();
         writer.WriteStartArray();
         foreach (var related in diagnostic.RelatedInformation)

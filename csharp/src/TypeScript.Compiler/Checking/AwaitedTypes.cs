@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -298,7 +299,7 @@ internal sealed class AwaitedTypes(TypeContext context, TypeAlgebra algebra, Typ
         return true;
     }
 
-    private async ValueTask<Type?> PropertyTypeAsync(Type type, string name, CancellationToken cancellation)
+    private async ValueTask<Type?> PropertyTypeAsync(Type type, TextSlice name, CancellationToken cancellation)
             =>
                 await properties.PropertyAsync(type, name, cancellation: cancellation).ConfigureAwait(false) is { } property
                     ? await values.GetAsync(property, cancellation).ConfigureAwait(false)

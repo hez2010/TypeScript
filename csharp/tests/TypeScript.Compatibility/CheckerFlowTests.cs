@@ -37,7 +37,7 @@ internal static class CheckerFlowTests
         var host = new Checker(context, links, scope);
         var nodes = program.SourceFiles[0].Syntax.DescendantsAndSelf().ToArray();
         var function = nodes.OfType<FunctionDeclarationNode>().Single(n => n.Name?.Text == "f");
-        var reference = nodes.OfType<CallExpressionNode>().Single(n => n.Expression is IdentifierNode { Text: "__flow" }).Arguments![0];
+        var reference = nodes.OfType<CallExpressionNode>().Single(n => n.Expression is IdentifierNode { Text: { Span: "__flow" } }).Arguments![0];
         var symbol = scope.ReferenceSymbols.Resolve((IdentifierNode)reference);
         var declared = await host.Values.GetAsync(symbol);
         using (var cancellation = new CancellationTokenSource())
@@ -171,7 +171,7 @@ internal static class CheckerFlowTests
         var x = freshSymbols.Declaration((SyntaxNode)((IFunctionSignature)function).Parameters![0])!;
         using (var cancellation = new CancellationTokenSource())
         {
-            var nestedParameter = nodes.OfType<ParameterDeclarationNode>().Single(n => n.Name is IdentifierNode { Text: "z" });
+            var nestedParameter = nodes.OfType<ParameterDeclarationNode>().Single(n => n.Name is IdentifierNode { Text: { Span: "z" } });
             freshScope.BeforeValueResolution = () =>
             {
                 assignments.GetAsync(freshSymbols.Declaration(nestedParameter)!).GetAwaiter().GetResult();
@@ -189,13 +189,13 @@ internal static class CheckerFlowTests
         }
         Check((freshLinks.Nodes.Get(function).Flags & NodeCheckFlags.AssignmentsMarked) == 0);
         var nestedFunction = nodes.OfType<ArrowFunctionNode>().Single(
-            n => n.Parameters is { Count: > 0 } && n.Parameters[0] is ParameterDeclarationNode { Name: IdentifierNode { Text: "z" } });
+            n => n.Parameters is { Count: > 0 } && n.Parameters[0] is ParameterDeclarationNode { Name: IdentifierNode { Text: { Span: "z" } } });
         Check((freshLinks.Nodes.Get(nestedFunction).Flags & NodeCheckFlags.AssignmentsMarked) == 0);
         freshScope.BeforeValueResolution = null;
         var mark = await assignments.GetAsync(x);
         Check(mark.Definite && mark.LastPosition > 0 && mark.LastPosition != int.MaxValue);
         Check(await assignments.PastLastAsync(x, reference));
-        var yDeclaration = nodes.OfType<ParameterDeclarationNode>().Single(n => n.Name is IdentifierNode { Text: "y" });
+        var yDeclaration = nodes.OfType<ParameterDeclarationNode>().Single(n => n.Name is IdentifierNode { Text: { Span: "y" } });
         var y = freshSymbols.Declaration(yDeclaration)!;
         Check((await assignments.GetAsync(y)).LastPosition == int.MaxValue && await assignments.DefiniteAsync(y));
         Check(!await assignments.PastLastAsync(y, reference));

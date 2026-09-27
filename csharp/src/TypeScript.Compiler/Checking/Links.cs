@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 
@@ -77,8 +78,8 @@ internal sealed class ExportTypeLinks
 
 internal sealed class ModuleSymbolLinks
 {
-    internal IReadOnlyDictionary<string, Symbol>? ResolvedExports { get; set; }
-    internal IReadOnlyDictionary<string, SyntaxNode>? TypeOnlyExportStars { get; set; }
+    internal IReadOnlyDictionary<TextSlice, Symbol>? ResolvedExports { get; set; }
+    internal IReadOnlyDictionary<TextSlice, SyntaxNode>? TypeOnlyExportStars { get; set; }
 }
 
 internal sealed class TypeAliasLinks

@@ -26,7 +26,7 @@ internal static partial class GoUnicode
     }
 
     // Go's []rune uses strict UTF-8 and consumes one byte per invalid encoding.
-    internal static int[] Runes(string text)
+    internal static int[] Runes(ReadOnlySpan<char> text)
     {
         ReadOnlySpan<char> remaining = text;
         List<int> result = [];

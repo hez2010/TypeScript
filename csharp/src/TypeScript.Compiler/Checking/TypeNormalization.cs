@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -9,7 +10,7 @@ internal interface ITypeNormalizationHost
 {
     ValueTask<Type> SimplifyAsync(Type type, bool writing, CancellationToken cancellation);
 
-    ValueTask<IReadOnlyDictionary<string, Symbol>> MembersAsync(Symbol symbol, CancellationToken cancellation);
+    ValueTask<IReadOnlyDictionary<TextSlice, Symbol>> MembersAsync(Symbol symbol, CancellationToken cancellation);
 }
 
 internal sealed class TypeNormalization(TypeContext context, TypeAlgebra algebra, TypeReferences references, TupleTypes tuples,

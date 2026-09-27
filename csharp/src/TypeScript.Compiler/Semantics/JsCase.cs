@@ -1,17 +1,25 @@
+using TypeScript.Compiler.Text;
 using System.Text;
 
 namespace TypeScript.Compiler.Semantics;
 
 internal static partial class JsCase
 {
-    internal static string Upper(string text) => Convert(text, true);
+    internal static TextSlice Upper(TextSlice text) => Convert(text, true);
 
-    internal static string Lower(string text) => Convert(text, false);
+    internal static TextSlice Lower(TextSlice text) => Convert(text, false);
 
-    private static string Convert(string text, bool upper)
+    private static TextSlice Convert(TextSlice text, bool upper)
     {
-        if (!text.AsSpan().ContainsAnyExceptInRange('\0', '\x7f'))
-            return upper ? text.ToUpperInvariant() : text.ToLowerInvariant();
+        if (!text.Span.ContainsAnyExceptInRange('\0', '\x7f'))
+        {
+            char[] mapped = new char[text.Length];
+            if (upper)
+                text.Span.ToUpperInvariant(mapped);
+            else
+                text.Span.ToLowerInvariant(mapped);
+            return new(mapped);
+        }
         var result = new StringBuilder(text.Length);
         bool casedBefore = false;
         for (int i = 0; i < text.Length;)
@@ -21,14 +29,14 @@ internal static partial class JsCase
                 result.Append(upper ? mapping.Upper : mapping.FinalLower is not null && casedBefore && !CasedAfter(text, i)
                     ? mapping.FinalLower : mapping.Lower);
             else
-                result.Append(text.AsSpan(start, i - start));
+                result.Append(text.Span.Slice(start, i - start));
             if (!InRanges(CaseIgnorable, scalar))
                 casedBefore = InRanges(Cased, scalar);
         }
-        return result.ToString();
+        return TextSlice.FromBuilder(result);
     }
 
-    private static bool CasedAfter(string text, int index)
+    private static bool CasedAfter(TextSlice text, int index)
     {
         while (index < text.Length)
         {
@@ -39,10 +47,10 @@ internal static partial class JsCase
         return false;
     }
 
-    internal static int FirstScalarLength(string text) => text.Length == 0 ? 0
+    internal static int FirstScalarLength(TextSlice text) => text.Length == 0 ? 0
         : text.Length >= 2 && char.IsSurrogatePair(text[0], text[1]) ? 2 : 1;
 
-    private static int Next(string text, ref int index)
+    private static int Next(TextSlice text, ref int index)
     {
         char first = text[index++];
         return char.IsHighSurrogate(first) && index < text.Length && char.IsLowSurrogate(text[index])

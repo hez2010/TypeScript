@@ -400,7 +400,7 @@ internal static class CheckerSignatureTests
             checks++;
         }
         var successful = file.DescendantsAndSelf().OfType<VariableDeclarationNode>()
-            .Single(d => d.Name is IdentifierNode { Text: "overloadSuccess" });
+            .Single(d => d.Name is IdentifierNode { Text: { Span: "overloadSuccess" } });
         if (checker.DetailedDiagnosticsForFile(file).Any(d => d.Start >= successful.Pos && d.Start < successful.End))
             throw new InvalidOperationException("Successful overload retained trial failures");
         return checks + 1;

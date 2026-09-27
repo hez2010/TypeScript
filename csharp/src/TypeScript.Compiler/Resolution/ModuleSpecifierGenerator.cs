@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Text.Json;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Configuration;
@@ -76,14 +77,14 @@ internal sealed partial class ModuleSpecifierGenerator(IModuleSpecifierHost host
                 }
             if (existing is null)
                 continue;
-            string text = existing is StringLiteralNode literal ? literal.Text : ((NoSubstitutionTemplateLiteralNode)existing).Text;
-            if (preferences.Relative == "non-relative" && Relative(text))
+            TextSlice text = existing is StringLiteralNode literal ? literal.Text : ((NoSubstitutionTemplateLiteralNode)existing).Text;
+            if (preferences.Relative == "non-relative" && Relative(text.ToString()))
                 continue;
             var existingMode = host.ResolutionMode(source, existing);
             if (existingMode != mode && existingMode != 0 && mode != 0)
                 continue;
             if (text.Length != 0)
-                return new(Array.AsReadOnly(new[] { text }), ModuleSpecifierKind.None);
+                return new(Array.AsReadOnly(new[] { text.ToString() }), ModuleSpecifierKind.None);
             break;
         }
 

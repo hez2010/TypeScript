@@ -128,7 +128,14 @@ public sealed partial class ModuleResolver
             return null;
         }
 
-        private static bool InvalidSegments(string path) => path.Split('/').Any(s => s is "." or ".." or "node_modules");
+        private static bool InvalidSegments(string path)
+        {
+            ReadOnlySpan<char> text = path;
+            foreach (Range range in text.Split('/'))
+                if (text[range] is "." or ".." or "node_modules")
+                    return true;
+            return false;
+        }
 
         private ResolvedModule? InputFile(string path, string entry, PackageJson package, bool imports)
         {

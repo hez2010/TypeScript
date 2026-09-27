@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -14,8 +15,8 @@ internal sealed partial class Checker
         foreach (var renamed in RenamedBindingElements)
             if (SemanticSyntax.Source(renamed) == file && program.Symbols.ReferenceKinds(program.Symbols.Declaration(renamed)!) == 0)
             {
-                string name = CheckerDiagnostic.DeclarationName(renamed.Name!);
-                string property = CheckerDiagnostic.DeclarationName(renamed.PropertyName!);
+                TextSlice name = CheckerDiagnostic.DeclarationName(renamed.Name!);
+                TextSlice property = CheckerDiagnostic.DeclarationName(renamed.PropertyName!);
                 var diagnostic = CheckerDiagnostic.Create(
                     renamed.Name!,
                     Messages.X_0_is_an_unused_renaming_of_1_Did_you_intend_to_use_it_as_a_type_annotation,
@@ -73,7 +74,7 @@ internal sealed partial class Checker
             return;
         if (program.Symbols.Program.Configuration.Options.Boolean(parameter ? "noUnusedParameters" : "noUnusedLocals") == true)
         {
-            string[] arguments = [];
+            TextSlice[] arguments = [];
             if (code is DiagnosticCode.X0IsDeclaredButItsValueIsNeverRead or DiagnosticCode.Property0IsDeclaredButItsValueIsNeverRead
                 or DiagnosticCode.X0IsDeclaredButNeverUsed)
             {
@@ -204,7 +205,7 @@ internal sealed partial class Checker
             var name = SemanticSyntax.Name(declaration);
             if (name is null
                 || ParameterProperty(declaration)
-                || declaration is ParameterDeclarationNode { Name: IdentifierNode { Text: "this" } })
+                || declaration is ParameterDeclarationNode { Name: IdentifierNode { Text.Span: "this" } })
                 continue;
             if (name is BindingPatternNode pattern)
             {
@@ -251,7 +252,7 @@ internal sealed partial class Checker
         return true;
     }
 
-    private static bool StartsWithUnderscore(SyntaxNode? node) => node is IdentifierNode identifier && identifier.Text.StartsWith('_');
+    private static bool StartsWithUnderscore(SyntaxNode? node) => node is IdentifierNode identifier && identifier.Text.Span.StartsWith('_');
 
     private bool UnreferencedTypeParameter(SyntaxNode parameter) => !StartsWithUnderscore(SemanticSyntax.Name(parameter))
         && (program.Symbols.ReferenceKinds(program.Symbols.Declaration(parameter)!) & SymbolFlags.TypeParameter) == 0;

@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -94,7 +95,7 @@ internal sealed partial class Checker
         if (report)
         {
             var tagName = JsxTag(node)!;
-            string name = CheckerDiagnostic.DeclarationName(tagName);
+            TextSlice name = CheckerDiagnostic.DeclarationName(tagName);
             var diagnostic = CheckerDiagnostic.Create(tagName,
                 Messages.Tag_0_expects_at_least_1_arguments_but_the_JSX_factory_2_provides_at_most_3,
                 name, CountText(minimum), JsxFactoryName(node), CountText(maximum));
@@ -117,7 +118,7 @@ internal sealed partial class Checker
     {
         if ((type.Flags & TypeFlags.String) != 0)
             return [CallSignatures.Any];
-        if (type is LiteralType { Flags: var flags, Value: string name } && (flags & TypeFlags.StringLiteral) != 0)
+        if (type is LiteralType { Flags: var flags, Value: TextSlice name } && (flags & TypeFlags.StringLiteral) != 0)
         {
             var intrinsic = await JsxTypeAsync("IntrinsicElements", node, cancellation);
             Type? props = intrinsic == context.ErrorType

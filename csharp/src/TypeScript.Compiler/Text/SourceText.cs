@@ -6,7 +6,7 @@ public sealed class SourceText
     private readonly byte[] bytes;
     private readonly PositionMap map;
     private int[]? lineStarts;
-    public string Text { get; }
+    public TextSlice Text { get; }
     public ReadOnlyMemory<byte> Bytes => bytes;
     public int Length => Text.Length;
     internal bool IsAsciiOnly => map.IsAsciiOnly;
@@ -18,7 +18,9 @@ public sealed class SourceText
         map = new PositionMap(bytes);
     }
 
-    public SourceText(string text)
+    public SourceText(string text) : this((TextSlice)text) { }
+
+    public SourceText(TextSlice text)
     {
         Text = text;
         bytes = Wtf8.Encode(text);

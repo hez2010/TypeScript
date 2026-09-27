@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -17,14 +18,14 @@ internal sealed partial class Checker
         bool reported = false;
         foreach (var attribute in attributes.Properties!.OfType<JsxAttributeNode>())
         {
-            string name = JsxName(attribute.Name!);
-            if (!name.Contains('-'))
+            TextSlice name = JsxName(attribute.Name!);
+            if (!name.Span.Contains('-'))
                 reported |= await LiteralElaboration.ElementAsync(source, target, relation,
                 attribute.Name!, attribute.Initializer, context.GetStringLiteralType(name), null, cancellation);
         }
         if (attributes.Parent is not JsxOpeningElementNode { Parent: JsxElementNode element })
             return reported;
-        string nameOfChildren = await JsxPropertyNameAsync("ElementChildrenAttribute", attributes, cancellation) ?? "children";
+        TextSlice nameOfChildren = await JsxPropertyNameAsync("ElementChildrenAttribute", attributes, cancellation) ?? "children";
         var nameType = context.GetStringLiteralType(nameOfChildren);
         var childrenTarget = await Indexed.GetAsync(target, nameType, cancellation: cancellation);
         var children = JsxSemanticChildren(element);
@@ -96,7 +97,7 @@ internal sealed partial class Checker
                             cancellation);
                     else
                     {
-                        string propertyName = i.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                        TextSlice propertyName = TextSlice.Format(i);
                         bool targetOptional = (await Properties.PropertyAsync(indexedParts, propertyName, cancellation: cancellation))
                             is { Flags: var flags } && (flags & SymbolFlags.Optional) != 0;
                         bool sourceOptional = (await Properties.PropertyAsync(tuple, propertyName, cancellation: cancellation))

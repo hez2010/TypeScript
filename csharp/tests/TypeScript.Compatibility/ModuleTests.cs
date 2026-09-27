@@ -26,10 +26,10 @@ internal static class ModuleTests
             "Type/as import erasure flags");
         Check(importSpecifiers.Select(s => s.Name!.Text).SequenceEqual(["type", "as", "as", "as", "B", "y"]), "Type/as import local names");
         Check(
-            importSpecifiers[2].PropertyName is IdentifierNode { Text: "type" }
-                && importSpecifiers[3].PropertyName is IdentifierNode { Text: "as" },
+            importSpecifiers[2].PropertyName is IdentifierNode { Text: { Span: "type" } }
+                && importSpecifiers[3].PropertyName is IdentifierNode { Text: { Span: "as" } },
             "Type/as import remote names");
-        Check(importSpecifiers[5].PropertyName is StringLiteralNode { Text: "x" }, "Arbitrary module export names imported by alias");
+        Check(importSpecifiers[5].PropertyName is StringLiteralNode { Text: { Span: "x" } }, "Arbitrary module export names imported by alias");
         var exports = Parse("export { type, type as, type as as, type as as as, type A as 'B' };");
         var exportSpecifiers = ((NamedExportsNode)((ExportDeclarationNode)exports.Statements![0]).ExportClause!).Elements!
             .Cast<ExportSpecifierNode>().ToArray();
@@ -37,7 +37,7 @@ internal static class ModuleTests
             exports.ParseDiagnostics.Count == 0
                 && exportSpecifiers.Select(s => s.IsTypeOnly).SequenceEqual([false, true, false, true, true]),
             "Type/as export erasure flags");
-        Check(exportSpecifiers[^1].Name is StringLiteralNode { Text: "B" }, "Arbitrary exported alias");
+        Check(exportSpecifiers[^1].Name is StringLiteralNode { Text: { Span: "B" } }, "Arbitrary exported alias");
         foreach (var (text, phase, name) in new[]
         {
             ("import type from 'p';", SyntaxKind.Unknown, "type"),
@@ -56,7 +56,7 @@ internal static class ModuleTests
         }
         var equals = Parse("import type from = Names.Value;");
         Check(
-            equals.Statements![0] is ImportEqualsDeclarationNode { IsTypeOnly: true, Name.Text: "from" },
+            equals.Statements![0] is ImportEqualsDeclarationNode { IsTypeOnly: true, Name.Text: { Span: "from" } },
             "Type import equals disambiguation");
         foreach (string text in new[]
         {
@@ -73,7 +73,7 @@ internal static class ModuleTests
         }
         Check(
             ((ExportDeclarationNode)Parse("export * as '😀' from 'p';").Statements![0]).ExportClause
-                is NamespaceExportNode { Name: StringLiteralNode { Text: "😀" } },
+                is NamespaceExportNode { Name: StringLiteralNode { Text: { Span: "😀" } } },
             "String namespace export name");
         Check(
             Parse("export default async function () {}").Statements![0] is FunctionDeclarationNode { Modifiers: { } functionModifiers }

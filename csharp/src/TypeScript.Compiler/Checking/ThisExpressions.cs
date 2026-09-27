@@ -199,7 +199,7 @@ internal sealed class ThisExpressions(TypeContext context, CheckerLinks links, C
     private static ParameterDeclarationNode? ThisParameter(IFunctionSignature function)
         =>
             function.Parameters is { Count: > 0 } parameters
-                && parameters[0] is ParameterDeclarationNode { Name: IdentifierNode { Text: "this" } } parameter
+                && parameters[0] is ParameterDeclarationNode { Name: IdentifierNode { Text.Span: "this" } } parameter
                 ? parameter
                 : null;
 

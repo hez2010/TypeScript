@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Buffers.Binary;
 using System.IO.Hashing;
+using System.Text;
 using TypeScript.Compiler.Storage;
 using TypeScript.Compiler.Syntax;
 using TypeScript.Compiler.Text;
@@ -55,15 +56,9 @@ public static class SliceEncoder
             foreach (NodeId import in file.Imports)
                 MessagePackUInt(structured, indices[import]);
         }
-        // SourceFile is always first, with its 76-byte extended record at zero.
-        byte[] extendedBytes = extended.WrittenSpan.ToArray();
-        BinaryPrimitives.WriteUInt32LittleEndian(extendedBytes.AsSpan(32), importsOffset);
-        BinaryPrimitives.WriteUInt32LittleEndian(
-            extendedBytes.AsSpan(44),
-            file.ExternalModuleIndicator.IsNull ? 0 : indices[file.ExternalModuleIndicator]);
         int stringDataOffset = checked(AstPacket.HeaderSize + offsets.Count * 4);
         int extendedOffset = checked(stringDataOffset + strings.WrittenCount);
-        int structuredOffset = checked(extendedOffset + extendedBytes.Length);
+        int structuredOffset = checked(extendedOffset + extended.WrittenCount);
         int nodeOffset = checked(structuredOffset + structured.WrittenCount);
         byte[] result = new byte[checked(nodeOffset + records.Count * NodeRecord.Size)];
         BinaryPrimitives.WriteUInt32LittleEndian(result, 8u << 24);
@@ -76,7 +71,11 @@ public static class SliceEncoder
         for (int i = 0; i < offsets.Count; i++)
             BinaryPrimitives.WriteUInt32LittleEndian(result.AsSpan(AstPacket.HeaderSize + i * 4), offsets[i]);
         strings.WrittenSpan.CopyTo(result.AsSpan(stringDataOffset));
-        extendedBytes.CopyTo(result.AsSpan(extendedOffset));
+        extended.WrittenSpan.CopyTo(result.AsSpan(extendedOffset));
+        // SourceFile is always first, with its 76-byte extended record at zero.
+        BinaryPrimitives.WriteUInt32LittleEndian(result.AsSpan(extendedOffset + 32), importsOffset);
+        BinaryPrimitives.WriteUInt32LittleEndian(result.AsSpan(extendedOffset + 44),
+            file.ExternalModuleIndicator.IsNull ? 0 : indices[file.ExternalModuleIndicator]);
         structured.WrittenSpan.CopyTo(result.AsSpan(structuredOffset));
         for (int i = 0; i < records.Count; i++)
             records[i].Write(result.AsSpan(nodeOffset + i * NodeRecord.Size));
@@ -92,16 +91,26 @@ public static class SliceEncoder
             offsets.Add(checked((uint)strings.WrittenCount));
             return index;
         }
+        uint AddText(ReadOnlySpan<char> text)
+        {
+            uint index = checked((uint)offsets.Count);
+            if (index > 0xFFFFFF)
+                throw new InvalidDataException("AST string table exceeds the protocol limit");
+            offsets.Add(checked((uint)strings.WrittenCount));
+            strings.Advance(Wtf8.Encode(text, strings.GetSpan(Encoding.UTF8.GetByteCount(text))));
+            offsets.Add(checked((uint)strings.WrittenCount));
+            return index;
+        }
         uint Data(NodeId id)
         {
             SyntaxKind kind = file.Store.Header(id).Kind;
             if (kind == SyntaxKind.NodeList)
                 return checked((uint)file.Store.Get<NodeListData>(id).Nodes.Length);
             if (kind == SyntaxKind.Identifier)
-                return 0x40000000 | AddString(Wtf8.Encode(file.Store.Get<IdentifierData>(id).Text));
+                return 0x40000000 | AddText(file.Store.Get<IdentifierData>(id).Text);
             if (kind == SyntaxKind.SourceFile)
             {
-                uint text = AddString(file.Text), name = AddString(Wtf8.Encode(file.Name));
+                uint text = AddString(file.Text), name = AddText(file.Name);
                 foreach (uint field in new uint[]
                 {
                     text,
@@ -146,7 +155,7 @@ public static class SliceEncoder
                     text = payload.Text;
                     flags = payload.TokenFlags;
                 }
-                UInt32(extended, AddString(Wtf8.Encode(text)));
+                UInt32(extended, AddText(text));
                 UInt32(extended, flags);
                 return 0x80000000 | offset;
             }

@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -16,7 +17,7 @@ internal sealed partial class Checker
             && child is not JsxExpressionNode { Expression: null }).ToList() ?? [];
     }
 
-    private Type JsxObject(Symbol? symbol, Dictionary<string, Symbol> members, ObjectFlags flags = 0, bool fresh = false)
+    private Type JsxObject(Symbol? symbol, Dictionary<TextSlice, Symbol> members, ObjectFlags flags = 0, bool fresh = false)
     {
         var type = context.NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved | ObjectFlags.JsxAttributes | flags
             | (fresh ? ObjectFlags.FreshLiteral | ObjectFlags.ObjectLiteral | ObjectFlags.ContainsObjectOrArrayLiteral : 0), symbol);
@@ -46,14 +47,14 @@ internal sealed partial class Checker
                 SymbolFlags.ObjectLiteral | SymbolFlags.Transient,
                 Symbol.InternalPrefix + "jsxAttributes")
             { ValueDeclaration = attributes };
-        var members = new Dictionary<string, Symbol>();
-        var all = new Dictionary<string, Symbol>();
+        var members = new Dictionary<TextSlice, Symbol>();
+        var all = new Dictionary<TextSlice, Symbol>();
         emptyJsxType ??= JsxObject(null, []);
         Type spread = emptyJsxType;
         Type? invalidSpread = null;
         bool anySpread = false, explicitChildren = false;
         ObjectFlags flags = ObjectFlags.JsxAttributes;
-        string? childrenName = await JsxPropertyNameAsync("ElementChildrenAttribute", opening, cancellation);
+        TextSlice? childrenName = await JsxPropertyNameAsync("ElementChildrenAttribute", opening, cancellation);
         Type? contextual = attributes is null ? null : await Contexts.GetAsync(attributes, cancellation: cancellation);
         if (attributes is not null)
             foreach (var declaration in attributes.Properties!)
@@ -127,13 +128,13 @@ internal sealed partial class Checker
             && JsxSemanticChildren(opening.Parent!).Count != 0)
         {
             var children = await JsxChildrenAsync(opening.Parent!, mode, cancellation);
-            if (!anySpread && !string.IsNullOrEmpty(childrenName))
+            if (!anySpread && childrenName is { IsEmpty: false })
             {
                 if (explicitChildren)
-                    Error(parent, DiagnosticCode.X0AreSpecifiedTwiceTheAttributeNamed0WillBeOverwritten, childrenName);
+                    Error(parent, DiagnosticCode.X0AreSpecifiedTwiceTheAttributeNamed0WillBeOverwritten, (childrenName).Value);
                 var childContext = contextual is null
                     ? null
-                    : await ContextualPropertyAsync(await Views.ApparentAsync(contextual, cancellation), childrenName, cancellation);
+                    : await ContextualPropertyAsync(await Views.ApparentAsync(contextual, cancellation), (childrenName).Value, cancellation);
                 bool tuple = false;
                 if (childContext is not null)
                     foreach (var part in childContext is UnionType union ? union.Types : [childContext])
@@ -148,10 +149,10 @@ internal sealed partial class Checker
                         children.Select(_ => new TupleElementInfo(ElementFlags.Required)).ToArray(),
                         cancellation: cancellation)
                     : await ArrayAsync(await Algebra.UnionAsync(children, cancellation: cancellation), cancellation);
-                var child = new Symbol(SymbolFlags.Property | SymbolFlags.Transient, childrenName);
+                var child = new Symbol(SymbolFlags.Property | SymbolFlags.Transient, (childrenName).Value);
                 var declaration = new PropertySignatureDeclarationNode
                 {
-                    Name = new IdentifierNode { Text = childrenName },
+                    Name = new IdentifierNode { Text = childrenName.Value },
                     Parent = parent,
                     Pos = parent.Pos,
                     End = parent.End
@@ -164,7 +165,7 @@ internal sealed partial class Checker
                     childFlags |= childValue.ObjectFlags & ObjectFlags.PropagatingFlags;
                 spread = await ObjectSpreads.GetAsync(
                     spread,
-                    JsxObject(symbol, new() { [childrenName] = child }),
+                    JsxObject(symbol, new() { [(childrenName).Value] = child }),
                     symbol,
                     childFlags,
                     false,

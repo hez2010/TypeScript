@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -11,7 +12,7 @@ internal sealed partial class Checker : ITypeAssertionHost, IInstantiationExpres
     internal InstantiationExpressions InstantiationExpressions { get; }
     internal ValueExpressionChecks ValueExpressions { get; }
     internal TypeDisplay TypeDisplay { get; }
-    internal Dictionary<SyntaxNode, string> InstantiationErrors { get; } = [];
+    internal Dictionary<SyntaxNode, TextSlice> InstantiationErrors { get; } = [];
     internal Action? BeforeInstantiationDiagnostic { get; set; }
     private Type? importMetaType;
 
@@ -23,7 +24,7 @@ internal sealed partial class Checker : ITypeAssertionHost, IInstantiationExpres
     public async ValueTask InapplicableInstantiationAsync(SyntaxNode node, Type type, CancellationToken cancellation)
     {
         BeforeInstantiationDiagnostic?.Invoke();
-        string text = await TypeDisplay.GetAsync(type, cancellation);
+        TextSlice text = await TypeDisplay.GetAsync(type, cancellation);
         cancellation.ThrowIfCancellationRequested();
         InstantiationErrors[node] = text;
         ListError(

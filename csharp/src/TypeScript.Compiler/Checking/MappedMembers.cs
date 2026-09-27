@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
@@ -19,7 +20,7 @@ internal interface IMappedMemberHost : IMappedTypeHost
 
     ValueTask<IReadOnlyList<IndexInfo>> IndexInfosAsync(Type type, CancellationToken cancellation);
 
-    ValueTask<Symbol?> PropertyAsync(Type type, string name, CancellationToken cancellation);
+    ValueTask<Symbol?> PropertyAsync(Type type, TextSlice name, CancellationToken cancellation);
 
     ValueTask<Type> PropertyNameTypeAsync(Symbol symbol, CancellationToken cancellation);
 
@@ -126,7 +127,7 @@ internal sealed class MappedMembers(TypeContext context, TypeAlgebra algebra, Ty
                     var tuple = (TupleType)((TypeReference)apparent).ReferencedType;
                     var keys = new Type[tuple.FixedLength + 1];
                     for (int i = 0; i < tuple.FixedLength; i++)
-                        keys[i] = context.GetStringLiteralType(i.ToString(CultureInfo.InvariantCulture));
+                        keys[i] = context.GetStringLiteralType(TextSlice.Format(i));
                     keys[^1] = await host.IndexTypeAsync(host.ArrayTarget(tuple.IsReadonly), cancellation).ConfigureAwait(false);
                     return await algebra.UnionAsync(keys, cancellation: cancellation).ConfigureAwait(false);
                 }
@@ -171,7 +172,7 @@ internal sealed class MappedMembers(TypeContext context, TypeAlgebra algebra, Ty
         var oldCalls = type.CallSignatures;
         var oldConstructs = type.ConstructSignatures;
         var oldIndexes = type.IndexInfos;
-        var members = new Dictionary<string, Symbol>(StringComparer.Ordinal);
+        var members = new Dictionary<TextSlice, Symbol>();
         var indexes = new List<IndexInfo>();
         type.Members = null;
         type.Properties = [];
@@ -214,7 +215,7 @@ internal sealed class MappedMembers(TypeContext context, TypeAlgebra algebra, Ty
                 {
                     if (UsableName(name))
                     {
-                        string propertyName = PropertyName(name);
+                        TextSlice propertyName = PropertyName(name);
                         if (members.TryGetValue(propertyName, out var existing))
                         {
                             var values = links.Values.Get(existing);
@@ -416,14 +417,14 @@ internal sealed class MappedMembers(TypeContext context, TypeAlgebra algebra, Ty
 
     private static bool UsableName(Type type) => (type.Flags & F.StringOrNumberLiteralOrUnique) != 0;
 
-    private static bool Named(string name) => !name.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal)
-            || name.StartsWith(Symbol.InternalPrefix + Symbol.InternalPrefix, StringComparison.Ordinal)
+    private static bool Named(TextSlice name) => !name.Span.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal)
+            || name.Span.StartsWith(Symbol.InternalPrefix + Symbol.InternalPrefix, StringComparison.Ordinal)
             || name.Length < 2 || name[1] is '@' or '#';
 
-    internal static string PropertyName(Type type) => type switch
+    internal static TextSlice PropertyName(Type type) => type switch
     {
-        LiteralType { Value: string name } => name.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal)
-            ? Symbol.InternalPrefix + name
+        LiteralType { Value: TextSlice name } => name.Span.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal)
+            ? TextSlice.Concat(Symbol.InternalPrefix, name)
             : name,
         LiteralType { Value: double number } => TokenFacts.NumberText(number),
         UniqueSymbolType unique => unique.Name,

@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Globalization;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -16,7 +17,7 @@ internal interface IAccessNameHost
 
 internal sealed class AccessNames(EntityNames names, DeclarationOrder order, IAccessNameHost host)
 {
-    internal async ValueTask<string?> GetAsync(SyntaxNode node, CancellationToken cancellation = default)
+    internal async ValueTask<TextSlice?> GetAsync(SyntaxNode node, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
         if (node is PropertyAccessExpressionNode property)
@@ -29,7 +30,7 @@ internal sealed class AccessNames(EntityNames names, DeclarationOrder order, IAc
             return ConstantEvaluator.EntityName(argument) ? await EntityAsync(argument, cancellation).ConfigureAwait(false) : null;
         }
         if (node is ParameterDeclarationNode parameter)
-            return ((IFunctionSignature)parameter.Parent!).Parameters!.IndexOf(parameter).ToString(CultureInfo.InvariantCulture);
+            return TextSlice.Format(((IFunctionSignature)parameter.Parent!).Parameters!.IndexOf(parameter));
         SyntaxNode? name = node switch
         {
             BindingElementNode binding when binding.Parent!.Kind == Syntax.SyntaxKind.ObjectBindingPattern => binding.PropertyName ?? binding.Name,
@@ -40,7 +41,7 @@ internal sealed class AccessNames(EntityNames names, DeclarationOrder order, IAc
         if (name is not null)
         {
             var type = await host.LiteralNameTypeAsync(name, cancellation).ConfigureAwait(false);
-            return (type.Flags & TypeFlags.StringOrNumberLiteral) != 0 ? MappedMembers.PropertyName(type) : null;
+            return (type.Flags & TypeFlags.StringOrNumberLiteral) != 0 ? MappedMembers.PropertyName(type) : (TextSlice?)null;
         }
         var elements = node.Parent switch
         {
@@ -48,10 +49,10 @@ internal sealed class AccessNames(EntityNames names, DeclarationOrder order, IAc
             BindingPatternNode pattern when pattern.Kind == Syntax.SyntaxKind.ArrayBindingPattern => pattern.Elements,
             _ => null
         };
-        return elements is null ? null : elements.IndexOf(node).ToString(CultureInfo.InvariantCulture);
+        return elements is null ? (TextSlice?)null : TextSlice.Format(elements.IndexOf(node));
     }
 
-    private async ValueTask<string?> EntityAsync(SyntaxNode node, CancellationToken cancellation)
+    private async ValueTask<TextSlice?> EntityAsync(SyntaxNode node, CancellationToken cancellation)
     {
         var symbol = await names.ResolveAsync(node, SymbolFlags.Value, true, cancellation: cancellation).ConfigureAwait(false);
         if (symbol is null || !(AssignmentMarks.Constant(symbol) || (symbol.Flags & SymbolFlags.EnumMember) != 0)
@@ -72,14 +73,14 @@ internal sealed class AccessNames(EntityNames names, DeclarationOrder order, IAc
         return null;
     }
 
-    private static string? NameFromType(Type type) =>
-        (type.Flags & TypeFlags.StringOrNumberLiteralOrUnique) != 0 ? MappedMembers.PropertyName(type) : null;
+    private static TextSlice? NameFromType(Type type) =>
+        (type.Flags & TypeFlags.StringOrNumberLiteralOrUnique) != 0 ? MappedMembers.PropertyName(type) : (TextSlice?)null;
 
-    private static string? LiteralName(SyntaxNode node) => node switch
+    private static TextSlice? LiteralName(SyntaxNode node) => node switch
     {
         StringLiteralNode value => value.Text,
         NumericLiteralNode value => value.Text,
         NoSubstitutionTemplateLiteralNode value => value.Text,
-        _ => null
+        _ => (TextSlice?)null
     };
 }

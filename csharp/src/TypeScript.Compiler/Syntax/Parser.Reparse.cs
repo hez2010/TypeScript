@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using K = TypeScript.Compiler.Syntax.SyntaxKind;
 
@@ -174,7 +175,7 @@ public sealed partial class Parser
                     {
                         var replacement = new System.Text.StringBuilder();
                         bool first = true;
-                        foreach (var rune in parameterName.Text.EnumerateRunes())
+                        foreach (var rune in parameterName.Text.Span.EnumerateRunes())
                         {
                             replacement.Append(
                                 (first ? TokenFacts.IsIdentifierStart(rune.Value) : TokenFacts.IsIdentifierPart(rune.Value))
@@ -184,7 +185,7 @@ public sealed partial class Parser
                         }
                         if (replacement.Length == 0)
                             replacement.Append('_').Append(parameters.Count);
-                        nameClone = factory.NewIdentifier(replacement.ToString());
+                        nameClone = factory.NewIdentifier(TextSlice.FromBuilder(replacement));
                         FinishReparse(nameClone, parameterName);
                         nameClone.Flags |= NodeFlags.ReparserTransformedLiteral;
                     }
@@ -454,7 +455,7 @@ public sealed partial class Parser
                     int parameterIndex = 0;
                     foreach (ParameterDeclarationNode parameter in parameters.OfType<ParameterDeclarationNode>())
                     {
-                        if (parameter.Name is IdentifierNode { Text: "this" } || parameter.Name?.Kind == K.ThisKeyword)
+                        if (parameter.Name is IdentifierNode { Text.Span: "this" } || parameter.Name?.Kind == K.ThisKeyword)
                             continue;
                         bool matches = parameter.Name is IdentifierNode parameterName
                             ? parameterTag.Name is IdentifierNode tagName
@@ -476,7 +477,7 @@ public sealed partial class Parser
                     break;
                 case JSDocThisTagNode thisTag when host is IFunctionSignature function:
                     if (function.Parameters is { Count: > 0 } existingParameters
-                        && existingParameters[0] is ParameterDeclarationNode { Name: IdentifierNode { Text: "this" } })
+                        && existingParameters[0] is ParameterDeclarationNode { Name: IdentifierNode { Text.Span: "this" } })
                         break;
                     var thisName = factory.NewIdentifier("this");
                     FinishReparse(thisName, thisTag.TagName!);
@@ -641,7 +642,7 @@ public sealed partial class Parser
         return Finish(cast, expression.Pos, expression.End);
     }
 
-    private static bool ValidDocumentationIdentifier(string text)
+    private static bool ValidDocumentationIdentifier(ReadOnlySpan<char> text)
     {
         bool first = true;
         foreach (var rune in text.EnumerateRunes())
@@ -653,5 +654,5 @@ public sealed partial class Parser
         return !first;
     }
 
-    private static string NameText(SyntaxNode? node) => SyntaxNameText.Get(node);
+    private static TextSlice NameText(SyntaxNode? node) => SyntaxNameText.Get(node);
 }

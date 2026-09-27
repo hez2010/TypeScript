@@ -90,7 +90,7 @@ while (Console.ReadLine() is { } line)
             writer.WriteStartArray();
             foreach (SyntaxNode node in file.DescendantsAndSelf())
             {
-                string value = node switch
+                TextSlice value = node switch
                 {
                     IdentifierNode n => n.Text,
                     PrivateIdentifierNode n => n.Text,

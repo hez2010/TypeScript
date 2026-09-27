@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -21,7 +22,7 @@ internal readonly record struct IterationTypes(Type? Yield, Type? Return, Type? 
 internal readonly record struct IterationDiagnostic(
     SyntaxNode Node,
     DiagnosticCode Code,
-    string? Member = null,
+    TextSlice? Member = null,
     Type? Source = null,
     Type? Target = null);
 
@@ -29,11 +30,11 @@ internal interface IIteratorProtocolHost
 {
     bool StrictBuiltinIteratorReturn { get; }
 
-    ValueTask<Type> IterationGlobalAsync(string name, int arity, bool report, CancellationToken cancellation);
+    ValueTask<Type> IterationGlobalAsync(TextSlice name, int arity, bool report, CancellationToken cancellation);
 
     ValueTask<IReadOnlyList<Type>> BuiltinIteratorsAsync(bool async, CancellationToken cancellation);
 
-    ValueTask<string> KnownSymbolNameAsync(string name, CancellationToken cancellation);
+    ValueTask<TextSlice> KnownSymbolNameAsync(TextSlice name, CancellationToken cancellation);
 
     ValueTask<IReadOnlyList<Signature>> SignaturesAsync(Type type, bool construct, CancellationToken cancellation);
 
@@ -154,9 +155,9 @@ internal sealed class IteratorProtocols(TypeContext context, TypeAlgebra algebra
 
     private async ValueTask<IterationTypes> FastAsync(Type type, bool async, bool iterable, CancellationToken cancellation)
     {
-        string prefix = async ? "Async" : "";
-        foreach (string name in new[] { iterable ? "Iterable" : "Iterator", "IteratorObject", "IterableIterator", "Generator" })
-            if (Reference(type, await host.IterationGlobalAsync(prefix + name, 3, false, cancellation).ConfigureAwait(false)))
+        TextSlice prefix = async ? "Async" : "";
+        foreach (TextSlice name in new[] { iterable ? "Iterable" : "Iterator", "IteratorObject", "IterableIterator", "Generator" })
+            if (Reference(type, await host.IterationGlobalAsync(TextSlice.Concat(prefix, name), 3, false, cancellation).ConfigureAwait(false)))
             {
                 var args = await host.TypeArgumentsAsync((TypeReference)type, cancellation).ConfigureAwait(false);
                 return await ResolveAsync(args[0], args[1], args[2], async, cancellation).ConfigureAwait(false);
@@ -258,12 +259,12 @@ internal sealed class IteratorProtocols(TypeContext context, TypeAlgebra algebra
         if (fast.HasTypes)
             return fast;
         var parts = new List<IterationTypes>();
-        foreach (string name in new[] { "next", "return", "throw" })
+        foreach (TextSlice name in new[] { "next", "return", "throw" })
             parts.Add(await MethodAsync(type, async, name, node, diagnostics, cancellation).ConfigureAwait(false));
         return await CombineAsync(parts, cancellation).ConfigureAwait(false);
     }
 
-    private async ValueTask<IterationTypes> MethodAsync(Type type, bool async, string name, SyntaxNode? node,
+    private async ValueTask<IterationTypes> MethodAsync(Type type, bool async, TextSlice name, SyntaxNode? node,
         List<IterationDiagnostic>? diagnostics, CancellationToken cancellation)
     {
         var method = await properties.PropertyAsync(type, name, cancellation: cancellation).ConfigureAwait(false);
@@ -390,7 +391,7 @@ internal sealed class IteratorProtocols(TypeContext context, TypeAlgebra algebra
             RelationKind.Assignable,
             cancellation).ConfigureAwait(false);
 
-    private async ValueTask<Type?> PropertyAsync(Type type, string name, CancellationToken cancellation) =>
+    private async ValueTask<Type?> PropertyAsync(Type type, TextSlice name, CancellationToken cancellation) =>
             await properties.PropertyAsync(type, name, cancellation: cancellation).ConfigureAwait(false) is { } property
                 ? await values.GetAsync(property, cancellation).ConfigureAwait(false) : null;
 

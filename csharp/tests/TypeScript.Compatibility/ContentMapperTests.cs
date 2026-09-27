@@ -56,9 +56,9 @@ internal static class ContentMapperTests
             new(name, options, files ?? [], [], [], []) { ContentMappers = [mapper] };
         static JsonElement State(MapperResult result)
         {
-            string text = result.Canonical.Text.Text;
-            int start = text.IndexOf('{'), end = text.IndexOf(';');
-            using var document = JsonDocument.Parse(text[start..end]);
+            TextSlice text = result.Canonical.Text.Text;
+            int start = text.Span.IndexOf('{'), end = text.Span.IndexOf(';');
+            using var document = JsonDocument.Parse(text[start..end].ToString());
             return document.RootElement.Clone();
         }
         var events = new ConcurrentQueue<string>();

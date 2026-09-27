@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -122,7 +123,7 @@ internal sealed class Signatures(TypeContext context, CheckerLinks links, Checke
             var otherParameters = other is null ? null : Parameters(other);
             int count = otherKind == K.GetAccessor ? 1 : 2;
             if (otherParameters?.Count == count
-                && otherParameters[0] is ParameterDeclarationNode { Name: IdentifierNode { Text: "this" } } otherThis)
+                && otherParameters[0] is ParameterDeclarationNode { Name: IdentifierNode { Text.Span: "this" } } otherThis)
                 thisParameter = symbols.Binding(otherThis)?.Get(otherThis)?.Symbol;
         }
         IReadOnlyList<TypeParameter> typeParameters;
@@ -279,7 +280,7 @@ internal sealed class Signatures(TypeContext context, CheckerLinks links, Checke
                                 result = new(assertion ? TypePredicateKind.AssertsThis : TypePredicateKind.This, 0, "", type);
                             else
                             {
-                                string name = ((IdentifierNode)predicate.ParameterName!).Text;
+                                TextSlice name = ((IdentifierNode)predicate.ParameterName!).Text;
                                 int index = Array.FindIndex(signature.Parameters.ToArray(), p => p.Name == name);
                                 result = new(
                                     assertion ? TypePredicateKind.AssertsIdentifier : TypePredicateKind.Identifier,

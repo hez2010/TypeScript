@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -35,7 +36,7 @@ internal interface IAliasTargetHost
 
     bool UsesRequireModuleExports { get; }
 
-    ValueTask<Symbol?> ExportOfModuleAsync(Symbol module, string name, SyntaxNode declaration, CancellationToken cancellation);
+    ValueTask<Symbol?> ExportOfModuleAsync(Symbol module, TextSlice name, SyntaxNode declaration, CancellationToken cancellation);
 }
 
 internal sealed class AliasTargets(CheckerSymbols symbols, AliasResolver aliases, EntityNames names, IAliasTargetHost host)
@@ -291,10 +292,10 @@ internal sealed class AliasTargets(CheckerSymbols symbols, AliasResolver aliases
         return expression is IdentifierNode;
     }
 
-    internal static string? Text(SyntaxNode? name) => name switch
+    internal static TextSlice? Text(SyntaxNode? name) => name switch
     {
         IdentifierNode identifier => identifier.Text,
         StringLiteralNode literal => literal.Text,
-        _ => null
+        _ => (TextSlice?)null
     };
 }

@@ -38,7 +38,7 @@ internal static class CheckerEmitQueryTests
         bool reached = false;
         checker.BeforeEmitLinkedReference = node =>
         {
-            if (node is IdentifierNode { Text: "second", Parent: ExpressionStatementNode })
+            if (node is IdentifierNode { Text: { Span: "second" }, Parent: ExpressionStatementNode })
             {
                 reached = true;
                 stop.Cancel();
@@ -68,7 +68,7 @@ internal static class CheckerEmitQueryTests
         using var secondStop = new CancellationTokenSource();
         other.BeforeEmitLinkedReference = node =>
         {
-            if (node is IdentifierNode { Text: "second", Parent: ExpressionStatementNode })
+            if (node is IdentifierNode { Text: { Span: "second" }, Parent: ExpressionStatementNode })
                 secondStop.Cancel();
         };
         try
@@ -85,7 +85,7 @@ internal static class CheckerEmitQueryTests
         Check(await checker.GetJsxFactoryForEmitAsync(null) is null);
         var factory = await checker.GetJsxFactoryForEmitAsync(source);
         Check(
-            factory is QualifiedNameNode { Left: IdentifierNode { Text: "Custom.Nested" }, Right: IdentifierNode { Text: "createElement" } });
+            factory is QualifiedNameNode { Left: IdentifierNode { Text: { Span: "Custom.Nested" } }, Right: IdentifierNode { Text: { Span: "createElement" } } });
         Check(await checker.GetJsxFactoryForEmitAsync(null) == factory);
         Check(await checker.GetJsxFactoryForEmitAsync(source, true) is null);
         Check(snapshot.All(p => p.Parent == p.Node.Parent && p.Pos == p.Node.Pos && p.End == p.Node.End && p.Flags == p.Node.Flags));
@@ -143,7 +143,7 @@ internal static class CheckerEmitQueryTests
         }
         void Scalar(object? value)
         {
-            if (value is string text)
+            if (value is TextSlice text)
             {
                 writer.WriteStartArray();
                 writer.WriteStringValue("string");
@@ -180,7 +180,7 @@ internal static class CheckerEmitQueryTests
                     writer.WriteNullValue();
                 else
                     writer.WriteStringValue(
-                        Checker.PrintDiagnosticNode(node, sourceFile: location is null ? null : SemanticSyntax.Source(location)));
+                        Checker.PrintDiagnosticNode(node, sourceFile: location is null ? null : SemanticSyntax.Source(location)).Span);
                 writer.WriteEndArray();
             }
         writer.WriteEndArray();
@@ -237,10 +237,10 @@ internal static class CheckerEmitQueryTests
         Check(!await checker.IsImplementationOfOverloadAsync(g));
         Check(
             await checker.IsLiteralConstDeclarationAsync(
-                nodes.OfType<VariableDeclarationNode>().Single(n => n.Name is IdentifierNode { Text: "literal" })));
+                nodes.OfType<VariableDeclarationNode>().Single(n => n.Name is IdentifierNode { Text: { Span: "literal" } })));
         Check(
             !await checker.IsLiteralConstDeclarationAsync(
-                nodes.OfType<VariableDeclarationNode>().Single(n => n.Name is IdentifierNode { Text: "widened" })));
+                nodes.OfType<VariableDeclarationNode>().Single(n => n.Name is IdentifierNode { Text: { Span: "widened" } })));
         Check(await checker.IsValueAliasForEmitAsync(alias));
         Check((await checker.GetExternalModuleFileForEmitAsync(import))?.FileName == "/project/dep.ts");
         Check(!await checker.IsOptionalParameterForEmitAsync(g.Parameters![0]));
@@ -344,7 +344,7 @@ internal static class CheckerEmitQueryTests
             if (node is ElementAccessExpressionNode element)
             {
                 Start(2, node);
-                writer.WriteStringValue(await checker.GetElementAccessNameForEmitAsync(element));
+                writer.WriteStringValue((await checker.GetElementAccessNameForEmitAsync(element)).Span);
                 writer.WriteEndArray();
             }
             if (SemanticSyntax.FunctionDeclarationLike(node))

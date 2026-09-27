@@ -87,7 +87,7 @@ internal static class CheckerSymbolTests
             results.Add(Ref(symbol));
             merges.Add(Ref(merger.GetMergedSymbol(symbol)));
         }
-        object[] Table(IReadOnlyDictionary<string, Symbol> table) => table.OrderBy(p => p.Key, StringComparer.Ordinal)
+        object[] Table(IReadOnlyDictionary<TextSlice, Symbol> table) => table.OrderBy(p => p.Key, TextSliceComparer.Ordinal)
             .Select(p => (object)new object[] { p.Key, Ref(p.Value) }).ToArray();
         var rows = new List<object>();
         for (int i = 0; i < queue.Count; i++)

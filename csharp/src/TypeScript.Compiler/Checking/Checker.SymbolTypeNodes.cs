@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -22,7 +23,7 @@ internal sealed partial class Checker
             state.Tracker.TrackSymbol(symbol, state.Symbols.Enclosing, existing ? meaning : SymbolFlags.Value);
     }
 
-    internal async ValueTask<string> GetSymbolTypeReferenceAsync(Symbol symbol, SyntaxNode? enclosing, SymbolFlags meaning,
+    internal async ValueTask<TextSlice> GetSymbolTypeReferenceAsync(Symbol symbol, SyntaxNode? enclosing, SymbolFlags meaning,
         IReadOnlyList<SyntaxNode>? typeArguments = null, bool externalAliasesOnly = false, bool aliasesOutsideScope = false,
         bool forbidIndexedAccess = false, CancellationToken cancellation = default, INodeBuilderSymbolTracker? tracker = null,
         NodeBuilderInternalFlags internalFlags = NodeBuilderInternalFlags.None)
@@ -83,17 +84,17 @@ internal sealed partial class Checker
                 && program.Symbols.Program.ResolutionModeForUsage(targetFile, null) == ReferenceResolutionMode.Import
                 && program.Symbols.Program.ResolutionModeForUsage(contextFile, null) != ReferenceResolutionMode.Import)
                 mode = ReferenceResolutionMode.Import;
-            string specifier = await DisplayModuleSpecifierAsync(chain[0], state, cancellation, mode);
+            TextSlice specifier = await DisplayModuleSpecifierAsync(chain[0], state, cancellation, mode);
             if (state.Types is { } types && (types.Flags & NodeBuilderFlags.AllowNodeModulesRelativePaths) == 0
-                && specifier.Contains("/node_modules/", StringComparison.Ordinal))
+                && specifier.Span.Contains("/node_modules/", StringComparison.Ordinal))
             {
-                string original = specifier;
+                TextSlice original = specifier;
                 if (program.Symbols.Program.ModuleResolutionKind is "node16" or "nodenext" && contextFile is not null)
                 {
                     var swapped = program.Symbols.Program.ResolutionModeForUsage(contextFile, null) == ReferenceResolutionMode.Import
                         ? ReferenceResolutionMode.Require : ReferenceResolutionMode.Import;
                     var alternate = await DisplayModuleSpecifierAsync(chain[0], state, cancellation, swapped);
-                    if (!alternate.Contains("/node_modules/", StringComparison.Ordinal))
+                    if (!alternate.Span.Contains("/node_modules/", StringComparison.Ordinal))
                     {
                         specifier = alternate;
                         mode = swapped;
@@ -141,7 +142,7 @@ internal sealed partial class Checker
             ? arguments
             : await QualifiedTypeArgumentsAsync(chain, index, state, cancellation);
         var parent = index > 0 ? chain[index - 1] : null;
-        string name = index == 0 ? DisplayNameAsWritten(symbol, state, true, cancellation) : "";
+        TextSlice name = index == 0 ? DisplayNameAsWritten(symbol, state, true, cancellation) : "";
         if (index == 0 && !state.ExpressionNames)
             state.Length?.Add(name, 1);
         if (index > 0 && parent is not null)
@@ -152,7 +153,7 @@ internal sealed partial class Checker
                 name = symbol.Name;
             else
             {
-                var matches = new Dictionary<Symbol, string>();
+                var matches = new Dictionary<Symbol, TextSlice>();
                 foreach (var entry in exports)
                     if (entry.Key != "export=" && !LateName(entry.Key) && await SameSymbolReferenceAsync(entry.Value, symbol, cancellation))
                         matches[entry.Value] = entry.Key;
@@ -229,7 +230,7 @@ internal sealed partial class Checker
         return clone;
     }
 
-    private async ValueTask<ImportAttributesNode?> TypeImportAttributesAsync(Symbol symbol, string specifier,
+    private async ValueTask<ImportAttributesNode?> TypeImportAttributesAsync(Symbol symbol, TextSlice specifier,
         ReferenceResolutionMode mode, SymbolDisplayContext state, NodeFactory factory, CancellationToken cancellation)
     {
         Type attributes = await ModuleImportAttributesAsync(symbol, cancellation);
@@ -252,7 +253,7 @@ internal sealed partial class Checker
         var properties = (await PropertiesAsync(attributes, cancellation)).ToList();
         properties.Sort((a, b) => TypeOrder.CompareText(a.Name, b.Name));
         foreach (var property in properties)
-            if (await Values.GetAsync(property, cancellation) is LiteralType { Value: string value })
+            if (await Values.GetAsync(property, cancellation) is LiteralType { Value: TextSlice value })
             {
                 entries.Add(factory.NewImportAttribute(IdentifierName(property.Name) ? factory.NewIdentifier(property.Name)
                     : factory.NewStringLiteral(property.Name, state.StringLiteralFlags),
@@ -265,5 +266,5 @@ internal sealed partial class Checker
         return entries.Count == 0 ? null : factory.NewImportAttributes(SyntaxKind.WithKeyword, new(entries.ToArray()), false);
     }
 
-    private static bool LateName(string name) => name.StartsWith(Symbol.InternalPrefix + "@", StringComparison.Ordinal);
+    private static bool LateName(TextSlice name) => name.Span.StartsWith(Symbol.InternalPrefix + "@", StringComparison.Ordinal);
 }

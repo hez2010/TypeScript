@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Globalization;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -7,20 +8,20 @@ using K = TypeScript.Compiler.Syntax.SyntaxKind;
 namespace TypeScript.Compiler.Checking;
 
 internal sealed class GlobalTypes(TypeContext context, CheckerLinks links, CheckerSymbols symbols,
-    TypeParameterScopes scopes, Action<SyntaxNode?, DiagnosticMessage, string[]> error)
+    TypeParameterScopes scopes, Action<SyntaxNode?, DiagnosticMessage, TextSlice[]> error)
 {
-    private readonly Dictionary<string, Type> types = new(StringComparer.Ordinal);
-    private readonly Dictionary<(string Name, int Arity), Symbol?> aliases = [];
-    private IReadOnlyDictionary<string, Type>? typesView;
-    internal IReadOnlyDictionary<string, Type> Types => typesView ??= types.AsReadOnly();
+    private readonly Dictionary<TextSlice, Type> types = new();
+    private readonly Dictionary<(TextSlice Name, int Arity), Symbol?> aliases = [];
+    private IReadOnlyDictionary<TextSlice, Type>? typesView;
+    internal IReadOnlyDictionary<TextSlice, Type> Types => typesView ??= types.AsReadOnly();
     internal Type? AnyArrayType { get; private set; }
     internal Type? AutoArrayType { get; private set; }
     internal Type? AnyReadonlyArrayType { get; private set; }
 
-    private static string[] MissingArguments(string name)
+    private static TextSlice[] MissingArguments(TextSlice name)
         => LibraryFeatures.NameLibrary(name) is { } library ? [name, library] : [name];
 
-    internal async ValueTask<Symbol?> AliasAsync(string name, int arity, DeclaredTypes declared, CancellationToken cancellation = default)
+    internal async ValueTask<Symbol?> AliasAsync(TextSlice name, int arity, DeclaredTypes declared, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
         if (aliases.TryGetValue((name, arity), out var cached))
@@ -35,7 +36,7 @@ internal sealed class GlobalTypes(TypeContext context, CheckerLinks links, Check
             if (links.TypeAliases.Get(symbol).TypeParameters?.Count != arity)
             {
                 error(declaration, Messages.Global_type_0_must_have_1_type_parameter_s,
-                    [name, arity.ToString(CultureInfo.InvariantCulture)]);
+                    [name, TextSlice.Format(arity)]);
                 symbol = null;
             }
         }
@@ -44,7 +45,7 @@ internal sealed class GlobalTypes(TypeContext context, CheckerLinks links, Check
         return symbol;
     }
 
-    internal async ValueTask<Type> GetAsync(string name, int arity, bool reportErrors, CancellationToken cancellation = default)
+    internal async ValueTask<Type> GetAsync(TextSlice name, int arity, bool reportErrors, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
         var symbol = symbols.Lookup(symbols.Globals, name, SymbolFlags.Type);
@@ -61,7 +62,7 @@ internal sealed class GlobalTypes(TypeContext context, CheckerLinks links, Check
                 return type;
             if (reportErrors)
                 error(Declaration(symbol), Messages.Global_type_0_must_have_1_type_parameter_s,
-                    [name, arity.ToString(CultureInfo.InvariantCulture)]);
+                    [name, TextSlice.Format(arity)]);
         }
         else if (reportErrors)
             error(Declaration(symbol), Messages.Global_type_0_must_be_a_class_or_interface_type, [name]);
@@ -84,7 +85,7 @@ internal sealed class GlobalTypes(TypeContext context, CheckerLinks links, Check
         types["NewableFunction"] = strict
             ? await GetAsync("NewableFunction", 0, true, cancellation).ConfigureAwait(false)
             : types["Function"];
-        foreach (string name in new[] { "String", "Number", "Boolean", "RegExp" })
+        foreach (TextSlice name in new[] { "String", "Number", "Boolean", "RegExp" })
             types[name] = await GetAsync(name, 0, true, cancellation).ConfigureAwait(false);
         AnyArrayType = Reference(types["Array"], context.AnyType);
         AutoArrayType = Reference(types["Array"], context.AutoType);

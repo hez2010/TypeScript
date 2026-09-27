@@ -138,8 +138,8 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
                     typeParameters[0],
                     DiagnosticCode.ThisSyntaxIsReservedInFilesWithTheMtsOrCtsExtensionAddATrailingCommaOrExplicitConstraint);
             var token = arrow.EqualsGreaterThanToken!;
-            string text = file.Source.Text[file.Source.ToUtf16Position(token.Pos)..file.Source.ToUtf16Position(token.End)];
-            if (text.Any(c => c is '\n' or '\r' or '\u2028' or '\u2029'))
+            ReadOnlySpan<char> text = file.Source.Text.Span[file.Source.ToUtf16Position(token.Pos)..file.Source.ToUtf16Position(token.End)];
+            if (text.ContainsAny("\n\r\u2028\u2029"))
             {
                 Error(token, DiagnosticCode.LineTerminatorNotPermittedBeforeArrow);
                 return grammarError;
@@ -187,7 +187,7 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
             if (parameter.Initializer is null && parameter.QuestionToken is not null && parameter.Name is BindingPatternNode
                 && SemanticSyntax.Body(node) is not null)
                 host.ExpressionError(parameter, DiagnosticCode.ABindingPatternParameterCannotBeOptionalInAnImplementationSignature);
-            if (parameter.Name is IdentifierNode { Text: "this" or "new" })
+            if (parameter.Name is IdentifierNode { Text.Span: "this" or "new" })
             {
                 if (declaredParameters[0] != parameter)
                     host.ExpressionError(parameter, DiagnosticCode.A0ParameterMustBeTheFirstParameter);
@@ -265,7 +265,7 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
                 cancellation: cancellation).ConfigureAwait(false);
             await host.CheckConstraintAsync(defaultType, target, node.DefaultType!, cancellation).ConfigureAwait(false);
         }
-        if (node.Name!.Text is "any" or "unknown" or "never" or "number" or "string" or "boolean" or "bigint" or "symbol" or "void"
+        if (node.Name!.Text.Span is "any" or "unknown" or "never" or "number" or "string" or "boolean" or "bigint" or "symbol" or "void"
             or "object" or "undefined")
             host.ExpressionError(node.Name, DiagnosticCode.TypeParameterNameCannotBe0);
         host.DeferExpression(node);

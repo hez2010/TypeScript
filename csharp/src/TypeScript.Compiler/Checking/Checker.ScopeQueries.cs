@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Syntax;
@@ -12,7 +13,7 @@ internal sealed partial class Checker
         using var query = await EnterQueryAsync(location, cancellation).ConfigureAwait(false);
         if ((location.Flags & NodeFlags.InWithStatement) != 0)
             return [];
-        var symbols = new Dictionary<string, Symbol>(StringComparer.Ordinal);
+        var symbols = new Dictionary<TextSlice, Symbol>();
         bool isStatic = false;
         SyntaxNode? previous = null;
         for (SyntaxNode? current = location; current is not null; previous = current, current = current.Parent)
@@ -58,7 +59,7 @@ internal sealed partial class Checker
             if (((symbol.Flags | (symbol.ExportSymbol?.Flags ?? 0)) & flags) != 0)
                 symbols.TryAdd(symbol.Name, symbol);
         }
-        void Copy(IReadOnlyDictionary<string, Symbol> source, SymbolFlags flags, bool localExports = false)
+        void Copy(IReadOnlyDictionary<TextSlice, Symbol> source, SymbolFlags flags, bool localExports = false)
         {
             if (flags == 0)
                 return;
@@ -79,10 +80,10 @@ internal sealed partial class Checker
         return VisibleSymbols(await program.ModuleExports.ResolveAsync(symbol, cancellation));
     }
 
-    private static Symbol[] VisibleSymbols(IReadOnlyDictionary<string, Symbol> table) => table
+    private static Symbol[] VisibleSymbols(IReadOnlyDictionary<TextSlice, Symbol> table) => table
         .Where(p => !ReservedMemberName(p.Key)).Select(p => p.Value).ToArray();
 
-    private static bool ReservedMemberName(string name) => name.Length >= 2
-        && name.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal)
+    private static bool ReservedMemberName(TextSlice name) => name.Length >= 2
+        && name.Span.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal)
         && name[1] is not '@' and not '#';
 }

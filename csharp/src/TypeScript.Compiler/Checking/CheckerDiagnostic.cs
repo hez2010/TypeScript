@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -7,7 +8,7 @@ namespace TypeScript.Compiler.Checking;
 
 internal static class CheckerDiagnostic
 {
-    internal static string DeclarationName(SyntaxNode node)
+    internal static TextSlice DeclarationName(SyntaxNode node)
     {
         if (node.Pos == node.End)
             return "(Missing)";
@@ -18,7 +19,7 @@ internal static class CheckerDiagnostic
         return file.Source.Text[file.Source.ToUtf16Position(start)..file.Source.ToUtf16Position(node.End)];
     }
 
-    internal static Diagnostic Create(SyntaxNode? node, DiagnosticMessage message, params string[] arguments)
+    internal static Diagnostic Create(SyntaxNode? node, DiagnosticMessage message, params TextSlice[] arguments)
     {
         var file = SemanticSyntax.Source(node);
         var (start, end) = node is null || file is null ? (0, 0) : ErrorRange(file, node);

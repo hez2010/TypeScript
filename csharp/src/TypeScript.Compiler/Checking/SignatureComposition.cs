@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Binding;
@@ -215,11 +216,11 @@ internal sealed class SignatureComposition(TypeContext context, CheckerLinks lin
             bool rest = hasRest && !extraRest && i == count - 1;
             bool optional = i >= await parameters.MinimumAsync(longest, cancellation: cancellation).ConfigureAwait(false)
                 && i >= await parameters.MinimumAsync(shorter, cancellation: cancellation).ConfigureAwait(false);
-            string leftName = i < leftCount ? await parameters.NameAsync(left, i, cancellation).ConfigureAwait(false) : "";
-            string rightName = i < rightCount ? await parameters.NameAsync(right, i, cancellation).ConfigureAwait(false) : "";
-            string name = leftName == rightName || rightName.Length == 0 ? leftName : leftName.Length == 0 ? rightName : "";
+            TextSlice leftName = i < leftCount ? await parameters.NameAsync(left, i, cancellation).ConfigureAwait(false) : "";
+            TextSlice rightName = i < rightCount ? await parameters.NameAsync(right, i, cancellation).ConfigureAwait(false) : "";
+            TextSlice name = leftName == rightName || rightName.Length == 0 ? leftName : leftName.Length == 0 ? rightName : "";
             if (name.Length == 0)
-                name = "arg" + i.ToString(CultureInfo.InvariantCulture);
+                name = TextSlice.Concat("arg", TextSlice.Format(i));
             var symbol = new Symbol(
                 SymbolFlags.FunctionScopedVariable | SymbolFlags.Transient | (optional && !rest ? SymbolFlags.Optional : 0),
                 name)
@@ -256,7 +257,7 @@ internal sealed class SignatureComposition(TypeContext context, CheckerLinks lin
         var readOnlyArray = host.ArrayTarget(true);
         if (array.Symbol is null || readOnlyArray.Symbol is null)
             return [];
-        string? name = null;
+        TextSlice? name = null;
         for (int i = 0; i < type.Types.Count; i++)
         {
             var part = type.Types[i];
@@ -285,7 +286,7 @@ internal sealed class SignatureComposition(TypeContext context, CheckerLinks lin
                 break;
             }
         var arrayType = await tuples.ArrayAsync(argument, isReadonly, cancellation).ConfigureAwait(false);
-        var property = await properties.PropertyAsync(arrayType, name!, cancellation: cancellation).ConfigureAwait(false);
+        var property = await properties.PropertyAsync(arrayType, name!.Value, cancellation: cancellation).ConfigureAwait(false);
         if (property is null)
             throw new InvalidOperationException("Array member is absent");
         return await host.SignaturesAsync(

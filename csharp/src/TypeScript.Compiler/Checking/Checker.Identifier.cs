@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -202,9 +203,9 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
                 or NoSubstitutionTemplateLiteralNode => element.Expression,
             _ => null
         };
-        return receiver is IdentifierNode { Text: "exports" }
-            or PropertyAccessExpressionNode { Expression: IdentifierNode { Text: "module" }, Name: IdentifierNode { Text: "exports" } }
-            or ElementAccessExpressionNode { Expression: IdentifierNode { Text: "module" }, ArgumentExpression: StringLiteralNode { Text: "exports" } };
+        return receiver is IdentifierNode { Text.Span: "exports" }
+            or PropertyAccessExpressionNode { Expression: IdentifierNode { Text.Span: "module" }, Name: IdentifierNode { Text.Span: "exports" } }
+            or ElementAccessExpressionNode { Expression: IdentifierNode { Text.Span: "module" }, ArgumentExpression: StringLiteralNode { Text.Span: "exports" } };
     }
 
     public ValueTask<Type> PropertyWriteAsync(PropertyAccessExpressionNode left, CancellationToken cancellation)
@@ -282,7 +283,7 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
                     var location = (excess.ValueDeclaration as INamedNode)?.Name ?? node;
                     var suggestion = location is IdentifierNode identifier ? await SymbolSuggestions.FindAsync(identifier.Text,
                         await Properties.GetAsync(unknown.Target, cancellation), SymbolFlags.Value, cancellation) : null;
-                    string propertyName = TypeDisplay.SymbolName(excess), targetName = await TypeDisplay.GetAsync(
+                    TextSlice propertyName = TypeDisplay.SymbolName(excess), targetName = await TypeDisplay.GetAsync(
                         unknown.Target,
                         cancellation);
                     RelationError(

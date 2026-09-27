@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Syntax;
@@ -52,7 +53,7 @@ internal sealed partial class FlowNarrowing
         }
         if ((type.Flags & TypeFlags.AnyOrUnknown) != 0 || type == candidate)
             return candidate;
-        string key = type is UnionType union ? await discriminants.KeyAsync(union, cancellation).ConfigureAwait(false) : "";
+        TextSlice key = type is UnionType union ? await discriminants.KeyAsync(union, cancellation).ConfigureAwait(false) : "";
         var narrowed = await algebra.MapAsync(candidate, async next =>
         {
             var matching = key.Length != 0
@@ -174,7 +175,7 @@ internal sealed partial class FlowNarrowing
                 FlowReferences.Receiver(state.Reference)!,
                 FlowReferences.Candidate(property.Expression!),
                 cancellation).ConfigureAwait(false)
-            && property.Name is IdentifierNode { Text: "hasOwnProperty" } && call.Arguments!.Count == 1 && await host.AccessNameAsync(
+            && property.Name is IdentifierNode { Text.Span: "hasOwnProperty" } && call.Arguments!.Count == 1 && await host.AccessNameAsync(
                 state.Reference,
                 cancellation).ConfigureAwait(false) is { } name
             && StringLike(call.Arguments[0]) == name)

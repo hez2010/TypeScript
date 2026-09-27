@@ -40,11 +40,11 @@ internal static class CheckerContextQueryTests
         var call = calls[0];
         var argument = call.Arguments![0];
         var signature = await checker.GetResolvedSignatureAsync(call);
-        Check(await checker.GetReturnTypeOfSignatureAsync(signature) is LiteralType { Value: "red" });
-        Check(await checker.GetContextualTypeAsync(argument) is LiteralType { Value: "red" });
+        Check(await checker.GetReturnTypeOfSignatureAsync(signature) is LiteralType { Value: TextSlice { Span: "red" } });
+        Check(await checker.GetContextualTypeAsync(argument) is LiteralType { Value: TextSlice { Span: "red" } });
         var blocked = await checker.GetContextualTypeAsync(argument, ContextFlags.IgnoreNodeInferences);
         Check(blocked is UnionType union && union.Types.Count == 2
-            && union.Types.All(t => t is LiteralType { Value: "red" or "blue" }));
+            && union.Types.All(t => t is LiteralType { Value: TextSlice { Span: "red" or "blue" } }));
         Check(await checker.GetResolvedSignatureAsync(call) == signature);
         Check(checker.SkippedInferenceNodes.Count == 0 && !checker.InferencePartiallyBlocked && checker.ApparentArgumentCount is null);
         var arrow = nodes.OfType<ArrowFunctionNode>().Single();
@@ -276,7 +276,7 @@ internal static class CheckerContextQueryTests
                 writer.WriteStartArray();
                 writer.WriteNumberValue((int)predicate.Kind);
                 writer.WriteNumberValue(predicate.ParameterIndex);
-                writer.WriteStringValue(predicate.ParameterName);
+                writer.WriteStringValue(predicate.ParameterName.Span);
                 writer.WriteNumberValue(typeId(predicate.Type));
                 writer.WriteEndArray();
             }

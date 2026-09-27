@@ -19,21 +19,21 @@ internal static class CheckerNodeBuilderTests
         public bool TrackSymbol(Symbol symbol, SyntaxNode? enclosingDeclaration, SymbolFlags meaning)
         {
             // The Go JSON encoder replaces its invalid UTF-8 internal-name prefix.
-            string name = SemanticSyntax.Name(symbol.ValueDeclaration) is PrivateIdentifierNode privateName ? privateName.Text
-                : symbol.Name.Replace(Symbol.InternalPrefix, "\uFFFD", StringComparison.Ordinal);
+            TextSlice name = SemanticSyntax.Name(symbol.ValueDeclaration) is PrivateIdentifierNode privateName ? privateName.Text.ToString()
+                : symbol.Name.ToString().Replace(Symbol.InternalPrefix, "\uFFFD", StringComparison.Ordinal);
             Events.Add($"symbol:{name}:{enclosingDeclaration?.Pos ?? -1}:{(uint)meaning}");
             return OnTrack?.Invoke(symbol) ?? false;
         }
 
         public void ReportInaccessibleThisError() => Events.Add("this");
 
-        public void ReportPrivateInBaseOfClassExpression(string propertyName) => Events.Add("private:" + propertyName);
+        public void ReportPrivateInBaseOfClassExpression(TextSlice propertyName) => Events.Add("private:" + propertyName.ToString());
 
         public void ReportInaccessibleUniqueSymbolError() => Events.Add("unique");
 
         public void ReportCyclicStructureError() => Events.Add("cycle");
 
-        public void ReportLikelyUnsafeImportRequiredError(string specifier, string symbolName) =>
+        public void ReportLikelyUnsafeImportRequiredError(TextSlice specifier, TextSlice symbolName) =>
             Events.Add($"unsafe:{specifier}:{symbolName}");
 
         public void ReportTruncationError() => Events.Add("truncation");
@@ -41,7 +41,7 @@ internal static class CheckerNodeBuilderTests
         public void ReportNonlocalAugmentation(SourceFileNode containingFile, Symbol parentSymbol, Symbol augmentingSymbol)
                     => Events.Add($"augmentation:{containingFile.FileName}:{parentSymbol.Name}:{augmentingSymbol.Name}");
 
-        public void ReportNonSerializableProperty(string propertyName) => Events.Add("property:" + propertyName);
+        public void ReportNonSerializableProperty(TextSlice propertyName) => Events.Add("property:" + propertyName.ToString());
 
         public void ReportInferenceFallback(SyntaxNode node) => Events.Add($"inference:{node.Pos}:{(int)node.Kind}");
 
@@ -78,7 +78,7 @@ internal static class CheckerNodeBuilderTests
         var snapshot = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
         var type = await checker.GetTypeFromTypeNodeAsync(declarations[0].Type!);
         const NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation;
-        string first = await checker.SerializeTypeSyntaxAsync(type, source, flags);
+        TextSlice first = await checker.SerializeTypeSyntaxAsync(type, source, flags);
         Check(checker.SerializedTypeSyntaxCount > 0);
         int count = checker.SerializedTypeSyntaxCount;
         var tracker = new Tracker();
@@ -148,7 +148,7 @@ internal static class CheckerNodeBuilderTests
         writer.WriteStartArray("tracking");
         foreach (var declaration in file.DescendantsAndSelf().OfType<VariableDeclarationNode>())
         {
-            if (declaration.Name is not IdentifierNode name || !name.Text.StartsWith("show", StringComparison.Ordinal))
+            if (declaration.Name is not IdentifierNode name || !name.Text.Span.StartsWith("show", StringComparison.Ordinal))
                 continue;
             var type = declaration.Type is { } annotation ? await checker.GetTypeFromTypeNodeAsync(annotation)
                 : await checker.Values.GetAsync(checker.Symbols.Declaration(declaration)!);
@@ -162,7 +162,7 @@ internal static class CheckerNodeBuilderTests
                                 ? ["type", "declaration", "expression", "return", "parameters", "signature"] : ["type", "declaration"])
                         {
                             var tracker = new Tracker();
-                            string text = operation switch
+                            TextSlice text = operation switch
                             {
                                 "type" => await checker.SerializeTypeSyntaxAsync(
                                     type,
@@ -211,11 +211,11 @@ internal static class CheckerNodeBuilderTests
                                     internalFlags: internalFlag)
                             };
                             writer.WriteStartArray();
-                            writer.WriteStringValue(name.Text);
+                            writer.WriteStringValue(name.Text.Span);
                             writer.WriteStringValue(operation);
                             writer.WriteNumberValue(scope);
                             writer.WriteNumberValue((uint)flag);
-                            writer.WriteStringValue(text);
+                            writer.WriteStringValue(text.Span);
                             writer.WriteStartArray();
                             foreach (var entry in tracker.Events)
                                 writer.WriteStringValue(entry);

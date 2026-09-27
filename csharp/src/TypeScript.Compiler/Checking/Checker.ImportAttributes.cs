@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -7,7 +8,7 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
-    private static string ImportAttributeName(SyntaxNode node) => node switch
+    private static TextSlice ImportAttributeName(SyntaxNode node) => node switch
     {
         IdentifierNode identifier => identifier.Text,
         StringLiteralNode text => text.Text,
@@ -33,7 +34,7 @@ internal sealed partial class Checker
         var data = links.TypeNodes.Get(node);
         if (data.ResolvedType is { } cached)
             return cached;
-        var members = new Dictionary<string, Symbol>();
+        var members = new Dictionary<TextSlice, Symbol>();
         foreach (ImportAttributeNode attribute in node.Attributes!)
         {
             var property = new Symbol(SymbolFlags.Property | SymbolFlags.Transient, ImportAttributeName(attribute.Name!));
@@ -82,13 +83,13 @@ internal sealed partial class Checker
             || declaration is ExportDeclarationNode { IsTypeOnly: true };
         var mode = node.Attributes!.OfType<ImportAttributeNode>().FirstOrDefault(a => ImportAttributeName(a.Name!) == "resolution-mode");
         bool grammar = SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0;
-        string? modeText = mode?.Value switch
+        TextSlice? modeText = mode?.Value switch
         {
             StringLiteralNode value => value.Text,
             NoSubstitutionTemplateLiteralNode template => template.Text,
-            _ => null
+            _ => (TextSlice?)null
         };
-        bool validMode = modeText is "import" or "require";
+        bool validMode = modeText.GetValueOrDefault().Span is "import" or "require";
         if (typeOnly)
         {
             if (grammar && modeText is not null && !validMode)

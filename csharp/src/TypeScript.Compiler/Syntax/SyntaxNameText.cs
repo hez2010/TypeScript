@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Text;
 using TypeScript.Compiler.Ast;
 
@@ -5,7 +6,7 @@ namespace TypeScript.Compiler.Syntax;
 
 internal static class SyntaxNameText
 {
-    public static string Get(SyntaxNode? node, bool propertyAccess = true)
+    public static TextSlice Get(SyntaxNode? node, bool propertyAccess = true)
     {
         if (node is IdentifierNode identifier)
             return identifier.Text;
@@ -24,10 +25,10 @@ internal static class SyntaxNameText
                     text.Append('.');
                     break;
                 case IdentifierNode name:
-                    text.Append(name.Text);
+                    text.Append(name.Text.Span);
                     break;
                 case PrivateIdentifierNode name:
-                    text.Append(name.Text);
+                    text.Append(name.Text.Span);
                     break;
                 case QualifiedNameNode name:
                     if (name.Right is not null)
@@ -45,6 +46,6 @@ internal static class SyntaxNameText
                     break;
             }
         }
-        return text.ToString();
+        return TextSlice.FromBuilder(text);
     }
 }

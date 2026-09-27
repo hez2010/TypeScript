@@ -113,7 +113,7 @@ internal sealed class FunctionContexts(TypeContext context, CheckerLinks links, 
                 break;
             count++;
         }
-        if (declarations.FirstOrDefault() is ParameterDeclarationNode { Name: IdentifierNode { Text: "this" } })
+        if (declarations.FirstOrDefault() is ParameterDeclarationNode { Name: IdentifierNode { Text.Span: "this" } })
             count--;
         return !await parameters.HasRestAsync(signature, cancellation).ConfigureAwait(false)
             && await parameters.CountAsync(signature, cancellation).ConfigureAwait(false) < count;
@@ -131,7 +131,7 @@ internal sealed class FunctionContexts(TypeContext context, CheckerLinks links, 
             return null;
         var declarations = ((IFunctionSignature)node).Parameters!;
         int index = declarations.IndexOf(parameter)
-            - (declarations.FirstOrDefault() is ParameterDeclarationNode { Name: IdentifierNode { Text: "this" } } ? 1 : 0);
+            - (declarations.FirstOrDefault() is ParameterDeclarationNode { Name: IdentifierNode { Text.Span: "this" } } ? 1 : 0);
         return parameter.DotDotDotToken is not null && declarations[^1] == parameter
             ? await parameters.RestAtAsync(signature, index, cancellation: cancellation).ConfigureAwait(false)
             : await parameters.TryAtAsync(signature, index, cancellation).ConfigureAwait(false);

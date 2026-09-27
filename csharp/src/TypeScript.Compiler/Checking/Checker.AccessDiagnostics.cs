@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -10,10 +11,10 @@ internal sealed partial class Checker
     public async ValueTask AccessErrorAsync(SyntaxNode node, DiagnosticCode code, CancellationToken cancellation, Type? type = null,
         Symbol? symbol = null, Type? index = null, Symbol? related = null)
     {
-        string name = symbol is not null ? TypeDisplay.SymbolName(symbol) : CheckerDiagnostic.DeclarationName(node);
-        async ValueTask<string> ReceiverAsync() => type?.Symbol == program.Symbols.GlobalThisSymbol ? "typeof globalThis"
+        TextSlice name = symbol is not null ? TypeDisplay.SymbolName(symbol) : CheckerDiagnostic.DeclarationName(node);
+        async ValueTask<TextSlice> ReceiverAsync() => type?.Symbol == program.Symbols.GlobalThisSymbol ? "typeof globalThis"
             : await TypeDisplay.GetAsync(type!, cancellation);
-        string[] arguments = code switch
+        TextSlice[] arguments = code switch
         {
             DiagnosticCode.PrivateField0MustBeDeclaredInAnEnclosingClass or DiagnosticCode.CannotAssignTo0BecauseItIsAReadOnlyProperty
                 or DiagnosticCode.Property0IsUsedBeforeBeingAssigned
@@ -57,8 +58,8 @@ internal sealed partial class Checker
     public async ValueTask MemberErrorAsync(SyntaxNode node, DiagnosticCode code, Symbol symbol, CancellationToken cancellation,
         Type? type = null, Type? enclosing = null)
     {
-        string name = TypeDisplay.SymbolName(symbol);
-        string[] arguments = code switch
+        TextSlice name = TypeDisplay.SymbolName(symbol);
+        TextSlice[] arguments = code switch
         {
             DiagnosticCode.ClassField0DefinedByTheParentClassIsNotAccessibleInTheChildClassViaSuper => [name],
             DiagnosticCode.Property0IsUsedBeforeItsInitialization or DiagnosticCode.Class0UsedBeforeItsDeclaration => [SyntaxNameText.Get(node)],

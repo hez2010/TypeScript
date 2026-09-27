@@ -63,7 +63,7 @@ internal static class MapperCodecTests
                         void Output(MapperOutput mapped)
                         {
                             writer.WriteStartArray();
-                            writer.WriteStringValue(mapped.Text.Text);
+                            writer.WriteStringValue(mapped.Text.Text.Span);
                             writer.WriteStringValue(mapped.Extension);
                             mapped.Mappings.Write(writer);
                             writer.WriteStartArray();

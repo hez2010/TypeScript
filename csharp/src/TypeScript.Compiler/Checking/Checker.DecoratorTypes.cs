@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Syntax;
@@ -7,7 +8,7 @@ namespace TypeScript.Compiler.Checking;
 internal sealed partial class Checker
 {
     private readonly Dictionary<SyntaxNode, Signature?> decoratorSignatures = [];
-    private readonly Dictionary<string, Type> decoratorGlobals = [];
+    private readonly Dictionary<TextSlice, Type> decoratorGlobals = [];
     private readonly Dictionary<(Type Name, bool Private, bool Static), Type> decoratorContextOverrides = [];
 
     private async ValueTask<Signature?> DecoratorSignatureAsync(DecoratorNode decorator, CancellationToken cancellation)
@@ -47,10 +48,10 @@ internal sealed partial class Checker
         {
             var owner = parameter.Parent!;
             if (owner is not (ConstructorDeclarationNode or MethodDeclarationNode or SetAccessorDeclarationNode)
-                || !SemanticSyntax.ClassLike(owner.Parent) || parameter.Name is IdentifierNode { Text: "this" })
+                || !SemanticSyntax.ClassLike(owner.Parent) || parameter.Name is IdentifierNode { Text.Span: "this" })
                 return null;
             var parameters = ((IFunctionSignature)owner).Parameters!;
-            int index = parameters.IndexOf(parameter) - (parameters[0] is ParameterDeclarationNode { Name: IdentifierNode { Text: "this" } }
+            int index = parameters.IndexOf(parameter) - (parameters[0] is ParameterDeclarationNode { Name: IdentifierNode { Text.Span: "this" } }
                 ? 1
                 : 0);
             var target = owner is ConstructorDeclarationNode ? await Values.GetAsync(
@@ -103,7 +104,7 @@ internal sealed partial class Checker
                     : value;
             returnType = targetType;
         }
-        string contextName = node switch
+        TextSlice contextName = node switch
         {
             MethodDeclarationNode => "ClassMethodDecoratorContext",
             GetAccessorDeclarationNode => "ClassGetterDecoratorContext",
@@ -118,8 +119,8 @@ internal sealed partial class Checker
             : await LiteralNameTypeAsync(name, cancellation);
         if (!decoratorContextOverrides.TryGetValue((nameType, privateName, isStatic), out var overrides))
         {
-            var members = new Dictionary<string, Symbol>();
-            foreach (var (key, type) in new (string, Type)[]
+            var members = new Dictionary<TextSlice, Symbol>();
+            foreach (var (key, type) in new (TextSlice, Type)[]
             {
                 ("name", nameType),
                 ("private", privateName ? context.TrueType : context.FalseType),
@@ -142,7 +143,7 @@ internal sealed partial class Checker
             [DecoratorParameter("target", targetType), DecoratorParameter("context", contextType)]);
     }
 
-    private async ValueTask<Type> DecoratorGlobalAsync(string name, Type[] arguments, CancellationToken cancellation)
+    private async ValueTask<Type> DecoratorGlobalAsync(TextSlice name, Type[] arguments, CancellationToken cancellation)
     {
         if (!decoratorGlobals.TryGetValue(name, out var target))
             decoratorGlobals[name] = target = await program.Globals.GetAsync(name, arguments.Length, true, cancellation);
@@ -167,7 +168,7 @@ internal sealed partial class Checker
         return context.ErrorType;
     }
 
-    private Symbol DecoratorParameter(string name, Type type)
+    private Symbol DecoratorParameter(TextSlice name, Type type)
     {
         var parameter = new Symbol(SymbolFlags.FunctionScopedVariable | SymbolFlags.Transient, name);
         links.Values.Get(parameter).ResolvedType = type;
@@ -182,7 +183,7 @@ internal sealed partial class Checker
         if (signature.IsolatedSignatureType is { } cached)
             return cached;
         var type = context.NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved);
-        type.Members = new Dictionary<string, Symbol>().AsReadOnly();
+        type.Members = new Dictionary<TextSlice, Symbol>().AsReadOnly();
         type.Properties = [];
         type.CallSignatures = [signature];
         type.ConstructSignatures = [];

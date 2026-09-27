@@ -28,12 +28,12 @@ internal sealed class ExpressionChecks(TypeContext context, TypeFactQueries fact
     {
         cancellation.ThrowIfCancellationRequested();
         context.RequireOwned(type);
-        string? name = EntityText(node);
+        TextSlice? name = EntityText(node);
         if (context.StrictNullChecks && (type.Flags & TypeFlags.Unknown) != 0)
         {
             host.ExpressionError(
                 node,
-                name is not null && Encoding.UTF8.GetByteCount(name) < 100
+                name is not null && Encoding.UTF8.GetByteCount((name).Value) < 100
                     ? DiagnosticCode.X0IsOfTypeUnknown
                     : DiagnosticCode.ObjectIsOfTypeUnknown);
             return context.ErrorType;
@@ -47,9 +47,9 @@ internal sealed class ExpressionChecks(TypeContext context, TypeFactQueries fact
                 ? DiagnosticCode.CannotInvokeAnObjectWhichIsPossiblyNullOrUndefined
                 : DiagnosticCode.CannotInvokeAnObjectWhichIsPossiblyUndefined
             : DiagnosticCode.CannotInvokeAnObjectWhichIsPossiblyNull
-            : node.Kind == SyntaxKind.NullKeyword || node is IdentifierNode { Text: "undefined" } ? DiagnosticCode.TheValue0CannotBeUsedHere
+            : node.Kind == SyntaxKind.NullKeyword || node is IdentifierNode { Text.Span: "undefined" } ? DiagnosticCode.TheValue0CannotBeUsedHere
             : name is { Length: > 0 }
-                && Encoding.UTF8.GetByteCount(name) < 100 ? undefined
+                && Encoding.UTF8.GetByteCount((name).Value) < 100 ? undefined
                     ? nullValue ? DiagnosticCode.X0IsPossiblyNullOrUndefined : DiagnosticCode.X0IsPossiblyUndefined
                     : DiagnosticCode.X0IsPossiblyNull
             : undefined
@@ -91,7 +91,7 @@ internal sealed class ExpressionChecks(TypeContext context, TypeFactQueries fact
             }
             result |= current switch
             {
-                NumericLiteralNode number => number.Text is "0" or "1" ? 3 : 1,
+                NumericLiteralNode number => number.Text.Span is "0" or "1" ? 3 : 1,
                 StringLiteralNode text => text.Text.Length != 0 ? 1 : 2,
                 NoSubstitutionTemplateLiteralNode text => text.Text.Length != 0 ? 1 : 2,
                 {
@@ -198,17 +198,17 @@ internal sealed class ExpressionChecks(TypeContext context, TypeFactQueries fact
         }
     }
 
-    internal static string? EntityText(SyntaxNode node)
+    internal static TextSlice? EntityText(SyntaxNode node)
     {
         if (!ConstantEvaluator.EntityName(node))
             return null;
-        var names = new Stack<string>();
+        var names = new Stack<TextSlice>();
         while (node is PropertyAccessExpressionNode { Name: IdentifierNode name } property)
         {
             names.Push(name.Text);
             node = property.Expression!;
         }
         names.Push(((IdentifierNode)node).Text);
-        return string.Join('.', names);
+        return TextSlice.Join('.', names);
     }
 }

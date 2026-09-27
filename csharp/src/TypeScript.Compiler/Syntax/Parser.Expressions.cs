@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Diagnostics;
 using K = TypeScript.Compiler.Syntax.SyntaxKind;
@@ -15,12 +16,12 @@ public sealed partial class Parser
             or K.NullKeyword or K.ThisKeyword or K.TrueKeyword or K.SuperKeyword or K.ExpressionWithTypeArguments or K.MetaProperty
             or K.ImportKeyword or K.MissingDeclaration;
 
-    private void ErrorOnNode(SyntaxNode node, DiagnosticMessage message, params string[] arguments) =>
+    private void ErrorOnNode(SyntaxNode node, DiagnosticMessage message, params TextSlice[] arguments) =>
         ErrorOnRange(node.Pos, node.End, message, arguments);
 
     private void ErrorOnNode(NodeList nodes, DiagnosticMessage message) => ErrorOnRange(nodes.Pos - 1, nodes.End + 1, message, []);
 
-    private void ErrorOnRange(int start, int end, DiagnosticMessage message, params string[] arguments)
+    private void ErrorOnRange(int start, int end, DiagnosticMessage message, params TextSlice[] arguments)
     {
         var positionScanner = new Scanner(source);
         positionScanner.ResetPosition(Math.Max(0, start));
@@ -829,7 +830,7 @@ public sealed partial class Parser
     private SyntaxNode TemplatePart()
     {
         int start = Pos;
-        string value = scanner.Value;
+        TextSlice value = scanner.Value;
         string raw = scanner.TokenText.ToString();
         int suffix = Token == K.TemplateTail ? 1 : 2;
         raw = raw.Length > suffix ? raw[1..^suffix] : "";

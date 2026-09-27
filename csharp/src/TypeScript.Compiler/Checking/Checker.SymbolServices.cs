@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Syntax;
@@ -39,7 +40,7 @@ internal sealed partial class Checker
     }
 
     internal async ValueTask<(Symbol Parameter, Symbol Property)> GetSymbolsOfParameterPropertyDeclarationAsync(
-        ParameterDeclarationNode parameter, string name, CancellationToken cancellation = default)
+        ParameterDeclarationNode parameter, TextSlice name, CancellationToken cancellation = default)
     {
         using var query = await EnterQueryAsync(parameter, cancellation).ConfigureAwait(false);
         var constructor = parameter.Parent!;

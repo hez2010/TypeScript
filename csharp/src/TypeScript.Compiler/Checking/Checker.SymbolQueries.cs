@@ -91,7 +91,7 @@ internal sealed partial class Checker
                         cancellation, ignoreErrors: true);
                 if (parent is CallExpressionNode
                     {
-                        Expression: PropertyAccessExpressionNode { Expression: IdentifierNode { Text: "Object" }, Name: IdentifierNode { Text: "defineProperty" } },
+                        Expression: PropertyAccessExpressionNode { Expression: IdentifierNode { Text.Span: "Object" }, Name: IdentifierNode { Text.Span: "defineProperty" } },
                         Arguments: { Count: 3 } arguments
                     } && arguments[1] == node)
                     return program.Symbols.Declaration(parent);

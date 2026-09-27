@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -20,7 +21,7 @@ internal sealed partial class Checker
 
     private readonly record struct ChainKey(Symbol Symbol, SyntaxNode? Scope, SymbolFlags Meaning, bool ExternalOnly);
 
-    private readonly record struct ScopeTable(IReadOnlyDictionary<string, Symbol> Table, SymbolTableIdentity Identity,
+    private readonly record struct ScopeTable(IReadOnlyDictionary<TextSlice, Symbol> Table, SymbolTableIdentity Identity,
             bool LocalNames, SyntaxNode? Scope);
 
     private sealed record ChainContext(Symbol Symbol, SyntaxNode? Enclosing, SymbolFlags Meaning, bool ExternalOnly,
@@ -28,7 +29,7 @@ internal sealed partial class Checker
 
     private readonly Dictionary<ChainKey, IReadOnlyList<Symbol>?> accessibleChains = [];
     private readonly Dictionary<SymbolTableIdentity, IReadOnlyList<Symbol>> tableAliases = [];
-    private readonly Dictionary<SyntaxNode, IReadOnlyDictionary<string, Symbol>> classNameTables = [];
+    private readonly Dictionary<SyntaxNode, IReadOnlyDictionary<TextSlice, Symbol>> classNameTables = [];
     private ChainChanges? chainChanges;
     internal Action<Symbol>? BeforeSymbolChainTable { get; set; }
     internal int AccessibleChainCacheCount => accessibleChains.Count;
@@ -115,7 +116,7 @@ internal sealed partial class Checker
         return result;
     }
 
-    private async ValueTask<IReadOnlyList<Symbol>?> ChainFromTableAsync(ChainContext lookup, IReadOnlyDictionary<string, Symbol> table,
+    private async ValueTask<IReadOnlyList<Symbol>?> ChainFromTableAsync(ChainContext lookup, IReadOnlyDictionary<TextSlice, Symbol> table,
         SymbolTableIdentity identity, bool ignoreQualification, bool localNames, CancellationToken cancellation)
     {
         await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
@@ -137,7 +138,7 @@ internal sealed partial class Checker
             foreach (var alias in SymbolTableAliases(table, identity))
             {
                 cancellation.ThrowIfCancellationRequested();
-                if (alias.Name is "default" or "export="
+                if (alias.Name.Span is "default" or "export="
                     || alias.Declarations.FirstOrDefault() is NamespaceExportDeclarationNode
                         && SemanticSyntax.Source(lookup.Enclosing)?.ExternalModuleIndicator is not null
                     || lookup.ExternalOnly
@@ -164,7 +165,7 @@ internal sealed partial class Checker
         }
     }
 
-    private IReadOnlyList<Symbol> SymbolTableAliases(IReadOnlyDictionary<string, Symbol> table, SymbolTableIdentity identity)
+    private IReadOnlyList<Symbol> SymbolTableAliases(IReadOnlyDictionary<TextSlice, Symbol> table, SymbolTableIdentity identity)
     {
         if (identity.Kind == SymbolTableKind.Members)
             return [];
@@ -277,14 +278,14 @@ internal sealed partial class Checker
                 case ClassDeclarationNode or ClassExpressionNode or InterfaceDeclarationNode:
                     var symbol = program.Symbols.Declaration(location)!;
                     var members = symbol.Members.Where(p => (p.Value.Flags & (SymbolFlags.Type & ~SymbolFlags.Assignment)) != 0)
-                        .ToDictionary(p => p.Key, p => p.Value, StringComparer.Ordinal);
+                        .ToDictionary(p => p.Key, p => p.Value, TextSliceComparer.Ordinal);
                     if (members.Count != 0)
                         yield return new(members, new(SymbolTableKind.Members, symbol), false, location);
                     if (location is ClassExpressionNode { Name: IdentifierNode { Text.Length: > 0 } name })
                     {
                         if (!classNameTables.TryGetValue(location, out var table))
                         {
-                            table = new Dictionary<string, Symbol>(StringComparer.Ordinal) { [name.Text] = symbol }.AsReadOnly();
+                            table = new Dictionary<TextSlice, Symbol>() { [name.Text] = symbol }.AsReadOnly();
                             classNameTables.Add(location, table);
                             chainChanges?.ClassNames.Add(location);
                         }

@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Binding;
@@ -65,7 +66,7 @@ internal sealed class TupleTypes(TypeContext context, TypeAlgebra algebra, Check
             return cached;
         int arity = infos.Count, minimum = infos.Count(i => (i.Flags & (E.Required | E.Variadic)) != 0);
         var parameters = new TypeParameter[arity];
-        var members = new Dictionary<string, Symbol>(StringComparer.Ordinal);
+        var members = new Dictionary<TextSlice, Symbol>();
         E combined = 0;
         for (int i = 0; i < arity; i++)
         {
@@ -77,7 +78,7 @@ internal sealed class TupleTypes(TypeContext context, TypeAlgebra algebra, Check
             {
                 var property = new Symbol(
                     SymbolFlags.Property | SymbolFlags.Transient | ((flags & E.Optional) != 0 ? SymbolFlags.Optional : 0),
-                    i.ToString(CultureInfo.InvariantCulture))
+                    TextSlice.Format(i))
                 { CheckFlags = isReadonly ? CheckFlags.Readonly : 0 };
                 links.Values.Get(property).ResolvedType = parameters[i];
                 members.Add(property.Name, property);

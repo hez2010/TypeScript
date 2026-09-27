@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Globalization;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -95,7 +96,7 @@ internal sealed class ExpressionTypes(TypeContext context, TypeAlgebra algebra, 
                 await CheckAsync(typeOf.Expression!, cancellation: cancellation).ConfigureAwait(false);
                 return typeofType ??= await algebra.UnionAsync(
                     new[] { "bigint", "boolean", "function", "number", "object", "string", "symbol", "undefined" }
-                    .Select(context.GetStringLiteralType).ToArray(), cancellation: cancellation).ConfigureAwait(false);
+                    .Select(text => context.GetStringLiteralType(text)).ToArray(), cancellation: cancellation).ConfigureAwait(false);
             case VoidExpressionNode:
                 host.DeferExpression(node);
                 return context.UndefinedWideningType;
@@ -193,7 +194,7 @@ internal sealed class ExpressionTypes(TypeContext context, TypeAlgebra algebra, 
 
     private async ValueTask<Type> TemplateAsync(TemplateExpressionNode template, CancellationToken cancellation)
     {
-        var texts = new List<string> { ((TemplateHeadNode)template.Head!).Text };
+        var texts = new List<TextSlice> { ((TemplateHeadNode)template.Head!).Text };
         var types = new List<Type>();
         foreach (var node in template.TemplateSpans!)
         {
@@ -220,15 +221,15 @@ internal sealed class ExpressionTypes(TypeContext context, TypeAlgebra algebra, 
                     : context.StringType);
         }
         if (template.Parent is not TaggedTemplateExpressionNode
-            && (await evaluator.EvaluateAsync(template, template, cancellation).ConfigureAwait(false)).Value is string value)
+            && (await evaluator.EvaluateAsync(template, template, cancellation).ConfigureAwait(false)).Value is TextSlice value)
             return context.GetFreshLiteralType(context.GetStringLiteralType(value));
         return await host.TemplateContextAsync(template, cancellation).ConfigureAwait(false)
             ? await algebra.TemplateAsync(texts, types, cancellation).ConfigureAwait(false) : context.StringType;
     }
 
-    internal static BigInteger BigInt(string text)
+    internal static BigInteger BigInt(TextSlice text)
     {
-        var span = text.AsSpan().TrimEnd('n');
+        var span = text.Span.TrimEnd('n');
         int radix = span.StartsWith(
             "0x",
             StringComparison.OrdinalIgnoreCase) ? 16 : span.StartsWith("0b", StringComparison.OrdinalIgnoreCase) ? 2

@@ -40,7 +40,7 @@ internal static class CheckerIdentifierTests
         var host = new Checker(context, links, scope);
         var nodes = program.SourceFiles[0].Syntax.DescendantsAndSelf().ToArray();
         var queries = nodes.OfType<CallExpressionNode>().Where(
-            n => n.Expression is IdentifierNode { Text: "__expr" }).Select(n => n.Arguments![0]).ToArray();
+            n => n.Expression is IdentifierNode { Text: { Span: "__expr" } }).Select(n => n.Arguments![0]).ToArray();
         var parameter = nodes.OfType<ParameterDeclarationNode>().Single(n => n.Initializer is not null);
         var type = await host.Values.GetAsync(symbols.Declaration(parameter)!);
         using (var cancellation = new CancellationTokenSource())

@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Syntax;
@@ -33,7 +34,7 @@ internal sealed class IndexDeclarationChecks(CheckerSymbols symbols, TypeNodes n
 
     internal void DuplicateProperties(NodeList members, CancellationToken cancellation = default)
     {
-        var names = new Dictionary<string, int>(StringComparer.Ordinal);
+        var names = new Dictionary<TextSlice, int>(TextSliceComparer.Ordinal);
         foreach (var member in members)
         {
             cancellation.ThrowIfCancellationRequested();

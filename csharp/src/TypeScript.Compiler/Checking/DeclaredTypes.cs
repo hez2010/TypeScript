@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -128,7 +129,7 @@ internal sealed class DeclaredTypes(TypeContext context, CheckerLinks links, Che
                     var value = await host.EnumValueAsync(member, cancellation).ConfigureAwait(false);
                     var type = value switch
                     {
-                        string text => context.GetEnumLiteralType(text, symbol, memberSymbol),
+                        TextSlice text => context.GetEnumLiteralType(text, symbol, memberSymbol),
                         double number => context.GetEnumLiteralType(number, symbol, memberSymbol),
                         null => ComputedEnum(memberSymbol),
                         _ => throw new InvalidOperationException("Invalid enum value")

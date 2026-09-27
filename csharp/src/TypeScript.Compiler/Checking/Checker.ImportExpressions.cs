@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -10,7 +11,7 @@ internal sealed partial class Checker
     private Type? importCallOptionsType;
 
     private static bool IsImportCall(CallExpressionNode node) => node.Expression?.Kind == SyntaxKind.ImportKeyword
-        || node.Expression is MetaPropertyNode { KeywordToken: SyntaxKind.ImportKeyword, Name.Text: "defer" };
+        || node.Expression is MetaPropertyNode { KeywordToken: SyntaxKind.ImportKeyword, Name.Text.Span: "defer" };
 
     private async ValueTask<Type> CheckImportCallAsync(CallExpressionNode node, CancellationToken cancellation)
     {
@@ -37,7 +38,7 @@ internal sealed partial class Checker
                         await Algebra.UnionAsync([importCallOptionsType, context.UndefinedType], cancellation: cancellation),
                         RelationKind.Assignable, arguments[1], null, DiagnosticCode.Type0IsNotAssignableToType1, cancellation);
                 if (arguments[1] is ObjectLiteralExpressionNode literal
-                    && literal.Properties!.OfType<PropertyAssignmentNode>().FirstOrDefault(p => p.Name is IdentifierNode { Text: "assert" }) is { } assertion)
+                    && literal.Properties!.OfType<PropertyAssignmentNode>().FirstOrDefault(p => p.Name is IdentifierNode { Text.Span: "assert" }) is { } assertion)
                     Error(assertion.Name!, DiagnosticCode.ImportAssertionsHaveBeenReplacedByImportAttributesUseWithInsteadOfAssert);
                 if (await Properties.PropertyAsync(options, "with", cancellation: cancellation) is { } property)
                     attributes = await Values.GetAsync(property, cancellation);
@@ -156,7 +157,7 @@ internal sealed partial class Checker
             {
                 var resolved = program.Symbols.Merger.GetMergedSymbol(
                     await program.Aliases.SymbolAsync(target, cancellation: cancellation))!;
-                string name = ((IdentifierNode)current).Text;
+                TextSlice name = ((IdentifierNode)current).Text;
                 var next = node.IsTypeOf ? await Properties.PropertyAsync(
                     await Values.GetAsync(resolved, cancellation),
                     name,

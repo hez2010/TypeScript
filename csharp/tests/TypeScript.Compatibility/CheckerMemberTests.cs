@@ -94,7 +94,7 @@ internal static class CheckerMemberTests
         Check(predicateSignature.ResolvedTypePredicate is null);
         host.BeforeNode = null;
         var predicate = await host.Signatures.PredicateAsync(predicateSignature);
-        Check(predicate is { ParameterIndex: 0, ParameterName: "x" } && predicate.Type == context.StringType);
+        Check(predicate is { ParameterIndex: 0, ParameterName: { Span: "x" } } && predicate.Type == context.StringType);
         Check(await host.Signatures.PredicateAsync(predicateSignature) == predicate);
 
         var body = (await host.Signatures.OfSymbolAsync(symbols.Globals["body"])).Single();
@@ -329,7 +329,7 @@ internal static class CheckerMemberTests
         if (callQueries)
             foreach (var node in nodes)
                 if (node is CallExpressionNode or NewExpressionNode or TaggedTemplateExpressionNode
-                    && CallArguments.Target(node) is not IdentifierNode { Text: "__expr" })
+                    && CallArguments.Target(node) is not IdentifierNode { Text: { Span: "__expr" } })
                     callRows.Add([nodeId(node), SignatureId(await host.CallResolution.GetAsync(node))]);
         var members = new List<object[]>();
         for (int i = 0; i < pending.Count; i++)
@@ -421,6 +421,9 @@ internal static class CheckerMemberTests
                     break;
                 case bool boolean:
                     writer.WriteBooleanValue(boolean);
+                    break;
+                case TextSlice slice:
+                    writer.WriteStringValue(slice.Span);
                     break;
                 case string text:
                     writer.WriteStringValue(text);

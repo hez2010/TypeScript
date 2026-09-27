@@ -155,15 +155,15 @@ internal static class ModuleSpecifierGenerationTests
 
         public ResolvedModule? ResolvedImport(SourceFileNode source, SyntaxNode import)
         {
-            string name = import is StringLiteralNode literal ? literal.Text : ((NoSubstitutionTemplateLiteralNode)import).Text;
+            TextSlice name = import is StringLiteralNode literal ? literal.Text : ((NoSubstitutionTemplateLiteralNode)import).Text;
             return input.TryGetProperty("importTargets", out var targets) && targets.TryGetProperty(name, out var target)
                 ? new(JsonStrings.GetString(target)) : null;
         }
 
         public ReferenceResolutionMode ResolutionMode(SourceFileNode source, SyntaxNode? import)
         {
-            string? name = import is StringLiteralNode literal ? literal.Text : (import as NoSubstitutionTemplateLiteralNode)?.Text;
-            return name is not null && input.TryGetProperty("importModes", out var modes) && modes.TryGetProperty(name, out var mode)
+            TextSlice? name = import is StringLiteralNode literal ? literal.Text : (import as NoSubstitutionTemplateLiteralNode)?.Text;
+            return name is not null && input.TryGetProperty("importModes", out var modes) && modes.TryGetProperty(name.Value.Span, out var mode)
                 ? (ReferenceResolutionMode)mode.GetInt32() : (ReferenceResolutionMode)Number("defaultMode");
         }
 

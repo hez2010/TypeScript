@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Text.Json;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Diagnostics;
@@ -81,7 +82,7 @@ public sealed partial class ConfigParser(IFileSystem fileSystem, string currentD
                             Messages.Circularity_detected_while_resolving_configuration_Colon_0,
                             0,
                             0,
-                            [string.Join(" -> ", active.Append(item.Path))]));
+                            [TextSlice.Join(" -> ", active.Append(item.Path))]));
                     continue;
                 }
                 byte[]? bytes = fileSystem.ReadFile(item.Path);
@@ -167,7 +168,7 @@ public sealed partial class ConfigParser(IFileSystem fileSystem, string currentD
                 acquisition.SetRaw("enable", "true");
             }
             string directory = CompilerPath.DirectoryName(item.Path);
-            void Error(DiagnosticMessage message, SyntaxNode? node, params string[] args) =>
+            void Error(DiagnosticMessage message, SyntaxNode? node, params TextSlice[] args) =>
                 errors.Add(source.Diagnostic(message, node, args));
             void ReadOptions(string section, OptionGroup group, CompilerOptions output)
             {

@@ -180,13 +180,13 @@ internal static class ModuleSpecifierProgramTests
             writer.WriteStartArray();
             foreach (var import in source.Imports)
             {
-                string text = import is TypeScript.Compiler.Ast.StringLiteralNode literal
+                TextSlice text = import is TypeScript.Compiler.Ast.StringLiteralNode literal
                     ? literal.Text
                     : ((TypeScript.Compiler.Ast.NoSubstitutionTemplateLiteralNode)import).Text;
                 var mode = program.ResolutionModeForUsage(source, import);
                 var resolved = file.Resolutions.FirstOrDefault(r => !r.TypeReference && r.Specifier == text && r.Mode == mode)?.Resolution;
                 writer.WriteStartArray();
-                writer.WriteStringValue(text);
+                writer.WriteStringValue(text.Span);
                 writer.WriteStringValue(resolved?.FileName ?? "");
                 writer.WriteNumberValue((int)mode);
                 writer.WriteEndArray();

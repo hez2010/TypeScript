@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -32,7 +33,7 @@ internal sealed partial class Checker
         await CheckFunctionDeclarationAsync(node, cancellation).ConfigureAwait(false);
         await CheckFunctionOverloadsAsync(node, cancellation).ConfigureAwait(false);
         await CheckMethodNameAsync(node, cancellation);
-        if (node.Name is IdentifierNode { Text: "constructor" } && node.AsteriskToken is not null)
+        if (node.Name is IdentifierNode { Text.Span: "constructor" } && node.AsteriskToken is not null)
             Error(node.Name, DiagnosticCode.ClassConstructorMayNotBeAGenerator);
         await CheckSourceElementAsync(node.Body, cancellation).ConfigureAwait(false);
         await CheckFunctionPathsAsync(node, cancellation).ConfigureAwait(false);
@@ -59,7 +60,7 @@ internal sealed partial class Checker
             AccessorGrammar(node);
         await CheckFunctionDeclarationAsync(node, cancellation).ConfigureAwait(false);
         var name = SemanticSyntax.Name(node)!;
-        if (name is IdentifierNode { Text: "constructor" } && SemanticSyntax.ClassLike(node.Parent))
+        if (name is IdentifierNode { Text.Span: "constructor" } && SemanticSyntax.ClassLike(node.Parent))
             Error(name, DiagnosticCode.ClassConstructorMayNotBeAnAccessor);
         await CheckMethodNameAsync(node, cancellation);
         var flags = node.Flags | (program.Symbols.Binding(node)?.Get(node)?.Flags ?? 0);
@@ -101,7 +102,7 @@ internal sealed partial class Checker
             return;
         if (MappedMemberGrammar(node))
             return;
-        if (node.Name is StringLiteralNode { Text: "constructor" })
+        if (node.Name is StringLiteralNode { Text.Span: "constructor" })
         {
             Error(node.Name, DiagnosticCode.ClassesMayNotHaveAFieldNamedConstructor);
             return;
@@ -166,7 +167,7 @@ internal sealed partial class Checker
         }
         bool getter = node is GetAccessorDeclarationNode;
         var parameters = signature.Parameters!;
-        bool receiver = parameters.FirstOrDefault() is ParameterDeclarationNode { Name: IdentifierNode { Text: "this" } };
+        bool receiver = parameters.FirstOrDefault() is ParameterDeclarationNode { Name: IdentifierNode { Text.Span: "this" } };
         if (parameters.Count != (getter ? 0 : 1) && !(receiver && parameters.Count == (getter ? 1 : 2)))
         {
             Error(name, getter ? DiagnosticCode.AGetAccessorCannotHaveParameters : DiagnosticCode.ASetAccessorMustHaveExactlyOneParameter);
@@ -193,7 +194,7 @@ internal sealed partial class Checker
 
     private async ValueTask CheckClassOverridesAsync(SyntaxNode node, InterfaceType type, Type baseType, CancellationToken cancellation)
     {
-        var missing = new List<string>();
+        var missing = new List<TextSlice>();
         foreach (var inherited in await Properties.GetAsync(baseType, cancellation).ConfigureAwait(false))
         {
             var original = OriginalProperty(inherited);
@@ -301,8 +302,8 @@ internal sealed partial class Checker
         if (missing.Count != 0)
         {
             bool expression = node is ClassExpressionNode;
-            string baseName = await TypeDisplay.GetAsync(baseType, cancellation);
-            var arguments = new List<string>();
+            TextSlice baseName = await TypeDisplay.GetAsync(baseType, cancellation);
+            var arguments = new List<TextSlice>();
             if (!expression)
                 arguments.Add(await TypeDisplay.GetAsync(type, cancellation));
             if (missing.Count == 1)
@@ -310,9 +311,9 @@ internal sealed partial class Checker
             else
             {
                 arguments.Add(baseName);
-                arguments.Add(string.Join(", ", (missing.Count > 5 ? missing.Take(4) : missing).Select(name => "'" + name + "'")));
+                arguments.Add(TextSlice.Join(", ", (missing.Count > 5 ? missing.Take(4) : missing).Select(name => TextSlice.Concat("'", name, "'"))));
                 if (missing.Count > 5)
-                    arguments.Add((missing.Count - 4).ToString(System.Globalization.CultureInfo.InvariantCulture));
+                    arguments.Add(TextSlice.Format((missing.Count - 4)));
             }
             Error(node, expression
                 ? missing.Count == 1

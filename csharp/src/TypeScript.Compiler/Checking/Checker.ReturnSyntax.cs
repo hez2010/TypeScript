@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -104,7 +105,7 @@ internal sealed partial class Checker
                 returned, cancellation);
         }
         Type candidateType;
-        if (expression.Kind == SyntaxKind.OmittedExpression || expression is IdentifierNode { Text: "undefined" })
+        if (expression.Kind == SyntaxKind.OmittedExpression || expression is IdentifierNode { Text.Span: "undefined" })
             candidateType = context.UndefinedWideningType;
         else if (expression.Kind == SyntaxKind.NullKeyword)
             candidateType = context.NullWideningType;
@@ -163,20 +164,20 @@ internal sealed partial class Checker
     private static SyntaxNode RecoveredPropertyName(SyntaxNode name, bool method, TypeSyntaxContext state)
     {
         var value = name is ComputedPropertyNameNode computed ? computed.Expression : name;
-        string? text = value switch
+        TextSlice? text = value switch
         {
             IdentifierNode identifier => identifier.Text,
             StringLiteralNode literal => literal.Text,
             NumericLiteralNode literal => literal.Text,
             NoSubstitutionTemplateLiteralNode literal => literal.Text,
-            _ => null
+            _ => (TextSlice?)null
         };
         if (text is not null)
         {
-            if (IdentifierName(text) && !(method && text == "new"))
-                return state.Factory.NewIdentifier(text);
+            if (IdentifierName((text).Value) && !(method && text == "new"))
+                return state.Factory.NewIdentifier((text).Value);
             if (method && text == "new" && name is not StringLiteralNode)
-                return state.Factory.NewStringLiteral(text, TokenFlags.None);
+                return state.Factory.NewStringLiteral((text).Value, TokenFlags.None);
         }
         return CloneSyntaxBindingName(name, state);
     }

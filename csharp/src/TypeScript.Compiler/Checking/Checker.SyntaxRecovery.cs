@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -8,7 +9,7 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
-    internal ValueTask<string> SerializeJsTypeForEmitAsync(SyntaxNode annotation, SyntaxNode? enclosing,
+    internal ValueTask<TextSlice> SerializeJsTypeForEmitAsync(SyntaxNode annotation, SyntaxNode? enclosing,
         NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation, CancellationToken cancellation = default,
         INodeBuilderSymbolTracker? tracker = null,
         NodeBuilderInternalFlags internalFlags = NodeBuilderInternalFlags.None) =>
@@ -170,7 +171,7 @@ internal sealed partial class Checker
     private async ValueTask<SyntaxNode> RecoverTypeReferenceSyntaxAsync(TypeReferenceNode reference, TypeSyntaxContext state,
         CancellationToken cancellation)
     {
-        if (reference.TypeName is IdentifierNode { Text: "" })
+        if (reference.TypeName is IdentifierNode { Text.Span: "" })
             return state.Factory.NewKeywordTypeNode(K.AnyKeyword);
         var type = await Nodes.FromNodeAsync(reference, cancellation);
         if (await DocumentationTypeReferenceAsync(reference, cancellation) is not null)

@@ -116,22 +116,22 @@ public static class AstScalarProperties
                 break;
             case JSDocTextNode n:
                 writer.WriteStartArray("Text");
-                foreach (string value in n.Text) writer.WriteBase64StringValue(Wtf8.Encode(value));
+                foreach (TextSlice value in n.Text) writer.WriteBase64StringValue(Wtf8.Encode(value));
                 writer.WriteEndArray();
                 break;
             case JSDocLinkNode n:
                 writer.WriteStartArray("Text");
-                foreach (string value in n.Text) writer.WriteBase64StringValue(Wtf8.Encode(value));
+                foreach (TextSlice value in n.Text) writer.WriteBase64StringValue(Wtf8.Encode(value));
                 writer.WriteEndArray();
                 break;
             case JSDocLinkPlainNode n:
                 writer.WriteStartArray("Text");
-                foreach (string value in n.Text) writer.WriteBase64StringValue(Wtf8.Encode(value));
+                foreach (TextSlice value in n.Text) writer.WriteBase64StringValue(Wtf8.Encode(value));
                 writer.WriteEndArray();
                 break;
             case JSDocLinkCodeNode n:
                 writer.WriteStartArray("Text");
-                foreach (string value in n.Text) writer.WriteBase64StringValue(Wtf8.Encode(value));
+                foreach (TextSlice value in n.Text) writer.WriteBase64StringValue(Wtf8.Encode(value));
                 writer.WriteEndArray();
                 break;
             case JSDocTypeLiteralNode n:

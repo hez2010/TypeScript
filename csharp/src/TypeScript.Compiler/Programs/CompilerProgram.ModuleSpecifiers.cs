@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.Resolution;
@@ -201,7 +202,7 @@ public sealed partial class CompilerProgram
 
         public ResolvedModule? ResolvedImport(SourceFileNode source, SyntaxNode import)
         {
-            string text = import is StringLiteralNode literal ? literal.Text : ((NoSubstitutionTemplateLiteralNode)import).Text;
+            TextSlice text = import is StringLiteralNode literal ? literal.Text : ((NoSubstitutionTemplateLiteralNode)import).Text;
             var mode = ResolutionMode(source, import);
             return program.GetFile(source.FileName)!.Resolutions.FirstOrDefault(
                 r => !r.TypeReference && r.Specifier == text && r.Mode == mode)?.Resolution;

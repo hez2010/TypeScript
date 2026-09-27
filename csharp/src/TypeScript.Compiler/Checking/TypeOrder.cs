@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Numerics;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -236,7 +237,7 @@ internal sealed class TypeOrder : IComparer<Type>, IComparer<Symbol>
                 object? value = ((LiteralType)b).Value;
                 return la.Value switch
                 {
-                    string text => CompareText(text, (string)value!),
+                    TextSlice text => CompareText(text, (TextSlice)value!),
                     double number => number.CompareTo((double)value!),
                     BigInteger integer => integer.CompareTo((BigInteger)value!),
                     bool boolean => boolean.CompareTo((bool)value!),
@@ -367,17 +368,17 @@ internal sealed class TypeOrder : IComparer<Type>, IComparer<Symbol>
 
     // UTF-8/WTF-8 byte order equals code point order, including lone surrogates.
     // UTF-16 ordinal comparison alone reverses some BMP/supplementary pairs.
-    internal static int CompareSymbolNames(string left, string right)
+    internal static int CompareSymbolNames(TextSlice left, TextSlice right)
     {
-        bool leftPrefixed = left.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal);
-        bool rightPrefixed = right.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal);
-        bool leftInternal = leftPrefixed && !left.StartsWith(Symbol.InternalPrefix + Symbol.InternalPrefix, StringComparison.Ordinal);
-        bool rightInternal = rightPrefixed && !right.StartsWith(Symbol.InternalPrefix + Symbol.InternalPrefix, StringComparison.Ordinal);
+        bool leftPrefixed = left.Span.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal);
+        bool rightPrefixed = right.Span.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal);
+        bool leftInternal = leftPrefixed && !left.Span.StartsWith(Symbol.InternalPrefix + Symbol.InternalPrefix, StringComparison.Ordinal);
+        bool rightInternal = rightPrefixed && !right.Span.StartsWith(Symbol.InternalPrefix + Symbol.InternalPrefix, StringComparison.Ordinal);
         // Go's internal sentinel is byte FE, after every valid UTF-8 name. A
         // doubled C# prefix instead denotes a user name and is unescaped once.
         if (leftInternal != rightInternal)
             return leftInternal ? 1 : -1;
-        return CompareText(left.AsSpan(leftPrefixed ? 1 : 0), right.AsSpan(rightPrefixed ? 1 : 0));
+        return CompareText(left.Span.Slice(leftPrefixed ? 1 : 0), right.Span.Slice(rightPrefixed ? 1 : 0));
     }
 
     internal static int CompareText(ReadOnlySpan<char> left, ReadOnlySpan<char> right)

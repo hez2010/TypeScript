@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -15,7 +16,7 @@ internal sealed partial class Checker : IEnumValueHost
     public void EnumError(SyntaxNode node, DiagnosticCode code) => Error(node, code,
         code == DiagnosticCode.X0HasAStringTypeButMustHaveSyntacticallyRecognizableStringSyntaxWhenIsolatedModulesIsEnabled
             && node.Parent is EnumMemberNode member
-            ? [SyntaxNameText.Get(((EnumDeclarationNode)member.Parent!).Name!) + "." + SyntaxNameText.Get(member.Name!)]
+            ? [TextSlice.Concat(SyntaxNameText.Get(((EnumDeclarationNode)member.Parent!).Name!), ".", SyntaxNameText.Get(member.Name!))]
             : code == DiagnosticCode.Property0IsUsedBeforeBeingAssigned ? [node is ElementAccessExpressionNode element ? element.ArgumentExpression is StringLiteralNode text ? text.Text
                 : CheckerDiagnostic.DeclarationName(element.ArgumentExpression!)
                 : CheckerDiagnostic.DeclarationName(node is PropertyAccessExpressionNode access ? access.Name! : node)] : []);

@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -11,14 +12,14 @@ internal sealed partial class Checker : IIteratorProtocolHost, IIterationElement
     internal IterationElements Iteration { get; }
     internal GeneratorTypes Generators { get; }
     internal YieldExpressions Yields { get; }
-    internal Action<string>? BeforeIterationGlobal { get; set; }
-    private readonly Dictionary<(string Name, int Arity, bool Report), Type> iterationGlobals = [];
+    internal Action<TextSlice>? BeforeIterationGlobal { get; set; }
+    private readonly Dictionary<(TextSlice Name, int Arity, bool Report), Type> iterationGlobals = [];
     internal List<(SyntaxNode Node, Type Type, bool Async, IReadOnlyList<IterationDiagnostic> Related)> DeferredIterationDiagnostics { get; } = [];
     internal List<(SyntaxNode Node, DiagnosticCode Code)> IterationAwaitHints { get; } = [];
 
     public bool StrictBuiltinIteratorReturn => program.Symbols.Program.Configuration.Options.StrictOption("strictBuiltinIteratorReturn");
 
-    public async ValueTask<Type> IterationGlobalAsync(string name, int arity, bool report, CancellationToken cancellation)
+    public async ValueTask<Type> IterationGlobalAsync(TextSlice name, int arity, bool report, CancellationToken cancellation)
     {
         BeforeIterationGlobal?.Invoke(name);
         cancellation.ThrowIfCancellationRequested();
@@ -33,20 +34,20 @@ internal sealed partial class Checker : IIteratorProtocolHost, IIterationElement
     public async ValueTask<IReadOnlyList<Type>> BuiltinIteratorsAsync(bool async, CancellationToken cancellation)
     {
         var types = new List<Type>();
-        foreach (string name in async
+        foreach (TextSlice name in async
             ? new[] { "ReadableStreamAsyncIterator" }
             : ["ArrayIterator", "MapIterator", "SetIterator", "StringIterator"])
             types.Add(await IterationGlobalAsync(name, 1, false, cancellation));
         return types;
     }
 
-    public async ValueTask<string> KnownSymbolNameAsync(string name, CancellationToken cancellation)
+    public async ValueTask<TextSlice> KnownSymbolNameAsync(TextSlice name, CancellationToken cancellation)
     {
         if (program.Symbols.Lookup(program.Symbols.Globals, "Symbol", SymbolFlags.Value) is { } symbol
             && await Properties.PropertyAsync(await Values.GetAsync(symbol, cancellation), name, cancellation: cancellation) is { } property
             && await Values.GetAsync(property, cancellation) is { } type && (type.Flags & TypeFlags.StringOrNumberLiteralOrUnique) != 0)
             return MappedMembers.PropertyName(type);
-        return Symbol.InternalPrefix + "@" + name;
+        return TextSlice.Concat(Symbol.InternalPrefix + "@", name);
     }
 
     public async ValueTask IterationDiagnosticAsync(IterationDiagnostic diagnostic, CancellationToken cancellation)
@@ -75,7 +76,7 @@ internal sealed partial class Checker : IIteratorProtocolHost, IIterationElement
                 or DiagnosticCode.AnAsyncIteratorMustHaveANextMethod
                 or DiagnosticCode.TheTypeReturnedByThe0MethodOfAnAsyncIteratorMustBeAPromiseForATypeWithAValueProperty
                 or DiagnosticCode.The0PropertyOfAnIteratorMustBeAMethod or DiagnosticCode.The0PropertyOfAnAsyncIteratorMustBeAMethod
-                ? [diagnostic.Member!]
+                ? [diagnostic.Member!.Value]
                 : []);
     }
 
@@ -97,7 +98,7 @@ internal sealed partial class Checker : IIteratorProtocolHost, IIterationElement
     public async ValueTask IterationErrorAsync(SyntaxNode node, DiagnosticCode code, bool missingAwait, Type type, Type? other,
         CancellationToken cancellation, IReadOnlyList<IterationDiagnostic>? related = null)
     {
-        string text = await TypeDisplay.GetAsync(type, cancellation);
+        TextSlice text = await TypeDisplay.GetAsync(type, cancellation);
         var information = new List<Diagnostic>();
         if (related is not null)
             foreach (var item in related)

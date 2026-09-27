@@ -13,7 +13,7 @@ internal sealed class DocumentationParser(
     CancellationToken cancellation = default)
 {
     private readonly NodeFactory factory = new();
-    private readonly string text = source.Text;
+    private readonly TextSlice text = source.Text;
     private readonly NodeFlags flags = context | NodeFlags.JSDoc | (scriptKind is ScriptKind.JS or ScriptKind.JSX
         ? NodeFlags.JavaScriptFile
         : 0);
@@ -66,7 +66,7 @@ internal sealed class DocumentationParser(
 
     private async ValueTask<JSDocNode> ParseAsync(int start, int end, int fullStart)
     {
-        int contentStart = start + 3, contentEnd = text.AsSpan(start, end - start).EndsWith("*/", StringComparison.Ordinal) ? end - 2 : end;
+        int contentStart = start + 3, contentEnd = text.Span.Slice(start, end - start).EndsWith("*/", StringComparison.Ordinal) ? end - 2 : end;
         var positions = new List<int>();
         int ticks = 0;
         bool fenced = false, quoted = false;
@@ -149,7 +149,7 @@ internal sealed class DocumentationParser(
         scanner.SetTextRange(pos, end);
         scanner.Diagnostics.Clear();
         K kind = scanner.ScanJSDocToken();
-        string value = "";
+        TextSlice value = "";
         if (kind == K.Identifier || kind is >= K.FirstKeyword and <= K.LastKeyword)
         {
             pos = scanner.Position;
@@ -213,7 +213,7 @@ internal sealed class DocumentationParser(
         SyntaxNode? name = null;
         NodeList? parameters = null;
         bool bracketed = false, nameFirst = false;
-        string tag = tagName.Text;
+        TextSlice tag = tagName.Text;
         if (tag == "import")
         {
             var imported = await Parser.DocumentationImportAsync(source, scriptKind, start + 1, end, cancellation).ConfigureAwait(false);
@@ -229,7 +229,7 @@ internal sealed class DocumentationParser(
                 start,
                 end);
         }
-        if (tag is "implements" or "augments" or "extends")
+        if (tag.Span is "implements" or "augments" or "extends")
         {
             var parsed = await Parser.DocumentationHeritageAsync(source, scriptKind, pos, end, context, cancellation).ConfigureAwait(false);
             Diagnostics.AddRange(parsed.Diagnostics);
@@ -240,7 +240,7 @@ internal sealed class DocumentationParser(
             return tag == "implements" ? Finish(factory.NewJSDocImplementsTag(tagName, className, comments), start, end)
                 : Finish(factory.NewJSDocAugmentsTag(tagName, className, comments), start, end);
         }
-        if (tag is "param" or "arg" or "argument" or "property" or "prop")
+        if (tag.Span is "param" or "arg" or "argument" or "property" or "prop")
         {
             (type, pos) = await TypeAsync(pos, end, true).ConfigureAwait(false);
             nameFirst = type is null;
@@ -251,7 +251,7 @@ internal sealed class DocumentationParser(
             bool backquoted = pos < end && text[pos] == '`';
             if (backquoted)
                 pos++;
-            name = Name(ref pos, end, true, tag is "property" or "prop");
+            name = Name(ref pos, end, true, tag.Span is "property" or "prop");
             if (backquoted && pos < end && text[pos] == '`')
                 pos++;
             if (bracketed)
@@ -260,7 +260,7 @@ internal sealed class DocumentationParser(
                 if (pos < end && text[pos] == '=')
                 {
                     // The default is source text rather than part of the type graph.
-                    int close = text.AsSpan(pos, end - pos).IndexOf(']');
+                    int close = text.Span.Slice(pos, end - pos).IndexOf(']');
                     pos = close < 0 ? end : pos + close;
                 }
                 if (pos < end && text[pos] == ']')
@@ -271,9 +271,9 @@ internal sealed class DocumentationParser(
             if (nameFirst)
                 (type, pos) = await TypeAsync(pos, end, true).ConfigureAwait(false);
         }
-        else if (tag is "type" or "this")
+        else if (tag.Span is "type" or "this")
             (type, pos) = await TypeAsync(pos, end, false, true).ConfigureAwait(false);
-        else if (tag is "returns" or "return" or "throws" or "exception" or "typedef")
+        else if (tag.Span is "returns" or "return" or "throws" or "exception" or "typedef")
             (type, pos) = await TypeAsync(pos, end, true).ConfigureAwait(false);
         else if (tag == "satisfies")
             (type, pos) = await TypeAsync(pos, end, false).ConfigureAwait(false);
@@ -297,7 +297,7 @@ internal sealed class DocumentationParser(
             }
             parameters = new(list.ToArray(), parameterStart, list.Count == 0 ? parameterStart : list[^1].End);
         }
-        if (tag is "typedef" or "callback")
+        if (tag.Span is "typedef" or "callback")
         {
             pos = SkipSpace(pos, end);
             name = NamespaceName(Name(ref pos, end));
@@ -310,7 +310,7 @@ internal sealed class DocumentationParser(
             int possibleName = identifierStart;
             while (possibleName < end && !char.IsWhiteSpace(text[possibleName]))
                 possibleName++;
-            if (!text.AsSpan(identifierStart, possibleName - identifierStart).Contains("://", StringComparison.Ordinal)
+            if (!text.Span.Slice(identifierStart, possibleName - identifierStart).Contains("://", StringComparison.Ordinal)
                 && StartsIdentifier(identifierStart, end))
             {
                 pos = identifierStart;
@@ -327,18 +327,18 @@ internal sealed class DocumentationParser(
             }
         }
         int nodeEnd = end;
-        bool commentOnNextLine = text.AsSpan(pos, SkipSpace(pos, end, false) - pos).IndexOfAny("\r\n\u2028\u2029") >= 0;
-        int? commentIndent = tag is "typedef" or "callback" or "overload" || commentOnNextLine ? docIndent : null;
+        bool commentOnNextLine = text.Span.Slice(pos, SkipSpace(pos, end, false) - pos).IndexOfAny("\r\n\u2028\u2029") >= 0;
+        int? commentIndent = tag.Span is "typedef" or "callback" or "overload" || commentOnNextLine ? docIndent : null;
         NodeList? comment = Comments(
             pos,
             end,
             preserveLineIndentation: type is not null && (type.Flags & NodeFlags.ThisNodeHasError) != 0,
             baseIndent: commentIndent,
-            rangeStart: tag is "param" or "arg" or "argument" or "property" or "prop" && (type is null || !nameFirst)
+            rangeStart: tag.Span is "param" or "arg" or "argument" or "property" or "prop" && (type is null || !nameFirst)
                 ? SkipSpace(pos, end, false) : null);
         if (tag == "typedef" && comment is null)
             nodeEnd = name?.End ?? type?.End ?? tagName.End;
-        SyntaxNode result = tag switch
+        SyntaxNode result = tag.Span switch
         {
             "type" => factory.NewJSDocTypeTag(tagName, type, comment),
             "this" => factory.NewJSDocThisTag(tagName, type, comment),
@@ -346,7 +346,7 @@ internal sealed class DocumentationParser(
             "throws" or "exception" => factory.NewJSDocThrowsTag(tagName, type, comment),
             "satisfies" => factory.NewJSDocSatisfiesTag(tagName, type, comment),
             "param" or "arg" or "argument" or "property" or "prop" => factory.NewJSDocParameterOrPropertyTag(
-                tag is "property" or "prop" ? K.JSDocPropertyTag : K.JSDocParameterTag,
+                tag.Span is "property" or "prop" ? K.JSDocPropertyTag : K.JSDocParameterTag,
                 tagName,
                 name,
                 bracketed,
@@ -513,21 +513,21 @@ internal sealed class DocumentationParser(
     private List<SyntaxNode> GroupPropertyTags(List<SyntaxNode> tags)
     {
         var result = new List<SyntaxNode>();
-        var parents = new Stack<(JSDocParameterOrPropertyTagNode Tag, SyntaxNode Type, string Prefix, List<SyntaxNode> Children)>();
+        var parents = new Stack<(JSDocParameterOrPropertyTagNode Tag, SyntaxNode Type, TextSlice Prefix, List<SyntaxNode> Children)>();
         foreach (SyntaxNode tag in tags)
         {
             cancellation.ThrowIfCancellationRequested();
-            string? name = tag is JSDocParameterOrPropertyTagNode property ? SyntaxNameText.Get(property.Name, false) : null;
+            TextSlice? name = tag is JSDocParameterOrPropertyTagNode property ? SyntaxNameText.Get(property.Name, false) : (TextSlice?)null;
             while (parents.TryPeek(out var parent)
                 && (tag.Kind != parent.Tag.Kind
                     || name is null
-                    || !name.StartsWith(parent.Prefix, StringComparison.Ordinal)
-                    || name.AsSpan(parent.Prefix.Length).Contains('.')))
+                    || !name.Value.Span.StartsWith(parent.Prefix, StringComparison.Ordinal)
+                    || name.Value.Span.Slice(parent.Prefix.Length).Contains('.')))
                 Complete();
             (parents.TryPeek(out var current) ? current.Children : result).Add(tag);
             if (tag is JSDocParameterOrPropertyTagNode { TypeExpression: JSDocTypeExpressionNode { Type: { } declaredType } } parentTag
                 && IsObject(declaredType))
-                parents.Push((parentTag, declaredType, name + ".", []));
+                parents.Push((parentTag, declaredType, TextSlice.Concat(name!.Value, "."), []));
         }
         while (parents.Count != 0)
             Complete();
@@ -553,7 +553,7 @@ internal sealed class DocumentationParser(
         while (type is ArrayTypeNode { ElementType: { } element })
             type = element;
         return type is KeywordTypeNode { Kind: K.ObjectKeyword }
-            or TypeReferenceNode { TypeName: IdentifierNode { Text: "Object" }, TypeArguments: null };
+            or TypeReferenceNode { TypeName: IdentifierNode { Text.Span: "Object" }, TypeArguments: null };
     }
 
     private bool StartsIdentifier(int pos, int end)
@@ -581,7 +581,7 @@ internal sealed class DocumentationParser(
         start = SkipSpace(start, end, false);
         int margin = baseIndent ?? Column(start), leadingLines = 0;
         int initialPadding = baseIndent is not null
-            && text.AsSpan(untrimmedStart, start - untrimmedStart).IndexOfAny("\r\n\u2028\u2029") >= 0
+            && text.Span.Slice(untrimmedStart, start - untrimmedStart).IndexOfAny("\r\n\u2028\u2029") >= 0
             ? Math.Max(0, Column(start) - margin)
             : 0;
         if (fullComment)
@@ -601,7 +601,7 @@ internal sealed class DocumentationParser(
         int cursor = start;
         while (cursor < end)
         {
-            int relative = text.AsSpan(cursor, end - cursor).IndexOf("{@link", StringComparison.Ordinal);
+            int relative = text.Span.Slice(cursor, end - cursor).IndexOf("{@link", StringComparison.Ordinal);
             if (relative < 0)
             {
                 AddText(cursor, end);
@@ -612,8 +612,8 @@ internal sealed class DocumentationParser(
             int nameStart = pos;
             while (pos < end && char.IsAsciiLetter(text[pos]))
                 pos++;
-            string kind = text[nameStart..pos];
-            if (kind is not ("link" or "linkcode" or "linkplain"))
+            TextSlice kind = text[nameStart..pos];
+            if (kind.Span is not ("link" or "linkcode" or "linkplain"))
             {
                 AddText(cursor, pos);
                 cursor = pos;
@@ -621,7 +621,9 @@ internal sealed class DocumentationParser(
             }
             AddText(cursor, link, true);
             int argumentsStart = pos;
-            int close = text.IndexOf('}', pos, rawEnd - pos);
+            int close = text.Span.Slice(pos, rawEnd - pos).IndexOf('}');
+            if (close >= 0)
+                close += pos;
             bool terminated = close >= 0;
             if (!terminated)
                 close = rawEnd;
@@ -631,13 +633,13 @@ internal sealed class DocumentationParser(
             while (targetEnd < close && !char.IsWhiteSpace(text[targetEnd]) && text[targetEnd] != '|')
                 targetEnd++;
             if (pos < targetEnd
-                && !text.AsSpan(pos, targetEnd - pos).Contains("://", StringComparison.Ordinal)
+                && !text.Span.Slice(pos, targetEnd - pos).Contains("://", StringComparison.Ordinal)
                 && StartsIdentifier(pos, targetEnd))
                 target = Name(ref pos, targetEnd, linkName: true);
             if (target is not null)
                 pos = SkipSpace(pos, close);
-            string[] value = [text[(!terminated && target is null ? argumentsStart : pos)..close]];
-            SyntaxNode node = kind switch
+            TextSlice[] value = [text.Memory[(!terminated && target is null ? argumentsStart : pos)..close]];
+            SyntaxNode node = kind.Span switch
             {
                 "linkcode" => factory.NewJSDocLinkCode(target, value),
                 "linkplain" => factory.NewJSDocLinkPlain(target, value),
@@ -653,46 +655,69 @@ internal sealed class DocumentationParser(
         {
             if (from == to && !force)
                 return;
-            string raw = text[from..to].Replace("\r\n", "\n", StringComparison.Ordinal).Replace('\r', '\n');
-            string[] lines = raw.Split('\n');
-            for (int i = 1; i < lines.Length; i++)
+            ReadOnlySpan<char> raw = text.Span.Slice(from, to - from);
+            TextSlice value;
+            if (!raw.ContainsAny('\r', '\n') && (nodes.Count != 0 || initialPadding == 0 && leadingLines <= 1))
+                value = text.Memory.Slice(from, to == end ? raw.TrimEnd().Length : raw.Length);
+            else
             {
-                int star = 0;
-                while (star < lines[i].Length && lines[i][star] is ' ' or '\t')
-                    star++;
-                int prefix = star;
-                if (star < lines[i].Length && lines[i][star] == '*')
+                var result = new System.Text.StringBuilder(raw.Length);
+                if (nodes.Count == 0)
                 {
-                    prefix++;
-                    while (prefix < lines[i].Length && lines[i][prefix] is ' ' or '\t')
-                        prefix++;
-                    if (fullComment && !preserveLineIndentation)
-                    {
-                        string beforeStar = star > margin ? lines[i][margin..star] : "";
-                        int skip = margin - star - 1;
-                        if (skip < 0)
-                            skip += prefix - star - 1;
-                        skip = Math.Clamp(skip, 0, prefix - star - 1);
-                        lines[i] = beforeStar + lines[i][(star + 1 + skip)..];
-                    }
-                    else
-                    {
-                        int remove = preserveLineIndentation
-                            ? star + 1 + (star + 1 < lines[i].Length && lines[i][star + 1] == ' ' ? 1 : 0)
-                            : Math.Max(star + 1, Math.Min(prefix, margin));
-                        lines[i] = lines[i][remove..];
-                    }
+                    if (leadingLines > 1)
+                        result.Append('\n', leadingLines - 1);
+                    result.Append(' ', initialPadding);
                 }
-                else
-                    lines[i] = lines[i][Math.Min(prefix, margin)..];
+                bool first = true;
+                while (true)
+                {
+                    int lineEnd = raw.IndexOfAny('\r', '\n');
+                    ReadOnlySpan<char> line = lineEnd < 0 ? raw : raw[..lineEnd];
+                    if (!first)
+                    {
+                        result.Append('\n');
+                        int star = 0;
+                        while (star < line.Length && line[star] is ' ' or '\t')
+                            star++;
+                        int prefix = star;
+                        if (star < line.Length && line[star] == '*')
+                        {
+                            prefix++;
+                            while (prefix < line.Length && line[prefix] is ' ' or '\t')
+                                prefix++;
+                            if (fullComment && !preserveLineIndentation)
+                            {
+                                if (star > margin)
+                                    result.Append(line[margin..star]);
+                                int skip = margin - star - 1;
+                                if (skip < 0)
+                                    skip += prefix - star - 1;
+                                skip = Math.Clamp(skip, 0, prefix - star - 1);
+                                line = line[(star + 1 + skip)..];
+                            }
+                            else
+                            {
+                                int remove = preserveLineIndentation
+                                    ? star + 1 + (star + 1 < line.Length && line[star + 1] == ' ' ? 1 : 0)
+                                    : Math.Max(star + 1, Math.Min(prefix, margin));
+                                line = line[remove..];
+                            }
+                        }
+                        else
+                            line = line[Math.Min(prefix, margin)..];
+                    }
+                    result.Append(line);
+                    if (lineEnd < 0)
+                        break;
+                    int skipBreak = raw[lineEnd] == '\r' && lineEnd + 1 < raw.Length && raw[lineEnd + 1] == '\n' ? 2 : 1;
+                    raw = raw[(lineEnd + skipBreak)..];
+                    first = false;
+                }
+                if (to == end)
+                    while (result.Length > 0 && char.IsWhiteSpace(result[^1]))
+                        result.Length--;
+                value = TextSlice.FromBuilder(result);
             }
-            string value = string.Join('\n', lines);
-            if (nodes.Count == 0 && initialPadding != 0)
-                value = new string(' ', initialPadding) + value;
-            if (nodes.Count == 0 && leadingLines > 1)
-                value = new string('\n', leadingLines - 1) + value;
-            if (to == end)
-                value = value.TrimEnd();
             if (value.Length == 0 && !force)
                 return;
             int nodeStart = nodes.Count == 0 ? rangeStart ?? (fullComment ? untrimmedStart - 3 : untrimmedStart) : from;

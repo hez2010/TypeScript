@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Syntax;
 using K = TypeScript.Compiler.Syntax.SyntaxKind;
@@ -66,10 +67,10 @@ internal static class SemanticSyntax
     }
 
     internal static bool ConstAssertion(SyntaxNode node) => node.Kind is K.AsExpression or K.TypeAssertionExpression
-        && node is ITypedNode { Type: TypeReferenceNode { TypeName: IdentifierNode { Text: "const" }, TypeArguments: null or { Count: 0 } } };
+        && node is ITypedNode { Type: TypeReferenceNode { TypeName: IdentifierNode { Text.Span: "const" }, TypeArguments: null or { Count: 0 } } };
 
     internal static bool RequireCall(SyntaxNode? node) => node is CallExpressionNode
-    { Expression: IdentifierNode { Text: "require" }, Arguments.Count: 1 };
+    { Expression: IdentifierNode { Text.Span: "require" }, Arguments.Count: 1 };
 
     internal static bool ImmediatelyInvoked(SyntaxNode node)
     {

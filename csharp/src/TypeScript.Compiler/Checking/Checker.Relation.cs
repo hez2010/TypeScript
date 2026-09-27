@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -79,16 +80,16 @@ internal sealed partial class Checker : ITypeNormalizationHost, ITypeRelationHos
                 other.Declarations.OfType<EnumMemberNode>().First(),
                 cancellation).ConfigureAwait(false)).Value;
             bool equal = value is double number && otherValue is double otherNumber ? number == otherNumber : Equals(value, otherValue);
-            if (!equal && (value is not null && otherValue is not null || value is string || otherValue is string))
+            if (!equal && (value is not null && otherValue is not null || value is TextSlice || otherValue is TextSlice))
             {
                 if (operation is not null)
                 {
-                    string ValueText(object v) => v switch
+                    TextSlice ValueText(object v) => v switch
                     {
-                        string text => QuoteSymbolText(text, '"', false),
+                        TextSlice text => QuoteSymbolText(text, '"', false),
                         double number => TokenFacts.NumberText(number),
                         bool boolean => boolean ? "true" : "false",
-                        System.Numerics.BigInteger integer => integer.ToString(System.Globalization.CultureInfo.InvariantCulture) + "n",
+                        System.Numerics.BigInteger integer => TextSlice.Concat(TextSlice.Format(integer), "n"),
                         _ => throw new InvalidOperationException("Unexpected enum constant")
                     };
                     if (value is not null && otherValue is not null)

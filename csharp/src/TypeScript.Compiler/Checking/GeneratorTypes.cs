@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -7,7 +8,7 @@ namespace TypeScript.Compiler.Checking;
 
 internal interface IGeneratorTypeHost
 {
-    ValueTask<Type> IterationGlobalAsync(string name, int arity, bool report, CancellationToken cancellation);
+    ValueTask<Type> IterationGlobalAsync(TextSlice name, int arity, bool report, CancellationToken cancellation);
 
     ValueTask<Type> CheckGeneratorOperandAsync(SyntaxNode node, CheckMode mode, CancellationToken cancellation);
 
@@ -77,8 +78,8 @@ internal sealed class GeneratorTypes(TypeContext context, TypeAlgebra algebra, I
 
     internal async ValueTask<Type> CreateAsync(Type yield, Type result, Type? next, bool async, CancellationToken cancellation = default)
     {
-        string prefix = async ? "Async" : "";
-        var target = await host.IterationGlobalAsync(prefix + "Generator", 3, false, cancellation).ConfigureAwait(false);
+        TextSlice prefix = async ? "Async" : "";
+        var target = await host.IterationGlobalAsync(TextSlice.Concat(prefix, "Generator"), 3, false, cancellation).ConfigureAwait(false);
         if (async)
         {
             yield = await awaited.GetAsync(yield, cancellation: cancellation).ConfigureAwait(false) ?? context.UnknownType;
@@ -86,10 +87,10 @@ internal sealed class GeneratorTypes(TypeContext context, TypeAlgebra algebra, I
         }
         if (target == context.EmptyGenericType)
         {
-            target = await host.IterationGlobalAsync(prefix + "IterableIterator", 3, false, cancellation).ConfigureAwait(false);
+            target = await host.IterationGlobalAsync(TextSlice.Concat(prefix, "IterableIterator"), 3, false, cancellation).ConfigureAwait(false);
             if (target == context.EmptyGenericType)
             {
-                await host.IterationGlobalAsync(prefix + "IterableIterator", 3, true, cancellation).ConfigureAwait(false);
+                await host.IterationGlobalAsync(TextSlice.Concat(prefix, "IterableIterator"), 3, true, cancellation).ConfigureAwait(false);
                 return context.EmptyObjectType;
             }
         }

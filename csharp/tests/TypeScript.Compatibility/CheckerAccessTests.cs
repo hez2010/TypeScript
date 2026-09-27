@@ -38,7 +38,7 @@ internal static class CheckerAccessTests
         var host = new Checker(context, links, scope);
         var nodes = program.SourceFiles[0].Syntax.DescendantsAndSelf().ToArray();
         var accesses = nodes.OfType<CallExpressionNode>().Where(
-            c => c.Expression is IdentifierNode { Text: "__access" }).Select(c => c.Arguments![0]).ToArray();
+            c => c.Expression is IdentifierNode { Text: { Span: "__access" } }).Select(c => c.Arguments![0]).ToArray();
         Check(await host.Expressions.CheckAsync(accesses[0]) == context.NumberType);
         var optional = await host.Expressions.CheckAsync(accesses[1]);
         Check(optional is UnionType union && union.Types.Contains(context.MissingType) && union.Types.Contains(context.StringType));
@@ -90,7 +90,7 @@ internal static class CheckerAccessTests
         }
 
         var field = nodes.OfType<PropertyDeclarationNode>().Single(
-            p => p.Name is IdentifierNode { Text: "p" } && p.Parent is ClassDeclarationNode { Name.Text: "C" });
+            p => p.Name is IdentifierNode { Text: { Span: "p" } } && p.Parent is ClassDeclarationNode { Name.Text: { Span: "C" } });
         var property = symbols.Declaration(field)!;
         var targets = nodes.OfType<PropertyAccessExpressionNode>().Where(p => p.Expression?.Kind == SyntaxKind.ThisKeyword).ToArray();
         Check(!host.MemberAccess.ReadonlyAssignment(targets[0], property, 1));
@@ -146,25 +146,25 @@ internal static class CheckerAccessTests
             await SpellingSuggestions.FindAsync(
                 "abcde",
                 new[] { "abcdf", "abcda" },
-                s => ValueTask.FromResult<string?>(s),
+                s => ValueTask.FromResult<TextSlice?>((TextSlice)s),
                 StringComparer.Ordinal.Compare) == "abcda");
         Check(
             await SpellingSuggestions.FindAsync(
                 "ixx",
                 new[] { "İxx" },
-                s => ValueTask.FromResult<string?>(s),
+                s => ValueTask.FromResult<TextSlice?>((TextSlice)s),
                 StringComparer.Ordinal.Compare) == "İxx");
         Check(
             await SpellingSuggestions.FindAsync(
                 "go",
                 new[] { "gz" },
-                s => ValueTask.FromResult<string?>(s),
+                s => ValueTask.FromResult<TextSlice?>((TextSlice)s),
                 StringComparer.Ordinal.Compare) is null);
         Check(
             await SpellingSuggestions.FindAsync(
                 "abcde",
                 new[] { "abcdf", "abcda" },
-                s => ValueTask.FromResult<string?>(s),
+                s => ValueTask.FromResult<TextSlice?>((TextSlice)s),
                 StringComparer.Ordinal.Compare,
                 1) is null);
         try
@@ -172,7 +172,7 @@ internal static class CheckerAccessTests
             await SpellingSuggestions.FindAsync(
                 "name",
                 new[] { "Name" },
-                s => ValueTask.FromResult<string?>(s),
+                s => ValueTask.FromResult<TextSlice?>((TextSlice)s),
                 StringComparer.Ordinal.Compare,
                 cancellation: cancelled.Token);
             throw new InvalidOperationException("Spelling search ignored cancellation");
@@ -414,13 +414,13 @@ internal static class CheckerAccessTests
             checker.Predicates.Maybe(methodOnly, TypeFlags.BooleanLike, default)
                 && checker.Predicates.Maybe(methodOnly, TypeFlags.Undefined, default));
         var definitions = nodes.OfType<CallExpressionNode>().Where(
-            c => c.Expression is PropertyAccessExpressionNode { Name: IdentifierNode { Text: "defineProperty" } }).ToArray();
+            c => c.Expression is PropertyAccessExpressionNode { Name: IdentifierNode { Text: { Span: "defineProperty" } } }).ToArray();
         var fixedProperty = checker.Symbols.Declaration(definitions[0])!;
         Check(await checker.Values.GetAsync(fixedProperty) == checker.Context.NumberType && checker.IsReadonly(fixedProperty));
         var accessed = checker.Symbols.Declaration(definitions[1])!;
         Check(await checker.Values.GetAsync(accessed) == checker.Context.StringType && checker.IsReadonly(accessed));
         var callback = nodes.OfType<BinaryExpressionNode>().Single(
-            n => n.Left is PropertyAccessExpressionNode { Expression: IdentifierNode { Text: "callback" } });
+            n => n.Left is PropertyAccessExpressionNode { Expression: IdentifierNode { Text: { Span: "callback" } } });
         Check(await checker.Values.GetAsync(checker.Symbols.Declaration(callback)!) == checker.Context.NumberType);
         Check(nodes.Select(n => n.Parent).SequenceEqual(parents));
         return checks;

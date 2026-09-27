@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -98,7 +99,7 @@ internal sealed partial class Checker : ISignatureHost, IStructuredMemberHost, I
         }
     }
 
-    public ValueTask<IReadOnlyDictionary<string, Symbol>> ExportsAsync(Symbol symbol, CancellationToken cancellation) =>
+    public ValueTask<IReadOnlyDictionary<TextSlice, Symbol>> ExportsAsync(Symbol symbol, CancellationToken cancellation) =>
         LateMembers.TableAsync(symbol, true, cancellation);
 
     public ValueTask<IReadOnlyList<IndexInfo>> IndexInfosAsync(
@@ -212,7 +213,7 @@ internal sealed partial class Checker : ISignatureHost, IStructuredMemberHost, I
         Relations.RelatedAsync(source, target, RelationKind.Assignable, cancellation);
 
     public async ValueTask<bool> SymbolNameAsync(Symbol symbol, CancellationToken cancellation) =>
-        symbol.Name.StartsWith(Symbol.InternalPrefix + "@", StringComparison.Ordinal)
+        symbol.Name.Span.StartsWith(Symbol.InternalPrefix + "@", StringComparison.Ordinal)
             || symbol.Declarations.FirstOrDefault() is INamedNode { Name: ComputedPropertyNameNode name }
                 && await AssignableKindAsync(await ComputedNameAsync(name, cancellation), TypeFlags.ESSymbol, cancellation);
 

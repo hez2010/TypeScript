@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Globalization;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -37,7 +38,7 @@ internal sealed class PrivateAccess(TypeContext context, CheckerSymbols symbols,
         for (var container = ContainingClass(name); container is not null; container = DeclarationOrder.ContainingClass(container))
         {
             var owner = symbols.Binding(container)!.Get(container)!.Symbol!;
-            string key = Name(owner, name.Text);
+            TextSlice key = Name(owner, name.Text);
             lexical = owner.Members.GetValueOrDefault(key) ?? owner.Exports.GetValueOrDefault(key);
             if (lexical is not null)
                 break;
@@ -116,8 +117,8 @@ internal sealed class PrivateAccess(TypeContext context, CheckerSymbols symbols,
         return false;
     }
 
-    internal static string Name(Symbol owner, string description) =>
-        Symbol.InternalPrefix + "#" + owner.Id.ToString(CultureInfo.InvariantCulture) + "@" + description;
+    internal static TextSlice Name(Symbol owner, TextSlice description) =>
+TextSlice.ConcatMany(Symbol.InternalPrefix + "#", TextSlice.Format(owner.Id), "@", description);
 
     internal static SyntaxNode? ContainingClass(SyntaxNode node)
     {

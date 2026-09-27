@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Checking;
 using TypeScript.Compiler.Diagnostics;
@@ -92,7 +93,7 @@ internal sealed class ConstraintFixtureHost(TypeContext context, AlgebraFixtureH
                 indexedAccesses.Add(key, type = context.NewIndexedAccessType(key.objectType, key.indexType, key.Item3));
             return ValueTask.FromResult<Type?>(type);
         }
-        return indexType is LiteralType { Value: string name } ? properties.GetPropertyTypeAsync(objectType, name, cancellation)
+        return indexType is LiteralType { Value: TextSlice name } ? properties.GetPropertyTypeAsync(objectType, name, cancellation)
             : throw new InvalidOperationException("Fixture requires general indexed access");
     }
 

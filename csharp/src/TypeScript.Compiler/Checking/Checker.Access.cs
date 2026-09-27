@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -237,12 +238,12 @@ internal sealed partial class Checker : IAccessExpressionHost, IIndexedAccessVal
         Type index,
         Type fullIndex,
         ElementAccessExpressionNode node,
-        string? propertyName,
+        TextSlice? propertyName,
         AccessFlags flags,
         CancellationToken cancellation)
             => ElementErrors.MissingAsync(original, objectType, index, fullIndex, node, propertyName, flags, cancellation);
 
-    public async ValueTask<bool> StaticPropertyAsync(string name, Type type, CancellationToken cancellation)
+    public async ValueTask<bool> StaticPropertyAsync(TextSlice name, Type type, CancellationToken cancellation)
             => type.Symbol is { } symbol
                 && await Properties.PropertyAsync(
                     await Values.GetAsync(symbol, cancellation),
@@ -250,7 +251,7 @@ internal sealed partial class Checker : IAccessExpressionHost, IIndexedAccessVal
                     cancellation: cancellation) is { ValueDeclaration: { } declaration }
                 && SemanticSyntax.IsStatic(declaration);
 
-    public async ValueTask<string?> PropertySuggestionAsync(string name, Type type, CancellationToken cancellation)
+    public async ValueTask<TextSlice?> PropertySuggestionAsync(TextSlice name, Type type, CancellationToken cancellation)
             =>
                 (await SymbolSuggestions.FindAsync(
                     name,
@@ -258,20 +259,20 @@ internal sealed partial class Checker : IAccessExpressionHost, IIndexedAccessVal
                     SymbolFlags.Value,
                     cancellation))?.Name;
 
-    public async ValueTask<string?> IndexSuggestionAsync(
+    public async ValueTask<TextSlice?> IndexSuggestionAsync(
         Type type,
         ElementAccessExpressionNode node,
         Type index,
         CancellationToken cancellation)
     {
-        string name = ReferenceSyntax.AssignmentTarget(node) is not null ? "set" : "get";
+        TextSlice name = ReferenceSyntax.AssignmentTarget(node) is not null ? "set" : "get";
         if (type is not ObjectType || await Properties.ObjectPropertyAsync(type, name, cancellation) is not { } property)
             return null;
         var signatures = await SignaturesAsync(await Values.GetAsync(property, cancellation), false, cancellation);
         if (signatures is [var signature] && await Parameters.MinimumAsync(signature, cancellation: cancellation) >= 1
             && await AssignableAsync(index, await Parameters.AtAsync(signature, 0, cancellation), cancellation))
         {
-            var parts = new Stack<string>();
+            var parts = new Stack<TextSlice>();
             SyntaxNode? receiver = node.Expression;
             while (receiver is PropertyAccessExpressionNode access && access.Name is IdentifierNode member)
             {
@@ -281,7 +282,7 @@ internal sealed partial class Checker : IAccessExpressionHost, IIndexedAccessVal
             if (receiver is not IdentifierNode identifier)
                 return name;
             parts.Push(identifier.Text);
-            return string.Join(".", parts) + "." + name;
+            return TextSlice.Concat(TextSlice.Join(".", parts), ".", name);
         }
         return null;
     }

@@ -31,7 +31,13 @@ public static class Wtf8
         // UTF-8 replacement uses three bytes per unpaired surrogate, exactly
         // the width needed by WTF-8, so the BCL gives an exact allocation size.
         byte[] result = new byte[Encoding.UTF8.GetByteCount(text)];
-        Span<byte> destination = result;
+        Encode(text, result);
+        return result;
+    }
+
+    public static int Encode(ReadOnlySpan<char> text, Span<byte> destination)
+    {
+        int capacity = destination.Length;
         while (!text.IsEmpty)
         {
             OperationStatus status = Utf8.FromUtf16(
@@ -44,8 +50,10 @@ public static class Wtf8
             destination = destination[bytesWritten..];
             if (status == OperationStatus.Done)
                 break;
+            if (status == OperationStatus.DestinationTooSmall || destination.Length < 3)
+                throw new ArgumentException("Destination is too short", nameof(destination));
             if (status != OperationStatus.InvalidData)
-                throw new InvalidOperationException("Unexpected UTF-8 conversion size");
+                throw new InvalidOperationException("Unexpected UTF-8 conversion status");
             char surrogate = text[0];
             destination[0] = 0xED;
             destination[1] = (byte)(0x80 | ((surrogate >> 6) & 63));
@@ -53,7 +61,7 @@ public static class Wtf8
             destination = destination[3..];
             text = text[1..];
         }
-        return result;
+        return capacity - destination.Length;
     }
 
     public static string DecodeString(ReadOnlySpan<byte> source)

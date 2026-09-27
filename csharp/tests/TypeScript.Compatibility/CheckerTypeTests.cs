@@ -103,7 +103,7 @@ internal static class CheckerTypeTests
         if (constraintMode)
             host.ResolveBaseConstraint = constraints.BaseConstraintAsync;
         bool algebraUsed = constraintMode || instantiationMode;
-        var symbols = new Dictionary<string, Symbol>(StringComparer.Ordinal);
+        var symbols = new Dictionary<TextSlice, Symbol>();
         var symbolNames = new Dictionary<Symbol, string>();
         Symbol? SymbolFor(string name)
         {
@@ -223,7 +223,7 @@ internal static class CheckerTypeTests
                 "index" => c.GetIndexTypeForGenericType(args[0], (IndexFlags)flags),
                 "indexed" => c.NewIndexedAccessType(args[0], args[1], (AccessFlags)flags),
                 "substitution" => c.GetSubstitutionType(args[0], args[1]),
-                "template" => c.NewTemplateLiteralType(Enumerable.Repeat(text, args.Length + 1).ToArray(), args),
+                "template" => c.NewTemplateLiteralType(Enumerable.Repeat((TextSlice)text, args.Length + 1).ToArray(), args),
                 "stringMapping" => c.NewStringMappingType(SymbolFor(symbol)!, args[0]),
                 "unionReduced" => algebra.UnionAsync(args, (UnionReduction)flags, Alias(),
                     step.TryGetProperty("origin", out var o) ? values[o.GetInt32()] : null).GetAwaiter().GetResult(),
@@ -231,7 +231,7 @@ internal static class CheckerTypeTests
                 "regularAll" => algebra.RegularTypeAsync(args[0]).GetAwaiter().GetResult(),
                 "filter" => algebra.Filter(args[0], t => ((uint)t.Flags & flags) == 0),
                 "templateNormalized" => algebra.TemplateAsync(step.GetProperty("texts").EnumerateArray()
-                    .Select(t => Wtf8.DecodeString(t.GetBytesFromBase64())).ToArray(), args).GetAwaiter().GetResult(),
+                    .Select(t => (TextSlice)Wtf8.DecodeString(t.GetBytesFromBase64())).ToArray(), args).GetAwaiter().GetResult(),
                 "caseMap" => algebra.StringMappingAsync(SymbolFor(symbol)!, args[0]).GetAwaiter().GetResult(),
                 _ => throw new InvalidOperationException(op)
             };
@@ -289,7 +289,7 @@ internal static class CheckerTypeTests
             {
                 var result = (ObjectType)args[0];
                 result.ObjectFlags |= ObjectFlags.MembersResolved;
-                result.Members = new Dictionary<string, Symbol>().AsReadOnly();
+                result.Members = new Dictionary<TextSlice, Symbol>().AsReadOnly();
                 result.Properties = [];
                 result.CallSignatures = [];
                 result.ConstructSignatures = [];
@@ -302,7 +302,7 @@ internal static class CheckerTypeTests
                 TypeReferenceNode? selected = null;
                 foreach (var reference in file.DescendantsAndSelf().OfType<TypeReferenceNode>())
                 {
-                    var value = ((IdentifierNode)reference.TypeName!).Text switch
+                    var value = ((IdentifierNode)reference.TypeName!).Text.Span switch
                     {
                         "Value" => args[0],
                         "Check" => args[1],
@@ -585,7 +585,7 @@ internal static class CheckerTypeTests
                 "symbol",
                 type.Symbol is null
                     ? ""
-                    : symbolNames.GetValueOrDefault(type.Symbol, TypeScript.Compiler.Binding.Symbol.EscapeName(type.Symbol.Name)));
+                    : symbolNames.GetValueOrDefault(type.Symbol, TypeScript.Compiler.Binding.Symbol.EscapeName(type.Symbol.Name).ToString()));
             writer.WriteBoolean("literal", type.IsLiteral);
             writer.WriteBoolean("unit", type.IsUnit);
             if (objectMode && type is ObjectType objectType)
@@ -649,7 +649,7 @@ internal static class CheckerTypeTests
                 else
                 {
                     writer.WriteStartArray();
-                    foreach (var pair in structure.Members.OrderBy(p => p.Key, Comparer<string>.Create(TypeOrder.CompareSymbolNames)))
+                    foreach (var pair in structure.Members.OrderBy(p => p.Key, Comparer<TextSlice>.Create(TypeOrder.CompareSymbolNames)))
                     {
                         var property = pair.Value;
                         var data = links.Values.Get(property);
@@ -694,7 +694,7 @@ internal static class CheckerTypeTests
             switch (type)
             {
                 case IntrinsicType intrinsic:
-                    writer.WriteString("name", intrinsic.IntrinsicName);
+                    writer.WriteString("name", intrinsic.IntrinsicName.Span);
                     break;
                 case LiteralType literal:
                     writer.WriteNumber("fresh", Ref(literal.FreshType));
@@ -703,7 +703,7 @@ internal static class CheckerTypeTests
                     writer.WritePropertyName("value");
                     switch (literal.Value)
                     {
-                        case string value:
+                        case TextSlice value:
                             writer.WriteBase64StringValue(Wtf8.Encode(value));
                             break;
                         case double value:
@@ -751,8 +751,8 @@ internal static class CheckerTypeTests
                     break;
                 case TemplateLiteralType template:
                     writer.WriteStartArray("texts");
-                    foreach (string value in template.Texts)
-                        writer.WriteStringValue(value);
+                    foreach (TextSlice value in template.Texts)
+                        writer.WriteStringValue(value.Span);
                     writer.WriteEndArray();
                     writer.WritePropertyName("types");
                     Refs(template.Types);

@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -8,7 +9,7 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
-    internal static string PrintDiagnosticNode(SyntaxNode node, bool neverAsciiEscape = false, CancellationToken cancellation = default,
+    internal static TextSlice PrintDiagnosticNode(SyntaxNode node, bool neverAsciiEscape = false, CancellationToken cancellation = default,
         SourceFileNode? sourceFile = null, IReadOnlySet<SyntaxNode>? noAsciiEscape = null, IReadOnlySet<SyntaxNode>? singleLine = null,
         bool multiline = false) =>
         new SymbolNodePrinter(neverAsciiEscape, cancellation, sourceFile, noAsciiEscape, singleLine, multiline).Print(node);
@@ -18,14 +19,14 @@ internal sealed partial class Checker
     private sealed class SymbolNodePrinter(bool neverAsciiEscape, CancellationToken cancellation, SourceFileNode? sourceFile,
         IReadOnlySet<SyntaxNode>? noAsciiEscape, IReadOnlySet<SyntaxNode>? singleLine, bool multiline)
     {
-        private readonly record struct Part(SyntaxNode? Node = null, string? Text = null, IReadOnlyList<Part>? Parts = null,
+        private readonly record struct Part(SyntaxNode? Node = null, TextSlice? Text = null, IReadOnlyList<Part>? Parts = null,
             int IndentationChange = 0, bool NewLine = false);
 
         private readonly Stack<Part> pending = [];
         private readonly StringBuilder output = new();
         private int indentation;
 
-        internal string Print(SyntaxNode node)
+        internal TextSlice Print(SyntaxNode node)
         {
             pending.Push(N(node));
             while (pending.TryPop(out var part))
@@ -35,7 +36,7 @@ internal sealed partial class Checker
                 if (part.NewLine)
                     output.Append('\n').Append(' ', indentation * 4);
                 else if (part.Text is { } text)
-                    output.Append(text);
+                    output.Append(text.Span);
                 else if (part.Parts is { } parts)
                     for (int i = parts.Count - 1; i >= 0; i--)
                         pending.Push(parts[i]);
@@ -44,12 +45,12 @@ internal sealed partial class Checker
             }
             if (output.Length != 0 && output[^1] == ';')
                 output.Length--;
-            return output.ToString();
+            return TextSlice.FromBuilder(output);
         }
 
         private static Part N(SyntaxNode? node) => new(Node: node);
 
-        private static Part T(string text) => new(Text: text);
+        private static Part T(TextSlice text) => new(Text: text);
 
         private static Part S(params ReadOnlySpan<Part> parts) => new(Parts: parts.ToArray());
 
@@ -59,7 +60,7 @@ internal sealed partial class Checker
                 pending.Push(parts[i]);
         }
 
-        private static Part List(IReadOnlyList<SyntaxNode>? nodes, string before, string separator, string after, bool required = false)
+        private static Part List(IReadOnlyList<SyntaxNode>? nodes, TextSlice before, TextSlice separator, TextSlice after, bool required = false)
         {
             if (nodes is null && !required || nodes is { Count: 0 } && before == " " && after.Length == 0)
                 return default;
@@ -86,7 +87,7 @@ internal sealed partial class Checker
 
         private static Part TypeArguments(NodeList? nodes) => List(nodes, "<", ", ", ">");
 
-        private static Part Braces(NodeList? nodes, string separator, bool spaceWhenEmpty = false) => nodes is { Count: > 0 }
+        private static Part Braces(NodeList? nodes, TextSlice separator, bool spaceWhenEmpty = false) => nodes is { Count: > 0 }
                     ? List(nodes, "{ ", separator, " }") : T(spaceWhenEmpty ? "{ }" : "{}");
 
         private static Part Body(SyntaxNode? body) => body is null ? T(";") : S(T(" "), N(body));
@@ -111,45 +112,45 @@ internal sealed partial class Checker
             switch (node)
             {
                 case IdentifierNode id:
-                    output.Append(SemanticSyntax.Source(id) == sourceFile ? OriginalText(id) ?? id.Text : id.Text);
+                    output.Append(SemanticSyntax.Source(id) == sourceFile ? OriginalText(id) ?? id.Text : id.Text.Span);
                     break;
                 case PrivateIdentifierNode id:
-                    output.Append(SemanticSyntax.Source(id) == sourceFile ? OriginalText(id) ?? id.Text : id.Text);
+                    output.Append(SemanticSyntax.Source(id) == sourceFile ? OriginalText(id) ?? id.Text : id.Text.Span);
                     break;
                 case StringLiteralNode literal:
                     output.Append(
                         OriginalText(literal) ?? QuoteSymbolText(
                             literal.Text,
                             (literal.TokenFlags & TokenFlags.SingleQuote) != 0 ? '\'' : '"',
-                            !neverAsciiEscape && noAsciiEscape?.Contains(literal) != true));
+                            !neverAsciiEscape && noAsciiEscape?.Contains(literal) != true).Span);
                     break;
                 case NumericLiteralNode literal:
-                    output.Append(NumberText(literal));
+                    output.Append(NumberText(literal).Span);
                     break;
                 case BigIntLiteralNode literal:
-                    output.Append(literal.Text);
+                    output.Append(literal.Text.Span);
                     break;
                 case RegularExpressionLiteralNode literal:
-                    output.Append(literal.Text);
+                    output.Append(literal.Text.Span);
                     break;
                 case NoSubstitutionTemplateLiteralNode literal:
                     output.Append(
                         OriginalText(literal) ?? QuoteSymbolText(
                             literal.Text,
                             '`',
-                            !neverAsciiEscape && noAsciiEscape?.Contains(literal) != true));
+                            !neverAsciiEscape && noAsciiEscape?.Contains(literal) != true).Span);
                     break;
                 case TemplateHeadNode literal:
                     output.Append('`').Append(
-                        TemplateText(literal.Text, literal.RawText, noAsciiEscape?.Contains(literal) == true)).Append("${");
+                        TemplateText(literal.Text, literal.RawText, noAsciiEscape?.Contains(literal) == true).Span).Append("${");
                     break;
                 case TemplateMiddleNode literal:
                     output.Append('}').Append(
-                        TemplateText(literal.Text, literal.RawText, noAsciiEscape?.Contains(literal) == true)).Append("${");
+                        TemplateText(literal.Text, literal.RawText, noAsciiEscape?.Contains(literal) == true).Span).Append("${");
                     break;
                 case TemplateTailNode literal:
                     output.Append('}').Append(
-                        TemplateText(literal.Text, literal.RawText, noAsciiEscape?.Contains(literal) == true)).Append('`');
+                        TemplateText(literal.Text, literal.RawText, noAsciiEscape?.Contains(literal) == true).Span).Append('`');
                     break;
                 case ComputedPropertyNameNode computed:
                     Push(T("["), N(computed.Expression), T("]"));
@@ -158,12 +159,12 @@ internal sealed partial class Checker
                     Push(N(qualified.Left), T("."), N(qualified.Right));
                     break;
                 case MetaPropertyNode meta:
-                    Push(T(TokenFacts.Text(meta.KeywordToken) + "."), N(meta.Name));
+                    Push(T(TextSlice.Concat(TokenFacts.Text(meta.KeywordToken), ".")), N(meta.Name));
                     break;
                 case PropertyAccessExpressionNode property:
                     Push(N(property.Expression), T(property.QuestionDotToken is not null ? "?."
                         : property.Expression is NumericLiteralNode number && (number.TokenFlags & TokenFlags.WithSpecifier) == 0
-                            && NumberText(number).IndexOfAny(['.', 'e', 'E']) < 0 ? ".." : "."), N(property.Name));
+                            && NumberText(number).Span.IndexOfAny(['.', 'e', 'E']) < 0 ? ".." : "."), N(property.Name));
                     break;
                 case ElementAccessExpressionNode element:
                     Push(N(element.Expression), T(element.QuestionDotToken is null ? "[" : "?.["), N(element.ArgumentExpression), T("]"));
@@ -387,7 +388,7 @@ internal sealed partial class Checker
                     Push(T("static "), N(block.Body));
                     break;
                 case HeritageClauseNode heritage:
-                    Push(T(TokenFacts.Text(heritage.Token) + " "), List(heritage.Types, "", ", ", ""));
+                    Push(T(TextSlice.Concat(TokenFacts.Text(heritage.Token), " ")), List(heritage.Types, "", ", ", ""));
                     break;
                 case BlockNode block:
                     Push(Braces(block.Statements, " ", true));
@@ -528,7 +529,7 @@ internal sealed partial class Checker
                         import.Attributes is null ? default : S(T(" "), N(import.Attributes)), T(";"));
                     break;
                 case ImportClauseNode clause:
-                    Push(clause.PhaseModifier == K.Unknown ? default : T(TokenFacts.Text(clause.PhaseModifier) + " "), N(clause.Name),
+                    Push(clause.PhaseModifier == K.Unknown ? default : T(TextSlice.Concat(TokenFacts.Text(clause.PhaseModifier), " ")), N(clause.Name),
                         clause.Name is not null && clause.NamedBindings is not null ? T(", ") : default, N(clause.NamedBindings));
                     break;
                 case NamespaceImportNode import:
@@ -582,7 +583,7 @@ internal sealed partial class Checker
                     Push(T("export as namespace "), N(export.Name), T(";"));
                     break;
                 case ImportAttributesNode attributes:
-                    Push(T(TokenFacts.Text(attributes.Token) + " "), Braces(attributes.Attributes, ", "));
+                    Push(T(TextSlice.Concat(TokenFacts.Text(attributes.Token), " ")), Braces(attributes.Attributes, ", "));
                     break;
                 case ImportAttributeNode attribute:
                     Push(N(attribute.Name), T(": "), N(attribute.Value));
@@ -647,7 +648,7 @@ internal sealed partial class Checker
                     Push(T("("), N(parenthesized.Type), T(")"));
                     break;
                 case TypeOperatorNode operation:
-                    Push(T(TokenFacts.Text(operation.Operator) + " "), N(operation.Type));
+                    Push(T(TextSlice.Concat(TokenFacts.Text(operation.Operator), " ")), N(operation.Type));
                     break;
                 case IndexedAccessTypeNode indexed:
                     Push(N(indexed.ObjectType), T("["), N(indexed.IndexType), T("]"));
@@ -657,7 +658,7 @@ internal sealed partial class Checker
                         import.Attributes is null
                             ? default
                             : S(
-                                T(", { " + TokenFacts.Text(import.Attributes.Token) + ": "),
+                                T(TextSlice.Concat(", { ", TokenFacts.Text(import.Attributes.Token), ": ")),
                                 Braces(import.Attributes.Attributes, ", "),
                                 T(" }")),
                         T(")"),
@@ -669,9 +670,9 @@ internal sealed partial class Checker
                         mapped.ReadonlyToken is null
                             ? default
                             : T(
-                                (mapped.ReadonlyToken.Kind is K.PlusToken or K.MinusToken
+                                TextSlice.Concat((mapped.ReadonlyToken.Kind is K.PlusToken or K.MinusToken
                                     ? TokenFacts.Text(mapped.ReadonlyToken.Kind)
-                                    : "") + "readonly "),
+                                    : ""), "readonly ")),
                         T("["),
                         N(mapped.TypeParameter?.Name),
                         T(" in "),
@@ -681,9 +682,9 @@ internal sealed partial class Checker
                         mapped.QuestionToken is null
                             ? default
                             : T(
-                                (mapped.QuestionToken.Kind is K.PlusToken or K.MinusToken
+                                TextSlice.Concat((mapped.QuestionToken.Kind is K.PlusToken or K.MinusToken
                                     ? TokenFacts.Text(mapped.QuestionToken.Kind)
-                                    : "") + "?"),
+                                    : ""), "?")),
                         Annotation(mapped.Type), T(";"), List(mapped.Members, " ", " ", ""), T(" }"));
                     break;
                 case LiteralTypeNode literal:
@@ -771,7 +772,7 @@ internal sealed partial class Checker
                     Push(T("{"), N(expression.DotDotDotToken), N(expression.Expression), T("}"));
                     break;
                 case JsxTextNode text:
-                    output.Append(text.Text);
+                    output.Append(text.Text.Span);
                     break;
                 case JsxFragmentNode fragment:
                     Push(T("<>"), List(fragment.Children, "", "", ""), T("</>"));
@@ -789,17 +790,17 @@ internal sealed partial class Checker
                     output.Append("debugger;");
                     break;
                 default:
-                    string token = TokenFacts.Text(node.Kind);
+                    TextSlice token = TokenFacts.Text(node.Kind);
                     if (token.Length == 0)
                         throw new NotSupportedException($"Diagnostic node printing requires {node.Kind}");
-                    output.Append(token);
+                    output.Append(token.Span);
                     if (node.Kind == K.DebuggerStatement)
                         output.Append(';');
                     break;
             }
         }
 
-        private string? OriginalText(SyntaxNode node)
+        private TextSlice? OriginalText(SyntaxNode node)
         {
             if (sourceFile is null || node.Parent is null || node.Pos < 0 || node.End < 0)
                 return null;
@@ -807,7 +808,7 @@ internal sealed partial class Checker
             return sourceFile.Source.Text[sourceFile.Source.ToUtf16Position(start)..sourceFile.Source.ToUtf16Position(node.End)];
         }
 
-        private string NumberText(NumericLiteralNode literal) => (literal.TokenFlags & (TokenFlags.IsInvalid | TokenFlags.ContainsSeparator)) == 0
+        private TextSlice NumberText(NumericLiteralNode literal) => (literal.TokenFlags & (TokenFlags.IsInvalid | TokenFlags.ContainsSeparator)) == 0
                     ? OriginalText(literal) ?? literal.Text : literal.Text;
 
         private static bool HasTrailingComma(NodeList? nodes) => nodes?.HasTrailingComma == true;
@@ -839,8 +840,12 @@ internal sealed partial class Checker
             int index = 0;
             if (file.ScriptKind != ScriptKind.JSON)
             {
-                if (file.Source.Text.StartsWith("#!", StringComparison.Ordinal))
-                    parts.Add(T(file.Source.Text.Split(['\r', '\n'], 2)[0] + " "));
+                if (file.Source.Text.Span.StartsWith("#!", StringComparison.Ordinal))
+                {
+                    ReadOnlySpan<char> source = file.Source.Text;
+                    int lineEnd = source.IndexOfAny('\r', '\n');
+                    parts.Add(T(TextSlice.Concat(lineEnd < 0 ? source : source[..lineEnd], " ")));
+                }
                 while (file.Statements is { } statements
                     && index < statements.Count
                     && statements[index] is ExpressionStatementNode { Expression: StringLiteralNode })
@@ -854,7 +859,7 @@ internal sealed partial class Checker
             pending.Push(new(Parts: parts));
         }
 
-        private string TemplateText(string text, string raw, bool noAscii = false)
+        private TextSlice TemplateText(TextSlice text, TextSlice raw, bool noAscii = false)
         {
             if (raw.Length != 0 || text.Length == 0)
                 return raw;
@@ -871,7 +876,7 @@ internal sealed partial class Checker
                     && parameters[0] is ParameterDeclarationNode { Name: IdentifierNode, Modifiers: null, DotDotDotToken: null, QuestionToken: null, Type: null, Initializer: null } parameter
                     && parameter.Pos == node.Pos;
 
-        private static string VariableKind(NodeFlags flags) => (flags & NodeFlags.AwaitUsing) == NodeFlags.AwaitUsing ? "await using "
+        private static TextSlice VariableKind(NodeFlags flags) => (flags & NodeFlags.AwaitUsing) == NodeFlags.AwaitUsing ? "await using "
                     : (flags & NodeFlags.Using) != 0 ? "using " : (flags & NodeFlags.Const) != 0 ? "const "
                     : (flags & NodeFlags.Let) != 0 ? "let " : "var ";
     }

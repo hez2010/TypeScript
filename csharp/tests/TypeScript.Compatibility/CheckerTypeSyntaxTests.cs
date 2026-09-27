@@ -87,8 +87,8 @@ internal static class CheckerTypeSyntaxTests
         var array = (InterfaceType)checker.Environment.Globals.Types["Array"];
         for (int i = 0; i < 5000; i++)
             deep = checker.Context.CreateTypeReference(array, [deep]);
-        string shortened = await checker.TypeDisplay.GetAsync(deep);
-        Check(shortened.Length == 320 && shortened.EndsWith("...", StringComparison.Ordinal));
+        TextSlice shortened = await checker.TypeDisplay.GetAsync(deep);
+        Check(shortened.Length == 320 && shortened.Span.EndsWith("...", StringComparison.Ordinal));
         Check(
             await checker.TypeDisplay.GetAsync(
                 deep,
@@ -209,7 +209,7 @@ internal static class CheckerTypeSyntaxTests
         const NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation | NodeBuilderFlags.InTypeAlias;
         const NodeBuilderFlags generated = flags | NodeBuilderFlags.GenerateNamesForShadowedTypeParams;
         Check(await checker.SerializeTypeSyntaxAsync(collision, null, flags) == "[[Left.Value, Right.Value], Other]");
-        string renamed = await checker.SerializeTypeSyntaxAsync(a, scope, generated);
+        TextSlice renamed = await checker.SerializeTypeSyntaxAsync(a, scope, generated);
         Check(renamed == "<T_1>(x: T_1) => <T_2>(y: T_2) => [T_2, typeof x]");
         Check(await checker.SerializeTypeSyntaxAsync(siblings, scope, generated) == "{ a: <T_1>() => T_1; b: <T_1>() => T_1; }");
         Check(await checker.SerializeTypeSyntaxAsync(a, scope, flags) == "<T>(x: T) => <T>(y: T) => [T, typeof x]");
@@ -238,7 +238,7 @@ internal static class CheckerTypeSyntaxTests
         Check(checker.TypeSyntaxScopeCount == 0);
         int maximumScopes = 0;
         checker.BeforeSymbolChainTable = _ => maximumScopes = Math.Max(maximumScopes, checker.TypeSyntaxScopeCount);
-        string nestedResult;
+        TextSlice nestedResult;
         try
         {
             nestedResult = await checker.SerializeTypeSyntaxAsync(nested, scope, generated);
@@ -247,8 +247,8 @@ internal static class CheckerTypeSyntaxTests
         {
             checker.BeforeSymbolChainTable = null;
         }
-        Check(nestedResult.Contains("T_120", StringComparison.Ordinal)
-            && nestedResult.EndsWith("typeof globalThis.globalValue", StringComparison.Ordinal));
+        Check(nestedResult.Span.Contains("T_120", StringComparison.Ordinal)
+            && nestedResult.Span.EndsWith("typeof globalThis.globalValue", StringComparison.Ordinal));
         Check(maximumScopes == 2 && checker.TypeSyntaxScopeCount == 0);
         Check(await checker.SerializeTypeSyntaxAsync(a, scope, generated) == renamed);
         Check(snapshot.All(p => p.Parent == p.Node.Parent && p.Pos == p.Node.Pos && p.End == p.Node.End && p.Flags == p.Node.Flags));
@@ -284,10 +284,10 @@ internal static class CheckerTypeSyntaxTests
         var unique = await checker.Nodes.FromNodeAsync(declarations[3].Type!);
         var snapshot = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
         const NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.InTypeAlias;
-        string shortened = await checker.SerializeTypeSyntaxAsync(a, source, flags);
-        Check(shortened.Contains(" more ...", StringComparison.Ordinal) && shortened.EndsWith("\"value39\"]", StringComparison.Ordinal));
-        string full = await checker.SerializeTypeSyntaxAsync(a, source, flags | NodeBuilderFlags.NoTruncation);
-        Check(!full.Contains("...", StringComparison.Ordinal) && full.Contains("\"value20\"", StringComparison.Ordinal));
+        TextSlice shortened = await checker.SerializeTypeSyntaxAsync(a, source, flags);
+        Check(shortened.Span.Contains(" more ...", StringComparison.Ordinal) && shortened.Span.EndsWith("\"value39\"]", StringComparison.Ordinal));
+        TextSlice full = await checker.SerializeTypeSyntaxAsync(a, source, flags | NodeBuilderFlags.NoTruncation);
+        Check(!full.Span.Contains("...", StringComparison.Ordinal) && full.Span.Contains("\"value20\"", StringComparison.Ordinal));
         Check(await checker.SerializeTypeSyntaxAsync(a, source, flags) == shortened);
         Check(
             await checker.SerializeTypeSyntaxAsync(
@@ -509,8 +509,8 @@ internal static class CheckerTypeSyntaxTests
             n => SemanticSyntax.Source(n)?.FileName.StartsWith("/project/main.", StringComparison.Ordinal) == true).ToArray();
         SyntaxNode?[] locations = [null, .. main.Where(n => n is SourceFileNode or ClassDeclarationNode or FunctionDeclarationNode)];
         var targets = main.Where(n => Signatures.FunctionLike(n) && (SemanticSyntax.Name(n) is IdentifierNode name
-            && name.Text.StartsWith("serialize", StringComparison.Ordinal) || n.Parent is ClassDeclarationNode { Name: { } parentName }
-            && parentName.Text.StartsWith("Serialize", StringComparison.Ordinal)));
+            && name.Text.Span.StartsWith("serialize", StringComparison.Ordinal) || n.Parent is ClassDeclarationNode { Name: { } parentName }
+            && parentName.Text.Span.StartsWith("Serialize", StringComparison.Ordinal)));
         SyntaxKind[] kinds = [SyntaxKind.CallSignature,SyntaxKind.ConstructSignature,SyntaxKind.FunctionType,SyntaxKind.ConstructorType,
             SyntaxKind.MethodSignature,SyntaxKind.MethodDeclaration,SyntaxKind.Constructor,SyntaxKind.GetAccessor,SyntaxKind.SetAccessor,
             SyntaxKind.IndexSignature,SyntaxKind.FunctionDeclaration,SyntaxKind.FunctionExpression,SyntaxKind.ArrowFunction];
@@ -525,7 +525,7 @@ internal static class CheckerTypeSyntaxTests
                 foreach (var kind in kinds)
                     foreach (var flag in flags)
                     {
-                        string value = await checker.SerializeSignatureSyntaxAsync(
+                        TextSlice value = await checker.SerializeSignatureSyntaxAsync(
                             signature,
                             kind,
                             location,
@@ -535,7 +535,7 @@ internal static class CheckerTypeSyntaxTests
                         writer.WriteNumberValue(nodeId(location));
                         writer.WriteNumberValue((int)kind);
                         writer.WriteNumberValue((uint)flag);
-                        writer.WriteStringValue(value);
+                        writer.WriteStringValue(value.Span);
                         writer.WriteEndArray();
                     }
         }
@@ -550,7 +550,7 @@ internal static class CheckerTypeSyntaxTests
         SyntaxNode?[] locations = [null, .. main.Where(n => n is SourceFileNode or ClassDeclarationNode or FunctionDeclarationNode)];
         writer.WriteStartArray("typeSyntaxQueries");
         foreach (var target in main.OfType<TypeAliasDeclarationNode>().Where(
-            n => n.Name?.Text.StartsWith("Serialize", StringComparison.Ordinal) == true).Select(n => n.Type!))
+            n => n.Name?.Text.Span.StartsWith("Serialize", StringComparison.Ordinal) == true).Select(n => n.Type!))
         {
             var type = await checker.Nodes.FromNodeAsync(target);
             foreach (var location in locations)
@@ -558,7 +558,7 @@ internal static class CheckerTypeSyntaxTests
                     foreach (bool outside in new[] { false, true })
                         foreach (var configured in configuredFlags ?? [NodeBuilderFlags.NoTruncation])
                         {
-                            string value = await checker.SerializeTypeSyntaxAsync(type, location, configured | NodeBuilderFlags.IgnoreErrors
+                            TextSlice value = await checker.SerializeTypeSyntaxAsync(type, location, configured | NodeBuilderFlags.IgnoreErrors
                                 | (expand
                                     ? NodeBuilderFlags.InTypeAlias
                                     : 0) | (outside ? NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope : 0));
@@ -569,7 +569,7 @@ internal static class CheckerTypeSyntaxTests
                             writer.WriteBooleanValue(outside);
                             if (configuredFlags is not null)
                                 writer.WriteNumberValue((uint)configured);
-                            writer.WriteStringValue(value);
+                            writer.WriteStringValue(value.Span);
                             writer.WriteEndArray();
                         }
         }

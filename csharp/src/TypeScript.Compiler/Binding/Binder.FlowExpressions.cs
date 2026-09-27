@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Syntax;
 using K = TypeScript.Compiler.Syntax.SyntaxKind;
@@ -228,7 +229,7 @@ public sealed partial class Binder
             if (node.Expression?.Kind == K.SuperKeyword)
                 currentFlow = Mutation(F.Call, node);
         }
-        if (node.Expression is PropertyAccessExpressionNode { Name: IdentifierNode { Text: "push" or "unshift" } } access
+        if (node.Expression is PropertyAccessExpressionNode { Name: IdentifierNode { Text.Span: "push" or "unshift" } } access
             && NarrowableOperand(access.Expression))
             currentFlow = Mutation(F.ArrayMutation, node);
     }

@@ -192,6 +192,9 @@ public sealed partial class ModuleResolver
     public static bool Relative(string name) => name is "." or ".." || name.StartsWith("./", StringComparison.Ordinal)
         || name.StartsWith("../", StringComparison.Ordinal) || CompilerPath.IsAbsolute(name) && !CompilerPath.IsUrl(name);
 
+    public static bool Relative(ReadOnlySpan<char> name) => name is "." or ".." || name.StartsWith("./", StringComparison.Ordinal)
+        || name.StartsWith("../", StringComparison.Ordinal) || CompilerPath.EncodedRootLength(name) > 0;
+
     public static string Extension(string path)
     {
         foreach (string ext in new[] { ".d.ts", ".d.mts", ".d.cts", ".tsx", ".ts", ".jsx", ".js", ".json", ".mts", ".cts", ".mjs", ".cjs" })
@@ -363,7 +366,7 @@ public sealed partial class ModuleResolver
             if (Relative(name))
             {
                 string candidate = CompilerPath.Resolve(directory, name);
-                if (name.Split('/')[^1] is "." or "..")
+                if (name.AsSpan(name.LastIndexOf('/') + 1) is "." or "..")
                     candidate = CompilerPath.EnsureTrailingSeparator(candidate);
                 if (options.Strings("rootDirs") is { Length: > 0 } roots)
                 {

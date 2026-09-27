@@ -428,7 +428,7 @@ public sealed class ContentMapperHost : IAsyncDisposable
                 {
                     writer.WriteString("fileName", fileName);
                     writer.WritePropertyName("content");
-                    JsonStrings.WriteString(writer, content.Text);
+                    JsonStrings.WriteString(writer, content.Text.Span);
                     writer.WriteString("projectHandle", entry.Handle);
                 }, linked.Token).ConfigureAwait(false);
             }

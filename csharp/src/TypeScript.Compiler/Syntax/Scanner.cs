@@ -10,12 +10,13 @@ namespace TypeScript.Compiler.Syntax;
 
 public readonly record struct CommentDirective(int Start, int End, bool ExpectError);
 public readonly record struct ScannerState(int Position, int FullStart, int TokenStart, SyntaxKind Kind,
-    string Value, TokenFlags Flags, int DiagnosticCount, int DirectiveCount, int JsDocDepth);
+    TextSlice Value, TokenFlags Flags, int DiagnosticCount, int DirectiveCount, int JsDocDepth);
 
 /// <summary>Scans the UTF-16 view. Positions here are UTF-16; SourceText maps them to the byte-based AST/wire contract.</summary>
 public sealed partial class Scanner(SourceText source, bool skipTrivia = true, bool jsx = false)
 {
-    private readonly string text = source.Text;
+    private readonly TextSlice text = source.Text;
+    private readonly string input = source.Text.ToString();
     private int end = source.Length;
     private int pos;
     private int jsDocDepth;
@@ -29,14 +30,14 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
     public int Position => pos;
     public int End => end;
     public SyntaxKind Kind { get; private set; }
-    public string Value { get; private set; } = "";
+    public TextSlice Value { get; private set; } = "";
     public TokenFlags Flags { get; private set; }
     public List<Diagnostic> Diagnostics { get; } = [];
     public List<CommentDirective> CommentDirectives { get; } = [];
-    public ReadOnlySpan<char> TokenText => text.AsSpan(TokenStart, pos - TokenStart);
+    public ReadOnlySpan<char> TokenText => input.AsSpan().Slice(TokenStart, pos - TokenStart);
     public bool HasPrecedingLineBreak => (Flags & TokenFlags.PrecedingLineBreak) != 0;
 
-    private int Char(int offset = 0) => pos + offset < end ? text[pos + offset] : -1;
+    private int Char(int offset = 0) => pos + offset < end ? input.AsSpan()[pos + offset] : -1;
 
     private int CodePoint(out int width)
     {
@@ -45,17 +46,18 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
             width = 0;
             return -1;
         }
-        char ch = text[pos];
-        if (char.IsHighSurrogate(ch) && pos + 1 < end && char.IsLowSurrogate(text[pos + 1]))
+        ReadOnlySpan<char> characters = input.AsSpan();
+        char ch = characters[pos];
+        if (char.IsHighSurrogate(ch) && pos + 1 < end && char.IsLowSurrogate(characters[pos + 1]))
         {
             width = 2;
-            return char.ConvertToUtf32(ch, text[pos + 1]);
+            return char.ConvertToUtf32(ch, characters[pos + 1]);
         }
         width = 1;
         return ch;
     }
 
-    private void Error(DiagnosticMessage message, int? start = null, int length = 0, params string[] arguments) =>
+    private void Error(DiagnosticMessage message, int? start = null, int length = 0, params TextSlice[] arguments) =>
             Diagnostics.Add(new(message, start ?? pos, length, arguments));
 
     public ScannerState Mark() =>
@@ -138,7 +140,7 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
                 int lastLine = TokenStart;
                 while (pos < end)
                 {
-                    int next = text.AsSpan(pos, end - pos).IndexOfAny(multi ? "*\r\n\u2028\u2029" : "\r\n\u2028\u2029");
+                    int next = input.AsSpan().Slice(pos, end - pos).IndexOfAny(multi ? "*\r\n\u2028\u2029" : "\r\n\u2028\u2029");
                     if (next < 0)
                     {
                         pos = end;
@@ -163,7 +165,7 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
                 if (doc)
                 {
                     Flags |= TokenFlags.PrecedingJSDocComment;
-                    ReadOnlySpan<char> comment = text.AsSpan(TokenStart, pos - TokenStart);
+                    ReadOnlySpan<char> comment = input.AsSpan().Slice(TokenStart, pos - TokenStart);
                     if (HasTag(comment, "deprecated"))
                         Flags |= TokenFlags.PrecedingJSDocWithDeprecated;
                     if (HasTag(comment, "see") || HasTag(comment, "link") || HasTag(comment, "linkcode") || HasTag(comment, "linkplain"))
@@ -193,7 +195,7 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
                     pos += 2;
                     return Kind = SyntaxKind.Unknown;
                 }
-                int nextLine = text.AsSpan(pos, end - pos).IndexOfAny("\r\n\u2028\u2029");
+                int nextLine = input.AsSpan().Slice(pos, end - pos).IndexOfAny("\r\n\u2028\u2029");
                 pos = nextLine < 0 ? end : pos + nextLine;
                 continue;
             }
@@ -240,7 +242,7 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
             }
             for (int length = Math.Min(3, end - pos); length > 0; length--)
             {
-                SyntaxKind punctuation = FromText(text.AsSpan(pos, length));
+                SyntaxKind punctuation = FromText(input.AsSpan().Slice(pos, length));
                 if (punctuation is SyntaxKind.Unknown or SyntaxKind.HashToken or SyntaxKind.BacktickToken)
                     continue;
                 if (punctuation == SyntaxKind.LessThanSlashToken && (!Jsx || Char(2) == '*'))
@@ -285,7 +287,7 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
             at++;
         while (at < end && text[at] is ' ' or '\t')
             at++;
-        ReadOnlySpan<char> tail = text.AsSpan(at, end - at);
+        ReadOnlySpan<char> tail = input.AsSpan().Slice(at, end - at);
         if (tail.StartsWith("@ts-expect-error", StringComparison.Ordinal))
             CommentDirectives.Add(new(start, end, true));
         else if (tail.StartsWith("@ts-ignore", StringComparison.Ordinal))
@@ -293,7 +295,7 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
     }
 
     private bool IsConflictMarker(int at) => at + 7 < end && (at == 0 || IsLineBreak(text[at - 1])) &&
-            text.AsSpan(at, 7).IndexOfAnyExcept(text[at]) < 0 && (text[at] == '=' || text[at + 7] == ' ');
+            input.AsSpan().Slice(at, 7).IndexOfAnyExcept(text[at]) < 0 && (text[at] == '=' || text[at + 7] == ' ');
 
     private void ScanConflictMarker()
     {
@@ -332,7 +334,7 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         int part = builder is null ? start : pos;
         while (pos < end)
         {
-            int ascii = text.AsSpan(pos, end - pos).IndexOfAnyExcept(IdentifierAscii);
+            int ascii = input.AsSpan().Slice(pos, end - pos).IndexOfAnyExcept(IdentifierAscii);
             pos = ascii < 0 ? end : pos + ascii;
             ch = CodePoint(out width);
             if (IsIdentifierPart(ch, jsxName))
@@ -347,25 +349,26 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
             if (escaped < 0)
                 break;
             builder ??= new();
-            builder.Append(text.AsSpan(part, before - part));
+            builder.Append(input.AsSpan().Slice(part, before - part));
             AppendCodePoint(builder, escaped);
             part = pos;
         }
         if (builder is null)
         {
             int valueStart = privateName ? start - 1 : start;
-            ReadOnlySpan<char> valueText = text.AsSpan(valueStart, pos - valueStart);
+            ReadOnlySpan<char> valueText = input.AsSpan().Slice(valueStart, pos - valueStart);
             identifierKind = IdentifierKind(valueText);
             if (identifierKind != SyntaxKind.Identifier)
                 Value = TokenFacts.Text(identifierKind);
             else
-                Value = valueText.ToString();
+                Value = text.Memory.Slice(valueStart, pos - valueStart);
         }
         else
         {
-            Value = builder.Append(text.AsSpan(part, pos - part)).ToString();
+            builder.Append(input.AsSpan().Slice(part, pos - part));
+            Value = TextSlice.FromBuilder(builder);
             if (privateName)
-                Value = "#" + Value;
+                Value = TextSlice.Concat("#", Value);
             identifierKind = IdentifierKind(Value);
         }
         return true;
@@ -390,20 +393,23 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         if (point <= 0xFFFF)
             builder.Append((char)point);
         else
-            builder.Append(char.ConvertFromUtf32(point));
+        {
+            Span<char> pair = stackalloc char[2];
+            builder.Append(pair[..new Rune(point).EncodeToUtf16(pair)]);
+        }
     }
 
-    private string ScanString(bool jsxAttribute)
+    private TextSlice ScanString(bool jsxAttribute)
     {
         int quote = Char();
         if (quote == '\'')
             Flags |= TokenFlags.SingleQuote;
         int start = ++pos;
-        int closing = text.AsSpan(start, end - start).IndexOf((char)quote);
-        if (closing >= 0 && (jsxAttribute || text.AsSpan(start, closing).IndexOfAny('\\', '\r', '\n') < 0))
+        int closing = input.AsSpan().Slice(start, end - start).IndexOf((char)quote);
+        if (closing >= 0 && (jsxAttribute || input.AsSpan().Slice(start, closing).IndexOfAny('\\', '\r', '\n') < 0))
         {
             pos += closing + 1;
-            return text.Substring(start, closing);
+            return text.Memory.Slice(start, closing);
         }
         var result = new StringBuilder();
         while (true)
@@ -411,42 +417,42 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
             int ch = Char();
             if (ch < 0 || !jsxAttribute && ch is '\r' or '\n')
             {
-                result.Append(text.AsSpan(start, pos - start));
+                result.Append(input.AsSpan().Slice(start, pos - start));
                 Flags |= TokenFlags.Unterminated;
                 Error(Messages.Unterminated_string_literal);
                 break;
             }
             if (ch == quote)
             {
-                result.Append(text.AsSpan(start, pos - start));
+                result.Append(input.AsSpan().Slice(start, pos - start));
                 pos++;
                 break;
             }
             if (ch == '\\' && !jsxAttribute)
             {
-                result.Append(text.AsSpan(start, pos - start));
-                result.Append(Escape(true));
+                result.Append(input.AsSpan().Slice(start, pos - start));
+                Escape(result, true);
                 start = pos;
             }
             else
                 pos++;
         }
-        return result.ToString();
+        return TextSlice.FromBuilder(result);
     }
 
     private SyntaxKind ScanTemplate(bool reportEscapeErrors)
     {
         bool head = Char() == '`';
         int start = ++pos;
-        var result = new StringBuilder();
+        StringBuilder? result = null;
         while (true)
         {
-            int next = text.AsSpan(pos, end - pos).IndexOfAny("`$\\\r");
+            int next = input.AsSpan().Slice(pos, end - pos).IndexOfAny("`$\\\r");
             pos = next < 0 ? end : pos + next;
             int ch = Char();
             if (ch < 0 || ch == '`')
             {
-                result.Append(text.AsSpan(start, pos - start));
+                ReadOnlySpan<char> tail = input.AsSpan().Slice(start, pos - start);
                 if (ch == '`')
                     pos++;
                 else
@@ -454,26 +460,26 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
                     Flags |= TokenFlags.Unterminated;
                     Error(Messages.Unterminated_template_literal);
                 }
-                Value = result.ToString();
+                Value = result is null ? text.Memory.Slice(start, tail.Length) : TextSlice.FromBuilder(result.Append(tail));
                 return head ? SyntaxKind.NoSubstitutionTemplateLiteral : SyntaxKind.TemplateTail;
             }
             if (ch == '$' && Char(1) == '{')
             {
-                result.Append(text.AsSpan(start, pos - start));
+                ReadOnlySpan<char> tail = input.AsSpan().Slice(start, pos - start);
                 pos += 2;
-                Value = result.ToString();
+                Value = result is null ? text.Memory.Slice(start, tail.Length) : TextSlice.FromBuilder(result.Append(tail));
                 return head ? SyntaxKind.TemplateHead : SyntaxKind.TemplateMiddle;
             }
             if (ch == '\\')
             {
-                result.Append(text.AsSpan(start, pos - start));
-                result.Append(Escape(reportEscapeErrors));
+                (result ??= new()).Append(input.AsSpan().Slice(start, pos - start));
+                Escape(result, reportEscapeErrors);
                 start = pos;
                 continue;
             }
             if (ch == '\r')
             {
-                result.Append(text.AsSpan(start, pos - start));
+                (result ??= new()).Append(input.AsSpan().Slice(start, pos - start));
                 pos++;
                 if (Char() == '\n')
                     pos++;
@@ -485,20 +491,21 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         }
     }
 
-    private string Escape(bool reportErrors)
+    private void Escape(StringBuilder result, bool reportErrors)
     {
         int start = pos++;
         int ch = Char();
         if (ch < 0)
         {
             Error(Messages.Unexpected_end_of_text);
-            return "";
+            return;
         }
         pos++;
         switch (ch)
         {
             case '0' when !IsDigit(Char()):
-                return "\0";
+                result.Append('\0');
+                return;
             case >= '0' and <= '7':
                 if (ch <= '3' && Char() is >= '0' and <= '7')
                     pos++;
@@ -506,36 +513,56 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
                     pos++;
                 Flags |= TokenFlags.ContainsInvalidEscape;
                 if (!reportErrors)
-                    return text[start..pos];
-                int octal = Convert.ToInt32(text[(start + 1)..pos], 8);
+                {
+                    result.Append(input.AsSpan().Slice(start, pos - start));
+                    return;
+                }
+                int octal = 0;
+                foreach (char digit in input.AsSpan().Slice(start + 1, pos - start - 1))
+                    octal = octal * 8 + digit - '0';
                 Error(
                     Messages.Octal_escape_sequences_are_not_allowed_Use_the_syntax_0,
                     start,
                     pos - start,
-                    "\\x" + octal.ToString("x2", CultureInfo.InvariantCulture));
-                return ((char)octal).ToString();
+                    TextSlice.Concat("\\x", octal.ToString("x2", CultureInfo.InvariantCulture)));
+                result.Append((char)octal);
+                return;
             case '8' or '9':
                 Flags |= TokenFlags.ContainsInvalidEscape;
                 if (!reportErrors)
-                    return text[start..pos];
+                {
+                    result.Append(input.AsSpan().Slice(start, pos - start));
+                    return;
+                }
                 Error(Messages.Escape_sequence_0_is_not_allowed, start, pos - start, text[start..pos]);
-                return ((char)ch).ToString();
+                result.Append((char)ch);
+                return;
             case 'b':
-                return "\b";
+                result.Append('\b');
+                return;
             case 't':
-                return "\t";
+                result.Append('\t');
+                return;
             case 'n':
-                return "\n";
+                result.Append('\n');
+                return;
             case 'v':
-                return "\v";
+                result.Append('\v');
+                return;
             case 'f':
-                return "\f";
+                result.Append('\f');
+                return;
             case 'r':
-                return "\r";
+                result.Append('\r');
+                return;
             case 'u':
                 pos = start;
                 int point = UnicodeEscape(reportErrors);
-                return point < 0 ? text[start..pos] : point <= 0xFFFF ? ((char)point).ToString() : char.ConvertFromUtf32(point);
+                if (point < 0)
+                    result.Append(input.AsSpan().Slice(start, pos - start));
+                else
+                    AppendCodePoint(result, point);
+                return;
             case 'x':
                 int value = 0;
                 for (int i = 0; i < 2; i++)
@@ -546,23 +573,28 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
                         Flags |= TokenFlags.ContainsInvalidEscape;
                         if (reportErrors)
                             Error(Messages.Hexadecimal_digit_expected);
-                        return text[start..pos];
+                        {
+                            result.Append(input.AsSpan().Slice(start, pos - start));
+                            return;
+                        }
                     }
                     value = value * 16 + digit;
                     pos++;
                 }
                 Flags |= TokenFlags.HexEscape;
-                return ((char)value).ToString();
+                result.Append((char)value);
+                return;
             case '\r':
                 if (Char() == '\n')
                     pos++;
-                return "";
+                return;
             case '\n' or 0x2028 or 0x2029:
-                return "";
+                return;
             default:
+                result.Append((char)ch);
                 if (char.IsHighSurrogate((char)ch) && Char() is >= 0xDC00 and <= 0xDFFF)
-                    return string.Concat((char)ch, text[pos++]);
-                return ((char)ch).ToString();
+                    result.Append(text[pos++]);
+                return;
         }
     }
 
@@ -622,10 +654,11 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         return (int)value;
     }
 
-    private string Digits(int radix, bool separators, bool decimalFragment = false)
+    private ReadOnlySpan<char> Digits(int radix, bool separators, bool decimalFragment = false)
     {
         int start = pos;
         bool allowed = false, previousSeparator = false;
+        int separatorsCount = 0;
         while (true)
         {
             int digit = HexDigit(Char());
@@ -639,6 +672,7 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
             if (!separators || Char() != '_')
                 break;
             Flags |= TokenFlags.ContainsSeparator;
+            separatorsCount++;
             if (!allowed)
             {
                 if (decimalFragment)
@@ -663,7 +697,15 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
                 Flags |= TokenFlags.ContainsInvalidSeparator;
             Error(Messages.Numeric_separators_are_not_allowed_here, pos - 1, 1);
         }
-        return text[start..pos].Replace("_", "", StringComparison.Ordinal);
+        ReadOnlySpan<char> digits = input.AsSpan().Slice(start, pos - start);
+        if (separatorsCount == 0)
+            return digits;
+        char[] result = new char[digits.Length - separatorsCount];
+        int written = 0;
+        foreach (char digit in digits)
+            if (digit != '_')
+                result[written++] = digit;
+        return result;
     }
 
     private SyntaxKind ScanNumber()
@@ -673,7 +715,7 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         {
             int radix = Char(1) is 'x' or 'X' ? 16 : Char(1) is 'o' or 'O' ? 8 : 2;
             pos += 2;
-            string digits = Digits(radix, true);
+            ReadOnlySpan<char> digits = Digits(radix, true);
             if (digits.Length == 0)
             {
                 Error(
@@ -684,22 +726,26 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
             }
             Flags |= radix == 16 ? TokenFlags.HexSpecifier : radix == 8 ? TokenFlags.OctalSpecifier : TokenFlags.BinarySpecifier;
             // The leading zero makes the BCL's signed hexadecimal/binary grammar unsigned.
-            BigInteger integer = radix switch
-            {
-                16 => BigInteger.Parse("0" + digits, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture),
-                2 => BigInteger.Parse("0" + digits, NumberStyles.AllowBinarySpecifier, CultureInfo.InvariantCulture),
-                _ => OctalInteger(digits),
-            };
+            BigInteger integer = RadixInteger(digits, radix);
             if (Char() == 'n')
             {
                 pos++;
-                Value = (radix == 16 ? "0x" + digits.ToLowerInvariant() : integer.ToString(CultureInfo.InvariantCulture)) + "n";
+                if (radix == 16)
+                {
+                    char[] value = new char[checked(digits.Length + 3)];
+                    "0x".AsSpan().CopyTo(value);
+                    digits.ToLowerInvariant(value.AsSpan(2, digits.Length));
+                    value[^1] = 'n';
+                    Value = new(value);
+                }
+                else
+                    Value = TextSlice.Concat(TextSlice.Format(integer), "n");
                 return SyntaxKind.BigIntLiteral;
             }
             Value = NumberText((double)integer);
             return SyntaxKind.NumericLiteral;
         }
-        string fixedPart;
+        ReadOnlySpan<char> fixedPart;
         if (Char() == '0')
         {
             pos++;
@@ -720,7 +766,7 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
                         octal = false;
                     pos++;
                 }
-                fixedPart = text[digitsStart..pos];
+                fixedPart = input.AsSpan().Slice(digitsStart, pos - digitsStart);
                 if (fixedPart.Length == 0)
                     fixedPart = "0";
                 else if (!octal)
@@ -731,12 +777,12 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
                     Value = NumberText((double)integer);
                     Flags |= TokenFlags.Octal;
                     bool minus = Kind == SyntaxKind.MinusToken;
-                    string octalText = fixedPart.TrimStart('0');
+                    ReadOnlySpan<char> octalText = fixedPart.TrimStart('0');
                     Error(
                         Messages.Octal_literals_are_not_allowed_Use_the_syntax_0,
                         minus ? start - 1 : start,
                         pos - start + (minus ? 1 : 0),
-                        (minus ? "-" : "") + "0o" + (octalText.Length == 0 ? "0" : octalText));
+                        TextSlice.Concat(minus ? "-0o" : "0o", octalText.Length == 0 ? "0" : octalText));
                     return SyntaxKind.NumericLiteral;
                 }
             }
@@ -744,7 +790,7 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         else
             fixedPart = Digits(10, true, true);
         int fixedEnd = pos;
-        string fraction = "", exponent = "";
+        ReadOnlySpan<char> fraction = "", exponent = "";
         if (Char() == '.')
         {
             pos++;
@@ -758,18 +804,20 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
             if (Char() is '+' or '-')
                 pos++;
             int digitsStart = pos;
-            string digits = Digits(10, true, true);
+            ReadOnlySpan<char> digits = Digits(10, true, true);
             if (digits.Length == 0)
                 Error(Messages.Digit_expected);
             else
             {
-                exponent = text[end..digitsStart] + digits;
+                exponent = (Flags & TokenFlags.ContainsSeparator) == 0
+                    ? input.AsSpan().Slice(end, pos - end)
+                    : TextSlice.Concat(input.AsSpan().Slice(end, digitsStart - end), digits);
                 end = pos;
             }
         }
-        string raw = (Flags & TokenFlags.ContainsSeparator) == 0
-            ? text[start..end]
-            : fixedPart + (fraction.Length != 0 ? "." + fraction : "") + exponent;
+        ReadOnlySpan<char> raw = (Flags & TokenFlags.ContainsSeparator) == 0
+            ? input.AsSpan().Slice(start, end - start)
+            : TextSlice.Concat(fixedPart, fraction.Length != 0 ? TextSlice.Concat(".", fraction) : "", exponent);
         if ((Flags & TokenFlags.ContainsLeadingZero) != 0)
         {
             Error(Messages.Decimals_with_leading_zeros_are_not_allowed, start, pos - start);
@@ -780,7 +828,7 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         if (fixedEnd == pos && Char() == 'n')
         {
             pos++;
-            Value = raw + "n";
+            Value = TextSlice.Concat(raw, "n");
             result = SyntaxKind.BigIntLiteral;
         }
         else
@@ -789,9 +837,9 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         if (IsIdentifierStart(CodePoint(out _)))
         {
             int idStart = pos;
-            string saved = Value;
+            TextSlice saved = Value;
             ScanIdentifier(false, false, out _);
-            string identifier = Value;
+            TextSlice identifier = Value;
             Value = saved;
             if (result != SyntaxKind.BigIntLiteral && identifier == "n")
             {
@@ -812,21 +860,53 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
         return result;
     }
 
+    private static BigInteger RadixInteger(ReadOnlySpan<char> digits, int radix)
+    {
+        if (radix == 8)
+            return OctalInteger(digits);
+        char[]? rented = null;
+        int length = checked(digits.Length + 1);
+        Span<char> buffer = length <= 256 ? stackalloc char[256] : rented = ArrayPool<char>.Shared.Rent(length);
+        try
+        {
+            buffer[0] = '0';
+            digits.CopyTo(buffer[1..]);
+            return BigInteger.Parse(buffer[..length],
+                radix == 16 ? NumberStyles.AllowHexSpecifier : NumberStyles.AllowBinarySpecifier, CultureInfo.InvariantCulture);
+        }
+        finally
+        {
+            if (rented is not null)
+                ArrayPool<char>.Shared.Return(rented);
+        }
+    }
+
     private static BigInteger OctalInteger(ReadOnlySpan<char> digits)
     {
         // BigInteger.Parse has no octal mode. Pack three bits per digit, then let
         // the BCL construct the integer; repeated big-integer multiplication is quadratic.
         int length = checked((int)(((long)digits.Length * 3 + 7) / 8));
-        byte[] bytes = new byte[length];
-        long bit = 0;
-        for (int i = digits.Length - 1; i >= 0; i--, bit += 3)
+        byte[]? rented = null;
+        Span<byte> bytes = length <= 256 ? stackalloc byte[256] : rented = ArrayPool<byte>.Shared.Rent(length);
+        bytes = bytes[..length];
+        bytes.Clear();
+        try
         {
-            int index = checked((int)(bit >> 3));
-            int value = (digits[i] - '0') << (int)(bit & 7);
-            bytes[index] |= (byte)value;
-            if (index + 1 < bytes.Length)
-                bytes[index + 1] |= (byte)(value >> 8);
+            long bit = 0;
+            for (int i = digits.Length - 1; i >= 0; i--, bit += 3)
+            {
+                int index = checked((int)(bit >> 3));
+                int value = (digits[i] - '0') << (int)(bit & 7);
+                bytes[index] |= (byte)value;
+                if (index + 1 < bytes.Length)
+                    bytes[index + 1] |= (byte)(value >> 8);
+            }
+            return new BigInteger(bytes, isUnsigned: true);
         }
-        return new BigInteger(bytes, isUnsigned: true);
+        finally
+        {
+            if (rented is not null)
+                ArrayPool<byte>.Shared.Return(rented);
+        }
     }
 }

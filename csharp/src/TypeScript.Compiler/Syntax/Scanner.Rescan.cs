@@ -14,7 +14,7 @@ public sealed partial class Scanner
         int length = Math.Min(4, end - pos);
         for (; length > 0; length--)
         {
-            SyntaxKind kind = FromText(text.AsSpan(pos, length));
+            SyntaxKind kind = FromText(input.AsSpan().Slice(pos, length));
             if (kind != SyntaxKind.Unknown)
             {
                 pos += length;
@@ -136,13 +136,13 @@ public sealed partial class Scanner
             while (pos > TokenStart + 1 && (IsWhiteSpace(text[pos - 1]) || IsLineBreak(text[pos - 1]) || text[pos - 1] == ';'))
                 pos--;
             Error(Messages.Unterminated_regular_expression_literal, TokenStart, pos - TokenStart);
-            Value = text[TokenStart..pos];
+            Value = text.Memory.Slice(TokenStart, pos - TokenStart);
             return Kind = SyntaxKind.RegularExpressionLiteral;
         }
         int flagsStart = pos;
         while (IsIdentifierPart(CodePoint(out int width)))
             pos += width;
-        Value = text[TokenStart..pos];
+        Value = text.Memory.Slice(TokenStart, pos - TokenStart);
         if (reportErrors && (Flags & TokenFlags.Unterminated) == 0)
             ValidateRegularExpression(flagsStart);
         return Kind = SyntaxKind.RegularExpressionLiteral;
@@ -194,7 +194,7 @@ public sealed partial class Scanner
                 firstNonWhitespace = pos;
             pos += width;
         }
-        Value = text[FullStart..pos];
+        Value = text.Memory.Slice(FullStart, pos - FullStart);
         return Kind = firstNonWhitespace == -1 ? SyntaxKind.JsxTextAllWhiteSpaces : SyntaxKind.JsxText;
     }
 
@@ -254,7 +254,7 @@ public sealed partial class Scanner
             return Kind = SyntaxKind.NewLineTrivia;
         }
         if (ch is '@' or '*' or '{' or '}' or '[' or ']' or '(' or ')' or '<' or '>' or '=' or ',' or '.' or '`' or '#')
-            return Kind = FromText(text.AsSpan(TokenStart, width));
+            return Kind = FromText(input.AsSpan().Slice(TokenStart, width));
         pos = TokenStart;
         if (ScanIdentifier(false, true, out SyntaxKind identifierKind))
             return Kind = identifierKind;
@@ -279,7 +279,7 @@ public sealed partial class Scanner
         }
         if (pos == TokenStart)
             return ScanJSDocToken();
-        Value = text[TokenStart..pos];
+        Value = text.Memory.Slice(TokenStart, pos - TokenStart);
         return Kind = SyntaxKind.JSDocCommentTextToken;
     }
 

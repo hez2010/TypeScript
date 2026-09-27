@@ -113,7 +113,7 @@ public sealed partial class CompilerProgram
         private static Diagnostic MappingDiagnostic(ContentMapper mapper, string file, Exception error)
         {
             DiagnosticMessage message = Messages.The_content_mapper_0_did_not_provide_the_required_position_mappings;
-            string[] args = [mapper.Name];
+            TextSlice[] args = [mapper.Name];
             if (error is MappingException mapping)
             {
                 message = mapping.Kind switch
@@ -128,15 +128,15 @@ public sealed partial class CompilerProgram
                 args = mapping.Kind == MappingErrorKind.VerbatimMismatch ?
                     [
                         mapper.Name,
-                        mapping.VirtualPosition.ToString(),
-                        mapping.OriginalPosition.ToString()
+                        TextSlice.Format(mapping.VirtualPosition),
+                        TextSlice.Format(mapping.OriginalPosition)
                     ]
                     :
                         [
                             mapper.Name,
-                            (mapping.Kind is MappingErrorKind.OutOfBounds or MappingErrorKind.Feature
+                            TextSlice.Format((mapping.Kind is MappingErrorKind.OutOfBounds or MappingErrorKind.Feature
                                 ? mapping.OriginalPosition
-                                : mapping.VirtualPosition).ToString()
+                                : mapping.VirtualPosition))
                         ];
             }
             else

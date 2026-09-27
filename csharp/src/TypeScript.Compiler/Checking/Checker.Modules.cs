@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -82,11 +83,11 @@ internal sealed partial class Checker
     private bool ModuleAugmentation(SyntaxNode node) => node is ModuleDeclarationNode && AmbientModule(node)
         && SemanticSyntax.Source(node)?.ModuleAugmentations.Contains(SemanticSyntax.Name(node)!) == true;
 
-    private static bool RelativeModulePath(string name) => name is "." or ".."
-        || name.StartsWith("./", StringComparison.Ordinal) || name.StartsWith("../", StringComparison.Ordinal)
-        || name.StartsWith(".\\", StringComparison.Ordinal) || name.StartsWith("..\\", StringComparison.Ordinal);
+    private static bool RelativeModulePath(TextSlice name) => name.Span is "." or ".."
+        || name.Span.StartsWith("./", StringComparison.Ordinal) || name.Span.StartsWith("../", StringComparison.Ordinal)
+        || name.Span.StartsWith(".\\", StringComparison.Ordinal) || name.Span.StartsWith("..\\", StringComparison.Ordinal);
 
-    private static bool RelativeModuleName(string name) => RelativeModulePath(name) || CompilerPath.EncodedRootLength(name) > 0;
+    private static bool RelativeModuleName(TextSlice name) => RelativeModulePath(name) || CompilerPath.EncodedRootLength(name) > 0;
 
     private async ValueTask CheckMisplacedModuleNameAsync(SyntaxNode node, CancellationToken cancellation)
     {
@@ -311,7 +312,7 @@ internal sealed partial class Checker
                 {
                     if (DefaultOnlyModule(module, node.ModuleSpecifier!)
                         && imports.Elements?.Any(
-                            e => (e as ImportSpecifierNode)?.PropertyName is not IdentifierNode { Text: "default" }) == true)
+                            e => (e as ImportSpecifierNode)?.PropertyName is not IdentifierNode { Text.Span: "default" }) == true)
                         ListError(
                             imports,
                             imports.Elements!,
@@ -329,7 +330,7 @@ internal sealed partial class Checker
                     cancellation) is { } resolved
                 && DefaultOnlyModule(resolved, node.ModuleSpecifier!)
                 && node.Attributes?.Attributes?.OfType<ImportAttributeNode>().Any(a => ImportAttributeName(a.Name!) == "type"
-                    && a.Value is StringLiteralNode { Text: "json" }) != true)
+                    && a.Value is StringLiteralNode { Text.Span: "json" }) != true)
                 Error(
                     node.ModuleSpecifier!,
                     DiagnosticCode.ImportingAJSONFileIntoAnECMAScriptModuleRequiresATypeColonJsonImportAttributeWhenModuleIsSetTo0,
@@ -413,9 +414,8 @@ internal sealed partial class Checker
                     n => n is ImportDeclarationNode or ImportEqualsDeclarationNode or VariableDeclarationNode);
                 var specifier = declaration is VariableDeclarationNode { Initializer: CallExpressionNode { Arguments: { Count: > 0 } arguments } }
                     ? arguments[0] : declaration is null ? null : AliasTargets.Specifier(declaration);
-                string text = name is IdentifierNode identifier ? identifier.Text : symbol.Name;
-                string importText = "import(\"" + (AliasTargets.Text(specifier) ?? "...") + "\")"
-                    + (node is ImportSpecifierNode ? "." + text : "");
+                TextSlice text = name is IdentifierNode identifier ? identifier.Text : symbol.Name;
+                TextSlice importText = TextSlice.ConcatMany("import(\"", (AliasTargets.Text(specifier) ?? "..."), "\")", (node is ImportSpecifierNode ? TextSlice.Concat(".", text) : ""));
                 Error(name, DiagnosticCode.X0IsATypeAndCannotBeImportedInJavaScriptFilesUse1InAJSDocTypeAnnotation, text, importText);
             }
             return;
@@ -451,7 +451,7 @@ internal sealed partial class Checker
                 {
                     if (verbatim)
                     {
-                        string name = AliasTargets.Text(
+                        TextSlice name = AliasTargets.Text(
                             (node as ImportSpecifierNode)?.PropertyName ?? SemanticSyntax.Name(node)) ?? symbol.Name;
                         DiagnosticCode code = node is ImportEqualsDeclarationNode { ModuleReference: not ExternalModuleReferenceNode }
                             ? DiagnosticCode.AnImportAliasCannotResolveToATypeOrTypeOnlyDeclarationWhenVerbatimModuleSyntaxIsEnabled : type
@@ -465,7 +465,7 @@ internal sealed partial class Checker
                 else if (node is ExportSpecifierNode export && (verbatim
                     || SemanticSyntax.Source(typeOnlyDeclaration) != SemanticSyntax.Source(node)))
                 {
-                    string name = AliasTargets.Text(export.PropertyName ?? export.Name) ?? symbol.Name;
+                    TextSlice name = AliasTargets.Text(export.PropertyName ?? export.Name) ?? symbol.Name;
                     TypeOnlyAliasError(
                         node,
                         type
@@ -511,15 +511,15 @@ internal sealed partial class Checker
             ".cjs",
             StringComparison.OrdinalIgnoreCase) ? DiagnosticCode.ECMAScriptImportsAndExportsCannotBeWrittenInACommonJSFileUnderVerbatimModuleSyntax : DiagnosticCode.ECMAScriptImportsAndExportsCannotBeWrittenInACommonJSFileUnderVerbatimModuleSyntaxAdjustTheTypeFieldInTheNearestPackageJsonToMakeThisFileAnECMAScriptModuleOrAdjustYourVerbatimModuleSyntaxModuleAndModuleResolutionSettingsInTypeScript;
 
-    private string IsolatedModuleOptionName => program.Symbols.Program.Configuration.Options.Boolean("verbatimModuleSyntax") == true
+    private TextSlice IsolatedModuleOptionName => program.Symbols.Program.Configuration.Options.Boolean("verbatimModuleSyntax") == true
         ? "verbatimModuleSyntax" : "isolatedModules";
 
     private void TypeOnlyAliasError(
         SyntaxNode node,
         DiagnosticCode code,
         SyntaxNode? typeOnlyDeclaration,
-        string name,
-        params string[] arguments)
+        TextSlice name,
+        params TextSlice[] arguments)
     {
         var diagnostic = CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), arguments);
         if (typeOnlyDeclaration is not null)

@@ -131,7 +131,7 @@ internal sealed partial class Checker
                 PushFunction(node);
                 continue;
             }
-            if (!PrimitiveInferenceExpression(node) && node is not IdentifierNode { Text: "undefined" }
+            if (!PrimitiveInferenceExpression(node) && node is not IdentifierNode { Text.Span: "undefined" }
                 && node.Kind != SyntaxKind.OmittedExpression && (node is not TemplateExpressionNode || ReusableConstArray(node)))
                 state.Tracker.ReportInferenceFallback(!returnType && ConstantEvaluator.EntityName(node)
                     && QuerySyntax.Declaration(node.Parent) ? node.Parent! : node);
@@ -161,7 +161,7 @@ internal sealed partial class Checker
     {
         while (node is ParenthesizedExpressionNode parentheses)
             node = parentheses.Expression!;
-        return !PrimitiveInferenceExpression(node) && node is not (IdentifierNode { Text: "undefined" }
+        return !PrimitiveInferenceExpression(node) && node is not (IdentifierNode { Text.Span: "undefined" }
             or ArrayLiteralExpressionNode or ObjectLiteralExpressionNode or FunctionExpressionNode or ArrowFunctionNode
             or AsExpressionNode or TypeAssertionNode or ClassExpressionNode or TemplateExpressionNode);
     }

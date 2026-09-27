@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Syntax;
@@ -20,7 +21,7 @@ internal sealed partial class Checker : ITypePropertyHost, ITypeViewHost, ICompo
     public ValueTask<StructuredType> ResolveAsync(StructuredType type, CancellationToken cancellation) =>
         Members.ResolveAsync(type, cancellation);
 
-    public ValueTask<Type> GlobalAsync(string name, CancellationToken cancellation) => program.Globals.Types.TryGetValue(name, out var type)
+    public ValueTask<Type> GlobalAsync(TextSlice name, CancellationToken cancellation) => program.Globals.Types.TryGetValue(name, out var type)
             ? ValueTask.FromResult(type) : program.Globals.GetAsync(name, 0, false, cancellation);
 
     public ValueTask<Type> WithThisAsync(Type type, Type argument, bool apparent, CancellationToken cancellation) =>
@@ -34,9 +35,9 @@ internal sealed partial class Checker : ITypePropertyHost, ITypeViewHost, ICompo
     public ValueTask<bool> UnknownLikeUnionAsync(Type type, CancellationToken cancellation) =>
         Views.UnknownLikeUnionAsync(type, cancellation);
 
-    public async ValueTask<IndexInfo?> ApplicableIndexAsync(Type type, string name, CancellationToken cancellation)
+    public async ValueTask<IndexInfo?> ApplicableIndexAsync(Type type, TextSlice name, CancellationToken cancellation)
             => await IndexSignatures.ApplicableAsync(await IndexesAsync(type, cancellation),
-                name.StartsWith(Symbol.InternalPrefix + "@", StringComparison.Ordinal)
+                name.Span.StartsWith(Symbol.InternalPrefix + "@", StringComparison.Ordinal)
                     ? context.ESSymbolType
                     : context.GetStringLiteralType(name),
                 cancellation);
@@ -44,7 +45,7 @@ internal sealed partial class Checker : ITypePropertyHost, ITypeViewHost, ICompo
     public ValueTask<Type?> TupleRestAsync(TypeReference type, CancellationToken cancellation)
             => Instantiation.Tuples.SliceElementAsync(type, ((TupleType)type.Target!).FixedLength, cancellation: cancellation);
 
-    public ValueTask<Symbol?> PropertyAsync(Type type, string name, CancellationToken cancellation)
+    public ValueTask<Symbol?> PropertyAsync(Type type, TextSlice name, CancellationToken cancellation)
             => Properties.PropertyAsync(type, name, cancellation: cancellation);
 
     public async ValueTask<IndexInfo?> ApplicableIndexAsync(Type type, Type key, CancellationToken cancellation)
@@ -72,7 +73,7 @@ internal sealed partial class Checker : ITypePropertyHost, ITypeViewHost, ICompo
             ElementAccessExpressionNode or PropertyAccessExpressionNode or BigIntLiteralNode => await Algebra.RegularTypeAsync(
                 await Expressions.CheckAsync(name, cancellation: cancellation),
                 cancellation),
-            null when !symbol.Name.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal) => context.GetStringLiteralType(symbol.Name),
+            null when !symbol.Name.Span.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal) => context.GetStringLiteralType(symbol.Name),
             _ => context.NeverType
         };
         return (type.Flags & TypeFlags.StringOrNumberLiteralOrUnique) != 0 ? type : context.NeverType;

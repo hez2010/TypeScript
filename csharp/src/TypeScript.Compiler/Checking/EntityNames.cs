@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -11,7 +12,7 @@ internal interface IEntityNameHost
 {
     DiagnosticMessage CannotFindName(IdentifierNode name);
 
-    ValueTask<IReadOnlyDictionary<string, Symbol>> ExportsAsync(Symbol symbol, CancellationToken cancellation);
+    ValueTask<IReadOnlyDictionary<TextSlice, Symbol>> ExportsAsync(Symbol symbol, CancellationToken cancellation);
 
     ValueTask<Symbol> CommonJsNamespaceAsync(Symbol symbol, CancellationToken cancellation);
 
@@ -69,7 +70,7 @@ internal sealed class EntityNames(CheckerSymbols symbols, AliasResolver aliases,
             if (parent == symbols.UnknownSymbol)
                 return parent;
             parent = await host.CommonJsNamespaceAsync(parent, cancellation).ConfigureAwait(false);
-            string text = ((IdentifierNode)right!).Text;
+            TextSlice text = ((IdentifierNode)right!).Text;
             result = symbols.Merger.GetMergedSymbol(
                 symbols.Lookup(await host.ExportsAsync(parent, cancellation).ConfigureAwait(false), text, meaning));
             if (result is null && (parent.Flags & S.Alias) != 0)

@@ -48,9 +48,9 @@ internal static class CheckerEmitSyntaxTests
         Check(await checker.SerializeReturnTypeForEmitAsync(functions["guard"], source, flags) == "x is 'é'");
         var branch = await checker.SerializeReturnTypeForEmitAsync(functions["branch"], source, flags);
         Check(
-            branch.Contains("\"é\"", StringComparison.Ordinal)
-                && branch.Contains("\"x\"", StringComparison.Ordinal)
-                && !branch.Contains('\''));
+            branch.Span.Contains("\"é\"", StringComparison.Ordinal)
+                && branch.Span.Contains("\"x\"", StringComparison.Ordinal)
+                && !branch.Span.Contains('\''));
         foreach (var accessor in source.DescendantsAndSelf().Where(n => n is GetAccessorDeclarationNode or SetAccessorDeclarationNode))
             Check(await checker.SerializeDeclarationTypeForEmitAsync(accessor, source, flags) == "'é'");
         using var stop = new CancellationTokenSource();
@@ -95,15 +95,15 @@ internal static class CheckerEmitSyntaxTests
         var annotations = source.DescendantsAndSelf().OfType<TypeAliasDeclarationNode>().ToArray();
         var snapshot = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
         var indexes = await checker.SerializeLateBoundIndexesForEmitAsync(classes[0], null);
-        Check(indexes.Count == 2 && indexes[0].Contains("static [x: string]", StringComparison.Ordinal)
-            && indexes[1].Contains("[x: string]: number", StringComparison.Ordinal));
+        Check(indexes.Count == 2 && indexes[0].Span.Contains("static [x: string]", StringComparison.Ordinal)
+            && indexes[1].Span.Contains("[x: string]: number", StringComparison.Ordinal));
         var named = await checker.SerializeLateBoundIndexesForEmitAsync(classes[0], source);
-        Check(named.Count == 2 && named.All(n => n.Contains("[key]", StringComparison.Ordinal)));
+        Check(named.Count == 2 && named.All(n => n.Span.Contains("[key]", StringComparison.Ordinal)));
         const NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation | NodeBuilderFlags.GenerateNamesForShadowedTypeParams;
         var generic = await checker.SerializeJsTypeForEmitAsync(annotations[0].Type!, classes[1], flags);
         Check(generic == "<T_1>(value: T_1) => T_1");
         Check(checker.TypeSyntaxScopeCount == 0);
-        Check((await checker.SerializeJsTypeForEmitAsync(annotations[1].Type!, null)).Contains("/project/dep", StringComparison.Ordinal));
+        Check((await checker.SerializeJsTypeForEmitAsync(annotations[1].Type!, null)).Span.Contains("/project/dep", StringComparison.Ordinal));
         using var stop = new CancellationTokenSource();
         stop.Cancel();
         try
@@ -139,7 +139,7 @@ internal static class CheckerEmitSyntaxTests
             n => SemanticSyntax.Source(n)?.FileName.StartsWith("/project/main.", StringComparison.Ordinal) == true).ToArray();
         var locations = new SyntaxNode?[] { null }.Concat(targets.Where(n => n is SourceFileNode
             || n is ClassDeclarationNode or FunctionDeclarationNode
-                && (n as INamedNode)?.Name is IdentifierNode { Text: "Scope" })).ToArray();
+                && (n as INamedNode)?.Name is IdentifierNode { Text: { Span: "Scope" } })).ToArray();
         NodeBuilderFlags[] flags =
             [
                 0,
@@ -157,22 +157,22 @@ internal static class CheckerEmitSyntaxTests
                         Start(0);
                         writer.WriteStartArray();
                         foreach (var text in await checker.SerializeLateBoundIndexesForEmitAsync(node, location, options))
-                            writer.WriteStringValue(text);
+                            writer.WriteStringValue(text.Span);
                         writer.WriteEndArray();
                         writer.WriteEndArray();
                     }
                     if (node is ITypedNode { Type: { } annotation } && node is not JSDocVariadicTypeNode)
                     {
                         Start(1);
-                        writer.WriteStringValue(await checker.SerializeJsTypeForEmitAsync(annotation, location, options));
+                        writer.WriteStringValue((await checker.SerializeJsTypeForEmitAsync(annotation, location, options)).Span);
                         writer.WriteEndArray();
                     }
                     if (node is TypeAliasDeclarationNode { Name.Text: var name } alias
-                        && name.StartsWith("Serialize", StringComparison.Ordinal))
+                        && name.Span.StartsWith("Serialize", StringComparison.Ordinal))
                     {
                         Start(2);
                         writer.WriteStringValue(
-                            await checker.SerializeTypeSyntaxAsync(await checker.GetTypeFromTypeNodeAsync(alias.Type!), location, options));
+                            (await checker.SerializeTypeSyntaxAsync(await checker.GetTypeFromTypeNodeAsync(alias.Type!), location, options)).Span);
                         writer.WriteEndArray();
                     }
                     void Start(int operation)
@@ -260,7 +260,7 @@ internal static class CheckerEmitSyntaxTests
             n => SemanticSyntax.Source(n)?.FileName.StartsWith("/project/main.", StringComparison.Ordinal) == true).ToArray();
         var locations = new SyntaxNode?[] { null }.Concat(targets.Where(n => n is SourceFileNode
             || n is ClassDeclarationNode or FunctionDeclarationNode
-                && (n as INamedNode)?.Name is IdentifierNode { Text: "Scope" })).ToArray();
+                && (n as INamedNode)?.Name is IdentifierNode { Text: { Span: "Scope" } })).ToArray();
         NodeBuilderFlags[] flags = [NodeBuilderFlags.NoTruncation,
             NodeBuilderFlags.NoTruncation | NodeBuilderFlags.GenerateNamesForShadowedTypeParams,
             NodeBuilderFlags.NoTruncation | NodeBuilderFlags.SuppressAnyReturnType,
@@ -276,7 +276,7 @@ internal static class CheckerEmitSyntaxTests
                     {
                         Start(0, node, location, flag);
                         writer.WriteStringValue(
-                            await checker.SerializeDeclarationTypeForEmitAsync(node, location, flag | NodeBuilderFlags.IgnoreErrors));
+                            (await checker.SerializeDeclarationTypeForEmitAsync(node, location, flag | NodeBuilderFlags.IgnoreErrors)).Span);
                         writer.WriteEndArray();
                     }
             if (node is IInitializedNode { Initializer: { } expression })
@@ -285,7 +285,7 @@ internal static class CheckerEmitSyntaxTests
                     {
                         Start(1, expression, location, flag);
                         writer.WriteStringValue(
-                            await checker.SerializeExpressionTypeForEmitAsync(expression, location, flag | NodeBuilderFlags.IgnoreErrors));
+                            (await checker.SerializeExpressionTypeForEmitAsync(expression, location, flag | NodeBuilderFlags.IgnoreErrors)).Span);
                         writer.WriteEndArray();
                     }
             if (Signatures.FunctionLike(node))
@@ -294,7 +294,7 @@ internal static class CheckerEmitSyntaxTests
                     {
                         Start(2, node, location, flag);
                         writer.WriteStringValue(
-                            await checker.SerializeReturnTypeForEmitAsync(node, location, flag | NodeBuilderFlags.IgnoreErrors));
+                            (await checker.SerializeReturnTypeForEmitAsync(node, location, flag | NodeBuilderFlags.IgnoreErrors)).Span);
                         writer.WriteEndArray();
                         Start(3, node, location, flag);
                         writer.WriteStartArray();
@@ -302,14 +302,14 @@ internal static class CheckerEmitSyntaxTests
                             node,
                             location,
                             flag | NodeBuilderFlags.IgnoreErrors))
-                            writer.WriteStringValue(parameter);
+                            writer.WriteStringValue(parameter.Span);
                         writer.WriteEndArray();
                         writer.WriteEndArray();
                     }
             if (node is VariableDeclarationNode or PropertyDeclarationNode)
             {
                 Start(4, node, null, 0);
-                writer.WriteStringValue(await checker.SerializeLiteralConstForEmitAsync(node));
+                writer.WriteStringValue((await checker.SerializeLiteralConstForEmitAsync(node))?.ToString());
                 writer.WriteEndArray();
             }
         }

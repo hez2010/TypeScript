@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -12,18 +13,18 @@ internal interface IValueUseHost
 
     bool ValidTypeOnlyUse(SyntaxNode node);
 
-    bool MissingPrefix(SyntaxNode node, string name);
+    bool MissingPrefix(SyntaxNode node, TextSlice name);
 
-    void ValueUseError(SyntaxNode? node, DiagnosticMessage message, params string[] arguments);
+    void ValueUseError(SyntaxNode? node, DiagnosticMessage message, params TextSlice[] arguments);
 
-    void ValueUseSuggestion(SyntaxNode node, DiagnosticMessage message, string name);
+    void ValueUseSuggestion(SyntaxNode node, DiagnosticMessage message, TextSlice name);
 
-    void DeclarationRelatedInfo(SyntaxNode? location, DiagnosticCode code, SyntaxNode declaration, bool typeOnly, string name);
+    void DeclarationRelatedInfo(SyntaxNode? location, DiagnosticCode code, SyntaxNode declaration, bool typeOnly, TextSlice name);
 }
 
 internal sealed class ValueUseChecks(CheckerSymbols symbols, AliasResolver aliases, DeclarationOrder order, IValueUseHost host)
 {
-    internal bool InvalidInitializer(SyntaxNode? location, string name, SyntaxNode declaration, Symbol? result)
+    internal bool InvalidInitializer(SyntaxNode? location, TextSlice name, SyntaxNode declaration, Symbol? result)
     {
         if (order.StandardClassFields)
             return false;
@@ -43,7 +44,7 @@ internal sealed class ValueUseChecks(CheckerSymbols symbols, AliasResolver alias
         SyntaxNode? associatedDeclaration, bool deferred, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
-        string name = symbol.Name;
+        TextSlice name = symbol.Name;
         bool inModule = last is SourceFileNode && symbols.Binding(last)?.IsModule == true;
         bool valueMeaning = (meaning & SymbolFlags.Value) == SymbolFlags.Value;
         if (location is not null && ((meaning & SymbolFlags.BlockScopedVariable) != 0
@@ -134,7 +135,7 @@ internal sealed class ValueUseChecks(CheckerSymbols symbols, AliasResolver alias
         }
     }
 
-    private static string NameText(SyntaxNode node)
+    private static TextSlice NameText(SyntaxNode node)
     {
         node = Name(node) ?? node;
         if (node.Pos == node.End)

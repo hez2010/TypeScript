@@ -372,10 +372,10 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
         }
         if ((result.Flags & TypeFlags.ESSymbolLike) != 0 && node is CallExpressionNode call)
         {
-            var target = call.Expression is PropertyAccessExpressionNode { Name: IdentifierNode { Text: "for" } } property
+            var target = call.Expression is PropertyAccessExpressionNode { Name: IdentifierNode { Text.Span: "for" } } property
                 ? property.Expression
                 : call.Expression;
-            if (target is IdentifierNode { Text: "Symbol" } identifier
+            if (target is IdentifierNode { Text.Span: "Symbol" } identifier
                 && program.Symbols.Lookup(program.Symbols.Globals, "Symbol", SymbolFlags.Value) is { } global
                 && program.Symbols.NameResolver(cancellation).Resolve(identifier, "Symbol", SymbolFlags.Value) == global)
             {
@@ -390,7 +390,7 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
 
     private bool CommonJsRequire(SyntaxNode node, CancellationToken cancellation)
     {
-        if (node is not CallExpressionNode { Expression: IdentifierNode { Text: "require" } name, Arguments.Count: 1 } call
+        if (node is not CallExpressionNode { Expression: IdentifierNode { Text.Span: "require" } name, Arguments.Count: 1 } call
             || call.Arguments[0] is not (StringLiteralNode or NoSubstitutionTemplateLiteralNode))
             return false;
         var symbol = program.Symbols.NameResolver(cancellation).Resolve(name, name.Text, SymbolFlags.Value);

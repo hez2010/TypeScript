@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Binding;
 using F = TypeScript.Compiler.Checking.TypeFlags;
@@ -19,7 +20,7 @@ internal interface ITypeAlgebraHost
 
     ValueTask<Type> GetTypeOfSymbolAsync(Symbol symbol, CancellationToken cancellation);
 
-    ValueTask<Type?> GetPropertyTypeAsync(Type type, string name, CancellationToken cancellation);
+    ValueTask<Type?> GetPropertyTypeAsync(Type type, TextSlice name, CancellationToken cancellation);
 
     ValueTask<bool> IsEmptyAnonymousObjectAsync(Type type, CancellationToken cancellation);
 
@@ -29,7 +30,7 @@ internal interface ITypeAlgebraHost
 
     ValueTask<bool> MatchesPatternAsync(Type literal, Type pattern, CancellationToken cancellation);
 
-    void ReportComplexity(string operation, long size);
+    void ReportComplexity(TextSlice operation, long size);
 }
 
 internal sealed partial class TypeAlgebra(TypeContext context, TypeOrder order, ITypeAlgebraHost host)

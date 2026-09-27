@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -14,7 +15,7 @@ internal interface ILateMemberHost
 
     ValueTask<bool> LateIndexTypeAsync(Type type, CancellationToken cancellation);
 
-    ValueTask<IReadOnlyDictionary<string, Symbol>> ModuleExportsAsync(Symbol symbol, CancellationToken cancellation);
+    ValueTask<IReadOnlyDictionary<TextSlice, Symbol>> ModuleExportsAsync(Symbol symbol, CancellationToken cancellation);
 
     void ExpressionError(SyntaxNode node, DiagnosticCode code);
 }
@@ -22,7 +23,7 @@ internal interface ILateMemberHost
 internal sealed class LateMembers(CheckerSymbols symbols, CheckerLinks links, ILateMemberHost host)
 {
     private readonly Dictionary<Symbol, Symbol> late = [];
-    private readonly Dictionary<(Symbol, bool), IReadOnlyDictionary<string, Symbol>> tables = [];
+    private readonly Dictionary<(Symbol, bool), IReadOnlyDictionary<TextSlice, Symbol>> tables = [];
     private List<Action>? rollback;
     internal int CachedTableCount => tables.Count;
 
@@ -49,7 +50,7 @@ internal sealed class LateMembers(CheckerSymbols symbols, CheckerLinks links, IL
         });
     }
 
-    internal ValueTask<IReadOnlyDictionary<string, Symbol>> TableAsync(
+    internal ValueTask<IReadOnlyDictionary<TextSlice, Symbol>> TableAsync(
         Symbol symbol,
         bool exports = false,
         CancellationToken cancellation = default)
@@ -66,7 +67,7 @@ internal sealed class LateMembers(CheckerSymbols symbols, CheckerLinks links, IL
                 ? await host.ModuleExportsAsync(symbol, cancellation).ConfigureAwait(false) : exports ? symbol.Exports : symbol.Members;
             tables[(symbol, exports)] = early;
             rollback!.Add(() => tables.Remove((symbol, exports)));
-            var members = new Dictionary<string, Symbol>(StringComparer.Ordinal);
+            var members = new Dictionary<TextSlice, Symbol>();
             foreach (var declaration in symbol.Declarations)
                 foreach (var member in Members(declaration))
                     if (SemanticSyntax.IsStatic(member) == exports)
@@ -79,7 +80,7 @@ internal sealed class LateMembers(CheckerSymbols symbols, CheckerLinks links, IL
                 return early;
             if (early.Count == 0)
                 return tables[(symbol, exports)] = members.AsReadOnly();
-            var combined = new Dictionary<string, Symbol>(StringComparer.Ordinal);
+            var combined = new Dictionary<TextSlice, Symbol>();
             await symbols.Merger.MergeTableAsync(combined, early, cancellation: cancellation).ConfigureAwait(false);
             await symbols.Merger.MergeTableAsync(combined, members, cancellation: cancellation).ConfigureAwait(false);
             return tables[(symbol, exports)] = combined.AsReadOnly();
@@ -93,7 +94,7 @@ internal sealed class LateMembers(CheckerSymbols symbols, CheckerLinks links, IL
                         await NameTypeAsync(name, cancellation).ConfigureAwait(false),
                         cancellation).ConfigureAwait(false))
                 {
-                    string indexName = Symbol.InternalPrefix + "index";
+                    TextSlice indexName = Symbol.InternalPrefix + "index";
                     if (!members.TryGetValue(indexName, out var index))
                     {
                         if (early.TryGetValue(indexName, out var original))
@@ -121,8 +122,8 @@ internal sealed class LateMembers(CheckerSymbols symbols, CheckerLinks links, IL
         Name(declaration) is { } name && LateSyntax(name)
             && ((await NameTypeAsync(name, cancellation).ConfigureAwait(false)).Flags & TypeFlags.StringOrNumberLiteralOrUnique) != 0;
 
-    private async ValueTask<Symbol> BindMemberAsync(Symbol parent, IReadOnlyDictionary<string, Symbol> early,
-        Dictionary<string, Symbol> members, SyntaxNode declaration, CancellationToken cancellation)
+    private async ValueTask<Symbol> BindMemberAsync(Symbol parent, IReadOnlyDictionary<TextSlice, Symbol> early,
+        Dictionary<TextSlice, Symbol> members, SyntaxNode declaration, CancellationToken cancellation)
     {
         var data = links.SymbolNodes.Get(declaration);
         if (data.ResolvedSymbol is { } cached)
@@ -134,7 +135,7 @@ internal sealed class LateMembers(CheckerSymbols symbols, CheckerLinks links, IL
         var type = await NameTypeAsync(nameNode, cancellation).ConfigureAwait(false);
         if ((type.Flags & TypeFlags.StringOrNumberLiteralOrUnique) == 0)
             return original;
-        string name = MappedMembers.PropertyName(type);
+        TextSlice name = MappedMembers.PropertyName(type);
         if (!members.TryGetValue(name, out var symbol))
             members[name] = symbol = new Symbol(SymbolFlags.Transient, name) { CheckFlags = CheckFlags.Late };
         if ((symbol.Flags & SymbolMerger.ExcludedFlags(original.Flags)) != 0)

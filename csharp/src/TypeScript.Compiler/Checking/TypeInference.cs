@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -39,7 +40,7 @@ internal interface ITypeInferenceHost
 
     ValueTask<IReadOnlyList<Symbol>> ObjectPropertiesAsync(Type type, CancellationToken cancellation);
 
-    ValueTask<Symbol?> PropertyAsync(Type type, string name, CancellationToken cancellation);
+    ValueTask<Symbol?> PropertyAsync(Type type, TextSlice name, CancellationToken cancellation);
 
     ValueTask<Type> SymbolTypeAsync(Symbol symbol, CancellationToken cancellation);
 

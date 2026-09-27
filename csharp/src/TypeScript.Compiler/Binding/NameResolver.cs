@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Configuration;
 using TypeScript.Compiler.Diagnostics;
@@ -8,23 +9,23 @@ using S = TypeScript.Compiler.Binding.SymbolFlags;
 
 namespace TypeScript.Compiler.Binding;
 
-public delegate Symbol? ResolveName(SyntaxNode? location, string name, SymbolFlags meaning,
+public delegate Symbol? ResolveName(SyntaxNode? location, TextSlice name, SymbolFlags meaning,
     DiagnosticMessage? nameNotFoundMessage, bool isUse, bool excludeGlobals);
 
 /// <summary>Lexical lookup over bound syntax. Checker hooks supply merged symbols, alias meanings and semantic diagnostics.</summary>
 public sealed class NameResolver(CompilerOptions options, Func<SyntaxNode, BoundSourceFile?> getBinding)
 {
-    public IReadOnlyDictionary<string, Symbol>? Globals { get; init; }
+    public IReadOnlyDictionary<TextSlice, Symbol>? Globals { get; init; }
     public Symbol? ArgumentsSymbol { get; set; }
     public Symbol? RequireSymbol { get; init; }
     public Func<SyntaxNode, Symbol?>? GetSymbolOfDeclaration { get; init; }
-    public Func<IReadOnlyDictionary<string, Symbol>?, string, S, Symbol?>? Lookup { get; init; }
-    public Action<SyntaxNode?, DiagnosticMessage, string[]>? Error { get; init; }
+    public Func<IReadOnlyDictionary<TextSlice, Symbol>?, TextSlice, S, Symbol?>? Lookup { get; init; }
+    public Action<SyntaxNode?, DiagnosticMessage, TextSlice[]>? Error { get; init; }
     public Action<Symbol, S>? SymbolReferenced { get; init; }
     public Func<SyntaxNode, bool?>? GetRequiresScopeChangeCache { get; init; }
     public Action<SyntaxNode, bool>? SetRequiresScopeChangeCache { get; init; }
-    public Func<SyntaxNode?, string, SyntaxNode, Symbol?, bool>? OnPropertyWithInvalidInitializer { get; init; }
-    public Action<SyntaxNode?, string, S, DiagnosticMessage>? OnFailedToResolveSymbol { get; init; }
+    public Func<SyntaxNode?, TextSlice, SyntaxNode, Symbol?, bool>? OnPropertyWithInvalidInitializer { get; init; }
+    public Action<SyntaxNode?, TextSlice, S, DiagnosticMessage>? OnFailedToResolveSymbol { get; init; }
     public Action<SyntaxNode?, Symbol, S, SyntaxNode?, SyntaxNode?, bool>? OnSuccessfullyResolvedSymbol { get; init; }
     public CancellationToken Cancellation { get; init; }
 
@@ -35,15 +36,15 @@ public sealed class NameResolver(CompilerOptions options, Func<SyntaxNode, Bound
     private Symbol BoundTypeSymbol(SyntaxNode node) => SymbolOf(node)
             ?? throw new InvalidOperationException("Class or interface declaration has no bound symbol");
 
-    private static string Key(string name) =>
-        name.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal) ? Symbol.InternalPrefix + name : name;
+    private static TextSlice Key(TextSlice name) =>
+        name.Span.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal) ? TextSlice.Concat(Symbol.InternalPrefix, name) : name;
 
-    private static string UserName(Symbol symbol) => symbol.Name.StartsWith(
+    private static TextSlice UserName(Symbol symbol) => symbol.Name.Span.StartsWith(
         Symbol.InternalPrefix + Symbol.InternalPrefix,
         StringComparison.Ordinal)
             ? symbol.Name[1..] : symbol.Name;
 
-    private Symbol? Find(IReadOnlyDictionary<string, Symbol>? table, string name, S meaning)
+    private Symbol? Find(IReadOnlyDictionary<TextSlice, Symbol>? table, TextSlice name, S meaning)
     {
         if (Lookup is { } lookup)
             return lookup(table, name, meaning);
@@ -51,7 +52,7 @@ public sealed class NameResolver(CompilerOptions options, Func<SyntaxNode, Bound
         return symbol is not null && (symbol.Flags & meaning) != 0 ? symbol : null;
     }
 
-    public Symbol? Resolve(SyntaxNode? location, string name, S meaning, DiagnosticMessage? nameNotFoundMessage = null,
+    public Symbol? Resolve(SyntaxNode? location, TextSlice name, S meaning, DiagnosticMessage? nameNotFoundMessage = null,
         bool isUse = false, bool excludeGlobals = false)
     {
         Cancellation.ThrowIfCancellationRequested();
@@ -156,7 +157,7 @@ public sealed class NameResolver(CompilerOptions options, Func<SyntaxNode, Bound
                                 [
                                         name,
                                         options.Boolean("verbatimModuleSyntax") == true ? "verbatimModuleSyntax" : "isolatedModules",
-                                        UserName(enumeration) + "." + name
+                                        TextSlice.Concat(UserName(enumeration), ".", name)
                                     ]);
                         goto Resolved;
                     }

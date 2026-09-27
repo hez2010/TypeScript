@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -24,7 +25,7 @@ internal sealed partial class Checker
         if ((node.Flags & NodeFlags.JSDoc) == 0 || node is not TypeReferenceNode { TypeName: IdentifierNode name } reference)
             return null;
         var arguments = reference.TypeArguments;
-        Type? result = name.Text switch
+        Type? result = name.Text.Span switch
         {
             "String" => context.StringType,
             "Number" => context.NumberType,
@@ -98,7 +99,7 @@ internal sealed partial class Checker
         var parameters = (node as IFunctionSignature)?.Parameters ?? (node as IndexSignatureDeclarationNode)?.Parameters;
         if (parameters is null)
             return;
-        var names = new HashSet<string>();
+        var names = new HashSet<TextSlice>();
         var excluded = new HashSet<int>();
         for (int i = 0; i < parameters.Count; i++)
             if (SemanticSyntax.Name(parameters[i]) is IdentifierNode name)
@@ -167,7 +168,7 @@ internal sealed partial class Checker
         while (pending.TryPop(out var current))
         {
             cancellation.ThrowIfCancellationRequested();
-            if (current is IdentifierNode { Text: "arguments" } identifier
+            if (current is IdentifierNode { Text.Span: "arguments" } identifier
                 && program.ReferenceSymbols.Resolve(identifier, cancellation) == program.Symbols.ArgumentsSymbol)
                 return argumentsReferences[node] = true;
             switch (current)

@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 namespace TypeScript.Compiler.Diagnostics;
 
 internal static class DiagnosticCollection
@@ -115,7 +116,7 @@ internal static class DiagnosticCollection
         return 0;
     }
 
-    private static int CompareArguments(string[] left, string[] right)
+    private static int CompareArguments(TextSlice[] left, TextSlice[] right)
     {
         for (int i = 0; i < Math.Min(left.Length, right.Length); i++)
         {
@@ -127,10 +128,8 @@ internal static class DiagnosticCollection
     }
 
     // UTF-8 and WTF-8 sort by code point, including unpaired surrogate values.
-    private static int CompareText(string left, string right)
+    private static int CompareText(ReadOnlySpan<char> left, ReadOnlySpan<char> right)
     {
-        if (ReferenceEquals(left, right))
-            return 0;
         int i = 0, j = 0;
         while (i < left.Length && j < right.Length)
         {
@@ -140,7 +139,7 @@ internal static class DiagnosticCollection
         }
         return (left.Length - i).CompareTo(right.Length - j);
 
-        static int Point(string text, ref int position)
+        static int Point(ReadOnlySpan<char> text, ref int position)
         {
             char first = text[position++];
             return char.IsHighSurrogate(first) && position < text.Length && char.IsLowSurrogate(text[position])

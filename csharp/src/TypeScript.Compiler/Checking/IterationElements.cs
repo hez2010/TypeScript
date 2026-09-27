@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
@@ -8,7 +9,7 @@ internal interface IIterationElementHost
 {
     bool NoUncheckedIndexedAccess { get; }
 
-    ValueTask<Type> IterationGlobalAsync(string name, int arity, bool report, CancellationToken cancellation);
+    ValueTask<Type> IterationGlobalAsync(TextSlice name, int arity, bool report, CancellationToken cancellation);
 
     ValueTask<bool> ArrayLikeAsync(Type type, CancellationToken cancellation);
 
@@ -107,7 +108,7 @@ internal sealed class IterationElements(TypeContext context, TypeAlgebra algebra
             if (node is not null)
             {
                 var types = await protocols.IterableAsync(input, use, cancellation: cancellation).ConfigureAwait(false);
-                bool named = input.Symbol?.Name is "Float32Array" or "Float64Array" or "Int16Array" or "Int32Array" or "Int8Array"
+                bool named = input.Symbol is { } namedSymbol && namedSymbol.Name.Span is "Float32Array" or "Float64Array" or "Int16Array" or "Int32Array" or "Int8Array"
                     or "NodeList" or "Uint16Array" or "Uint32Array" or "Uint8Array" or "Uint8ClampedArray";
                 DiagnosticCode code = types.Yield is not null || named
                     ? DiagnosticCode.Type0CanOnlyBeIteratedThroughWhenUsingTheDownlevelIterationFlagOrWithATargetOfEs2015OrHigher

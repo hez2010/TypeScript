@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Binding;
 
@@ -57,8 +58,8 @@ internal sealed class ObjectSpreads(TypeContext context, CheckerLinks links, Typ
             }
             return await algebra.IntersectionAsync([left, right], cancellation: cancellation).ConfigureAwait(false);
         }
-        var members = new Dictionary<string, Symbol>(StringComparer.Ordinal);
-        var skipped = new HashSet<string>(StringComparer.Ordinal);
+        var members = new Dictionary<TextSlice, Symbol>();
+        var skipped = new HashSet<TextSlice>();
         var indexInfos = left == context.EmptyObjectType ? await host.IndexesAsync(right, cancellation).ConfigureAwait(false)
             : await UnionIndexesAsync(left, right, cancellation).ConfigureAwait(false);
         foreach (var property in await properties.GetAsync(right, cancellation).ConfigureAwait(false))
@@ -125,7 +126,7 @@ internal sealed class ObjectSpreads(TypeContext context, CheckerLinks links, Typ
         var first = nonEmpty[0];
         if (nonEmpty.Any(t => t != first))
             return type;
-        var members = new Dictionary<string, Symbol>(StringComparer.Ordinal);
+        var members = new Dictionary<TextSlice, Symbol>();
         foreach (var property in await properties.GetAsync(first, cancellation).ConfigureAwait(false))
         {
             if (NonPublic(property) || !BindingTypes.Spreadable(property))
@@ -147,7 +148,7 @@ internal sealed class ObjectSpreads(TypeContext context, CheckerLinks links, Typ
             ObjectFlags.ObjectLiteral | ObjectFlags.ContainsObjectOrArrayLiteral, cancellation).ConfigureAwait(false);
     }
 
-    internal async ValueTask<ObjectType> ObjectAsync(Symbol? symbol, Dictionary<string, Symbol> members,
+    internal async ValueTask<ObjectType> ObjectAsync(Symbol? symbol, Dictionary<TextSlice, Symbol> members,
         IReadOnlyList<IndexInfo> indexes, ObjectFlags flags = 0, CancellationToken cancellation = default)
     {
         var result = context.NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved | flags, symbol);

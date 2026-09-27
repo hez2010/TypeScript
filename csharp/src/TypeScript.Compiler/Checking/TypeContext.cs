@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Numerics;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -8,7 +9,7 @@ namespace TypeScript.Compiler.Checking;
 public sealed class TypeContext
 {
     private uint typeCount, signatureCount;
-    private readonly Dictionary<string, LiteralType> strings = new(StringComparer.Ordinal);
+    private readonly Dictionary<TextSlice, LiteralType> strings = new();
     private readonly Dictionary<double, LiteralType> numbers = [];
     private readonly Dictionary<BigInteger, LiteralType> bigints = [];
     private readonly Dictionary<(Symbol Enum, object Value), LiteralType> enumLiterals = [];
@@ -156,7 +157,7 @@ public sealed class TypeContext
     private IntrinsicType Widening(IntrinsicType type) => StrictNullChecks ? type
         : new(this, type.Flags, type.IntrinsicName, ObjectFlags.ContainsWideningType);
 
-    public LiteralType GetStringLiteralType(string value)
+    public LiteralType GetStringLiteralType(TextSlice value)
     {
         if (!strings.TryGetValue(value, out var type))
             strings.Add(value, type = new(this, TypeFlags.StringLiteral, value));
@@ -179,7 +180,7 @@ public sealed class TypeContext
         return type;
     }
 
-    public LiteralType GetEnumLiteralType(string value, Symbol enumSymbol, Symbol member)
+    public LiteralType GetEnumLiteralType(TextSlice value, Symbol enumSymbol, Symbol member)
         => EnumLiteral(value, TypeFlags.StringLiteral, enumSymbol, member);
 
     public LiteralType GetEnumLiteralType(double value, Symbol enumSymbol, Symbol member)
@@ -211,7 +212,7 @@ public sealed class TypeContext
     internal UniqueSymbolType GetUniqueSymbolType(Symbol symbol)
     {
         if (!uniqueSymbols.TryGetValue(symbol, out var type))
-            uniqueSymbols.Add(symbol, type = new(this, symbol, Symbol.InternalPrefix + "@" + symbol.Name + "@" + symbol.Id));
+            uniqueSymbols.Add(symbol, type = new(this, symbol, TextSlice.ConcatMany(Symbol.InternalPrefix + "@", symbol.Name, "@", TextSlice.Format(symbol.Id))));
         return type;
     }
 
@@ -328,7 +329,7 @@ public sealed class TypeContext
         return result;
     }
 
-    internal TemplateLiteralType NewTemplateLiteralType(ReadOnlySpan<string> texts, ReadOnlySpan<Type> types)
+    internal TemplateLiteralType NewTemplateLiteralType(ReadOnlySpan<TextSlice> texts, ReadOnlySpan<Type> types)
     {
         RequireOwned(types);
         if (types.Length == 0 || texts.Length != types.Length + 1)

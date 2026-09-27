@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 
@@ -97,7 +98,7 @@ internal sealed partial class Checker
             inner?.ReportInaccessibleThisError();
         }
 
-        public void ReportPrivateInBaseOfClassExpression(string propertyName)
+        public void ReportPrivateInBaseOfClassExpression(TextSlice propertyName)
         {
             state.DiagnosticCount++;
             inner?.ReportPrivateInBaseOfClassExpression(propertyName);
@@ -115,7 +116,7 @@ internal sealed partial class Checker
             inner?.ReportCyclicStructureError();
         }
 
-        public void ReportLikelyUnsafeImportRequiredError(string specifier, string symbolName)
+        public void ReportLikelyUnsafeImportRequiredError(TextSlice specifier, TextSlice symbolName)
         {
             state.DiagnosticCount++;
             inner?.ReportLikelyUnsafeImportRequiredError(specifier, symbolName);
@@ -133,7 +134,7 @@ internal sealed partial class Checker
             inner?.ReportNonlocalAugmentation(containingFile, parentSymbol, augmentingSymbol);
         }
 
-        public void ReportNonSerializableProperty(string propertyName)
+        public void ReportNonSerializableProperty(TextSlice propertyName)
         {
             state.DiagnosticCount++;
             inner?.ReportNonSerializableProperty(propertyName);

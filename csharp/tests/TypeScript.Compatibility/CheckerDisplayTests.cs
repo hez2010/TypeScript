@@ -127,7 +127,7 @@ internal static class CheckerDisplayTests
         writer.WriteStartArray("formats");
         foreach (var declaration in source.DescendantsAndSelf().OfType<VariableDeclarationNode>())
             if (declaration.Name is IdentifierNode name
-                && name.Text.StartsWith("show", StringComparison.Ordinal)
+                && name.Text.Span.StartsWith("show", StringComparison.Ordinal)
                 && declaration.Type is not null)
             {
                 var type = await checker.GetTypeFromTypeNodeAsync(declaration.Type);
@@ -147,14 +147,14 @@ internal static class CheckerDisplayTests
                                     Write("predicate:" + key, await checker.GetPredicateDisplayAsync(predicate, enclosings[scope], format));
                             }
                         }
-                        void Write(string kind, string text)
+                        void Write(string kind, TextSlice text)
                         {
                             writer.WriteStartArray();
-                            writer.WriteStringValue(name.Text);
+                            writer.WriteStringValue(name.Text.Span);
                             writer.WriteStringValue(kind);
                             writer.WriteNumberValue(scope);
                             writer.WriteNumberValue((uint)format);
-                            writer.WriteStringValue(text);
+                            writer.WriteStringValue(text.Span);
                             writer.WriteEndArray();
                         }
                     }
@@ -211,15 +211,15 @@ internal static class CheckerDisplayTests
                 new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
             var checker = await program.CreateCheckerAsync();
             var declarations = program.GetFile("/project/main.ts")!.Syntax.DescendantsAndSelf().OfType<VariableDeclarationNode>()
-                .Where(d => d.Name is IdentifierNode name && name.Text.StartsWith("show", StringComparison.Ordinal)).ToArray();
+                .Where(d => d.Name is IdentifierNode name && name.Text.Span.StartsWith("show", StringComparison.Ordinal)).ToArray();
             var rows = expected.RootElement[mode].GetProperty("typeDisplays");
             if (rows.GetArrayLength() != declarations.Length)
                 throw new InvalidOperationException("Type display fixture coverage changed");
             for (int i = 0; i < declarations.Length; i++)
             {
                 var type = await checker.GetTypeFromTypeNodeAsync(declarations[i].Type!);
-                string text = await checker.TypeDisplay.GetAsync(type);
-                if (((IdentifierNode)declarations[i].Name!).Text != rows[i][0].GetString() || text != rows[i][1].GetString())
+                TextSlice text = await checker.TypeDisplay.GetAsync(type);
+                if (((IdentifierNode)declarations[i].Name!).Text != rows[i][0].GetString()! || text != rows[i][1].GetString()!)
                     throw new InvalidOperationException($"Type display {mode}/{i}: {text}");
                 checks++;
             }
@@ -244,7 +244,7 @@ internal static class CheckerDisplayTests
             { ["/project/main.ts"] = [] }), "/project", new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
             var checker = await program.CreateCheckerAsync();
             int limit = noTruncation ? 2_000_000 : 320;
-            string text = await checker.TypeDisplay.GetAsync(checker.Context.GetStringLiteralType(new string('a', limit + 10)));
+            TextSlice text = await checker.TypeDisplay.GetAsync(checker.Context.GetStringLiteralType(new string('a', limit + 10)));
             if (text != "\"" + new string('a', limit - 4) + "...")
                 throw new InvalidOperationException("Diagnostic display byte limit");
             checks++;

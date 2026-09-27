@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -21,7 +22,7 @@ internal sealed class ReferenceSymbols(CheckerSymbols symbols, CheckerLinks link
     internal DiagnosticMessage MissingName(IdentifierNode node)
     {
         bool wildcard = symbols.Program.Configuration.Options.Strings("types")?.Contains("*", StringComparer.Ordinal) == true;
-        return node.Text switch
+        return node.Text.Span switch
         {
             "document" or "console" => Messages.Cannot_find_name_0_Do_you_need_to_change_your_target_library_Try_changing_the_lib_compiler_option_to_include_dom,
             "$" => wildcard

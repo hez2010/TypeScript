@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -16,7 +17,7 @@ internal interface ITypeNodeHost
 
     ValueTask<Type> TypeQueryAsync(TypeQueryNode node, CancellationToken cancellation);
 
-    ValueTask<IReadOnlyDictionary<string, Symbol>> MembersAsync(Symbol symbol, CancellationToken cancellation);
+    ValueTask<IReadOnlyDictionary<TextSlice, Symbol>> MembersAsync(Symbol symbol, CancellationToken cancellation);
 
     ValueTask<Type> IndexAsync(Type type, CancellationToken cancellation);
 
@@ -187,7 +188,7 @@ internal sealed class TypeNodes(TypeContext context, CheckerLinks links, Checker
                 break;
             case TemplateLiteralTypeNode template:
                 var spans = template.TemplateSpans!;
-                var texts = new string[spans.Count + 1];
+                var texts = new TextSlice[spans.Count + 1];
                 var types = new Type[spans.Count];
                 texts[0] = ((TemplateHeadNode)template.Head!).Text;
                 for (int i = 0; i < spans.Count; i++)

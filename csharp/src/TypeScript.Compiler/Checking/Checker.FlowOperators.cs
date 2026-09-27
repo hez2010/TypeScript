@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Syntax;
@@ -62,7 +63,7 @@ internal sealed partial class Checker
         var nameType = await ExpressionAsync(expression.Left!, cancellation);
         if ((nameType.Flags & TypeFlags.StringOrNumberLiteralOrUnique) == 0)
             return type;
-        string name = MappedMembers.PropertyName(nameType);
+        TextSlice name = MappedMembers.PropertyName(nameType);
         foreach (var part in type is UnionType parts ? parts.Types : [type])
             if (await PropertyPresenceAsync(part, name, true, cancellation))
                 return await Algebra.FilterAsync(type, part => PropertyPresenceAsync(part, name, assumeTrue, cancellation), cancellation);
@@ -87,7 +88,7 @@ internal sealed partial class Checker
         return await Algebra.UnionAsync(instances, cancellation: cancellation);
     }
 
-    private async ValueTask<bool> PropertyPresenceAsync(Type type, string name, bool assumeTrue, CancellationToken cancellation)
+    private async ValueTask<bool> PropertyPresenceAsync(Type type, TextSlice name, bool assumeTrue, CancellationToken cancellation)
     {
         if (await Properties.PropertyAsync(type, name, cancellation: cancellation) is { } property)
             return (property.Flags & SymbolFlags.Optional) != 0 || (property.CheckFlags & CheckFlags.Partial) != 0 || assumeTrue;

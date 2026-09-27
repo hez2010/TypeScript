@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Syntax;
@@ -40,7 +41,7 @@ internal sealed partial class Checker
         return emitJsxFactory;
     }
 
-    private string CacheEmitJsxFactory(string name, SourceFileNode? file = null, bool fragment = false)
+    private TextSlice CacheEmitJsxFactory(TextSlice name, SourceFileNode? file = null, bool fragment = false)
     {
         if (file is null ? emitJsxFactory is not null : (fragment ? emitLocalJsxFragments : emitLocalJsxFactories).ContainsKey(file))
             return name;
@@ -48,7 +49,7 @@ internal sealed partial class Checker
             ? ParseEmitJsxFactory(name) : null;
         if (parsed is null && file is null)
         {
-            int dot = name.LastIndexOf('.');
+            int dot = name.Span.LastIndexOf('.');
             var factory = new NodeFactory();
             parsed = factory.NewQualifiedName(factory.NewIdentifier(name[..dot]), factory.NewIdentifier(name[(dot + 1)..]));
         }
@@ -63,7 +64,7 @@ internal sealed partial class Checker
         return name;
     }
 
-    private static SyntaxNode? ParseEmitJsxFactory(string name)
+    private static SyntaxNode? ParseEmitJsxFactory(TextSlice name)
     {
         var node = Parser.ParseIsolatedEntityName(name);
         if (node is null)

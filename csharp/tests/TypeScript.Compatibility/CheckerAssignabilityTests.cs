@@ -79,7 +79,7 @@ internal static class CheckerAssignabilityTests
         host.BeforeNode = node =>
         {
             if (node.Kind == SyntaxKind.StringKeyword
-                && node.Parent is PropertySignatureDeclarationNode { Name: IdentifierNode { Text: "b" } })
+                && node.Parent is PropertySignatureDeclarationNode { Name: IdentifierNode { Text: { Span: "b" } } })
                 throw new OperationCanceledException();
         };
         try

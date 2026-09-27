@@ -88,7 +88,7 @@ internal static class CheckerAlgebraTests
         }
         host.BeforeGenericIndex = null;
         var recovered = algebra.TemplateAsync(["x", "y"], [parameter]).GetAwaiter().GetResult();
-        Check(recovered is TemplateLiteralType { Texts: ["x", "y"] });
+        Check(recovered is TemplateLiteralType { Texts: [{ Span: "x" }, { Span: "y" }] });
         Check(recovered == algebra.TemplateAsync(["x", "y"], [parameter]).GetAwaiter().GetResult());
         Check(
             context.StringType == algebra.UnionAsync([context.StringType, context.GetStringLiteralType("text")]).GetAwaiter().GetResult());

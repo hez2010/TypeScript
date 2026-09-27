@@ -1,4 +1,5 @@
 using System.Text;
+using TypeScript.Compiler.Text;
 
 namespace TypeScript.Compiler.Syntax;
 
@@ -6,23 +7,24 @@ internal static partial class RegularExpressionUnicodeProperties
 {
     // Weighted edit distance used by TypeScript's diagnostic spelling suggestions.
     // Rune enumeration avoids splitting supplementary characters in group names.
-    internal static string? Suggest(string name, IEnumerable<string> candidates)
+    internal static TextSlice? Suggest(ReadOnlySpan<char> name, IEnumerable<TextSlice> candidates)
     {
-        Rune[] input = name.EnumerateRunes().ToArray();
+        ReadOnlySpan<Rune> input = Runes(name);
         int maximumLengthDifference = Math.Max(2, (int)(input.Length * 0.34));
         double bestDistance = Math.Floor(input.Length * 0.4) + 0.9;
-        string? best = null;
-        foreach (string candidate in candidates)
+        TextSlice? best = null;
+        double[] previous = [], current = [];
+        foreach (TextSlice candidate in candidates)
         {
-            if (candidate == name || Math.Abs(Encoding.UTF8.GetByteCount(candidate) - input.Length) > maximumLengthDifference)
+            if (candidate.Span.SequenceEqual(name) || Math.Abs(Encoding.UTF8.GetByteCount(candidate.Span) - input.Length) > maximumLengthDifference)
                 continue;
-            if (candidate.Length < 3 && !StringComparer.OrdinalIgnoreCase.Equals(candidate, name))
+            if (candidate.Length < 3 && !candidate.Span.Equals(name, StringComparison.OrdinalIgnoreCase))
                 continue;
-            Rune[] value = candidate.EnumerateRunes().ToArray();
-            double distance = Distance(input, value, bestDistance);
+            ReadOnlySpan<Rune> value = Runes(candidate.Span);
+            double distance = Distance(input, value, bestDistance, ref previous, ref current);
             if (distance < 0)
                 continue;
-            if (distance < bestDistance || best is null || StringComparer.Ordinal.Compare(candidate, best) < 0)
+            if (distance < bestDistance || best is null || candidate.CompareTo(best.Value) < 0)
             {
                 bestDistance = distance;
                 best = candidate;
@@ -31,9 +33,22 @@ internal static partial class RegularExpressionUnicodeProperties
         return best;
     }
 
-    private static double Distance(Rune[] input, Rune[] value, double maximum)
+    private static ReadOnlySpan<Rune> Runes(ReadOnlySpan<char> text)
     {
-        double[] previous = new double[value.Length + 1], current = new double[value.Length + 1];
+        Rune[] buffer = new Rune[text.Length];
+        int count = 0;
+        foreach (Rune rune in text.EnumerateRunes())
+            buffer[count++] = rune;
+        return buffer.AsSpan(0, count);
+    }
+
+    private static double Distance(ReadOnlySpan<Rune> input, ReadOnlySpan<Rune> value, double maximum,
+        ref double[] previous, ref double[] current)
+    {
+        if (previous.Length < value.Length + 1)
+            Array.Resize(ref previous, value.Length + 1);
+        if (current.Length < value.Length + 1)
+            Array.Resize(ref current, value.Length + 1);
         for (int j = 0; j <= value.Length; j++)
             previous[j] = j;
         for (int i = 1; i <= input.Length; i++)

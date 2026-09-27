@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -26,7 +27,7 @@ internal interface IBindingTypeHost
 
     ValueTask<IReadOnlyList<IndexInfo>> IndexesAsync(Type type, CancellationToken cancellation);
 
-    ValueTask<IndexInfo?> ApplicableIndexAsync(Type type, string name, CancellationToken cancellation);
+    ValueTask<IndexInfo?> ApplicableIndexAsync(Type type, TextSlice name, CancellationToken cancellation);
 
     ValueTask<Type> OmitAsync(Type source, Type keys, CancellationToken cancellation);
 
@@ -110,7 +111,7 @@ internal sealed class BindingTypes(TypeContext context, CheckerLinks links, Chec
         }
         if (tupleLike)
         {
-            if (await properties.PropertyAsync(type, index.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            if (await properties.PropertyAsync(type, TextSlice.Format(index),
                 cancellation: cancellation).ConfigureAwait(false) is { } property)
                 return await values.GetAsync(property, cancellation).ConfigureAwait(false);
             if ((type is UnionType union ? union.Types : [type]).All(t => t is TypeReference { Target: TupleType }))
@@ -300,7 +301,7 @@ internal sealed class BindingTypes(TypeContext context, CheckerLinks links, Chec
                 omit = await algebra.UnionAsync([omit, .. unspreadable], cancellation: cancellation).ConfigureAwait(false);
             return (omit.Flags & TypeFlags.Never) != 0 ? source : await host.OmitAsync(source, omit, cancellation).ConfigureAwait(false);
         }
-        var members = new Dictionary<string, Symbol>(StringComparer.Ordinal);
+        var members = new Dictionary<TextSlice, Symbol>();
         foreach (var property in spreadable)
             members[property.Name] = await SpreadSymbolAsync(property, false, cancellation).ConfigureAwait(false);
         var result = context.NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved | ObjectFlags.ObjectRestType, symbol);

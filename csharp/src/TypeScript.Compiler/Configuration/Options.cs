@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Collections.Frozen;
 using System.Globalization;
 using System.Text.Json;
@@ -229,17 +230,17 @@ internal static class OptionValues
         return null;
     }
 
-    internal static void EnumError(OptionDefinition definition, Action<DiagnosticMessage, string[]> error)
+    internal static void EnumError(OptionDefinition definition, Action<DiagnosticMessage, TextSlice[]> error)
             =>
                 error(
                     Messages.Argument_for_0_option_must_be_Colon_1,
-                    ["--" + definition.Name, string.Join(", ", definition.Values.Select(v => "'" + v + "'"))]);
+                    [TextSlice.Concat("--", definition.Name), TextSlice.Join(", ", definition.Values.Select(v => "'" + v + "'"))]);
 
     internal static JsonElement? Convert(
         OptionDefinition definition,
         JsonElement value,
         string directory,
-        Action<DiagnosticMessage, string[]> error,
+        Action<DiagnosticMessage, TextSlice[]> error,
         bool element = false)
     {
         if (value.ValueKind == JsonValueKind.Null)
@@ -329,7 +330,7 @@ public sealed class CommandLineParser(IFileSystem fileSystem, string currentDire
         var activeResponses = new HashSet<string>(fileSystem.CaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
         var stack = new Stack<(IReadOnlyList<string> Args, int Index, string? Response)>();
         stack.Push((arguments, 0, null));
-        void Error(DiagnosticMessage message, params string[] args) => errors.Add(new(message, 0, 0, args));
+        void Error(DiagnosticMessage message, params TextSlice[] args) => errors.Add(new(message, 0, 0, args));
         while (stack.TryPop(out var frame))
         {
             int index = frame.Index;
@@ -447,7 +448,7 @@ public sealed class CommandLineParser(IFileSystem fileSystem, string currentDire
                         Error(
                             Messages.Option_0_requires_value_to_be_greater_than_1,
                             definition.Name,
-                            definition.Minimum.ToString(CultureInfo.InvariantCulture));
+                            TextSlice.Format(definition.Minimum));
                     else
                         options.SetRaw(definition.Name, number.ToString(CultureInfo.InvariantCulture));
                 }

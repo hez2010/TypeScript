@@ -10,6 +10,8 @@ The [Server GC and Satori comparison](../docs/csharp-phase-4-gc-performance.md) 
 
 The latest [performance pass with tiered compilation](../docs/csharp-phase-4-tiered-performance.md) profiles construction and checking, removes repeated allocations, and compares the optimized builds with Go and the saved baseline. Benchmark runs now enable tiered compilation and retain runtime-default dynamic PGO.
 
+The subsequent [source-backed text refactor](../docs/csharp-phase-4-span-text.md) carries memory slices through scanning, the AST, binding, type caches, and diagnostics, using span operations without per-token strings.
+
 Use an installed .NET 11 SDK; the SDK version is not pinned. The current validation uses `11.0.100-rtm.26473.115`, with C# 15, `OptimizationPreference=Speed`, NativeAOT/trimming analysis, warning errors, and NuGet lockfiles. `NuGet.Config` adds the public `dotnet11` feed for matching nightly packs. The final target is .NET 11 GA; upgrades require refreshing and revalidating the evidence. Node 24 and Go 1.27.1 are required for the reference tooling. The existing Go backend and JS clients remain untouched.
 
 Tools accept `--dotnet` where supported and otherwise use `DOTNET_ROOT` or `dotnet` from `PATH`. `InvariantGlobalization` removes the native globalization dependency. `--locale` validation uses registered language subtags generated from the pinned Go dependency by `generate-locales.mjs`; localized diagnostic resources remain available. JavaScript lone surrogates and malformed source bytes require the small WTF-8 compatibility boundary; ordinary text stays in .NET strings and BCL UTF-8 APIs handle valid encodings.

@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -166,8 +167,8 @@ internal static class CheckerCorpusTests
             writer.WriteNumber("category", (int)diagnostic.Message.Category);
             writer.WriteString("key", diagnostic.Message.Key);
             writer.WriteStartArray("arguments");
-            foreach (string argument in diagnostic.Arguments)
-                writer.WriteStringValue(argument);
+            foreach (TextSlice argument in diagnostic.Arguments)
+                writer.WriteStringValue(argument.Span);
             writer.WriteEndArray();
             writer.WritePropertyName("chain");
             WriteDiagnostics(writer, diagnostic.MessageChain);

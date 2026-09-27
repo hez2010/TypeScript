@@ -98,17 +98,17 @@ internal static class BindingTests
         }
         string Name(Symbol symbol)
         {
-            if (symbol.Name.StartsWith(TypeScript.Compiler.Binding.Symbol.InternalPrefix + "#", StringComparison.Ordinal)
+            if (symbol.Name.Span.StartsWith(TypeScript.Compiler.Binding.Symbol.InternalPrefix + "#", StringComparison.Ordinal)
                 && symbol.Parent is { Declarations.Count: > 0 } parent)
-                return "__#" + Node(parent.Declarations[0]) + symbol.Name[symbol.Name.IndexOf('@')..];
-            if (symbol.Name.StartsWith(TypeScript.Compiler.Binding.Symbol.InternalPrefix + "\"", StringComparison.Ordinal)
-                && symbol.Name.Contains(
+                return "__#" + Node(parent.Declarations[0]) + symbol.Name[symbol.Name.Span.IndexOf('@')..].ToString();
+            if (symbol.Name.Span.StartsWith(TypeScript.Compiler.Binding.Symbol.InternalPrefix + "\"", StringComparison.Ordinal)
+                && symbol.Name.Span.Contains(
                     "pattern@",
                     StringComparison.Ordinal) && symbol.Declarations.FirstOrDefault() is ModuleDeclarationNode { Attributes: { } attributes })
-                return TypeScript.Compiler.Binding.Symbol.EscapeName(symbol.Name[..(symbol.Name.LastIndexOf('@') + 1)]) + Node(attributes);
-            return TypeScript.Compiler.Binding.Symbol.EscapeName(symbol.Name);
+                return TypeScript.Compiler.Binding.Symbol.EscapeName(symbol.Name[..(symbol.Name.Span.LastIndexOf('@') + 1)]).ToString() + Node(attributes);
+            return TypeScript.Compiler.Binding.Symbol.EscapeName(symbol.Name).ToString();
         }
-        object[] Table(IReadOnlyDictionary<string, Symbol>? table) => table?.Values.OrderBy(Name, StringComparer.Ordinal)
+        object[] Table(IReadOnlyDictionary<TextSlice, Symbol>? table) => table?.Values.OrderBy(Name, StringComparer.Ordinal)
             .Select(s => (object)new object[] { Name(s), Symbol(s) }).ToArray() ?? [];
         var nr = new List<object>();
         foreach (var node in nodes)
@@ -172,6 +172,9 @@ internal static class BindingTests
                 break;
             case uint n:
                 writer.WriteNumberValue(n);
+                break;
+            case TextSlice slice:
+                writer.WriteStringValue(slice.Span);
                 break;
             case string text:
                 writer.WriteStringValue(text);

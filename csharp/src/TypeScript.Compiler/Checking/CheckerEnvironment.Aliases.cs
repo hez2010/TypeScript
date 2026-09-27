@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -22,7 +23,7 @@ internal sealed partial class CheckerEnvironment
 
     public DiagnosticMessage CannotFindName(IdentifierNode name) => ReferenceSymbols.MissingName(name);
 
-    public ValueTask<IReadOnlyDictionary<string, Symbol>> ExportsAsync(Symbol symbol, CancellationToken cancellation)
+    public ValueTask<IReadOnlyDictionary<TextSlice, Symbol>> ExportsAsync(Symbol symbol, CancellationToken cancellation)
     {
         if (SemanticChecker is { } checker)
             return checker.ExportsAsync(symbol, cancellation);
@@ -60,7 +61,7 @@ internal sealed partial class CheckerEnvironment
                 attributes is null ? null : await checker.ImportAttributesExpressionAsync(attributes, cancellation), cancellation);
         if (attributes is not null)
             throw new InvalidOperationException("Checker requires import attribute evaluation");
-        string? name = AliasTargets.Text(specifier) ?? (specifier as NoSubstitutionTemplateLiteralNode)?.Text;
+        TextSlice? name = AliasTargets.Text(specifier) ?? (specifier as NoSubstitutionTemplateLiteralNode)?.Text;
         if (name is null)
             return null;
         var file = Symbols.Binding(location)!.SourceFile;
@@ -68,7 +69,7 @@ internal sealed partial class CheckerEnvironment
         var result = reference?.Resolution.IsResolved == true
             ? Symbols.Program.GetFile(reference.Resolution.FileName)?.Binding.Symbol
             : null;
-        result ??= Symbols.PatternAugmentations.GetValueOrDefault(name) ?? Symbols.Globals.GetValueOrDefault('"' + name + '"');
+        result ??= Symbols.PatternAugmentations.GetValueOrDefault(name.Value) ?? Symbols.Globals.GetValueOrDefault(TextSlice.Concat("\"", name.Value, "\""));
         if (result is null && reference?.Resolution.IsResolved == true)
             AliasDiagnostic(DiagnosticCode.File0IsNotAModule, specifier!);
         else if (result is null)
@@ -166,7 +167,7 @@ internal sealed partial class CheckerEnvironment
                 dontResolveAlias,
                 cancellation).ConfigureAwait(false);
         var result = Symbols.Merger.GetMergedSymbol(
-            await ModuleExports.ExportAsync(target, name, specifier, dontResolveAlias, cancellation).ConfigureAwait(false));
+            await ModuleExports.ExportAsync(target, (name).Value, specifier, dontResolveAlias, cancellation).ConfigureAwait(false));
         if (result is null)
             await MissingModuleMemberAsync(module, target, specifier, nameNode!, cancellation).ConfigureAwait(false);
         return result;
@@ -181,7 +182,7 @@ internal sealed partial class CheckerEnvironment
     {
         if (Symbols.Program.Configuration.Options.Boolean("noCheck") == true)
             return;
-        string name = AliasTargets.Text(nameNode) ?? SyntaxNameText.Get(nameNode);
+        TextSlice name = AliasTargets.Text(nameNode) ?? SyntaxNameText.Get(nameNode);
         var suggestion = nameNode is IdentifierNode ? await new SymbolSuggestions(
             Aliases,
             new(Symbols.Program.SourceFiles.Select(f => f.Syntax)))
@@ -190,15 +191,15 @@ internal sealed partial class CheckerEnvironment
                 (await ModuleExports.ResolveAsync(target, cancellation).ConfigureAwait(false)).Values,
                 S.ModuleMember,
                 cancellation).ConfigureAwait(false) : null;
-        string moduleName = SemanticChecker is { } checker
+        TextSlice moduleName = SemanticChecker is { } checker
             ? await checker.FullyQualifiedNameAsync(module, specifier, cancellation) : module.Name;
-        string declarationName = CheckerDiagnostic.DeclarationName(nameNode);
+        TextSlice declarationName = CheckerDiagnostic.DeclarationName(nameNode);
         DiagnosticCode code = suggestion is not null
             ? DiagnosticCode.X0HasNoExportedMemberNamed1DidYouMean2
             : module.Exports.ContainsKey("default")
                 ? DiagnosticCode.Module0HasNoExportedMember1DidYouMeanToUseImport1From0Instead
                 : DiagnosticCode.Module0HasNoExportedMember1;
-        string[] arguments = suggestion is null ? [moduleName, declarationName] : [moduleName, declarationName, suggestion.Name];
+        TextSlice[] arguments = suggestion is null ? [moduleName, declarationName] : [moduleName, declarationName, suggestion.Name];
         var related = new List<Diagnostic>();
         if (suggestion?.ValueDeclaration is { } suggestedDeclaration)
             related.Add(CheckerDiagnostic.Create(suggestedDeclaration, Messages.X_0_is_declared_here, suggestion.Name));
@@ -271,13 +272,13 @@ internal sealed partial class CheckerEnvironment
 
     public bool UsesRequireModuleExports => Symbols.Program.Configuration.Options.String("module") is "node20" or "nodenext";
 
-    public ValueTask<Symbol?> ExportOfModuleAsync(Symbol module, string name, SyntaxNode declaration, CancellationToken cancellation)
+    public ValueTask<Symbol?> ExportOfModuleAsync(Symbol module, TextSlice name, SyntaxNode declaration, CancellationToken cancellation)
         => ModuleExports.ExportAsync(module, name, declaration, true, cancellation);
 
     public ValueTask<Symbol?> ExportStarModuleAsync(ExportDeclarationNode declaration, CancellationToken cancellation)
         => ExternalModuleAsync(declaration, declaration.ModuleSpecifier, declaration.Attributes, cancellation);
 
-    public void AmbiguousExport(ExportDeclarationNode declaration, string earlierSpecifierText, string name)
+    public void AmbiguousExport(ExportDeclarationNode declaration, TextSlice earlierSpecifierText, TextSlice name)
         => Error(
             declaration,
             Messages.Module_0_has_already_exported_a_member_named_1_Consider_explicitly_re_exporting_to_resolve_the_ambiguity,

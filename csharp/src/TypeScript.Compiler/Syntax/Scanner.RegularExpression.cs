@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Globalization;
 using System.Text;
 using TypeScript.Compiler.Diagnostics;
@@ -27,7 +28,7 @@ public sealed partial class Scanner
                 seen |= 1 << flag;
                 int year = text[i] switch { 's' => 2018, 'd' => 2022, 'v' => 2024, _ => 0 };
                 if (TargetYear < year)
-                    Error(Messages.This_regular_expression_flag_is_only_available_when_targeting_0_or_later, i, width, "es" + year);
+                    Error(Messages.This_regular_expression_flag_is_only_available_when_targeting_0_or_later, i, width, TextSlice.Concat("es", TextSlice.Format(year)));
             }
             i += width;
         }
@@ -43,9 +44,9 @@ public sealed partial class Scanner
         private int at = start;
         private int captures;
         private bool hasNamedCaptures;
-        private readonly HashSet<string> names = new(StringComparer.Ordinal);
-        private readonly Dictionary<string, int> activeNames = new(StringComparer.Ordinal);
-        private readonly List<(string Name, int Start, int End)> namedReferences = [];
+        private readonly HashSet<TextSlice> names = new();
+        private readonly Dictionary<TextSlice, int> activeNames = new();
+        private readonly List<(TextSlice Name, int Start, int End)> namedReferences = [];
         private readonly List<(int Number, int Start, int End)> references = [];
         private readonly Stack<Group> groups = new();
 
@@ -53,8 +54,8 @@ public sealed partial class Scanner
         {
             public bool Quantifiable = quantifiable;
             public bool Atom;
-            public HashSet<string>? Alternative;
-            public HashSet<string>? Disjunction;
+            public HashSet<TextSlice>? Alternative;
+            public HashSet<TextSlice>? Disjunction;
         }
 
         private int Ch(int offset = 0) => at + offset < end ? scanner.text[at + offset] : -1;
@@ -71,7 +72,7 @@ public sealed partial class Scanner
             return ch;
         }
 
-        private void Error(DiagnosticMessage message, int location, int length = 0, params string[] args)
+        private void Error(DiagnosticMessage message, int location, int length = 0, params TextSlice[] args)
         {
             int finish = DiagnosticPosition(location + length);
             location = DiagnosticPosition(location);
@@ -85,14 +86,14 @@ public sealed partial class Scanner
                 ? position - 1 : position;
 
         private void Unexpected(int ch, int location) =>
-            Error(Messages.Unexpected_0_Did_you_mean_to_escape_it_with_backslash, location, 1, ((char)ch).ToString());
+            Error(Messages.Unexpected_0_Did_you_mean_to_escape_it_with_backslash, location, 1, TextSlice.Format(((char)ch)));
 
         private void Expected(char ch)
         {
             if (Ch() == ch)
                 at++;
             else
-                Error(Messages.X_0_expected, at, 0, ch.ToString());
+                Error(Messages.X_0_expected, at, 0, TextSlice.Format(ch));
         }
 
         public void Validate()
@@ -263,7 +264,7 @@ public sealed partial class Scanner
                             Messages.This_backreference_refers_to_a_group_that_does_not_exist_There_are_only_0_capturing_groups_in_this_regular_expression,
                             reference.Start,
                             reference.End - reference.Start,
-                            captures.ToString(CultureInfo.InvariantCulture));
+                            TextSlice.Format(captures));
                 }
         }
 
@@ -271,7 +272,7 @@ public sealed partial class Scanner
         {
             if (group.Alternative is null)
                 return;
-            foreach (string name in group.Alternative)
+            foreach (TextSlice name in group.Alternative)
             {
                 if (--activeNames[name] == 0)
                     activeNames.Remove(name);
@@ -285,7 +286,7 @@ public sealed partial class Scanner
             Group child = groups.Pop();
             Group parent = groups.Peek();
             if (child.Disjunction is not null)
-                foreach (string name in child.Disjunction)
+                foreach (TextSlice name in child.Disjunction)
                     if (child.Alternative?.Contains(name) != true)
                         activeNames[name] = activeNames.GetValueOrDefault(name) + 1;
             // Transfer the live alternative instead of removing and reinserting
@@ -295,7 +296,7 @@ public sealed partial class Scanner
             parent.Atom = child.Quantifiable;
         }
 
-        private static HashSet<string>? MergeNames(HashSet<string>? left, HashSet<string>? right)
+        private static HashSet<TextSlice>? MergeNames(HashSet<TextSlice>? left, HashSet<TextSlice>? right)
         {
             if (left is null)
                 return right;
@@ -307,21 +308,23 @@ public sealed partial class Scanner
             return left;
         }
 
-        private void AddName(Group group, string name)
+        private void AddName(Group group, TextSlice name)
         {
-            if ((group.Alternative ??= new(StringComparer.Ordinal)).Add(name))
+            if ((group.Alternative ??= new()).Add(name))
                 activeNames[name] = activeNames.GetValueOrDefault(name) + 1;
         }
 
         private void GroupName(bool reference)
         {
             int nameStart = at;
-            var name = new StringBuilder();
+            StringBuilder? name = null;
+            int part = nameStart;
             bool first = true;
             while (at < end)
             {
                 int saved = at, ch = Point(out int width);
-                if (ch == '\\')
+                bool escaped = ch == '\\';
+                if (escaped)
                 {
                     if (Ch(1) != 'u')
                         break;
@@ -340,7 +343,12 @@ public sealed partial class Scanner
                     at = saved;
                     break;
                 }
-                name.Append(char.ConvertFromUtf32(ch));
+                if (escaped)
+                {
+                    (name ??= new()).Append(scanner.input.AsSpan().Slice(part, saved - part));
+                    AppendCodePoint(name, ch);
+                    part = at;
+                }
                 first = false;
             }
             if (first)
@@ -348,7 +356,8 @@ public sealed partial class Scanner
                 Error(Messages.Expected_a_capturing_group_name, at);
                 return;
             }
-            string value = name.ToString();
+            TextSlice value = name is null ? scanner.text[nameStart..at]
+                : TextSlice.FromBuilder(name.Append(scanner.input.AsSpan().Slice(part, at - part)));
             if (reference)
                 namedReferences.Add((value, nameStart, at));
             else if (activeNames.ContainsKey(value))
@@ -409,7 +418,7 @@ public sealed partial class Scanner
             int digitStart = at;
             while (IsDigit(Ch()))
                 at++;
-            return scanner.text.AsSpan(digitStart, at - digitStart);
+            return scanner.input.AsSpan().Slice(digitStart, at - digitStart);
         }
 
         private void Quantifier(Group group)
@@ -555,7 +564,7 @@ public sealed partial class Scanner
                 Error(!atom && ch != '0'
                     ? Messages.Octal_escape_sequences_and_backreferences_are_not_allowed_in_a_character_class_If_this_was_intended_as_an_escape_sequence_use_the_syntax_0_instead
                     : Messages.Octal_escape_sequences_are_not_allowed_Use_the_syntax_0,
-                    escapeStart, at - escapeStart, "\\x" + value.ToString("x2", CultureInfo.InvariantCulture));
+                    escapeStart, at - escapeStart, TextSlice.Concat("\\x", value.ToString("x2", CultureInfo.InvariantCulture)));
                 return value;
             }
             if (ch is '8' or '9')
@@ -692,12 +701,12 @@ public sealed partial class Scanner
             }
         }
 
-        private string Word()
+        private ReadOnlySpan<char> Word()
         {
             int wordStart = at;
             while (Ch() is >= 'a' and <= 'z' or >= 'A' and <= 'Z' or >= '0' and <= '9' or '_')
                 at++;
-            return scanner.text[wordStart..at];
+            return scanner.input.AsSpan().Slice(wordStart, at - wordStart);
         }
 
         private bool CharacterClassEscape(out bool strings)
@@ -719,7 +728,7 @@ public sealed partial class Scanner
                         Messages.X_0_must_be_followed_by_a_Unicode_property_value_expression_enclosed_in_braces,
                         escapeStart,
                         2,
-                        ((char)ch).ToString());
+                        TextSlice.Format(((char)ch)));
                 else
                 {
                     at--;
@@ -729,10 +738,10 @@ public sealed partial class Scanner
             }
             at++;
             int propertyStart = at;
-            string property = Word();
+            ReadOnlySpan<char> property = Word();
             if (Ch() == '=')
             {
-                string? canonical = RegularExpressionUnicodeProperties.NonBinary.GetValueOrDefault(property);
+                RegularExpressionUnicodeProperties.NonBinary.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(property, out string? canonical);
                 if (property.Length == 0)
                     Error(Messages.Expected_a_Unicode_property_name, at);
                 else if (canonical is null)
@@ -741,7 +750,7 @@ public sealed partial class Scanner
                     Suggest(property, RegularExpressionUnicodeProperties.NonBinary.Keys, propertyStart, at - propertyStart);
                 }
                 int valueStart = ++at;
-                string value = Word();
+                ReadOnlySpan<char> value = Word();
                 if (value.Length == 0)
                     Error(Messages.Expected_a_Unicode_property_value, at);
                 else if (canonical is not null)
@@ -749,7 +758,7 @@ public sealed partial class Scanner
                     var values = canonical == "General_Category"
                         ? RegularExpressionUnicodeProperties.GeneralCategory
                         : RegularExpressionUnicodeProperties.Script;
-                    if (!values.Contains(value))
+                    if (!values.GetAlternateLookup<ReadOnlySpan<char>>().Contains(value))
                     {
                         Error(Messages.Unknown_Unicode_property_value, valueStart, at - valueStart);
                         Suggest(value, values, valueStart, at - valueStart);
@@ -758,7 +767,7 @@ public sealed partial class Scanner
             }
             else if (property.Length == 0)
                 Error(Messages.Expected_a_Unicode_property_name_or_value, at);
-            else if (RegularExpressionUnicodeProperties.Strings.Contains(property))
+            else if (RegularExpressionUnicodeProperties.Strings.GetAlternateLookup<ReadOnlySpan<char>>().Contains(property))
             {
                 if (!sets)
                     Error(
@@ -773,8 +782,8 @@ public sealed partial class Scanner
                 else
                     strings = true;
             }
-            else if (!RegularExpressionUnicodeProperties.GeneralCategory.Contains(property)
-                && !RegularExpressionUnicodeProperties.Binary.Contains(property))
+            else if (!RegularExpressionUnicodeProperties.GeneralCategory.GetAlternateLookup<ReadOnlySpan<char>>().Contains(property)
+                && !RegularExpressionUnicodeProperties.Binary.GetAlternateLookup<ReadOnlySpan<char>>().Contains(property))
             {
                 Error(Messages.Unknown_Unicode_property_name_or_value, propertyStart, at - propertyStart);
                 Suggest(
@@ -794,10 +803,12 @@ public sealed partial class Scanner
             return true;
         }
 
-        private void Suggest(string name, IEnumerable<string> candidates, int location, int length)
+        private void Suggest(ReadOnlySpan<char> name, IEnumerable<string> candidates, int location, int length) =>
+            Suggest(name, candidates.Select(static value => (TextSlice)value), location, length);
+
+        private void Suggest(ReadOnlySpan<char> name, IEnumerable<TextSlice> candidates, int location, int length)
         {
-            string? suggestion = RegularExpressionUnicodeProperties.Suggest(name, candidates);
-            if (suggestion is not null)
+            if (RegularExpressionUnicodeProperties.Suggest(name, candidates) is { } suggestion)
                 Error(Messages.Did_you_mean_0, location, length, suggestion);
         }
     }

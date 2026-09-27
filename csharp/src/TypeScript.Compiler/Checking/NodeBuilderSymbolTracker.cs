@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 
@@ -9,19 +10,19 @@ internal interface INodeBuilderSymbolTracker
 
     void ReportInaccessibleThisError();
 
-    void ReportPrivateInBaseOfClassExpression(string propertyName);
+    void ReportPrivateInBaseOfClassExpression(TextSlice propertyName);
 
     void ReportInaccessibleUniqueSymbolError();
 
     void ReportCyclicStructureError();
 
-    void ReportLikelyUnsafeImportRequiredError(string specifier, string symbolName);
+    void ReportLikelyUnsafeImportRequiredError(TextSlice specifier, TextSlice symbolName);
 
     void ReportTruncationError();
 
     void ReportNonlocalAugmentation(SourceFileNode containingFile, Symbol parentSymbol, Symbol augmentingSymbol);
 
-    void ReportNonSerializableProperty(string propertyName);
+    void ReportNonSerializableProperty(TextSlice propertyName);
 
     void ReportInferenceFallback(SyntaxNode node);
 

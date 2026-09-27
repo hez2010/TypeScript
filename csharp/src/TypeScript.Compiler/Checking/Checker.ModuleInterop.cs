@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -49,7 +50,7 @@ internal sealed partial class Checker
 
     private async ValueTask<Symbol?> ResolveModuleExportAsync(
         Symbol module,
-        string name,
+        TextSlice name,
         bool dontResolveAlias,
         CancellationToken cancellation)
     {
@@ -83,7 +84,7 @@ internal sealed partial class Checker
             if (target == ReferenceResolutionMode.Unspecified && file.IsDeclarationFile
                 && program.Symbols.Program.ProjectReferences.Find(file.FileName) is { } redirect && mode == ReferenceResolutionMode.Import)
             {
-                string? declaredMode = redirect.Project.Options.String("module");
+                ReadOnlySpan<char> declaredMode = redirect.Project.Options.String("module").AsSpan();
                 if (declaredMode is "es6" or "es2015" or "es2020" or "es2022" or "esnext")
                     return false;
             }
@@ -281,7 +282,7 @@ internal sealed partial class Checker
             anonymous.DeclarationList.AddRange(original.Declarations);
         }
         var result = context.NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved, anonymous);
-        result.Members = new Dictionary<string, Symbol> { ["default"] = property }.AsReadOnly();
+        result.Members = new Dictionary<TextSlice, Symbol> { ["default"] = property }.AsReadOnly();
         result.Properties = [property];
         return result;
     }
@@ -296,7 +297,7 @@ internal sealed partial class Checker
     {
         if (nameNode is not (IdentifierNode or StringLiteralNode) || nameNode is IdentifierNode { Text.Length: 0 })
             return null;
-        string name = AliasTargets.Text(nameNode) ?? SyntaxNameText.Get(nameNode);
+        TextSlice name = AliasTargets.Text(nameNode) ?? SyntaxNameText.Get(nameNode);
         if (module.ValueDeclaration is ModuleDeclarationNode { Body: null })
             return module;
         Symbol? value = null;

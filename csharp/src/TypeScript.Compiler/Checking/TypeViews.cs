@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Binding;
 
@@ -5,7 +6,7 @@ namespace TypeScript.Compiler.Checking;
 
 internal interface ITypeViewHost
 {
-    ValueTask<Type> GlobalAsync(string name, CancellationToken cancellation);
+    ValueTask<Type> GlobalAsync(TextSlice name, CancellationToken cancellation);
 
     ValueTask<Type> WithThisAsync(Type type, Type argument, bool apparent, CancellationToken cancellation);
 
@@ -17,7 +18,7 @@ internal interface ITypeViewHost
 
     ValueTask<StructuredType> ResolveAsync(StructuredType type, CancellationToken cancellation);
 
-    ValueTask<IReadOnlyDictionary<string, Symbol>> MembersAsync(Symbol symbol, CancellationToken cancellation);
+    ValueTask<IReadOnlyDictionary<TextSlice, Symbol>> MembersAsync(Symbol symbol, CancellationToken cancellation);
 }
 
 // Apparent types expose primitive wrappers and constraints; reduction separately
@@ -57,11 +58,11 @@ internal sealed class TypeViews(TypeContext context, TypeAlgebra algebra, TypeCo
             apparentIntersections[original] = apparent;
             return apparent;
         }
-        string? name = (type.Flags & TypeFlags.StringLike) != 0 ? "String" : (type.Flags & TypeFlags.NumberLike) != 0 ? "Number"
+        TextSlice? name = TextSlice.FromNullable((type.Flags & TypeFlags.StringLike) != 0 ? "String" : (type.Flags & TypeFlags.NumberLike) != 0 ? "Number"
             : (type.Flags & TypeFlags.BigIntLike) != 0 ? "BigInt" : (type.Flags & TypeFlags.BooleanLike) != 0 ? "Boolean"
-            : (type.Flags & TypeFlags.ESSymbolLike) != 0 ? "Symbol" : null;
+            : (type.Flags & TypeFlags.ESSymbolLike) != 0 ? "Symbol" : null);
         if (name is not null)
-            return await host.GlobalAsync(name, cancellation).ConfigureAwait(false);
+            return await host.GlobalAsync((name).Value, cancellation).ConfigureAwait(false);
         if ((type.Flags & TypeFlags.NonPrimitive) != 0 || (type.Flags & TypeFlags.Unknown) != 0 && !context.StrictNullChecks)
             return context.EmptyObjectType;
         return (type.Flags & TypeFlags.Index) != 0 ? context.StringNumberSymbolType : type;

@@ -39,14 +39,14 @@ public static class JsonStrings
         var scanner = new Scanner(new SourceText(json));
         if (scanner.Scan() != SyntaxKind.StringLiteral)
             throw new InvalidOperationException("Expected an encoded JSON string");
-        return scanner.Value;
+        return scanner.Value.ToString();
     }
 
-    private static int Unpaired(string value, int start)
+    private static int Unpaired(ReadOnlySpan<char> value, int start)
     {
         while (start < value.Length)
         {
-            int offset = value.AsSpan(start).IndexOfAnyInRange('\uD800', '\uDFFF');
+            int offset = value[start..].IndexOfAnyInRange('\uD800', '\uDFFF');
             if (offset < 0)
                 return -1;
             start += offset;
@@ -57,7 +57,7 @@ public static class JsonStrings
         return -1;
     }
 
-    private static byte[] Encode(string value)
+    private static byte[] Encode(ReadOnlySpan<char> value)
     {
         using var stream = new MemoryStream();
         stream.WriteByte((byte)'"');
@@ -66,17 +66,17 @@ public static class JsonStrings
         "\\u"u8.CopyTo(escape);
         for (int unpaired = Unpaired(value, start); unpaired >= 0; unpaired = Unpaired(value, start))
         {
-            stream.Write(JsonEncodedText.Encode(value.AsSpan(start, unpaired - start)).EncodedUtf8Bytes);
+            stream.Write(JsonEncodedText.Encode(value.Slice(start, unpaired - start)).EncodedUtf8Bytes);
             ((ushort)value[unpaired]).TryFormat(escape[2..], out _, "X4", CultureInfo.InvariantCulture);
             stream.Write(escape);
             start = unpaired + 1;
         }
-        stream.Write(JsonEncodedText.Encode(value.AsSpan(start)).EncodedUtf8Bytes);
+        stream.Write(JsonEncodedText.Encode(value[start..]).EncodedUtf8Bytes);
         stream.WriteByte((byte)'"');
         return stream.ToArray();
     }
 
-    internal static void WriteString(Utf8JsonWriter writer, string value)
+    internal static void WriteString(Utf8JsonWriter writer, ReadOnlySpan<char> value)
     {
         if (Unpaired(value, 0) < 0)
             writer.WriteStringValue(value);

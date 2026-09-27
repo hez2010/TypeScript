@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -59,7 +60,7 @@ internal sealed class FunctionExpressions(TypeContext context, CheckerLinks link
                 var result = context.NewObjectType(
                     ObjectFlags.Anonymous | ObjectFlags.MembersResolved | ObjectFlags.NonInferrableType,
                     symbols.Declaration(node));
-                result.Members = new Dictionary<string, Symbol>().AsReadOnly();
+                result.Members = new Dictionary<TextSlice, Symbol>().AsReadOnly();
                 result.Properties = [];
                 result.CallSignatures = [context.NewSignature(SignatureFlags.IsNonInferrable, null, [], null, [],
                     await bodies.ReturnAsync(node, mode, cancellation).ConfigureAwait(false), null, 0)];

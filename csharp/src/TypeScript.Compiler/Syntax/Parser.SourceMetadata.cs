@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Collections.ObjectModel;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Diagnostics;
@@ -105,12 +106,12 @@ public sealed partial class Parser
                 continue;
             if (!item.Ambient && !file.IsDeclarationFile && module.Modifiers?.Any(m => m.Kind == K.DeclareKeyword) != true)
                 continue;
-            string name = module.Name switch { StringLiteralNode text => text.Text, IdentifierNode identifier => identifier.Text, _ => "" };
+            TextSlice name = module.Name switch { StringLiteralNode text => text.Text, IdentifierNode identifier => identifier.Text, _ => "" };
             if (file.ExternalModuleIndicator is not null || item.Ambient && !RelativeModuleName(name))
                 augmentations.Add(module.Name);
             else if (!item.Ambient)
             {
-                ambient.Add(name);
+                ambient.Add(name.ToString());
                 if (module.Body is ModuleBlockNode { Statements: { } body })
                     for (int i = body.Count - 1; i >= 0; i--)
                         pending.Push((body[i], true));
@@ -136,10 +137,10 @@ public sealed partial class Parser
                 else if (node is CallExpressionNode { Arguments: { Count: > 0 } args } call
                     && args[0].Kind is K.StringLiteral or K.NoSubstitutionTemplateLiteral &&
                     (call.Expression?.Kind == K.ImportKeyword
-                        || call.Expression is MetaPropertyNode { KeywordToken: K.ImportKeyword, Name.Text: "defer" }
+                        || call.Expression is MetaPropertyNode { KeywordToken: K.ImportKeyword, Name.Text.Span: "defer" }
                         || javascript
                             && args.Count == 1
-                            && call.Expression is IdentifierNode { Text: "require" }) && seen.Add((args[0].Pos, args[0].End)))
+                            && call.Expression is IdentifierNode { Text.Span: "require" }) && seen.Add((args[0].Pos, args[0].End)))
                     imports.Add(args[0]);
             }
         }
@@ -148,7 +149,7 @@ public sealed partial class Parser
         file.AmbientModuleNames = ambient.AsReadOnly();
     }
 
-    private static bool RelativeModuleName(string name) => name is "." or ".."
+    private static bool RelativeModuleName(ReadOnlySpan<char> name) => name is "." or ".."
         || name.StartsWith("./", StringComparison.Ordinal)
         || name.StartsWith("../", StringComparison.Ordinal) ||
             name.StartsWith(
@@ -172,7 +173,7 @@ public sealed partial class Parser
                     statement is IModifiedNode { Modifiers: { } modifiers } && modifiers.Any(m => m.Kind == K.ExportKeyword))
                     return statement;
         foreach (SyntaxNode node in file.DescendantsAndSelf())
-            if (node is MetaPropertyNode { KeywordToken: K.ImportKeyword, Name.Text: "meta" })
+            if (node is MetaPropertyNode { KeywordToken: K.ImportKeyword, Name.Text.Span: "meta" })
                 return node;
         if (file.IsDeclarationFile)
             return null;
@@ -187,10 +188,10 @@ public sealed partial class Parser
     // nodes. The local comment/attribute scan uses the SourceText UTF-16 view.
     private List<SourceCommentRange> LeadingPragmaComments()
     {
-        string text = source.Text;
+        TextSlice text = source.Text;
         var ranges = new List<SourceCommentRange>();
         int at = 0;
-        if (text.StartsWith("#!", StringComparison.Ordinal))
+        if (text.Span.StartsWith("#!", StringComparison.Ordinal))
             while (at < text.Length && !TokenFacts.IsLineBreak(text[at]))
                 at++;
         while (at < text.Length)
@@ -219,7 +220,9 @@ public sealed partial class Parser
                     at++;
             else
             {
-                int close = text.IndexOf("*/", at, StringComparison.Ordinal);
+                int close = text.Span[at..].IndexOf("*/", StringComparison.Ordinal);
+                if (close >= 0)
+                    close += at;
                 at = close < 0 ? text.Length : close + 2;
             }
             ranges.Add(new(single ? K.SingleLineCommentTrivia : K.MultiLineCommentTrivia, start, at, single && at < text.Length));
@@ -229,7 +232,7 @@ public sealed partial class Parser
 
     private void ExtractPragmas(SourceCommentRange utf16Range, List<SourcePragma> pragmas)
     {
-        ReadOnlySpan<char> text = source.Text.AsSpan(utf16Range.Pos, utf16Range.End - utf16Range.Pos);
+        ReadOnlySpan<char> text = source.Text.Span.Slice(utf16Range.Pos, utf16Range.End - utf16Range.Pos);
         var range = utf16Range with { Pos = source.ToBytePosition(utf16Range.Pos), End = source.ToBytePosition(utf16Range.End) };
         int at = 2;
         if (utf16Range.Kind == K.SingleLineCommentTrivia)

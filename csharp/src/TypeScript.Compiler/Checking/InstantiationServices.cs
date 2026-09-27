@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -90,7 +91,7 @@ internal sealed class InstantiationServices : ITypeInstantiationHost, ITupleType
     public ValueTask<IReadOnlyList<IndexInfo>> IndexInfosAsync(Type type, CancellationToken cancellation) =>
         checker.IndexesAsync(type, cancellation);
 
-    public ValueTask<Symbol?> PropertyAsync(Type type, string name, CancellationToken cancellation) =>
+    public ValueTask<Symbol?> PropertyAsync(Type type, TextSlice name, CancellationToken cancellation) =>
         checker.PropertyAsync(type, name, cancellation);
 
     public ValueTask<Type> PropertyNameTypeAsync(Symbol symbol, CancellationToken cancellation) =>

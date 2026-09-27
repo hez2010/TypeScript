@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 namespace TypeScript.Compiler.Diagnostics;
 
 // Record equality compares argument arrays by identity. Diagnostic collections
@@ -50,8 +51,8 @@ internal sealed class DiagnosticEqualityComparer(bool relatedInformation = true)
         hash.Add(diagnostic.Message.Category);
         hash.Add(diagnostic.Source ?? "", StringComparer.Ordinal);
         hash.Add(Identity(diagnostic), StringComparer.Ordinal);
-        foreach (string argument in diagnostic.Arguments)
-            hash.Add(argument, StringComparer.Ordinal);
+        foreach (TextSlice argument in diagnostic.Arguments)
+            hash.Add(argument);
         hash.Add(diagnostic.MessageChain.Count);
         if (relatedInformation)
             hash.Add(diagnostic.RelatedInformation.Count);

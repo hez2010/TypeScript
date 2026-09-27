@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Syntax;
@@ -48,9 +49,9 @@ internal sealed partial class Checker
         using var query = await EnterQueryAsync(node, cancellation);
         return access.Expression switch
         {
-            IdentifierNode { Text: "Symbol" } identifier => ResolveReference(identifier, cancellation)
+            IdentifierNode { Text.Span: "Symbol" } identifier => ResolveReference(identifier, cancellation)
                 == program.Symbols.Lookup(program.Symbols.Globals, "Symbol", SymbolFlags.Value | SymbolFlags.ExportValue),
-            PropertyAccessExpressionNode { Expression: IdentifierNode { Text: "globalThis" } global, Name: IdentifierNode { Text: "Symbol" } }
+            PropertyAccessExpressionNode { Expression: IdentifierNode { Text.Span: "globalThis" } global, Name: IdentifierNode { Text.Span: "Symbol" } }
                 => ResolveReference(global, cancellation) == program.Symbols.GlobalThisSymbol,
             _ => false
         };
@@ -236,7 +237,7 @@ internal sealed partial class Checker
             && await AliasValueForEmitAsync(program.Symbols.Declaration(node), false, cancellation);
     }
 
-    internal async ValueTask<bool> IsNameResolvableForEmitAsync(SyntaxNode location, string name, CancellationToken cancellation = default)
+    internal async ValueTask<bool> IsNameResolvableForEmitAsync(SyntaxNode location, TextSlice name, CancellationToken cancellation = default)
     {
         using var query = await EnterQueryAsync(location, cancellation);
         return program.Symbols.NameResolver(cancellation).Resolve(location, name,

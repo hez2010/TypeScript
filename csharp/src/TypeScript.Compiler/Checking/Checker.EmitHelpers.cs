@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -8,10 +9,10 @@ namespace TypeScript.Compiler.Checking;
 internal sealed partial class Checker
 {
     private readonly Dictionary<SourceFileNode, Symbol> externalHelperModules = [];
-    private readonly HashSet<(SourceFileNode File, string Name)> checkedExternalHelpers = [];
-    private readonly HashSet<(SyntaxNode Node, DiagnosticCode Code, string Name)> externalHelperErrors = [];
+    private readonly HashSet<(SourceFileNode File, TextSlice Name)> checkedExternalHelpers = [];
+    private readonly HashSet<(SyntaxNode Node, DiagnosticCode Code, TextSlice Name)> externalHelperErrors = [];
 
-    private async ValueTask ExternalHelpersAsync(SyntaxNode node, IReadOnlyList<string> names, CancellationToken cancellation)
+    private async ValueTask ExternalHelpersAsync(SyntaxNode node, IReadOnlyList<TextSlice> names, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         if (program.Symbols.Program.Configuration.Options.Boolean("importHelpers") != true || (node.Flags & NodeFlags.Ambient) != 0)
@@ -51,7 +52,7 @@ internal sealed partial class Checker
                 cancellation: cancellation);
             if (symbol is null)
                 code = DiagnosticCode.ThisSyntaxRequiresAnImportedHelperNamed1WhichDoesNotExistIn0ConsiderUpgradingYourVersionOf0;
-            else if (name is "__classPrivateFieldGet" or "__classPrivateFieldSet")
+            else if (name.Span is "__classPrivateFieldGet" or "__classPrivateFieldSet")
             {
                 int minimum = name == "__classPrivateFieldGet" ? 4 : 5;
                 bool compatible = false;

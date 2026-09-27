@@ -78,7 +78,7 @@ internal static class CheckerAccessibilityTests
                 SymbolFlags.Type,
                 true)).AliasesToMakeVisible is { Count: 0 });
         var renamed = file.DescendantsAndSelf().OfType<TypeReferenceNode>().Single(
-            n => n.TypeName is IdentifierNode { Text: "Renamed" }).TypeName!;
+            n => n.TypeName is IdentifierNode { Text: { Span: "Renamed" } }).TypeName!;
         var entity = await checker.GetEntityNameVisibilityAsync(renamed, file);
         Check(entity.Accessibility == SymbolAccessibility.Accessible && entity.ErrorSymbolName.Length == 0);
         var unknown = file.DescendantsAndSelf().OfType<IdentifierNode>().Single(n => n.Text == "Unknown");
@@ -229,8 +229,8 @@ internal static class CheckerAccessibilityTests
                 var result = await checker.GetEntityNameVisibilityAsync(node, node);
                 writer.WriteNumberValue((int)result.Accessibility);
                 Nodes(result.AliasesToMakeVisible);
-                writer.WriteStringValue(result.ErrorSymbolName);
-                writer.WriteStringValue(result.ErrorModuleName);
+                writer.WriteStringValue(result.ErrorSymbolName.Span);
+                writer.WriteStringValue(result.ErrorModuleName.Span);
                 writer.WriteNumberValue(nodeId(result.ErrorNode));
                 writer.WriteEndArray();
             }

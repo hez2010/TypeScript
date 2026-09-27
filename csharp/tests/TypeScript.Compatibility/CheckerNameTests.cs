@@ -117,12 +117,12 @@ internal static class CheckerNameTests
                 cancellation.Cancel();
             return s;
         }, (_, _, _) => { });
-        var table = new Dictionary<string, Symbol> { ["N"] = a };
+        var table = new Dictionary<TextSlice, Symbol> { ["N"] = a };
         try
         {
             interruptible.MergeTableAsync(
                 table,
-                new Dictionary<string, Symbol> { ["N"] = b },
+                new Dictionary<TextSlice, Symbol> { ["N"] = b },
                 cancellation: cancellation.Token).GetAwaiter().GetResult();
             throw new InvalidOperationException("Merge cancellation ignored");
         }

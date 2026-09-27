@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Semantics;
@@ -6,20 +7,20 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed class SymbolSuggestions(AliasResolver aliases, TypeOrder order)
 {
-    internal ValueTask<LiteralType?> StringLiteralAsync(string name, UnionType target, CancellationToken cancellation)
+    internal ValueTask<LiteralType?> StringLiteralAsync(TextSlice name, UnionType target, CancellationToken cancellation)
         => SpellingSuggestions.FindAsync(name, target.Types.OfType<LiteralType>().Where(t => (t.Flags & TypeFlags.StringLiteral) != 0),
-            type => ValueTask.FromResult(type.Value as string), order.Compare, 1000, cancellation);
+            type => ValueTask.FromResult(type.Value as TextSlice?), order.Compare, 1000, cancellation);
 
     internal ValueTask<Symbol?> FindAsync(
-        string name,
+        TextSlice name,
         IEnumerable<Symbol> symbols,
         SymbolFlags meaning,
         CancellationToken cancellation = default)
         => SpellingSuggestions.FindAsync(name, symbols, async symbol =>
         {
             var declarationName = SemanticSyntax.Name(symbol.ValueDeclaration);
-            string candidate = declarationName is PrivateIdentifierNode privateName ? privateName.Text : symbol.Name;
-            if (candidate.Length == 0 || candidate[0] == '"' || candidate.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal))
+            TextSlice candidate = declarationName is PrivateIdentifierNode privateName ? privateName.Text : symbol.Name;
+            if (candidate.Length == 0 || candidate[0] == '"' || candidate.Span.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal))
                 return null;
             if ((symbol.Flags & meaning) != 0)
                 return candidate;

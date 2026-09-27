@@ -6,9 +6,9 @@ namespace TypeScript.Compiler.Semantics;
 internal static class SpellingSuggestions
 {
     internal static async ValueTask<T?> FindAsync<T>(
-        string name,
+        TextSlice name,
         IEnumerable<T> candidates,
-        Func<T, ValueTask<string?>> getName,
+        Func<T, ValueTask<TextSlice?>> getName,
         Comparison<T> compare,
         int maximumCandidates = 0,
         CancellationToken cancellation = default) where T : class
@@ -24,8 +24,8 @@ internal static class SpellingSuggestions
             cancellation.ThrowIfCancellationRequested();
             if (maximumCandidates > 0 && ++count > maximumCandidates)
                 return null;
-            string? text = await getName(candidate).ConfigureAwait(false);
-            if (string.IsNullOrEmpty(text))
+            TextSlice? candidateText = await getName(candidate).ConfigureAwait(false);
+            if (candidateText is not { IsEmpty: false } text)
                 continue;
             int length = Encoding.UTF8.GetByteCount(text);
             if (Math.Abs(length - input.Length) > maximumLengthDifference || text == name)

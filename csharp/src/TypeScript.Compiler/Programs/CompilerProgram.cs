@@ -580,7 +580,7 @@ public sealed partial class CompilerProgram
                         string jsx = Pragma("jsximportsource") ?? options.String("jsxImportSource") ?? "react";
                         imports.Add((null, jsx + (options.String("jsx") == "react-jsxdev" ? "/jsx-dev-runtime" : "/jsx-runtime")));
                     }
-                    imports.AddRange(syntax.Imports.Select(n => (Node: (SyntaxNode?)n, Name: ImportText(n))));
+                    imports.AddRange(syntax.Imports.Select(n => (Node: (SyntaxNode?)n, Name: ImportText(n).ToString())));
                     foreach (var import in imports)
                     {
                         if (import.Name.Length == 0)
@@ -623,11 +623,11 @@ public sealed partial class CompilerProgram
                     {
                         var mode = UsageMode(augmentation, entry.Path, options, parsed.Format, parsed.PackageType);
                         var resolved = await resolver.ResolveAsync(
-                            augmentation.Text,
+                            augmentation.Text.ToString(),
                             resolutionFile,
                             mode,
                             cancellation: cancellation).ConfigureAwait(false);
-                        resolutions.Add(new(augmentation.Text, mode, augmentation, resolved, Augmentation: true));
+                        resolutions.Add(new(augmentation.Text.ToString(), mode, augmentation, resolved, Augmentation: true));
                         diagnostics.AddRange(resolved.Diagnostics);
                     }
                     if (parsed.Mapping is { } mappedFiles)

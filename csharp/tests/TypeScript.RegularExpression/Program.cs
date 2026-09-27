@@ -35,8 +35,8 @@ while (Console.ReadLine() is { } line)
             writer.WriteNumberValue(diagnostic.Start);
             writer.WriteNumberValue(diagnostic.Length);
             writer.WriteStartArray();
-            foreach (string argument in diagnostic.Arguments)
-                writer.WriteStringValue(argument);
+            foreach (TextSlice argument in diagnostic.Arguments)
+                writer.WriteStringValue(argument.Span);
             writer.WriteEndArray();
             writer.WriteEndArray();
         }

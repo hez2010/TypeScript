@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Globalization;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -86,10 +87,10 @@ internal sealed class ConstantEvaluator
                         SyntaxKind.AsteriskAsteriskToken => JsNumber.Exponentiate(a, b),
                         _ => null
                     };
-                else if (left.Value is string or double
-                    && right.Value is string or double
+                else if (left.Value is TextSlice or double
+                    && right.Value is TextSlice or double
                     && binary.OperatorToken!.Kind == SyntaxKind.PlusToken)
-                    value = ToText(left.Value) + ToText(right.Value);
+                    value = TextSlice.Concat(ToText(left.Value), ToText(right.Value));
                 return new(
                     value,
                     text,
@@ -102,7 +103,7 @@ internal sealed class ConstantEvaluator
             case NumericLiteralNode numeric:
                 return new(JsNumber.FromString(numeric.Text));
             case TemplateExpressionNode template:
-                var builder = new StringBuilder(((TemplateHeadNode)template.Head!).Text);
+                var builder = new StringBuilder().Append(((TemplateHeadNode)template.Head!).Text.Span);
                 bool otherFiles = false, external = false;
                 foreach (var node in template.TemplateSpans!)
                 {
@@ -110,18 +111,17 @@ internal sealed class ConstantEvaluator
                     var part = await EvaluateAsync(span.Expression!, location, cancellation).ConfigureAwait(false);
                     if (part.Value is null)
                         return new(null, true);
-                    builder.Append(ToText(part.Value));
-                    builder.Append(
-                        span.Literal switch
-                        {
-                            TemplateMiddleNode middle => middle.Text,
-                            TemplateTailNode tail => tail.Text,
-                            _ => throw new InvalidOperationException("Unexpected template literal")
-                        });
+                    builder.Append(ToText(part.Value).Span);
+                    builder.Append((span.Literal switch
+                    {
+                        TemplateMiddleNode middle => middle.Text,
+                        TemplateTailNode tail => tail.Text,
+                        _ => throw new InvalidOperationException("Unexpected template literal")
+                    }).Span);
                     otherFiles |= part.ResolvedOtherFiles;
                     external |= part.HasExternalReferences;
                 }
-                return new(builder.ToString(), true, otherFiles, external);
+                return new(TextSlice.FromBuilder(builder), true, otherFiles, external);
             case IdentifierNode:
                 return await entity(expression, location, cancellation).ConfigureAwait(false);
             case PropertyAccessExpressionNode property when EntityName(property.Expression!):
@@ -165,18 +165,18 @@ internal sealed class ConstantEvaluator
         return node is IdentifierNode;
     }
 
-    internal static string ToText(object value) => value switch
+    internal static TextSlice ToText(object value) => value switch
     {
-        string text => text,
+        TextSlice text => text,
         double number => TokenFacts.NumberText(number),
         bool boolean => boolean ? "true" : "false",
-        BigInteger integer => integer.ToString(CultureInfo.InvariantCulture),
+        BigInteger integer => TextSlice.Format(integer),
         _ => throw new ArgumentException("Unsupported constant value", nameof(value))
     };
 
     internal static bool IsTruthy(object value) => value switch
     {
-        string text => text.Length != 0,
+        TextSlice text => text.Length != 0,
         double number => number != 0 && !double.IsNaN(number),
         bool boolean => boolean,
         BigInteger integer => integer != 0,

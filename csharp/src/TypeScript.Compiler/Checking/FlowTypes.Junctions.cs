@@ -73,7 +73,7 @@ internal sealed partial class FlowTypes
         }
         if (state.Key is null)
             return new(state.Declared);
-        var key = (flow, state.Key);
+        var key = (flow, state.Key.Value);
         if (loops.TryGetValue(key, out var cached))
             return new(cached);
         foreach (var loop in loopStack)

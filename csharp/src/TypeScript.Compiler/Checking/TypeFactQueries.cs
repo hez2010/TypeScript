@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
@@ -37,7 +38,7 @@ internal sealed class TypeFactQueries(
             return strict ? TypeFacts.StringStrictFacts : TypeFacts.StringFacts;
         if ((flags & (TypeFlags.StringLiteral | TypeFlags.TemplateLiteral)) != 0)
         {
-            bool empty = type is LiteralType { Value: string text } && text.Length == 0;
+            bool empty = type is LiteralType { Value: TextSlice text } && text.Length == 0;
             return strict
                 ? empty ? TypeFacts.EmptyStringStrictFacts : TypeFacts.NonEmptyStringStrictFacts
                 : empty ? TypeFacts.EmptyStringFacts : TypeFacts.NonEmptyStringFacts;

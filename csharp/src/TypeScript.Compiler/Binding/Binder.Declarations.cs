@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
@@ -17,7 +18,7 @@ public sealed partial class Binder
         _ => null
     };
 
-    private static string? AccessName(SyntaxNode? node) => node switch
+    private static TextSlice? AccessName(SyntaxNode? node) => node switch
     {
         PropertyAccessExpressionNode { Name: IdentifierNode name } => NameText(name),
         ElementAccessExpressionNode e when LiteralLike(SkipParentheses(e.ArgumentExpression)) => LiteralName(SkipParentheses(e.ArgumentExpression)),
@@ -25,9 +26,9 @@ public sealed partial class Binder
     };
 
     private static bool ModuleExports(SyntaxNode? node) =>
-        AccessBase(node) is IdentifierNode { Text: "module" } && AccessName(node) == "exports";
+        AccessBase(node) is IdentifierNode { Text.Span: "module" } && AccessName(node) == "exports";
 
-    private static bool ExportsBase(SyntaxNode? node) => node is IdentifierNode { Text: "exports" } || ModuleExports(node);
+    private static bool ExportsBase(SyntaxNode? node) => node is IdentifierNode { Text.Span: "exports" } || ModuleExports(node);
 
     private static bool AliasExpression(SyntaxNode? node)
     {
@@ -48,14 +49,14 @@ public sealed partial class Binder
             && node is VariableDeclarationNode
             {
                 Type: null, Initializer: CallExpressionNode
-                { Expression: IdentifierNode { Text: "require" }, Arguments: { Count: 1 } args }
+                { Expression: IdentifierNode { Text.Span: "require" }, Arguments: { Count: 1 } args }
             } && args[0] is StringLiteralNode or NoSubstitutionTemplateLiteralNode;
     }
 
     private void BindAssignmentDeclaration(BinaryExpressionNode node)
     {
         bool js = file.ScriptKind is ScriptKind.JS or ScriptKind.JSX;
-        if (js && ModuleExports(node.Left) && node.Right is not IdentifierNode { Text: "exports" })
+        if (js && ModuleExports(node.Left) && node.Right is not IdentifierNode { Text.Span: "exports" })
         {
             if (CommonJS(node))
             {
@@ -80,7 +81,7 @@ public sealed partial class Binder
                 or K.ClassStaticBlockDeclaration
                 && thisContainer.Parent is { } parent && SymbolOf(parent) is { } owner)
             {
-                string name = DeclarationName(node);
+                TextSlice name = DeclarationName(node);
                 bool dynamic = name == Internal("computed");
                 Declare(
                     Has(thisContainer, K.StaticKeyword) || thisContainer.Kind == K.ClassStaticBlockDeclaration
@@ -98,7 +99,7 @@ public sealed partial class Binder
     private void BindDefineProperty(CallExpressionNode node)
     {
         if (file.ScriptKind is not (ScriptKind.JS or ScriptKind.JSX)
-            || node.Expression is not PropertyAccessExpressionNode { Expression: IdentifierNode { Text: "Object" }, Name: IdentifierNode { Text: "defineProperty" } }
+            || node.Expression is not PropertyAccessExpressionNode { Expression: IdentifierNode { Text.Span: "Object" }, Name: IdentifierNode { Text.Span: "defineProperty" } }
             || node.Arguments is not { Count: 3 } args || !LiteralLike(args[1]))
             return;
         if (ExportsBase(args[0]))
@@ -115,7 +116,7 @@ public sealed partial class Binder
 
     private Symbol? LookupEntity(SyntaxNode? node, SyntaxNode scope)
     {
-        var names = new Stack<string>();
+        var names = new Stack<TextSlice>();
         while (node is PropertyAccessExpressionNode or ElementAccessExpressionNode)
         {
             if (AccessName(node) is not { } name)
@@ -128,7 +129,7 @@ public sealed partial class Binder
         Symbol? symbol = null;
         symbol = result.Get(scope)?.Locals.GetValueOrDefault(UserName(identifier.Text)) ?? SymbolOf(scope)?.Exports.GetValueOrDefault(UserName(identifier.Text));
         symbol = symbol?.ExportSymbol ?? symbol;
-        while (names.TryPop(out string? name))
+        while (names.TryPop(out TextSlice name))
             symbol = InitializerSymbol(symbol)?.Exports.GetValueOrDefault(name);
         return symbol?.ExportSymbol ?? symbol;
     }
@@ -163,7 +164,7 @@ public sealed partial class Binder
             var symbol = InitializerSymbol(LookupEntity(target, blockContainer) ?? LookupEntity(target, container));
             if (symbol is null)
                 continue;
-            string name = DeclarationName(node);
+            TextSlice name = DeclarationName(node);
             if (name == Internal("computed"))
             {
                 Anonymous(node, S.Property | S.Assignment, name);
@@ -193,7 +194,7 @@ public sealed partial class Binder
             }
     }
 
-    private void CommonJSVariable(string name)
+    private void CommonJSVariable(TextSlice name)
     {
         if (Data(file).LocalTable.ContainsKey(name))
             return;
@@ -212,7 +213,7 @@ public sealed partial class Binder
 
     private void CheckEval(SyntaxNode context, SyntaxNode? name)
     {
-        if (name is not IdentifierNode { Text: "eval" or "arguments" } identifier)
+        if (name is not IdentifierNode { Text.Span: "eval" or "arguments" } identifier)
             return;
         var message = ContainingClass(context) is not null ? Messages.Code_contained_in_a_class_is_evaluated_in_JavaScript_s_strict_mode_which_does_not_allow_this_use_of_0_For_more_information_see_https_Colon_Slash_Slashdeveloper_mozilla_org_Slashen_US_Slashdocs_SlashWeb_SlashJavaScript_SlashReference_SlashStrict_mode
             : file.ExternalModuleIndicator is not null
@@ -225,8 +226,8 @@ public sealed partial class Binder
     {
         if (file.ParseDiagnostics.Count != 0 || (node.Flags & (NodeFlags.Ambient | NodeFlags.JSDoc)) != 0 || IdentifierName(node))
             return;
-        string text = ((IdentifierNode)node).Text;
-        string display = SourceName(node);
+        TextSlice text = ((IdentifierNode)node).Text;
+        TextSlice display = SourceName(node);
         K keyword = TokenFacts.FromText(text);
         if (keyword >= K.FirstFutureReservedWord && keyword <= K.LastFutureReservedWord)
             Error(node, ContainingClass(node) is not null
@@ -267,13 +268,13 @@ public sealed partial class Binder
         _ => false
     };
 
-    private void Error(SyntaxNode node, DiagnosticMessage message, string argument, bool firstToken = false) =>
+    private void Error(SyntaxNode node, DiagnosticMessage message, TextSlice argument, bool firstToken = false) =>
         Error(node, message, [argument], firstToken);
 
-    private void Error(SyntaxNode node, DiagnosticMessage message, string[]? arguments = null, bool firstToken = false)
+    private void Error(SyntaxNode node, DiagnosticMessage message, TextSlice[]? arguments = null, bool firstToken = false)
         => diagnostics.Add(CreateDiagnostic(node, message, arguments, firstToken));
 
-    private Diagnostic CreateDiagnostic(SyntaxNode node, DiagnosticMessage message, string[]? arguments = null, bool firstToken = false)
+    private Diagnostic CreateDiagnostic(SyntaxNode node, DiagnosticMessage message, TextSlice[]? arguments = null, bool firstToken = false)
     {
         if (!firstToken && node.Kind is K.FunctionDeclaration or K.FunctionExpression or K.ClassDeclaration or K.ClassExpression
             or K.VariableDeclaration or K.BindingElement or K.InterfaceDeclaration or K.ModuleDeclaration or K.EnumDeclaration

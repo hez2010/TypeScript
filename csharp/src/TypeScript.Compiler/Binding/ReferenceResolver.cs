@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Configuration;
 using TypeScript.Compiler.Syntax;
@@ -16,7 +17,7 @@ public sealed class ReferenceResolverHooks
     public Func<SyntaxNode, Symbol?>? GetSymbolOfDeclaration { get; init; }
     public Func<Symbol, S, SyntaxNode?>? GetTypeOnlyAliasDeclaration { get; init; }
     public Func<Symbol, Symbol?>? GetExportSymbolOfValueSymbolIfExported { get; init; }
-    public Func<ElementAccessExpressionNode, string?>? GetElementAccessExpressionName { get; init; }
+    public Func<ElementAccessExpressionNode, TextSlice?>? GetElementAccessExpressionName { get; init; }
 }
 
 /// <summary>Shared declaration/export queries for checking and emit.</summary>
@@ -134,7 +135,7 @@ public sealed class ReferenceResolver(CompilerOptions options, Func<SyntaxNode, 
             or K.MethodDeclaration or K.GetAccessor or K.SetAccessor or K.ModuleDeclaration).ToArray() ?? [];
     }
 
-    public string GetElementAccessExpressionName(ElementAccessExpressionNode? node)
+    public TextSlice GetElementAccessExpressionName(ElementAccessExpressionNode? node)
         => node is null ? "" : hooks.GetElementAccessExpressionName?.Invoke(node) ?? "";
 
     public SyntaxNode? GetReferencedMemberValueDeclaration(SyntaxNode node)
@@ -167,8 +168,8 @@ public sealed class ReferenceResolver(CompilerOptions options, Func<SyntaxNode, 
                 var assignment = (BinaryExpressionNode)node;
                 return assignment.OperatorToken?.Kind == K.EqualsToken && assignment.Left is { } left
                     && (left.Flags & NodeFlags.JavaScriptFile) != 0 && AliasExpression(assignment.Right)
-                    && (ModuleExports(left) && assignment.Right is not IdentifierNode { Text: "exports" }
-                        || (ModuleExports(AccessBase(left)) || AccessBase(left) is IdentifierNode { Text: "exports" })
+                    && (ModuleExports(left) && assignment.Right is not IdentifierNode { Text.Span: "exports" }
+                        || (ModuleExports(AccessBase(left)) || AccessBase(left) is IdentifierNode { Text.Span: "exports" })
                             && AccessName(left) is not null);
         }
         return false;
@@ -190,15 +191,15 @@ public sealed class ReferenceResolver(CompilerOptions options, Func<SyntaxNode, 
         _ => null
     };
 
-    private static string? AccessName(SyntaxNode? node) => node switch
+    private static TextSlice? AccessName(SyntaxNode? node) => node switch
     {
         PropertyAccessExpressionNode { Name: IdentifierNode name } => name.Text,
         ElementAccessExpressionNode { ArgumentExpression: StringLiteralNode name } => name.Text,
         ElementAccessExpressionNode { ArgumentExpression: NumericLiteralNode name } => name.Text,
         ElementAccessExpressionNode { ArgumentExpression: NoSubstitutionTemplateLiteralNode name } => name.Text,
-        _ => null
+        _ => (TextSlice?)null
     };
 
     private static bool ModuleExports(SyntaxNode? node) =>
-        AccessBase(node) is IdentifierNode { Text: "module" } && AccessName(node) == "exports";
+        AccessBase(node) is IdentifierNode { Text.Span: "module" } && AccessName(node) == "exports";
 }

@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -440,7 +441,7 @@ internal sealed class SignatureAssignability(TypeContext context, SignatureParam
         return targetPrivate || targetProtected && !sourcePrivate || !targetProtected && !sourcePrivate && !sourceProtected;
     }
 
-    private static string Visibility(Signature signature) => signature.Declaration is not { } declaration ? "public"
+    private static TextSlice Visibility(Signature signature) => signature.Declaration is not { } declaration ? "public"
         : SemanticSyntax.HasModifier(declaration, SyntaxKind.PrivateKeyword) ? "private"
         : SemanticSyntax.HasModifier(declaration, SyntaxKind.ProtectedKeyword) ? "protected" : "public";
 }

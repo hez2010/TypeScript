@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Globalization;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -28,17 +29,17 @@ internal sealed partial class Checker
             return FinishTypeSyntax(state) ? result : failure;
         }, cancellation), cancellation), cancellation);
 
-    private static string PrintEmitSyntax(SyntaxNode? node, SyntaxNode? enclosing, TypeSyntaxContext state,
+    private static TextSlice PrintEmitSyntax(SyntaxNode? node, SyntaxNode? enclosing, TypeSyntaxContext state,
         CancellationToken cancellation) => node is null ? "" : PrintDiagnosticNode(node, enclosing is SourceFileNode, cancellation,
             enclosing is null ? null : SemanticSyntax.Source(enclosing), state.NoAsciiEscape, state.SingleLine);
 
-    internal ValueTask<string> SerializeExpressionTypeForEmitAsync(SyntaxNode expression, SyntaxNode? enclosing,
+    internal ValueTask<TextSlice> SerializeExpressionTypeForEmitAsync(SyntaxNode expression, SyntaxNode? enclosing,
         NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation, CancellationToken cancellation = default,
         INodeBuilderSymbolTracker? tracker = null,
         NodeBuilderInternalFlags internalFlags = NodeBuilderInternalFlags.None)
     {
         if (!EmitParseNode(expression))
-            return ValueTask.FromResult("any");
+            return ValueTask.FromResult<TextSlice>("any");
         return EmitSyntaxQueryAsync(expression, enclosing, flags | NodeBuilderFlags.MultilineObjectLiterals, async state =>
         {
             var type = await Algebra.RegularTypeAsync(await ExpressionTypeForQueryAsync(
@@ -48,13 +49,13 @@ internal sealed partial class Checker
         }, "", cancellation, tracker, internalFlags);
     }
 
-    internal ValueTask<string> SerializeDeclarationTypeForEmitAsync(SyntaxNode declaration, SyntaxNode? enclosing,
+    internal ValueTask<TextSlice> SerializeDeclarationTypeForEmitAsync(SyntaxNode declaration, SyntaxNode? enclosing,
         NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation, CancellationToken cancellation = default,
         INodeBuilderSymbolTracker? tracker = null,
         NodeBuilderInternalFlags internalFlags = NodeBuilderInternalFlags.None)
     {
         if (!EmitParseNode(declaration))
-            return ValueTask.FromResult("any");
+            return ValueTask.FromResult<TextSlice>("any");
         return EmitSyntaxQueryAsync(declaration, enclosing, flags | NodeBuilderFlags.MultilineObjectLiterals, async state =>
         {
             var symbol = program.Symbols.Declaration(declaration);
@@ -207,13 +208,13 @@ internal sealed partial class Checker
         return true;
     }
 
-    internal ValueTask<string> SerializeReturnTypeForEmitAsync(SyntaxNode declaration, SyntaxNode? enclosing,
+    internal ValueTask<TextSlice> SerializeReturnTypeForEmitAsync(SyntaxNode declaration, SyntaxNode? enclosing,
         NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation, CancellationToken cancellation = default,
         INodeBuilderSymbolTracker? tracker = null,
         NodeBuilderInternalFlags internalFlags = NodeBuilderInternalFlags.None)
     {
         if (!EmitParseNode(declaration))
-            return ValueTask.FromResult("any");
+            return ValueTask.FromResult<TextSlice>("any");
         return EmitSyntaxQueryAsync(declaration, enclosing, flags, async state =>
         {
             var signature = await Signatures.FromDeclarationAsync(declaration, cancellation);
@@ -286,14 +287,14 @@ internal sealed partial class Checker
             name, predicate.Type is null ? null : await TypeSyntaxAsync(predicate.Type, state, cancellation));
     }
 
-    internal ValueTask<IReadOnlyList<string>> SerializeTypeParametersForEmitAsync(SyntaxNode declaration, SyntaxNode? enclosing,
+    internal ValueTask<IReadOnlyList<TextSlice>> SerializeTypeParametersForEmitAsync(SyntaxNode declaration, SyntaxNode? enclosing,
         NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation, CancellationToken cancellation = default,
         INodeBuilderSymbolTracker? tracker = null,
         NodeBuilderInternalFlags internalFlags = NodeBuilderInternalFlags.None)
     {
         if (!EmitParseNode(declaration))
-            return ValueTask.FromResult<IReadOnlyList<string>>([]);
-        return EmitSyntaxQueryAsync<IReadOnlyList<string>>(declaration, enclosing, flags, async state =>
+            return ValueTask.FromResult<IReadOnlyList<TextSlice>>([]);
+        return EmitSyntaxQueryAsync<IReadOnlyList<TextSlice>>(declaration, enclosing, flags, async state =>
         {
             var symbol = program.Symbols.Declaration(declaration);
             if (symbol is null)
@@ -308,7 +309,7 @@ internal sealed partial class Checker
                 parameters = nodes.Select(n => program.Scopes.Parameter(program.Symbols.Declaration(n)!)).ToArray();
             else
                 return [];
-            var result = new List<string>();
+            var result = new List<TextSlice>();
             foreach (TypeParameter parameter in parameters)
             {
                 var constraint = await Instantiation.Constraints.ConstraintAsync(parameter, cancellation);
@@ -322,10 +323,10 @@ internal sealed partial class Checker
         }, [], cancellation, tracker, internalFlags);
     }
 
-    internal ValueTask<string?> SerializeLiteralConstForEmitAsync(SyntaxNode declaration, CancellationToken cancellation = default,
+    internal ValueTask<TextSlice?> SerializeLiteralConstForEmitAsync(SyntaxNode declaration, CancellationToken cancellation = default,
         INodeBuilderSymbolTracker? tracker = null,
         NodeBuilderInternalFlags internalFlags = NodeBuilderInternalFlags.None) =>
-        EmitSyntaxQueryAsync<string?>(declaration, declaration, NodeBuilderFlags.None, async state =>
+        EmitSyntaxQueryAsync<TextSlice?>(declaration, declaration, NodeBuilderFlags.None, async state =>
         {
             if (program.Symbols.Declaration(declaration) is not { } symbol)
                 return null;
@@ -341,7 +342,7 @@ internal sealed partial class Checker
             else if (type is LiteralType literal)
                 node = literal.Value switch
                 {
-                    string text => f.NewStringLiteral(text, TokenFlags.None),
+                    TextSlice text => f.NewStringLiteral(text, TokenFlags.None),
                     double number when double.IsPositiveInfinity(number) => f.NewIdentifier("Infinity"),
                     double number when double.IsNegativeInfinity(number) => f.NewPrefixUnaryExpression(
                         K.MinusToken,
@@ -350,12 +351,12 @@ internal sealed partial class Checker
                     double number when number < 0 => f.NewPrefixUnaryExpression(K.MinusToken,
                         f.NewNumericLiteral(TokenFacts.NumberText(number)[1..], TokenFlags.None)),
                     double number => f.NewNumericLiteral(TokenFacts.NumberText(number), TokenFlags.None),
-                    BigInteger integer => f.NewBigIntLiteral(integer.ToString(CultureInfo.InvariantCulture) + "n", TokenFlags.None),
+                    BigInteger integer => f.NewBigIntLiteral(TextSlice.Concat(TextSlice.Format(integer), "n"), TokenFlags.None),
                     bool boolean => f.NewKeywordExpression(boolean ? K.TrueKeyword : K.FalseKeyword),
                     _ => throw new InvalidOperationException("Unexpected literal const type")
                 };
             else
                 node = null;
-            return node is null ? null : PrintEmitSyntax(node, null, state, cancellation);
+            return node is null ? (TextSlice?)null : PrintEmitSyntax(node, null, state, cancellation);
         }, null, cancellation, tracker, internalFlags);
 }

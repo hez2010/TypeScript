@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -313,7 +314,7 @@ internal sealed partial class Checker
                                 {
                                     var binding = program.Symbols.Binding(clause)!;
                                     var locals = binding.Get(clause.Block!)?.Locals;
-                                    foreach (string name in binding.Get(clause)?.Locals.Keys ?? [])
+                                    foreach (TextSlice name in binding.Get(clause)?.Locals.Keys ?? [])
                                         if (locals?.GetValueOrDefault(name) is { ValueDeclaration: { } declaration } symbol
                                             && (symbol.Flags & SymbolFlags.BlockScopedVariable) != 0)
                                             Error(declaration, DiagnosticCode.CannotRedeclareIdentifier0InCatchClause, name);
@@ -347,7 +348,7 @@ internal sealed partial class Checker
                     {
                         int count = alias.TypeParameters?.Count ?? 0;
                         if (!(count == 0 && alias.Name.Text == "BuiltinIteratorReturn"
-                            || count == 1 && alias.Name.Text is "Uppercase" or "Lowercase" or "Capitalize" or "Uncapitalize" or "NoInfer"))
+                            || count == 1 && alias.Name.Text.Span is "Uppercase" or "Lowercase" or "Capitalize" or "Uncapitalize" or "NoInfer"))
                             Error(alias.Type, DiagnosticCode.TheIntrinsicKeywordCanOnlyBeUsedToDeclareCompilerProvidedIntrinsicTypes);
                         break;
                     }
@@ -468,7 +469,7 @@ internal sealed partial class Checker
             var marker = node.Name;
             while (marker is BindingPatternNode pattern)
                 marker = pattern.Elements?.OfType<BindingElementNode>().FirstOrDefault(e => e.Name is not null)?.Name;
-            if (marker is IdentifierNode { Text: "__esModule" })
+            if (marker is IdentifierNode { Text.Span: "__esModule" })
                 Error(marker, DiagnosticCode.IdentifierExpectedEsModuleIsReservedAsAnExportedMarkerWhenTransformingECMAScriptModules);
         }
         if ((flags & (NodeFlags.Let | NodeFlags.Const)) != 0)
@@ -479,7 +480,7 @@ internal sealed partial class Checker
             while (names.TryPop(out var name))
             {
                 cancellation.ThrowIfCancellationRequested();
-                if (name is IdentifierNode { Text: "let" })
+                if (name is IdentifierNode { Text.Span: "let" })
                 {
                     Error(name, DiagnosticCode.XLetIsNotAllowedToBeUsedAsANameInLetOrConstDeclarations);
                     continue;

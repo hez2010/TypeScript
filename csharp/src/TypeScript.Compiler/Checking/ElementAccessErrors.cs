@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -10,11 +11,11 @@ internal interface IElementAccessErrorHost
 
     ValueTask<IReadOnlyList<IndexInfo>> IndexesAsync(Type type, CancellationToken cancellation);
 
-    ValueTask<bool> StaticPropertyAsync(string name, Type type, CancellationToken cancellation);
+    ValueTask<bool> StaticPropertyAsync(TextSlice name, Type type, CancellationToken cancellation);
 
-    ValueTask<string?> PropertySuggestionAsync(string name, Type type, CancellationToken cancellation);
+    ValueTask<TextSlice?> PropertySuggestionAsync(TextSlice name, Type type, CancellationToken cancellation);
 
-    ValueTask<string?> IndexSuggestionAsync(Type type, ElementAccessExpressionNode node, Type index, CancellationToken cancellation);
+    ValueTask<TextSlice?> IndexSuggestionAsync(Type type, ElementAccessExpressionNode node, Type index, CancellationToken cancellation);
 
     ValueTask InvalidIndexAsync(
         SyntaxNode node,
@@ -23,14 +24,14 @@ internal interface IElementAccessErrorHost
         DiagnosticCode code,
         CancellationToken cancellation,
         Type? fullIndex = null,
-        string? suggestion = null);
+        TextSlice? suggestion = null);
 }
 
 internal sealed class ElementAccessErrors(TypeContext context, TypeAlgebra algebra, CheckerSymbols symbols, TypeProperties properties,
     SymbolTypes values, IElementAccessErrorHost host)
 {
     internal async ValueTask<Type?> MissingAsync(Type original, Type type, Type index, Type fullIndex,
-        ElementAccessExpressionNode node, string? name, AccessFlags flags, CancellationToken cancellation = default)
+        ElementAccessExpressionNode node, TextSlice? name, AccessFlags flags, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
         if ((type.ObjectFlags & ObjectFlags.ObjectLiteral) != 0)
@@ -55,7 +56,7 @@ internal sealed class ElementAccessErrors(TypeContext context, TypeAlgebra algeb
             }
         }
         if (type.Symbol == symbols.GlobalThisSymbol && name is not null
-            && symbols.GlobalThisSymbol.Exports.GetValueOrDefault(name) is { Flags: var globalFlags } && (globalFlags & SymbolFlags.BlockScoped) != 0)
+            && symbols.GlobalThisSymbol.Exports.GetValueOrDefault(name.Value) is { Flags: var globalFlags } && (globalFlags & SymbolFlags.BlockScoped) != 0)
             await host.InvalidIndexAsync(
                 node,
                 type,
@@ -64,7 +65,7 @@ internal sealed class ElementAccessErrors(TypeContext context, TypeAlgebra algeb
                 cancellation).ConfigureAwait(false);
         else if (host.NoImplicitAny && (flags & AccessFlags.SuppressNoImplicitAnyError) == 0)
         {
-            if (name is not null && await host.StaticPropertyAsync(name, type, cancellation).ConfigureAwait(false))
+            if (name is not null && await host.StaticPropertyAsync((name).Value, type, cancellation).ConfigureAwait(false))
                 await host.InvalidIndexAsync(
                     node,
                     type,
@@ -80,10 +81,10 @@ internal sealed class ElementAccessErrors(TypeContext context, TypeAlgebra algeb
                     cancellation).ConfigureAwait(false);
             else
             {
-                string? suggestion = name is not null
-                    ? await host.PropertySuggestionAsync(name, type, cancellation).ConfigureAwait(false)
+                TextSlice? suggestion = name is not null
+                    ? await host.PropertySuggestionAsync((name).Value, type, cancellation).ConfigureAwait(false)
                     : null;
-                if (!string.IsNullOrEmpty(suggestion))
+                if (suggestion is { IsEmpty: false })
                     await host.InvalidIndexAsync(
                         node.ArgumentExpression!,
                         type,

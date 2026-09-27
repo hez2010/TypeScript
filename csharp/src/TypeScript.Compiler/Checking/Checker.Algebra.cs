@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -23,7 +24,7 @@ internal sealed partial class Checker : ITypeAlgebraHost
     ValueTask<Type> ITypeAlgebraHost.GetTypeOfSymbolAsync(Symbol symbol, CancellationToken cancellation) =>
         Values.GetAsync(symbol, cancellation);
 
-    async ValueTask<Type?> ITypeAlgebraHost.GetPropertyTypeAsync(Type type, string name, CancellationToken cancellation) =>
+    async ValueTask<Type?> ITypeAlgebraHost.GetPropertyTypeAsync(Type type, TextSlice name, CancellationToken cancellation) =>
         await Properties.PropertyAsync(type, name, cancellation: cancellation).ConfigureAwait(false) is { } property
             ? await Values.GetAsync(property, cancellation).ConfigureAwait(false)
             : null;
@@ -47,7 +48,7 @@ internal sealed partial class Checker : ITypeAlgebraHost
                 cancellation)
             : Templates.MemberAsync(literal, pattern, cancellation);
 
-    void ITypeAlgebraHost.ReportComplexity(string operation, long size)
+    void ITypeAlgebraHost.ReportComplexity(TextSlice operation, long size)
     {
         AlgebraDiagnostics.Add(DiagnosticCode.ExpressionProducesAUnionTypeThatIsTooComplexToRepresent);
         TrackDiagnostic(DiagnosticNode, DiagnosticCode.ExpressionProducesAUnionTypeThatIsTooComplexToRepresent);

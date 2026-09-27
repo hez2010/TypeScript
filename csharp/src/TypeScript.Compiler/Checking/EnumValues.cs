@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -86,8 +87,8 @@ internal sealed class EnumValues
             host.EnumError(member.Name, DiagnosticCode.AnEnumMemberCannotHaveANumericName);
         else
         {
-            string text = NameText(member.Name!);
-            if (IndexSignatures.NumericName(text) && text is not ("Infinity" or "-Infinity" or "NaN"))
+            TextSlice text = NameText(member.Name!);
+            if (IndexSignatures.NumericName(text) && text.Span is not ("Infinity" or "-Infinity" or "NaN"))
                 host.EnumError(member.Name!, DiagnosticCode.AnEnumMemberCannotHaveANumericName);
         }
         bool constant = SemanticSyntax.HasModifier(declaration, SyntaxKind.ConstKeyword);
@@ -102,7 +103,7 @@ internal sealed class EnumValues
                         double.IsNaN(number)
                             ? DiagnosticCode.XConstEnumMemberInitializerWasEvaluatedToDisallowedValueNaN
                             : DiagnosticCode.XConstEnumMemberInitializerWasEvaluatedToANonFiniteValue);
-                if (host.IsolatedModules && result.Value is string && !result.IsSyntacticallyString)
+                if (host.IsolatedModules && result.Value is TextSlice && !result.IsSyntacticallyString)
                     host.EnumError(
                         initializer,
                         DiagnosticCode.X0HasAStringTypeButMustHaveSyntacticallyRecognizableStringSyntaxWhenIsolatedModulesIsEnabled);
@@ -140,7 +141,7 @@ internal sealed class EnumValues
             var symbol = await names.ResolveAsync(expression, SymbolFlags.Value, true, cancellation: cancellation).ConfigureAwait(false);
             if (symbol is null)
                 return default;
-            if (expression is IdentifierNode { Text: "Infinity" or "NaN" } identifier
+            if (expression is IdentifierNode { Text.Span: "Infinity" or "NaN" } identifier
                 && symbols.Globals.GetValueOrDefault(identifier.Text) == symbol)
                 return new(JsNumber.FromString(identifier.Text));
             if ((symbol.Flags & SymbolFlags.EnumMember) != 0)
@@ -166,7 +167,7 @@ internal sealed class EnumValues
                 SymbolFlags.Value,
                 true,
                 cancellation: cancellation).ConfigureAwait(false);
-            string name = NameText(access.ArgumentExpression);
+            TextSlice name = NameText(access.ArgumentExpression);
             if (symbol is not null && (symbol.Flags & SymbolFlags.Enum) != 0 && symbol.Exports.TryGetValue(NameKey(name), out var member))
                 return location is null ? await GetAsync((EnumMemberNode)member.ValueDeclaration!, cancellation).ConfigureAwait(false)
                     : await ReferenceAsync(expression, member, location, cancellation).ConfigureAwait(false);
@@ -203,7 +204,7 @@ internal sealed class EnumValues
     private static bool ConstantVariable(Symbol symbol) => (symbol.Flags & SymbolFlags.Variable) != 0
         && symbol.ValueDeclaration is VariableDeclarationNode { Parent: VariableDeclarationListNode list } && (list.Flags & NodeFlags.Constant) != 0;
 
-    internal static string NameText(SyntaxNode node) => node switch
+    internal static TextSlice NameText(SyntaxNode node) => node switch
     {
         IdentifierNode identifier => identifier.Text,
         StringLiteralNode literal => literal.Text,
@@ -213,6 +214,6 @@ internal sealed class EnumValues
         _ => ""
     };
 
-    private static string NameKey(string text) =>
-        text.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal) ? Symbol.InternalPrefix + text : text;
+    private static TextSlice NameKey(TextSlice text) =>
+        text.Span.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal) ? TextSlice.Concat(Symbol.InternalPrefix, text) : text;
 }

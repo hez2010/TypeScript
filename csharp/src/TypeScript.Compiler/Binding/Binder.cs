@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Diagnostics;
@@ -23,7 +24,7 @@ public sealed partial class Binder
     private readonly CancellationToken cancellation;
     private readonly List<Diagnostic> diagnostics = [];
     private readonly List<SyntaxNode> containers = [];
-    private readonly Dictionary<string, Symbol> globalExports = new(StringComparer.Ordinal);
+    private readonly Dictionary<TextSlice, Symbol> globalExports = new();
     private readonly HashSet<Symbol> notConstEnumOnly = [];
 
     private sealed class PatternIdentity
@@ -42,7 +43,7 @@ public sealed partial class Binder
     private bool explicitReturn, seenThis, assignmentPattern, hasFlowEffects;
     private NodeFlags emitFlags;
 
-    private sealed record ActiveLabel(string Name, FlowNode Break, FlowNode? Continue, bool Referenced = false);
+    private sealed record ActiveLabel(TextSlice Name, FlowNode Break, FlowNode? Continue, bool Referenced = false);
 
     private Binder(SourceFileNode file, CancellationToken cancellation)
     {
@@ -200,7 +201,7 @@ public sealed partial class Binder
                 if (qualified.Parent is TypeQueryNode)
                     Data(node).Flow = currentFlow;
                 break;
-            case PrivateIdentifierNode { Text: "#constructor" }:
+            case PrivateIdentifierNode { Text.Span: "#constructor" }:
                 if (file.ParseDiagnostics.Count == 0)
                     Error(node, Messages.X_constructor_is_a_reserved_word, SourceName(node));
                 break;
@@ -239,7 +240,7 @@ public sealed partial class Binder
                 if (parameter.Name is BindingPatternNode)
                 {
                     int index = node.Parent is IFunctionSignature { Parameters: { } parameters } ? parameters.IndexOf(node) : 0;
-                    Anonymous(node, S.FunctionScopedVariable, "__" + index);
+                    Anonymous(node, S.FunctionScopedVariable, TextSlice.Concat("__", TextSlice.Format(index)));
                 }
                 else
                     Member(node, S.FunctionScopedVariable, S.ParameterExcludes);
@@ -323,10 +324,10 @@ public sealed partial class Binder
                             node,
                             Messages.X_export_modifier_cannot_be_applied_to_ambient_modules_and_module_augmentations_since_they_are_always_visible,
                             firstToken: true);
-                    if (!augmentation && module.Name is StringLiteralNode literal && literal.Text.Count(c => c == '*') > 1)
+                    if (!augmentation && module.Name is StringLiteralNode literal && literal.Text.Span.Count('*') > 1)
                         Error(literal, Messages.Pattern_0_can_have_at_most_one_Asterisk_character, literal.Text);
                     else if (!augmentation && module.Name is StringLiteralNode { Text: { } moduleName }
-                        && !moduleName.Contains('*')
+                        && !moduleName.Span.Contains('*')
                         && module.Attributes is not null)
                         Error(
                             module.Name,
@@ -438,7 +439,7 @@ public sealed partial class Binder
                 break;
             case CallExpressionNode call:
                 if (file.ScriptKind is ScriptKind.JS or ScriptKind.JSX
-                    && call.Expression is IdentifierNode { Text: "require" }
+                    && call.Expression is IdentifierNode { Text.Span: "require" }
                     && call.Arguments?.Count == 1)
                     CommonJS(node);
                 BindDefineProperty(call);
@@ -469,13 +470,13 @@ public sealed partial class Binder
             seenThis = true;
     }
 
-    private Symbol NewSymbol(S flags, string name, Symbol? parent = null)
+    private Symbol NewSymbol(S flags, TextSlice name, Symbol? parent = null)
     {
         result.SymbolCount++;
         return new(flags, name) { Parent = parent };
     }
 
-    private Symbol Anonymous(SyntaxNode node, S flags, string name)
+    private Symbol Anonymous(SyntaxNode node, S flags, TextSlice name)
     {
         var symbol = NewSymbol(flags, name, (flags & (S.EnumMember | S.ClassMember)) != 0 ? SymbolOf(container) : null);
         AddDeclaration(symbol, node, flags);
@@ -505,12 +506,12 @@ public sealed partial class Binder
             symbol.ValueDeclaration = node;
     }
 
-    private Symbol Declare(Dictionary<string, Symbol> table, Symbol? parent, SyntaxNode node, S includes, S excludes,
-        string? name = null, bool replaceable = false)
+    private Symbol Declare(Dictionary<TextSlice, Symbol> table, Symbol? parent, SyntaxNode node, S includes, S excludes,
+        TextSlice? suppliedName = null, bool replaceable = false)
     {
         bool isDefault = Has(node, K.DefaultKeyword)
             || node is ExportSpecifierNode { Name: { } exportName } && NameText(exportName) == "default";
-        name ??= isDefault && parent is not null ? "default" : DeclarationName(node);
+        TextSlice name = suppliedName ?? (isDefault && parent is not null ? "default" : DeclarationName(node));
         bool missing = name == Internal("missing");
         if (missing || !table.TryGetValue(name, out var symbol))
         {
@@ -548,7 +549,7 @@ public sealed partial class Binder
                 var related = new List<Diagnostic>();
                 if (node is TypeAliasDeclarationNode { Type: { } type, Name: { } alias } && type.Pos == type.End
                     && Has(node, K.ExportKeyword) && (symbol.Flags & (S.Alias | S.Type | S.Namespace)) != 0)
-                    related.Add(CreateDiagnostic(node, Messages.Did_you_mean_0, ["export type { " + alias.Text + " }"]));
+                    related.Add(CreateDiagnostic(node, Messages.Did_you_mean_0, [TextSlice.Concat("export type { ", alias.Text, " }")]));
                 for (int i = 0; i < symbol.Declarations.Count; i++)
                 {
                     var previous = symbol.Declarations[i];
@@ -637,29 +638,29 @@ public sealed partial class Binder
             Member(node, flags, excludes);
     }
 
-    private static string Internal(string text) => Symbol.InternalPrefix + text;
+    private static TextSlice Internal(TextSlice text) => TextSlice.Concat(Symbol.InternalPrefix, text);
 
-    private static string UserName(string text) =>
-        text.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal) ? Symbol.InternalPrefix + text : text;
+    private static TextSlice UserName(TextSlice text) =>
+        text.Span.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal) ? TextSlice.Concat(Symbol.InternalPrefix, text) : text;
 
-    private static string? LiteralName(SyntaxNode? node) => node switch
+    private static TextSlice? LiteralName(SyntaxNode? node) => node switch
     {
         StringLiteralNode n => n.Text,
         NumericLiteralNode n => n.Text,
         NoSubstitutionTemplateLiteralNode n => n.Text,
-        PrefixUnaryExpressionNode { Operator: K.PlusToken or K.MinusToken, Operand: NumericLiteralNode n } p => TokenFacts.Text(p.Operator) + n.Text,
-        _ => null
+        PrefixUnaryExpressionNode { Operator: K.PlusToken or K.MinusToken, Operand: NumericLiteralNode n } p => TextSlice.Concat(TokenFacts.Text(p.Operator), n.Text),
+        _ => (TextSlice?)null
     };
 
-    private static string NameText(SyntaxNode node) => UserName(node switch
+    private static TextSlice NameText(SyntaxNode node) => UserName(node switch
     {
         IdentifierNode n => n.Text,
         PrivateIdentifierNode n => n.Text,
-        JsxNamespacedNameNode n => NameText(n.Namespace!) + ":" + NameText(n.Name!),
+        JsxNamespacedNameNode n => TextSlice.Concat(NameText(n.Namespace!), ":", NameText(n.Name!)),
         _ => LiteralName(node) ?? ""
     });
 
-    private string DeclarationName(SyntaxNode node)
+    private TextSlice DeclarationName(SyntaxNode node)
     {
         if (node is ExportAssignmentNode export)
             return export.IsExportEquals ? "export=" : "default";
@@ -669,14 +670,14 @@ public sealed partial class Binder
             {
                 if (node is ModuleDeclarationNode { Keyword: K.GlobalKeyword })
                     return Internal("global");
-                if (node is ModuleDeclarationNode { Attributes: { } attributes } && NameText(name).Count(c => c == '*') == 1)
+                if (node is ModuleDeclarationNode { Attributes: { } attributes } && NameText(name).Span.Count('*') == 1)
                 {
-                    return Internal("\"" + NameText(name) + "\"pattern@" + PatternIdentities.GetValue(attributes, static _ => new()).Value);
+                    return Internal(TextSlice.ConcatMany("\"", NameText(name), "\"pattern@", TextSlice.Format(PatternIdentities.GetValue(attributes, static _ => new()).Value)));
                 }
-                return "\"" + NameText(name) + "\"";
+                return TextSlice.Concat("\"", NameText(name), "\"");
             }
             if (name is PrivateIdentifierNode p)
-                return ContainingClass(node) is { } owner ? Internal("#" + SymbolOf(owner)!.Id + "@" + p.Text) : Internal("missing");
+                return ContainingClass(node) is { } owner ? Internal(TextSlice.ConcatMany("#", TextSlice.Format(SymbolOf(owner)!.Id), "@", p.Text)) : Internal("missing");
             if (name is ComputedPropertyNameNode computed)
                 return LiteralName(computed.Expression) is { } literal ? UserName(literal) : Internal("computed");
             if (name is ElementAccessExpressionNode access)
@@ -697,19 +698,19 @@ public sealed partial class Binder
         };
     }
 
-    private string DisplayName(SyntaxNode node)
+    private TextSlice DisplayName(SyntaxNode node)
     {
         if (node is ExportAssignmentNode)
             return DeclarationName(node);
         if (Name(node) is not { } name)
         {
-            string value = DeclarationName(node);
+            TextSlice value = DeclarationName(node);
             return value == Internal("missing") ? "(Missing)" : value;
         }
         return SourceName(name);
     }
 
-    private string SourceName(SyntaxNode name)
+    private TextSlice SourceName(SyntaxNode name)
     {
         if (name.Pos == name.End)
             return "(Missing)";
@@ -724,7 +725,7 @@ public sealed partial class Binder
     }
 
     private void ExternalModule() =>
-        Anonymous(file, S.ValueModule, "\"" + file.FileName[..^ModuleResolver.Extension(file.FileName).Length] + "\"");
+        Anonymous(file, S.ValueModule, TextSlice.Concat("\"", file.FileName.AsSpan()[..^ModuleResolver.Extension(file.FileName).Length], "\""));
 
     private bool CommonJS(SyntaxNode node)
     {

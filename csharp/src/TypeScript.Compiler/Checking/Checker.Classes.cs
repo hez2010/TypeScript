@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -273,8 +274,8 @@ internal sealed partial class Checker
     private async ValueTask CheckClassDuplicatesAsync(SyntaxNode node, CancellationToken cancellation)
     {
         var members = PropertyInitialization.Members(node);
-        var seen = new Dictionary<(string, bool), int>();
-        var privateNames = new Dictionary<string, int>(StringComparer.Ordinal);
+        var seen = new Dictionary<(TextSlice, bool), int>();
+        var privateNames = new Dictionary<TextSlice, int>(TextSliceComparer.Ordinal);
         bool ambient = (node.Flags & NodeFlags.Ambient) != 0;
         foreach (var member in members)
         {
@@ -289,7 +290,7 @@ internal sealed partial class Checker
             if (!ambient
                 && @static
                 && symbol?.Name is { } name
-                && (name == "prototype" || !UseDefineForClassFields && name is "name" or "length" or "caller" or "arguments"))
+                && (name == "prototype" || !UseDefineForClassFields && name.Span is "name" or "length" or "caller" or "arguments"))
                 Error(
                     SemanticSyntax.Name(member)!,
                     DiagnosticCode.StaticProperty0ConflictsWithBuiltInPropertyFunction0OfConstructorFunction1,

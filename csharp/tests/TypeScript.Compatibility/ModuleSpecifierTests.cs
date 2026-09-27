@@ -270,7 +270,7 @@ internal static class ModuleSpecifierTests
                     TypeScript.Compiler.Checking.Checker.PrintDiagnosticNode(
                         printedNode,
                         neverAsciiEscape,
-                        sourceFile: withoutSource ? null : source));
+                        sourceFile: withoutSource ? null : source).Span);
                 writer.WriteEndArray();
             }
             writer.WriteEndArray();

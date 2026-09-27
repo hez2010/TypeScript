@@ -1,3 +1,6 @@
+using System.Buffers;
+using TypeScript.Compiler.Text;
+
 namespace TypeScript.Compiler.Hosts;
 
 /// <summary>TypeScript paths include URLs, UNC roots and virtual files on every host OS.</summary>
@@ -19,7 +22,7 @@ public static class CompilerPath
         return root < 0 ? ~root : root;
     }
 
-    public static int EncodedRootLength(string path)
+    public static int EncodedRootLength(ReadOnlySpan<char> path)
     {
         if (path.Length == 0)
             return 0;
@@ -28,8 +31,8 @@ public static class CompilerPath
         {
             if (path.Length == 1 || path[1] != first)
                 return 1;
-            int next = path.IndexOf(first, 2);
-            return next < 0 ? path.Length : next + 1;
+            int next = path[2..].IndexOf(first);
+            return next < 0 ? path.Length : next + 3;
         }
         if (char.IsAsciiLetter(first) && path.Length > 1 && path[1] == ':')
         {
@@ -43,18 +46,20 @@ public static class CompilerPath
         int scheme = path.IndexOf("://", StringComparison.Ordinal);
         if (scheme < 0)
             return 0;
-        int authority = scheme + 3, end = path.IndexOf('/', authority);
+        int authority = scheme + 3, end = path[authority..].IndexOf('/');
+        if (end >= 0)
+            end += authority;
         if (end < 0)
             return ~path.Length;
-        if (path.AsSpan(0, scheme).SequenceEqual("file")
-            && (end == authority || path.AsSpan(authority, end - authority).SequenceEqual("localhost"))
+        if (path[..scheme].SequenceEqual("file")
+            && (end == authority || path[authority..end].SequenceEqual("localhost"))
             && path.Length > end + 2
             && char.IsAsciiLetter(path[end + 1]))
         {
             int separator = end + 2;
             int volumeEnd = path[separator] == ':'
                 ? separator + 1
-                : path.AsSpan(separator).StartsWith("%3a", StringComparison.OrdinalIgnoreCase) ? separator + 3 : -1;
+                : path[separator..].StartsWith("%3a", StringComparison.OrdinalIgnoreCase) ? separator + 3 : -1;
             if (volumeEnd == path.Length)
                 return ~volumeEnd;
             if (volumeEnd >= 0 && path[volumeEnd] == '/')
@@ -82,27 +87,52 @@ public static class CompilerPath
         if (path.Length == 2 && char.IsAsciiLetter(path[0]) && path[1] == ':')
             return path;
         int root = RootLength(path);
-        var parts = new List<string>();
-        foreach (Range range in path.AsSpan(root).Split('/'))
+        // Normalization cannot grow the path except to add a separator to a bare root.
+        int capacity = checked(path.Length + 1);
+        char[]? rented = null;
+        Span<char> buffer = capacity <= 256 ? stackalloc char[256] : rented = ArrayPool<char>.Shared.Rent(capacity);
+        try
         {
-            ReadOnlySpan<char> part = path.AsSpan(root)[range];
-            if (part.IsEmpty || part.SequenceEqual("."))
-                continue;
-            if (part.SequenceEqual(".."))
+            path.AsSpan(0, root).CopyTo(buffer);
+            int written = root;
+            if (root > 0 && buffer[root - 1] is not ('/' or '\\'))
+                buffer[written++] = '/';
+            int bodyStart = written;
+            ReadOnlySpan<char> body = path.AsSpan(root);
+            foreach (Range range in body.Split('/'))
             {
-                if (parts.Count > 0 && parts[^1] != "..")
+                ReadOnlySpan<char> part = body[range];
+                if (part is "" or ".")
+                    continue;
+                if (part is "..")
                 {
-                    parts.RemoveAt(parts.Count - 1);
-                    continue;
+                    if (written > bodyStart)
+                    {
+                        int previous = bodyStart + buffer[bodyStart..written].LastIndexOf('/') + 1;
+                        if (!buffer[previous..written].SequenceEqual(".."))
+                        {
+                            written = Math.Max(bodyStart, previous - 1);
+                            continue;
+                        }
+                    }
+                    else if (root != 0)
+                        continue;
                 }
-                if (parts.Count == 0 && root != 0)
-                    continue;
+                if (written > bodyStart)
+                    buffer[written++] = '/';
+                part.CopyTo(buffer[written..]);
+                written += part.Length;
             }
-            parts.Add(part.ToString());
+            if (written > 0 && HasTrailingSeparator(path) && buffer[written - 1] is not ('/' or '\\'))
+                buffer[written++] = '/';
+            ReadOnlySpan<char> normalized = buffer[..written];
+            return normalized.SequenceEqual(path) ? path : normalized.ToString();
         }
-        string prefix = root > 0 ? EnsureTrailingSeparator(path[..root]) : "";
-        string result = prefix + string.Join('/', parts);
-        return result.Length > 0 && HasTrailingSeparator(path) ? EnsureTrailingSeparator(result) : result;
+        finally
+        {
+            if (rented is not null)
+                ArrayPool<char>.Shared.Return(rented);
+        }
     }
 
     public static string Resolve(string first, params ReadOnlySpan<string> paths) => Normalize(Combine(first, paths));
@@ -138,6 +168,21 @@ public static class CompilerPath
         return dot < 0 ? "" : name[dot..];
     }
 
+    public static TextSlice Extension(TextSlice path)
+    {
+        path = path.Replace('\\', '/');
+        int root = EncodedRootLength(path.Span);
+        if (root < 0)
+            root = ~root;
+        if (root == path.Length)
+            return default;
+        if (path[^1] == '/')
+            path = path[..^1];
+        int start = Math.Max(root, path.Span.LastIndexOf('/') + 1);
+        int dot = path.Span[start..].LastIndexOf('.');
+        return dot < 0 ? default : path[(start + dot)..];
+    }
+
     public static bool IsDeclarationFile(string path) =>
         path.EndsWith(".d.ts", StringComparison.Ordinal)
             || path.EndsWith(".d.mts", StringComparison.Ordinal)
@@ -155,14 +200,10 @@ public static class CompilerPath
             return false;
         parent = Normalize(parent);
         child = Normalize(child);
-        string[] from = parent[RootLength(parent)..].Split('/', StringSplitOptions.RemoveEmptyEntries);
-        string[] target = child[RootLength(child)..].Split('/', StringSplitOptions.RemoveEmptyEntries);
-        if (from.Length > target.Length)
-            return false;
-        for (int i = 0; i < from.Length; i++)
-            if (!from[i].Equals(target[i], comparison))
-                return false;
-        return true;
+        ReadOnlySpan<char> from = parent.AsSpan(RootLength(parent)).TrimEnd('/');
+        ReadOnlySpan<char> target = child.AsSpan(RootLength(child)).TrimEnd('/');
+        return from.IsEmpty || target.StartsWith(from, comparison)
+            && (target.Length == from.Length || target.Length > from.Length && target[from.Length] == '/');
     }
 
     public static string Relative(string fromDirectory, string to, bool caseSensitive)
@@ -177,11 +218,34 @@ public static class CompilerPath
         int fromRoot = RootLength(fromDirectory), toRoot = RootLength(to);
         if (!fromDirectory.AsSpan(0, fromRoot).Equals(to.AsSpan(0, toRoot), StringComparison.OrdinalIgnoreCase))
             return to;
-        string[] from = fromDirectory[fromRoot..].Split('/', StringSplitOptions.RemoveEmptyEntries);
-        string[] target = to[toRoot..].Split('/', StringSplitOptions.RemoveEmptyEntries);
-        int common = 0;
-        while (common < from.Length && common < target.Length && from[common].Equals(target[common], comparison))
-            common++;
-        return string.Join('/', Enumerable.Repeat("..", from.Length - common).Concat(target.Skip(common)));
+        ReadOnlySpan<char> from = fromDirectory.AsSpan(fromRoot).TrimEnd('/');
+        ReadOnlySpan<char> target = to.AsSpan(toRoot).TrimEnd('/');
+        int fromOffset = 0, targetOffset = 0;
+        while (fromOffset < from.Length && targetOffset < target.Length)
+        {
+            int fromEnd = from[fromOffset..].IndexOf('/');
+            fromEnd = fromEnd < 0 ? from.Length : fromOffset + fromEnd;
+            int targetEnd = target[targetOffset..].IndexOf('/');
+            targetEnd = targetEnd < 0 ? target.Length : targetOffset + targetEnd;
+            if (!from[fromOffset..fromEnd].Equals(target[targetOffset..targetEnd], comparison))
+                break;
+            fromOffset = Math.Min(fromEnd + 1, from.Length);
+            targetOffset = Math.Min(targetEnd + 1, target.Length);
+        }
+        int parents = fromOffset < from.Length ? from[fromOffset..].Count('/') + 1 : 0;
+        int suffixLength = target.Length - targetOffset;
+        int length = checked(parents * 3 + suffixLength - (parents > 0 && suffixLength == 0 ? 1 : 0));
+        return string.Create(length, (to, Offset: toRoot + targetOffset, suffixLength, parents), static (output, state) =>
+        {
+            int written = 0;
+            for (int i = 0; i < state.parents; i++)
+            {
+                output[written++] = '.';
+                output[written++] = '.';
+                if (written < output.Length)
+                    output[written++] = '/';
+            }
+            state.to.AsSpan(state.Offset, state.suffixLength).CopyTo(output[written..]);
+        });
     }
 }

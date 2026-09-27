@@ -397,7 +397,7 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
             {
                 if (ErasableSyntaxOnly && (node.Flags & NodeFlags.JavaScriptFile) == 0)
                     Error(node, DiagnosticCode.ThisSyntaxIsNotAllowedWhenErasableSyntaxOnlyIsEnabled);
-                if (node.Parent is ConstructorDeclarationNode && node.Name is IdentifierNode { Text: "constructor" })
+                if (node.Parent is ConstructorDeclarationNode && node.Name is IdentifierNode { Text.Span: "constructor" })
                     Error(node.Name, DiagnosticCode.XConstructorCannotBeUsedAsAParameterPropertyName);
                 if (node.Parent is not ConstructorDeclarationNode { Body: not null })
                     Error(node, DiagnosticCode.AParameterPropertyIsOnlyAllowedInAConstructorImplementation);

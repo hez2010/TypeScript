@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -19,7 +20,7 @@ internal sealed partial class Checker
             return false;
         if (IllegalDeclarationModifier(node, first.Kind))
             return Report(first, DiagnosticCode.ModifiersCannotAppearHere);
-        if (node is ParameterDeclarationNode { Name: IdentifierNode { Text: "this" } })
+        if (node is ParameterDeclarationNode { Name: IdentifierNode { Text.Span: "this" } })
             return Report(node, DiagnosticCode.NeitherDecoratorsNorModifiersMayBeAppliedToThisParameters);
         var seen = new HashSet<SyntaxKind>();
         bool moduleElement = node.Parent is SourceFileNode or ModuleBlockNode;
@@ -224,9 +225,9 @@ internal sealed partial class Checker
             return Report(first, DiagnosticCode.ModifiersCannotAppearHere);
         return false;
 
-        string Seen(params SyntaxKind[] kinds) => TokenFacts.Text(kinds.First(seen.Contains));
+        TextSlice Seen(params SyntaxKind[] kinds) => TokenFacts.Text(kinds.First(seen.Contains));
 
-        bool Report(SyntaxNode location, DiagnosticCode code, params string[] arguments)
+        bool Report(SyntaxNode location, DiagnosticCode code, params TextSlice[] arguments)
         {
             Error(location, code, arguments.Length != 0 ? arguments
                 : code is DiagnosticCode.X0ModifierAlreadySeen or DiagnosticCode.X0ModifierCannotBeUsedInAnAmbientContext

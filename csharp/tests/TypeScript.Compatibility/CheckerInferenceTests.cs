@@ -116,7 +116,7 @@ internal static class CheckerInferenceTests
             ObjectFlags.Anonymous | ObjectFlags.ObjectLiteral | ObjectFlags.ContainsObjectOrArrayLiteral | ObjectFlags.ContainsWideningType);
         var property = new Symbol(SymbolFlags.Property | SymbolFlags.Transient, "value");
         links.Values.Get(property).ResolvedType = context.NonInferrableAnyType;
-        literal.Members = new Dictionary<string, Symbol> { ["value"] = property }.AsReadOnly();
+        literal.Members = new Dictionary<TextSlice, Symbol> { ["value"] = property }.AsReadOnly();
         literal.Properties = [property];
         literal.ObjectFlags |= ObjectFlags.MembersResolved;
         var widened = await host.Widening.GetAsync(literal);

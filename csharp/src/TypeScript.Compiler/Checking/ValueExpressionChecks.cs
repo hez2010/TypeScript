@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -51,7 +52,7 @@ internal sealed class ValueExpressionChecks(TypeContext context, CheckerLinks li
     internal async ValueTask<Type> MetaAsync(MetaPropertyNode node, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
-        string name = ((IdentifierNode)node.Name!).Text;
+        TextSlice name = ((IdentifierNode)node.Name!).Text;
         if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
         {
             if (node.KeywordToken == SyntaxKind.NewKeyword && name != "target")
@@ -84,7 +85,7 @@ internal sealed class ValueExpressionChecks(TypeContext context, CheckerLinks li
         if (name == "defer")
             return context.ErrorType;
         var options = symbols.Program.Configuration.Options;
-        string module = options.String("module") ?? options.Number("module") switch
+        TextSlice module = options.String("module") ?? options.Number("module") switch
         {
             4 => "system",
             6 => "es2020",
@@ -100,12 +101,12 @@ internal sealed class ValueExpressionChecks(TypeContext context, CheckerLinks li
         };
         if (module == "none")
             module = options.EmitTargetYear >= 2022 ? "es2022" : "commonjs";
-        if (module is "node16" or "node18" or "node20" or "nodenext")
+        if (module.Span is "node16" or "node18" or "node20" or "nodenext")
         {
             if (symbols.Program.SourceFiles.First(f => f.Syntax == SemanticSyntax.Source(node)).ImpliedFormat != ReferenceResolutionMode.Import)
                 host.ExpressionError(node, DiagnosticCode.TheImportMetaMetaPropertyIsNotAllowedInFilesWhichWillBuildIntoCommonJSOutput);
         }
-        else if (module is not ("es2020" or "es2022" or "esnext" or "system" or "preserve"))
+        else if (module.Span is not ("es2020" or "es2022" or "esnext" or "system" or "preserve"))
             host.ExpressionError(
                 node,
                 DiagnosticCode.TheImportMetaMetaPropertyIsOnlyAllowedWhenTheModuleOptionIsEs2020Es2022EsnextSystemNode16Node18Node20OrNodenext);

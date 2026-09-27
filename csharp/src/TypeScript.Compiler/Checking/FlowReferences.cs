@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Globalization;
 using System.Text;
 using TypeScript.Compiler.Ast;
@@ -16,7 +17,7 @@ internal interface IFlowReferenceHost
 
     Symbol UnknownSymbol { get; }
 
-    ValueTask<string?> AccessNameAsync(SyntaxNode node, CancellationToken cancellation);
+    ValueTask<TextSlice?> AccessNameAsync(SyntaxNode node, CancellationToken cancellation);
 
     ValueTask<bool> ConstantOrUnassignedAsync(Symbol symbol, CancellationToken cancellation);
 }
@@ -122,11 +123,11 @@ internal sealed class FlowReferences(IFlowReferenceHost host)
         return false;
     }
 
-    internal async ValueTask<string?> KeyAsync(FlowState state, CancellationToken cancellation = default)
+    internal async ValueTask<TextSlice?> KeyAsync(FlowState state, CancellationToken cancellation = default)
     {
-        List<string> segments = [];
+        List<TextSlice> segments = [];
         var node = state.Reference;
-        string root;
+        TextSlice root;
         while (true)
         {
             cancellation.ThrowIfCancellationRequested();
@@ -156,43 +157,40 @@ internal sealed class FlowReferences(IFlowReferenceHost host)
                         var indexSymbol = host.ResolveReference(argument, cancellation);
                         if (!await host.ConstantOrUnassignedAsync(indexSymbol, cancellation).ConfigureAwait(false))
                             return null;
-                        segments.Add(".@" + indexSymbol.Id.ToString(CultureInfo.InvariantCulture));
+                        segments.Add(TextSlice.Concat(".@", TextSlice.Format(indexSymbol.Id)));
                     }
                     else
                         return null;
                     node = Receiver(node)!;
                     continue;
                 case BindingPatternNode or FunctionDeclarationNode or FunctionExpressionNode or ArrowFunctionNode or MethodDeclarationNode:
-                    root = "n" + NodeId(node) + "#" + state.Declared.Id.ToString(CultureInfo.InvariantCulture);
+                    root = TextSlice.ConcatMany("n", NodeId(node), "#", TextSlice.Format(state.Declared.Id));
                     break;
                 default:
                     return null;
             }
             break;
         }
-        var result = new StringBuilder(root);
+        var result = new StringBuilder().Append(root.Span);
         for (int i = segments.Count - 1; i >= 0; i--)
-            result.Append(segments[i]);
-        return result.ToString();
+            result.Append(segments[i].Span);
+        return TextSlice.FromBuilder(result);
 
-        string RootKey(Symbol? symbol) => (symbol is null ? "" : "s" + symbol.Id.ToString(CultureInfo.InvariantCulture))
-            + ":" + state.Declared.Id.ToString(CultureInfo.InvariantCulture)
-            + (state.Initial == state.Declared ? "" : "=" + state.Initial.Id.ToString(CultureInfo.InvariantCulture))
-            + (state.Container is null ? "" : "@" + NodeId(state.Container));
+        TextSlice RootKey(Symbol? symbol) => TextSlice.ConcatMany((symbol is null ? "" : "s" + TextSlice.Format(symbol.Id)), ":", TextSlice.Format(state.Declared.Id), (state.Initial == state.Declared ? "" : "=" + TextSlice.Format(state.Initial.Id)), (state.Container is null ? "" : TextSlice.Concat("@", NodeId(state.Container))));
     }
 
-    private string NodeId(SyntaxNode node)
+    private TextSlice NodeId(SyntaxNode node)
     {
         if (!nodeIds.TryGetValue(node, out int id))
             nodeIds.Add(node, id = nodeIds.Count + 1);
-        return id.ToString(CultureInfo.InvariantCulture);
+        return TextSlice.Format(id);
     }
 
-    private static string Property(string name) => "." + name.Length.ToString(CultureInfo.InvariantCulture) + ":" + name;
+    private static TextSlice Property(TextSlice name) => TextSlice.ConcatMany(".", TextSlice.Format(name.Length), ":", name);
 
     internal static bool ThisInQuery(SyntaxNode node)
     {
-        if (node is not IdentifierNode { Text: "this" })
+        if (node is not IdentifierNode { Text.Span: "this" })
             return false;
         while (node.Parent is QualifiedNameNode qualified && qualified.Left == node)
             node = qualified;

@@ -4,7 +4,7 @@ namespace TypeScript.Compiler.Checking;
 
 internal static class NodeCoreModules
 {
-    internal static bool Contains(string name) => name is
+    internal static bool Contains(ReadOnlySpan<char> name) => name is
         "assert"
         or "assert/strict"
         or "async_hooks"

@@ -60,7 +60,7 @@ internal static class ParserSafetyTests
             Check(nested.End == parentheses.Source.ToBytePosition(unicodePrefix.Length + depth * 2 + 1 - i), "parenthesized byte end");
             nested = ((ParenthesizedTypeNode)nested).Type!;
         }
-        Check(nested is TypeReferenceNode { TypeName: IdentifierNode { Text: "A" } }, "parenthesized leaf");
+        Check(nested is TypeReferenceNode { TypeName: IdentifierNode { Text: { Span: "A" } } }, "parenthesized leaf");
 
         SourceFileNode precedence = Parse("parenthesis-precedence.ts", "type T=((A)|B); type U=(A&(B|C))[];");
         Check(
@@ -103,7 +103,7 @@ internal static class ParserSafetyTests
             "index parameter optional and rest syntax");
         Check(indices[3].Parameters?.Count == 2 && indices[4].Parameters?.Count == 0, "index parameter list recovery");
         Check(indices[5].Parameters![0] is ParameterDeclarationNode { Modifiers.Count: 1 }
-            && indices[6].Parameters![0] is ParameterDeclarationNode { Name: IdentifierNode { Text: "readonly" } }
+            && indices[6].Parameters![0] is ParameterDeclarationNode { Name: IdentifierNode { Text: { Span: "readonly" } } }
             && indices[7].Parameters![0] is ParameterDeclarationNode { Initializer: StringLiteralNode },
             "index parameter modifiers, name and initializer");
         Check(
@@ -177,7 +177,7 @@ internal static class ParserSafetyTests
             var declaration = file.DescendantsAndSelf().OfType<ClassDeclarationNode>().Single();
             Check(
                 file.ParseDiagnostics.Count != 0
-                    && declaration.Members!.OfType<MethodDeclarationNode>().Select(m => ((IdentifierNode)m.Name!).Text).SequenceEqual(recovery.Methods),
+                    && declaration.Members!.OfType<MethodDeclarationNode>().Select(m => ((IdentifierNode)m.Name!).Text.ToString()).SequenceEqual(recovery.Methods),
                 "class body recovery retains following methods");
         }
 

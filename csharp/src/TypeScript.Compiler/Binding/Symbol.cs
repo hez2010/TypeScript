@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
 using TypeScript.Compiler.Ast;
@@ -23,47 +24,47 @@ public sealed class Symbol
 
     public SymbolFlags Flags { get; internal set; }
     public CheckFlags CheckFlags { get; internal set; }
-    public string Name { get; }
+    public TextSlice Name { get; }
     public Symbol? Parent { get; internal set; }
     public Symbol? ExportSymbol { get; internal set; }
     public SyntaxNode? ValueDeclaration { get; internal set; }
     internal List<SyntaxNode> DeclarationList { get; } = [];
     public IReadOnlyList<SyntaxNode> Declarations { get; }
 
-    internal Dictionary<string, Symbol> MemberTable
+    internal Dictionary<TextSlice, Symbol> MemberTable
     {
         get
         {
             if (members is null)
             {
-                members = new(StringComparer.Ordinal);
+                members = new();
                 membersView = members.AsReadOnly();
             }
             return members;
         }
     }
 
-    internal Dictionary<string, Symbol> ExportTable
+    internal Dictionary<TextSlice, Symbol> ExportTable
     {
         get
         {
             if (exports is null)
             {
-                exports = new(StringComparer.Ordinal);
+                exports = new();
                 exportsView = exports.AsReadOnly();
             }
             return exports;
         }
     }
 
-    private Dictionary<string, Symbol>? members, exports;
-    private IReadOnlyDictionary<string, Symbol>? membersView, exportsView;
-    public IReadOnlyDictionary<string, Symbol> Members => membersView ?? Empty;
-    public IReadOnlyDictionary<string, Symbol> Exports => exportsView ?? Empty;
-    private static readonly IReadOnlyDictionary<string, Symbol> Empty = ReadOnlyDictionary<string, Symbol>.Empty;
+    private Dictionary<TextSlice, Symbol>? members, exports;
+    private IReadOnlyDictionary<TextSlice, Symbol>? membersView, exportsView;
+    public IReadOnlyDictionary<TextSlice, Symbol> Members => membersView ?? Empty;
+    public IReadOnlyDictionary<TextSlice, Symbol> Exports => exportsView ?? Empty;
+    private static readonly IReadOnlyDictionary<TextSlice, Symbol> Empty = ReadOnlyDictionary<TextSlice, Symbol>.Empty;
     public SymbolFlags CombinedFlags => Flags | (ExportSymbol?.Flags ?? 0);
 
-    internal Symbol(SymbolFlags flags, string name)
+    internal Symbol(SymbolFlags flags, TextSlice name)
     {
         Flags = flags;
         Name = name;
@@ -75,9 +76,9 @@ public sealed class Symbol
     // Escaped names at client/serialization boundaries retain the documented __ spelling.
     public const string InternalPrefix = "\uFDD0";
 
-    public static string EscapeName(string name) => name.StartsWith(InternalPrefix + InternalPrefix, StringComparison.Ordinal)
-            ? name[InternalPrefix.Length..] : name.StartsWith(InternalPrefix, StringComparison.Ordinal)
-                ? "__" + name[InternalPrefix.Length..] : name.StartsWith("__", StringComparison.Ordinal) ? "_" + name : name;
+    public static TextSlice EscapeName(TextSlice name) => name.Span.StartsWith(InternalPrefix + InternalPrefix, StringComparison.Ordinal)
+            ? name[InternalPrefix.Length..] : name.Span.StartsWith(InternalPrefix, StringComparison.Ordinal)
+                ? TextSlice.Concat("__", name[InternalPrefix.Length..]) : name.Span.StartsWith("__", StringComparison.Ordinal) ? TextSlice.Concat("_", name) : name;
 }
 
 public sealed class FlowNode
@@ -110,23 +111,23 @@ public sealed class NodeBinding
     public FlowNode? ReturnFlow { get; internal set; }
     public NodeFlags Flags { get; internal set; }
 
-    internal Dictionary<string, Symbol> LocalTable
+    internal Dictionary<TextSlice, Symbol> LocalTable
     {
         get
         {
             if (locals is null)
             {
-                locals = new(StringComparer.Ordinal);
+                locals = new();
                 localsView = locals.AsReadOnly();
             }
             return locals;
         }
     }
 
-    private Dictionary<string, Symbol>? locals;
-    private IReadOnlyDictionary<string, Symbol>? localsView;
+    private Dictionary<TextSlice, Symbol>? locals;
+    private IReadOnlyDictionary<TextSlice, Symbol>? localsView;
     internal bool HasLocals => locals is not null;
-    public IReadOnlyDictionary<string, Symbol> Locals => localsView ?? ReadOnlyDictionary<string, Symbol>.Empty;
+    public IReadOnlyDictionary<TextSlice, Symbol> Locals => localsView ?? ReadOnlyDictionary<TextSlice, Symbol>.Empty;
 }
 
 /// <summary>Binding state is owned separately from the immutable parsed tree and published only after a successful bind.</summary>
@@ -135,12 +136,12 @@ public sealed class BoundSourceFile
     private readonly Dictionary<SyntaxNode, NodeBinding> nodes = new(ReferenceEqualityComparer.Instance);
     public SourceFileNode SourceFile { get; }
     public Symbol? Symbol => Get(SourceFile)?.Symbol;
-    public IReadOnlyDictionary<string, Symbol> Locals => Get(SourceFile)!.Locals;
+    public IReadOnlyDictionary<TextSlice, Symbol> Locals => Get(SourceFile)!.Locals;
     public SyntaxNode? CommonJSModuleIndicator { get; internal set; }
     public bool IsModule => SourceFile.ExternalModuleIndicator is not null || CommonJSModuleIndicator is not null;
     public IReadOnlyList<Diagnostic> Diagnostics { get; internal set; } = [];
     public IReadOnlyList<SyntaxNode> Containers { get; internal set; } = [];
-    public IReadOnlyDictionary<string, Symbol> GlobalExports { get; internal set; } = ReadOnlyDictionary<string, Symbol>.Empty;
+    public IReadOnlyDictionary<TextSlice, Symbol> GlobalExports { get; internal set; } = ReadOnlyDictionary<TextSlice, Symbol>.Empty;
     public int SymbolCount { get; internal set; }
 
     internal BoundSourceFile(SourceFileNode file) => SourceFile = file;

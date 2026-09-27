@@ -2,6 +2,7 @@
 #nullable enable
 // ast.json SHA256 9ab3dfc6a2ff155ec1e315c6fee3deba8fe77c74256761ed38f475296a569574
 using TypeScript.Compiler.Syntax;
+using TypeScript.Compiler.Text;
 namespace TypeScript.Compiler.Ast;
 
 public sealed partial class TokenNode : SyntaxNode
@@ -28,7 +29,7 @@ public sealed partial class IdentifierNode : SyntaxNode
     public IdentifierNode() : base(SyntaxKind.Identifier)
     {
     }
-    public string Text { get; set; } = "";
+    public TextSlice Text { get; set; } = "";
     public override int ChildCount => 0;
     public override SyntaxNode GetChild(int index)
     {
@@ -48,7 +49,7 @@ public sealed partial class PrivateIdentifierNode : SyntaxNode
     public PrivateIdentifierNode() : base(SyntaxKind.PrivateIdentifier)
     {
     }
-    public string Text { get; set; } = "";
+    public TextSlice Text { get; set; } = "";
     public override int ChildCount => 0;
     public override SyntaxNode GetChild(int index)
     {
@@ -2095,7 +2096,7 @@ public sealed partial class StringLiteralNode : SyntaxNode
     public StringLiteralNode() : base(SyntaxKind.StringLiteral)
     {
     }
-    public string Text { get; set; } = "";
+    public TextSlice Text { get; set; } = "";
     public TokenFlags TokenFlags { get; set; }
     public override int ChildCount => 0;
     public override SyntaxNode GetChild(int index)
@@ -2116,7 +2117,7 @@ public sealed partial class NumericLiteralNode : SyntaxNode
     public NumericLiteralNode() : base(SyntaxKind.NumericLiteral)
     {
     }
-    public string Text { get; set; } = "";
+    public TextSlice Text { get; set; } = "";
     public TokenFlags TokenFlags { get; set; }
     public override int ChildCount => 0;
     public override SyntaxNode GetChild(int index)
@@ -2137,7 +2138,7 @@ public sealed partial class BigIntLiteralNode : SyntaxNode
     public BigIntLiteralNode() : base(SyntaxKind.BigIntLiteral)
     {
     }
-    public string Text { get; set; } = "";
+    public TextSlice Text { get; set; } = "";
     public TokenFlags TokenFlags { get; set; }
     public override int ChildCount => 0;
     public override SyntaxNode GetChild(int index)
@@ -2158,7 +2159,7 @@ public sealed partial class RegularExpressionLiteralNode : SyntaxNode
     public RegularExpressionLiteralNode() : base(SyntaxKind.RegularExpressionLiteral)
     {
     }
-    public string Text { get; set; } = "";
+    public TextSlice Text { get; set; } = "";
     public TokenFlags TokenFlags { get; set; }
     public override int ChildCount => 0;
     public override SyntaxNode GetChild(int index)
@@ -2179,7 +2180,7 @@ public sealed partial class NoSubstitutionTemplateLiteralNode : SyntaxNode
     public NoSubstitutionTemplateLiteralNode() : base(SyntaxKind.NoSubstitutionTemplateLiteral)
     {
     }
-    public string Text { get; set; } = "";
+    public TextSlice Text { get; set; } = "";
     public TokenFlags TemplateFlags { get; set; }
     public override int ChildCount => 0;
     public override SyntaxNode GetChild(int index)
@@ -3787,8 +3788,8 @@ public sealed partial class TemplateHeadNode : SyntaxNode
     public TemplateHeadNode() : base(SyntaxKind.TemplateHead)
     {
     }
-    public string Text { get; set; } = "";
-    public string RawText { get; set; } = "";
+    public TextSlice Text { get; set; } = "";
+    public TextSlice RawText { get; set; } = "";
     public TokenFlags TemplateFlags { get; set; }
     public override int ChildCount => 0;
     public override SyntaxNode GetChild(int index)
@@ -3809,8 +3810,8 @@ public sealed partial class TemplateMiddleNode : SyntaxNode
     public TemplateMiddleNode() : base(SyntaxKind.TemplateMiddle)
     {
     }
-    public string Text { get; set; } = "";
-    public string RawText { get; set; } = "";
+    public TextSlice Text { get; set; } = "";
+    public TextSlice RawText { get; set; } = "";
     public TokenFlags TemplateFlags { get; set; }
     public override int ChildCount => 0;
     public override SyntaxNode GetChild(int index)
@@ -3831,8 +3832,8 @@ public sealed partial class TemplateTailNode : SyntaxNode
     public TemplateTailNode() : base(SyntaxKind.TemplateTail)
     {
     }
-    public string Text { get; set; } = "";
-    public string RawText { get; set; } = "";
+    public TextSlice Text { get; set; } = "";
+    public TextSlice RawText { get; set; } = "";
     public TokenFlags TemplateFlags { get; set; }
     public override int ChildCount => 0;
     public override SyntaxNode GetChild(int index)
@@ -4272,7 +4273,7 @@ public sealed partial class JsxTextNode : SyntaxNode
     public JsxTextNode() : base(SyntaxKind.JsxText)
     {
     }
-    public string Text { get; set; } = "";
+    public TextSlice Text { get; set; } = "";
     public bool ContainsOnlyTriviaWhiteSpaces { get; set; }
     public override int ChildCount => 0;
     public override SyntaxNode GetChild(int index)
@@ -5436,7 +5437,7 @@ public sealed partial class JSDocTextNode : SyntaxNode
     public JSDocTextNode() : base(SyntaxKind.JSDocText)
     {
     }
-    public string[] Text { get; set; } = [];
+    public TextSlice[] Text { get; set; } = [];
     public override int ChildCount => 0;
     public override SyntaxNode GetChild(int index)
     {
@@ -5444,7 +5445,7 @@ public sealed partial class JSDocTextNode : SyntaxNode
     }
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
-        Text = (string[])Text.Clone();
+        Text = (TextSlice[])Text.Clone();
     }
     internal override void ConvertPositions(Func<int, int> convert)
     {
@@ -5458,7 +5459,7 @@ public sealed partial class JSDocLinkNode : SyntaxNode, INamedNode
     {
     }
     public SyntaxNode? Name { get; set; }
-    public string[] Text { get; set; } = [];
+    public TextSlice[] Text { get; set; } = [];
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -5469,7 +5470,7 @@ public sealed partial class JSDocLinkNode : SyntaxNode, INamedNode
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Name is not null) Name = (SyntaxNode)copies[Name];
-        Text = (string[])Text.Clone();
+        Text = (TextSlice[])Text.Clone();
     }
     internal override void ConvertPositions(Func<int, int> convert)
     {
@@ -5483,7 +5484,7 @@ public sealed partial class JSDocLinkPlainNode : SyntaxNode, INamedNode
     {
     }
     public SyntaxNode? Name { get; set; }
-    public string[] Text { get; set; } = [];
+    public TextSlice[] Text { get; set; } = [];
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -5494,7 +5495,7 @@ public sealed partial class JSDocLinkPlainNode : SyntaxNode, INamedNode
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Name is not null) Name = (SyntaxNode)copies[Name];
-        Text = (string[])Text.Clone();
+        Text = (TextSlice[])Text.Clone();
     }
     internal override void ConvertPositions(Func<int, int> convert)
     {
@@ -5508,7 +5509,7 @@ public sealed partial class JSDocLinkCodeNode : SyntaxNode, INamedNode
     {
     }
     public SyntaxNode? Name { get; set; }
-    public string[] Text { get; set; } = [];
+    public TextSlice[] Text { get; set; } = [];
     SyntaxNode? INamedNode.Name => Name;
     public override int ChildCount => (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -5519,7 +5520,7 @@ public sealed partial class JSDocLinkCodeNode : SyntaxNode, INamedNode
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
         if (Name is not null) Name = (SyntaxNode)copies[Name];
-        Text = (string[])Text.Clone();
+        Text = (TextSlice[])Text.Clone();
     }
     internal override void ConvertPositions(Func<int, int> convert)
     {
@@ -5665,11 +5666,11 @@ public sealed partial class NodeFactory
     public TokenNode NewToken(SyntaxKind kind) => Created(new TokenNode(kind)
     {
     });
-    public IdentifierNode NewIdentifier(string @text) => Created(new IdentifierNode()
+    public IdentifierNode NewIdentifier(TextSlice @text) => Created(new IdentifierNode()
     {
         Text = @text,
     });
-    public PrivateIdentifierNode NewPrivateIdentifier(string @text) => Created(new PrivateIdentifierNode()
+    public PrivateIdentifierNode NewPrivateIdentifier(TextSlice @text) => Created(new PrivateIdentifierNode()
     {
         Text = @text,
     });
@@ -6034,27 +6035,27 @@ public sealed partial class NodeFactory
     public KeywordExpressionNode NewKeywordExpression(SyntaxKind kind) => Created(new KeywordExpressionNode(kind)
     {
     });
-    public StringLiteralNode NewStringLiteral(string @text, TokenFlags @tokenFlags) => Created(new StringLiteralNode()
+    public StringLiteralNode NewStringLiteral(TextSlice @text, TokenFlags @tokenFlags) => Created(new StringLiteralNode()
     {
         Text = @text,
         TokenFlags = @tokenFlags,
     });
-    public NumericLiteralNode NewNumericLiteral(string @text, TokenFlags @tokenFlags) => Created(new NumericLiteralNode()
+    public NumericLiteralNode NewNumericLiteral(TextSlice @text, TokenFlags @tokenFlags) => Created(new NumericLiteralNode()
     {
         Text = @text,
         TokenFlags = @tokenFlags,
     });
-    public BigIntLiteralNode NewBigIntLiteral(string @text, TokenFlags @tokenFlags) => Created(new BigIntLiteralNode()
+    public BigIntLiteralNode NewBigIntLiteral(TextSlice @text, TokenFlags @tokenFlags) => Created(new BigIntLiteralNode()
     {
         Text = @text,
         TokenFlags = @tokenFlags,
     });
-    public RegularExpressionLiteralNode NewRegularExpressionLiteral(string @text, TokenFlags @tokenFlags) => Created(new RegularExpressionLiteralNode()
+    public RegularExpressionLiteralNode NewRegularExpressionLiteral(TextSlice @text, TokenFlags @tokenFlags) => Created(new RegularExpressionLiteralNode()
     {
         Text = @text,
         TokenFlags = @tokenFlags,
     });
-    public NoSubstitutionTemplateLiteralNode NewNoSubstitutionTemplateLiteral(string @text, TokenFlags @templateFlags) => Created(new NoSubstitutionTemplateLiteralNode()
+    public NoSubstitutionTemplateLiteralNode NewNoSubstitutionTemplateLiteral(TextSlice @text, TokenFlags @templateFlags) => Created(new NoSubstitutionTemplateLiteralNode()
     {
         Text = @text,
         TemplateFlags = @templateFlags,
@@ -6361,19 +6362,19 @@ public sealed partial class NodeFactory
         Parameters = @parameters,
         Type = @type,
     });
-    public TemplateHeadNode NewTemplateHead(string @text, string @rawText, TokenFlags @templateFlags) => Created(new TemplateHeadNode()
+    public TemplateHeadNode NewTemplateHead(TextSlice @text, TextSlice @rawText, TokenFlags @templateFlags) => Created(new TemplateHeadNode()
     {
         Text = @text,
         RawText = @rawText,
         TemplateFlags = @templateFlags,
     });
-    public TemplateMiddleNode NewTemplateMiddle(string @text, string @rawText, TokenFlags @templateFlags) => Created(new TemplateMiddleNode()
+    public TemplateMiddleNode NewTemplateMiddle(TextSlice @text, TextSlice @rawText, TokenFlags @templateFlags) => Created(new TemplateMiddleNode()
     {
         Text = @text,
         RawText = @rawText,
         TemplateFlags = @templateFlags,
     });
-    public TemplateTailNode NewTemplateTail(string @text, string @rawText, TokenFlags @templateFlags) => Created(new TemplateTailNode()
+    public TemplateTailNode NewTemplateTail(TextSlice @text, TextSlice @rawText, TokenFlags @templateFlags) => Created(new TemplateTailNode()
     {
         Text = @text,
         RawText = @rawText,
@@ -6456,7 +6457,7 @@ public sealed partial class NodeFactory
         DotDotDotToken = @dotDotDotToken,
         Expression = @expression,
     });
-    public JsxTextNode NewJsxText(string @text, bool @containsOnlyTriviaWhiteSpaces) => Created(new JsxTextNode()
+    public JsxTextNode NewJsxText(TextSlice @text, bool @containsOnlyTriviaWhiteSpaces) => Created(new JsxTextNode()
     {
         Text = @text,
         ContainsOnlyTriviaWhiteSpaces = @containsOnlyTriviaWhiteSpaces,
@@ -6669,21 +6670,21 @@ public sealed partial class NodeFactory
         PropertyName = @propertyName,
         Name = @name,
     });
-    public JSDocTextNode NewJSDocText(string[] @text) => Created(new JSDocTextNode()
+    public JSDocTextNode NewJSDocText(TextSlice[] @text) => Created(new JSDocTextNode()
     {
         Text = @text,
     });
-    public JSDocLinkNode NewJSDocLink(SyntaxNode? @name, string[] @text) => Created(new JSDocLinkNode()
-    {
-        Name = @name,
-        Text = @text,
-    });
-    public JSDocLinkPlainNode NewJSDocLinkPlain(SyntaxNode? @name, string[] @text) => Created(new JSDocLinkPlainNode()
+    public JSDocLinkNode NewJSDocLink(SyntaxNode? @name, TextSlice[] @text) => Created(new JSDocLinkNode()
     {
         Name = @name,
         Text = @text,
     });
-    public JSDocLinkCodeNode NewJSDocLinkCode(SyntaxNode? @name, string[] @text) => Created(new JSDocLinkCodeNode()
+    public JSDocLinkPlainNode NewJSDocLinkPlain(SyntaxNode? @name, TextSlice[] @text) => Created(new JSDocLinkPlainNode()
+    {
+        Name = @name,
+        Text = @text,
+    });
+    public JSDocLinkCodeNode NewJSDocLinkCode(SyntaxNode? @name, TextSlice[] @text) => Created(new JSDocLinkCodeNode()
     {
         Name = @name,
         Text = @text,

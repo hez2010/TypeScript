@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -24,7 +25,7 @@ internal sealed partial class Checker : IBindingPatternHost, IExpressionContextH
     public ValueTask<bool> LateIndexTypeAsync(Type type, CancellationToken cancellation) =>
         AssignableAsync(type, context.StringNumberSymbolType, cancellation);
 
-    public ValueTask<IReadOnlyDictionary<string, Symbol>> ModuleExportsAsync(Symbol symbol, CancellationToken cancellation) =>
+    public ValueTask<IReadOnlyDictionary<TextSlice, Symbol>> ModuleExportsAsync(Symbol symbol, CancellationToken cancellation) =>
         program.ModuleExports.ResolveAsync(symbol, cancellation);
 
     public ValueTask<Type> ObjectMethodAsync(MethodDeclarationNode node, CheckMode mode, CancellationToken cancellation) =>

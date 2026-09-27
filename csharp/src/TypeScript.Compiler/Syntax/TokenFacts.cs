@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Globalization;
 
 namespace TypeScript.Compiler.Syntax;
@@ -32,7 +33,7 @@ public static partial class TokenFacts
         return kind >= SyntaxKind.BreakKeyword ? kind : SyntaxKind.Identifier;
     }
 
-    public static string NumberText(double number)
+    public static TextSlice NumberText(double number)
     {
         if (double.IsNaN(number))
             return "NaN";
@@ -42,21 +43,51 @@ public static partial class TokenFacts
             return "-Infinity";
         if (number == 0)
             return "0";
-        string text = number.ToString("R", CultureInfo.InvariantCulture);
+        // Round-trip double formatting needs at most 24 characters, including sign and exponent.
+        Span<char> buffer = stackalloc char[32];
+        number.TryFormat(buffer, out int written, "R", CultureInfo.InvariantCulture);
+        ReadOnlySpan<char> text = buffer[..written];
         int e = text.IndexOf('E');
         if (e < 0)
-            return text;
-        int exponent = int.Parse(text.AsSpan(e + 1), CultureInfo.InvariantCulture);
+            return TextSlice.Copy(text);
+        int exponent = int.Parse(text[(e + 1)..], CultureInfo.InvariantCulture);
         if (exponent is >= -6 and < 21)
         {
             bool negative = text[0] == '-';
-            string digits = text[(negative ? 1 : 0)..e].Replace(".", "", StringComparison.Ordinal);
+            Span<char> digits = stackalloc char[17];
+            int count = 0;
+            foreach (char digit in text[(negative ? 1 : 0)..e])
+                if (digit != '.')
+                    digits[count++] = digit;
             int point = exponent + 1;
-            string expanded = point <= 0
-                ? "0." + new string('0', -point) + digits
-                : point >= digits.Length ? digits + new string('0', point - digits.Length) : digits.Insert(point, ".");
-            return negative ? "-" + expanded : expanded;
+            int offset = negative ? 1 : 0;
+            if (point <= 0)
+            {
+                buffer[offset++] = '0';
+                buffer[offset++] = '.';
+                buffer.Slice(offset, -point).Fill('0');
+                offset -= point;
+                digits[..count].CopyTo(buffer[offset..]);
+                offset += count;
+            }
+            else if (point >= count)
+            {
+                digits[..count].CopyTo(buffer[offset..]);
+                buffer.Slice(offset + count, point - count).Fill('0');
+                offset += point;
+            }
+            else
+            {
+                digits[..point].CopyTo(buffer[offset..]);
+                buffer[offset + point] = '.';
+                digits[point..count].CopyTo(buffer[(offset + point + 1)..]);
+                offset += count + 1;
+            }
+            return TextSlice.Copy(buffer[..offset]);
         }
-        return text[..e] + "e" + (exponent >= 0 ? "+" : "-") + Math.Abs(exponent).ToString(CultureInfo.InvariantCulture);
+        buffer[e] = 'e';
+        buffer[e + 1] = exponent >= 0 ? '+' : '-';
+        Math.Abs(exponent).TryFormat(buffer[(e + 2)..], out int exponentLength, provider: CultureInfo.InvariantCulture);
+        return TextSlice.Copy(buffer[..(e + 2 + exponentLength)]);
     }
 }

@@ -20,7 +20,7 @@ public sealed record MappedSourceFile(SourceFileNode Syntax, SourceText Original
         if (diagnostic.Source is not null)
             return new(Original, start, end - start, false, diagnostic.Format(locale));
         var span = Map.VirtualToOriginalSpan(start, end);
-        string[] arguments = diagnostic.Arguments;
+        TextSlice[] arguments = diagnostic.Arguments;
         if (Map.AliasForVirtualSpan(start, end) is { } alias)
         {
             string virtualName = Wtf8.DecodeString(Syntax.Source.Bytes.Span[alias.VirtualStart..alias.VirtualEnd]);

@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -115,7 +116,7 @@ internal sealed partial class Checker
         if (tag is JsxNamespacedNameNode name && JsxMode is 2 or 4 or 5 && !IntrinsicJsx(name.Namespace))
             Error(tag, DiagnosticCode.ReactComponentsCannotIncludeJSXNamespaceNames);
         InstantiationGrammar(node, CallArguments.TypeNodes(node));
-        var seen = new HashSet<string>();
+        var seen = new HashSet<TextSlice>();
         foreach (var attribute in JsxAttributes(node)!.Properties!.OfType<JsxAttributeNode>())
         {
             if (!seen.Add(JsxName(attribute.Name!)))
@@ -135,7 +136,7 @@ internal sealed partial class Checker
     {
         if (await JsxImplicitModuleAsync(node, cancellation) is not null)
             return;
-        string name = JsxFactoryName(node, node is JsxOpeningFragmentNode).Split('.')[0];
+        TextSlice name = JsxFactoryRoot(JsxFactoryName(node, node is JsxOpeningFragmentNode));
         if (!(node is JsxOpeningFragmentNode && name == "null"))
         {
             var flags = JsxMode is 1 or 3 ? SymbolFlags.Value & ~SymbolFlags.Enum : SymbolFlags.Value;
@@ -159,7 +160,7 @@ internal sealed partial class Checker
         }
         if (node is JsxOpeningFragmentNode)
         {
-            string factory = JsxFactoryName(node).Split('.')[0];
+            TextSlice factory = JsxFactoryRoot(JsxFactoryName(node));
             program.Symbols.NameResolver(cancellation).Resolve(
                 node,
                 factory,
@@ -176,7 +177,7 @@ internal sealed partial class Checker
         var file = SemanticSyntax.Source(node)!;
         if (jsxFragmentTypes.TryGetValue(file, out var cached))
             return cached;
-        string name = JsxFactoryName(node, true).Split('.')[0];
+        TextSlice name = JsxFactoryRoot(JsxFactoryName(node, true));
         if ((JsxMode != 2 && program.Symbols.Program.Configuration.Options.String("jsxFragmentFactory") is null) || name == "null")
             return jsxFragmentTypes[file] = context.AnyType;
         var symbol = await JsxImplicitModuleAsync(node, cancellation);

@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Globalization;
@@ -18,11 +19,11 @@ public enum DiagnosticCategory
 public sealed record DiagnosticMessage(DiagnosticCode Code, DiagnosticCategory Category, string Key, string Text,
     bool ReportsUnnecessary = false, bool ReportsDeprecated = false, bool ElidedInCompatibilityPyramid = false)
 {
-    public string Format(string? locale = null, params ReadOnlySpan<string> arguments) =>
+    public string Format(string? locale = null, params ReadOnlySpan<TextSlice> arguments) =>
         DiagnosticLocalization.Format(DiagnosticLocalization.Text(this, locale), arguments);
 }
 
-public sealed record Diagnostic(DiagnosticMessage Message, int Start, int Length, string[] Arguments)
+public sealed record Diagnostic(DiagnosticMessage Message, int Start, int Length, TextSlice[] Arguments)
 {
     public DiagnosticCode Code => Message.Code;
     public string? FileName { get; init; }
@@ -81,7 +82,8 @@ public static class DiagnosticLocalization
             return null;
         // BCP-47 language matching, including Chinese script/region distinctions.
         string tag = locale.Replace('_', '-').ToLowerInvariant();
-        string language = tag.Split('-')[0];
+        int separator = tag.IndexOf('-');
+        string language = separator < 0 ? tag : tag[..separator];
         return language switch
         {
             "cs" => "cs-CZ",
@@ -101,12 +103,13 @@ public static class DiagnosticLocalization
         };
     }
 
-    public static string Format(string text, ReadOnlySpan<string> arguments)
+    public static string Format(string text, ReadOnlySpan<TextSlice> arguments)
     {
         if (arguments.IsEmpty)
             return text;
         var result = new StringBuilder(text.Length);
         int start = 0;
+        Span<char> runeText = stackalloc char[2];
         while (start < text.Length)
         {
             int open = text.IndexOf('{', start);
@@ -127,8 +130,8 @@ public static class DiagnosticLocalization
                 throw new ArgumentException("Invalid diagnostic placeholder", nameof(arguments));
             result.Append(text.AsSpan(start, open - start));
             // Diagnostic output is valid Unicode; source/literal storage remains lossless WTF-8.
-            foreach (Rune rune in arguments[index].EnumerateRunes())
-                result.Append(rune.ToString());
+            foreach (Rune rune in arguments[index].Span.EnumerateRunes())
+                result.Append(runeText[..rune.EncodeToUtf16(runeText)]);
             start = close + 1;
         }
         return result.Append(text.AsSpan(start)).ToString();

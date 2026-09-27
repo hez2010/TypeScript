@@ -281,7 +281,7 @@ internal static class CheckerSymbolDisplayTests
                                         ],
                                     _ => null
                                 };
-                                string result = await checker.GetSymbolTypeReferenceAsync(
+                                TextSlice result = await checker.GetSymbolTypeReferenceAsync(
                                     target,
                                     location,
                                     meaning,
@@ -295,7 +295,7 @@ internal static class CheckerSymbolDisplayTests
                                 writer.WriteNumberValue((uint)meaning);
                                 writer.WriteNumberValue(mode);
                                 writer.WriteNumberValue(arguments);
-                                writer.WriteStringValue(result);
+                                writer.WriteStringValue(result.Span);
                                 writer.WriteEndArray();
                             }
                         continue;
@@ -310,13 +310,13 @@ internal static class CheckerSymbolDisplayTests
                             writer.WriteNumberValue((uint)meaning);
                             writer.WriteNumberValue(flags);
                             writer.WriteStringValue(
-                                await checker.GetSymbolDisplayNameAsync(target, location, meaning, (SymbolFormatFlags)flags));
+                                (await checker.GetSymbolDisplayNameAsync(target, location, meaning, (SymbolFormatFlags)flags)).Span);
                             writer.WriteEndArray();
                         }
                         continue;
                     }
                     Start(0, location, target, meaning);
-                    writer.WriteStringValue(await checker.GetSymbolDisplayNameAsync(target, location, meaning));
+                    writer.WriteStringValue((await checker.GetSymbolDisplayNameAsync(target, location, meaning)).Span);
                     writer.WriteEndArray();
                     if (location is null)
                         continue;
@@ -332,8 +332,8 @@ internal static class CheckerSymbolDisplayTests
                             foreach (int id in (result.AliasesToMakeVisible ?? []).Select(nodeId).Order())
                                 writer.WriteNumberValue(id);
                             writer.WriteEndArray();
-                            writer.WriteStringValue(result.ErrorSymbolName);
-                            writer.WriteStringValue(result.ErrorModuleName);
+                            writer.WriteStringValue(result.ErrorSymbolName.Span);
+                            writer.WriteStringValue(result.ErrorModuleName.Span);
                             writer.WriteNumberValue(nodeId(result.ErrorNode));
                             writer.WriteEndArray();
                         }

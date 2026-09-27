@@ -97,7 +97,7 @@ internal sealed class SymbolNarrowing(TypeContext context, CheckerLinks links, S
                         rest,
                         flow: host.FlowOf(location),
                         cancellation: cancellation).ConfigureAwait(false);
-                    int index = parameters.IndexOf(parameter) - (parameters[0] is ParameterDeclarationNode { Name: IdentifierNode { Text: "this" } }
+                    int index = parameters.IndexOf(parameter) - (parameters[0] is ParameterDeclarationNode { Name: IdentifierNode { Text.Span: "this" } }
                         ? 1
                         : 0);
                     return await host.IndexedAccessAsync(narrowed, context.GetNumberLiteralType(index), cancellation).ConfigureAwait(false);

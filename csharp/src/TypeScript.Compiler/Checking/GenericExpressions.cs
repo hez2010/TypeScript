@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Globalization;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -91,22 +92,22 @@ internal sealed class GenericExpressions(TypeContext context, StructuredMembers 
 
     private IReadOnlyList<Type> Unique(InferenceContext outer, IReadOnlyList<TypeParameter> parameters)
     {
-        var used = new HashSet<string>((outer.InferredTypeParameters ?? []).Select(t => t.Symbol!.Name), StringComparer.Ordinal);
+        var used = new HashSet<TextSlice>((outer.InferredTypeParameters ?? []).Select(t => t.Symbol!.Name), TextSliceComparer.Ordinal);
         var result = new List<Type>();
         var oldTypes = new List<Type>();
         var newTypes = new List<TypeParameter>();
         foreach (var parameter in parameters)
         {
-            string name = parameter.Symbol!.Name;
+            TextSlice name = parameter.Symbol!.Name;
             if (used.Add(name))
                 result.Add(parameter);
             else
             {
-                string stem = name;
+                TextSlice stem = name;
                 while (stem.Length > 1 && stem[^1] is >= '0' and <= '9')
                     stem = stem[..^1];
                 int index = 1;
-                while (!used.Add(name = stem + index.ToString(CultureInfo.InvariantCulture)))
+                while (!used.Add(name = TextSlice.Concat(stem, TextSlice.Format(index))))
                     index++;
                 var replacement = context.NewTypeParameter(new Symbol(SymbolFlags.TypeParameter | SymbolFlags.Transient, name));
                 replacement.Target = parameter;

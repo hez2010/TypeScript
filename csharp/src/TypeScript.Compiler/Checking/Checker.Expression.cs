@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -16,13 +17,13 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
     internal List<DiagnosticCode> Suggestions { get; } = [];
     private readonly HashSet<(SyntaxNode, DiagnosticCode)> suggestionLocations = [];
 
-    public void DuplicateObjectProperty(SyntaxNode node, string name) =>
+    public void DuplicateObjectProperty(SyntaxNode node, TextSlice name) =>
         Error(node, DiagnosticCode.AnObjectLiteralCannotHaveMultiplePropertiesWithTheSameName, CheckerDiagnostic.DeclarationName(node));
 
     public void ExpressionError(SyntaxNode node, DiagnosticCode code)
     {
         if (code == DiagnosticCode.X0Expected
-            && node is IdentifierNode { Text: "defer", Parent: MetaPropertyNode { KeywordToken: SyntaxKind.ImportKeyword } })
+            && node is IdentifierNode { Text.Span: "defer", Parent: MetaPropertyNode { KeywordToken: SyntaxKind.ImportKeyword } })
         {
             Error(node, CheckerDiagnostic.Create(node, Messages.X_0_expected, "(") with { Start = node.End, Length = 0 });
             return;
@@ -39,7 +40,7 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
             && SemanticSyntax.Body(function) is BlockNode body)
         {
             var directive = body.Statements!.OfType<ExpressionStatementNode>().First(n =>
-                n.Expression is StringLiteralNode { Text: "use strict" });
+                n.Expression is StringLiteralNode { Text.Span: "use strict" });
             Error(node, CheckerDiagnostic.Create(node, Messages.This_parameter_is_not_allowed_with_use_strict_directive) with
             { RelatedInformation = [CheckerDiagnostic.Create(directive, Messages.X_use_strict_directive_used_here)] });
             return;
@@ -93,7 +94,7 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
             EmptyTypeListError(node, signature.TypeParameters, code);
             return;
         }
-        string[] arguments = code switch
+        TextSlice[] arguments = code switch
         {
             DiagnosticCode.X0ModifierCannotBeUsedHere => [TokenFacts.Text(node.Kind)!],
             DiagnosticCode.A0ParameterMustBeTheFirstParameter => [SyntaxNameText.Get(((ParameterDeclarationNode)node).Name!)],
@@ -115,7 +116,7 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
                 TokenFacts.Text(meta.KeywordToken)!, meta.KeywordToken == SyntaxKind.NewKeyword ? "target" : "meta"],
             DiagnosticCode.Property0HasNoInitializerAndIsNotDefinitelyAssignedInTheConstructor => [CheckerDiagnostic.DeclarationName(node)],
             DiagnosticCode.X0IsOfTypeUnknown or DiagnosticCode.X0IsPossiblyNull or DiagnosticCode.X0IsPossiblyUndefined
-                or DiagnosticCode.X0IsPossiblyNullOrUndefined => [ExpressionChecks.EntityText(node)!],
+                or DiagnosticCode.X0IsPossiblyNullOrUndefined => [(ExpressionChecks.EntityText(node))!.Value],
             DiagnosticCode.TheValue0CannotBeUsedHere => [node.Kind == SyntaxKind.NullKeyword ? "null" : "undefined"],
             DiagnosticCode.CannotAccessAmbientConstEnumsWhen0IsEnabled => [IsolatedModuleOptionName],
             _ => []
@@ -127,7 +128,7 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
     {
         if (code == DiagnosticCode.Operator0CannotBeAppliedToType1)
             type = await Widening.LiteralBaseAsync(type, cancellation);
-        string display = await TypeDisplay.GetAsync(type, cancellation);
+        TextSlice display = await TypeDisplay.GetAsync(type, cancellation);
         Error(
             node,
             code,

@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Syntax;
@@ -76,7 +77,7 @@ internal sealed partial class Checker
         return EmitReferenceResolver(cancellation).GetReferencedMemberValueDeclaration(node);
     }
 
-    internal async ValueTask<string> GetElementAccessNameForEmitAsync(
+    internal async ValueTask<TextSlice> GetElementAccessNameForEmitAsync(
         ElementAccessExpressionNode node,
         CancellationToken cancellation = default)
     {

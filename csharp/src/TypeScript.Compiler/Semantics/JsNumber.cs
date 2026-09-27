@@ -9,9 +9,9 @@ public static class JsNumber
     public const double MaxSafeInteger = 9007199254740991;
     private static readonly double InvalidNumber = BitConverter.UInt64BitsToDouble(0x7ff8000000000001);
 
-    public static double FromString(string text)
+    public static double FromString(ReadOnlySpan<char> text)
     {
-        var value = text.AsSpan();
+        var value = text;
         while (!value.IsEmpty && StringWhiteSpace(value[0]))
             value = value[1..];
         while (!value.IsEmpty && StringWhiteSpace(value[^1]))

@@ -1145,7 +1145,7 @@ public sealed partial class Parser
         bool CanModuleName() => Token == K.Identifier || Token is >= K.FirstKeyword and <= K.LastKeyword || Token == K.StringLiteral;
         SyntaxNode? property = null;
         SyntaxNode name = ModuleName(out bool nameOk, out int nameStart);
-        if (name is IdentifierNode { Text: "type" })
+        if (name is IdentifierNode { Text.Span: "type" })
         {
             if (Token == K.AsKeyword)
             {

@@ -61,7 +61,7 @@ internal static class CheckerExpressionTests
         Check(await host.Values.GetAsync(symbols.Declaration(declarations["d"])!) is UnionType { Types.Count: 8 });
         Check(await host.Values.GetAsync(symbols.Declaration(declarations["e"])!) == context.UndefinedType);
         Check(host.DeferredExpressions.Contains(declarations["e"].Initializer!));
-        Check(await host.Values.GetAsync(symbols.Declaration(declarations["f"])!) is LiteralType { Value: "xa" });
+        Check(await host.Values.GetAsync(symbols.Declaration(declarations["f"])!) is LiteralType { Value: TextSlice { Span: "xa" } });
         host.BeforeExpressionFinish = () => throw new InvalidOperationException("Expression finish failure");
         try
         {
@@ -89,7 +89,7 @@ internal static class CheckerExpressionTests
             checks++;
         }
         Check((await host.EnumValues.GetAsync(enumMembers[1])).Value is 3d);
-        var evaluator = new ConstantEvaluator((node, _, _) => ValueTask.FromResult(node is IdentifierNode { Text: "ext" }
+        var evaluator = new ConstantEvaluator((node, _, _) => ValueTask.FromResult(node is IdentifierNode { Text: { Span: "ext" } }
             ? new ConstantResult(4d, false, true, true) : default));
         var binary = new BinaryExpressionNode
         {
@@ -98,7 +98,7 @@ internal static class CheckerExpressionTests
             Right = new StringLiteralNode { Text = "x" }
         };
         var evaluated = await evaluator.EvaluateAsync(binary);
-        Check(evaluated is { Value: "4x", IsSyntacticallyString: true, ResolvedOtherFiles: true, HasExternalReferences: true });
+        Check(evaluated is { Value: TextSlice { Span: "4x" }, IsSyntacticallyString: true, ResolvedOtherFiles: true, HasExternalReferences: true });
         var negative = new PrefixUnaryExpressionNode { Operator = SyntaxKind.MinusToken, Operand = new NumericLiteralNode { Text = "0" } };
         Check(BitConverter.DoubleToUInt64Bits((double)(await evaluator.EvaluateAsync(negative)).Value!) == 0x8000000000000000);
         var assertion = new AsExpressionNode
@@ -292,7 +292,7 @@ internal static class CheckerExpressionTests
             }
             else
                 foreach (var variable in nodes.OfType<VariableDeclarationNode>().Where(
-                    v => v.Name is IdentifierNode { Text: "intrinsicValue" or "chosen" or "inferred" }))
+                    v => v.Name is IdentifierNode { Text: { Span: "intrinsicValue" } or { Span: "chosen" } or { Span: "inferred" } }))
                 {
                     if (await checker.GetExpressionTypeAsync(variable.Initializer!) != checker.Context.NumberType)
                         throw new InvalidOperationException("JSX callback parameter was not inferred as number");
@@ -502,7 +502,7 @@ internal static class CheckerExpressionTests
         {
             host.BeforeExpressionFinish = () =>
             {
-                if (host.Expressions.CurrentNode is IdentifierNode { Text: "right" })
+                if (host.Expressions.CurrentNode is IdentifierNode { Text: { Span: "right" } })
                     cancellation.Cancel();
             };
             try

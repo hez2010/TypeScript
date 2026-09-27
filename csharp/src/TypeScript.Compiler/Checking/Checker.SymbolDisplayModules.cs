@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Resolution;
@@ -7,14 +8,14 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
-    private async ValueTask<string> DisplayModuleSpecifierAsync(
+    private async ValueTask<TextSlice> DisplayModuleSpecifierAsync(
         Symbol symbol,
         SymbolDisplayContext state,
         CancellationToken cancellation,
         ReferenceResolutionMode overrideMode = 0)
     {
         var key = (symbol, overrideMode);
-        if (state.Modules.TryGetValue(key, out string? cached))
+        if (state.Modules.TryGetValue(key, out TextSlice cached))
             return cached;
         var file = symbol.Declarations.OfType<SourceFileNode>().FirstOrDefault();
         if (file is null)

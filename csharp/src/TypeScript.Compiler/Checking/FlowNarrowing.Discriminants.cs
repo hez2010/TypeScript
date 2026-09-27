@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Syntax;
 
@@ -151,7 +152,7 @@ internal sealed partial class FlowNarrowing
 
     private async ValueTask<bool> ConstructorReferenceAsync(FlowState state, SyntaxNode expression, CancellationToken cancellation)
     {
-        string? name = expression switch
+        TextSlice? name = expression switch
         {
             PropertyAccessExpressionNode property => SyntaxNameText.Get(property.Name),
             ElementAccessExpressionNode element => StringLike(element.ArgumentExpression!),
@@ -187,7 +188,7 @@ internal sealed partial class FlowNarrowing
     {
         if (op is SyntaxKind.EqualsEqualsEqualsToken or SyntaxKind.ExclamationEqualsEqualsToken && type is UnionType union)
         {
-            string key = await discriminants.KeyAsync(union, cancellation).ConfigureAwait(false);
+            TextSlice key = await discriminants.KeyAsync(union, cancellation).ConfigureAwait(false);
             if (key.Length != 0 && await host.AccessNameAsync(access, cancellation).ConfigureAwait(false) == key)
             {
                 var candidateKey = await algebra.RegularTypeAsync(

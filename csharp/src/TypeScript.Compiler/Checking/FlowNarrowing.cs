@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -16,11 +17,11 @@ internal interface IFlowNarrowingHost
 
     ValueTask<TypePredicate?> PredicateAsync(Signature signature, CancellationToken cancellation);
 
-    ValueTask<string?> AccessNameAsync(SyntaxNode node, CancellationToken cancellation);
+    ValueTask<TextSlice?> AccessNameAsync(SyntaxNode node, CancellationToken cancellation);
 
     Symbol ResolveReference(SyntaxNode node, CancellationToken cancellation);
 
-    ValueTask<Type?> FlowPropertyTypeAsync(Type type, string name, bool includeIndex, CancellationToken cancellation);
+    ValueTask<Type?> FlowPropertyTypeAsync(Type type, TextSlice name, bool includeIndex, CancellationToken cancellation);
 
     ValueTask<Type> ConstructorNarrowAsync(Type type, SyntaxKind op, SyntaxNode expression, bool assumeTrue, CancellationToken cancellation);
 
@@ -211,7 +212,7 @@ internal sealed partial class FlowNarrowing(TypeContext context, TypeAlgebra alg
     }
 
     private async ValueTask<Type> TypeofAsync(FlowState state, Type type, TypeOfExpressionNode expression, SyntaxKind op,
-        string literal, bool assumeTrue, CancellationToken cancellation)
+        TextSlice literal, bool assumeTrue, CancellationToken cancellation)
     {
         if (op is SyntaxKind.ExclamationEqualsToken or SyntaxKind.ExclamationEqualsEqualsToken)
             assumeTrue = !assumeTrue;
@@ -229,10 +230,10 @@ internal sealed partial class FlowNarrowing(TypeContext context, TypeAlgebra alg
             cancellation).ConfigureAwait(false);
     }
 
-    internal async ValueTask<Type> TypeNameAsync(Type type, string name, bool assumeTrue, CancellationToken cancellation = default)
+    internal async ValueTask<Type> TypeNameAsync(Type type, TextSlice name, bool assumeTrue, CancellationToken cancellation = default)
     {
         if (!assumeTrue)
-            return await facts.AdjustAsync(type, name switch
+            return await facts.AdjustAsync(type, name.Span switch
             {
                 "string" => TypeFacts.TypeofNEString,
                 "number" => TypeFacts.TypeofNENumber,
@@ -244,14 +245,14 @@ internal sealed partial class FlowNarrowing(TypeContext context, TypeAlgebra alg
                 "function" => TypeFacts.TypeofNEFunction,
                 _ => TypeFacts.TypeofNEHostObject
             }, cancellation).ConfigureAwait(false);
-        if (name is "object" or "function" && (type.Flags & TypeFlags.Any) != 0)
+        if (name.Span is "object" or "function" && (type.Flags & TypeFlags.Any) != 0)
             return type;
         if (name == "object")
             return await algebra.UnionAsync(
                 [await TypeFactsAsync(type, context.NonPrimitiveType, TypeFacts.TypeofEQObject, cancellation).ConfigureAwait(false),
                 await TypeFactsAsync(type, context.NullType, TypeFacts.EQNull, cancellation).ConfigureAwait(false)],
                 cancellation: cancellation).ConfigureAwait(false);
-        var (implied, include) = name switch
+        var (implied, include) = name.Span switch
         {
             "string" => (context.StringType, TypeFacts.TypeofEQString),
             "number" => (context.NumberType, TypeFacts.TypeofEQNumber),
@@ -276,8 +277,8 @@ internal sealed partial class FlowNarrowing(TypeContext context, TypeAlgebra alg
                 ? await algebra.IntersectionAsync([part, implied], cancellation: cancellation).ConfigureAwait(false) : context.NeverType;
         }, cancellation: cancellation).ConfigureAwait(false) ?? context.NeverType;
 
-    private static string? StringLike(SyntaxNode node) => node switch
-    { StringLiteralNode literal => literal.Text, NoSubstitutionTemplateLiteralNode literal => literal.Text, _ => null };
+    private static TextSlice? StringLike(SyntaxNode node) => node switch
+    { StringLiteralNode literal => literal.Text, NoSubstitutionTemplateLiteralNode literal => literal.Text, _ => (TextSlice?)null };
 
     private static bool OptionalRoot(SyntaxNode node) => node.Parent switch
     {

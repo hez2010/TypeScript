@@ -59,7 +59,7 @@ internal static class CheckerTypeNodeTests
         Check(TypeReferences.Minimum(bParameters) == 0);
         Check(await host.References.AliasInstantiationAsync(b, bParameters) == bType);
         var missing = await host.Declared.GetAsync(symbols.Globals["Missing"]);
-        Check(missing is IntrinsicType { IntrinsicName: "error", Alias: { TypeArguments.Count: 1 } });
+        Check(missing is IntrinsicType { IntrinsicName: { Span: "error" }, Alias: { TypeArguments.Count: 1 } });
         Check((missing.Alias!.Symbol.CheckFlags & CheckFlags.Unresolved) != 0);
         Check(
             await host.Declared.GetAsync(symbols.Globals["Bad"]) == context.ErrorType

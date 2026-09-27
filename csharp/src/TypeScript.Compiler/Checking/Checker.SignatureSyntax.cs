@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Globalization;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -8,10 +9,10 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
-    private readonly Dictionary<SyntaxNode, IReadOnlyDictionary<string, Symbol>> typeSyntaxScopes = [];
+    private readonly Dictionary<SyntaxNode, IReadOnlyDictionary<TextSlice, Symbol>> typeSyntaxScopes = [];
     internal int TypeSyntaxScopeCount => typeSyntaxScopes.Count;
 
-    internal ValueTask<string> SerializeSignatureSyntaxAsync(Signature signature, K kind, SyntaxNode? enclosing,
+    internal ValueTask<TextSlice> SerializeSignatureSyntaxAsync(Signature signature, K kind, SyntaxNode? enclosing,
         NodeBuilderFlags flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.NoTruncation, CancellationToken cancellation = default,
         INodeBuilderSymbolTracker? tracker = null,
         NodeBuilderInternalFlags internalFlags = NodeBuilderInternalFlags.None)
@@ -252,7 +253,7 @@ internal sealed partial class Checker
         var rest = signature.Parameters[^1];
         var arguments = await References.TypeArgumentsAsync(restType, cancellation);
         var names = tuple.ElementInfos.Select((e, i) => SignatureParameters.Label(e, rest, i)).ToArray();
-        var used = new HashSet<string>(StringComparer.Ordinal);
+        var used = new HashSet<TextSlice>();
         var duplicates = new List<int>();
         for (int i = 0; i < names.Length; i++)
             if (!used.Add(names[i]))
@@ -260,9 +261,9 @@ internal sealed partial class Checker
         foreach (int i in duplicates)
         {
             int suffix = 1;
-            string unique;
+            TextSlice unique;
             do
-                unique = names[i] + "_" + (suffix++).ToString(CultureInfo.InvariantCulture);
+                unique = TextSlice.Concat(names[i], "_", TextSlice.Format((suffix++)));
             while (!used.Add(unique));
             names[i] = unique;
         }

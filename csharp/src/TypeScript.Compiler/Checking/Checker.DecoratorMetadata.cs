@@ -73,7 +73,7 @@ internal sealed partial class Checker
     private static SyntaxNode? AccessorAnnotation(SyntaxNode node) => node switch
     {
         GetAccessorDeclarationNode getter => getter.Type,
-        SetAccessorDeclarationNode setter => setter.Parameters!.OfType<ParameterDeclarationNode>().FirstOrDefault(p => p.Name is not IdentifierNode { Text: "this" })?.Type,
+        SetAccessorDeclarationNode setter => setter.Parameters!.OfType<ParameterDeclarationNode>().FirstOrDefault(p => p.Name is not IdentifierNode { Text.Span: "this" })?.Type,
         _ => null
     };
 

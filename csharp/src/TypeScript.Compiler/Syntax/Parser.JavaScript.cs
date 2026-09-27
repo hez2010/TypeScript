@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Diagnostics;
 using K = TypeScript.Compiler.Syntax.SyntaxKind;
@@ -183,7 +184,7 @@ public sealed partial class Parser
         }
         file.JSDiagnostics = errors.ToArray();
 
-        Diagnostic At(int start, int end, DiagnosticMessage message, params string[] arguments)
+        Diagnostic At(int start, int end, DiagnosticMessage message, params TextSlice[] arguments)
         {
             var trivia = new Scanner(source);
             trivia.ResetPosition(Math.Max(0, source.ToUtf16Position(start)));
@@ -191,9 +192,9 @@ public sealed partial class Parser
             int tokenStart = Math.Min(source.ToBytePosition(trivia.TokenStart), end);
             return new(message, tokenStart, Math.Max(0, end - tokenStart), arguments) { FileName = options.FileName };
         }
-        void RangeError(int start, int end, DiagnosticMessage message, params string[] arguments) =>
+        void RangeError(int start, int end, DiagnosticMessage message, params TextSlice[] arguments) =>
             errors.Add(At(start, end, message, arguments));
-        void Error(SyntaxNode node, DiagnosticMessage message, params string[] arguments) =>
+        void Error(SyntaxNode node, DiagnosticMessage message, params TextSlice[] arguments) =>
             RangeError(node.Pos, node.End, message, arguments);
         void CheckDecorators(SyntaxNode node, NodeList? modifiers)
         {

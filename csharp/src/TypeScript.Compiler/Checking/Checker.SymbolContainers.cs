@@ -83,7 +83,7 @@ internal sealed partial class Checker
                 && assignment.Left is PropertyAccessExpressionNode or ElementAccessExpressionNode
                 && FlowReferences.Receiver(assignment.Left) is { } receiver && EntityExpression(receiver))
             {
-                if (ModuleExportsAccess(assignment.Left) || receiver is IdentifierNode { Text: "exports" })
+                if (ModuleExportsAccess(assignment.Left) || receiver is IdentifierNode { Text.Span: "exports" })
                     Add(program.Symbols.Declaration(SemanticSyntax.Source(declaration)!));
                 else
                 {

@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -239,13 +240,13 @@ internal sealed partial class Checker
         _ => false
     };
 
-    private static string? OverloadNameText(SyntaxNode node) => node switch
+    private static TextSlice? OverloadNameText(SyntaxNode node) => node switch
     {
         IdentifierNode identifier => identifier.Text,
         StringLiteralNode literal => literal.Text,
         NoSubstitutionTemplateLiteralNode literal => literal.Text,
         NumericLiteralNode literal => literal.Text,
-        _ => null
+        _ => (TextSlice?)null
     };
 
     private async ValueTask CheckFunctionOverloadsAsync(SyntaxNode node, CancellationToken cancellation)

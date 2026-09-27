@@ -34,7 +34,7 @@ internal static class CheckerVisibilityTests
         var aliases = nodes.OfType<ImportEqualsDeclarationNode>().ToArray();
         var exported = nodes.OfType<ExportSpecifierNode>().Single();
         var import = nodes.OfType<ImportSpecifierNode>().Single();
-        var hidden = nodes.OfType<VariableDeclarationNode>().Single(n => n.Name is IdentifierNode { Text: "hidden" });
+        var hidden = nodes.OfType<VariableDeclarationNode>().Single(n => n.Name is IdentifierNode { Text: { Span: "hidden" } });
         var member = nodes.OfType<PropertyDeclarationNode>().Single();
         var checker = await program.CreateCheckerAsync();
         Check(await checker.IsDeclarationVisibleAsync(file));

@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -31,7 +32,7 @@ internal sealed class SymbolMerger(Symbol unknownSymbol, Symbol globalThisSymbol
         return result;
     }
 
-    internal async ValueTask MergeTableAsync(Dictionary<string, Symbol> target, IReadOnlyDictionary<string, Symbol> source,
+    internal async ValueTask MergeTableAsync(Dictionary<TextSlice, Symbol> target, IReadOnlyDictionary<TextSlice, Symbol> source,
         bool unidirectional = false, Symbol? mergedParent = null, CancellationToken cancellation = default)
     {
         bool ownsJournal = journal is null;
@@ -53,7 +54,7 @@ internal sealed class SymbolMerger(Symbol unknownSymbol, Symbol globalThisSymbol
         }
     }
 
-    private async ValueTask MergeTableCore(Dictionary<string, Symbol> target, IReadOnlyDictionary<string, Symbol> source,
+    private async ValueTask MergeTableCore(Dictionary<TextSlice, Symbol> target, IReadOnlyDictionary<TextSlice, Symbol> source,
         bool unidirectional, Symbol? mergedParent, CancellationToken cancellation)
     {
         await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
@@ -160,7 +161,7 @@ internal sealed class SymbolMerger(Symbol unknownSymbol, Symbol globalThisSymbol
         private sealed record Snapshot(S Flags, Symbol? Parent, SyntaxNode? Value, SyntaxNode[] Declarations);
 
         private readonly Dictionary<Symbol, Snapshot> symbols = new(ReferenceEqualityComparer.Instance);
-        private readonly Dictionary<Dictionary<string, Symbol>, KeyValuePair<string, Symbol>[]> tables = new(ReferenceEqualityComparer.Instance);
+        private readonly Dictionary<Dictionary<TextSlice, Symbol>, KeyValuePair<TextSlice, Symbol>[]> tables = new(ReferenceEqualityComparer.Instance);
         private readonly Dictionary<Symbol, Symbol?> mappings = new(ReferenceEqualityComparer.Instance);
 
         internal void Capture(Symbol symbol)
@@ -169,7 +170,7 @@ internal sealed class SymbolMerger(Symbol unknownSymbol, Symbol globalThisSymbol
                 symbols.Add(symbol, new(symbol.Flags, symbol.Parent, symbol.ValueDeclaration, symbol.Declarations.ToArray()));
         }
 
-        internal void Capture(Dictionary<string, Symbol> table)
+        internal void Capture(Dictionary<TextSlice, Symbol> table)
         {
             if (!tables.ContainsKey(table))
                 tables.Add(table, table.ToArray());

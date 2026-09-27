@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -177,7 +178,7 @@ internal sealed partial class Checker
         return await PropertyTypeAsync(type, "set", default).ConfigureAwait(false) is null;
     }
 
-    private async ValueTask<Type?> PropertyTypeAsync(Type type, string name, CancellationToken cancellation)
+    private async ValueTask<Type?> PropertyTypeAsync(Type type, TextSlice name, CancellationToken cancellation)
         => await Properties.PropertyAsync(type, name, cancellation: cancellation).ConfigureAwait(false) is { } property
             ? await Values.GetAsync(property, cancellation).ConfigureAwait(false) : null;
 
@@ -224,11 +225,11 @@ internal sealed partial class Checker
             else if (expression.Kind == SyntaxKind.ThisKeyword)
             {
                 var type = await ExpressionAsync(expression, cancellation).ConfigureAwait(false);
-                string? name = left is PropertyAccessExpressionNode access
+                TextSlice? name = left is PropertyAccessExpressionNode access
                     ? access.Name is PrivateIdentifierNode privateName && type.Symbol is { } symbol
                         ? PrivateAccess.Name(symbol, privateName.Text)
                         : SyntaxNameText.Get(access.Name)
-                    : null;
+                    : (TextSlice?)null;
                 if (left is ElementAccessExpressionNode element)
                 {
                     var key = await CachedExpressionAsync(element.ArgumentExpression!, 0, cancellation).ConfigureAwait(false);
@@ -237,7 +238,7 @@ internal sealed partial class Checker
                 }
                 var property = name is null
                     ? null
-                    : await Properties.PropertyAsync(type, name, cancellation: cancellation).ConfigureAwait(false);
+                    : await Properties.PropertyAsync(type, (name).Value, cancellation: cancellation).ConfigureAwait(false);
                 if (property?.ValueDeclaration is PropertyDeclarationNode { Type: null, Initializer: null }
                     or PropertySignatureDeclarationNode { Type: null })
                     return null;
@@ -249,11 +250,11 @@ internal sealed partial class Checker
     }
 
     private static bool ModuleExportsAccess(SyntaxNode? node) => node is
-        PropertyAccessExpressionNode { Expression: IdentifierNode { Text: "module" }, Name: IdentifierNode { Text: "exports" } }
+        PropertyAccessExpressionNode { Expression: IdentifierNode { Text.Span: "module" }, Name: IdentifierNode { Text.Span: "exports" } }
         or ElementAccessExpressionNode
         {
-            Expression: IdentifierNode { Text: "module" }, ArgumentExpression: StringLiteralNode { Text: "exports" }
-            or NoSubstitutionTemplateLiteralNode { Text: "exports" }
+            Expression: IdentifierNode { Text.Span: "module" }, ArgumentExpression: StringLiteralNode { Text.Span: "exports" }
+            or NoSubstitutionTemplateLiteralNode { Text.Span: "exports" }
         };
 
     private static bool BindableStaticName(SyntaxNode? node, bool excludeThis)

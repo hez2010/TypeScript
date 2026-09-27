@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Text.Json;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Configuration;
@@ -128,7 +129,7 @@ internal static class ModuleSpecifierPaths
         foreach (var import in source.Imports)
         {
             cancellation.ThrowIfCancellationRequested();
-            string text = ImportText(import);
+            TextSlice text = ImportText(import);
             if (Relative(text) && !MandatoryExtension(text))
                 return TypeScriptExtension(text) || JavaScriptExtension(text)
                     ? ModuleSpecifierEnding.JavaScript
@@ -147,7 +148,7 @@ internal static class ModuleSpecifierPaths
         foreach (var import in source.Imports)
         {
             cancellation.ThrowIfCancellationRequested();
-            string text = ImportText(import);
+            TextSlice text = ImportText(import);
             if (!Relative(text) || node && mode == ReferenceResolutionMode.Require || MandatoryExtension(text))
                 continue;
             if (TypeScriptExtension(text))
@@ -171,20 +172,26 @@ internal static class ModuleSpecifierPaths
     private static bool AllowsTypeScript(CompilerOptions options) => options.Boolean("allowImportingTsExtensions") == true
         || options.Boolean("rewriteRelativeImportExtensions") == true;
 
-    private static string ImportText(SyntaxNode node) => node switch
+    private static TextSlice ImportText(SyntaxNode node) => node switch
     { StringLiteralNode text => text.Text, NoSubstitutionTemplateLiteralNode text => text.Text, _ => "" };
 
-    private static bool Relative(string path) =>
+    private static bool Relative(ReadOnlySpan<char> path) =>
         path is "." or ".." || path.StartsWith("./", StringComparison.Ordinal) || path.StartsWith("../", StringComparison.Ordinal);
 
-    private static bool MandatoryExtension(string path) => Extension(path) is ".mts" or ".d.mts" or ".mjs" or ".cts" or ".d.cts" or ".cjs";
+    private static bool MandatoryExtension(ReadOnlySpan<char> path) => Extension(path) is ".mts" or ".d.mts" or ".mjs" or ".cts" or ".d.cts" or ".cjs";
 
-    private static bool TypeScriptExtension(string path) =>
+    private static bool TypeScriptExtension(ReadOnlySpan<char> path) =>
         Extension(path) is ".ts" or ".tsx" or ".d.ts" or ".mts" or ".d.mts" or ".cts" or ".d.cts";
 
-    private static bool JavaScriptExtension(string path) => Extension(path) is ".js" or ".jsx" or ".mjs" or ".cjs";
+    private static bool JavaScriptExtension(ReadOnlySpan<char> path) => Extension(path) is ".js" or ".jsx" or ".mjs" or ".cjs";
 
-    internal static string Extension(string path) => extensions.FirstOrDefault(e => path.EndsWith(e, StringComparison.Ordinal)) ?? "";
+    internal static string Extension(ReadOnlySpan<char> path)
+    {
+        foreach (string extension in extensions)
+            if (path.EndsWith(extension, StringComparison.Ordinal))
+                return extension;
+        return "";
+    }
 
     internal static string WithoutExtension(string path) => path[..(path.Length - Extension(path).Length)];
 

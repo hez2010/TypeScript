@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -59,7 +60,7 @@ internal sealed class BindingPatterns(TypeContext context, CheckerLinks links, T
         bool reportErrors,
         CancellationToken cancellation)
     {
-        var members = new Dictionary<string, Symbol>(StringComparer.Ordinal);
+        var members = new Dictionary<TextSlice, Symbol>();
         IndexInfo? stringIndex = null;
         var flags = ObjectFlags.ObjectLiteral | ObjectFlags.ContainsObjectOrArrayLiteral;
         foreach (BindingElementNode element in pattern.Elements!)
@@ -160,7 +161,7 @@ internal sealed class BindingPatterns(TypeContext context, CheckerLinks links, T
         context.RequireOwned(type);
         if (pattern.Kind == SyntaxKind.ObjectBindingPattern && (type.ObjectFlags & ObjectFlags.ObjectLiteral) != 0)
         {
-            var missing = new List<(BindingElementNode Element, string Name)>();
+            var missing = new List<(BindingElementNode Element, TextSlice Name)>();
             foreach (BindingElementNode element in pattern.Elements!)
                 if (element.Initializer is not null)
                 {
@@ -176,7 +177,7 @@ internal sealed class BindingPatterns(TypeContext context, CheckerLinks links, T
                 return type;
             var members = (await properties.GetAsync(
                 type,
-                cancellation).ConfigureAwait(false)).ToDictionary(p => p.Name, StringComparer.Ordinal);
+                cancellation).ConfigureAwait(false)).ToDictionary(p => p.Name, TextSliceComparer.Ordinal);
             foreach (var (element, name) in missing)
             {
                 var symbol = new Symbol(SymbolFlags.Property | SymbolFlags.Optional | SymbolFlags.Transient, name);

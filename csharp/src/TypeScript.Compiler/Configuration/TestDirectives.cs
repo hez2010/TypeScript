@@ -10,7 +10,7 @@ namespace TypeScript.Compiler.Configuration;
 
 public sealed record TestUnit(string Name, SourceText Source, IReadOnlyDictionary<string, string> Options)
 {
-    public string Content => Source.Text;
+    public TextSlice Content => Source.Text;
 }
 public sealed record TestSource(
     TestUnit[] Units,

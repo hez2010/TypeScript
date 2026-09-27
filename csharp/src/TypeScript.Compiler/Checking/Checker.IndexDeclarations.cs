@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -11,11 +12,11 @@ internal sealed partial class Checker : IIndexDeclarationHost
         SemanticSyntax.Name(symbol.ValueDeclaration ?? symbol.Declarations.FirstOrDefault()) is ComputedPropertyNameNode name
             ? CheckerDiagnostic.DeclarationName(name) : TypeDisplay.SymbolName(symbol));
 
-    private readonly HashSet<(SyntaxNode Node, DiagnosticCode Code, string First, string Second, string Third, string Fourth)> indexConstraintDiagnostics = [];
+    private readonly HashSet<(SyntaxNode Node, DiagnosticCode Code, TextSlice First, TextSlice Second, TextSlice Third, TextSlice Fourth)> indexConstraintDiagnostics = [];
 
     public async ValueTask DuplicateIndexErrorAsync(SyntaxNode node, Type type, CancellationToken cancellation)
     {
-        string name = await TypeDisplay.GetAsync(type, cancellation);
+        TextSlice name = await TypeDisplay.GetAsync(type, cancellation);
         if (indexConstraintDiagnostics.Add((node, DiagnosticCode.DuplicateIndexSignatureForType0, name, "", "", "")))
             TrackDiagnostic(node, DiagnosticCode.DuplicateIndexSignatureForType0, name);
     }
@@ -27,10 +28,10 @@ internal sealed partial class Checker : IIndexDeclarationHost
         IndexInfo index,
         CancellationToken cancellation)
     {
-        string name = await SymbolDisplayNameAsync(property, null, SymbolFlags.All, cancellation);
-        string valueText = await TypeDisplay.GetAsync(value, cancellation);
-        string keyText = await TypeDisplay.GetAsync(index.KeyType, cancellation);
-        string indexText = await TypeDisplay.GetAsync(index.ValueType, cancellation);
+        TextSlice name = await SymbolDisplayNameAsync(property, null, SymbolFlags.All, cancellation);
+        TextSlice valueText = await TypeDisplay.GetAsync(value, cancellation);
+        TextSlice keyText = await TypeDisplay.GetAsync(index.KeyType, cancellation);
+        TextSlice indexText = await TypeDisplay.GetAsync(index.ValueType, cancellation);
         if (!indexConstraintDiagnostics.Add(
             (node, DiagnosticCode.Property0OfType1IsNotAssignableTo2IndexType3, name, valueText, keyText, indexText)))
             return;
@@ -51,10 +52,10 @@ internal sealed partial class Checker : IIndexDeclarationHost
 
     public async ValueTask IndexSignatureErrorAsync(SyntaxNode node, IndexInfo source, IndexInfo target, CancellationToken cancellation)
     {
-        string sourceKey = await TypeDisplay.GetAsync(source.KeyType, cancellation);
-        string sourceValue = await TypeDisplay.GetAsync(source.ValueType, cancellation);
-        string targetKey = await TypeDisplay.GetAsync(target.KeyType, cancellation);
-        string targetValue = await TypeDisplay.GetAsync(target.ValueType, cancellation);
+        TextSlice sourceKey = await TypeDisplay.GetAsync(source.KeyType, cancellation);
+        TextSlice sourceValue = await TypeDisplay.GetAsync(source.ValueType, cancellation);
+        TextSlice targetKey = await TypeDisplay.GetAsync(target.KeyType, cancellation);
+        TextSlice targetValue = await TypeDisplay.GetAsync(target.ValueType, cancellation);
         if (indexConstraintDiagnostics.Add(
             (node, DiagnosticCode.X0IndexType1IsNotAssignableTo2IndexType3, sourceKey, sourceValue, targetKey, targetValue)))
         {

@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Globalization;
 using System.Text;
 using TypeScript.Compiler.Ast;
@@ -16,7 +17,7 @@ internal sealed partial class Checker
 
         internal void Add(long count) => Value += count;
 
-        internal void Add(string text, int extra = 0) => Add(Encoding.UTF8.GetByteCount(text) + extra);
+        internal void Add(TextSlice text, int extra = 0) => Add(Encoding.UTF8.GetByteCount(text) + extra);
 
         internal bool Truncated() => WasTruncated |= Value > (NoTruncation
             ? TypeDisplay.NoTruncationMaximumTruncationLength : TypeDisplay.DefaultMaximumTruncationLength);
@@ -33,9 +34,9 @@ internal sealed partial class Checker
         if (type is LiteralType literal && (type.Flags & TypeFlags.EnumLike) == 0)
             return literal.Value switch
             {
-                string value => Encoding.UTF8.GetByteCount(value) + 2,
+                TextSlice value => Encoding.UTF8.GetByteCount(value) + 2,
                 double value => TokenFacts.NumberText(value).Length,
-                System.Numerics.BigInteger value => value.ToString(CultureInfo.InvariantCulture).Length + 1,
+                System.Numerics.BigInteger value => TextSlice.Format(value).Length + 1,
                 bool value => value ? 4 : 5,
                 _ => 0
             };
@@ -52,7 +53,7 @@ internal sealed partial class Checker
             state.Length.Add(3);
         return state.Length.NoTruncation ? state.Factory.NewKeywordTypeNode(K.AnyKeyword)
             : state.Factory.NewTypeReferenceNode(state.Factory.NewIdentifier(count is { } n
-                ? "... " + n.ToString(CultureInfo.InvariantCulture) + " more ..." : "..."), null);
+                ? "... " + TextSlice.Format(n) + " more ..." : "..."), null);
     }
 
     private static void AddReusedSyntaxLength(SyntaxNode node, TypeSyntaxContext state)
@@ -61,13 +62,13 @@ internal sealed partial class Checker
             state.Length.Add((long)node.End - node.Pos);
     }
 
-    private static void AddExpressionNameLength(TypeSyntaxLength length, string name, bool first, bool enumMember)
+    private static void AddExpressionNameLength(TypeSyntaxLength length, TextSlice name, bool first, bool enumMember)
     {
-        if (first || IdentifierName(name.StartsWith('#') ? name[1..] : name))
+        if (first || IdentifierName(name.Span.StartsWith('#') ? name[1..] : name))
             length.Add(name, 1);
         else
         {
-            if (name.StartsWith('['))
+            if (name.Span.StartsWith('['))
                 name = name[1..^1];
             bool quoted = Quoted(name) && !enumMember;
             length.Add(quoted ? UnquoteSymbolText(name) : name, quoted ? 4 : 2);

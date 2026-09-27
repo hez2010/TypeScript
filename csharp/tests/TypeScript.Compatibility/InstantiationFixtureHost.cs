@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Checking;
@@ -46,7 +47,7 @@ internal interface IInstantiationFixtureSource
 
     ValueTask<IReadOnlyList<IndexInfo>> IndexesAsync(Type type, CancellationToken cancellation);
 
-    ValueTask<Symbol?> PropertyAsync(Type type, string name, CancellationToken cancellation);
+    ValueTask<Symbol?> PropertyAsync(Type type, TextSlice name, CancellationToken cancellation);
 
     ValueTask<Type> PropertyNameTypeAsync(Symbol symbol, CancellationToken cancellation);
 
@@ -136,7 +137,7 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
         target.BaseTypesResolved = true;
         var length = new Symbol(SymbolFlags.Property | SymbolFlags.Transient, "length");
         links.Values.Get(length).ResolvedType = context.NumberType;
-        target.DeclaredMembers = new Dictionary<string, Symbol> { ["length"] = length }.AsReadOnly();
+        target.DeclaredMembers = new Dictionary<TextSlice, Symbol> { ["length"] = length }.AsReadOnly();
         return target;
     }
 
@@ -221,9 +222,9 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
         return type is StructuredType structured ? structured.IndexInfos : [];
     }
 
-    public async ValueTask<Symbol?> PropertyAsync(Type type, string name, CancellationToken cancellation)
+    public async ValueTask<Symbol?> PropertyAsync(Type type, TextSlice name, CancellationToken cancellation)
     {
-        BeforeProperty?.Invoke(name);
+        BeforeProperty?.Invoke(name.ToString());
         if (source is not null)
             return await source.PropertyAsync(type, name, cancellation).ConfigureAwait(false);
         await PropertiesAsync(type, cancellation).ConfigureAwait(false);
@@ -237,7 +238,7 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
         var name = links.Values.Get(symbol).NameType;
         if (name is not null)
             return ValueTask.FromResult((name.Flags & F.StringOrNumberLiteralOrUnique) != 0 ? name : context.NeverType);
-        if (symbol.Name.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal))
+        if (symbol.Name.Span.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal))
             throw new InvalidOperationException("Fixture requires private/computed property names");
         return ValueTask.FromResult<Type>(context.GetStringLiteralType(symbol.Name));
     }
@@ -458,7 +459,7 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
         }
         if ((indexType.Flags & F.Number) != 0 && (objectType.Flags & F.Primitive) != 0)
             return context.UnknownType;
-        if (indexType is LiteralType { Value: string name })
+        if (indexType is LiteralType { Value: TextSlice name })
         {
             if (objectType is TypeReference { Target: TupleType target } fixedTuple
                 && int.TryParse(

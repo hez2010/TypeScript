@@ -23,7 +23,7 @@ internal sealed partial class Checker
             ParameterDeclarationNode => LegacyDecorators
                 && node.Parent is ConstructorDeclarationNode or MethodDeclarationNode or SetAccessorDeclarationNode
                 && SemanticSyntax.Body(node.Parent) is not null && node.Parent.Parent is ClassDeclarationNode
-                && SemanticSyntax.Name(node) is not IdentifierNode { Text: "this" },
+                && SemanticSyntax.Name(node) is not IdentifierNode { Text.Span: "this" },
             _ => false
         };
     }
@@ -38,7 +38,7 @@ internal sealed partial class Checker
         {
             if (modifier is DecoratorNode)
             {
-                if (node is ParameterDeclarationNode { Name: IdentifierNode { Text: "this" } })
+                if (node is ParameterDeclarationNode { Name: IdentifierNode { Text.Span: "this" } })
                 {
                     Error(node, DiagnosticCode.NeitherDecoratorsNorModifiersMayBeAppliedToThisParameters);
                     return true;

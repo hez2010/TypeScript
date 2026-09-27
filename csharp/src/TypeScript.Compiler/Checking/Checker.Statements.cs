@@ -264,7 +264,7 @@ internal sealed partial class Checker
         }
         if (!grammar)
             return;
-        if (forOf && (node.Flags & NodeFlags.AwaitContext) == 0 && node.Initializer is IdentifierNode { Text: "async" })
+        if (forOf && (node.Flags & NodeFlags.AwaitContext) == 0 && node.Initializer is IdentifierNode { Text.Span: "async" })
         {
             Error(node.Initializer, DiagnosticCode.TheLeftHandSideOfAForOfStatementMayNotBeAsync);
             return;

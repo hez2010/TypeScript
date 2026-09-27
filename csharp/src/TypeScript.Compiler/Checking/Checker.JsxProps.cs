@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -52,13 +53,13 @@ internal sealed partial class Checker
             props = name is null ? signature.Parameters.Count == 0
                 ? context.UnknownType
                 : await Parameters.AtAsync(signature, 0, cancellation)
-                : name.Length == 0
+                : name.Value.Length == 0
                     ? await Signatures.ReturnAsync(signature, cancellation)
-                    : await JsxMemberPropsAsync(signature, name, cancellation);
+                    : await JsxMemberPropsAsync(signature, (name).Value, cancellation);
             if (props is null)
             {
                 if (JsxAttributes(node)?.Properties?.Count > 0)
-                    Error(node, DiagnosticCode.JSXElementClassDoesNotSupportAttributesBecauseItDoesNotHaveA0Property, name!);
+                    Error(node, DiagnosticCode.JSXElementClassDoesNotSupportAttributesBecauseItDoesNotHaveA0Property, name!.Value);
                 return context.UnknownType;
             }
         }
@@ -97,7 +98,7 @@ internal sealed partial class Checker
         return attributes == context.ErrorType ? props : await Algebra.IntersectionAsync([attributes, props], cancellation: cancellation);
     }
 
-    private async ValueTask<Type?> JsxMemberPropsAsync(Signature signature, string name, CancellationToken cancellation)
+    private async ValueTask<Type?> JsxMemberPropsAsync(Signature signature, TextSlice name, CancellationToken cancellation)
     {
         var types = new List<Type>();
         foreach (var part in signature.Composite?.Signatures ?? [signature])
@@ -139,9 +140,9 @@ internal sealed partial class Checker
         {
             var props = await Contexts.ApparentAsync(element.OpeningElement!.Attributes!, flags, cancellation);
             var name = await JsxPropertyNameAsync("ElementChildrenAttribute", element, cancellation);
-            if (props is null || (props.Flags & TypeFlags.Any) != 0 || string.IsNullOrEmpty(name))
+            if (props is null || (props.Flags & TypeFlags.Any) != 0 || name is null or { IsEmpty: true })
                 return null;
-            var type = await ContextualPropertyAsync(await Views.ApparentAsync(props, cancellation), name, cancellation);
+            var type = await ContextualPropertyAsync(await Views.ApparentAsync(props, cancellation), (name).Value, cancellation);
             if (type is null)
                 return null;
             var children = JsxSemanticChildren(element);

@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -24,7 +25,7 @@ internal sealed partial class Checker : IVariableTypeHost
         CancellationToken cancellation)
     {
         var name = SemanticSyntax.Name(node)!;
-        string text = CheckerDiagnostic.DeclarationName(name);
+        TextSlice text = CheckerDiagnostic.DeclarationName(name);
         var diagnostic = CheckerDiagnostic.Create(name, DiagnosticLocalization.GetMessage(
             node is PropertyDeclarationNode or PropertySignatureDeclarationNode
                 ? DiagnosticCode.SubsequentPropertyDeclarationsMustHaveTheSameTypeProperty0MustBeOfType1ButHereHasType2
@@ -92,7 +93,7 @@ internal sealed partial class Checker : IVariableTypeHost
             || container is BlockNode { Parent: IFunctionSignature };
         if (!sharedScope)
         {
-            string text = TypeDisplay.SymbolName(local);
+            TextSlice text = TypeDisplay.SymbolName(local);
             Error(node, DiagnosticCode.CannotInitializeOuterScopedVariable0InTheSameScopeAsBlockScopedDeclaration1, text, text);
         }
     }
@@ -183,7 +184,7 @@ internal sealed partial class Checker : IVariableTypeHost
 
     public async ValueTask<Type> SymbolConstructorPropertyAsync(SyntaxNode declaration, Type type, CancellationToken cancellation)
     {
-        if (declaration.Parent is InterfaceDeclarationNode { Name.Text: "SymbolConstructor" } parent
+        if (declaration.Parent is InterfaceDeclarationNode { Name.Text.Span: "SymbolConstructor" } parent
             && program.Symbols.Declaration(parent) == (await program.Globals.GetAsync("SymbolConstructor", 0, false, cancellation)).Symbol)
             return Nodes.UniqueSymbol(declaration);
         return type;
@@ -200,21 +201,21 @@ internal sealed partial class Checker : IVariableTypeHost
         if ((declaration.Flags & NodeFlags.JavaScriptFile) != 0 && SemanticSyntax.Source(declaration)?.CheckJsDirective?.Enabled != true
             && program.Symbols.Program.Configuration.Options.Boolean("checkJs") != true)
             return;
-        string typeText = await TypeDisplay.GetAsync(await Widening.GetAsync(type, cancellation), cancellation);
+        TextSlice typeText = await TypeDisplay.GetAsync(await Widening.GetAsync(type, cancellation), cancellation);
         DiagnosticCode code;
         if (declaration is ParameterDeclarationNode parameter)
         {
             if (parameter.Parent is FunctionTypeNode or MethodSignatureDeclarationNode or CallSignatureDeclarationNode
                 && parameter.Name is IdentifierNode name)
             {
-                bool keyword = name.Text is "any" or "unknown" or "string" or "number" or "boolean" or "bigint" or "symbol" or "object"
+                bool keyword = name.Text.Span is "any" or "unknown" or "string" or "number" or "boolean" or "bigint" or "symbol" or "object"
                     or "never" or "void" or "undefined";
                 if (keyword || await program.EntityNames.ResolveAsync(name, SymbolFlags.Type, true, cancellation: cancellation) is not null)
                 {
                     code = DiagnosticCode.ParameterHasANameButNoTypeDidYouMean0Colon1;
                     int index = Signatures.Parameters(parameter.Parent!)?.IndexOf(parameter) ?? -1;
-                    Report("arg" + index.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                        CheckerDiagnostic.DeclarationName(name) + (parameter.DotDotDotToken is null ? "" : "[]"));
+                    Report(TextSlice.Concat("arg", TextSlice.Format(index)),
+                        TextSlice.Concat(CheckerDiagnostic.DeclarationName(name), (parameter.DotDotDotToken is null ? "" : "[]")));
                     return;
                 }
             }
@@ -265,14 +266,14 @@ internal sealed partial class Checker : IVariableTypeHost
             ElementAccessExpressionNode element => element.ArgumentExpression,
             _ => binary.Left
         } : null);
-        string nameText = declarationName is null ? "" : CheckerDiagnostic.DeclarationName(declarationName);
+        TextSlice nameText = declarationName is null ? "" : CheckerDiagnostic.DeclarationName(declarationName);
         Report(
             code is DiagnosticCode.FunctionExpressionWhichLacksReturnTypeAnnotationImplicitlyHasAn0ReturnType
                 or DiagnosticCode.ThisOverloadImplicitlyReturnsTheType0BecauseItLacksAReturnTypeAnnotation
                 or DiagnosticCode.GeneratorImplicitlyHasYieldType0ConsiderSupplyingAReturnTypeAnnotation
                 ? [typeText]
                 : [nameText, typeText]);
-        void Report(params string[] arguments)
+        void Report(params TextSlice[] arguments)
         {
             if (NoImplicitAny)
                 Error(declaration, code, arguments);

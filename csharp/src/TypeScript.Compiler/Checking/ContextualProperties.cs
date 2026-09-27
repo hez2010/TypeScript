@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -10,7 +11,7 @@ internal sealed class ContextualProperties(TypeContext context, CheckerLinks lin
     MappedMembers mappedMembers, IndexedTypes indexed, IndexSignatures indexes, TupleTypes tuples,
     TypeConstraints constraints, TypeViews views, TypeRelations relations, TypeResolutionStack resolutions)
 {
-    internal ValueTask<Type?> GetAsync(Type type, string name, Type? nameType = null, CancellationToken cancellation = default)
+    internal ValueTask<Type?> GetAsync(Type type, TextSlice name, Type? nameType = null, CancellationToken cancellation = default)
         => algebra.MapAsync(type, async part =>
         {
             if (part is IntersectionType intersection)
@@ -60,7 +61,7 @@ internal sealed class ContextualProperties(TypeContext context, CheckerLinks lin
         && await mapped.IsGenericAsync(mapping, cancellation).ConfigureAwait(false)
         && await mappedMembers.NameKindAsync(mapping, cancellation).ConfigureAwait(false) != MappedTypeNameTypeKind.Remapping;
 
-    private async ValueTask<Type?> ConcreteAsync(Type type, string name, CancellationToken cancellation)
+    private async ValueTask<Type?> ConcreteAsync(Type type, TextSlice name, CancellationToken cancellation)
     {
         var property = await properties.PropertyAsync(type, name, cancellation: cancellation).ConfigureAwait(false);
         if (property is null || (property.CheckFlags & CheckFlags.Mapped) != 0 && links.Values.Get(property).ResolvedType is null
@@ -71,7 +72,7 @@ internal sealed class ContextualProperties(TypeContext context, CheckerLinks lin
             (property.Flags & SymbolFlags.Optional) != 0);
     }
 
-    private async ValueTask<Type?> IndexAsync(Type type, string name, Type? nameType, CancellationToken cancellation)
+    private async ValueTask<Type?> IndexAsync(Type type, TextSlice name, Type? nameType, CancellationToken cancellation)
     {
         if (type is TypeReference { Target: TupleType tuple } reference
             && IndexSignatures.NumericName(name)
@@ -87,7 +88,7 @@ internal sealed class ContextualProperties(TypeContext context, CheckerLinks lin
             nameType ?? context.GetStringLiteralType(name), cancellation).ConfigureAwait(false))?.ValueType;
     }
 
-    private async ValueTask<Type?> MappedAsync(MappedType type, string name, Type? nameType, CancellationToken cancellation)
+    private async ValueTask<Type?> MappedAsync(MappedType type, TextSlice name, Type? nameType, CancellationToken cancellation)
     {
         var key = nameType ?? context.GetStringLiteralType(name);
         var constraint = await mapped.ConstraintAsync(type, cancellation).ConfigureAwait(false);

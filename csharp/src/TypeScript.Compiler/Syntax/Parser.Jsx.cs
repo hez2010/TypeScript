@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Diagnostics;
 using K = TypeScript.Compiler.Syntax.SyntaxKind;
@@ -262,7 +263,7 @@ public sealed partial class Parser
             if (Token is K.JsxText or K.JsxTextAllWhiteSpaces)
             {
                 bool whitespace = Token == K.JsxTextAllWhiteSpaces;
-                string value = scanner.Value;
+                TextSlice value = scanner.Value;
                 NextJsx();
                 children.Add(Finish(factory.NewJsxText(value, whitespace), childStart));
             }

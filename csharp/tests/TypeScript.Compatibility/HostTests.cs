@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Text;
 using System.Text.Json;
 using TypeScript.Compiler.Configuration;
@@ -70,7 +71,7 @@ internal static class HostTests
             writer.WriteBoolean("url", CompilerPath.IsUrl(path));
             writer.WriteString("directory", CompilerPath.DirectoryName(path));
             writer.WriteString("base", CompilerPath.BaseName(path));
-            writer.WriteString("extension", CompilerPath.Extension(path));
+            writer.WriteString("extension", CompilerPath.Extension((TextSlice)path).Span);
             writer.WriteBoolean("declaration", CompilerPath.IsDeclarationFile(path));
             writer.WriteString("combine", CompilerPath.Combine(path, other));
             writer.WriteString("resolve", CompilerPath.Resolve(path, other));

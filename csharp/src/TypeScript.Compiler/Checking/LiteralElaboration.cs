@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Globalization;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -87,7 +88,7 @@ internal sealed class LiteralElaboration(TypeContext context, CheckerSymbols sym
                 if (element.Kind == SyntaxKind.OmittedExpression || await arrays.TupleLikeAsync(target, cancellation).ConfigureAwait(false)
                     && await properties.PropertyAsync(
                         target,
-                        i.ToString(CultureInfo.InvariantCulture),
+                        TextSlice.Format(i),
                         cancellation: cancellation).ConfigureAwait(false) is null)
                     continue;
                 var check = CallResolution.EffectiveNode(element);
@@ -177,7 +178,7 @@ internal sealed class LiteralElaboration(TypeContext context, CheckerSymbols sym
                 cancellation).ConfigureAwait(false);
             return true;
         }
-        string name = MappedMembers.PropertyName(key);
+        TextSlice name = MappedMembers.PropertyName(key);
         var targetProperty = await properties.PropertyAsync(target, name, cancellation: cancellation).ConfigureAwait(false);
         var sourceProperty = await properties.PropertyAsync(source, name, cancellation: cancellation).ConfigureAwait(false);
         bool targetOptional = targetProperty is not null && (targetProperty.Flags & SymbolFlags.Optional) != 0;

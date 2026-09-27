@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -13,7 +14,7 @@ internal interface IExplicitValueHost
 
     ValueTask<Type?> IteratedTypeAsync(ForInOrOfStatementNode node, Type expression, CancellationToken cancellation);
 
-    string PrivatePropertyName(Symbol symbol, PrivateIdentifierNode name);
+    TextSlice PrivatePropertyName(Symbol symbol, PrivateIdentifierNode name);
 
     void MissingExplicitAnnotation(Symbol symbol, SyntaxNode declaration);
 }
@@ -54,11 +55,11 @@ internal sealed class ExplicitValueTypes(CheckerLinks links, CheckerSymbols symb
         };
         for (int i = accesses.Count - 1; type is not null && i >= 0; i--)
         {
-            string? name = accesses[i] is PrivateIdentifierNode privateName
-                ? type.Symbol is { } symbol ? host.PrivatePropertyName(symbol, privateName) : null : SyntaxNameText.Get(accesses[i]);
+            TextSlice? name = accesses[i] is PrivateIdentifierNode privateName
+                ? type.Symbol is { } symbol ? host.PrivatePropertyName(symbol, privateName) : (TextSlice?)null : SyntaxNameText.Get(accesses[i]);
             var property = name is null
                 ? null
-                : await properties.PropertyAsync(type, name, cancellation: cancellation).ConfigureAwait(false);
+                : await properties.PropertyAsync(type, name.Value, cancellation: cancellation).ConfigureAwait(false);
             type = property is null ? null : await SymbolAsync(property, reportMissing, cancellation).ConfigureAwait(false);
         }
         return type;

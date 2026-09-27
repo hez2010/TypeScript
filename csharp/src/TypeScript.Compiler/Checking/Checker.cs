@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -373,7 +374,7 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
         CancellationToken cancellation)
             => Indexed.GetAsync(objectType, indexType, node: node, alias: alias, cancellation: cancellation);
 
-    public ValueTask<IReadOnlyDictionary<string, Symbol>> MembersAsync(Symbol symbol, CancellationToken cancellation)
+    public ValueTask<IReadOnlyDictionary<TextSlice, Symbol>> MembersAsync(Symbol symbol, CancellationToken cancellation)
     {
         BeforeMemberTable?.Invoke(symbol);
         return LateMembers.TableAsync(symbol, cancellation: cancellation);
@@ -420,7 +421,7 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
     public async ValueTask TypeArgumentCountAsync(SyntaxNode node, Symbol symbol, Type type, int minimum, int maximum, bool missingAugments,
         CancellationToken cancellation)
     {
-        string name = (symbol.Flags & SymbolFlags.TypeAlias) != 0 ? TypeDisplay.SymbolName(symbol)
+        TextSlice name = (symbol.Flags & SymbolFlags.TypeAlias) != 0 ? TypeDisplay.SymbolName(symbol)
             : await TypeDisplay.GetAsync(type, NodeBuilderFlags.WriteArrayAsGenericType, cancellation);
         Error(
             node,
@@ -432,8 +433,8 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
                     ? DiagnosticCode.GenericType0Requires1TypeArgumentS
                     : DiagnosticCode.GenericType0RequiresBetween1And2TypeArguments,
             name,
-            minimum.ToString(System.Globalization.CultureInfo.InvariantCulture),
-            maximum.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            TextSlice.Format(minimum),
+            TextSlice.Format(maximum));
     }
 
     public void NotGeneric(SyntaxNode node, Symbol symbol) => Error(node, DiagnosticCode.Type0IsNotGeneric, TypeDisplay.SymbolName(symbol));
@@ -445,7 +446,7 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
             : DiagnosticCode.TypeArgumentsFor0CircularlyReferenceThemselves,
         target.Symbol is null ? [] : [TypeDisplay.SymbolName(target.Symbol)]);
 
-    private void Error(SyntaxNode node, DiagnosticCode code, params string[] arguments)
+    private void Error(SyntaxNode node, DiagnosticCode code, params TextSlice[] arguments)
     {
         if (reported.Add((node, code)))
         {

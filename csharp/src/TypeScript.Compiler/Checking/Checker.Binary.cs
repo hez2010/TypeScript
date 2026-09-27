@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -101,11 +102,11 @@ internal sealed partial class Checker : IBinaryExpressionHost, IAwaitedTypeHost
         Error(node, diagnostic);
     }
 
-    public void BinaryDiagnostic(SyntaxNode node, DiagnosticCode code, bool suggestion = false, params string[] suppliedArguments)
+    public void BinaryDiagnostic(SyntaxNode node, DiagnosticCode code, bool suggestion = false, params TextSlice[] suppliedArguments)
     {
         if (!suggestion)
         {
-            string[] arguments = code switch
+            TextSlice[] arguments = code switch
             {
                 DiagnosticCode.The0OperatorIsNotAllowedForBooleanTypesConsiderUsing1Instead => [TokenFacts.Text(node.Kind)!, node.Kind is SyntaxKind.BarToken
                     or SyntaxKind.BarEqualsToken ? "||"
@@ -120,15 +121,15 @@ internal sealed partial class Checker : IBinaryExpressionHost, IAwaitedTypeHost
             };
             if (code == DiagnosticCode.ThisConditionWillAlwaysReturn0 && node is BinaryExpressionNode comparison)
             {
-                bool IsNaN(SyntaxNode expression) => MemberAccessRules.SkipParentheses(expression) is IdentifierNode { Text: "NaN" } identifier
+                bool IsNaN(SyntaxNode expression) => MemberAccessRules.SkipParentheses(expression) is IdentifierNode { Text.Span: "NaN" } identifier
                     && links.SymbolNodes.TryGet(identifier)?.ResolvedSymbol == program.Symbols.Globals.GetValueOrDefault("NaN");
                 bool left = IsNaN(comparison.Left!), right = IsNaN(comparison.Right!);
                 var diagnostic = CheckerDiagnostic.Create(node, Messages.This_condition_will_always_return_0, arguments);
                 if (left != right)
                 {
                     var location = left ? comparison.Right! : comparison.Left!;
-                    string name = ExpressionChecks.EntityText(MemberAccessRules.SkipParentheses(location)) ?? "...";
-                    string prefix = comparison.OperatorToken!.Kind is SyntaxKind.ExclamationEqualsToken
+                    TextSlice name = ExpressionChecks.EntityText(MemberAccessRules.SkipParentheses(location)) ?? "...";
+                    TextSlice prefix = comparison.OperatorToken!.Kind is SyntaxKind.ExclamationEqualsToken
                         or SyntaxKind.ExclamationEqualsEqualsToken
                         ? "!"
                         : "";
@@ -137,7 +138,7 @@ internal sealed partial class Checker : IBinaryExpressionHost, IAwaitedTypeHost
                         RelatedInformation = [CheckerDiagnostic.Create(
                         location,
                         Messages.Did_you_mean_0,
-                        prefix + "Number.isNaN(" + name + ")")]
+TextSlice.ConcatMany(prefix, "Number.isNaN(", name, ")"))]
                     };
                 }
                 Error(node, diagnostic);
@@ -150,7 +151,7 @@ internal sealed partial class Checker : IBinaryExpressionHost, IAwaitedTypeHost
     }
 
     public async ValueTask<bool> GlobalNaNAsync(SyntaxNode node, CancellationToken cancellation)
-            => node is IdentifierNode { Text: "NaN" } && program.Symbols.Globals.GetValueOrDefault("NaN") is { } symbol
+            => node is IdentifierNode { Text.Span: "NaN" } && program.Symbols.Globals.GetValueOrDefault("NaN") is { } symbol
                 && await program.EntityNames.ResolveAsync(node, SymbolFlags.Value, true, cancellation: cancellation) == symbol;
 
     public ValueTask AssignmentAsync(

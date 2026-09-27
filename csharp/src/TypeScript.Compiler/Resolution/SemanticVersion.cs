@@ -19,8 +19,8 @@ public sealed partial record SemanticVersion(uint Major, uint Minor = 0, uint Pa
     public static SemanticVersion? Parse(string text)
     {
         var match = VersionPattern().Match(text);
-        if (!match.Success || !Component(match.Groups[1].Value, out uint major)
-            || !Component(match.Groups[2].Value, out uint minor) || !Component(match.Groups[3].Value, out uint patch))
+        if (!match.Success || !Component(match.Groups[1].ValueSpan, out uint major)
+            || !Component(match.Groups[2].ValueSpan, out uint minor) || !Component(match.Groups[3].ValueSpan, out uint patch))
             return null;
         string pre = match.Groups[4].Value, build = match.Groups[5].Value;
         if (pre.Length != 0 && !PrereleasePattern().IsMatch(pre) || build.Length != 0 && !BuildPattern().IsMatch(build))
@@ -28,7 +28,7 @@ public sealed partial record SemanticVersion(uint Major, uint Minor = 0, uint Pa
         return new(major, minor, patch, pre, build);
     }
 
-    internal static bool Component(string text, out uint value)
+    internal static bool Component(ReadOnlySpan<char> text, out uint value)
     {
         value = 0;
         return text.Length == 0 || uint.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out value);
@@ -59,23 +59,28 @@ public sealed partial record SemanticVersion(uint Major, uint Minor = 0, uint Pa
             return other.Prerelease.Length == 0 ? 0 : 1;
         if (other.Prerelease.Length == 0)
             return -1;
-        string[] left = Prerelease.Split('.'), right = other.Prerelease.Split('.');
-        for (int i = 0; i < Math.Min(left.Length, right.Length); i++)
+        ReadOnlySpan<char> left = Prerelease, right = other.Prerelease;
+        var leftParts = left.Split('.');
+        var rightParts = right.Split('.');
+        while (leftParts.MoveNext())
         {
-            if (left[i] == right[i])
+            if (!rightParts.MoveNext())
+                return 1;
+            ReadOnlySpan<char> a = left[leftParts.Current], b = right[rightParts.Current];
+            if (a.SequenceEqual(b))
                 continue;
-            bool a = Numeric(left[i]), b = Numeric(right[i]);
-            if (a != b)
-                return a ? -1 : 1;
-            if (a && left[i].Length != right[i].Length)
-                return left[i].Length.CompareTo(right[i].Length);
-            return Math.Sign(string.CompareOrdinal(left[i], right[i]));
+            bool numericA = Numeric(a), numericB = Numeric(b);
+            if (numericA != numericB)
+                return numericA ? -1 : 1;
+            if (numericA && a.Length != b.Length)
+                return a.Length.CompareTo(b.Length);
+            return Math.Sign(a.SequenceCompareTo(b));
         }
-        return left.Length.CompareTo(right.Length);
+        return rightParts.MoveNext() ? -1 : 0;
     }
 
-    private static bool Numeric(string text) => text.Length > 0 && (text.Length == 1 || text[0] != '0')
-        && !text.AsSpan().ContainsAnyExceptInRange('0', '9');
+    private static bool Numeric(ReadOnlySpan<char> text) => text.Length > 0 && (text.Length == 1 || text[0] != '0')
+        && !text.ContainsAnyExceptInRange('0', '9');
 
     public override string ToString() => $"{Major}.{Minor}.{Patch}"
         + (Prerelease.Length == 0 ? "" : "-" + Prerelease) + (Build.Length == 0 ? "" : "+" + Build);
@@ -106,10 +111,11 @@ public sealed partial class VersionRange
         var match = PartialPattern().Match(text);
         if (!match.Success)
             return false;
-        uint[] components = new uint[3];
+        Span<uint> components = stackalloc uint[3];
+        components.Clear();
         for (int i = 0; i < 3; i++)
         {
-            string part = match.Groups[i + 1].Value;
+            ReadOnlySpan<char> part = match.Groups[i + 1].ValueSpan;
             if (part is "" or "*" or "x" or "X")
                 wildcard = Math.Min(wildcard, i);
             if (i < wildcard && !SemanticVersion.Component(part, out components[i]))

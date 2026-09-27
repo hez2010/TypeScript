@@ -47,16 +47,16 @@ internal static class CheckerProgramTests
         Check(diagnostics.Count(d => d.Code == DiagnosticCode.ModifiersCannotAppearHere) == 1);
         Check(
             diagnostics.Where(
-                d => d.Code == DiagnosticCode.X0DeclarationsCanOnlyBeDeclaredInsideABlock).SelectMany(d => d.Arguments).Order().SequenceEqual(
+                d => d.Code == DiagnosticCode.X0DeclarationsCanOnlyBeDeclaredInsideABlock).SelectMany(d => d.Arguments).Select(a => a.ToString()).Order().SequenceEqual(
                     [
                         "interface",
                         "type"
                     ]));
         var accessor = diagnostics.Single(d => d.Code == DiagnosticCode.AnImplementationCannotBeDeclaredInAmbientContexts);
-        Check(main.Source.Text.Substring(accessor.Start, accessor.Length) == "{return 0}");
+        Check(main.Source.Text[accessor.Start..(accessor.Start + accessor.Length)] == "{return 0}");
         var unreachable = program.GetFile("/project/unreachable.ts")!.Syntax;
         var range = checker.DetailedDiagnosticsForProgramFile(unreachable).Single(d => d.Code == DiagnosticCode.UnreachableCodeDetected);
-        Check(unreachable.Source.Text.Substring(range.Start, range.Length) == "const first=1;const second=2;");
+        Check(unreachable.Source.Text[range.Start..(range.Start + range.Length)] == "const first=1;const second=2;");
         var recovery = program.GetFile("/project/recovery.ts")!.Syntax;
         Check(
             recovery.ParseDiagnostics.Count != 0
@@ -234,7 +234,7 @@ internal static class CheckerProgramTests
         var checker = await program.CreateCheckerAsync();
         await checker.CheckProgramAsync();
         var diagnostics = checker.DetailedDiagnosticsForProgramFile(source);
-        Check(diagnostics.Where(d => d.Code == DiagnosticCode.CannotFindName0).SelectMany(d => d.Arguments).Order()
+        Check(diagnostics.Where(d => d.Code == DiagnosticCode.CannotFindName0).SelectMany(d => d.Arguments).Select(a => a.ToString()).Order()
             .SequenceEqual(new[] { "MissingA", "MissingI" }));
         Check(diagnostics.Count(d => d.Code == DiagnosticCode.PrivateIdentifiersAreNotAllowedOutsideClassBodies) == 2);
         Check(diagnostics.Any(d => d.Code == DiagnosticCode.GeneratorsAreNotAllowedInAnAmbientContext));
@@ -437,7 +437,7 @@ internal static class CheckerProgramTests
         })
             Check(diagnostics.Any(d => d.Code == code));
         Check(diagnostics.All(d => d.Code != DiagnosticCode.FunctionImplementationIsMissingOrNotImmediatelyFollowingTheDeclaration));
-        var blocked = source.DescendantsAndSelf().OfType<VariableDeclarationNode>().Single(n => n.Name is IdentifierNode { Text: "blocked" });
+        var blocked = source.DescendantsAndSelf().OfType<VariableDeclarationNode>().Single(n => n.Name is IdentifierNode { Text: { Span: "blocked" } });
         Check((await checker.GetTypeAtLocationAsync(blocked.Name!)).Symbol?.Name == "C");
         Check(diagnostics.Count(d => d.Code == DiagnosticCode.Type0IsNotAssignableToType1) >= 3);
         await checker.CheckProgramAsync();
@@ -466,6 +466,18 @@ internal static class CheckerProgramTests
             ["/project/ignore.ts"] = Wtf8.Encode("// @ts-ignore\n/// <reference path='./ignored.ts' />\nexport {};"),
             ["/project/expect.ts"] = Wtf8.Encode("// @ts-expect-error\n/// <reference path='./expected.ts' />\nexport {};"),
             ["/project/self.ts"] = Wtf8.Encode("/// <reference path='./self.ts' />\nexport {};"),
+            ["/project/slices.ts"] = Wtf8.Encode("""
+                type Prefix = `\uD83D${string}`;
+                type Suffix = `${string}\uDE00`;
+                const badPrefix: Prefix = "\uD83D\uDE00";
+                const badSuffix: Suffix = "\uD83D\uDE00";
+                const lonePrefix: Prefix = "\uD83D";
+                const loneSuffix: Suffix = "\uDE00";
+                type Middle<T> = T extends `${infer A}\uD83D${infer B}` ? false : true;
+                const middle: Middle<"\uD83D\uDE00"> = true;
+                declare const empty: "";
+                const emptyAnd = empty && 1;
+                """),
             ["/project/weak.ts"] = Wtf8.Encode(
                 "interface Options{timeout?:number}const unrelated={other:1};const value:Options=unrelated;const fn:Options=()=>({timeout:1});"),
             ["/project/main.tsx"] = Wtf8.Encode(
@@ -489,6 +501,11 @@ internal static class CheckerProgramTests
         Check(Errors("ignore.ts").Count == 0);
         Check(Errors("expect.ts").Select(d => d.Code).SequenceEqual([DiagnosticCode.UnusedTsExpectErrorDirective]));
         Check(Errors("self.ts").Select(d => d.Code).SequenceEqual([DiagnosticCode.AFileCannotHaveAReferenceToItself]));
+        Check(Errors("slices.ts").Count == 2
+            && Errors("slices.ts").All(d => d.Code == DiagnosticCode.Type0IsNotAssignableToType1));
+        var emptyAnd = program.GetFile("/project/slices.ts")!.Syntax.DescendantsAndSelf().OfType<VariableDeclarationNode>()
+            .Single(node => node.Name is IdentifierNode { Text.Span: "emptyAnd" });
+        Check(await checker.GetTypeAtLocationAsync(emptyAnd.Name!) is LiteralType { Value: TextSlice { IsEmpty: true } });
         Check(Errors("weak.ts").Any(d => d.Code == DiagnosticCode.Type0HasNoPropertiesInCommonWithType1));
         Check(
             Errors("weak.ts").Single(
@@ -1094,7 +1111,7 @@ internal static class CheckerProgramTests
         await checker.CheckProgramAsync();
         var diagnostics = checker.DetailedDiagnosticsForProgramFile(file);
         var missing = diagnostics.Single(d => d.Code == DiagnosticCode.CannotFindName0);
-        if (missing.Arguments is not ["absent"] || missing.FileName != file.FileName
+        if (missing.Arguments is not [{ Span: "absent" }] || missing.FileName != file.FileName
             || missing.Start != file.Source.ToBytePosition(source.IndexOf("absent", StringComparison.Ordinal))
             || missing.Length != 6 || missing.Format() != "Cannot find name 'absent'.")
             throw new InvalidOperationException("Complete missing-name diagnostic");
@@ -1109,7 +1126,7 @@ internal static class CheckerProgramTests
         string Span(SyntaxNode node)
         {
             var (start, end) = CheckerDiagnostic.ErrorRange(file, node);
-            return file.Source.Text[file.Source.ToUtf16Position(start)..file.Source.ToUtf16Position(end)];
+            return file.Source.Text[file.Source.ToUtf16Position(start)..file.Source.ToUtf16Position(end)].ToString();
         }
         if (Span(nodes.OfType<VariableDeclarationNode>().First()) != "value"
             || Span(nodes.OfType<ReturnStatementNode>().Single()) != "return"
@@ -1119,10 +1136,10 @@ internal static class CheckerProgramTests
             || Span(nodes.OfType<SatisfiesExpressionNode>().Single()) != "satisfies"
             || Span(nodes.OfType<CaseOrDefaultClauseNode>().First()) != "case 1:")
             throw new InvalidOperationException("Checker error ranges");
-        string[] arguments = ["original"];
+        TextSlice[] arguments = ["original"];
         var owned = CheckerDiagnostic.Create(nodes.OfType<VariableDeclarationNode>().First(), Messages.Cannot_find_name_0, arguments);
         arguments[0] = "changed";
-        if (owned.Arguments is not ["original"])
+        if (owned.Arguments is not [{ Span: "original" }])
             throw new InvalidOperationException("Diagnostic did not retain its arguments");
         var chain = owned with { MessageChain = [owned with { MessageChain = [owned] }] };
         if (chain.Format() != "Cannot find name 'original'.\n  Cannot find name 'original'.\n    Cannot find name 'original'.")
@@ -1368,7 +1385,7 @@ internal static class CheckerProgramTests
             throw new InvalidOperationException($"Import diagnostics: {string.Join(',', codes)}");
         if (!nodes.Select(n => n.Parent).SequenceEqual(parents))
             throw new InvalidOperationException("Import checking changed source parents");
-        var initializer = nodes.OfType<VariableDeclarationNode>().Single(n => n.Name is IdentifierNode { Text: "dynamic" }).Initializer!;
+        var initializer = nodes.OfType<VariableDeclarationNode>().Single(n => n.Name is IdentifierNode { Text: { Span: "dynamic" } }).Initializer!;
         var type = await checker.GetExpressionTypeAsync(initializer);
         if (type is not TypeReference reference || reference.Target?.Symbol?.Name != "Promise")
             throw new InvalidOperationException("Dynamic import did not return Promise");
@@ -1519,13 +1536,13 @@ internal static class CheckerProgramTests
             writer.WriteStartArray("typeDisplays");
             foreach (var declaration in program.GetFile("/project/main.ts")!.Syntax.DescendantsAndSelf().OfType<VariableDeclarationNode>())
                 if (declaration.Name is IdentifierNode name
-                    && name.Text.StartsWith("show", StringComparison.Ordinal)
+                    && name.Text.Span.StartsWith("show", StringComparison.Ordinal)
                     && declaration.Type is not null)
                 {
                     writer.WriteStartArray();
-                    writer.WriteStringValue(name.Text);
+                    writer.WriteStringValue(name.Text.Span);
                     writer.WriteStringValue(
-                        await typeHost!.TypeDisplay.GetAsync(await typeHost.GetTypeFromTypeNodeAsync(declaration.Type)));
+                        (await typeHost!.TypeDisplay.GetAsync(await typeHost.GetTypeFromTypeNodeAsync(declaration.Type))).Span);
                     writer.WriteEndArray();
                 }
             writer.WriteEndArray();
@@ -1579,27 +1596,27 @@ internal static class CheckerProgramTests
             }
             return id;
         }
-        var privateOwners = new Dictionary<string, int>(StringComparer.Ordinal);
+        var privateOwners = new Dictionary<TextSlice, int>();
         foreach (var node in nodes.Where(SemanticSyntax.ClassLike))
             if (environment.Binding(node)?.Get(node)?.Symbol is { } owner)
-                foreach (string key in owner.Members.Keys.Concat(owner.Exports.Keys))
-                    if (key.StartsWith(Symbol.InternalPrefix + "#", StringComparison.Ordinal) && key.IndexOf('@') is > 0 and var end)
+                foreach (TextSlice key in owner.Members.Keys.Concat(owner.Exports.Keys))
+                    if (key.Span.StartsWith(Symbol.InternalPrefix + "#", StringComparison.Ordinal) && key.Span.IndexOf('@') is > 0 and var end)
                         privateOwners[key[..end]] = Node(node);
-        string CanonicalName(string name)
+        TextSlice CanonicalName(TextSlice name)
         {
-            if (name.StartsWith(Symbol.InternalPrefix + "@", StringComparison.Ordinal))
+            if (name.Span.StartsWith(Symbol.InternalPrefix + "@", StringComparison.Ordinal))
                 foreach (var unique in context.UniqueSymbols)
                     if (unique.Name == name && unique.Symbol?.Declarations.FirstOrDefault() is { } declaration)
                         return Symbol.InternalPrefix + "@" + unique.Symbol.Name + "@node" + Node(declaration).ToString(CultureInfo.InvariantCulture);
-            int end = name.IndexOf('@');
+            int end = name.Span.IndexOf('@');
             return end > 0 && privateOwners.TryGetValue(name[..end], out int owner)
                 ? Symbol.InternalPrefix + "#node" + owner.ToString(CultureInfo.InvariantCulture) + name[end..] : name;
         }
-        void Name(string text) => writer.WriteBase64StringValue(Wtf8.Encode(Symbol.EscapeName(CanonicalName(text))));
-        void Table(IReadOnlyDictionary<string, Symbol> table)
+        void Name(TextSlice text) => writer.WriteBase64StringValue(Wtf8.Encode(Symbol.EscapeName(CanonicalName(text))));
+        void Table(IReadOnlyDictionary<TextSlice, Symbol> table)
         {
             writer.WriteStartArray();
-            foreach (var (name, symbol) in table.OrderBy(p => CanonicalName(p.Key), Comparer<string>.Create(TypeOrder.CompareSymbolNames)))
+            foreach (var (name, symbol) in table.OrderBy(p => CanonicalName(p.Key), Comparer<TextSlice>.Create(TypeOrder.CompareSymbolNames)))
             {
                 writer.WriteStartArray();
                 Name(name);
@@ -1674,10 +1691,10 @@ internal static class CheckerProgramTests
         writer.WritePropertyName("augmentationTargets");
         Table(environment.PatternTargets);
         writer.WriteStartArray("globalTypes");
-        foreach (var (name, type) in host.Globals.Types.OrderBy(p => p.Key, StringComparer.Ordinal))
+        foreach (var (name, type) in host.Globals.Types.OrderBy(p => p.Key, TextSliceComparer.Ordinal))
         {
             writer.WriteStartArray();
-            writer.WriteStringValue(name);
+            writer.WriteStringValue(name.Span);
             writer.WriteNumberValue(TypeId(type));
             writer.WriteEndArray();
         }
@@ -1796,7 +1813,7 @@ internal static class CheckerProgramTests
             void OrderedSymbols(IReadOnlyList<Symbol> source)
             {
                 writer.WriteStartArray();
-                foreach (var symbol in source.OrderBy(s => CanonicalName(s.Name), Comparer<string>.Create(TypeOrder.CompareSymbolNames)))
+                foreach (var symbol in source.OrderBy(s => CanonicalName(s.Name), Comparer<TextSlice>.Create(TypeOrder.CompareSymbolNames)))
                     writer.WriteNumberValue(SymbolId(symbol));
                 writer.WriteEndArray();
             }
@@ -1942,7 +1959,7 @@ internal static class CheckerProgramTests
         {
             writer.WriteStartArray("accessQueries");
             foreach (var call in nodes.OfType<CallExpressionNode>())
-                if (call.Expression is IdentifierNode { Text: "__access" })
+                if (call.Expression is IdentifierNode { Text: { Span: "__access" } })
                     foreach (var argument in call.Arguments!)
                     {
                         writer.WriteStartArray();
@@ -1970,7 +1987,7 @@ internal static class CheckerProgramTests
         {
             writer.WriteStartArray("identifierQueries");
             foreach (var call in nodes.OfType<CallExpressionNode>())
-                if (call.Expression is IdentifierNode { Text: "__expr" })
+                if (call.Expression is IdentifierNode { Text: { Span: "__expr" } })
                     foreach (var argument in call.Arguments!)
                     {
                         writer.WriteStartArray();
@@ -1995,7 +2012,7 @@ internal static class CheckerProgramTests
         {
             writer.WriteStartArray("flowQueries");
             foreach (var call in nodes.OfType<CallExpressionNode>())
-                if (call.Expression is IdentifierNode { Text: "__flow" })
+                if (call.Expression is IdentifierNode { Text: { Span: "__flow" } })
                     foreach (var argument in call.Arguments!.OfType<IdentifierNode>())
                     {
                         var declared = await typeHost!.Values.GetAsync(host.ReferenceSymbols.Resolve(argument));
@@ -2032,7 +2049,7 @@ internal static class CheckerProgramTests
         {
             writer.WriteStartArray("declarationOrder");
             foreach (var call in nodes.OfType<CallExpressionNode>())
-                if (call.Expression is IdentifierNode { Text: "__order" })
+                if (call.Expression is IdentifierNode { Text: { Span: "__order" } })
                     foreach (var access in call.Arguments!.OfType<PropertyAccessExpressionNode>())
                     {
                         var owner = DeclarationOrder.ContainingClass(access)!;
@@ -2061,7 +2078,7 @@ internal static class CheckerProgramTests
             writer.WriteEndArray();
             writer.WriteStartArray("referenceQueries");
             foreach (var call in nodes.OfType<CallExpressionNode>())
-                if (call.Expression is IdentifierNode { Text: "__use" })
+                if (call.Expression is IdentifierNode { Text: { Span: "__use" } })
                     foreach (var argument in call.Arguments!.OfType<IdentifierNode>())
                     {
                         var symbol = host.ReferenceSymbols.Resolve(argument);
@@ -2126,8 +2143,8 @@ internal static class CheckerProgramTests
                 else
                 {
                     writer.WriteStartArray();
-                    writer.WriteStringValue(result.Value is string ? "string" : "number");
-                    if (result.Value is string text)
+                    writer.WriteStringValue(result.Value is TextSlice ? "string" : "number");
+                    if (result.Value is TextSlice text)
                         writer.WriteBase64StringValue(Wtf8.Encode(text));
                     else
                         writer.WriteStringValue(
@@ -2180,7 +2197,7 @@ internal static class CheckerProgramTests
             writer.WriteNumberValue(TypeId(intf?.ThisType));
             writer.WriteBooleanValue(parameter?.IsThisType ?? false);
             writer.WriteNumberValue(TypeId(parameter?.Constraint));
-            writer.WriteStringValue(type is IntrinsicType intrinsic ? intrinsic.IntrinsicName : "");
+            writer.WriteStringValue((type is IntrinsicType intrinsic ? intrinsic.IntrinsicName : (TextSlice)"").Span);
             if (typeHost is not null)
             {
                 writer.WriteStartObject();
@@ -2203,7 +2220,7 @@ internal static class CheckerProgramTests
                         writer.WritePropertyName("value");
                         switch (literal.Value)
                         {
-                            case string value:
+                            case TextSlice value:
                                 writer.WriteBase64StringValue(Wtf8.Encode(value));
                                 break;
                             case double value:
@@ -2243,7 +2260,7 @@ internal static class CheckerProgramTests
                         break;
                     case TemplateLiteralType template:
                         writer.WriteStartArray("texts");
-                        foreach (string text in template.Texts)
+                        foreach (TextSlice text in template.Texts)
                             writer.WriteBase64StringValue(Wtf8.Encode(text));
                         writer.WriteEndArray();
                         writer.WritePropertyName("parts");
@@ -2378,7 +2395,7 @@ internal static class CheckerProgramTests
         {
             writer.WriteStartArray("instantiationErrors");
             foreach (var error in typeHost!.InstantiationErrors.OrderBy(p => Node(p.Key)))
-                writer.WriteStringValue(error.Value);
+                writer.WriteStringValue(error.Value.Span);
             writer.WriteEndArray();
         }
         if (input.TryGetProperty("numberStrings", out var numberStrings))

@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Diagnostics;
@@ -91,12 +92,12 @@ internal sealed partial class Checker
         return diagnostic;
     }
 
-    internal void TrackDiagnostic(SyntaxNode? node, DiagnosticCode code, params string[] arguments)
+    internal void TrackDiagnostic(SyntaxNode? node, DiagnosticCode code, params TextSlice[] arguments)
         => diagnosticFiles.Add((node, CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), arguments)));
 
     internal void TrackDiagnostic(SyntaxNode? node, Diagnostic diagnostic) => diagnosticFiles.Add((node, diagnostic));
 
-    private void ListError(SyntaxNode node, NodeList list, DiagnosticCode code, params string[] arguments)
+    private void ListError(SyntaxNode node, NodeList list, DiagnosticCode code, params TextSlice[] arguments)
     {
         int start = list.Count == 0 ? list.Pos : CheckerDiagnostic.TokenRange(SemanticSyntax.Source(node)!, list.Pos).Start;
         Error(node, CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), arguments) with
@@ -115,7 +116,7 @@ internal sealed partial class Checker
         return true;
     }
 
-    private void ErrorOnFirstToken(SyntaxNode node, DiagnosticCode code, params string[] arguments)
+    private void ErrorOnFirstToken(SyntaxNode node, DiagnosticCode code, params TextSlice[] arguments)
     {
         if (!reported.Add((node, code)))
             return;

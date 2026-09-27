@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
@@ -33,7 +34,7 @@ internal sealed class TypeReferences(TypeContext context, CheckerLinks links, Ch
     DeclaredTypes declared, EntityNames names, AliasResolver aliases, TypeAlgebra algebra, TypeConstraints constraints,
     TypeInstantiation instantiation, ObjectInstantiation objects, TypeResolutionStack resolutions, ITypeReferenceHost host)
 {
-    private readonly Dictionary<string, Symbol> unresolved = new(StringComparer.Ordinal);
+    private readonly Dictionary<TextSlice, Symbol> unresolved = new();
     private readonly Dictionary<TypeCacheKey, Type> errors = [];
 
     internal async ValueTask<Type> FromNodeAsync(SyntaxNode node, CancellationToken cancellation = default)
@@ -41,7 +42,7 @@ internal sealed class TypeReferences(TypeContext context, CheckerLinks links, Ch
         cancellation.ThrowIfCancellationRequested();
         if (node is ImportTypeNode import)
             return await host.ImportTypeAsync(import, cancellation).ConfigureAwait(false);
-        if (node is TypeReferenceNode { TypeName: IdentifierNode { Text: "const" }, TypeArguments: null or { Count: 0 } }
+        if (node is TypeReferenceNode { TypeName: IdentifierNode { Text.Span: "const" }, TypeArguments: null or { Count: 0 } }
             && node.Parent is AsExpressionNode or TypeAssertionNode)
         {
             var expression = node.Parent is AsExpressionNode assertion ? assertion.Expression : ((TypeAssertionNode)node.Parent).Expression;
@@ -85,7 +86,7 @@ internal sealed class TypeReferences(TypeContext context, CheckerLinks links, Ch
 
     internal Symbol Unresolved(SyntaxNode name)
     {
-        var segments = new Stack<string>();
+        var segments = new Stack<TextSlice>();
         while (true)
         {
             if (name is QualifiedNameNode qualified)
@@ -105,8 +106,8 @@ internal sealed class TypeReferences(TypeContext context, CheckerLinks links, Ch
             }
         }
         Symbol? parent = null;
-        string path = "";
-        while (segments.TryPop(out string? text))
+        TextSlice path = "";
+        while (segments.TryPop(out TextSlice text))
         {
             if (text.Length == 0)
             {
@@ -114,7 +115,7 @@ internal sealed class TypeReferences(TypeContext context, CheckerLinks links, Ch
                 path = parent.Name;
                 continue;
             }
-            path = parent is null ? text : path + "." + text;
+            path = parent is null ? text : TextSlice.Concat(path, ".", text);
             if (!unresolved.TryGetValue(path, out var symbol))
             {
                 symbol = new(S.TypeAlias | S.Transient, text) { Parent = parent, CheckFlags = CheckFlags.Unresolved };
@@ -219,7 +220,7 @@ internal sealed class TypeReferences(TypeContext context, CheckerLinks links, Ch
         {
             if (symbol.Name == "NoInfer")
                 return await instantiation.NoInferAsync(arguments[0], cancellation).ConfigureAwait(false);
-            if (symbol.Name is "Uppercase" or "Lowercase" or "Capitalize" or "Uncapitalize")
+            if (symbol.Name.Span is "Uppercase" or "Lowercase" or "Capitalize" or "Uncapitalize")
                 return await algebra.StringMappingAsync(symbol, arguments[0], cancellation).ConfigureAwait(false);
         }
         var data = links.TypeAliases.Get(symbol);

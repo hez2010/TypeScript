@@ -1,3 +1,4 @@
+using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Syntax;
@@ -21,7 +22,7 @@ internal sealed partial class Checker : ITypeInferenceHost, IInferredConstraintH
     public ValueTask<Type> CovariantInferenceAsync(InferenceInfo inference, Signature signature, CancellationToken cancellation)
             => Inference.CovariantAsync(inference, signature, cancellation);
 
-    public ValueTask<Symbol?> ObjectPropertyAsync(Type type, string name, CancellationToken cancellation)
+    public ValueTask<Symbol?> ObjectPropertyAsync(Type type, TextSlice name, CancellationToken cancellation)
             => Properties.ObjectPropertyAsync(type, name, cancellation);
 
     public async ValueTask<Type> EnumBaseAsync(Type type, CancellationToken cancellation)
@@ -106,11 +107,11 @@ internal sealed partial class Checker : ITypeInferenceHost, IInferredConstraintH
     public ValueTask<Type> EmptyInferenceObjectAsync(Type type, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
-        var members = new Dictionary<string, Symbol>();
+        var members = new Dictionary<TextSlice, Symbol>();
         foreach (var part in type is UnionType union ? union.Types : (IReadOnlyList<Type>)[type])
-            if (part is LiteralType { Value: string })
+            if (part is LiteralType { Value: TextSlice })
             {
-                string name = MappedMembers.PropertyName(part);
+                TextSlice name = MappedMembers.PropertyName(part);
                 var property = new Symbol(SymbolFlags.Property | SymbolFlags.Transient, name);
                 links.Values.Get(property).ResolvedType = context.AnyType;
                 if (part.Symbol is { } symbol)
