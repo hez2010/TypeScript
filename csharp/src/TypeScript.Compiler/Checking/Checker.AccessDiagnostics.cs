@@ -7,7 +7,7 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
-    public async ValueTask AccessErrorAsync(SyntaxNode node, int code, CancellationToken cancellation, Type? type = null,
+    public async ValueTask AccessErrorAsync(SyntaxNode node, DiagnosticCode code, CancellationToken cancellation, Type? type = null,
         Symbol? symbol = null, Type? index = null, Symbol? related = null)
     {
         string name = symbol is not null ? TypeDisplay.SymbolName(symbol) : CheckerDiagnostic.DeclarationName(node);
@@ -15,19 +15,32 @@ internal sealed partial class Checker
             : await TypeDisplay.GetAsync(type!, cancellation);
         string[] arguments = code switch
         {
-            1111 or 2540 or 2565 or 2803 or 4105 or 4111 => [name],
-            2339 => [name, await ReceiverAsync()],
-            2542 or 7017 => [await ReceiverAsync()],
-            2536 => [await TypeDisplay.GetAsync(index!, cancellation), await ReceiverAsync()],
-            18013 => [CheckerDiagnostic.DeclarationName(node),
+            DiagnosticCode.PrivateField0MustBeDeclaredInAnEnclosingClass or DiagnosticCode.CannotAssignTo0BecauseItIsAReadOnlyProperty
+                or DiagnosticCode.Property0IsUsedBeforeBeingAssigned
+                or DiagnosticCode.CannotAssignToPrivateMethod0PrivateMethodsAreNotWritable
+                or DiagnosticCode.PrivateOrProtectedMember0CannotBeAccessedOnATypeParameter
+                or DiagnosticCode.Property0ComesFromAnIndexSignatureSoItMustBeAccessedWith0 => [name],
+            DiagnosticCode.Property0DoesNotExistOnType1 => [name, await ReceiverAsync()],
+            DiagnosticCode.IndexSignatureInType0OnlyPermitsReading
+                or DiagnosticCode.ElementImplicitlyHasAnAnyTypeBecauseType0HasNoIndexSignature => [await ReceiverAsync()],
+            DiagnosticCode.Type0CannotBeUsedToIndexType1 => [await TypeDisplay.GetAsync(index!, cancellation), await ReceiverAsync()],
+            DiagnosticCode.Property0IsNotAccessibleOutsideClass1BecauseItHasAPrivateIdentifier => [CheckerDiagnostic.DeclarationName(node),
                 await SymbolDisplayNameAsync(program.Symbols.Declaration(DeclarationOrder.ContainingClass(symbol!.ValueDeclaration!)!)!,
                     null, SymbolFlags.All, cancellation)],
-            18014 => [CheckerDiagnostic.DeclarationName(node), await ReceiverAsync()],
-            18016 or 2476 or 2806 => [],
+            DiagnosticCode.TheProperty0CannotBeAccessedOnType1WithinThisClassBecauseItIsShadowedByAnotherPrivateIdentifierWithTheSameSpelling =>
+                [
+                    CheckerDiagnostic.DeclarationName(node),
+                    await ReceiverAsync()
+                ],
+            DiagnosticCode.PrivateIdentifiersAreNotAllowedOutsideClassBodies
+                or DiagnosticCode.AConstEnumMemberCanOnlyBeAccessedUsingAStringLiteral
+                or DiagnosticCode.PrivateAccessorWasDefinedWithoutAGetter => [],
             _ => throw new InvalidOperationException($"Unsupported access diagnostic {code}")
         };
         var diagnostic = CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), arguments);
-        if (code == 18014 && symbol?.ValueDeclaration is { } shadowing && related?.ValueDeclaration is { } original)
+        if (code == DiagnosticCode.TheProperty0CannotBeAccessedOnType1WithinThisClassBecauseItIsShadowedByAnotherPrivateIdentifierWithTheSameSpelling
+            && symbol?.ValueDeclaration is { } shadowing
+            && related?.ValueDeclaration is { } original)
             diagnostic = diagnostic with
             {
                 RelatedInformation = [
@@ -41,25 +54,37 @@ internal sealed partial class Checker
         Error(node, diagnostic);
     }
 
-    public async ValueTask MemberErrorAsync(SyntaxNode node, int code, Symbol symbol, CancellationToken cancellation,
+    public async ValueTask MemberErrorAsync(SyntaxNode node, DiagnosticCode code, Symbol symbol, CancellationToken cancellation,
         Type? type = null, Type? enclosing = null)
     {
         string name = TypeDisplay.SymbolName(symbol);
         string[] arguments = code switch
         {
-            2855 => [name],
-            2729 or 2449 => [SyntaxNameText.Get(node)],
-            2341 or 2445 or 2513 =>
+            DiagnosticCode.ClassField0DefinedByTheParentClassIsNotAccessibleInTheChildClassViaSuper => [name],
+            DiagnosticCode.Property0IsUsedBeforeItsInitialization or DiagnosticCode.Class0UsedBeforeItsDeclaration => [SyntaxNameText.Get(node)],
+            DiagnosticCode.Property0IsPrivateAndOnlyAccessibleWithinClass1
+                or DiagnosticCode.Property0IsProtectedAndOnlyAccessibleWithinClass1AndItsSubclasses
+                or DiagnosticCode.AbstractMethod0InClass1CannotBeAccessedViaSuperExpression =>
                 [
                     name,
                     await TypeDisplay.GetAsync(await DeclaringClassAsync(symbol, cancellation) ?? type!, cancellation)
                 ],
-            2446 => [name, await TypeDisplay.GetAsync(enclosing!, cancellation), await TypeDisplay.GetAsync(type!, cancellation)],
-            2715 => [name, await SymbolDisplayNameAsync(program.Symbols.Parent(symbol)!, null, SymbolFlags.All, cancellation)],
+            DiagnosticCode.Property0IsProtectedAndOnlyAccessibleThroughAnInstanceOfClass1ThisIsAnInstanceOfClass2 =>
+                [
+                    name,
+                    await TypeDisplay.GetAsync(enclosing!, cancellation),
+                    await TypeDisplay.GetAsync(type!, cancellation)
+                ],
+            DiagnosticCode.AbstractProperty0InClass1CannotBeAccessedInTheConstructor =>
+                [
+                    name,
+                    await SymbolDisplayNameAsync(program.Symbols.Parent(symbol)!, null, SymbolFlags.All, cancellation)
+                ],
             _ => throw new InvalidOperationException($"Unsupported member diagnostic {code}")
         };
         var diagnostic = CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), arguments);
-        if (code is 2729 or 2449 && symbol.ValueDeclaration is { } declaration)
+        if (code is DiagnosticCode.Property0IsUsedBeforeItsInitialization or DiagnosticCode.Class0UsedBeforeItsDeclaration
+            && symbol.ValueDeclaration is { } declaration)
             diagnostic = diagnostic with
             {
                 RelatedInformation = [CheckerDiagnostic.Create(

@@ -2,6 +2,7 @@ using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Checking;
 using TypeScript.Compiler.Configuration;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.Programs;
 using TypeScript.Compiler.Text;
@@ -109,7 +110,9 @@ internal static class CheckerSymbolTypeTests
 
         var variable = symbols.Globals["number"];
         host.VariableBody = (symbol, _, token) => host.Values.GetAsync(symbol, token);
-        Check(await host.Values.GetAsync(variable) == context.ErrorType && host.Diagnostics.Contains(2502));
+        Check(
+            await host.Values.GetAsync(variable) == context.ErrorType
+                && host.Diagnostics.Contains(DiagnosticCode.X0IsReferencedDirectlyOrIndirectlyInItsOwnTypeAnnotation));
         Check(host.Instantiation.Resolutions.Count == 0);
         links.Values.Get(variable).ResolvedType = null;
         using var cancellation = new CancellationTokenSource();

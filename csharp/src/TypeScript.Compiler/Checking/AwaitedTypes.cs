@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 
 namespace TypeScript.Compiler.Checking;
 
@@ -16,7 +17,7 @@ internal interface IAwaitedTypeHost
 
     ValueTask<IReadOnlyList<Signature>> SignaturesAsync(Type type, bool construct, CancellationToken cancellation);
 
-    ValueTask AwaitedErrorAsync(SyntaxNode node, int code, Type type, Type? thisType, CancellationToken cancellation);
+    ValueTask AwaitedErrorAsync(SyntaxNode node, DiagnosticCode code, Type type, Type? thisType, CancellationToken cancellation);
 }
 
 internal sealed class AwaitedTypes(TypeContext context, TypeAlgebra algebra, TypeConstraints constraints,
@@ -27,7 +28,11 @@ internal sealed class AwaitedTypes(TypeContext context, TypeAlgebra algebra, Typ
     private readonly List<Type> stack = [];
     internal int StackDepth => stack.Count;
 
-    internal async ValueTask<Type?> GetAsync(Type type, bool withAlias = true, SyntaxNode? errorNode = null, int diagnosticCode = 1320,
+    internal async ValueTask<Type?> GetAsync(
+        Type type,
+        bool withAlias = true,
+        SyntaxNode? errorNode = null,
+        DiagnosticCode diagnosticCode = DiagnosticCode.TypeOfAwaitOperandMustEitherBeAValidPromiseOrMustNotContainACallableThenMember,
         CancellationToken cancellation = default)
     {
         var result = await NoAliasAsync(type, errorNode, diagnosticCode, cancellation).ConfigureAwait(false);
@@ -37,7 +42,7 @@ internal sealed class AwaitedTypes(TypeContext context, TypeAlgebra algebra, Typ
     internal async ValueTask<Type?> OfPromiseAsync(
         Type type,
         SyntaxNode? errorNode = null,
-        int diagnosticCode = 1320,
+        DiagnosticCode diagnosticCode = DiagnosticCode.TypeOfAwaitOperandMustEitherBeAValidPromiseOrMustNotContainACallableThenMember,
         CancellationToken cancellation = default)
     {
         var (result, _) = await PromisedAsync(type, errorNode, cancellation).ConfigureAwait(false);
@@ -74,7 +79,12 @@ internal sealed class AwaitedTypes(TypeContext context, TypeAlgebra algebra, Typ
         if (signatures.Count == 0)
         {
             if (errorNode is not null)
-                await host.AwaitedErrorAsync(errorNode, 1059, type, null, cancellation).ConfigureAwait(false);
+                await host.AwaitedErrorAsync(
+                    errorNode,
+                    DiagnosticCode.APromiseMustHaveAThenMethod,
+                    type,
+                    null,
+                    cancellation).ConfigureAwait(false);
             return (null, null);
         }
         Type? thisError = null;
@@ -93,7 +103,12 @@ internal sealed class AwaitedTypes(TypeContext context, TypeAlgebra algebra, Typ
             if (thisError is null)
                 throw new InvalidOperationException("Promise signatures rejected without a this type");
             if (errorNode is not null)
-                await host.AwaitedErrorAsync(errorNode, 2684, type, thisError, cancellation).ConfigureAwait(false);
+                await host.AwaitedErrorAsync(
+                    errorNode,
+                    DiagnosticCode.TheThisContextOfType0IsNotAssignableToMethodSThisOfType1,
+                    type,
+                    thisError,
+                    cancellation).ConfigureAwait(false);
             return (null, thisError);
         }
         var callbacks = new List<Type>();
@@ -109,7 +124,12 @@ internal sealed class AwaitedTypes(TypeContext context, TypeAlgebra algebra, Typ
         if (callbackSignatures.Count == 0)
         {
             if (errorNode is not null)
-                await host.AwaitedErrorAsync(errorNode, 1060, type, null, cancellation).ConfigureAwait(false);
+                await host.AwaitedErrorAsync(
+                    errorNode,
+                    DiagnosticCode.TheFirstParameterOfTheThenMethodOfAPromiseMustBeACallback,
+                    type,
+                    null,
+                    cancellation).ConfigureAwait(false);
             return (null, null);
         }
         var results = new List<Type>();
@@ -124,7 +144,7 @@ internal sealed class AwaitedTypes(TypeContext context, TypeAlgebra algebra, Typ
     internal async ValueTask<Type?> NoAliasAsync(
         Type type,
         SyntaxNode? errorNode = null,
-        int diagnosticCode = 1320,
+        DiagnosticCode diagnosticCode = DiagnosticCode.TypeOfAwaitOperandMustEitherBeAValidPromiseOrMustNotContainACallableThenMember,
         CancellationToken cancellation = default)
     {
         await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
@@ -194,7 +214,12 @@ internal sealed class AwaitedTypes(TypeContext context, TypeAlgebra algebra, Typ
         async ValueTask<Type?> CircularAsync()
         {
             if (errorNode is not null)
-                await host.AwaitedErrorAsync(errorNode, 1062, type, null, cancellation).ConfigureAwait(false);
+                await host.AwaitedErrorAsync(
+                    errorNode,
+                    DiagnosticCode.TypeIsReferencedDirectlyOrIndirectlyInTheFulfillmentCallbackOfItsOwnThenMethod,
+                    type,
+                    null,
+                    cancellation).ConfigureAwait(false);
             return null;
         }
     }

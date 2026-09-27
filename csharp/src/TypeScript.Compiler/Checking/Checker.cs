@@ -17,8 +17,8 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
     internal TypeReferences References { get; }
     internal InstantiationServices Instantiation { get; }
     internal TypeAlgebra Algebra { get; }
-    internal List<int> Diagnostics { get; } = [];
-    private readonly HashSet<(SyntaxNode, int)> reported = [];
+    internal List<DiagnosticCode> Diagnostics { get; } = [];
+    private readonly HashSet<(SyntaxNode, DiagnosticCode)> reported = [];
     internal Action<SyntaxNode>? BeforeNode { get; set; }
     internal Action<Symbol>? BeforeMemberTable { get; set; }
 
@@ -411,32 +411,45 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
     public ValueTask<Type?> IntendedJsDocTypeAsync(SyntaxNode node, CancellationToken cancellation)
         => DocumentationTypeReferenceAsync(node, cancellation);
 
-    public void InvalidThisType(SyntaxNode node) => Error(node, 2526);
+    public void InvalidThisType(SyntaxNode node) =>
+        Error(node, DiagnosticCode.AThisTypeIsAvailableOnlyInANonStaticMemberOfAClassOrInterface);
 
     public void CircularTypeAlias(Symbol symbol, TypeAliasDeclarationNode declaration) =>
-        Error(declaration, 2456, TypeDisplay.SymbolName(symbol));
+        Error(declaration, DiagnosticCode.TypeAlias0CircularlyReferencesItself, TypeDisplay.SymbolName(symbol));
 
     public async ValueTask TypeArgumentCountAsync(SyntaxNode node, Symbol symbol, Type type, int minimum, int maximum, bool missingAugments,
         CancellationToken cancellation)
     {
         string name = (symbol.Flags & SymbolFlags.TypeAlias) != 0 ? TypeDisplay.SymbolName(symbol)
             : await TypeDisplay.GetAsync(type, NodeBuilderFlags.WriteArrayAsGenericType, cancellation);
-        Error(node, missingAugments ? minimum == maximum ? 8026 : 8027 : minimum == maximum ? 2314 : 2707,
+        Error(
+            node,
+            missingAugments
+                ? minimum == maximum
+                    ? DiagnosticCode.Expected0TypeArgumentsProvideTheseWithAnExtendsTag
+                    : DiagnosticCode.Expected01TypeArgumentsProvideTheseWithAnExtendsTag
+                : minimum == maximum
+                    ? DiagnosticCode.GenericType0Requires1TypeArgumentS
+                    : DiagnosticCode.GenericType0RequiresBetween1And2TypeArguments,
             name,
             minimum.ToString(System.Globalization.CultureInfo.InvariantCulture),
             maximum.ToString(System.Globalization.CultureInfo.InvariantCulture));
     }
 
-    public void NotGeneric(SyntaxNode node, Symbol symbol) => Error(node, 2315, TypeDisplay.SymbolName(symbol));
+    public void NotGeneric(SyntaxNode node, Symbol symbol) => Error(node, DiagnosticCode.Type0IsNotGeneric, TypeDisplay.SymbolName(symbol));
 
-    public void CircularArguments(SyntaxNode? node, InterfaceType target) => Error(node!, target.Symbol is null ? 4110 : 4109,
+    public void CircularArguments(SyntaxNode? node, InterfaceType target) => Error(
+        node!,
+        target.Symbol is null
+            ? DiagnosticCode.TupleTypeArgumentsCircularlyReferenceThemselves
+            : DiagnosticCode.TypeArgumentsFor0CircularlyReferenceThemselves,
         target.Symbol is null ? [] : [TypeDisplay.SymbolName(target.Symbol)]);
 
-    private void Error(SyntaxNode node, int code, params string[] arguments)
+    private void Error(SyntaxNode node, DiagnosticCode code, params string[] arguments)
     {
         if (reported.Add((node, code)))
         {
-            if (code == 2300 && arguments.Length == 0)
+            if (code == DiagnosticCode.DuplicateIdentifier0 && arguments.Length == 0)
                 arguments = [node.Pos == node.End ? "(Missing)" : node is StringLiteralNode or ComputedPropertyNameNode
                     ? CheckerDiagnostic.DeclarationName(node) : AliasTargets.Text(node) ?? CheckerDiagnostic.DeclarationName(node)];
             Diagnostics.Add(code);

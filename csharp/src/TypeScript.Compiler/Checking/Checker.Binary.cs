@@ -28,8 +28,8 @@ internal sealed partial class Checker : IBinaryExpressionHost, IAwaitedTypeHost
         {
             if (reportErrors)
             {
-                Diagnostics.Add(2318);
-                TrackDiagnostic(null, 2318, "Awaited");
+                Diagnostics.Add(DiagnosticCode.CannotFindGlobalType0);
+                TrackDiagnostic(null, DiagnosticCode.CannotFindGlobalType0, "Awaited");
             }
             return awaitedSymbols[reportErrors] = null;
         }
@@ -37,7 +37,7 @@ internal sealed partial class Checker : IBinaryExpressionHost, IAwaitedTypeHost
         if (links.TypeAliases.Get(symbol).TypeParameters?.Count != 1)
         {
             if (reportErrors)
-                Error(symbol.Declarations.OfType<TypeAliasDeclarationNode>().First(), 2317);
+                Error(symbol.Declarations.OfType<TypeAliasDeclarationNode>().First(), DiagnosticCode.GlobalType0MustHave1TypeParameterS);
             return awaitedSymbols[reportErrors] = null;
         }
         return awaitedSymbols[reportErrors] = symbol;
@@ -46,14 +46,23 @@ internal sealed partial class Checker : IBinaryExpressionHost, IAwaitedTypeHost
     public ValueTask<Type> AliasInstantiationAsync(Symbol symbol, Type argument, CancellationToken cancellation)
             => References.AliasInstantiationAsync(symbol, [argument], cancellation: cancellation);
 
-    public async ValueTask AwaitedErrorAsync(SyntaxNode node, int code, Type type, Type? thisType, CancellationToken cancellation)
+    public async ValueTask AwaitedErrorAsync(
+        SyntaxNode node,
+        DiagnosticCode code,
+        Type type,
+        Type? thisType,
+        CancellationToken cancellation)
     {
         var diagnostic = CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code));
         if (thisType is not null)
         {
-            var detail = CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(2684),
+            var detail = CheckerDiagnostic.Create(
+                node,
+                DiagnosticLocalization.GetMessage(DiagnosticCode.TheThisContextOfType0IsNotAssignableToMethodSThisOfType1),
                 await TypeDisplay.GetAsync(type, cancellation), await TypeDisplay.GetAsync(thisType, cancellation));
-            diagnostic = code == 2684 ? detail : diagnostic with { MessageChain = [detail] };
+            diagnostic = code == DiagnosticCode.TheThisContextOfType0IsNotAssignableToMethodSThisOfType1
+                ? detail
+                : diagnostic with { MessageChain = [detail] };
         }
         Error(node, diagnostic);
     }
@@ -72,14 +81,19 @@ internal sealed partial class Checker : IBinaryExpressionHost, IAwaitedTypeHost
         bool comparison = op is SyntaxKind.EqualsEqualsToken or SyntaxKind.EqualsEqualsEqualsToken
             or SyntaxKind.ExclamationEqualsToken or SyntaxKind.ExclamationEqualsEqualsToken;
         var (leftText, rightText) = await RelationTypeNamesAsync(left, right, cancellation);
-        var diagnostic = CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(comparison ? 2367 : 2365),
+        var diagnostic = CheckerDiagnostic.Create(
+            node,
+            DiagnosticLocalization.GetMessage(
+                comparison
+                    ? DiagnosticCode.ThisComparisonAppearsToBeUnintentionalBecauseTheTypes0And1HaveNoOverlap
+                    : DiagnosticCode.Operator0CannotBeAppliedToTypes1And2),
             comparison ? [leftText, rightText] : [TokenFacts.Text(op), leftText, rightText]);
         if (suggestAwait)
             diagnostic = diagnostic with { RelatedInformation = [CheckerDiagnostic.Create(node, Messages.Did_you_forget_to_use_await)] };
         Error(node, diagnostic);
     }
 
-    public void ArithmeticError(SyntaxNode node, Type type, int code, bool suggestAwait)
+    public void ArithmeticError(SyntaxNode node, Type type, DiagnosticCode code, bool suggestAwait)
     {
         var diagnostic = CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code));
         if (suggestAwait)
@@ -87,22 +101,24 @@ internal sealed partial class Checker : IBinaryExpressionHost, IAwaitedTypeHost
         Error(node, diagnostic);
     }
 
-    public void BinaryDiagnostic(SyntaxNode node, int code, bool suggestion = false, params string[] suppliedArguments)
+    public void BinaryDiagnostic(SyntaxNode node, DiagnosticCode code, bool suggestion = false, params string[] suppliedArguments)
     {
         if (!suggestion)
         {
             string[] arguments = code switch
             {
-                2447 => [TokenFacts.Text(node.Kind)!, node.Kind is SyntaxKind.BarToken or SyntaxKind.BarEqualsToken ? "||"
+                DiagnosticCode.The0OperatorIsNotAllowedForBooleanTypesConsiderUsing1Instead => [TokenFacts.Text(node.Kind)!, node.Kind is SyntaxKind.BarToken
+                    or SyntaxKind.BarEqualsToken ? "||"
                     : node.Kind is SyntaxKind.AmpersandToken or SyntaxKind.AmpersandEqualsToken ? "&&" : "!=="],
-                2839 or 2845 when node is BinaryExpressionNode equality =>
+                DiagnosticCode.ThisConditionWillAlwaysReturn0SinceJavaScriptComparesObjectsByReferenceNotValue
+                    or DiagnosticCode.ThisConditionWillAlwaysReturn0 when node is BinaryExpressionNode equality =>
                     [equality.OperatorToken!.Kind is SyntaxKind.EqualsEqualsToken or SyntaxKind.EqualsEqualsEqualsToken
                         ? "false"
                         : "true"],
-                2469 when node.Parent is BinaryExpressionNode binary => [TokenFacts.Text(binary.OperatorToken!.Kind)!],
+                DiagnosticCode.The0OperatorCannotBeAppliedToTypeSymbol when node.Parent is BinaryExpressionNode binary => [TokenFacts.Text(binary.OperatorToken!.Kind)!],
                 _ => suppliedArguments
             };
-            if (code == 2845 && node is BinaryExpressionNode comparison)
+            if (code == DiagnosticCode.ThisConditionWillAlwaysReturn0 && node is BinaryExpressionNode comparison)
             {
                 bool IsNaN(SyntaxNode expression) => MemberAccessRules.SkipParentheses(expression) is IdentifierNode { Text: "NaN" } identifier
                     && links.SymbolNodes.TryGet(identifier)?.ResolvedSymbol == program.Symbols.Globals.GetValueOrDefault("NaN");
@@ -166,12 +182,16 @@ internal sealed partial class Checker : IBinaryExpressionHost, IAwaitedTypeHost
         if (node.OperatorToken!.Kind == SyntaxKind.InstanceOfKeyword)
         {
             if ((left.Flags & TypeFlags.Any) == 0 && await AllAssignableKindAsync(left, TypeFlags.Primitive, cancellation))
-                Error(node.Left!, 2358);
+                Error(node.Left!, DiagnosticCode.TheLeftHandSideOfAnInstanceofExpressionMustBeOfTypeAnyAnObjectTypeOrATypeParameter);
             var signature = await CallResolution.GetAsync(node, mode: mode, cancellation: cancellation);
             if (signature == CallSignatures.Resolving)
                 return context.SilentNeverType;
             await RelationDiagnostics.CheckAsync(await Signatures.ReturnAsync(signature, cancellation), context.BooleanType,
-                RelationKind.Assignable, node.Right!, node.Right!, 2861, cancellation);
+                RelationKind.Assignable,
+                node.Right!,
+                node.Right!,
+                DiagnosticCode.AnObjectSSymbolHasInstanceMethodMustReturnABooleanValueForItToBeUsedOnTheRightHandSideOfAnInstanceofExpression,
+                cancellation);
         }
         else
         {
@@ -184,16 +204,19 @@ internal sealed partial class Checker : IBinaryExpressionHost, IAwaitedTypeHost
             }
             else
                 await RelationDiagnostics.CheckAsync(await NonNullAsync(left, node.Left!, cancellation), context.StringNumberSymbolType,
-                    RelationKind.Assignable, node.Left!, node.Left!, 2322, cancellation);
+                    RelationKind.Assignable, node.Left!, node.Left!, DiagnosticCode.Type0IsNotAssignableToType1, cancellation);
             if (await RelationDiagnostics.CheckAsync(await NonNullAsync(right, node.Right!, cancellation), context.NonPrimitiveType,
-                RelationKind.Assignable, node.Right!, node.Right!, 2322, cancellation))
+                RelationKind.Assignable, node.Right!, node.Right!, DiagnosticCode.Type0IsNotAssignableToType1, cancellation))
                 foreach (var part in right is UnionType union ? union.Types : [right])
                     if (part == context.UnknownEmptyObjectType || part is IntersectionType
                         && await Views.EmptyAnonymousAsync(
                             await Instantiation.Constraints.BaseConstraintOrTypeAsync(part, cancellation),
                             cancellation))
                     {
-                        Error(node.Right!, 2638, await TypeDisplay.GetAsync(right, cancellation));
+                        Error(
+                            node.Right!,
+                            DiagnosticCode.Type0MayRepresentAPrimitiveValueWhichIsNotPermittedAsTheRightOperandOfTheInOperator,
+                            await TypeDisplay.GetAsync(right, cancellation));
                         break;
                     }
         }

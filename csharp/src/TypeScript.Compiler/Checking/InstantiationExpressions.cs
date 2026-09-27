@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -13,7 +14,7 @@ internal interface IInstantiationExpressionHost
 
     void InstantiationGrammar(SyntaxNode node, NodeList? arguments);
 
-    void ExpressionError(SyntaxNode node, int code);
+    void ExpressionError(SyntaxNode node, DiagnosticCode code);
 
     ValueTask InapplicableInstantiationAsync(SyntaxNode node, Type type, CancellationToken cancellation);
 }
@@ -40,7 +41,9 @@ internal sealed class InstantiationExpressions(TypeContext context, TypeAlgebra 
                 for (var current = node; current is not null && current != parent; current = current.Parent)
                     if (current == binary.Right)
                     {
-                        host.ExpressionError(node, 2848);
+                        host.ExpressionError(
+                            node,
+                            DiagnosticCode.TheRightHandSideOfAnInstanceofExpressionMustNotBeAnInstantiationExpression);
                         break;
                     }
         }

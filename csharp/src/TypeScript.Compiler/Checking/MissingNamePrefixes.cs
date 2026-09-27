@@ -1,11 +1,12 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
 
 internal sealed class MissingNamePrefixes(CheckerSymbols symbols, SymbolTypes values, DeclaredTypes declared, TypeProperties properties,
-    Action<SyntaxNode, int, Symbol?> report)
+    Action<SyntaxNode, DiagnosticCode, Symbol?> report)
 {
     internal async ValueTask<bool> CheckAsync(SyntaxNode location, string name, CancellationToken cancellation = default)
     {
@@ -28,7 +29,7 @@ internal sealed class MissingNamePrefixes(CheckerSymbols symbols, SymbolTypes va
             var constructor = await values.GetAsync(symbol, cancellation).ConfigureAwait(false);
             if (await properties.PropertyAsync(constructor, name, cancellation: cancellation).ConfigureAwait(false) is not null)
             {
-                report(location, 2662, symbol);
+                report(location, DiagnosticCode.CannotFindName0DidYouMeanTheStaticMember10, symbol);
                 return true;
             }
             if (current == container && !SemanticSyntax.IsStatic(current))
@@ -36,7 +37,7 @@ internal sealed class MissingNamePrefixes(CheckerSymbols symbols, SymbolTypes va
                 var instance = (InterfaceType)await declared.GetAsync(symbol, cancellation).ConfigureAwait(false);
                 if (await properties.PropertyAsync(instance.ThisType!, name, cancellation: cancellation).ConfigureAwait(false) is not null)
                 {
-                    report(location, 2663, symbol);
+                    report(location, DiagnosticCode.CannotFindName0DidYouMeanTheInstanceMemberThis0, symbol);
                     return true;
                 }
             }

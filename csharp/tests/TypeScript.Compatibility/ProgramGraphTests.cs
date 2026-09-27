@@ -1,8 +1,9 @@
 using System.Text;
 using System.Text.Json;
-using TypeScript.Compiler.Configuration;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Configuration;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.Programs;
 using TypeScript.Compiler.Resolution;
@@ -154,7 +155,8 @@ internal static class ProgramGraphTests
             var checker = await arbitrary.CreateCheckerAsync();
             await checker.CheckProgramAsync();
             Check(checker.DiagnosticCodesForProgramFile(arbitrary.GetFile("/project/main.ts")!.Syntax)
-                .SequenceEqual(allow ? [] : new[] { 6263 }), "Disallowed arbitrary-extension imports report the option diagnostic");
+                .SequenceEqual(allow ? [] : new[] { DiagnosticCode.Module0WasResolvedTo1ButAllowArbitraryExtensionsIsNotSet }),
+                "Disallowed arbitrary-extension imports report the option diagnostic");
         }
         Console.WriteLine(
             $"Program reuse, invalidation and stack safety: {assertions} assertions; {depth} syntax levels; {chainLength} files");
@@ -230,7 +232,7 @@ internal static class ProgramGraphTests
                 writer.WriteEndArray();
                 writer.WriteStartArray();
                 foreach (var error in program.Diagnostics)
-                    writer.WriteNumberValue(error.Code);
+                    writer.WriteNumberValue((int)error.Code);
                 writer.WriteEndArray();
                 writer.WriteEndArray();
             }

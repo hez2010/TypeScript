@@ -22,7 +22,10 @@ internal sealed partial class Checker
         string? jsxName = name == "class" ? "className" : name == "for" ? "htmlFor" : null;
         var suggestion = (jsxName is null ? null : properties.FirstOrDefault(p => p.Name == jsxName))
             ?? await SymbolSuggestions.FindAsync(name, properties, SymbolFlags.Value, cancellation);
-        var detail = CheckerDiagnostic.Create(location, DiagnosticLocalization.GetMessage(suggestion is null ? 2339 : 2551),
+        var detail = CheckerDiagnostic.Create(
+            location,
+            DiagnosticLocalization.GetMessage(
+                suggestion is null ? DiagnosticCode.Property0DoesNotExistOnType1 : DiagnosticCode.Property0DoesNotExistOnType1DidYouMean2),
             suggestion is null ? [name, targetText] : [name, targetText, TypeDisplay.SymbolName(suggestion)]);
         var (errorSource, errorDestination) = await RelationErrorTypesAsync(source, target, cancellation);
         var (sourceText, destinationText) = await RelationTypeNamesAsync(errorSource, errorDestination, cancellation);
@@ -34,7 +37,7 @@ internal sealed partial class Checker
         RelationError(location, diagnostic);
     }
 
-    private void RelationError(SyntaxNode node, int code, params string[] arguments)
+    private void RelationError(SyntaxNode node, DiagnosticCode code, params string[] arguments)
         => RelationError(node, CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), arguments));
 
     private void RelationError(SyntaxNode node, Diagnostic diagnostic)
@@ -140,7 +143,7 @@ internal sealed partial class Checker
         try
         {
             await CallResolution.ApplicableAsync(state.Node, state.Arguments, last, RelationKind.Assignable, 0,
-                true, 2345, cancellation);
+                true, DiagnosticCode.ArgumentOfType0IsNotAssignableToParameterOfType1, cancellation);
         }
         finally
         {
@@ -179,7 +182,12 @@ internal sealed partial class Checker
                 diagnostic = diagnostic with { RelatedInformation = [.. diagnostic.RelatedInformation, implementationNote] };
             if (state.Node is BinaryExpressionNode)
                 diagnostic = diagnostic with
-                { Message = DiagnosticLocalization.GetMessage(2860), Arguments = [], MessageChain = [diagnostic] };
+                {
+                    Message = DiagnosticLocalization.GetMessage(
+                        DiagnosticCode.TheLeftHandSideOfAnInstanceofExpressionMustBeAssignableToTheFirstArgumentOfTheRightHandSideSSymbolHasInstanceMethod),
+                    Arguments = [],
+                    MessageChain = [diagnostic]
+                };
             Error(node, diagnostic);
         }
     }
@@ -193,12 +201,12 @@ internal sealed partial class Checker
         CallResolution.State state,
         IReadOnlyList<Signature> signatures,
         CancellationToken cancellation,
-        int? head = null)
+        DiagnosticCode? head = null)
     {
         int spread = Checking.CallArguments.SpreadIndex(state.Arguments);
         if (spread >= 0)
         {
-            Error(state.Arguments[spread], 2556);
+            Error(state.Arguments[spread], DiagnosticCode.ASpreadArgumentMustEitherHaveATupleTypeOrBePassedToARestParameter);
             return;
         }
         int count = state.Arguments.Count, minimum = int.MaxValue, maximum = int.MinValue, below = int.MinValue, above = int.MaxValue;
@@ -225,15 +233,28 @@ internal sealed partial class Checker
         bool promise = !rest && range == "1" && count == 0 && PromiseResolveArity(state.Node, cancellation);
         if (promise && (state.Node.Flags & NodeFlags.JavaScriptFile) != 0)
         {
-            Error(node, 2810);
+            Error(node, DiagnosticCode.Expected1ArgumentButGot0NewPromiseNeedsAJSDocHintToProduceAResolveThatCanBeCalledWithoutArguments);
             return;
         }
         if (minimum < count && count < maximum)
         {
-            Error(node, 2575, CountText(count), CountText(below), CountText(above));
+            Error(
+                node,
+                DiagnosticCode.NoOverloadExpects0ArgumentsButOverloadsDoExistThatExpectEither1Or2Arguments,
+                CountText(count),
+                CountText(below),
+                CountText(above));
             return;
         }
-        int code = state.Node is DecoratorNode ? rest ? 1279 : 1278 : rest ? 2555 : promise ? 2794 : 2554;
+        DiagnosticCode code = state.Node is DecoratorNode
+            ? rest
+                ? DiagnosticCode.TheRuntimeWillInvokeTheDecoratorWith1ArgumentsButTheDecoratorExpectsAtLeast0
+                : DiagnosticCode.TheRuntimeWillInvokeTheDecoratorWith1ArgumentsButTheDecoratorExpects0
+            : rest
+                ? DiagnosticCode.ExpectedAtLeast0ArgumentsButGot1
+                : promise
+                    ? DiagnosticCode.Expected0ArgumentsButGot1DidYouForgetToIncludeVoidInYourTypeArgumentToPromise
+                    : DiagnosticCode.Expected0ArgumentsButGot1;
         var diagnostic = CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), range, CountText(count));
         if (count < minimum && closest?.Declaration is IFunctionSignature { Parameters: { } parameters })
         {
@@ -282,7 +303,8 @@ internal sealed partial class Checker
 
     private void ReportTypeArgumentArity(CallResolution.State state, IReadOnlyList<Signature> signatures)
     {
-        int count = state.TypeArguments.Count, code = 2558;
+        int count = state.TypeArguments.Count;
+        DiagnosticCode code = DiagnosticCode.Expected0TypeArgumentsButGot1;
         string[] arguments;
         if (signatures.Count == 1)
         {
@@ -302,7 +324,7 @@ internal sealed partial class Checker
             }
             if (below != int.MinValue && above != int.MaxValue)
             {
-                code = 2743;
+                code = DiagnosticCode.NoOverloadExpects0TypeArgumentsButOverloadsDoExistThatExpectEither1Or2TypeArguments;
                 arguments = [CountText(count), CountText(below), CountText(above)];
             }
             else

@@ -23,7 +23,12 @@ internal sealed partial class Checker
         var exports = await ExportsAsync(parent, cancellation);
         if (await SymbolSuggestions.FindAsync(memberName, exports.Values, S.ModuleMember, cancellation) is { } suggestion)
         {
-            Error(right, 2724, namespaceName, memberName, TypeDisplay.SymbolName(suggestion));
+            Error(
+                right,
+                DiagnosticCode.X0HasNoExportedMemberNamed1DidYouMean2,
+                namespaceName,
+                memberName,
+                TypeDisplay.SymbolName(suggestion));
             return;
         }
         if (name is QualifiedNameNode)
@@ -36,17 +41,24 @@ internal sealed partial class Checker
                 && containing.Parent?.Kind != SyntaxKind.TypeOfExpression
                 && await QualifiedNameValueAsync(containing, cancellation) is not null)
             {
-                Error(containing, 2749, SyntaxNameText.Get(containing));
+                Error(
+                    containing,
+                    DiagnosticCode.X0RefersToAValueButIsBeingUsedAsATypeHereDidYouMeanTypeof0,
+                    SyntaxNameText.Get(containing));
                 return;
             }
         }
         if ((meaning & S.Namespace) != 0 && name.Parent is QualifiedNameNode qualified
             && program.Symbols.Lookup(exports, memberName, S.Type) is { } exportedType)
         {
-            Error(qualified.Right!, 2713, TypeDisplay.SymbolName(exportedType), SyntaxNameText.Get(qualified.Right!));
+            Error(
+                qualified.Right!,
+                DiagnosticCode.CannotAccess01Because0IsATypeButNotANamespaceDidYouMeanToRetrieveTheTypeOfTheProperty1In0With01,
+                TypeDisplay.SymbolName(exportedType),
+                SyntaxNameText.Get(qualified.Right!));
             return;
         }
-        Error(right, 2694, namespaceName, memberName);
+        Error(right, DiagnosticCode.Namespace0HasNoExportedMember1, namespaceName, memberName);
     }
 
     private async ValueTask<Symbol?> QualifiedNameValueAsync(SyntaxNode node, CancellationToken cancellation)
@@ -88,7 +100,9 @@ internal sealed partial class Checker
         if (suggestion is not null && suggestion.ValueDeclaration is not ModuleDeclarationNode { Keyword: SyntaxKind.GlobalKeyword })
         {
             bool uncheckedJs = location is not null && UncheckedNameSuggestion(location, suggestion);
-            int code = meaning == S.Namespace ? 2833 : uncheckedJs ? 2570 : 2552;
+            DiagnosticCode code = meaning == S.Namespace
+                ? DiagnosticCode.CannotFindNamespace0DidYouMean1
+                : uncheckedJs ? DiagnosticCode.CouldNotFindName0DidYouMean1 : DiagnosticCode.CannotFindName0DidYouMean1;
             if (uncheckedJs)
                 program.Suggestion(location!, code, suggestion.Name);
             else
@@ -112,15 +126,19 @@ internal sealed partial class Checker
                 && await Properties.PropertyAsync(
                     await Declared.GetAsync(typeSymbol).ConfigureAwait(false),
                     ((IdentifierNode)qualified.Right!).Text).ConfigureAwait(false) is not null)
-                Error(qualified, 2713, name, SyntaxNameText.Get(qualified.Right!));
+                Error(
+                    qualified,
+                    DiagnosticCode.CannotAccess01Because0IsATypeButNotANamespaceDidYouMeanToRetrieveTheTypeOfTheProperty1In0With01,
+                    name,
+                    SyntaxNameText.Get(qualified.Right!));
             else
-                Error(location, 2702, name);
+                Error(location, DiagnosticCode.X0OnlyRefersToATypeButIsBeingUsedAsANamespaceHere, name);
             return true;
         }
         bool primitive = name is "any" or "string" or "number" or "boolean" or "never" or "unknown";
         if (primitive && location.Parent is ExportSpecifierNode)
         {
-            Error(location, 2661, name);
+            Error(location, DiagnosticCode.CannotExport0OnlyLocalDeclarationsCanBeExportedFromAModule, name);
             return true;
         }
         if ((meaning & (S.Value & ~S.Type)) != 0)
@@ -128,13 +146,13 @@ internal sealed partial class Checker
             if (await Find(S.NamespaceModule) is not null)
             {
                 if (!ExportAssignmentName(location))
-                    Error(location, 2708, name);
+                    Error(location, DiagnosticCode.CannotUseNamespace0AsAValue, name);
                 return true;
             }
         }
         else if ((meaning & (S.Type & ~S.Value)) != 0 && await Find(S.Module) is not null)
         {
-            Error(location, 2709, name);
+            Error(location, DiagnosticCode.CannotUseNamespace0AsAType, name);
             return true;
         }
         if ((meaning & S.Value) != 0)
@@ -144,12 +162,20 @@ internal sealed partial class Checker
                 if (location.Parent?.Parent is HeritageClauseNode heritage)
                 {
                     if (heritage.Parent is InterfaceDeclarationNode && heritage.Token == SyntaxKind.ExtendsKeyword)
-                        Error(location, 2840, name);
+                        Error(
+                            location,
+                            DiagnosticCode.AnInterfaceCannotExtendAPrimitiveTypeLike0ItCanOnlyExtendOtherNamedObjectTypes,
+                            name);
                     else if (SemanticSyntax.ClassLike(heritage.Parent))
-                        Error(location, heritage.Token == SyntaxKind.ExtendsKeyword ? 2863 : 2864, name);
+                        Error(
+                            location,
+                            heritage.Token == SyntaxKind.ExtendsKeyword
+                                ? DiagnosticCode.AClassCannotExtendAPrimitiveTypeLike0ClassesCanOnlyExtendConstructableValues
+                                : DiagnosticCode.AClassCannotImplementAPrimitiveTypeLike0ItCanOnlyImplementOtherNamedObjectTypes,
+                            name);
                 }
                 else
-                    Error(location, 2693, name);
+                    Error(location, DiagnosticCode.X0OnlyRefersToATypeButIsBeingUsedAsAValueHere, name);
                 return true;
             }
             if (await Find(S.Type & ~S.Value) is { } symbol
@@ -157,9 +183,9 @@ internal sealed partial class Checker
             {
                 if (ExportAssignmentName(location))
                     return true;
-                int code = 2693;
+                DiagnosticCode code = DiagnosticCode.X0OnlyRefersToATypeButIsBeingUsedAsAValueHere;
                 if (name is "Promise" or "Symbol" or "Map" or "WeakMap" or "Set" or "WeakSet")
-                    code = 2585;
+                    code = DiagnosticCode.X0OnlyRefersToATypeButIsBeingUsedAsAValueHereDoYouNeedToChangeYourTargetLibraryTryChangingTheLibCompilerOptionToEs2015OrLater;
                 else
                 {
                     var parent = location.Parent;
@@ -176,17 +202,22 @@ internal sealed partial class Checker
                                 break;
                             }
                         if (mapped)
-                            code = 2690;
+                            code = DiagnosticCode.X0OnlyRefersToATypeButIsBeingUsedAsAValueHereDidYouMeanToUse1In0;
                     }
                 }
-                Error(location, code, code == 2690 ? [name, name == "K" ? "P" : "K"] : [name]);
+                Error(
+                    location,
+                    code,
+                    code == DiagnosticCode.X0OnlyRefersToATypeButIsBeingUsedAsAValueHereDidYouMeanToUse1In0
+                        ? [name, name == "K" ? "P" : "K"]
+                        : [name]);
                 return true;
             }
         }
         if ((meaning & (S.Type & ~S.Namespace)) != 0 && await Find(S.Value & ~S.Type) is { } valueSymbol
             && (valueSymbol.Flags & S.Namespace) == 0)
         {
-            Error(location, 2749, name);
+            Error(location, DiagnosticCode.X0RefersToAValueButIsBeingUsedAsATypeHereDidYouMeanTypeof0, name);
             return true;
         }
         return false;

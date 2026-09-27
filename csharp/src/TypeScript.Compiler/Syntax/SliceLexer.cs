@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Globalization;
 using System.Text;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Text;
 
 namespace TypeScript.Compiler.Syntax;
@@ -61,7 +62,7 @@ public readonly record struct SliceToken(
     string Text = "",
     uint Flags = 0,
     bool LineBreak = false);
-public readonly record struct SliceDiagnostic(int Code, int Pos, int Length, string Message);
+public readonly record struct SliceDiagnostic(DiagnosticCode Code, int Pos, int Length, string Message);
 
 // Scanner slice for the selected TypeScript productions. Unhandled tokens are
 // returned as Unknown and produce a diagnostic, never a successful compilation.
@@ -116,7 +117,7 @@ public sealed class SliceLexer<TSource>(TSource source, List<SliceDiagnostic> di
                 while (position < source.Length && !(Peek() == '*' && Peek(1) == '/'))
                     lineBreak |= Newline(Take());
                 if (position == source.Length)
-                    diagnostics.Add(new(1010, source.ByteOffset(comment), 2, "'*/' expected."));
+                    diagnostics.Add(new(DiagnosticCode.AsteriskSlashExpected, source.ByteOffset(comment), 2, "'*/' expected."));
                 else
                     position += 2;
                 continue;
@@ -181,7 +182,7 @@ public sealed class SliceLexer<TSource>(TSource source, List<SliceDiagnostic> di
                 while (Peek() is >= '0' and <= '9')
                     Take();
                 if (exponent == position)
-                    diagnostics.Add(new(1124, source.ByteOffset(position), 0, "Digit expected."));
+                    diagnostics.Add(new(DiagnosticCode.DigitExpected, source.ByteOffset(position), 0, "Digit expected."));
             }
             string text = source.Slice(start, position);
             if (double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out double number))
@@ -232,7 +233,12 @@ public sealed class SliceLexer<TSource>(TSource source, List<SliceDiagnostic> di
                         if (!valid)
                         {
                             flags |= 2048;
-                            diagnostics.Add(new(1125, source.ByteOffset(position), 0, "Hexadecimal digit expected."));
+                            diagnostics.Add(
+                                new(
+                                    DiagnosticCode.HexadecimalDigitExpected,
+                                    source.ByteOffset(position),
+                                    0,
+                                    "Hexadecimal digit expected."));
                         }
                         Append(text, valid ? code : 0xFFFD);
                     }
@@ -257,7 +263,8 @@ public sealed class SliceLexer<TSource>(TSource source, List<SliceDiagnostic> di
             if (!ended)
             {
                 flags |= 4;
-                diagnostics.Add(new(1002, source.ByteOffset(position), 0, "Unterminated string literal."));
+                diagnostics.Add(
+                    new(DiagnosticCode.UnterminatedStringLiteral, source.ByteOffset(position), 0, "Unterminated string literal."));
             }
             return Token(SyntaxKind.StringLiteral, text.ToString(), flags);
         }

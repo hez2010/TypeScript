@@ -3,6 +3,7 @@ using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Checking;
 using TypeScript.Compiler.Configuration;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.Programs;
 using TypeScript.Compiler.Text;
@@ -98,7 +99,10 @@ internal static class CheckerMemberTests
 
         var body = (await host.Signatures.OfSymbolAsync(symbols.Globals["body"])).Single();
         host.ReturnBody = (_, token) => host.Signatures.ReturnAsync(body, token);
-        Check(await host.Signatures.ReturnAsync(body) == context.AnyType && host.Diagnostics.Contains(7023));
+        Check(
+            await host.Signatures.ReturnAsync(body) == context.AnyType
+                && host.Diagnostics.Contains(
+                    DiagnosticCode.X0ImplicitlyHasReturnTypeAnyBecauseItDoesNotHaveAReturnTypeAnnotationAndIsReferencedDirectlyOrIndirectlyInOneOfItsReturnExpressions));
         Check(host.Instantiation.Resolutions.Count == 0);
         body.ResolvedReturnType = null;
         using var cancellation = new CancellationTokenSource();
@@ -210,7 +214,7 @@ internal static class CheckerMemberTests
         await checker.Members.ResolveAsync(type);
         Check(type.Properties!.Select(p => p.Name).Order().SequenceEqual(["i", "ii"]));
         Check(await checker.Values.GetAsync(module.Exports["ii"]) == await checker.Values.GetAsync(module.Exports["i"]));
-        Check(!environment.Diagnostics.Contains(2303));
+        Check(!environment.Diagnostics.Contains(DiagnosticCode.CircularDefinitionOfImportAlias0));
         Check(snapshot.All(n => n.Node.Parent == n.Parent && n.Node.Pos == n.Pos && n.Node.End == n.End && n.Node.Flags == n.Flags));
         return checks;
     }

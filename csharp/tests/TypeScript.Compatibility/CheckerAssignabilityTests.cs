@@ -2,6 +2,7 @@ using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Checking;
 using TypeScript.Compiler.Configuration;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.Programs;
 using TypeScript.Compiler.Syntax;
@@ -272,7 +273,7 @@ internal static class CheckerAssignabilityTests
         if (checker.Relations.Cache(RelationKind.Assignable).Count != cacheCount || checker.Relations.State.Reliability != reliability)
             throw new InvalidOperationException("Cancelled relation elaboration changed cache state");
         var explanation = await checker.Relations.ExplainAsync(sourceType, targetType, RelationKind.Assignable, default);
-        if (explanation?.Next is not { Code: 2322 } detail
+        if (explanation?.Next is not { Code: DiagnosticCode.Type0IsNotAssignableToType1 } detail
             || detail.Source != checker.Context.NumberType
             || detail.Target != checker.Context.StringType)
             throw new InvalidOperationException("Cached negative relation lost its explanation");
@@ -308,7 +309,18 @@ internal static class CheckerAssignabilityTests
         var checker = await program.CreateCheckerAsync();
         await checker.CheckProgramAsync();
         var codes = checker.DiagnosticCodesForFile(program.SourceFiles[0].Syntax);
-        if (!codes.SequenceEqual([2322, 2322, 2420, 2739, 2740, 2741, 2741, 2741, 2741]))
+        if (!codes.SequenceEqual(
+            [
+                    DiagnosticCode.Type0IsNotAssignableToType1,
+                    DiagnosticCode.Type0IsNotAssignableToType1,
+                    DiagnosticCode.Class0IncorrectlyImplementsInterface1,
+                    DiagnosticCode.Type0IsMissingTheFollowingPropertiesFromType1Colon2,
+                    DiagnosticCode.Type0IsMissingTheFollowingPropertiesFromType1Colon2And3More,
+                    DiagnosticCode.Property0IsMissingInType1ButRequiredInType2,
+                    DiagnosticCode.Property0IsMissingInType1ButRequiredInType2,
+                    DiagnosticCode.Property0IsMissingInType1ButRequiredInType2,
+                    DiagnosticCode.Property0IsMissingInType1ButRequiredInType2
+                ]))
             throw new InvalidOperationException($"Missing property diagnostics: {string.Join(',', codes)}");
         if (!checker.RequiredPropertyDeclarations.Values.Any(p => p.Count == 6)
             || !checker.RequiredPropertyDeclarations.Values.Any(p => p.Count == 1 && p[0].Name == "value"))

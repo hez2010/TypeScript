@@ -14,7 +14,7 @@ internal sealed partial class Checker : IIteratorProtocolHost, IIterationElement
     internal Action<string>? BeforeIterationGlobal { get; set; }
     private readonly Dictionary<(string Name, int Arity, bool Report), Type> iterationGlobals = [];
     internal List<(SyntaxNode Node, Type Type, bool Async, IReadOnlyList<IterationDiagnostic> Related)> DeferredIterationDiagnostics { get; } = [];
-    internal List<(SyntaxNode Node, int Code)> IterationAwaitHints { get; } = [];
+    internal List<(SyntaxNode Node, DiagnosticCode Code)> IterationAwaitHints { get; } = [];
 
     public bool StrictBuiltinIteratorReturn => program.Symbols.Program.Configuration.Options.StrictOption("strictBuiltinIteratorReturn");
 
@@ -70,7 +70,13 @@ internal sealed partial class Checker : IIteratorProtocolHost, IIterationElement
             }
         }
         return CheckerDiagnostic.Create(diagnostic.Node, DiagnosticLocalization.GetMessage(diagnostic.Code),
-            diagnostic.Code is 2489 or 2490 or 2519 or 2547 or 2767 or 2768 ? [diagnostic.Member!] : []);
+            diagnostic.Code is DiagnosticCode.AnIteratorMustHaveANextMethod
+                or DiagnosticCode.TheTypeReturnedByThe0MethodOfAnIteratorMustHaveAValueProperty
+                or DiagnosticCode.AnAsyncIteratorMustHaveANextMethod
+                or DiagnosticCode.TheTypeReturnedByThe0MethodOfAnAsyncIteratorMustBeAPromiseForATypeWithAValueProperty
+                or DiagnosticCode.The0PropertyOfAnIteratorMustBeAMethod or DiagnosticCode.The0PropertyOfAnAsyncIteratorMustBeAMethod
+                ? [diagnostic.Member!]
+                : []);
     }
 
     public ValueTask<bool> ReportGeneratorReturnAsync(Type source, Type target, SyntaxNode node, CancellationToken cancellation)
@@ -88,7 +94,7 @@ internal sealed partial class Checker : IIteratorProtocolHost, IIterationElement
     public void DeferIteratorDiagnostic(SyntaxNode node, Type type, bool async, IReadOnlyList<IterationDiagnostic> related) =>
         DeferredIterationDiagnostics.Add((node, type, async, related));
 
-    public async ValueTask IterationErrorAsync(SyntaxNode node, int code, bool missingAwait, Type type, Type? other,
+    public async ValueTask IterationErrorAsync(SyntaxNode node, DiagnosticCode code, bool missingAwait, Type type, Type? other,
         CancellationToken cancellation, IReadOnlyList<IterationDiagnostic>? related = null)
     {
         string text = await TypeDisplay.GetAsync(type, cancellation);

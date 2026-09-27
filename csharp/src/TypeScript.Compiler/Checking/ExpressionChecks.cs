@@ -1,9 +1,10 @@
+using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Semantics;
 using TypeScript.Compiler.Syntax;
 using TypeScript.Compiler.Text;
-using System.Runtime.CompilerServices;
 
 namespace TypeScript.Compiler.Checking;
 
@@ -11,7 +12,7 @@ internal interface IExpressionCheckHost
 {
     ValueTask<bool> UndefinedIdentifierAsync(IdentifierNode node, CancellationToken cancellation);
 
-    void ExpressionError(SyntaxNode node, int code);
+    void ExpressionError(SyntaxNode node, DiagnosticCode code);
 }
 
 internal sealed class ExpressionChecks(TypeContext context, TypeFactQueries facts, IExpressionCheckHost host)
@@ -29,17 +30,30 @@ internal sealed class ExpressionChecks(TypeContext context, TypeFactQueries fact
         string? name = EntityText(node);
         if (context.StrictNullChecks && (type.Flags & TypeFlags.Unknown) != 0)
         {
-            host.ExpressionError(node, name is not null && Wtf8.Encode(name).Length < 100 ? 18046 : 2571);
+            host.ExpressionError(
+                node,
+                name is not null && Wtf8.Encode(name).Length < 100
+                    ? DiagnosticCode.X0IsOfTypeUnknown
+                    : DiagnosticCode.ObjectIsOfTypeUnknown);
             return context.ErrorType;
         }
         var nullable = await facts.GetAsync(type, TypeFacts.IsUndefinedOrNull, cancellation).ConfigureAwait(false);
         if ((nullable & TypeFacts.IsUndefinedOrNull) == 0)
             return type;
         bool undefined = (nullable & TypeFacts.IsUndefined) != 0, nullValue = (nullable & TypeFacts.IsNull) != 0;
-        int code = invocation ? undefined ? nullValue ? 2723 : 2722 : 2721
-            : node.Kind == SyntaxKind.NullKeyword || node is IdentifierNode { Text: "undefined" } ? 18050
-            : name is { Length: > 0 } && Wtf8.Encode(name).Length < 100 ? undefined ? nullValue ? 18049 : 18048 : 18047
-            : undefined ? nullValue ? 2533 : 2532 : 2531;
+        DiagnosticCode code = invocation ? undefined
+            ? nullValue
+                ? DiagnosticCode.CannotInvokeAnObjectWhichIsPossiblyNullOrUndefined
+                : DiagnosticCode.CannotInvokeAnObjectWhichIsPossiblyUndefined
+            : DiagnosticCode.CannotInvokeAnObjectWhichIsPossiblyNull
+            : node.Kind == SyntaxKind.NullKeyword || node is IdentifierNode { Text: "undefined" } ? DiagnosticCode.TheValue0CannotBeUsedHere
+            : name is { Length: > 0 }
+                && Wtf8.Encode(name).Length < 100 ? undefined
+                    ? nullValue ? DiagnosticCode.X0IsPossiblyNullOrUndefined : DiagnosticCode.X0IsPossiblyUndefined
+                    : DiagnosticCode.X0IsPossiblyNull
+            : undefined
+                ? nullValue ? DiagnosticCode.ObjectIsPossiblyNullOrUndefined : DiagnosticCode.ObjectIsPossiblyUndefined
+                : DiagnosticCode.ObjectIsPossiblyNull;
         host.ExpressionError(node, code);
         var result = await facts.NonNullableAsync(type, cancellation).ConfigureAwait(false);
         return (result.Flags & (TypeFlags.Nullable | TypeFlags.Never)) != 0 ? context.ErrorType : result;
@@ -49,12 +63,14 @@ internal sealed class ExpressionChecks(TypeContext context, TypeFactQueries fact
     {
         if ((type.Flags & TypeFlags.Void) != 0)
         {
-            host.ExpressionError(node, 1345);
+            host.ExpressionError(node, DiagnosticCode.AnExpressionOfTypeVoidCannotBeTestedForTruthiness);
             return;
         }
         int semantics = await SyntacticTruthinessAsync(node, cancellation).ConfigureAwait(false);
         if (semantics != 3)
-            host.ExpressionError(node, semantics == 1 ? 2872 : 2873);
+            host.ExpressionError(
+                node,
+                semantics == 1 ? DiagnosticCode.ThisKindOfExpressionIsAlwaysTruthy : DiagnosticCode.ThisKindOfExpressionIsAlwaysFalsy);
     }
 
     internal async ValueTask<int> SyntacticTruthinessAsync(SyntaxNode node, CancellationToken cancellation = default)
@@ -128,11 +144,15 @@ internal sealed class ExpressionChecks(TypeContext context, TypeFactQueries fact
         else if (right is BinaryExpressionNode { OperatorToken.Kind: SyntaxKind.AmpersandAmpersandToken })
             invalid = right;
         if (invalid is not null && SemanticSyntax.Source(invalid)?.ParseDiagnostics.Count == 0)
-            host.ExpressionError(invalid, 5076);
+            host.ExpressionError(invalid, DiagnosticCode.X0And1OperationsCannotBeMixedWithoutParentheses);
         var target = SkipOuter(left);
         int semantics = await NullishnessAsync(target, cancellation).ConfigureAwait(false);
         if (semantics != 3)
-            host.ExpressionError(target, semantics == 1 ? 2871 : 2869);
+            host.ExpressionError(
+                target,
+                semantics == 1
+                    ? DiagnosticCode.ThisExpressionIsAlwaysNullish
+                    : DiagnosticCode.RightOperandOfIsUnreachableBecauseTheLeftOperandIsNeverNullish);
     }
 
     internal async ValueTask<int> NullishnessAsync(SyntaxNode node, CancellationToken cancellation = default)

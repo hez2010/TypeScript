@@ -170,7 +170,7 @@ internal static class SyntaxTests
                     int start = file is null ? error.Start : file.Source.ToUtf16Position(error.Start);
                     int length = file is null ? error.Length : file.Source.ToUtf16Position(error.Start + error.Length) - start;
                     writer.WriteStartArray();
-                    writer.WriteNumberValue(error.Code);
+                    writer.WriteNumberValue((int)error.Code);
                     writer.WriteNumberValue(start);
                     writer.WriteNumberValue(length);
                     writer.WriteEndArray();
@@ -183,7 +183,7 @@ internal static class SyntaxTests
                         int start = file.Source.ToUtf16Position(error.Start);
                         int length = file.Source.ToUtf16Position(error.Start + error.Length) - start;
                         writer.WriteStartArray();
-                        writer.WriteNumberValue(error.Code);
+                        writer.WriteNumberValue((int)error.Code);
                         writer.WriteNumberValue(start);
                         writer.WriteNumberValue(length);
                         writer.WriteEndArray();
@@ -225,7 +225,7 @@ internal static class SyntaxTests
     {
         int start = source.ToUtf16Position(diagnostic.Start);
         writer.WriteStartArray();
-        writer.WriteNumberValue(diagnostic.Code);
+        writer.WriteNumberValue((int)diagnostic.Code);
         writer.WriteNumberValue(start);
         writer.WriteNumberValue(source.ToUtf16Position(diagnostic.Start + diagnostic.Length) - start);
         writer.WriteStartArray();

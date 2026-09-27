@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -16,7 +17,7 @@ internal interface IRelationDiagnosticHost
         Type target,
         RelationKind kind,
         SyntaxNode? node,
-        int? headCode,
+        DiagnosticCode? headCode,
         CancellationToken cancellation);
 
     void CallOrConstructHint(SyntaxNode node, bool construct);
@@ -51,7 +52,7 @@ internal sealed class RelationDiagnostics(TypeContext context, TypeRelations rel
     }
 
     internal async ValueTask<bool> CheckAsync(Type source, Type target, RelationKind kind, SyntaxNode? errorNode,
-        SyntaxNode? expression, int? headCode = null, CancellationToken cancellation = default)
+        SyntaxNode? expression, DiagnosticCode? headCode = null, CancellationToken cancellation = default)
     {
         if (await relations.RelatedAsync(source, target, kind, cancellation).ConfigureAwait(false))
             return true;
@@ -65,7 +66,7 @@ internal sealed class RelationDiagnostics(TypeContext context, TypeRelations rel
         Type source,
         Type target,
         RelationKind kind,
-        int? headCode,
+        DiagnosticCode? headCode,
         CancellationToken cancellation)
     {
         await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
@@ -94,7 +95,7 @@ internal sealed class RelationDiagnostics(TypeContext context, TypeRelations rel
     }
 
     private async ValueTask<bool> CallOrConstructAsync(SyntaxNode node, Type source, Type target, RelationKind kind,
-        bool construct, int? headCode, CancellationToken cancellation)
+        bool construct, DiagnosticCode? headCode, CancellationToken cancellation)
     {
         foreach (var signature in await host.SignaturesAsync(source, construct, cancellation).ConfigureAwait(false))
         {

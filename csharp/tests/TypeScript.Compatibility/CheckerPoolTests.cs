@@ -137,7 +137,7 @@ internal static class CheckerPoolTests
         Check(unique.Count == pool.Count);
         var parallel = await pool.GetDiagnosticsAsync();
         Check(barrier.IsSet);
-        Check(parallel.Semantic.Count(d => d.Code == 2322) == files.Count);
+        Check(parallel.Semantic.Count(d => d.Code == DiagnosticCode.Type0IsNotAssignableToType1) == files.Count);
         Check(parallel.Global.Count == parallel.Global.Distinct(DiagnosticEqualityComparer.Instance).Count());
         var serialPool = await program.CreateCheckerPoolAsync(singleThreaded: true);
         Check(serialPool.Count == 1);

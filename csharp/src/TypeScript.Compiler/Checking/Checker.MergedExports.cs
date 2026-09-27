@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -34,9 +35,15 @@ internal sealed partial class Checker
         var defaultConflict = defaultExport & (exported | local);
         foreach (var (declaration, space) in spaces)
             if ((space & defaultConflict) != 0)
-                Error(SemanticSyntax.Name(declaration) ?? declaration, 2652, TypeDisplay.SymbolName(symbol));
+                Error(
+                    SemanticSyntax.Name(declaration) ?? declaration,
+                    DiagnosticCode.MergedDeclaration0CannotIncludeADefaultExportDeclarationConsiderAddingASeparateExportDefault0DeclarationInstead,
+                    TypeDisplay.SymbolName(symbol));
             else if ((space & exportConflict) != 0)
-                Error(SemanticSyntax.Name(declaration) ?? declaration, 2395, TypeDisplay.SymbolName(symbol));
+                Error(
+                    SemanticSyntax.Name(declaration) ?? declaration,
+                    DiagnosticCode.IndividualDeclarationsInMergedDeclaration0MustBeAllExportedOrAllLocal,
+                    TypeDisplay.SymbolName(symbol));
     }
 
     private async ValueTask<DeclarationSpaces> DeclarationSpacesAsync(SyntaxNode node, CancellationToken cancellation)

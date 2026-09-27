@@ -15,7 +15,7 @@ public enum DiagnosticCategory
     Message
 }
 
-public sealed record DiagnosticMessage(int Code, DiagnosticCategory Category, string Key, string Text,
+public sealed record DiagnosticMessage(DiagnosticCode Code, DiagnosticCategory Category, string Key, string Text,
     bool ReportsUnnecessary = false, bool ReportsDeprecated = false, bool ElidedInCompatibilityPyramid = false)
 {
     public string Format(string? locale = null, params ReadOnlySpan<string> arguments) =>
@@ -24,7 +24,7 @@ public sealed record DiagnosticMessage(int Code, DiagnosticCategory Category, st
 
 public sealed record Diagnostic(DiagnosticMessage Message, int Start, int Length, string[] Arguments)
 {
-    public int Code => Message.Code;
+    public DiagnosticCode Code => Message.Code;
     public string? FileName { get; init; }
     public string? Source { get; init; }
     public IReadOnlyList<Diagnostic> MessageChain { get; init; } = [];
@@ -52,9 +52,9 @@ public sealed record Diagnostic(DiagnosticMessage Message, int Start, int Length
 public static class DiagnosticLocalization
 {
     private static readonly ConcurrentDictionary<string, FrozenDictionary<string, string>> Locales = new(StringComparer.OrdinalIgnoreCase);
-    private static readonly FrozenDictionary<int, DiagnosticMessage> ByCode = Messages.All.ToFrozenDictionary(m => m.Code);
+    private static readonly FrozenDictionary<DiagnosticCode, DiagnosticMessage> ByCode = Messages.All.ToFrozenDictionary(m => m.Code);
 
-    public static DiagnosticMessage GetMessage(int code) => ByCode[code];
+    public static DiagnosticMessage GetMessage(DiagnosticCode code) => ByCode[code];
 
     public static string Text(DiagnosticMessage message, string? locale)
     {

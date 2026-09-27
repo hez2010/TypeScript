@@ -54,7 +54,7 @@ internal sealed partial class Checker
                     break;
                 case InferTypeNode infer:
                     if (UnreferencedTypeParameter(infer.TypeParameter!))
-                        ReportUnused(infer, infer.TypeParameter!.Name!, 6196, true);
+                        ReportUnused(infer, infer.TypeParameter!.Name!, DiagnosticCode.X0IsDeclaredButNeverUsed, true);
                     break;
                 default:
                     throw new InvalidOperationException($"Unexpected unused-check scope {node.Kind}");
@@ -62,14 +62,20 @@ internal sealed partial class Checker
         }
     }
 
-    private void ReportUnused(SyntaxNode declaration, SyntaxNode location, int code, bool parameter, NodeList? typeParameters = null)
+    private void ReportUnused(
+        SyntaxNode declaration,
+        SyntaxNode location,
+        DiagnosticCode code,
+        bool parameter,
+        NodeList? typeParameters = null)
     {
         if (((declaration.Flags | (program.Symbols.Binding(declaration)?.Get(declaration)?.Flags ?? 0)) & (NodeFlags.Ambient | NodeFlags.ThisNodeOrAnySubNodesHasError)) != 0)
             return;
         if (program.Symbols.Program.Configuration.Options.Boolean(parameter ? "noUnusedParameters" : "noUnusedLocals") == true)
         {
             string[] arguments = [];
-            if (code is 6133 or 6138 or 6196)
+            if (code is DiagnosticCode.X0IsDeclaredButItsValueIsNeverRead or DiagnosticCode.Property0IsDeclaredButItsValueIsNeverRead
+                or DiagnosticCode.X0IsDeclaredButNeverUsed)
             {
                 var name = SemanticSyntax.Name(location) ?? location;
                 arguments = [name is IdentifierNode identifier ? identifier.Text
@@ -92,7 +98,7 @@ internal sealed partial class Checker
             ExpressionSuggestion(location, code);
     }
 
-    private void ReportUnusedVariable(SyntaxNode node, SyntaxNode location, int code)
+    private void ReportUnusedVariable(SyntaxNode node, SyntaxNode location, DiagnosticCode code)
     {
         while (node is BindingElementNode or BindingPatternNode)
             node = node.Parent!;
@@ -112,13 +118,17 @@ internal sealed partial class Checker
                 if (program.Symbols.ReferenceKinds(symbol) == 0
                     && (SemanticSyntax.HasModifier(member, SyntaxKind.PrivateKeyword)
                         || SemanticSyntax.Name(member) is PrivateIdentifierNode))
-                    ReportUnused(member, SemanticSyntax.Name(member)!, 6133, false);
+                    ReportUnused(member, SemanticSyntax.Name(member)!, DiagnosticCode.X0IsDeclaredButItsValueIsNeverRead, false);
             }
             else if (member is ConstructorDeclarationNode constructor)
                 foreach (var parameter in constructor.Parameters!)
                     if (program.Symbols.ReferenceKinds(program.Symbols.Declaration(parameter)!) == 0
                         && SemanticSyntax.HasModifier(parameter, SyntaxKind.PrivateKeyword))
-                        ReportUnused(parameter, SemanticSyntax.Name(parameter)!, 6138, false);
+                        ReportUnused(
+                            parameter,
+                            SemanticSyntax.Name(parameter)!,
+                            DiagnosticCode.Property0IsDeclaredButItsValueIsNeverRead,
+                            false);
         }
     }
 
@@ -157,7 +167,7 @@ internal sealed partial class Checker
         }
         foreach (var parent in variableParents)
             if (parent is VariableDeclarationListNode list && list.Declarations!.Count > 1 && list.Declarations.All(UnreferencedVariable))
-                ReportUnusedVariable(list, list, 6199);
+                ReportUnusedVariable(list, list, DiagnosticCode.AllVariablesAreUnused);
             else
                 ReportUnusedVariables(
                     parent is VariableDeclarationListNode variables ? variables.Declarations! : ((IFunctionSignature)parent).Parameters!);
@@ -166,7 +176,7 @@ internal sealed partial class Checker
             int count = clause.Name is null ? 0 : 1;
             count += clause.NamedBindings is NamespaceImportNode ? 1 : (clause.NamedBindings as NamedImportsNode)?.Elements?.Count ?? 0;
             if (count > 1 && count == unused.Count)
-                ReportUnused(clause, clause.Parent!, 6192, false);
+                ReportUnused(clause, clause.Parent!, DiagnosticCode.AllImportsInImportDeclarationAreUnused, false);
             else
                 foreach (var declaration in unused)
                     ReportUnusedLocal(declaration);
@@ -179,7 +189,11 @@ internal sealed partial class Checker
             or EnumDeclarationNode
             || node is ImportClauseNode && SemanticSyntax.TypeOnly(node)
             || node is ImportSpecifierNode or ExportSpecifierNode && node.Parent?.Parent is { } parent && SemanticSyntax.TypeOnly(parent);
-        ReportUnused(node, SemanticSyntax.Name(node) ?? node, type ? 6196 : 6133, false);
+        ReportUnused(
+            node,
+            SemanticSyntax.Name(node) ?? node,
+            type ? DiagnosticCode.X0IsDeclaredButNeverUsed : DiagnosticCode.X0IsDeclaredButItsValueIsNeverRead,
+            false);
     }
 
     private void ReportUnusedVariables(IEnumerable<SyntaxNode> declarations)
@@ -195,13 +209,13 @@ internal sealed partial class Checker
             if (name is BindingPatternNode pattern)
             {
                 if (pattern.Elements!.Count > 1 && pattern.Elements.All(UnreferencedVariable))
-                    ReportUnusedVariable(pattern, pattern, 6198);
+                    ReportUnusedVariable(pattern, pattern, DiagnosticCode.AllDestructuredElementsAreUnused);
                 else
                     for (int i = pattern.Elements.Count - 1; i >= 0; i--)
                         pending.Push(pattern.Elements[i]);
             }
             else if (UnreferencedVariable(declaration))
-                ReportUnusedVariable(declaration, name, 6133);
+                ReportUnusedVariable(declaration, name, DiagnosticCode.X0IsDeclaredButItsValueIsNeverRead);
         }
     }
 
@@ -258,10 +272,10 @@ internal sealed partial class Checker
         if (parameters is null)
             return;
         if (parameters.Count > 1 && parameters.All(UnreferencedTypeParameter))
-            ReportUnused(node, node, 6205, true, parameters);
+            ReportUnused(node, node, DiagnosticCode.AllTypeParametersAreUnused, true, parameters);
         else
             foreach (var parameter in parameters)
                 if (UnreferencedTypeParameter(parameter))
-                    ReportUnused(node, parameter, 6196, true);
+                    ReportUnused(node, parameter, DiagnosticCode.X0IsDeclaredButNeverUsed, true);
     }
 }

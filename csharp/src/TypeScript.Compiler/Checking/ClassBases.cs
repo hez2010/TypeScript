@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -15,7 +16,7 @@ internal interface IClassBaseHost
 
     ValueTask<Type?> ArrayElementAsync(Type type, CancellationToken cancellation);
 
-    ValueTask ClassBaseErrorAsync(SyntaxNode node, int code, Type type, CancellationToken cancellation);
+    ValueTask ClassBaseErrorAsync(SyntaxNode node, DiagnosticCode code, Type type, CancellationToken cancellation);
 }
 
 internal sealed class ClassBases(TypeContext context, DeclaredTypes declared, TypeReferences references, BaseTypes bases,
@@ -46,13 +47,21 @@ internal sealed class ClassBases(TypeContext context, DeclaredTypes declared, Ty
             active = false;
             if (!resolved)
             {
-                await host.ClassBaseErrorAsync(type.Symbol!.ValueDeclaration!, 2506, type, cancellation).ConfigureAwait(false);
+                await host.ClassBaseErrorAsync(
+                    type.Symbol!.ValueDeclaration!,
+                    DiagnosticCode.X0IsReferencedDirectlyOrIndirectlyInItsOwnBaseExpression,
+                    type,
+                    cancellation).ConfigureAwait(false);
                 return type.ResolvedBaseConstructorType ??= context.ErrorType;
             }
             if ((constructor.Flags & TypeFlags.Any) == 0 && constructor != context.NullWideningType
                 && !await IsConstructorAsync(constructor, cancellation).ConfigureAwait(false))
             {
-                await host.ClassBaseErrorAsync(node.Expression!, 2507, constructor, cancellation).ConfigureAwait(false);
+                await host.ClassBaseErrorAsync(
+                    node.Expression!,
+                    DiagnosticCode.Type0IsNotAConstructorFunctionType,
+                    constructor,
+                    cancellation).ConfigureAwait(false);
                 if (constructor is TypeParameter parameter)
                 {
                     var constraint = await constraints.ConstraintAsync(parameter, cancellation).ConfigureAwait(false);
@@ -95,7 +104,11 @@ internal sealed class ClassBases(TypeContext context, DeclaredTypes declared, Ty
             var constructors = await ConstructorsAsync(constructor, node, cancellation).ConfigureAwait(false);
             if (constructors.Count == 0)
             {
-                await host.ClassBaseErrorAsync(node.Expression!, 2508, constructor, cancellation).ConfigureAwait(false);
+                await host.ClassBaseErrorAsync(
+                    node.Expression!,
+                    DiagnosticCode.NoBaseConstructorHasTheSpecifiedNumberOfTypeArguments,
+                    constructor,
+                    cancellation).ConfigureAwait(false);
                 return [];
             }
             baseType = await signatures.ReturnAsync(constructors[0], cancellation).ConfigureAwait(false);
@@ -105,12 +118,20 @@ internal sealed class ClassBases(TypeContext context, DeclaredTypes declared, Ty
         var reduced = await views.ReducedAsync(baseType, cancellation).ConfigureAwait(false);
         if (!await bases.ValidAsync(reduced, cancellation).ConfigureAwait(false))
         {
-            await host.ClassBaseErrorAsync(node.Expression!, 2509, baseType, cancellation).ConfigureAwait(false);
+            await host.ClassBaseErrorAsync(
+                node.Expression!,
+                DiagnosticCode.BaseConstructorReturnType0IsNotAnObjectTypeOrIntersectionOfObjectTypesWithStaticallyKnownMembers,
+                baseType,
+                cancellation).ConfigureAwait(false);
             return [];
         }
         if (type == reduced || await bases.HasBaseAsync(reduced, type, cancellation).ConfigureAwait(false))
         {
-            await host.ClassBaseErrorAsync(type.Symbol!.ValueDeclaration!, 2310, type, cancellation).ConfigureAwait(false);
+            await host.ClassBaseErrorAsync(
+                type.Symbol!.ValueDeclaration!,
+                DiagnosticCode.Type0RecursivelyReferencesItselfAsABaseType,
+                type,
+                cancellation).ConfigureAwait(false);
             return [];
         }
         return [reduced];

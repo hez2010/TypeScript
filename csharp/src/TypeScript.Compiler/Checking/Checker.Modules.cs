@@ -37,7 +37,7 @@ internal sealed partial class Checker
     private static bool AmbientModule(SyntaxNode? node) =>
         node is ModuleDeclarationNode { Name: StringLiteralNode } or ModuleDeclarationNode { Keyword: SyntaxKind.GlobalKeyword };
 
-    private bool ModuleContext(SyntaxNode node, int code)
+    private bool ModuleContext(SyntaxNode node, DiagnosticCode code)
     {
         if (node.Parent is SourceFileNode or ModuleBlockNode or ModuleDeclarationNode)
             return true;
@@ -52,19 +52,23 @@ internal sealed partial class Checker
             return false;
         if (specifier is not StringLiteralNode literal)
         {
-            Error(specifier, 1141);
+            Error(specifier, DiagnosticCode.StringLiteralExpected);
             return false;
         }
         bool ambient = node.Parent is ModuleBlockNode && AmbientModule(node.Parent.Parent);
         if (node.Parent is not SourceFileNode && !ambient)
         {
-            Error(specifier, node is ExportDeclarationNode ? 1194 : 1147);
+            Error(
+                specifier,
+                node is ExportDeclarationNode
+                    ? DiagnosticCode.ExportDeclarationsAreNotPermittedInANamespace
+                    : DiagnosticCode.ImportDeclarationsInANamespaceCannotReferenceAModule);
             return false;
         }
         if (ambient && RelativeModuleName(literal.Text)
             && !ModuleAugmentation(node.Parent!.Parent!))
         {
-            Error(node, 2439);
+            Error(node, DiagnosticCode.ImportOrExportDeclarationInAnAmbientModuleDeclarationCannotReferenceModuleThroughRelativeModuleName);
             return false;
         }
         return ImportAttributeValues(node switch
@@ -109,14 +113,18 @@ internal sealed partial class Checker
         if (value && node.Parent is SourceFileNode && (node.Flags & NodeFlags.Ambient) == 0
             && program.Symbols.Program.Configuration.Options.Boolean("verbatimModuleSyntax") == true && EmitModuleKind(node) == 1
             && modifiers.FirstOrDefault(m => m.Kind == SyntaxKind.ExportKeyword) is { } export)
-            Error(export, 1287);
+            Error(
+                export,
+                DiagnosticCode.ATopLevelExportModifierCannotBeUsedOnValueDeclarationsInACommonJSModuleWhenVerbatimModuleSyntaxIsEnabled);
         else if (node is VariableStatementNode { DeclarationList: { } declarations } && (declarations.Flags & NodeFlags.Using) != 0
             && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0
             && modifiers.FirstOrDefault(
                 m => m.Kind is SyntaxKind.ExportKeyword or SyntaxKind.DefaultKeyword or SyntaxKind.DeclareKeyword) is { } modifier)
             Error(
                 modifier,
-                (declarations.Flags & NodeFlags.BlockScoped) == NodeFlags.AwaitUsing ? 1495 : 1491,
+                (declarations.Flags & NodeFlags.BlockScoped) == NodeFlags.AwaitUsing
+                    ? DiagnosticCode.X0ModifierCannotAppearOnAnAwaitUsingDeclaration
+                    : DiagnosticCode.X0ModifierCannotAppearOnAUsingDeclaration,
                 TokenFacts.Text(modifier.Kind)!);
     }
 
@@ -130,15 +138,23 @@ internal sealed partial class Checker
         if (!global)
             RegisterUnused(node);
         if (global && !ambient)
-            Error(node.Name!, 2670);
+            Error(
+                node.Name!,
+                DiagnosticCode.AugmentationsForTheGlobalScopeShouldHaveDeclareModifierUnlessTheyAppearInAlreadyAmbientContext);
         if (node.Attributes is not null)
             await CheckModuleAttributesAsync(node, cancellation).ConfigureAwait(false);
-        if (!ModuleContext(node, AmbientModule(node) ? 1234 : 1235))
+        if (!ModuleContext(
+            node,
+            AmbientModule(node)
+                ? DiagnosticCode.AnAmbientModuleDeclarationIsOnlyAllowedAtTheTopLevelInAFile
+                : DiagnosticCode.ANamespaceDeclarationIsOnlyAllowedAtTheTopLevelOfANamespaceOrModule))
             return;
         if (!ambient && node.Name is StringLiteralNode)
-            Error(node.Name, 1035);
+            Error(node.Name, DiagnosticCode.OnlyAmbientModulesCanUseQuotedNames);
         if (node.Name is IdentifierNode && node.Keyword == SyntaxKind.ModuleKeyword)
-            Error(node.Name, 1540);
+            Error(
+                node.Name,
+                DiagnosticCode.ANamespaceDeclarationShouldNotBeDeclaredUsingTheModuleKeywordPleaseUseTheNamespaceKeywordInstead);
         var symbol = program.Symbols.Declaration(node)!;
         await CheckMergedExportsAsync(node, cancellation).ConfigureAwait(false);
         int state = Binder.ModuleState(node);
@@ -147,17 +163,20 @@ internal sealed partial class Checker
         if ((symbol.Flags & SymbolFlags.ValueModule) != 0 && !ambient && instantiated)
         {
             if (ErasableSyntaxOnly && (node.Flags & NodeFlags.JavaScriptFile) == 0)
-                Error(node, 1294);
+                Error(node, DiagnosticCode.ThisSyntaxIsNotAllowedWhenErasableSyntaxOnlyIsEnabled);
             if (IsolatedModules && program.Symbols.Binding(node)?.IsModule != true)
-                Error(node.Name!, 1280, IsolatedModuleOptionName);
+                Error(
+                    node.Name!,
+                    DiagnosticCode.NamespacesAreNotAllowedInGlobalScriptFilesWhen0IsEnabledIfThisFileIsNotIntendedToBeAGlobalScriptSetModuleDetectionToForceOrAddAnEmptyExportStatement,
+                    IsolatedModuleOptionName);
             var first = symbol.Declarations.FirstOrDefault(
                 d => (d is ClassDeclarationNode || d is FunctionDeclarationNode { Body: not null }) && (d.Flags & NodeFlags.Ambient) == 0);
             if (first is not null)
             {
                 if (SemanticSyntax.Source(node) != SemanticSyntax.Source(first))
-                    Error(node.Name!, 2433);
+                    Error(node.Name!, DiagnosticCode.ANamespaceDeclarationCannotBeInADifferentFileFromAClassOrFunctionWithWhichItIsMerged);
                 else if (node.Pos < first.Pos)
-                    Error(node.Name!, 2434);
+                    Error(node.Name!, DiagnosticCode.ANamespaceDeclarationCannotBeLocatedPriorToAClassOrFunctionWithWhichItIsMerged);
             }
             ExportedDeclaration(node, true);
         }
@@ -172,37 +191,51 @@ internal sealed partial class Checker
                             or ImportEqualsDeclarationNode { ModuleReference: ExternalModuleReferenceNode })
                         {
                             if (SemanticSyntax.Source(statement)?.ParseDiagnostics.Count == 0)
-                                ErrorOnFirstToken(statement, 2667);
+                                ErrorOnFirstToken(
+                                    statement,
+                                    DiagnosticCode.ImportsAreNotPermittedInModuleAugmentationsConsiderMovingThemToTheEnclosingExternalModule);
                         }
                         else if (statement is ExportDeclarationNode or ExportAssignmentNode)
                         {
                             if (SemanticSyntax.Source(statement)?.ParseDiagnostics.Count == 0)
-                                ErrorOnFirstToken(statement, 2666);
+                                ErrorOnFirstToken(
+                                    statement,
+                                    DiagnosticCode.ExportsAndExportAssignmentsAreNotPermittedInModuleAugmentations);
                         }
                     }
             }
             else if (node.Parent is SourceFileNode file && program.Symbols.Binding(file)?.IsModule != true)
             {
                 if (global)
-                    Error(node.Name!, 2669);
+                    Error(
+                        node.Name!,
+                        DiagnosticCode.AugmentationsForTheGlobalScopeCanOnlyBeDirectlyNestedInExternalModulesOrAmbientModuleDeclarations);
                 else if (node.Name is StringLiteralNode name && RelativeModuleName(name.Text))
-                    Error(name, 2436);
+                    Error(name, DiagnosticCode.AmbientModuleDeclarationCannotSpecifyRelativeModuleName);
             }
             else
-                Error(node.Name!, global ? 2669 : 2435);
+                Error(
+                    node.Name!,
+                    global
+                        ? DiagnosticCode.AugmentationsForTheGlobalScopeCanOnlyBeDirectlyNestedInExternalModulesOrAmbientModuleDeclarations
+                        : DiagnosticCode.AmbientModulesCannotBeNestedInOtherModulesOrNamespaces);
         }
     }
 
     private async ValueTask CheckImportEqualsSourceAsync(ImportEqualsDeclarationNode node, CancellationToken cancellation)
     {
-        if (!ModuleContext(node, (node.Flags & NodeFlags.JavaScriptFile) != 0 ? 1473 : 1232))
+        if (!ModuleContext(
+            node,
+            (node.Flags & NodeFlags.JavaScriptFile) != 0
+                ? DiagnosticCode.AnImportDeclarationCanOnlyBeUsedAtTheTopLevelOfAModule
+                : DiagnosticCode.AnImportDeclarationCanOnlyBeUsedAtTheTopLevelOfANamespaceOrModule))
         {
             await CheckMisplacedModuleNameAsync(node, cancellation);
             return;
         }
         ExportedDeclaration(node, false);
         if (ErasableSyntaxOnly && (node.Flags & NodeFlags.Ambient) == 0)
-            Error(node, 1294);
+            Error(node, DiagnosticCode.ThisSyntaxIsNotAllowedWhenErasableSyntaxOnlyIsEnabled);
         if (node.ModuleReference is ExternalModuleReferenceNode external && !ExternalModuleSyntax(node, external.Expression))
             return;
         await CheckAliasSourceAsync(node, cancellation).ConfigureAwait(false);
@@ -214,7 +247,7 @@ internal sealed partial class Checker
             {
                 var flags = await program.Aliases.FlagsAsync(target, cancellation: cancellation).ConfigureAwait(false);
                 if ((flags & SymbolFlags.Type) != 0 && ReservedTypeName(node.Name!.Text))
-                    Error(node.Name, 2438, node.Name.Text);
+                    Error(node.Name, DiagnosticCode.ImportNameCannotBe0, node.Name.Text);
                 if ((flags & SymbolFlags.Value) != 0)
                 {
                     var first = node.ModuleReference!;
@@ -225,25 +258,34 @@ internal sealed partial class Checker
                         SymbolFlags.Value | SymbolFlags.Namespace,
                         cancellation: cancellation).ConfigureAwait(false);
                     if (resolved is not null && (resolved.Flags & SymbolFlags.Namespace) == 0)
-                        Error(first, 2437, CheckerDiagnostic.DeclarationName(first));
+                        Error(
+                            first,
+                            DiagnosticCode.Module0IsHiddenByALocalDeclarationWithTheSameName,
+                            CheckerDiagnostic.DeclarationName(first));
                 }
             }
             if (node.IsTypeOnly && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
-                Error(node, 1392);
+                Error(node, DiagnosticCode.AnImportAliasCannotUseImportType);
         }
         else if (ModuleKind is >= 5 and <= 99 && !node.IsTypeOnly && (node.Flags & NodeFlags.Ambient) == 0)
-            Error(node, 1202);
+            Error(
+                node,
+                DiagnosticCode.ImportAssignmentCannotBeUsedWhenTargetingECMAScriptModulesConsiderUsingImportAsteriskAsNsFromModImportAFromModImportDFromModOrAnotherModuleFormatInstead);
     }
 
     private async ValueTask CheckImportSourceAsync(ImportDeclarationNode node, CancellationToken cancellation)
     {
-        if (!ModuleContext(node, (node.Flags & NodeFlags.JavaScriptFile) != 0 ? 1473 : 1232))
+        if (!ModuleContext(
+            node,
+            (node.Flags & NodeFlags.JavaScriptFile) != 0
+                ? DiagnosticCode.AnImportDeclarationCanOnlyBeUsedAtTheTopLevelOfAModule
+                : DiagnosticCode.AnImportDeclarationCanOnlyBeUsedAtTheTopLevelOfANamespaceOrModule))
         {
             await CheckMisplacedModuleNameAsync(node, cancellation);
             return;
         }
         if (!DeclarationModifiers(node) && node.Modifiers is { Count: > 0 })
-            ErrorOnFirstToken(node, 1191);
+            ErrorOnFirstToken(node, DiagnosticCode.AnImportDeclarationCannotHaveModifiers);
         bool validModule = ExternalModuleSyntax(node, node.ModuleSpecifier);
         await CheckImportAttributesAsync(node, node.Attributes, cancellation).ConfigureAwait(false);
         if (!validModule)
@@ -270,7 +312,10 @@ internal sealed partial class Checker
                     if (DefaultOnlyModule(module, node.ModuleSpecifier!)
                         && imports.Elements?.Any(
                             e => (e as ImportSpecifierNode)?.PropertyName is not IdentifierNode { Text: "default" }) == true)
-                        ListError(imports, imports.Elements!, 1544,
+                        ListError(
+                            imports,
+                            imports.Elements!,
+                            DiagnosticCode.NamedImportsFromAJSONFileIntoAnECMAScriptModuleAreNotAllowedWhenModuleIsSetTo0,
                             ModuleKind switch { 100 => "Node16", 101 => "Node18", 102 => "Node20", _ => "NodeNext" });
                     foreach (var binding in imports.Elements!)
                         await CheckAliasSourceAsync(binding, cancellation).ConfigureAwait(false);
@@ -285,7 +330,10 @@ internal sealed partial class Checker
                 && DefaultOnlyModule(resolved, node.ModuleSpecifier!)
                 && node.Attributes?.Attributes?.OfType<ImportAttributeNode>().Any(a => ImportAttributeName(a.Name!) == "type"
                     && a.Value is StringLiteralNode { Text: "json" }) != true)
-                Error(node.ModuleSpecifier!, 1543, ModuleKind switch { 101 => "Node18", 102 => "Node20", _ => "NodeNext" });
+                Error(
+                    node.ModuleSpecifier!,
+                    DiagnosticCode.ImportingAJSONFileIntoAnECMAScriptModuleRequiresATypeColonJsonImportAttributeWhenModuleIsSetTo0,
+                    ModuleKind switch { 101 => "Node18", 102 => "Node20", _ => "NodeNext" });
         }
         else if (program.Symbols.Program.Configuration.Options.Boolean("noUncheckedSideEffectImports") != false)
         {
@@ -297,24 +345,28 @@ internal sealed partial class Checker
     {
         if (SemanticSyntax.Source(clause)?.ParseDiagnostics.Count != 0)
             return false;
-        int code = 0;
+        DiagnosticCode code = DiagnosticCode.None;
         if (clause.PhaseModifier == SyntaxKind.TypeKeyword)
         {
             if ((clause.Flags & NodeFlags.JSDoc) == 0 && clause.Name is not null && clause.NamedBindings is not null)
-                code = 1363;
+                code = DiagnosticCode.ATypeOnlyImportCanSpecifyADefaultImportOrNamedBindingsButNotBoth;
             else if (clause.NamedBindings is NamedImportsNode imports)
-                return TypeOnlyBindingsGrammar(imports.Elements!, 2206);
+                return TypeOnlyBindingsGrammar(
+                    imports.Elements!,
+                    DiagnosticCode.TheTypeModifierCannotBeUsedOnANamedImportWhenImportTypeIsUsedOnItsImportStatement);
         }
         else if (clause.PhaseModifier == SyntaxKind.DeferKeyword)
-            code = clause.Name is not null ? 18058 : clause.NamedBindings is NamedImportsNode ? 18059
-                : ModuleKind is not (99 or 200) ? 18060 : 0;
-        if (code == 0)
+            code = clause.Name is not null ? DiagnosticCode.DefaultImportsAreNotAllowedInADeferredImport : clause.NamedBindings is NamedImportsNode ? DiagnosticCode.NamedImportsAreNotAllowedInADeferredImport
+                : ModuleKind is not (99 or 200)
+                    ? DiagnosticCode.DeferredImportsAreOnlySupportedWhenTheModuleFlagIsSetToEsnextOrPreserve
+                    : DiagnosticCode.None;
+        if (code == DiagnosticCode.None)
             return false;
         Error(clause, code);
         return true;
     }
 
-    private bool TypeOnlyBindingsGrammar(NodeList bindings, int code)
+    private bool TypeOnlyBindingsGrammar(NodeList bindings, DiagnosticCode code)
     {
         foreach (var binding in bindings)
             if (SemanticSyntax.TypeOnly(binding))
@@ -364,7 +416,7 @@ internal sealed partial class Checker
                 string text = name is IdentifierNode identifier ? identifier.Text : symbol.Name;
                 string importText = "import(\"" + (AliasTargets.Text(specifier) ?? "...") + "\")"
                     + (node is ImportSpecifierNode ? "." + text : "");
-                Error(name, 18042, text, importText);
+                Error(name, DiagnosticCode.X0IsATypeAndCannotBeImportedInJavaScriptFilesUse1InAJSDocTypeAnnotation, text, importText);
             }
             return;
         }
@@ -374,10 +426,19 @@ internal sealed partial class Checker
         if ((symbol.Flags & SymbolFlags.Namespace) != 0)
             excluded |= SymbolFlags.Namespace;
         if ((flags & excluded) != 0)
-            Error(node, node is ExportSpecifierNode ? 2484 : 2440, TypeDisplay.SymbolName(symbol));
+            Error(
+                node,
+                node is ExportSpecifierNode
+                    ? DiagnosticCode.ExportDeclarationConflictsWithExportedDeclarationOf0
+                    : DiagnosticCode.ImportDeclarationConflictsWithLocalDeclarationOf0,
+                TypeDisplay.SymbolName(symbol));
         else if (node is not ExportSpecifierNode && program.Symbols.Program.Configuration.Options.Boolean("isolatedModules") == true
             && !AliasResolver.IsTypeOnly(node) && (symbol.Flags & (SymbolFlags.Value | SymbolFlags.ExportValue)) != 0)
-            Error(node, 2865, TypeDisplay.SymbolName(symbol), IsolatedModuleOptionName);
+            Error(
+                node,
+                DiagnosticCode.Import0ConflictsWithLocalValueSoMustBeDeclaredWithATypeOnlyImportWhenIsolatedModulesIsEnabled,
+                TypeDisplay.SymbolName(symbol),
+                IsolatedModuleOptionName);
         bool typeOnly = AliasResolver.IsTypeOnly(node);
         if (IsolatedModules && !typeOnly && (node.Flags & NodeFlags.Ambient) == 0)
         {
@@ -392,18 +453,26 @@ internal sealed partial class Checker
                     {
                         string name = AliasTargets.Text(
                             (node as ImportSpecifierNode)?.PropertyName ?? SemanticSyntax.Name(node)) ?? symbol.Name;
-                        int code = node is ImportEqualsDeclarationNode { ModuleReference: not ExternalModuleReferenceNode }
-                            ? 1288 : type ? 1484 : 1485;
+                        DiagnosticCode code = node is ImportEqualsDeclarationNode { ModuleReference: not ExternalModuleReferenceNode }
+                            ? DiagnosticCode.AnImportAliasCannotResolveToATypeOrTypeOnlyDeclarationWhenVerbatimModuleSyntaxIsEnabled : type
+                                ? DiagnosticCode.X0IsATypeAndMustBeImportedUsingATypeOnlyImportWhenVerbatimModuleSyntaxIsEnabled
+                                : DiagnosticCode.X0ResolvesToATypeOnlyDeclarationAndMustBeImportedUsingATypeOnlyImportWhenVerbatimModuleSyntaxIsEnabled;
                         TypeOnlyAliasError(node, code, type ? null : typeOnlyDeclaration, name, name);
                     }
                     if (type && node is ImportEqualsDeclarationNode && SemanticSyntax.HasModifier(node, SyntaxKind.ExportKeyword))
-                        Error(node, 1269, IsolatedModuleOptionName);
+                        Error(node, DiagnosticCode.CannotUseExportImportOnATypeOrTypeOnlyNamespaceWhen0IsEnabled, IsolatedModuleOptionName);
                 }
                 else if (node is ExportSpecifierNode export && (verbatim
                     || SemanticSyntax.Source(typeOnlyDeclaration) != SemanticSyntax.Source(node)))
                 {
                     string name = AliasTargets.Text(export.PropertyName ?? export.Name) ?? symbol.Name;
-                    TypeOnlyAliasError(node, type ? 1205 : 1448, type ? null : typeOnlyDeclaration, name,
+                    TypeOnlyAliasError(
+                        node,
+                        type
+                            ? DiagnosticCode.ReExportingATypeWhen0IsEnabledRequiresUsingExportType
+                            : DiagnosticCode.X0ResolvesToATypeOnlyDeclarationAndMustBeReExportedUsingATypeOnlyReExportWhen1IsEnabled,
+                        type ? null : typeOnlyDeclaration,
+                        name,
                         type ? [IsolatedModuleOptionName] : [name, IsolatedModuleOptionName]);
                 }
             }
@@ -414,14 +483,14 @@ internal sealed partial class Checker
                 Error(node, VerbatimModuleCode(node));
             else if (ModuleKind == 200 && node is not (ImportEqualsDeclarationNode or VariableDeclarationNode or BindingElementNode)
                 && EmitModuleKind(node) == 1)
-                Error(node, 1293);
+                Error(node, DiagnosticCode.ECMAScriptModuleSyntaxIsNotAllowedInACommonJSModuleWhenModuleIsSetToPreserve);
             if (verbatim && (flags & SymbolFlags.ConstEnum) != 0 && target.ValueDeclaration is { } enumDeclaration
                 && (enumDeclaration.Flags & NodeFlags.Ambient) != 0)
             {
                 var redirect = program.Symbols.Program.ProjectReferences.Outputs.GetValueOrDefault(SemanticSyntax.Source(enumDeclaration)!.FileName);
                 if (redirect is null || !(redirect.Project.Options.Boolean("preserveConstEnums") == true
                     || redirect.Project.Options.Boolean("isolatedModules") == true || redirect.Project.Options.Boolean("verbatimModuleSyntax") == true))
-                    Error(node, 2748, IsolatedModuleOptionName);
+                    Error(node, DiagnosticCode.CannotAccessAmbientConstEnumsWhen0IsEnabled, IsolatedModuleOptionName);
             }
         }
         if (node is ImportSpecifierNode import)
@@ -431,19 +500,26 @@ internal sealed partial class Checker
                 await ExternalHelpersAsync(import, ["__importDefault"], cancellation);
             var deprecated = await program.Aliases.WithDeprecationAsync(symbol, node, cancellation).ConfigureAwait(false);
             if (program.Deprecations.Symbol(deprecated))
-                program.Suggestion(node, 6385, deprecated.Name);
+                program.Suggestion(node, DiagnosticCode.X0IsDeprecated, deprecated.Name);
         }
     }
 
-    private int VerbatimModuleCode(SyntaxNode node) => SemanticSyntax.Source(node)!.FileName.EndsWith(
+    private DiagnosticCode VerbatimModuleCode(SyntaxNode node) => SemanticSyntax.Source(node)!.FileName.EndsWith(
         ".cts",
         StringComparison.OrdinalIgnoreCase)
-        || SemanticSyntax.Source(node)!.FileName.EndsWith(".cjs", StringComparison.OrdinalIgnoreCase) ? 1286 : 1295;
+        || SemanticSyntax.Source(node)!.FileName.EndsWith(
+            ".cjs",
+            StringComparison.OrdinalIgnoreCase) ? DiagnosticCode.ECMAScriptImportsAndExportsCannotBeWrittenInACommonJSFileUnderVerbatimModuleSyntax : DiagnosticCode.ECMAScriptImportsAndExportsCannotBeWrittenInACommonJSFileUnderVerbatimModuleSyntaxAdjustTheTypeFieldInTheNearestPackageJsonToMakeThisFileAnECMAScriptModuleOrAdjustYourVerbatimModuleSyntaxModuleAndModuleResolutionSettingsInTypeScript;
 
     private string IsolatedModuleOptionName => program.Symbols.Program.Configuration.Options.Boolean("verbatimModuleSyntax") == true
         ? "verbatimModuleSyntax" : "isolatedModules";
 
-    private void TypeOnlyAliasError(SyntaxNode node, int code, SyntaxNode? typeOnlyDeclaration, string name, params string[] arguments)
+    private void TypeOnlyAliasError(
+        SyntaxNode node,
+        DiagnosticCode code,
+        SyntaxNode? typeOnlyDeclaration,
+        string name,
+        params string[] arguments)
     {
         var diagnostic = CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), arguments);
         if (typeOnlyDeclaration is not null)
@@ -461,27 +537,33 @@ internal sealed partial class Checker
         if (name is not StringLiteralNode || SemanticSyntax.Source(name)?.ParseDiagnostics.Count != 0)
             return;
         if (!allowString)
-            Error(name, 1003);
+            Error(name, DiagnosticCode.IdentifierExpected);
         else if (ModuleKind is 5 or 6 && SemanticSyntax.Source(name)?.IsDeclarationFile != true)
-            Error(name, 18057);
+            Error(name, DiagnosticCode.StringLiteralImportAndExportNamesAreNotSupportedWhenTheModuleFlagIsSetToEs2015OrEs2020);
     }
 
     private async ValueTask CheckExportSourceAsync(ExportDeclarationNode node, CancellationToken cancellation)
     {
-        if (!ModuleContext(node, (node.Flags & NodeFlags.JavaScriptFile) != 0 ? 1474 : 1233))
+        if (!ModuleContext(
+            node,
+            (node.Flags & NodeFlags.JavaScriptFile) != 0
+                ? DiagnosticCode.AnExportDeclarationCanOnlyBeUsedAtTheTopLevelOfAModule
+                : DiagnosticCode.AnExportDeclarationCanOnlyBeUsedAtTheTopLevelOfANamespaceOrModule))
         {
             await CheckMisplacedModuleNameAsync(node, cancellation);
             return;
         }
         if (!DeclarationModifiers(node) && node.Modifiers is { Count: > 0 })
-            ErrorOnFirstToken(node, 1193);
+            ErrorOnFirstToken(node, DiagnosticCode.AnExportDeclarationCannotHaveModifiers);
         await CheckImportAttributesAsync(node, node.Attributes, cancellation).ConfigureAwait(false);
         if (node.ModuleSpecifier is not null && !ExternalModuleSyntax(node, node.ModuleSpecifier))
             return;
         if (node.ExportClause is NamedExportsNode exports)
         {
             if (SemanticSyntax.TypeOnly(node) && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
-                TypeOnlyBindingsGrammar(exports.Elements!, 2207);
+                TypeOnlyBindingsGrammar(
+                    exports.Elements!,
+                    DiagnosticCode.TheTypeModifierCannotBeUsedOnANamedExportWhenExportTypeIsUsedOnItsExportStatement);
             foreach (ExportSpecifierNode binding in exports.Elements!)
             {
                 await CheckAliasSourceAsync(binding, cancellation).ConfigureAwait(false);
@@ -501,7 +583,7 @@ internal sealed partial class Checker
                         || symbol?.Declarations.FirstOrDefault() is { } declaration
                             && SemanticSyntax.DeclarationContainer(declaration) is SourceFileNode file
                             && program.Symbols.Binding(file)?.IsModule != true)
-                        Error(name, 2661, name.Text);
+                        Error(name, DiagnosticCode.CannotExport0OnlyLocalDeclarationsCanBeExportedFromAModule, name.Text);
                     else if (symbol is not null && (symbol.Flags & SymbolFlags.Alias) != 0)
                         await AliasReferences.MarkAsync(symbol, name, cancellation).ConfigureAwait(false);
                 }
@@ -509,7 +591,7 @@ internal sealed partial class Checker
             bool ambient = node.Parent is ModuleBlockNode
                 && (AmbientModule(node.Parent.Parent) || (node.Flags & NodeFlags.Ambient) != 0 && node.ModuleSpecifier is null);
             if (node.Parent is not SourceFileNode && !ambient)
-                Error(node, 1194);
+                Error(node, DiagnosticCode.ExportDeclarationsAreNotPermittedInANamespace);
         }
         else if (await program.ExternalModuleAsync(
             node,
@@ -518,7 +600,10 @@ internal sealed partial class Checker
             cancellation).ConfigureAwait(false) is { } module)
         {
             if (module.Exports.ContainsKey("export="))
-                Error(node.ModuleSpecifier!, 2498, await SymbolDisplayNameAsync(module, null, SymbolFlags.All, cancellation));
+                Error(
+                    node.ModuleSpecifier!,
+                    DiagnosticCode.Module0UsesExportAndCannotBeUsedWithExportAsterisk,
+                    await SymbolDisplayNameAsync(module, null, SymbolFlags.All, cancellation));
             else if (node.ExportClause is NamespaceExportNode ns)
             {
                 await CheckAliasSourceAsync(ns, cancellation).ConfigureAwait(false);
@@ -532,17 +617,25 @@ internal sealed partial class Checker
     private async ValueTask CheckExportAssignmentSourceAsync(ExportAssignmentNode node, CancellationToken cancellation)
     {
         var type = await CachedExpressionAsync(node.Expression!, 0, cancellation).ConfigureAwait(false);
-        if (!ModuleContext(node, node.IsExportEquals ? 1231 : 1258))
+        if (!ModuleContext(
+            node,
+            node.IsExportEquals
+                ? DiagnosticCode.AnExportAssignmentMustBeAtTheTopLevelOfAFileOrModuleDeclaration
+                : DiagnosticCode.ADefaultExportMustBeAtTheTopLevelOfAFileOrModuleDeclaration))
             return;
         if (node.Parent is ModuleBlockNode && !AmbientModule(node.Parent.Parent))
         {
-            Error(node, node.IsExportEquals ? 1063 : 1319);
+            Error(
+                node,
+                node.IsExportEquals
+                    ? DiagnosticCode.AnExportAssignmentCannotBeUsedInANamespace
+                    : DiagnosticCode.ADefaultExportCanOnlyBeUsedInAnECMAScriptStyleModule);
             return;
         }
         if (node.IsExportEquals && ErasableSyntaxOnly && (node.Flags & NodeFlags.Ambient) == 0)
-            Error(node, 1294);
+            Error(node, DiagnosticCode.ThisSyntaxIsNotAllowedWhenErasableSyntaxOnlyIsEnabled);
         if (!DeclarationModifiers(node) && node.Modifiers is { Count: > 0 })
-            ErrorOnFirstToken(node, 1120);
+            ErrorOnFirstToken(node, DiagnosticCode.AnExportAssignmentCannotHaveModifiers);
         bool verbatim = program.Symbols.Program.Configuration.Options.Boolean("verbatimModuleSyntax") == true;
         bool illegalDefault = !node.IsExportEquals && (node.Flags & NodeFlags.Ambient) == 0 && verbatim && EmitModuleKind(node) == 1;
         if (node.Expression is IdentifierNode identifier)
@@ -566,9 +659,19 @@ internal sealed partial class Checker
                     if (verbatim)
                     {
                         if ((flags & SymbolFlags.Value) == 0)
-                            Error(identifier, node.IsExportEquals ? 1282 : 1284, identifier.Text);
+                            Error(
+                                identifier,
+                                node.IsExportEquals
+                                    ? DiagnosticCode.AnExportDeclarationMustReferenceAValueWhenVerbatimModuleSyntaxIsEnabledBut0OnlyRefersToAType
+                                    : DiagnosticCode.AnExportDefaultMustReferenceAValueWhenVerbatimModuleSyntaxIsEnabledBut0OnlyRefersToAType,
+                                identifier.Text);
                         else if (typeOnly is not null)
-                            Error(identifier, node.IsExportEquals ? 1283 : 1285, identifier.Text);
+                            Error(
+                                identifier,
+                                node.IsExportEquals
+                                    ? DiagnosticCode.AnExportDeclarationMustReferenceARealValueWhenVerbatimModuleSyntaxIsEnabledBut0ResolvesToATypeOnlyDeclaration
+                                    : DiagnosticCode.AnExportDefaultMustReferenceARealValueWhenVerbatimModuleSyntaxIsEnabledBut0ResolvesToATypeOnlyDeclaration,
+                                identifier.Text);
                     }
                     if (IsolatedModules && (symbol.Flags & SymbolFlags.Value) == 0)
                     {
@@ -581,10 +684,19 @@ internal sealed partial class Checker
                             && (nonLocal & SymbolFlags.Type) != 0
                             && (nonLocal & SymbolFlags.Value) == 0
                             && (typeOnly is null || otherFile))
-                            Error(identifier, node.IsExportEquals ? 1291 : 1292, identifier.Text, IsolatedModuleOptionName);
+                            Error(
+                                identifier,
+                                node.IsExportEquals
+                                    ? DiagnosticCode.X0ResolvesToATypeAndMustBeMarkedTypeOnlyInThisFileBeforeReExportingWhen1IsEnabledConsiderUsingImportTypeWhere0IsImported
+                                    : DiagnosticCode.X0ResolvesToATypeAndMustBeMarkedTypeOnlyInThisFileBeforeReExportingWhen1IsEnabledConsiderUsingExportType0AsDefault,
+                                identifier.Text,
+                                IsolatedModuleOptionName);
                         else if (otherFile)
                             Error(identifier, CheckerDiagnostic.Create(identifier,
-                                DiagnosticLocalization.GetMessage(node.IsExportEquals ? 1289 : 1290),
+                                DiagnosticLocalization.GetMessage(
+                                    node.IsExportEquals
+                                        ? DiagnosticCode.X0ResolvesToATypeOnlyDeclarationAndMustBeMarkedTypeOnlyInThisFileBeforeReExportingWhen1IsEnabledConsiderUsingImportTypeWhere0IsImported
+                                        : DiagnosticCode.X0ResolvesToATypeOnlyDeclarationAndMustBeMarkedTypeOnlyInThisFileBeforeReExportingWhen1IsEnabledConsiderUsingExportType0AsDefault),
                                 identifier.Text,
                                 IsolatedModuleOptionName) with
                             {
@@ -609,7 +721,7 @@ internal sealed partial class Checker
                 node.Expression!,
                 cancellation).ConfigureAwait(false);
         if ((node.Flags & NodeFlags.Ambient) != 0 && !TypeScript.Compiler.Semantics.ConstantEvaluator.EntityName(node.Expression!))
-            Error(node.Expression!, 2714);
+            Error(node.Expression!, DiagnosticCode.TheExpressionOfAnExportAssignmentMustBeAnIdentifierOrQualifiedNameInAnAmbientContext);
         bool ambient = (node.Flags & NodeFlags.Ambient) != 0;
         var format = ModuleTargetMode(SemanticSyntax.Source(node)!);
         if (node.IsExportEquals
@@ -617,10 +729,12 @@ internal sealed partial class Checker
             && ModuleKind >= 5
             && ModuleKind != 200
             && (ambient ? format == ReferenceResolutionMode.Import : format != ReferenceResolutionMode.Require))
-            Error(node, 1203);
+            Error(
+                node,
+                DiagnosticCode.ExportAssignmentCannotBeUsedWhenTargetingECMAScriptModulesConsiderUsingExportDefaultOrAnotherModuleFormatInstead);
         else if (node.IsExportEquals && ModuleKind == 4 && (node.Flags & NodeFlags.Ambient) == 0
             && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
-            Error(node, 1218);
+            Error(node, DiagnosticCode.ExportAssignmentIsNotSupportedWhenModuleFlagIsSystem);
     }
 
     private async ValueTask CheckExternalExportsAsync(SyntaxNode node, CancellationToken cancellation)
@@ -655,7 +769,7 @@ internal sealed partial class Checker
             }
             if (value && (AliasResolver.Declaration(assignment) ?? assignment.ValueDeclaration) is { } declaration
                 && !(declaration.Parent is ModuleBlockNode { Parent: { } module } && ModuleAugmentation(module)))
-                Error(declaration, 2309);
+                Error(declaration, DiagnosticCode.AnExportAssignmentCannotBeUsedInAModuleWithOtherExportedElements);
         }
         foreach (var (name, exported) in await program.ModuleExports.ResolveAsync(symbol, cancellation).ConfigureAwait(false))
         {
@@ -670,7 +784,7 @@ internal sealed partial class Checker
                 continue;
             if (count > 1 && !exported.Declarations.All(d => d is BinaryExpressionNode binary && ExportsPropertyAssignment(binary.Left!)))
                 foreach (var declaration in exported.Declarations.Where(NotOverload))
-                    Error(declaration, 2323, TypeDisplay.SymbolName(exported));
+                    Error(declaration, DiagnosticCode.CannotRedeclareExportedVariable0, TypeDisplay.SymbolName(exported));
         }
         cancellation.ThrowIfCancellationRequested();
         checkedModuleExports.Add(symbol);

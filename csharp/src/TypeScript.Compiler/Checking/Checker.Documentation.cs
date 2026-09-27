@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -15,7 +16,7 @@ internal sealed partial class Checker
                 await Nodes.FromNodeAsync(annotation, cancellation).ConfigureAwait(false),
                 node,
                 cancellation).ConfigureAwait(false) is null)
-            Error(annotation, 8030);
+            Error(annotation, DiagnosticCode.AJSDocTypeTagOnAFunctionMustHaveASignatureWithTheCorrectNumberOfArguments);
     }
 
     private async ValueTask<Type?> DocumentationTypeReferenceAsync(SyntaxNode node, CancellationToken cancellation)
@@ -38,7 +39,7 @@ internal sealed partial class Checker
         if (result is not null)
         {
             if (arguments is { Count: > 0 })
-                Error(node, 2315, name.Text);
+                Error(node, DiagnosticCode.Type0IsNotGeneric, name.Text);
             return result;
         }
         if (name.Text == "Object")
@@ -59,7 +60,7 @@ internal sealed partial class Checker
             if (!NoImplicitAny)
             {
                 if (arguments is { Count: > 0 })
-                    Error(node, 2315, name.Text);
+                    Error(node, DiagnosticCode.Type0IsNotGeneric, name.Text);
                 return context.AnyType;
             }
         }
@@ -114,7 +115,10 @@ internal sealed partial class Checker
             var type = await Nodes.FromNodeAsync(annotation, cancellation).ConfigureAwait(false);
             if (type is TypeReference reference && (reference.Target == ArrayTarget(false) || reference.Target == ArrayTarget(true)))
                 return;
-            Error(name, 8029, CheckerDiagnostic.DeclarationName(name));
+            Error(
+                name,
+                DiagnosticCode.JSDocParamTagHasName0ButThereIsNoParameterWithThatNameItWouldMatchArgumentsIfItHadAnArrayType,
+                CheckerDiagnostic.DeclarationName(name));
         }
         else
             for (int i = 0; i < documented.Length; i++)
@@ -127,16 +131,19 @@ internal sealed partial class Checker
                     if (javaScript)
                         Error(
                             tag.Name,
-                            8032,
+                            DiagnosticCode.QualifiedName0IsNotAllowedWithoutALeadingParamObject1,
                             CheckerDiagnostic.DeclarationName(tag.Name),
                             CheckerDiagnostic.DeclarationName(qualified.Left!));
                 }
                 else if (!tag.IsNameFirst)
                 {
                     if (javaScript)
-                        Error(tag.Name!, 8024, CheckerDiagnostic.DeclarationName(tag.Name!));
+                        Error(
+                            tag.Name!,
+                            DiagnosticCode.JSDocParamTagHasName0ButThereIsNoParameterWithThatName,
+                            CheckerDiagnostic.DeclarationName(tag.Name!));
                     else
-                        ExpressionSuggestion(tag.Name!, 8024);
+                        ExpressionSuggestion(tag.Name!, DiagnosticCode.JSDocParamTagHasName0ButThereIsNoParameterWithThatName);
                 }
             }
     }

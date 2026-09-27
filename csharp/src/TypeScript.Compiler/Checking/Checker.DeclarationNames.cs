@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -21,7 +22,7 @@ internal sealed partial class Checker
             return;
         bool ambient = (node.Flags & NodeFlags.Ambient) != 0;
         if (SemanticSyntax.ClassLike(node) && name.Text == "Object" && !ambient && EmitModuleKind(node) < 5)
-            Error(name, 2725, ModuleKind switch
+            Error(name, DiagnosticCode.ClassNameCannotBeObjectWhenTargetingES5AndAboveWithModule0, ModuleKind switch
             {
                 0 => "None",
                 1 => "CommonJS",
@@ -53,10 +54,10 @@ internal sealed partial class Checker
             int module = EmitModuleKind(node);
             if (name.Text is "require" or "exports" && module < 5
                 || name.Text == "Object" && !SemanticSyntax.ClassLike(node) && module == 1)
-                Error(name, 2441, name.Text, name.Text);
+                Error(name, DiagnosticCode.DuplicateIdentifier0CompilerReservesName1InTopLevelScopeOfAModule, name.Text, name.Text);
             if (name.Text == "Promise" && TargetYear < 2017
                 && file.DescendantsAndSelf().Any(n => SemanticSyntax.HasModifier(n, SyntaxKind.AsyncKeyword)))
-                Error(name, 2529);
+                Error(name, DiagnosticCode.DuplicateIdentifier0CompilerReservesName1InTopLevelScopeOfAModuleContainingAsyncFunctions);
         }
         if (TargetYear <= 2021 && name.Text is "WeakMap" or "WeakSet" or "Reflect")
             deferredNameCollisions.Add(node);
@@ -82,7 +83,7 @@ internal sealed partial class Checker
             if (name is "WeakMap" or "WeakSet")
             {
                 if (scope is not null && (links.Nodes.Get(scope).Flags & NodeCheckFlags.ContainsClassWithPrivateIdentifiers) != 0)
-                    Error(node, 18027, name);
+                    Error(node, DiagnosticCode.CompilerReservesName0WhenEmittingPrivateIdentifierDownlevel, name);
             }
             else
             {
@@ -94,7 +95,11 @@ internal sealed partial class Checker
                             ? node
                             : scope ?? node).Flags & NodeCheckFlags.ContainsSuperPropertyInStaticInitializer) != 0;
                 if (collision)
-                    Error(node, 2818, name, "Reflect");
+                    Error(
+                        node,
+                        DiagnosticCode.DuplicateIdentifier0CompilerReservesName1WhenEmittingSuperReferencesInStaticInitializers,
+                        name,
+                        "Reflect");
             }
         }
     }

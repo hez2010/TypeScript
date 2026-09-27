@@ -1,4 +1,5 @@
 using TypeScript.Compiler.Ast;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -13,7 +14,13 @@ internal interface IIterationElementHost
 
     ValueTask<Type?> NumberIndexAsync(Type type, CancellationToken cancellation);
 
-    ValueTask IterationErrorAsync(SyntaxNode node, int code, bool missingAwait, Type type, Type? other, CancellationToken cancellation,
+    ValueTask IterationErrorAsync(
+        SyntaxNode node,
+        DiagnosticCode code,
+        bool missingAwait,
+        Type type,
+        Type? other,
+        CancellationToken cancellation,
         IReadOnlyList<IterationDiagnostic>? related = null);
 }
 
@@ -63,9 +70,13 @@ internal sealed class IterationElements(TypeContext context, TypeAlgebra algebra
             var types = await protocols.IterableAsync(input, use, iterable ? node : null, cancellation).ConfigureAwait(false);
             if (checkAssignability && types.Next is { } next)
             {
-                int code = (use & IterationUse.ForOfFlag) != 0 ? 2763 : (use & IterationUse.SpreadFlag) != 0 ? 2764
-                    : (use & IterationUse.DestructuringFlag) != 0 ? 2765 : (use & IterationUse.YieldStarFlag) != 0 ? 2766 : 0;
-                if (code != 0
+                DiagnosticCode code = (use & IterationUse.ForOfFlag) != 0 ? DiagnosticCode.CannotIterateValueBecauseTheNextMethodOfItsIteratorExpectsType1ButForOfWillAlwaysSend0 : (use & IterationUse.SpreadFlag) != 0 ? DiagnosticCode.CannotIterateValueBecauseTheNextMethodOfItsIteratorExpectsType1ButArraySpreadWillAlwaysSend0
+                    : (use & IterationUse.DestructuringFlag) != 0
+                        ? DiagnosticCode.CannotIterateValueBecauseTheNextMethodOfItsIteratorExpectsType1ButArrayDestructuringWillAlwaysSend0
+                        : (use & IterationUse.YieldStarFlag) != 0
+                            ? DiagnosticCode.CannotDelegateIterationToValueBecauseTheNextMethodOfItsIteratorExpectsType1ButTheContainingGeneratorWillAlwaysSend0
+                            : DiagnosticCode.None;
+                if (code != DiagnosticCode.None
                     && !await relations.RelatedAsync(sent, next, RelationKind.Assignable, cancellation).ConfigureAwait(false)
                     && node is not null)
                     await host.IterationErrorAsync(node, code, false, sent, next, cancellation).ConfigureAwait(false);
@@ -98,9 +109,11 @@ internal sealed class IterationElements(TypeContext context, TypeAlgebra algebra
                 var types = await protocols.IterableAsync(input, use, cancellation: cancellation).ConfigureAwait(false);
                 bool named = input.Symbol?.Name is "Float32Array" or "Float64Array" or "Int16Array" or "Int32Array" or "Int8Array"
                     or "NodeList" or "Uint16Array" or "Uint32Array" or "Uint8Array" or "Uint8ClampedArray";
-                int code = types.Yield is not null || named
-                    ? 2802
-                    : (use & IterationUse.AllowsStringInputFlag) != 0 && !hasString ? 2495 : 2461;
+                DiagnosticCode code = types.Yield is not null || named
+                    ? DiagnosticCode.Type0CanOnlyBeIteratedThroughWhenUsingTheDownlevelIterationFlagOrWithATargetOfEs2015OrHigher
+                    : (use & IterationUse.AllowsStringInputFlag) != 0 && !hasString
+                        ? DiagnosticCode.Type0IsNotAnArrayTypeOrAStringType
+                        : DiagnosticCode.Type0IsNotAnArrayType;
                 bool hint = types.Yield is null
                     && await awaited.OfPromiseAsync(array, cancellation: cancellation).ConfigureAwait(false) is not null;
                 await host.IterationErrorAsync(node, code, hint, array, null, cancellation).ConfigureAwait(false);
@@ -138,6 +151,15 @@ internal sealed class IterationElements(TypeContext context, TypeAlgebra algebra
                     context.CreateTypeReference((InterfaceType)target, [context.AnyType, context.AnyType, context.AnyType]),
                     RelationKind.Assignable, cancellation).ConfigureAwait(false);
         }
-        await host.IterationErrorAsync(node, async ? 2504 : 2488, hint, type, null, cancellation, related).ConfigureAwait(false);
+        await host.IterationErrorAsync(
+            node,
+            async
+                ? DiagnosticCode.Type0MustHaveASymbolAsyncIteratorMethodThatReturnsAnAsyncIterator
+                : DiagnosticCode.Type0MustHaveASymbolIteratorMethodThatReturnsAnIterator,
+            hint,
+            type,
+            null,
+            cancellation,
+            related).ConfigureAwait(false);
     }
 }

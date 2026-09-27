@@ -40,12 +40,16 @@ internal sealed partial class Checker
             {
                 if (node is ParameterDeclarationNode { Name: IdentifierNode { Text: "this" } })
                 {
-                    Error(node, 1433);
+                    Error(node, DiagnosticCode.NeitherDecoratorsNorModifiersMayBeAppliedToThisParameters);
                     return true;
                 }
                 if (!CanDecorate(node))
                 {
-                    ErrorOnFirstToken(node, node is MethodDeclarationNode && SemanticSyntax.Body(node) is null ? 1249 : 1206);
+                    ErrorOnFirstToken(
+                        node,
+                        node is MethodDeclarationNode && SemanticSyntax.Body(node) is null
+                            ? DiagnosticCode.ADecoratorCanOnlyDecorateAMethodImplementationNotAnOverload
+                            : DiagnosticCode.DecoratorsAreNotValidHere);
                     return true;
                 }
                 if (LegacyDecorators && node is GetAccessorDeclarationNode or SetAccessorDeclarationNode)
@@ -54,13 +58,13 @@ internal sealed partial class Checker
                         n => n is GetAccessorDeclarationNode or SetAccessorDeclarationNode).ToArray();
                     if (accessors.Length > 1 && node == accessors[1] && HasDecorators(accessors[0]))
                     {
-                        ErrorOnFirstToken(node, 1207);
+                        ErrorOnFirstToken(node, DiagnosticCode.DecoratorsCannotBeAppliedToMultipleGetSlashsetAccessorsOfTheSameName);
                         return true;
                     }
                 }
                 if (otherModifier)
                 {
-                    Error(modifier, 1206);
+                    Error(modifier, DiagnosticCode.DecoratorsAreNotValidHere);
                     return true;
                 }
                 if (leading && seenModifier)
@@ -85,7 +89,7 @@ internal sealed partial class Checker
             {
                 if (modifier.Kind == SyntaxKind.DefaultKeyword && exportBeforeDecorator)
                 {
-                    Error(afterExport!, 1206);
+                    Error(afterExport!, DiagnosticCode.DecoratorsAreNotValidHere);
                     return true;
                 }
                 seenModifier = true;
@@ -134,7 +138,10 @@ internal sealed partial class Checker
                 continue;
             if (await DecoratorSignatureAsync(decorator, cancellation) is { ResolvedReturnType: { } target })
                 await RelationDiagnostics.CheckAsync(result, target, RelationKind.Assignable, decorator.Expression!, null,
-                    node is ParameterDeclarationNode || LegacyDecorators && node is PropertyDeclarationNode ? 1271 : 1270, cancellation);
+                    node is ParameterDeclarationNode || LegacyDecorators && node is PropertyDeclarationNode
+                        ? DiagnosticCode.DecoratorFunctionReturnTypeIs0ButIsExpectedToBeVoidOrAny
+                        : DiagnosticCode.DecoratorFunctionReturnType0IsNotAssignableToType1,
+                    cancellation);
         }
     }
 
@@ -199,12 +206,12 @@ internal sealed partial class Checker
         };
     }
 
-    private static int DecoratorHead(DecoratorNode decorator) => decorator.Parent switch
+    private static DiagnosticCode DecoratorHead(DecoratorNode decorator) => decorator.Parent switch
     {
-        ClassDeclarationNode or ClassExpressionNode => 1238,
-        ParameterDeclarationNode => 1239,
-        PropertyDeclarationNode => 1240,
-        _ => 1241
+        ClassDeclarationNode or ClassExpressionNode => DiagnosticCode.UnableToResolveSignatureOfClassDecoratorWhenCalledAsAnExpression,
+        ParameterDeclarationNode => DiagnosticCode.UnableToResolveSignatureOfParameterDecoratorWhenCalledAsAnExpression,
+        PropertyDeclarationNode => DiagnosticCode.UnableToResolveSignatureOfPropertyDecoratorWhenCalledAsAnExpression,
+        _ => DiagnosticCode.UnableToResolveSignatureOfMethodDecoratorWhenCalledAsAnExpression
     };
 
     private async ValueTask<Signature> ResolveDecoratorAsync(
@@ -235,7 +242,10 @@ internal sealed partial class Checker
             }
         if (uncalled && decorator.Expression is not ParenthesizedExpressionNode)
         {
-            Error(decorator, 1329, CheckerDiagnostic.DeclarationName(decorator.Expression!));
+            Error(
+                decorator,
+                DiagnosticCode.X0AcceptsTooFewArgumentsToBeUsedAsADecoratorHereDidYouMeanToCallItFirstAndWrite0,
+                CheckerDiagnostic.DeclarationName(decorator.Expression!));
             return await CallResolution.UntypedAsync(decorator, true, cancellation);
         }
         if (calls.Count == 0)

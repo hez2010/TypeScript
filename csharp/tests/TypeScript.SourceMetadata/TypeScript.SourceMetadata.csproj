@@ -10,6 +10,7 @@
     <Compile Include="../../src/TypeScript.Compiler/Hosts/CompilerPath.cs" Link="Hosts/CompilerPath.cs" />
     <Compile Include="../../src/TypeScript.Compiler/Semantics/JsNumber.cs" Link="Semantics/JsNumber.cs" />
     <Compile Include="../../src/TypeScript.Compiler/Diagnostics/Diagnostic.cs" Link="Diagnostics/Diagnostic.cs" />
+    <Compile Include="../../src/TypeScript.Compiler/Diagnostics/DiagnosticCode.generated.cs" Link="Diagnostics/DiagnosticCode.generated.cs" />
     <Compile Include="../../src/TypeScript.Compiler/Diagnostics/Messages.generated.cs" Link="Diagnostics/Messages.generated.cs" />
   </ItemGroup>
 </Project>

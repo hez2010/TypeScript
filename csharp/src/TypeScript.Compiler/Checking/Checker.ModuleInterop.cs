@@ -134,7 +134,12 @@ internal sealed partial class Checker
             if (node is ImportClauseNode clause)
             {
                 bool named = module.Exports.ContainsKey(clause.Name!.Text);
-                var diagnostic = CheckerDiagnostic.Create(clause.Name!, DiagnosticLocalization.GetMessage(named ? 2613 : 1192),
+                var diagnostic = CheckerDiagnostic.Create(
+                    clause.Name!,
+                    DiagnosticLocalization.GetMessage(
+                        named
+                            ? DiagnosticCode.Module0HasNoDefaultExportDidYouMeanToUseImport1From0Instead
+                            : DiagnosticCode.Module0HasNoDefaultExport),
                     named ? [TypeDisplay.SymbolName(module), clause.Name.Text] : [TypeDisplay.SymbolName(module)]);
                 if (!named && module.Exports.TryGetValue(Symbol.InternalPrefix + "export", out var stars))
                     foreach (var export in stars.Declarations.OfType<ExportDeclarationNode>())

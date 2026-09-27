@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Semantics;
 using TypeScript.Compiler.Syntax;
 
@@ -14,7 +15,7 @@ internal interface IEnumValueHost
 
     ValueTask CheckComputedEnumAsync(EnumMemberNode member, CancellationToken cancellation);
 
-    void EnumError(SyntaxNode node, int code);
+    void EnumError(SyntaxNode node, DiagnosticCode code);
 }
 
 internal sealed class EnumValues
@@ -80,14 +81,14 @@ internal sealed class EnumValues
         cancellation.ThrowIfCancellationRequested();
         var declaration = (EnumDeclarationNode)member.Parent!;
         if (DynamicName(member.Name!))
-            host.EnumError(member.Name!, 1164);
+            host.EnumError(member.Name!, DiagnosticCode.ComputedPropertyNamesAreNotAllowedInEnums);
         else if (member.Name is BigIntLiteralNode)
-            host.EnumError(member.Name, 2452);
+            host.EnumError(member.Name, DiagnosticCode.AnEnumMemberCannotHaveANumericName);
         else
         {
             string text = NameText(member.Name!);
             if (IndexSignatures.NumericName(text) && text is not ("Infinity" or "-Infinity" or "NaN"))
-                host.EnumError(member.Name!, 2452);
+                host.EnumError(member.Name!, DiagnosticCode.AnEnumMemberCannotHaveANumericName);
         }
         bool constant = SemanticSyntax.HasModifier(declaration, SyntaxKind.ConstKeyword);
         if (member.Initializer is { } initializer)
@@ -96,14 +97,20 @@ internal sealed class EnumValues
             if (result.Value is not null)
             {
                 if (constant && result.Value is double number && !double.IsFinite(number))
-                    host.EnumError(initializer, double.IsNaN(number) ? 2478 : 2477);
+                    host.EnumError(
+                        initializer,
+                        double.IsNaN(number)
+                            ? DiagnosticCode.XConstEnumMemberInitializerWasEvaluatedToDisallowedValueNaN
+                            : DiagnosticCode.XConstEnumMemberInitializerWasEvaluatedToANonFiniteValue);
                 if (host.IsolatedModules && result.Value is string && !result.IsSyntacticallyString)
-                    host.EnumError(initializer, 18055);
+                    host.EnumError(
+                        initializer,
+                        DiagnosticCode.X0HasAStringTypeButMustHaveSyntacticallyRecognizableStringSyntaxWhenIsolatedModulesIsEnabled);
             }
             else if (constant)
-                host.EnumError(initializer, 2474);
+                host.EnumError(initializer, DiagnosticCode.XConstEnumMemberInitializersMustBeConstantExpressions);
             else if ((declaration.Flags & NodeFlags.Ambient) != 0)
-                host.EnumError(initializer, 1066);
+                host.EnumError(initializer, DiagnosticCode.InAmbientEnumDeclarationsMemberInitializerMustBeConstantExpression);
             else
                 await host.CheckComputedEnumAsync(member, cancellation).ConfigureAwait(false);
             return result;
@@ -112,14 +119,16 @@ internal sealed class EnumValues
             return default;
         if (automatic is null)
         {
-            host.EnumError(member.Name!, 1061);
+            host.EnumError(member.Name!, DiagnosticCode.EnumMemberMustHaveInitializer);
             return default;
         }
         if (host.IsolatedModules && previous?.Initializer is not null)
         {
             var result = await GetAsync(previous, cancellation).ConfigureAwait(false);
             if (result.Value is not double || result.ResolvedOtherFiles)
-                host.EnumError(member.Name!, 18056);
+                host.EnumError(
+                    member.Name!,
+                    DiagnosticCode.EnumMemberFollowingANonLiteralNumericMemberMustHaveAnInitializerWhenIsolatedModulesIsEnabled);
         }
         return new(automatic.Value);
     }
@@ -174,12 +183,14 @@ internal sealed class EnumValues
         var declaration = symbol.ValueDeclaration as EnumMemberNode;
         if (declaration is null || declaration == location)
         {
-            host.EnumError(expression, 2565);
+            host.EnumError(expression, DiagnosticCode.Property0IsUsedBeforeBeingAssigned);
             return default;
         }
         if (!await host.DeclaredBeforeUseAsync(declaration, location, cancellation).ConfigureAwait(false))
         {
-            host.EnumError(expression, 2651);
+            host.EnumError(
+                expression,
+                DiagnosticCode.AMemberInitializerInAEnumDeclarationCannotReferenceMembersDeclaredAfterItIncludingMembersDefinedInOtherEnums);
             return new(0d);
         }
         var value = await GetAsync(declaration, cancellation).ConfigureAwait(false);

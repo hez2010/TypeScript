@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -49,13 +50,16 @@ internal sealed class SignatureAssignability(TypeContext context, SignatureParam
         {
             if ((sources[0].Flags & SignatureFlags.Abstract) != 0 && (targets[0].Flags & SignatureFlags.Abstract) == 0)
             {
-                operation.Explain(2517);
+                operation.Explain(DiagnosticCode.CannotAssignAnAbstractConstructorTypeToANonAbstractConstructorType);
                 return Ternary.False;
             }
             if (!Visible(sources[0], targets[0]))
             {
                 if (operation.ReportErrors)
-                    operation.ExplainArguments(2672, Visibility(sources[0]), Visibility(targets[0]));
+                    operation.ExplainArguments(
+                        DiagnosticCode.CannotAssignA0ConstructorTypeToA1ConstructorType,
+                        Visibility(sources[0]),
+                        Visibility(targets[0]));
                 return Ternary.False;
             }
         }
@@ -113,7 +117,7 @@ internal sealed class SignatureAssignability(TypeContext context, SignatureParam
             if (related == Ternary.False)
             {
                 if (first && operation.ReportErrors)
-                    operation.ExplainArguments(2658, source, targetSignature);
+                    operation.ExplainArguments(DiagnosticCode.Type0ProvidesNoMatchForTheSignature1, source, targetSignature);
                 return related;
             }
             result &= related;
@@ -187,7 +191,7 @@ internal sealed class SignatureAssignability(TypeContext context, SignatureParam
         {
             if (operation.ReportErrors && (mode & SignatureCheckMode.StrictArity) == 0)
                 operation.ExplainArguments(
-                    2849,
+                    DiagnosticCode.TargetSignatureProvidesTooFewArgumentsExpected0OrMoreButGot1,
                     await parameters.MinimumAsync(source, cancellation: cancellation).ConfigureAwait(false),
                     targetCount);
             return Ternary.False;
@@ -224,7 +228,7 @@ internal sealed class SignatureAssignability(TypeContext context, SignatureParam
                     cancellation: cancellation).ConfigureAwait(false);
             if (related == Ternary.False)
             {
-                operation.Explain(2685);
+                operation.Explain(DiagnosticCode.TheThisTypesOfEachSignatureAreIncompatible);
                 return related;
             }
             result &= related;
@@ -293,7 +297,9 @@ internal sealed class SignatureAssignability(TypeContext context, SignatureParam
             if (related == Ternary.False)
             {
                 if (operation.ReportErrors)
-                    operation.ExplainArguments(2328, await parameters.NameAsync(source, i, cancellation).ConfigureAwait(false),
+                    operation.ExplainArguments(
+                        DiagnosticCode.TypesOfParameters0And1AreIncompatible,
+                        await parameters.NameAsync(source, i, cancellation).ConfigureAwait(false),
                         await parameters.NameAsync(target, i, cancellation).ConfigureAwait(false));
                 return related;
             }
@@ -313,9 +319,9 @@ internal sealed class SignatureAssignability(TypeContext context, SignatureParam
             {
                 if (sourcePredicate.Kind != targetPredicate.Kind)
                 {
-                    operation.Explain(2518);
+                    operation.Explain(DiagnosticCode.AThisBasedTypeGuardIsNotCompatibleWithAParameterBasedTypeGuard);
                     if (operation.ReportErrors)
-                        operation.ExplainArguments(1226, sourcePredicate, targetPredicate);
+                        operation.ExplainArguments(DiagnosticCode.TypePredicate0IsNotAssignableTo1, sourcePredicate, targetPredicate);
                     return Ternary.False;
                 }
                 if (sourcePredicate.Kind is TypePredicateKind.Identifier or TypePredicateKind.AssertsIdentifier
@@ -323,8 +329,11 @@ internal sealed class SignatureAssignability(TypeContext context, SignatureParam
                 {
                     if (operation.ReportErrors)
                     {
-                        operation.ExplainArguments(1227, sourcePredicate.ParameterName, targetPredicate.ParameterName);
-                        operation.ExplainArguments(1226, sourcePredicate, targetPredicate);
+                        operation.ExplainArguments(
+                            DiagnosticCode.Parameter0IsNotInTheSamePositionAsParameter1,
+                            sourcePredicate.ParameterName,
+                            targetPredicate.ParameterName);
+                        operation.ExplainArguments(DiagnosticCode.TypePredicate0IsNotAssignableTo1, sourcePredicate, targetPredicate);
                     }
                     return Ternary.False;
                 }
@@ -337,13 +346,13 @@ internal sealed class SignatureAssignability(TypeContext context, SignatureParam
                             cancellation: cancellation).ConfigureAwait(false)
                         : Ternary.False;
                 if (related == Ternary.False && operation.ReportErrors)
-                    operation.ExplainArguments(1226, sourcePredicate, targetPredicate);
+                    operation.ExplainArguments(DiagnosticCode.TypePredicate0IsNotAssignableTo1, sourcePredicate, targetPredicate);
                 result &= related;
             }
             else if (targetPredicate.Kind is TypePredicateKind.Identifier or TypePredicateKind.This)
             {
                 if (operation.ReportErrors)
-                    operation.ExplainArguments(1224, source);
+                    operation.ExplainArguments(DiagnosticCode.Signature0MustBeATypePredicate, source);
                 return Ternary.False;
             }
         }
@@ -367,7 +376,13 @@ internal sealed class SignatureAssignability(TypeContext context, SignatureParam
             {
                 bool construct = (source.Flags & SignatureFlags.Construct) != 0;
                 operation.Explain(source.Parameters.Count == 0 && target.Parameters.Count == 0
-                    ? construct ? 2205 : 2204 : construct ? 2203 : 2202, sourceReturn, targetReturn);
+                    ? construct
+                        ? DiagnosticCode.ConstructSignaturesWithNoArgumentsHaveIncompatibleReturnTypes0And1
+                        : DiagnosticCode.CallSignaturesWithNoArgumentsHaveIncompatibleReturnTypes0And1 : construct
+                            ? DiagnosticCode.ConstructSignatureReturnTypes0And1AreIncompatible
+                            : DiagnosticCode.CallSignatureReturnTypes0And1AreIncompatible,
+                    sourceReturn,
+                    targetReturn);
             }
         }
         return result;

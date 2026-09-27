@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -16,7 +17,7 @@ internal interface ICallExpressionHost
 
     ValueTask CheckAssertionCallAsync(CallExpressionNode node, CancellationToken cancellation);
 
-    void ExpressionError(SyntaxNode node, int code);
+    void ExpressionError(SyntaxNode node, DiagnosticCode code);
 }
 
 internal sealed class CallExpressions(TypeContext context, CallResolution resolution, CallSignatures rules, Signatures signatures,
@@ -35,7 +36,7 @@ internal sealed class CallExpressions(TypeContext context, CallResolution resolu
             && declaration is not ConstructorDeclarationNode and not ConstructSignatureDeclarationNode and not ConstructorTypeNode)
         {
             if (host.NoImplicitAny)
-                host.ExpressionError(node, 7009);
+                host.ExpressionError(node, DiagnosticCode.XNewExpressionWhoseTargetLacksAConstructSignatureImplicitlyHasAnAnyType);
             return context.AnyType;
         }
         var result = await signatures.ReturnAsync(signature, cancellation).ConfigureAwait(false);

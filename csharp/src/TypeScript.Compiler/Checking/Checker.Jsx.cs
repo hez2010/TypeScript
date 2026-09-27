@@ -19,10 +19,10 @@ internal sealed partial class Checker
                     return context.ErrorType;
                 if (expression.Expression is BinaryExpressionNode { OperatorToken.Kind: SyntaxKind.CommaToken }
                     && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
-                    Error(expression.Expression, 18007);
+                    Error(expression.Expression, DiagnosticCode.JSXExpressionsMayNotUseTheCommaOperatorDidYouMeanToWriteAnArray);
                 var type = await Expressions.CheckAsync(expression.Expression, mode, cancellation);
                 if (expression.DotDotDotToken is not null && type != context.AnyType && !IsArray(type))
-                    Error(node, 2609);
+                    Error(node, DiagnosticCode.JSXSpreadChildMustBeAnArrayType);
                 return type;
             case JsxAttributesNode:
                 DeferExpression(node);
@@ -33,7 +33,11 @@ internal sealed partial class Checker
                 var options = program.Symbols.Program.Configuration.Options;
                 if (JsxMode is 2 or 4 or 5 && (options.String("jsxFactory") is not null || JsxPragma(file, "jsx") is not null)
                     && options.String("jsxFragmentFactory") is null && JsxPragma(file, "jsxfrag") is null)
-                    Error(node, options.String("jsxFactory") is not null ? 17016 : 17017);
+                    Error(
+                        node,
+                        options.String("jsxFactory") is not null
+                            ? DiagnosticCode.TheJsxFragmentFactoryCompilerOptionMustBeProvidedToUseJSXFragmentsWithTheJsxFactoryCompilerOption
+                            : DiagnosticCode.AnJsxFragPragmaIsRequiredWhenUsingAnJsxPragmaWithJSXFragments);
                 await JsxChildrenAsync(node, 0, cancellation);
                 var elementType = await JsxTypeAsync("Element", node, cancellation);
                 return elementType == context.ErrorType ? context.AnyType : elementType;
@@ -63,7 +67,7 @@ internal sealed partial class Checker
         if (node is not JsxOpeningFragmentNode)
             JsxGrammar(node);
         if (JsxMode == 0)
-            Error(node, 17004);
+            Error(node, DiagnosticCode.CannotUseJSXUnlessTheJsxFlagIsProvided);
         await MarkJsxFactoryAsync(node, cancellation);
         var signature = await CallResolution.GetAsync(node, cancellation: cancellation);
         DeprecatedSignature(node, signature);
@@ -74,7 +78,7 @@ internal sealed partial class Checker
             && program.Symbols.Lookup(ns.Exports, "ElementType", SymbolFlags.Type) is { } elementSymbol)
             constraint = await JsxInstantiateAsync(elementSymbol, [], node, cancellation);
         Type checkedType;
-        int relationCode = 18053;
+        DiagnosticCode relationCode = DiagnosticCode.ItsType0IsNotAValidJSXElementType;
         if (constraint is not null && constraint != context.ErrorType)
             checkedType = IntrinsicJsx(JsxTag(node))
                 ? context.GetStringLiteralType(JsxName(JsxTag(node)!))
@@ -83,7 +87,9 @@ internal sealed partial class Checker
         {
             checkedType = await Signatures.ReturnAsync(signature, cancellation);
             int kind = await JsxReferenceKindAsync(node, cancellation);
-            relationCode = kind == 0 ? 2788 : kind == 1 ? 2787 : 2789;
+            relationCode = kind == 0
+                ? DiagnosticCode.ItsInstanceType0IsNotAValidJSXElement
+                : kind == 1 ? DiagnosticCode.ItsReturnType0IsNotAValidJSXElement : DiagnosticCode.ItsElementType0IsNotAValidJSXElement;
             var result = await JsxTypeAsync("Element", node, cancellation);
             var instance = await JsxTypeAsync("ElementClass", node, cancellation);
             var function = await Algebra.UnionAsync([result, context.NullType], cancellation: cancellation);
@@ -105,21 +111,21 @@ internal sealed partial class Checker
             return;
         var tag = JsxTag(node)!;
         if (tag is PropertyAccessExpressionNode { Expression: JsxNamespacedNameNode namespaced })
-            Error(namespaced, 2633);
+            Error(namespaced, DiagnosticCode.JSXPropertyAccessExpressionsCannotIncludeJSXNamespaceNames);
         if (tag is JsxNamespacedNameNode name && JsxMode is 2 or 4 or 5 && !IntrinsicJsx(name.Namespace))
-            Error(tag, 2639);
+            Error(tag, DiagnosticCode.ReactComponentsCannotIncludeJSXNamespaceNames);
         InstantiationGrammar(node, CallArguments.TypeNodes(node));
         var seen = new HashSet<string>();
         foreach (var attribute in JsxAttributes(node)!.Properties!.OfType<JsxAttributeNode>())
         {
             if (!seen.Add(JsxName(attribute.Name!)))
             {
-                Error(attribute.Name!, 17001);
+                Error(attribute.Name!, DiagnosticCode.JSXElementsCannotHaveMultipleAttributesWithTheSameName);
                 break;
             }
             if (attribute.Initializer is JsxExpressionNode { Expression: null })
             {
-                Error(attribute.Initializer, 17000);
+                Error(attribute.Initializer, DiagnosticCode.JSXAttributesMustOnlyBeAssignedANonEmptyExpression);
                 break;
             }
         }

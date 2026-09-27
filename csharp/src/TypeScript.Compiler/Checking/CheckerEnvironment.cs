@@ -14,10 +14,10 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
     internal Deprecations Deprecations { get; private set; } = null!;
     internal ReferenceSymbols ReferenceSymbols { get; private set; } = null!;
     internal ValueUseChecks ValueUses { get; private set; } = null!;
-    internal List<int> ValueSuggestions { get; } = [];
-    private readonly HashSet<(SyntaxNode Node, int Code, string Name)> reportedSuggestions = [];
+    internal List<DiagnosticCode> ValueSuggestions { get; } = [];
+    private readonly HashSet<(SyntaxNode Node, DiagnosticCode Code, string Name)> reportedSuggestions = [];
 
-    internal void Suggestion(SyntaxNode node, int code, string name)
+    internal void Suggestion(SyntaxNode node, DiagnosticCode code, string name)
     {
         if (reportedSuggestions.Add((node, code, name)))
             ValueSuggestions.Add(code);
@@ -33,8 +33,8 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
     internal ModuleTypes ModuleTypes { get; private set; } = null!;
     internal ModuleExports ModuleExports { get; private set; } = null!;
     internal Checker? SemanticChecker { get; set; }
-    private readonly HashSet<(SyntaxNode? Node, int Code, string Arguments)> reported = [];
-    internal List<int> Diagnostics { get; } = [];
+    private readonly HashSet<(SyntaxNode? Node, DiagnosticCode Code, string Arguments)> reported = [];
+    internal List<DiagnosticCode> Diagnostics { get; } = [];
     internal List<(SyntaxNode? Node, Diagnostic Diagnostic)> DiagnosticFiles { get; } = [];
 
     private void AddDiagnostic(SyntaxNode? node, DiagnosticMessage message, string[] arguments)
@@ -43,7 +43,7 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
         DiagnosticFiles.Add((node, CheckerDiagnostic.Create(node, message, arguments)));
     }
 
-    private void AddDiagnostic(SyntaxNode? node, int code)
+    private void AddDiagnostic(SyntaxNode? node, DiagnosticCode code)
         => AddDiagnostic(node, DiagnosticLocalization.GetMessage(code), []);
 
     internal Action? BeforeGlobalTypes { get; set; }
@@ -162,7 +162,7 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
     {
         if (SemanticChecker is { } checker)
             return checker.ResolveImportModuleAsync(moduleName, moduleName, null, cancellation,
-                missingModuleCode: 2664, reportUnresolved: reportNotFound);
+                missingModuleCode: DiagnosticCode.InvalidModuleNameInAugmentationModule0CannotBeFound, reportUnresolved: reportNotFound);
         var file = Symbols.Binding(moduleName)!.SourceFile;
         var programFile = Symbols.Program.GetFile(file.FileName)!;
         var resolution = programFile.Resolutions.FirstOrDefault(r => r.Node == moduleName)?.Resolution;
@@ -249,7 +249,7 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
 
     public void ValueUseSuggestion(SyntaxNode node, DiagnosticMessage message, string name) => Suggestion(node, message.Code, name);
 
-    public void DeclarationRelatedInfo(SyntaxNode? location, int code, SyntaxNode declaration, bool typeOnly, string name)
+    public void DeclarationRelatedInfo(SyntaxNode? location, DiagnosticCode code, SyntaxNode declaration, bool typeOnly, string name)
     {
         var message = !typeOnly ? Messages.X_0_is_declared_here
             : declaration is ExportSpecifierNode or ExportDeclarationNode or NamespaceExportNode

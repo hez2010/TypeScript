@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -29,7 +30,7 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
     public async ValueTask CheckDeprecatedAsync(IdentifierNode node, Symbol symbol, CancellationToken cancellation)
     {
         if (program.Deprecations.Symbol(symbol) && await program.Deprecations.UncalledAsync(node, symbol, FlowReferences, cancellation))
-            program.Suggestion(node, 6385, node.Text);
+            program.Suggestion(node, DiagnosticCode.X0IsDeprecated, node.Text);
     }
 
     public ValueTask<Type> NarrowedSymbolAsync(Symbol symbol, SyntaxNode location, CancellationToken cancellation) =>
@@ -38,14 +39,30 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
     public ValueTask<Type> NarrowableReferenceAsync(Type type, SyntaxNode node, CheckMode mode, CancellationToken cancellation) =>
         ReferenceNarrowing.GetAsync(type, node, mode, cancellation);
 
-    public void IdentifierError(SyntaxNode node, int code, Symbol symbol, Type? type = null)
-        => Error(node, code, code is 2454 or 2628 or 2629 or 2630 or 2631 or 2632 or 2588 or 2540 or 2539 ? [TypeDisplay.SymbolName(symbol)]
-            : code is 7034 or 7005 ? [TypeDisplay.SymbolName(symbol), type == context.AutoType ? "any" : "any[]"] : []);
+    public void IdentifierError(SyntaxNode node, DiagnosticCode code, Symbol symbol, Type? type = null)
+        => Error(
+            node,
+            code,
+            code is DiagnosticCode.Variable0IsUsedBeforeBeingAssigned or DiagnosticCode.CannotAssignTo0BecauseItIsAnEnum
+                or DiagnosticCode.CannotAssignTo0BecauseItIsAClass or DiagnosticCode.CannotAssignTo0BecauseItIsAFunction
+                or DiagnosticCode.CannotAssignTo0BecauseItIsANamespace or DiagnosticCode.CannotAssignTo0BecauseItIsAnImport
+                or DiagnosticCode.CannotAssignTo0BecauseItIsAConstant or DiagnosticCode.CannotAssignTo0BecauseItIsAReadOnlyProperty
+                or DiagnosticCode.CannotAssignTo0BecauseItIsNotAVariable ? [TypeDisplay.SymbolName(symbol)]
+            : code is DiagnosticCode.Variable0ImplicitlyHasType1InSomeLocationsWhereItsTypeCannotBeDetermined
+                or DiagnosticCode.Variable0ImplicitlyHasAn1Type
+                ? [TypeDisplay.SymbolName(symbol), type == context.AutoType ? "any" : "any[]"]
+                : []);
 
     public void CircularInitializer(Symbol symbol) => CircularSymbol(symbol);
 
-    private void MissingNamePrefixError(SyntaxNode node, int code, Symbol? symbol)
-        => Error(node, code, code == 2662 ? [SyntaxNameText.Get(node), TypeDisplay.SymbolName(symbol!)] : [SyntaxNameText.Get(node)]);
+    private void MissingNamePrefixError(SyntaxNode node, DiagnosticCode code, Symbol? symbol)
+        =>
+            Error(
+                node,
+                code,
+                code == DiagnosticCode.CannotFindName0DidYouMeanTheStaticMember10
+                    ? [SyntaxNameText.Get(node), TypeDisplay.SymbolName(symbol!)]
+                    : [SyntaxNameText.Get(node)]);
 
     public ValueTask<Type?> ContextualReferenceAsync(SyntaxNode node, bool skipBindingPatterns, CancellationToken cancellation) =>
         Contexts.GetAsync(node, skipBindingPatterns ? ContextFlags.SkipBindingPatterns : 0, cancellation);
@@ -215,18 +232,20 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
             RelationKind.Assignable,
             errorNode,
             expression,
-            exactOptionalMismatch ? 2412 : null,
+            exactOptionalMismatch
+                ? DiagnosticCode.Type0IsNotAssignableToType1WithExactOptionalPropertyTypesColonTrueConsiderAddingUndefinedToTheTypeOfTheTarget
+                : null,
             cancellation);
     }
 
-    public void AssignmentError(SyntaxNode node, int code) => Error(node, code);
+    public void AssignmentError(SyntaxNode node, DiagnosticCode code) => Error(node, code);
 
     public async ValueTask<bool> ReportRelationAsync(
         Type source,
         Type target,
         RelationKind kind,
         SyntaxNode? node,
-        int? headCode,
+        DiagnosticCode? headCode,
         CancellationToken cancellation)
     {
         bool related = await Relations.RelatedAsync(source, target, kind, cancellation);
@@ -236,14 +255,19 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
             {
                 RelationError(
                     node,
-                    2859,
+                    DiagnosticCode.ExcessiveComplexityComparingTypes0And1,
                     await TypeDisplay.GetAsync(source, cancellation),
                     await TypeDisplay.GetAsync(target, cancellation));
                 return false;
             }
-            if (headCode == 2747 && node is JsxTextNode && node.Parent is JsxElementNode element)
+            if (headCode == DiagnosticCode.X0ComponentsDonTAcceptTextAsChildElementsTextInJSXHasTheTypeStringButTheExpectedTypeOf1Is2
+                && node is JsxTextNode
+                && node.Parent is JsxElementNode element)
             {
-                RelationError(node, 2747, CheckerDiagnostic.DeclarationName(element.OpeningElement!.TagName!),
+                RelationError(
+                    node,
+                    DiagnosticCode.X0ComponentsDonTAcceptTextAsChildElementsTextInJSXHasTheTypeStringButTheExpectedTypeOf1Is2,
+                    CheckerDiagnostic.DeclarationName(element.OpeningElement!.TagName!),
                     await JsxPropertyNameAsync("ElementChildrenAttribute", node, cancellation) ?? "children",
                     await TypeDisplay.GetAsync(target, cancellation));
                 return false;
@@ -261,19 +285,29 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
                     string propertyName = TypeDisplay.SymbolName(excess), targetName = await TypeDisplay.GetAsync(
                         unknown.Target,
                         cancellation);
-                    RelationError(location, suggestion is null ? 2353 : 2561,
+                    RelationError(
+                        location,
+                        suggestion is null
+                            ? DiagnosticCode.ObjectLiteralMayOnlySpecifyKnownPropertiesAnd0DoesNotExistInType1
+                            : DiagnosticCode.ObjectLiteralMayOnlySpecifyKnownPropertiesBut0DoesNotExistInType1DidYouMeanToWrite2,
                         suggestion is null ? [propertyName, targetName] : [propertyName, targetName, suggestion.Name]);
                 }
                 else
-                    RelationError((excess.ValueDeclaration as INamedNode)?.Name ?? node, relationDiagnosticHead ?? 2353);
+                    RelationError(
+                        (excess.ValueDeclaration as INamedNode)?.Name ?? node,
+                        relationDiagnosticHead ?? DiagnosticCode.ObjectLiteralMayOnlySpecifyKnownPropertiesAnd0DoesNotExistInType1);
                 return false;
             }
-            int? missingCode = headCode is not (2420 or 2720 or 2352 or 2787 or 2788 or 2789)
+            DiagnosticCode? missingCode = headCode is not (DiagnosticCode.Class0IncorrectlyImplementsInterface1
+                or DiagnosticCode.Class0IncorrectlyImplementsClass1DidYouMeanToExtend1AndInheritItsMembersAsASubclass
+                or DiagnosticCode.ConversionOfType0ToType1MayBeAMistakeBecauseNeitherTypeSufficientlyOverlapsWithTheOtherIfThisWasIntentionalConvertTheExpressionToUnknownFirst
+                or DiagnosticCode.ItsReturnType0IsNotAValidJSXElement or DiagnosticCode.ItsInstanceType0IsNotAValidJSXElement
+                or DiagnosticCode.ItsElementType0IsNotAValidJSXElement)
                 ? await MissingRequiredPropertyCodeAsync(source, target, kind, node, cancellation) : null;
-            int code = missingCode ?? headCode ?? (context.ExactOptionalPropertyTypes
+            DiagnosticCode code = missingCode ?? headCode ?? (context.ExactOptionalPropertyTypes
                 && (await RelationDiagnostics.ExactOptionalPropertiesAsync(source, target, cancellation)).Count != 0
-                ? 2375
-                : 2322);
+                ? DiagnosticCode.Type0IsNotAssignableToType1WithExactOptionalPropertyTypesColonTrueConsiderAddingUndefinedToTheTypesOfTheTargetSProperties
+                : DiagnosticCode.Type0IsNotAssignableToType1);
             await ReportRelationMessageAsync(node, relationDiagnosticHead ?? code, source, target, kind, cancellation);
         }
         return related;

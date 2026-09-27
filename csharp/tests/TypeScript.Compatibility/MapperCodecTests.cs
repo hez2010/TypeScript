@@ -76,7 +76,7 @@ internal static class MapperCodecTests
                                 writer.WriteNumberValue(d.VirtualEnd);
                                 writer.WriteNumberValue(d.Expect ? 1 : 0);
                                 writer.WriteStringValue(d.Source);
-                                writer.WriteNumberValue(d.UnusedCode);
+                                writer.WriteNumberValue((int)d.UnusedCode);
                                 writer.WriteStringValue(d.UnusedMessage);
                                 writer.WriteEndArray();
                             }
@@ -94,7 +94,7 @@ internal static class MapperCodecTests
                             writer.WriteStartArray();
                             writer.WriteNumberValue(diagnostic.Start);
                             writer.WriteNumberValue(diagnostic.Length);
-                            writer.WriteNumberValue(diagnostic.Code);
+                            writer.WriteNumberValue((int)diagnostic.Code);
                             writer.WriteStringValue(diagnostic.Source);
                             writer.WriteStringValue(diagnostic.Format());
                             writer.WriteEndArray();

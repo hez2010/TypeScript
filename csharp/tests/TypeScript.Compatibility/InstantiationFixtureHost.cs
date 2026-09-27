@@ -1,9 +1,10 @@
-using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Ast;
+using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Checking;
-using Type = TypeScript.Compiler.Checking.Type;
+using TypeScript.Compiler.Diagnostics;
 using F = TypeScript.Compiler.Checking.TypeFlags;
 using O = TypeScript.Compiler.Checking.ObjectFlags;
+using Type = TypeScript.Compiler.Checking.Type;
 
 namespace TypeScript.Compatibility;
 
@@ -83,7 +84,7 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
     internal Dictionary<TypeReferenceNode, Symbol?> ReferenceSymbols { get; } = [];
     internal Dictionary<IdentifierNode, Symbol> ValueSymbols { get; } = [];
     internal Dictionary<SyntaxNode, TypeAlias?> NodeAliases { get; } = [];
-    internal List<int> Diagnostics { get; } = [];
+    internal List<DiagnosticCode> Diagnostics { get; } = [];
     internal Action<Type>? OnIndex { get; set; }
     internal Action<TypeReference>? OnTypeArguments { get; set; }
     internal Action<string>? BeforeProperty { get; set; }
@@ -271,7 +272,7 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
     public ValueTask CircularPropertyAsync(Symbol symbol, MappedType type, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
-        Diagnostics.Add(2615);
+        Diagnostics.Add(DiagnosticCode.TypeOfProperty0CircularlyReferencesItselfInMappedType1);
         return ValueTask.CompletedTask;
     }
 
@@ -495,9 +496,10 @@ internal sealed class InstantiationFixtureHost : ITypeInstantiationHost, ITupleT
     public ValueTask<bool> IsEmptyAnonymousAsync(Type type, CancellationToken cancellation)
             => relations.IsEmptyAnonymousObjectAsync(type, cancellation);
 
-    public void InstantiationLimit(int depth, int count) => Diagnostics.Add(2589);
+    public void InstantiationLimit(int depth, int count) =>
+        Diagnostics.Add(DiagnosticCode.TypeInstantiationIsExcessivelyDeepAndPossiblyInfinite);
 
-    public void TupleTooLarge() => Diagnostics.Add(2800);
+    public void TupleTooLarge() => Diagnostics.Add(DiagnosticCode.ExpressionProducesATupleTypeThatIsTooLargeToRepresent);
 
-    public void CrossProductTooLarge(long size) => Diagnostics.Add(2590);
+    public void CrossProductTooLarge(long size) => Diagnostics.Add(DiagnosticCode.ExpressionProducesAUnionTypeThatIsTooComplexToRepresent);
 }

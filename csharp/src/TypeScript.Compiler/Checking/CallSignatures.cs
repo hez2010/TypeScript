@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -16,7 +17,7 @@ internal interface ICallSignatureHost : IConstraintCheckHost
         Signature signature,
         CancellationToken cancellation);
 
-    void ExpressionError(SyntaxNode node, int code);
+    void ExpressionError(SyntaxNode node, DiagnosticCode code);
 }
 
 internal sealed class CallSignatures(TypeContext context, CheckerSymbols symbols, SignatureParameters parameters,

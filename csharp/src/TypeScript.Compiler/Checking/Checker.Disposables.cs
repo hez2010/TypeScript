@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -26,7 +27,10 @@ internal sealed partial class Checker
             : [disposableType, context.NullType, context.UndefinedType], cancellation: cancellation);
         var source = await Variables.WidenAsync(await CachedExpressionAsync(initializer, 0, cancellation), node, false, cancellation);
         await RelationDiagnostics.CheckAsync(source, target, RelationKind.Assignable, initializer, initializer,
-            kind == NodeFlags.AwaitUsing ? 2851 : 2850, cancellation);
+            kind == NodeFlags.AwaitUsing
+                ? DiagnosticCode.TheInitializerOfAnAwaitUsingDeclarationMustBeEitherAnObjectWithASymbolAsyncDisposeOrSymbolDisposeMethodOrBeNullOrUndefined
+                : DiagnosticCode.TheInitializerOfAUsingDeclarationMustBeEitherAnObjectWithASymbolDisposeMethodOrBeNullOrUndefined,
+            cancellation);
     }
 
     private async ValueTask CheckVariableListAsync(VariableDeclarationListNode node, CancellationToken cancellation)
@@ -42,25 +46,31 @@ internal sealed partial class Checker
         bool invalid = modifierError;
         if (!modifierError)
         {
-            int code = 0;
+            DiagnosticCode code = DiagnosticCode.None;
             if (node.Declarations!.HasTrailingComma)
-                code = 1009;
+                code = DiagnosticCode.TrailingCommaNotAllowed;
             else if (node.Declarations.Count == 0)
-                code = 1123;
+                code = DiagnosticCode.VariableDeclarationListCannotBeEmpty;
             else if (usingDeclaration)
             {
                 if (node.Parent?.Kind == SyntaxKind.ForInStatement)
-                    code = awaitUsing ? 1494 : 1493;
+                    code = awaitUsing
+                        ? DiagnosticCode.TheLeftHandSideOfAForInStatementCannotBeAnAwaitUsingDeclaration
+                        : DiagnosticCode.TheLeftHandSideOfAForInStatementCannotBeAUsingDeclaration;
                 else if ((node.Flags & NodeFlags.Ambient) != 0)
-                    code = awaitUsing ? 1546 : 1545;
+                    code = awaitUsing
+                        ? DiagnosticCode.XAwaitUsingDeclarationsAreNotAllowedInAmbientContexts
+                        : DiagnosticCode.XUsingDeclarationsAreNotAllowedInAmbientContexts;
                 else if (node.Parent is VariableStatementNode { Parent.Kind: SyntaxKind.CaseClause or SyntaxKind.DefaultClause })
-                    code = awaitUsing ? 1548 : 1547;
+                    code = awaitUsing
+                        ? DiagnosticCode.XAwaitUsingDeclarationsAreNotAllowedInCaseOrDefaultClausesUnlessContainedWithinABlock
+                        : DiagnosticCode.XUsingDeclarationsAreNotAllowedInCaseOrDefaultClausesUnlessContainedWithinABlock;
             }
-            if (grammar && code != 0)
+            if (grammar && code != DiagnosticCode.None)
             {
-                if (code == 1009)
+                if (code == DiagnosticCode.TrailingCommaNotAllowed)
                     TrailingCommaError(node, node.Declarations!);
-                else if (code == 1123)
+                else if (code == DiagnosticCode.VariableDeclarationListCannotBeEmpty)
                     ListError(node, node.Declarations!, code);
                 else
                     Error(node, code);
@@ -71,7 +81,10 @@ internal sealed partial class Checker
             if (!invalid && kind != 0 && node.Parent is VariableStatementNode variable)
             {
                 if (!AllowsBlockScopedDeclaration(variable.Parent))
-                    Error(variable, 1156, kind == NodeFlags.Let ? "let" : kind == NodeFlags.Const ? "const"
+                    Error(
+                        variable,
+                        DiagnosticCode.X0DeclarationsCanOnlyBeDeclaredInsideABlock,
+                        kind == NodeFlags.Let ? "let" : kind == NodeFlags.Const ? "const"
                         : kind == NodeFlags.Using ? "using" : "await using");
             }
         }
@@ -92,14 +105,17 @@ internal sealed partial class Checker
         var container = DeclarationOrder.Ancestor(node.Parent, n => n is IFunctionSignature or ClassStaticBlockDeclarationNode);
         if (container is ClassStaticBlockDeclarationNode)
         {
-            Error(node, 18054);
+            Error(node, DiagnosticCode.XAwaitUsingStatementsCannotBeUsedInsideAClassStaticBlock);
             return true;
         }
         if ((node.Flags & NodeFlags.AwaitContext) == 0 && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
         {
             if (MissingNamePrefixes.ThisContainer(node, true, false) is SourceFileNode)
-                return TopLevelAwait(node, 2853, 2854);
-            ExpressionError(node, 2852);
+                return TopLevelAwait(
+                    node,
+                    DiagnosticCode.XAwaitUsingStatementsAreOnlyAllowedAtTheTopLevelOfAFileWhenThatFileIsAModuleButThisFileHasNoImportsOrExportsConsiderAddingAnEmptyExportToMakeThisFileAModule,
+                    DiagnosticCode.TopLevelAwaitUsingStatementsAreOnlyAllowedWhenTheModuleOptionIsSetToEs2022EsnextSystemNode16Node18Node20NodenextOrPreserveAndTheTargetOptionIsSetToEs2017OrHigher);
+            ExpressionError(node, DiagnosticCode.XAwaitUsingStatementsAreOnlyAllowedWithinAsyncFunctionsAndAtTheTopLevelsOfModules);
             return true;
         }
         return false;

@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -110,7 +111,7 @@ internal sealed partial class Checker
                     }
                     else
                     {
-                        Error(spreadAttribute.Expression!, 2698);
+                        Error(spreadAttribute.Expression!, DiagnosticCode.SpreadTypesMayOnlyBeCreatedFromObjectTypes);
                         invalidSpread = invalidSpread is null
                             ? type
                             : await Algebra.IntersectionAsync([invalidSpread, type], cancellation: cancellation);
@@ -129,7 +130,7 @@ internal sealed partial class Checker
             if (!anySpread && !string.IsNullOrEmpty(childrenName))
             {
                 if (explicitChildren)
-                    Error(parent, 2710, childrenName);
+                    Error(parent, DiagnosticCode.X0AreSpecifiedTwiceTheAttributeNamed0WillBeOverwritten, childrenName);
                 var childContext = contextual is null
                     ? null
                     : await ContextualPropertyAsync(await Views.ApparentAsync(contextual, cancellation), childrenName, cancellation);

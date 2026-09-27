@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -51,7 +52,7 @@ internal sealed class PropertyInitialization(TypeContext context, Checker checke
             checker.Symbols.Binding(container)?.Get(container)?.ReturnFlow,
             cancellation).ConfigureAwait(false);
         if (checker.NoImplicitAny && (type == context.AutoType || type == checker.AutoArray))
-            checker.ExpressionError(property.ValueDeclaration!, 7008);
+            checker.ExpressionError(property.ValueDeclaration!, DiagnosticCode.Member0ImplicitlyHasAn1Type);
         bool nullable = true;
         foreach (var part in type is UnionType union ? union.Types : [type])
             if (await checker.Facts.GetAsync(part, TypeFacts.IsUndefinedOrNull, cancellation).ConfigureAwait(false) == 0)
@@ -142,7 +143,7 @@ internal sealed class PropertyInitialization(TypeContext context, Checker checke
             var type = await checker.Values.GetAsync(checker.Symbols.Declaration(property)!, cancellation).ConfigureAwait(false);
             if ((type.Flags & TypeFlags.AnyOrUnknown) == 0 && !checker.Predicates.Maybe(type, TypeFlags.Undefined, cancellation)
                 && (constructor is null || !await AssignedAsync(property.Name, type, constructor, cancellation).ConfigureAwait(false)))
-                checker.ExpressionError(property.Name, 2564);
+                checker.ExpressionError(property.Name, DiagnosticCode.Property0HasNoInitializerAndIsNotDefinitelyAssignedInTheConstructor);
         }
     }
 

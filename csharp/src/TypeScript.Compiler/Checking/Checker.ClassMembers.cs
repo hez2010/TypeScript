@@ -19,7 +19,10 @@ internal sealed partial class Checker
             await ComputedNameAsync(computed, cancellation).ConfigureAwait(false);
         await FunctionDeclarations.VariableAsync(node, cancellation).ConfigureAwait(false);
         if (SemanticSyntax.HasModifier(node, SyntaxKind.AbstractKeyword) && node.Initializer is not null)
-            Error(node, 1267, CheckerDiagnostic.DeclarationName(node.Name!));
+            Error(
+                node,
+                DiagnosticCode.Property0CannotHaveAnInitializerBecauseItIsMarkedAbstract,
+                CheckerDiagnostic.DeclarationName(node.Name!));
     }
 
     private async ValueTask CheckMethodSourceAsync(MethodDeclarationNode node, CancellationToken cancellation)
@@ -30,7 +33,7 @@ internal sealed partial class Checker
         await CheckFunctionOverloadsAsync(node, cancellation).ConfigureAwait(false);
         await CheckMethodNameAsync(node, cancellation);
         if (node.Name is IdentifierNode { Text: "constructor" } && node.AsteriskToken is not null)
-            Error(node.Name, 1368);
+            Error(node.Name, DiagnosticCode.ClassConstructorMayNotBeAGenerator);
         await CheckSourceElementAsync(node.Body, cancellation).ConfigureAwait(false);
         await CheckFunctionPathsAsync(node, cancellation).ConfigureAwait(false);
         await CheckFullSignatureAsync(node, cancellation).ConfigureAwait(false);
@@ -39,7 +42,10 @@ internal sealed partial class Checker
                 && (SemanticSyntax.HasModifier(node, SyntaxKind.PrivateKeyword) || node.Name is PrivateIdentifierNode)))
             await ReportImplicitAnyAsync(node, context.AnyType, cancellation).ConfigureAwait(false);
         if (SemanticSyntax.HasModifier(node, SyntaxKind.AbstractKeyword) && node.Body is not null)
-            Error(node, 1245, CheckerDiagnostic.DeclarationName(node.Name!));
+            Error(
+                node,
+                DiagnosticCode.Method0CannotHaveAnImplementationBecauseItIsMarkedAbstract,
+                CheckerDiagnostic.DeclarationName(node.Name!));
         if (node.Type is null && node.Body is not null && SemanticSyntax.Generator(node))
             await Signatures.ReturnAsync(
                 await Signatures.FromDeclarationAsync(node, cancellation).ConfigureAwait(false),
@@ -54,12 +60,12 @@ internal sealed partial class Checker
         await CheckFunctionDeclarationAsync(node, cancellation).ConfigureAwait(false);
         var name = SemanticSyntax.Name(node)!;
         if (name is IdentifierNode { Text: "constructor" } && SemanticSyntax.ClassLike(node.Parent))
-            Error(name, 1341);
+            Error(name, DiagnosticCode.ClassConstructorMayNotBeAnAccessor);
         await CheckMethodNameAsync(node, cancellation);
         var flags = node.Flags | (program.Symbols.Binding(node)?.Get(node)?.Flags ?? 0);
         if (node is GetAccessorDeclarationNode && (flags & NodeFlags.Ambient) == 0 && SemanticSyntax.Body(node) is not null
             && (flags & NodeFlags.HasImplicitReturn) != 0 && (flags & NodeFlags.HasExplicitReturn) == 0)
-            Error(name, 2378);
+            Error(name, DiagnosticCode.AGetAccessorMustReturnAValue);
         var symbol = program.Symbols.Declaration(node)!;
         var getter = symbol.Declarations.OfType<GetAccessorDeclarationNode>().FirstOrDefault();
         var setter = symbol.Declarations.OfType<SetAccessorDeclarationNode>().FirstOrDefault();
@@ -70,8 +76,8 @@ internal sealed partial class Checker
                 getter,
                 SyntaxKind.AbstractKeyword) != SemanticSyntax.HasModifier(setter, SyntaxKind.AbstractKeyword))
             {
-                Error(getter.Name!, 2676);
-                Error(setter.Name!, 2676);
+                Error(getter.Name!, DiagnosticCode.AccessorsMustBothBeAbstractOrNonAbstract);
+                Error(setter.Name!, DiagnosticCode.AccessorsMustBothBeAbstractOrNonAbstract);
             }
             if (SemanticSyntax.HasModifier(getter, SyntaxKind.ProtectedKeyword)
                 && !SemanticSyntax.HasModifier(setter, SyntaxKind.ProtectedKeyword)
@@ -79,8 +85,8 @@ internal sealed partial class Checker
                 || SemanticSyntax.HasModifier(getter, SyntaxKind.PrivateKeyword)
                     && !SemanticSyntax.HasModifier(setter, SyntaxKind.PrivateKeyword))
             {
-                Error(getter.Name!, 2808);
-                Error(setter.Name!, 2808);
+                Error(getter.Name!, DiagnosticCode.AGetAccessorMustBeAtLeastAsAccessibleAsTheSetter);
+                Error(setter.Name!, DiagnosticCode.AGetAccessorMustBeAtLeastAsAccessibleAsTheSetter);
             }
         }
         await Values.GetAsync(symbol, cancellation).ConfigureAwait(false);
@@ -97,7 +103,7 @@ internal sealed partial class Checker
             return;
         if (node.Name is StringLiteralNode { Text: "constructor" })
         {
-            Error(node.Name, 18006);
+            Error(node.Name, DiagnosticCode.ClassesMayNotHaveAFieldNamedConstructor);
             return;
         }
         if (node.Name is ComputedPropertyNameNode computed
@@ -105,25 +111,25 @@ internal sealed partial class Checker
                 or PrefixUnaryExpressionNode { Operator: SyntaxKind.PlusToken or SyntaxKind.MinusToken, Operand: NumericLiteralNode })
             && !LateMembers.LateSyntax(computed))
         {
-            Error(node.Name, 1166);
+            Error(node.Name, DiagnosticCode.AComputedPropertyNameInAClassPropertyDeclarationMustHaveASimpleLiteralTypeOrAUniqueSymbolType);
             return;
         }
         if (SemanticSyntax.HasModifier(node, SyntaxKind.AccessorKeyword) && node.PostfixToken?.Kind == SyntaxKind.QuestionToken)
         {
-            Error(node.PostfixToken, 1276);
+            Error(node.PostfixToken, DiagnosticCode.AnAccessorPropertyCannotBeDeclaredOptional);
             return;
         }
         await CheckAmbientInitializerAsync(node, cancellation).ConfigureAwait(false);
         if (node.PostfixToken?.Kind == SyntaxKind.ExclamationToken)
         {
             if (node.Initializer is not null)
-                Error(node.PostfixToken, 1263);
+                Error(node.PostfixToken, DiagnosticCode.DeclarationsWithInitializersCannotAlsoHaveDefiniteAssignmentAssertions);
             else if (node.Type is null)
-                Error(node.PostfixToken, 1264);
+                Error(node.PostfixToken, DiagnosticCode.DeclarationsWithDefiniteAssignmentAssertionsMustAlsoHaveTypeAnnotations);
             else if ((node.Flags & NodeFlags.Ambient) != 0
                 || SemanticSyntax.IsStatic(node)
                 || SemanticSyntax.HasModifier(node, SyntaxKind.AbstractKeyword))
-                Error(node.PostfixToken, 1255);
+                Error(node.PostfixToken, DiagnosticCode.ADefiniteAssignmentAssertionIsNotPermittedInThisContext);
         }
     }
 
@@ -143,19 +149,19 @@ internal sealed partial class Checker
         {
             if (SemanticSyntax.HasModifier(node, SyntaxKind.AbstractKeyword))
             {
-                Error(node, 1318);
+                Error(node, DiagnosticCode.AnAbstractAccessorCannotHaveAnImplementation);
                 return;
             }
             if (node.Parent is TypeLiteralNode or InterfaceDeclarationNode)
             {
-                Error(body, 1183);
+                Error(body, DiagnosticCode.AnImplementationCannotBeDeclaredInAmbientContexts);
                 return;
             }
         }
         var signature = (IFunctionSignature)node;
         if (signature.TypeParameters is not null)
         {
-            Error(name, 1094);
+            Error(name, DiagnosticCode.AnAccessorCannotHaveTypeParameters);
             return;
         }
         bool getter = node is GetAccessorDeclarationNode;
@@ -163,23 +169,23 @@ internal sealed partial class Checker
         bool receiver = parameters.FirstOrDefault() is ParameterDeclarationNode { Name: IdentifierNode { Text: "this" } };
         if (parameters.Count != (getter ? 0 : 1) && !(receiver && parameters.Count == (getter ? 1 : 2)))
         {
-            Error(name, getter ? 1054 : 1049);
+            Error(name, getter ? DiagnosticCode.AGetAccessorCannotHaveParameters : DiagnosticCode.ASetAccessorMustHaveExactlyOneParameter);
             return;
         }
         if (getter)
             return;
         if (signature.Type is not null)
         {
-            Error(name, 1095);
+            Error(name, DiagnosticCode.ASetAccessorCannotHaveAReturnTypeAnnotation);
             return;
         }
         var parameter = (ParameterDeclarationNode)parameters[^1];
         if (parameter.DotDotDotToken is not null)
-            Error(parameter.DotDotDotToken, 1053);
+            Error(parameter.DotDotDotToken, DiagnosticCode.ASetAccessorCannotHaveRestParameter);
         else if (parameter.QuestionToken is not null)
-            Error(parameter.QuestionToken, 1051);
+            Error(parameter.QuestionToken, DiagnosticCode.ASetAccessorCannotHaveAnOptionalParameter);
         else if (parameter.Initializer is not null)
-            Error(name, 1052);
+            Error(name, DiagnosticCode.ASetAccessorParameterCannotHaveAnInitializer);
     }
 
     private Symbol OriginalProperty(Symbol symbol) =>
@@ -237,10 +243,18 @@ internal sealed partial class Checker
                     || abstractOrInterface)
                     continue;
                 if (baseFlags != SymbolFlags.Property && derivedFlags == SymbolFlags.Property)
-                    Error(at, 2610, TypeDisplay.SymbolName(original), await TypeDisplay.GetAsync(baseType, cancellation),
+                    Error(
+                        at,
+                        DiagnosticCode.X0IsDefinedAsAnAccessorInClass1ButIsOverriddenHereIn2AsAnInstanceProperty,
+                        TypeDisplay.SymbolName(original),
+                        await TypeDisplay.GetAsync(baseType, cancellation),
                         await TypeDisplay.GetAsync(type, cancellation));
                 else if (baseFlags == SymbolFlags.Property && derivedFlags != SymbolFlags.Property)
-                    Error(at, 2611, TypeDisplay.SymbolName(original), await TypeDisplay.GetAsync(baseType, cancellation),
+                    Error(
+                        at,
+                        DiagnosticCode.X0IsDefinedAsAPropertyInClass1ButIsOverriddenHereIn2AsAnAccessor,
+                        TypeDisplay.SymbolName(original),
+                        await TypeDisplay.GetAsync(baseType, cancellation),
                         await TypeDisplay.GetAsync(type, cancellation));
                 else if (UseDefineForClassFields && (derived.Flags & SymbolFlags.Transient) == 0 && !abstractBase
                     && !derived.Declarations.Any(
@@ -257,18 +271,30 @@ internal sealed partial class Checker
                             type,
                             constructor,
                             cancellation).ConfigureAwait(false))
-                        Error(at, 2612, TypeDisplay.SymbolName(original), await TypeDisplay.GetAsync(baseType, cancellation));
+                        Error(
+                            at,
+                            DiagnosticCode.Property0WillOverwriteTheBasePropertyIn1IfThisIsIntentionalAddAnInitializerOtherwiseAddADeclareModifierOrRemoveTheRedundantDeclaration,
+                            TypeDisplay.SymbolName(original),
+                            await TypeDisplay.GetAsync(baseType, cancellation));
                 }
             }
             else if ((original.Flags & SymbolFlags.Method) != 0 || (original.CheckFlags & CheckFlags.SyntheticMethod) != 0)
             {
                 if ((derived.Flags & (SymbolFlags.Method | SymbolFlags.Property)) == 0
                     && (derived.CheckFlags & CheckFlags.SyntheticMethod) == 0)
-                    Error(at, 2423, await TypeDisplay.GetAsync(baseType, cancellation), TypeDisplay.SymbolName(original),
+                    Error(
+                        at,
+                        DiagnosticCode.Class0DefinesInstanceMemberFunction1ButExtendedClass2DefinesItAsInstanceMemberAccessor,
+                        await TypeDisplay.GetAsync(baseType, cancellation),
+                        TypeDisplay.SymbolName(original),
                         await TypeDisplay.GetAsync(type, cancellation));
             }
             else
-                Error(at, (original.Flags & SymbolFlags.Accessor) != 0 ? 2426 : 2425,
+                Error(
+                    at,
+                    (original.Flags & SymbolFlags.Accessor) != 0
+                        ? DiagnosticCode.Class0DefinesInstanceMemberAccessor1ButExtendedClass2DefinesItAsInstanceMemberFunction
+                        : DiagnosticCode.Class0DefinesInstanceMemberProperty1ButExtendedClass2DefinesItAsInstanceMemberFunction,
                     await TypeDisplay.GetAsync(baseType, cancellation), TypeDisplay.SymbolName(original),
                     await TypeDisplay.GetAsync(type, cancellation));
         }
@@ -289,8 +315,17 @@ internal sealed partial class Checker
                     arguments.Add((missing.Count - 4).ToString(System.Globalization.CultureInfo.InvariantCulture));
             }
             Error(node, expression
-                ? missing.Count == 1 ? 2653 : missing.Count > 5 ? 2650 : 2656
-                : missing.Count == 1 ? 2515 : missing.Count > 5 ? 2655 : 2654, arguments.ToArray());
+                ? missing.Count == 1
+                    ? DiagnosticCode.NonAbstractClassExpressionDoesNotImplementInheritedAbstractMember0FromClass1
+                    : missing.Count > 5
+                        ? DiagnosticCode.NonAbstractClassExpressionIsMissingImplementationsForTheFollowingMembersOf0Colon1And2More
+                        : DiagnosticCode.NonAbstractClassExpressionIsMissingImplementationsForTheFollowingMembersOf0Colon1
+                : missing.Count == 1
+                    ? DiagnosticCode.NonAbstractClass0DoesNotImplementInheritedAbstractMember1FromClass2
+                    : missing.Count > 5
+                        ? DiagnosticCode.NonAbstractClass0IsMissingImplementationsForTheFollowingMembersOf1Colon2And3More
+                        : DiagnosticCode.NonAbstractClass0IsMissingImplementationsForTheFollowingMembersOf1Colon2,
+                arguments.ToArray());
         }
 
         var staticType = await Values.GetAsync(type.Symbol!, cancellation).ConfigureAwait(false);
@@ -309,7 +344,11 @@ internal sealed partial class Checker
                     continue;
                 if (hasOverride && symbol.Name == Symbol.InternalPrefix + "computed")
                 {
-                    Error(member, isJs ? 4128 : 4127);
+                    Error(
+                        member,
+                        isJs
+                            ? DiagnosticCode.ThisMemberCannotHaveAJSDocCommentWithAnOverrideTagBecauseItsNameIsDynamic
+                            : DiagnosticCode.ThisMemberCannotHaveAnOverrideModifierBecauseItsNameIsDynamic);
                     continue;
                 }
                 var thisType = SemanticSyntax.IsStatic(member) ? staticType : type;
@@ -326,7 +365,15 @@ internal sealed partial class Checker
                         await Properties.GetAsync(inheritedType, cancellation).ConfigureAwait(false),
                         SymbolFlags.ClassMember,
                         cancellation).ConfigureAwait(false);
-                    Error(member, suggestion is null ? isJs ? 4122 : 4113 : isJs ? 4123 : 4117,
+                    Error(
+                        member,
+                        suggestion is null
+                            ? isJs
+                                ? DiagnosticCode.ThisMemberCannotHaveAJSDocCommentWithAnOverrideTagBecauseItIsNotDeclaredInTheBaseClass0
+                                : DiagnosticCode.ThisMemberCannotHaveAnOverrideModifierBecauseItIsNotDeclaredInTheBaseClass0
+                            : isJs
+                                ? DiagnosticCode.ThisMemberCannotHaveAJSDocCommentWithAnOverrideTagBecauseItIsNotDeclaredInTheBaseClass0DidYouMean1
+                                : DiagnosticCode.ThisMemberCannotHaveAnOverrideModifierBecauseItIsNotDeclaredInTheBaseClass0DidYouMean1,
                         suggestion is null ? [await TypeDisplay.GetAsync(baseWithThis, cancellation)]
                             : [await TypeDisplay.GetAsync(baseWithThis, cancellation), TypeDisplay.SymbolName(suggestion)]);
                 }
@@ -337,10 +384,21 @@ internal sealed partial class Checker
                     && program.Symbols.Program.Configuration.Options.Boolean("noImplicitOverride") == true)
                 {
                     if (!inherited.Declarations.Any(d => SemanticSyntax.HasModifier(d, SyntaxKind.AbstractKeyword)))
-                        Error(member, ParameterProperty(member) ? isJs ? 4120 : 4115 : isJs ? 4119 : 4114,
+                        Error(
+                            member,
+                            ParameterProperty(member)
+                                ? isJs
+                                    ? DiagnosticCode.ThisParameterPropertyMustHaveAJSDocCommentWithAnOverrideTagBecauseItOverridesAMemberInTheBaseClass0
+                                    : DiagnosticCode.ThisParameterPropertyMustHaveAnOverrideModifierBecauseItOverridesAMemberInBaseClass0
+                                : isJs
+                                    ? DiagnosticCode.ThisMemberMustHaveAJSDocCommentWithAnOverrideTagBecauseItOverridesAMemberInTheBaseClass0
+                                    : DiagnosticCode.ThisMemberMustHaveAnOverrideModifierBecauseItOverridesAMemberInTheBaseClass0,
                             await TypeDisplay.GetAsync(baseWithThis, cancellation));
                     else if (SemanticSyntax.HasModifier(member, SyntaxKind.AbstractKeyword))
-                        Error(member, 4116, await TypeDisplay.GetAsync(baseWithThis, cancellation));
+                        Error(
+                            member,
+                            DiagnosticCode.ThisMemberMustHaveAnOverrideModifierBecauseItOverridesAnAbstractMethodThatIsDeclaredInTheBaseClass0,
+                            await TypeDisplay.GetAsync(baseWithThis, cancellation));
                 }
             }
     }

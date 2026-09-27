@@ -2,6 +2,7 @@ using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Checking;
 using TypeScript.Compiler.Configuration;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.Programs;
 using TypeScript.Compiler.Semantics;
@@ -148,7 +149,7 @@ internal static class CheckerExpressionTests
         var file = program.SourceFiles[0].Syntax;
         await checker.CheckSourceFileAsync(file);
         var diagnostics = checker.DetailedDiagnosticsForFile(file);
-        var duplicates = diagnostics.Where(d => d.Code == 1500).ToArray();
+        var duplicates = diagnostics.Where(d => d.Code == DiagnosticCode.DuplicateRegularExpressionFlag).ToArray();
         int flags = source.IndexOf("ggg", StringComparison.Ordinal);
         if (duplicates.Length != 2 || duplicates[0].Start != file.Source.ToBytePosition(flags + 1)
             || duplicates[1].Start != file.Source.ToBytePosition(flags + 2) || duplicates.Any(d => d.Length != 1))
@@ -174,9 +175,11 @@ internal static class CheckerExpressionTests
             new("/project/tsconfig.json", options, ["/project/main.ts"], [], [], []));
         var checker = await program.CreateCheckerAsync();
         await checker.CheckProgramAsync();
-        if (!checker.DiagnosticCodesForFile(program.SourceFiles[0].Syntax).SequenceEqual([2695]))
+        if (!checker.DiagnosticCodesForFile(program.SourceFiles[0].Syntax).SequenceEqual(
+            [DiagnosticCode.LeftSideOfCommaOperatorIsUnusedAndHasNoSideEffects]))
             throw new InvalidOperationException("Unicode literal/comma diagnostics changed");
-        if (!checker.Suggestions.Contains(80008))
+        if (!checker.Suggestions.Contains(
+            DiagnosticCode.NumericLiteralsWithAbsoluteValuesEqualTo253OrGreaterAreTooLargeToBeRepresentedAccuratelyAsIntegers))
             throw new InvalidOperationException("Unsafe integer suggestion was lost");
         return 2;
     }
@@ -198,7 +201,12 @@ internal static class CheckerExpressionTests
         var file = program.GetFile("/project/main.ts")!.Syntax;
         await checker.CheckSourceFileAsync(file);
         var codes = checker.DiagnosticCodesForFile(file);
-        if (!codes.SequenceEqual([2304, 2410, 18033]))
+        if (!codes.SequenceEqual(
+            [
+                    DiagnosticCode.CannotFindName0,
+                    DiagnosticCode.TheWithStatementIsNotSupportedAllSymbolsInAWithBlockWillHaveTypeAny,
+                    DiagnosticCode.Type0IsNotAssignableToType1AsRequiredForComputedEnumMemberValues
+                ]))
             throw new InvalidOperationException($"With/template diagnostics: {string.Join(',', codes)}");
         foreach (var template in file.DescendantsAndSelf().OfType<TemplateExpressionNode>())
             if (await checker.GetExpressionTypeAsync(template) != checker.Context.StringType)
@@ -262,7 +270,14 @@ internal static class CheckerExpressionTests
             var parents = nodes.Select(n => n.Parent).ToArray();
             await checker.CheckSourceFileAsync(file);
             var codes = checker.DiagnosticCodesForFile(file);
-            int[] expected = automatic ? [] : [2322, 2322, 2746];
+            DiagnosticCode[] expected = automatic
+                ? []
+                :
+                    [
+                        DiagnosticCode.Type0IsNotAssignableToType1,
+                        DiagnosticCode.Type0IsNotAssignableToType1,
+                        DiagnosticCode.ThisJSXTagS0PropExpectsASingleChildOfType1ButMultipleChildrenWereProvided
+                    ];
             if (!codes.SequenceEqual(expected))
                 throw new InvalidOperationException($"JSX diagnostics: {string.Join(',', codes)}");
             if (!nodes.Select(n => n.Parent).SequenceEqual(parents))
@@ -337,7 +352,18 @@ internal static class CheckerExpressionTests
         var file = program.SourceFiles[0].Syntax;
         await checker.CheckSourceFileAsync(file);
         var codes = checker.DiagnosticCodesForFile(file).Order().ToArray();
-        int[] expected = [2322, 2322, 2322, 2322, 2358, 2774, 2774, 2860, 2861];
+        DiagnosticCode[] expected =
+            [
+                DiagnosticCode.Type0IsNotAssignableToType1,
+                DiagnosticCode.Type0IsNotAssignableToType1,
+                DiagnosticCode.Type0IsNotAssignableToType1,
+                DiagnosticCode.Type0IsNotAssignableToType1,
+                DiagnosticCode.TheLeftHandSideOfAnInstanceofExpressionMustBeOfTypeAnyAnObjectTypeOrATypeParameter,
+                DiagnosticCode.ThisConditionWillAlwaysReturnTrueSinceThisFunctionIsAlwaysDefinedDidYouMeanToCallItInstead,
+                DiagnosticCode.ThisConditionWillAlwaysReturnTrueSinceThisFunctionIsAlwaysDefinedDidYouMeanToCallItInstead,
+                DiagnosticCode.TheLeftHandSideOfAnInstanceofExpressionMustBeAssignableToTheFirstArgumentOfTheRightHandSideSSymbolHasInstanceMethod,
+                DiagnosticCode.AnObjectSSymbolHasInstanceMethodMustReturnABooleanValueForItToBeUsedOnTheRightHandSideOfAnInstanceofExpression
+            ];
         if (!codes.SequenceEqual(expected))
             throw new InvalidOperationException($"Condition diagnostics: {string.Join(',', codes)}");
         using var cancellation = new CancellationTokenSource();
@@ -399,7 +425,9 @@ internal static class CheckerExpressionTests
         Check(host.InstantiationExpressions.CacheCount == 1 && host.InstantiationErrors.Count == 0);
         host.BeforeInstantiationDiagnostic = null;
         await host.InstantiationExpressions.GetAsync(function, instantiations[1]);
-        Check(host.InstantiationErrors.Values.Single() == "<T>(value: T) => T" && host.Diagnostics.Contains(2635));
+        Check(
+            host.InstantiationErrors.Values.Single() == "<T>(value: T) => T"
+                && host.Diagnostics.Contains(DiagnosticCode.Type0HasNoSignaturesForWhichTheTypeArgumentListIsApplicable));
         try
         {
             await host.InstantiationExpressions.GetAsync(new TypeContext().NumberType, instantiations[0]);
@@ -410,9 +438,13 @@ internal static class CheckerExpressionTests
             checks++;
         }
         Check(await host.Assertions.CheckAsync(assertions[0]) == context.StringType && host.Assertions.OperandCount == 1);
-        Check(!host.Diagnostics.Contains(2352));
+        Check(
+            !host.Diagnostics.Contains(
+                DiagnosticCode.ConversionOfType0ToType1MayBeAMistakeBecauseNeitherTypeSufficientlyOverlapsWithTheOtherIfThisWasIntentionalConvertTheExpressionToUnknownFirst));
         await host.Assertions.DeferredAsync(assertions[0]);
-        Check(host.Diagnostics.Contains(2352));
+        Check(
+            host.Diagnostics.Contains(
+                DiagnosticCode.ConversionOfType0ToType1MayBeAMistakeBecauseNeitherTypeSufficientlyOverlapsWithTheOtherIfThisWasIntentionalConvertTheExpressionToUnknownFirst));
         host.BeforeExpressionFinish = () => throw new OperationCanceledException();
         try
         {

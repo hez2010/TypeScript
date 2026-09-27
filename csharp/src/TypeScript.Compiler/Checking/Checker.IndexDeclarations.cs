@@ -7,17 +7,17 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker : IIndexDeclarationHost
 {
-    public void DuplicatePropertyError(SyntaxNode node, Symbol symbol) => Error(node, 2300,
+    public void DuplicatePropertyError(SyntaxNode node, Symbol symbol) => Error(node, DiagnosticCode.DuplicateIdentifier0,
         SemanticSyntax.Name(symbol.ValueDeclaration ?? symbol.Declarations.FirstOrDefault()) is ComputedPropertyNameNode name
             ? CheckerDiagnostic.DeclarationName(name) : TypeDisplay.SymbolName(symbol));
 
-    private readonly HashSet<(SyntaxNode Node, int Code, string First, string Second, string Third, string Fourth)> indexConstraintDiagnostics = [];
+    private readonly HashSet<(SyntaxNode Node, DiagnosticCode Code, string First, string Second, string Third, string Fourth)> indexConstraintDiagnostics = [];
 
     public async ValueTask DuplicateIndexErrorAsync(SyntaxNode node, Type type, CancellationToken cancellation)
     {
         string name = await TypeDisplay.GetAsync(type, cancellation);
-        if (indexConstraintDiagnostics.Add((node, 2374, name, "", "", "")))
-            TrackDiagnostic(node, 2374, name);
+        if (indexConstraintDiagnostics.Add((node, DiagnosticCode.DuplicateIndexSignatureForType0, name, "", "", "")))
+            TrackDiagnostic(node, DiagnosticCode.DuplicateIndexSignatureForType0, name);
     }
 
     public async ValueTask IndexPropertyErrorAsync(
@@ -31,7 +31,8 @@ internal sealed partial class Checker : IIndexDeclarationHost
         string valueText = await TypeDisplay.GetAsync(value, cancellation);
         string keyText = await TypeDisplay.GetAsync(index.KeyType, cancellation);
         string indexText = await TypeDisplay.GetAsync(index.ValueType, cancellation);
-        if (!indexConstraintDiagnostics.Add((node, 2411, name, valueText, keyText, indexText)))
+        if (!indexConstraintDiagnostics.Add(
+            (node, DiagnosticCode.Property0OfType1IsNotAssignableTo2IndexType3, name, valueText, keyText, indexText)))
             return;
         var diagnostic = CheckerDiagnostic.Create(node, Messages.Property_0_of_type_1_is_not_assignable_to_2_index_type_3,
             name, valueText, keyText, indexText);
@@ -44,7 +45,7 @@ internal sealed partial class Checker : IIndexDeclarationHost
                 Messages.X_0_is_declared_here,
                 name)]
             };
-        Diagnostics.Add(2411);
+        Diagnostics.Add(DiagnosticCode.Property0OfType1IsNotAssignableTo2IndexType3);
         diagnosticFiles.Add((node, diagnostic));
     }
 
@@ -54,10 +55,11 @@ internal sealed partial class Checker : IIndexDeclarationHost
         string sourceValue = await TypeDisplay.GetAsync(source.ValueType, cancellation);
         string targetKey = await TypeDisplay.GetAsync(target.KeyType, cancellation);
         string targetValue = await TypeDisplay.GetAsync(target.ValueType, cancellation);
-        if (indexConstraintDiagnostics.Add((node, 2413, sourceKey, sourceValue, targetKey, targetValue)))
+        if (indexConstraintDiagnostics.Add(
+            (node, DiagnosticCode.X0IndexType1IsNotAssignableTo2IndexType3, sourceKey, sourceValue, targetKey, targetValue)))
         {
-            Diagnostics.Add(2413);
-            TrackDiagnostic(node, 2413, sourceKey, sourceValue, targetKey, targetValue);
+            Diagnostics.Add(DiagnosticCode.X0IndexType1IsNotAssignableTo2IndexType3);
+            TrackDiagnostic(node, DiagnosticCode.X0IndexType1IsNotAssignableTo2IndexType3, sourceKey, sourceValue, targetKey, targetValue);
         }
     }
 
@@ -72,35 +74,37 @@ internal sealed partial class Checker : IIndexDeclarationHost
         {
             if (node.Parameters is not { Count: 1 } parameters)
             {
-                Error(node.Parameters?.FirstOrDefault() is ParameterDeclarationNode p ? p.Name! : node, 1096);
+                Error(
+                    node.Parameters?.FirstOrDefault() is ParameterDeclarationNode p ? p.Name! : node,
+                    DiagnosticCode.AnIndexSignatureMustHaveExactlyOneParameter);
                 return;
             }
             var parameter = (ParameterDeclarationNode)parameters[0];
             if (parameters.HasTrailingComma)
-                TrailingCommaError(node, parameters, 1025);
+                TrailingCommaError(node, parameters, DiagnosticCode.AnIndexSignatureCannotHaveATrailingComma);
             if (parameter.DotDotDotToken is not null)
             {
-                Error(parameter.DotDotDotToken, 1017);
+                Error(parameter.DotDotDotToken, DiagnosticCode.AnIndexSignatureCannotHaveARestParameter);
                 return;
             }
             if (parameter.Modifiers is not null)
             {
-                Error(parameter.Name!, 1018);
+                Error(parameter.Name!, DiagnosticCode.AnIndexSignatureParameterCannotHaveAnAccessibilityModifier);
                 return;
             }
             if (parameter.QuestionToken is not null)
             {
-                Error(parameter.QuestionToken, 1019);
+                Error(parameter.QuestionToken, DiagnosticCode.AnIndexSignatureParameterCannotHaveAQuestionMark);
                 return;
             }
             if (parameter.Initializer is not null)
             {
-                Error(parameter.Name!, 1020);
+                Error(parameter.Name!, DiagnosticCode.AnIndexSignatureParameterCannotHaveAnInitializer);
                 return;
             }
             if (parameter.Type is null)
             {
-                Error(parameter.Name!, 1022);
+                Error(parameter.Name!, DiagnosticCode.AnIndexSignatureParameterMustHaveATypeAnnotation);
                 return;
             }
             var type = await Nodes.FromNodeAsync(parameter.Type, cancellation).ConfigureAwait(false);
@@ -108,17 +112,19 @@ internal sealed partial class Checker : IIndexDeclarationHost
             if (parts.Any(t => (t.Flags & TypeFlags.StringOrNumberLiteralOrUnique) != 0)
                 || await IsGenericTypeAsync(type, cancellation).ConfigureAwait(false))
             {
-                Error(parameter.Name!, 1337);
+                Error(
+                    parameter.Name!,
+                    DiagnosticCode.AnIndexSignatureParameterTypeCannotBeALiteralTypeOrGenericTypeConsiderUsingAMappedObjectTypeInstead);
                 return;
             }
             foreach (var part in parts)
                 if (!await Instantiation.Members.ValidIndexKeyAsync(part, cancellation).ConfigureAwait(false))
                 {
-                    Error(parameter.Name!, 1268);
+                    Error(parameter.Name!, DiagnosticCode.AnIndexSignatureParameterTypeMustBeStringNumberSymbolOrATemplateLiteralType);
                     return;
                 }
             if (node.Type is null)
-                Error(node, 1021);
+                Error(node, DiagnosticCode.AnIndexSignatureMustHaveATypeAnnotation);
         }
     }
 }

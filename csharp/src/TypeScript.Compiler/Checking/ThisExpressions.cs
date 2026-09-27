@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -16,7 +17,7 @@ internal interface IThisExpressionHost
 
     ValueTask<Type?> ContextualThisAsync(SyntaxNode node, CancellationToken cancellation);
 
-    void ThisError(SyntaxNode node, int code, SyntaxNode? related = null);
+    void ThisError(SyntaxNode node, DiagnosticCode code, SyntaxNode? related = null);
 }
 
 internal sealed class ThisExpressions(TypeContext context, CheckerLinks links, CheckerSymbols symbols, SymbolTypes values,
@@ -29,7 +30,11 @@ internal sealed class ThisExpressions(TypeContext context, CheckerLinks links, C
         var container = MissingNamePrefixes.ThisContainer(node, true, true);
         bool captured = false, computed = false;
         if (container is ConstructorDeclarationNode)
-            await BeforeSuperAsync(node, container, 17009, cancellation).ConfigureAwait(false);
+            await BeforeSuperAsync(
+                node,
+                container,
+                DiagnosticCode.XSuperMustBeCalledBeforeAccessingThisInTheConstructorOfADerivedClass,
+                cancellation).ConfigureAwait(false);
         while (true)
         {
             if (container is ArrowFunctionNode)
@@ -50,19 +55,19 @@ internal sealed class ThisExpressions(TypeContext context, CheckerLinks links, C
             && host.LegacyDecorators
             && initializer.Pos <= node.Pos && node.Pos <= initializer.End
             && container.Parent is IModifiedNode { Modifiers: { } modifiers } && modifiers.Any(m => m is DecoratorNode))
-            host.ThisError(node, 2816);
+            host.ThisError(node, DiagnosticCode.CannotUseThisInAStaticPropertyInitializerOfADecoratedClass);
         if (computed)
-            host.ThisError(node, 2465);
+            host.ThisError(node, DiagnosticCode.XThisCannotBeReferencedInAComputedPropertyName);
         else if (container is ModuleDeclarationNode)
-            host.ThisError(node, 2331);
+            host.ThisError(node, DiagnosticCode.XThisCannotBeReferencedInAModuleOrNamespaceBody);
         else if (container is EnumDeclarationNode)
-            host.ThisError(node, 2332);
+            host.ThisError(node, DiagnosticCode.XThisCannotBeReferencedInCurrentLocation);
         var type = await AtAsync(node, true, container, cancellation).ConfigureAwait(false);
         if (host.NoImplicitThis)
         {
             var global = await values.GetAsync(symbols.GlobalThisSymbol, cancellation).ConfigureAwait(false);
             if (type == global && captured)
-                host.ThisError(node, 7041);
+                host.ThisError(node, DiagnosticCode.TheContainingArrowFunctionCapturesTheGlobalValueOfThis);
             else if (type is null)
             {
                 SyntaxNode? related = null;
@@ -70,7 +75,7 @@ internal sealed class ThisExpressions(TypeContext context, CheckerLinks links, C
                     && await AtAsync(container, cancellation: cancellation).ConfigureAwait(false) is { } outer
                     && outer != global)
                     related = container;
-                host.ThisError(node, 2683, related);
+                host.ThisError(node, DiagnosticCode.XThisImplicitlyHasTypeAnyBecauseItDoesNotHaveATypeAnnotation, related);
             }
         }
         return type ?? context.AnyType;
@@ -136,18 +141,25 @@ internal sealed class ThisExpressions(TypeContext context, CheckerLinks links, C
                     computed = true;
                     break;
                 }
-            host.ThisError(node, computed ? 2466 : call ? 2337 : container?.Parent is not { } parent
-                || !(SemanticSyntax.ClassLike(parent) || parent is ObjectLiteralExpressionNode) ? 2660 : 2338);
+            host.ThisError(
+                node,
+                computed ? DiagnosticCode.XSuperCannotBeReferencedInAComputedPropertyName : call ? DiagnosticCode.SuperCallsAreNotPermittedOutsideConstructorsOrInNestedFunctionsInsideConstructors : container?.Parent is not { } parent
+                || !(SemanticSyntax.ClassLike(parent)
+                    || parent is ObjectLiteralExpressionNode) ? DiagnosticCode.XSuperCanOnlyBeReferencedInMembersOfDerivedClassesOrObjectLiteralExpressions : DiagnosticCode.XSuperPropertyAccessIsPermittedOnlyInAConstructorMemberFunctionOrMemberAccessorOfADerivedClass);
             return context.ErrorType;
         }
         if (!call && immediate is ConstructorDeclarationNode)
-            await BeforeSuperAsync(node, container!, 17011, cancellation).ConfigureAwait(false);
+            await BeforeSuperAsync(
+                node,
+                container!,
+                DiagnosticCode.XSuperMustBeCalledBeforeAccessingAPropertyOfSuperInTheConstructorOfADerivedClass,
+                cancellation).ConfigureAwait(false);
         if (container!.Parent is ObjectLiteralExpressionNode)
             return context.AnyType;
         var classType = (InterfaceType)await declared.GetAsync(symbols.Declaration(container.Parent!)!, cancellation).ConfigureAwait(false);
         if (ClassBases.BaseNode(classType) is null)
         {
-            host.ThisError(node, 2335);
+            host.ThisError(node, DiagnosticCode.XSuperCanOnlyBeReferencedInADerivedClass);
             return context.ErrorType;
         }
         if (await classes.ConstructorAsync(classType, cancellation).ConfigureAwait(false) == context.NullWideningType)
@@ -159,7 +171,7 @@ internal sealed class ThisExpressions(TypeContext context, CheckerLinks links, C
             for (var current = node; current is not null && !SemanticSyntax.FunctionDeclarationLike(current); current = current.Parent)
                 if (current is ParameterDeclarationNode && current.Parent == container)
                 {
-                    host.ThisError(node, 2336);
+                    host.ThisError(node, DiagnosticCode.XSuperCannotBeReferencedInConstructorArguments);
                     return context.ErrorType;
                 }
         if (SemanticSyntax.IsStatic(container) || call)
@@ -173,7 +185,7 @@ internal sealed class ThisExpressions(TypeContext context, CheckerLinks links, C
         return await bases.WithThisAsync(baseTypes[0], classType.ThisType, cancellation: cancellation).ConfigureAwait(false);
     }
 
-    private async ValueTask BeforeSuperAsync(SyntaxNode node, SyntaxNode container, int code, CancellationToken cancellation)
+    private async ValueTask BeforeSuperAsync(SyntaxNode node, SyntaxNode container, DiagnosticCode code, CancellationToken cancellation)
     {
         var type = (InterfaceType)await declared.GetAsync(symbols.Declaration(container.Parent!)!, cancellation).ConfigureAwait(false);
         if (ClassBases.BaseNode(type) is not null

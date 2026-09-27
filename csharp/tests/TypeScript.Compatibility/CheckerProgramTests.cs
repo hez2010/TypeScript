@@ -43,16 +43,25 @@ internal static class CheckerProgramTests
         var snapshot = main.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
         await checker.CheckProgramAsync();
         var diagnostics = checker.DetailedDiagnosticsForProgramFile(main);
-        Check(diagnostics.Count(d => d.Code == 2511) == 1);
-        Check(diagnostics.Count(d => d.Code == 1184) == 1);
-        Check(diagnostics.Where(d => d.Code == 1156).SelectMany(d => d.Arguments).Order().SequenceEqual(["interface", "type"]));
-        var accessor = diagnostics.Single(d => d.Code == 1183);
+        Check(diagnostics.Count(d => d.Code == DiagnosticCode.CannotCreateAnInstanceOfAnAbstractClass) == 1);
+        Check(diagnostics.Count(d => d.Code == DiagnosticCode.ModifiersCannotAppearHere) == 1);
+        Check(
+            diagnostics.Where(
+                d => d.Code == DiagnosticCode.X0DeclarationsCanOnlyBeDeclaredInsideABlock).SelectMany(d => d.Arguments).Order().SequenceEqual(
+                    [
+                        "interface",
+                        "type"
+                    ]));
+        var accessor = diagnostics.Single(d => d.Code == DiagnosticCode.AnImplementationCannotBeDeclaredInAmbientContexts);
         Check(main.Source.Text.Substring(accessor.Start, accessor.Length) == "{return 0}");
         var unreachable = program.GetFile("/project/unreachable.ts")!.Syntax;
-        var range = checker.DetailedDiagnosticsForProgramFile(unreachable).Single(d => d.Code == 7027);
+        var range = checker.DetailedDiagnosticsForProgramFile(unreachable).Single(d => d.Code == DiagnosticCode.UnreachableCodeDetected);
         Check(unreachable.Source.Text.Substring(range.Start, range.Length) == "const first=1;const second=2;");
         var recovery = program.GetFile("/project/recovery.ts")!.Syntax;
-        Check(recovery.ParseDiagnostics.Count != 0 && checker.DetailedDiagnosticsForProgramFile(recovery).All(d => d.Code != 18004));
+        Check(
+            recovery.ParseDiagnostics.Count != 0
+                && checker.DetailedDiagnosticsForProgramFile(recovery).All(
+                    d => d.Code != DiagnosticCode.NoValueExistsInScopeForTheShorthandProperty0EitherDeclareOneOrProvideAnInitializer));
         await checker.CheckProgramAsync();
         Check(checker.DetailedDiagnosticsForProgramFile(main).SequenceEqual(diagnostics, DiagnosticEqualityComparer.Instance));
         Check(snapshot.All(n => n.Node.Parent == n.Parent && n.Node.Pos == n.Pos && n.Node.End == n.End && n.Node.Flags == n.Flags));
@@ -95,17 +104,28 @@ internal static class CheckerProgramTests
         IReadOnlyList<Diagnostic> Diagnostics(string name) =>
             checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/" + name)!.Syntax);
         var main = Diagnostics("main.ts");
-        Check(main.Any(d => d.Code == 1231 && d.Length == 6));
-        Check(main.Any(d => d.Code == 1232 && d.Length == 6));
-        Check(main.Any(d => d.Code == 2307 && d.Arguments.SequenceEqual(["not-found"])));
-        Check(Diagnostics("paths.ts").Count(d => d.Code == 2436) == 3);
-        Check(Diagnostics("augmentation.ts").All(d => d.Code != 2667));
-        Check(Diagnostics("rewrite.ts").Single(d => d.Code == 2876).Arguments.SequenceEqual(["./folder.ts/index.ts"]));
-        var duplicate = Diagnostics("indexes.ts").Where(d => d.Code == 2374).ToArray();
+        Check(main.Any(d => d.Code == DiagnosticCode.AnExportAssignmentMustBeAtTheTopLevelOfAFileOrModuleDeclaration && d.Length == 6));
+        Check(main.Any(d => d.Code == DiagnosticCode.AnImportDeclarationCanOnlyBeUsedAtTheTopLevelOfANamespaceOrModule && d.Length == 6));
+        Check(
+            main.Any(
+                d => d.Code == DiagnosticCode.CannotFindModule0OrItsCorrespondingTypeDeclarations
+                    && d.Arguments.SequenceEqual(["not-found"])));
+        Check(Diagnostics("paths.ts").Count(d => d.Code == DiagnosticCode.AmbientModuleDeclarationCannotSpecifyRelativeModuleName) == 3);
+        Check(
+            Diagnostics("augmentation.ts").All(
+                d => d.Code != DiagnosticCode.ImportsAreNotPermittedInModuleAugmentationsConsiderMovingThemToTheEnclosingExternalModule));
+        Check(
+            Diagnostics("rewrite.ts").Single(
+                d => d.Code == DiagnosticCode.ThisRelativeImportPathIsUnsafeToRewriteBecauseItLooksLikeAFileNameButActuallyResolvesTo0).Arguments.SequenceEqual(["./folder.ts/index.ts"]));
+        var duplicate = Diagnostics("indexes.ts").Where(d => d.Code == DiagnosticCode.DuplicateIndexSignatureForType0).ToArray();
         Check(duplicate.Length == 4);
         Check(duplicate.Count(d => d.Arguments.SequenceEqual(["string"])) == 2
             && duplicate.Count(d => d.Arguments.SequenceEqual(["symbol"])) == 2);
-        Check(Diagnostics("recovery.ts").Any(d => d.Code == 2591) && Diagnostics("recovery.ts").All(d => d.Code != 1540));
+        Check(
+            Diagnostics("recovery.ts").Any(
+                d => d.Code == DiagnosticCode.CannotFindName0DoYouNeedToInstallTypeDefinitionsForNodeTryNpmISaveDevTypesSlashnodeAndThenAddNodeToTheTypesFieldInYourTsconfig)
+                && Diagnostics("recovery.ts").All(
+                    d => d.Code != DiagnosticCode.ANamespaceDeclarationShouldNotBeDeclaredUsingTheModuleKeywordPleaseUseTheNamespaceKeywordInstead));
         await checker.CheckProgramAsync();
         Check(Diagnostics("main.ts").SequenceEqual(main, DiagnosticEqualityComparer.Instance));
         Check(snapshot.All(n => n.Node.Parent == n.Parent && n.Node.Pos == n.Pos && n.Node.End == n.End && n.Node.Flags == n.Flags));
@@ -139,21 +159,45 @@ internal static class CheckerProgramTests
         var checker = await program.CreateCheckerAsync();
         await checker.CheckProgramAsync();
         var diagnostics = checker.DetailedDiagnosticsForProgramFile(source);
-        Check(diagnostics.Single(d => d.Code == 2561).Arguments.SequenceEqual(["vaule", "Shape", "value"]));
-        var spread = diagnostics.Single(d => d.Code == 2783);
+        Check(
+            diagnostics.Single(
+                d => d.Code == DiagnosticCode.ObjectLiteralMayOnlySpecifyKnownPropertiesBut0DoesNotExistInType1DidYouMeanToWrite2).Arguments.SequenceEqual(
+                    [
+                        "vaule",
+                        "Shape",
+                        "value"
+                    ]));
+        var spread = diagnostics.Single(d => d.Code == DiagnosticCode.X0IsSpecifiedMoreThanOnceSoThisUsageWillBeOverwritten);
         Check(spread.Arguments.SequenceEqual(["value"]));
-        Check(spread.RelatedInformation is [var note] && note.Code == 2785);
-        var arrow = diagnostics.Single(d => d.Code == 2322);
+        Check(spread.RelatedInformation is [var note] && note.Code == DiagnosticCode.ThisSpreadAlwaysOverwritesThisProperty);
+        var arrow = diagnostics.Single(d => d.Code == DiagnosticCode.Type0IsNotAssignableToType1);
         Check(arrow.Arguments.SequenceEqual(["string", "number"]));
-        Check(arrow.RelatedInformation is [var returnNote] && returnNote.Code == 6502);
-        Check(diagnostics.Single(d => d.Code == 2610).Arguments.SequenceEqual(["value", "Base", "Derived"]));
-        Check(diagnostics.Count(d => d.Code == 2428) == 2);
-        Check(diagnostics.Where(d => d.Code == 2428).All(d => d.Arguments.SequenceEqual(["Merge"])));
-        Check(diagnostics.Single(d => d.Code == 2313).Arguments.SequenceEqual(["T"]));
-        Check(diagnostics.Single(d => d.Code == 1029).Arguments.SequenceEqual(["private", "static"]));
-        Check(diagnostics.Single(d => d.Code == 1243).Arguments.SequenceEqual(["static", "abstract"]));
+        Check(
+            arrow.RelatedInformation is [var returnNote]
+                && returnNote.Code == DiagnosticCode.TheExpectedTypeComesFromTheReturnTypeOfThisSignature);
+        Check(
+            diagnostics.Single(
+                d => d.Code == DiagnosticCode.X0IsDefinedAsAnAccessorInClass1ButIsOverriddenHereIn2AsAnInstanceProperty).Arguments.SequenceEqual(
+                    [
+                        "value",
+                        "Base",
+                        "Derived"
+                    ]));
+        Check(diagnostics.Count(d => d.Code == DiagnosticCode.AllDeclarationsOf0MustHaveIdenticalTypeParameters) == 2);
+        Check(
+            diagnostics.Where(
+                d => d.Code == DiagnosticCode.AllDeclarationsOf0MustHaveIdenticalTypeParameters).All(d => d.Arguments.SequenceEqual(["Merge"])));
+        Check(diagnostics.Single(d => d.Code == DiagnosticCode.TypeParameter0HasACircularConstraint).Arguments.SequenceEqual(["T"]));
+        Check(
+            diagnostics.Single(
+                d => d.Code == DiagnosticCode.X0ModifierMustPrecede1Modifier).Arguments.SequenceEqual(["private", "static"]));
+        Check(
+            diagnostics.Single(
+                d => d.Code == DiagnosticCode.X0ModifierCannotBeUsedWith1Modifier).Arguments.SequenceEqual(["static", "abstract"]));
         var recovery = program.GetFile("/project/recovery.ts")!.Syntax;
-        Check(checker.DetailedDiagnosticsForProgramFile(recovery).Any(d => d.Code == 18024));
+        Check(
+            checker.DetailedDiagnosticsForProgramFile(recovery).Any(
+                d => d.Code == DiagnosticCode.AnEnumMemberCannotBeNamedWithAPrivateIdentifier));
         await checker.CheckProgramAsync();
         Check(checker.DetailedDiagnosticsForProgramFile(source).SequenceEqual(diagnostics, DiagnosticEqualityComparer.Instance));
         Check(before.All(n => n.Node.Parent == n.Parent && n.Node.Pos == n.Pos && n.Node.End == n.End && n.Node.Flags == n.Flags));
@@ -190,20 +234,34 @@ internal static class CheckerProgramTests
         var checker = await program.CreateCheckerAsync();
         await checker.CheckProgramAsync();
         var diagnostics = checker.DetailedDiagnosticsForProgramFile(source);
-        Check(diagnostics.Where(d => d.Code == 2304).SelectMany(d => d.Arguments).Order()
+        Check(diagnostics.Where(d => d.Code == DiagnosticCode.CannotFindName0).SelectMany(d => d.Arguments).Order()
             .SequenceEqual(new[] { "MissingA", "MissingI" }));
-        Check(diagnostics.Count(d => d.Code == 18016) == 2);
-        Check(diagnostics.Any(d => d.Code == 1221));
-        Check(diagnostics.All(d => d.Code != 2345));
-        Check(diagnostics.Single(d => d.Code == 6234).MessageChain is [var child] && child.Code == 2757);
-        Check(diagnostics.Single(d => d.Code == 2394).RelatedInformation is [var implementation] && implementation.Code == 2750);
+        Check(diagnostics.Count(d => d.Code == DiagnosticCode.PrivateIdentifiersAreNotAllowedOutsideClassBodies) == 2);
+        Check(diagnostics.Any(d => d.Code == DiagnosticCode.GeneratorsAreNotAllowedInAnAmbientContext));
+        Check(diagnostics.All(d => d.Code != DiagnosticCode.ArgumentOfType0IsNotAssignableToParameterOfType1));
+        Check(
+            diagnostics.Single(
+                d => d.Code == DiagnosticCode.ThisExpressionIsNotCallableBecauseItIsAGetAccessorDidYouMeanToUseItWithout).MessageChain is [var child]
+                && child.Code == DiagnosticCode.Type0HasNoCallSignatures);
+        Check(
+            diagnostics.Single(
+                d => d.Code == DiagnosticCode.ThisOverloadSignatureIsNotCompatibleWithItsImplementationSignature).RelatedInformation is [var implementation]
+                && implementation.Code == DiagnosticCode.TheImplementationSignatureIsDeclaredHere);
         var js = checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/import.js")!.Syntax);
-        Check(js.Count(d => d.Code == 18042) == 1 && js.Count(d => d.Code == 18043) == 1);
-        Check(js.Single(d => d.Code == 18042).Arguments.SequenceEqual(["Data", "import(\"./types\").Data"]));
+        Check(
+            js.Count(d => d.Code == DiagnosticCode.X0IsATypeAndCannotBeImportedInJavaScriptFilesUse1InAJSDocTypeAnnotation) == 1
+                && js.Count(d => d.Code == DiagnosticCode.TypesCannotAppearInExportDeclarationsInJavaScriptFiles) == 1);
+        Check(
+            js.Single(
+                d => d.Code == DiagnosticCode.X0IsATypeAndCannotBeImportedInJavaScriptFilesUse1InAJSDocTypeAnnotation).Arguments.SequenceEqual(
+                    [
+                        "Data",
+                        "import(\"./types\").Data"
+                    ]));
         var recovery = program.GetFile("/project/recovery.ts")!.Syntax;
         Check(recovery.ParseDiagnostics.Count != 0);
         Check(recovery.Statements!.OfType<TryStatementNode>().Single().CatchClause is not null);
-        Check(checker.DetailedDiagnosticsForProgramFile(recovery).Count(d => d.Code == 2304) == 1);
+        Check(checker.DetailedDiagnosticsForProgramFile(recovery).Count(d => d.Code == DiagnosticCode.CannotFindName0) == 1);
         await checker.CheckProgramAsync();
         Check(checker.DetailedDiagnosticsForProgramFile(source).SequenceEqual(diagnostics, DiagnosticEqualityComparer.Instance));
         Check(before.All(n => n.Node.Parent == n.Parent && n.Node.Pos == n.Pos && n.Node.End == n.End && n.Node.Flags == n.Flags));
@@ -239,22 +297,34 @@ internal static class CheckerProgramTests
         var checker = await program.CreateCheckerAsync();
         await checker.CheckProgramAsync();
         var diagnostics = checker.DetailedDiagnosticsForProgramFile(source);
-        Check(diagnostics.Single(d => d.Code == 2564).Arguments.SequenceEqual(["value"]));
-        Check(diagnostics.Single(d => d.Code == 2454).Arguments.SequenceEqual(["x"]));
-        Check(diagnostics.Single(d => d.Code == 18048).Arguments.SequenceEqual(["maybe"]));
-        Check(diagnostics.Single(d => d.Code == 18050).Arguments.SequenceEqual(["null"]));
-        Check(diagnostics.Single(d => d.Code == 7008).Arguments.SequenceEqual(["p", "any"]));
-        Check(diagnostics.Where(d => d.Code == 2314).Select(d => string.Join('|', d.Arguments)).Order()
+        Check(
+            diagnostics.Single(
+                d => d.Code == DiagnosticCode.Property0HasNoInitializerAndIsNotDefinitelyAssignedInTheConstructor).Arguments.SequenceEqual(["value"]));
+        Check(diagnostics.Single(d => d.Code == DiagnosticCode.Variable0IsUsedBeforeBeingAssigned).Arguments.SequenceEqual(["x"]));
+        Check(diagnostics.Single(d => d.Code == DiagnosticCode.X0IsPossiblyUndefined).Arguments.SequenceEqual(["maybe"]));
+        Check(diagnostics.Single(d => d.Code == DiagnosticCode.TheValue0CannotBeUsedHere).Arguments.SequenceEqual(["null"]));
+        Check(diagnostics.Single(d => d.Code == DiagnosticCode.Member0ImplicitlyHasAn1Type).Arguments.SequenceEqual(["p", "any"]));
+        Check(
+            diagnostics.Where(
+                d => d.Code == DiagnosticCode.GenericType0Requires1TypeArgumentS).Select(d => string.Join('|', d.Arguments)).Order()
             .SequenceEqual(new[] { "Box|1|1", "Generic<T>|1|1" }));
-        Check(diagnostics.Single(d => d.Code == 2456).Arguments.SequenceEqual(["Recursive"]));
-        var conflict = diagnostics.Single(d => d.Code == 2403);
+        Check(
+            diagnostics.Single(d => d.Code == DiagnosticCode.TypeAlias0CircularlyReferencesItself).Arguments.SequenceEqual(["Recursive"]));
+        var conflict = diagnostics.Single(
+            d => d.Code == DiagnosticCode.SubsequentVariableDeclarationsMustHaveTheSameTypeVariable0MustBeOfType1ButHereHasType2);
         Check(conflict.Arguments.SequenceEqual(["duplicate", "number", "string"]));
-        Check(conflict.RelatedInformation is [var previous] && previous.Code == 6203 && previous.Arguments.SequenceEqual(["duplicate"]));
-        var inherited = diagnostics.Single(d => d.Code == 2416);
+        Check(
+            conflict.RelatedInformation is [var previous]
+                && previous.Code == DiagnosticCode.X0WasAlsoDeclaredHere
+                && previous.Arguments.SequenceEqual(["duplicate"]));
+        var inherited = diagnostics.Single(d => d.Code == DiagnosticCode.Property0InType1IsNotAssignableToTheSamePropertyInBaseType2);
         Check(inherited.Arguments.SequenceEqual(["p", "Derived", "Base"]));
-        Check(inherited.MessageChain is [var reason] && reason.Code == 2322 && reason.Arguments.SequenceEqual(["string", "number"]));
-        Check(diagnostics.Any(d => d.Code == 6133 && d.Arguments.SequenceEqual(["unused"])));
-        Check(diagnostics.Any(d => d.Code == 6133 && d.Arguments.SequenceEqual(["local"])));
+        Check(
+            inherited.MessageChain is [var reason]
+                && reason.Code == DiagnosticCode.Type0IsNotAssignableToType1
+                && reason.Arguments.SequenceEqual(["string", "number"]));
+        Check(diagnostics.Any(d => d.Code == DiagnosticCode.X0IsDeclaredButItsValueIsNeverRead && d.Arguments.SequenceEqual(["unused"])));
+        Check(diagnostics.Any(d => d.Code == DiagnosticCode.X0IsDeclaredButItsValueIsNeverRead && d.Arguments.SequenceEqual(["local"])));
         await checker.CheckProgramAsync();
         Check(checker.DetailedDiagnosticsForProgramFile(source).SequenceEqual(diagnostics, DiagnosticEqualityComparer.Instance));
         Check(nodes.All(n => n.Node.Parent == n.Parent && n.Node.Pos == n.Pos && n.Node.End == n.End && n.Node.Flags == n.Flags));
@@ -296,19 +366,27 @@ internal static class CheckerProgramTests
         var checker = await program.CreateCheckerAsync();
         await checker.CheckProgramAsync();
         var diagnostics = checker.DetailedDiagnosticsForProgramFile(source);
-        foreach (int code in new[] { 2339, 2795, 2526, 1070, 2389 })
+        foreach (DiagnosticCode code in new[]
+        {
+            DiagnosticCode.Property0DoesNotExistOnType1,
+            DiagnosticCode.TheIntrinsicKeywordCanOnlyBeUsedToDeclareCompilerProvidedIntrinsicTypes,
+            DiagnosticCode.AThisTypeIsAvailableOnlyInANonStaticMemberOfAClassOrInterface,
+            DiagnosticCode.X0ModifierCannotAppearOnATypeMember,
+            DiagnosticCode.FunctionImplementationNameMustBe0
+        })
             Check(diagnostics.Count(d => d.Code == code) == 1);
-        Check(diagnostics.All(d => d.Code != 2391));
-        Check(diagnostics.Single(d => d.Code == 2389).Arguments.SequenceEqual(["'a'"]));
+        Check(diagnostics.All(d => d.Code != DiagnosticCode.FunctionImplementationIsMissingOrNotImmediatelyFollowingTheDeclaration));
+        Check(diagnostics.Single(d => d.Code == DiagnosticCode.FunctionImplementationNameMustBe0).Arguments.SequenceEqual(["'a'"]));
         var ambient = checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/ambient.d.ts")!.Syntax);
-        Check(ambient.Count(d => d.Code == 1046) == 1);
-        Check(ambient.Count(d => d.Code == 1038) == 1);
+        Check(ambient.Count(d => d.Code == DiagnosticCode.TopLevelDeclarationsInDTsFilesMustStartWithEitherADeclareOrExportModifier) == 1);
+        Check(ambient.Count(d => d.Code == DiagnosticCode.ADeclareModifierCannotBeUsedInAnAlreadyAmbientContext) == 1);
         var aliases = checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/use.js")!.Syntax);
-        Check(aliases.Count == 1 && aliases[0].Code == 2305);
+        Check(aliases.Count == 1 && aliases[0].Code == DiagnosticCode.Module0HasNoExportedMember1);
         Check(aliases[0].Arguments.SequenceEqual(["\"./module\"", "hidden"]));
-        var renamed = checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/import.ts")!.Syntax).Single(d => d.Code == 2460);
+        var renamed = checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/import.ts")!.Syntax).Single(
+            d => d.Code == DiagnosticCode.Module0Declares1LocallyButItIsExportedAs2);
         Check(renamed.Arguments.SequenceEqual(["\"./exports\"", "local", "renamed"]));
-        Check(renamed.RelatedInformation.Count == 1 && renamed.RelatedInformation[0].Code == 2728);
+        Check(renamed.RelatedInformation.Count == 1 && renamed.RelatedInformation[0].Code == DiagnosticCode.X0IsDeclaredHere);
         await checker.CheckProgramAsync();
         Check(checker.DetailedDiagnosticsForProgramFile(source).Count == diagnostics.Count);
         Check(before.All(p => p.Parent == p.Node.Parent && p.Pos == p.Node.Pos && p.End == p.Node.End && p.Flags == p.Node.Flags));
@@ -343,12 +421,25 @@ internal static class CheckerProgramTests
         var checker = await program.CreateCheckerAsync();
         await checker.CheckProgramAsync();
         var diagnostics = checker.DetailedDiagnosticsForProgramFile(source);
-        foreach (int code in new[] { 2661, 1216, 2300, 2706, 2744, 1338, 7061, 2673, 1246, 1247, 2398 })
+        foreach (DiagnosticCode code in new[]
+        {
+            DiagnosticCode.CannotExport0OnlyLocalDeclarationsCanBeExportedFromAModule,
+            DiagnosticCode.IdentifierExpectedEsModuleIsReservedAsAnExportedMarkerWhenTransformingECMAScriptModules,
+            DiagnosticCode.DuplicateIdentifier0,
+            DiagnosticCode.RequiredTypeParametersMayNotFollowOptionalTypeParameters,
+            DiagnosticCode.TypeParameterDefaultsCanOnlyReferencePreviouslyDeclaredTypeParameters,
+            DiagnosticCode.XInferDeclarationsAreOnlyPermittedInTheExtendsClauseOfAConditionalType,
+            DiagnosticCode.AMappedTypeMayNotDeclarePropertiesOrMethods,
+            DiagnosticCode.ConstructorOfClass0IsPrivateAndOnlyAccessibleWithinTheClassDeclaration,
+            DiagnosticCode.AnInterfacePropertyCannotHaveAnInitializer,
+            DiagnosticCode.ATypeLiteralPropertyCannotHaveAnInitializer,
+            DiagnosticCode.XConstructorCannotBeUsedAsAParameterPropertyName
+        })
             Check(diagnostics.Any(d => d.Code == code));
-        Check(diagnostics.All(d => d.Code != 2391));
+        Check(diagnostics.All(d => d.Code != DiagnosticCode.FunctionImplementationIsMissingOrNotImmediatelyFollowingTheDeclaration));
         var blocked = source.DescendantsAndSelf().OfType<VariableDeclarationNode>().Single(n => n.Name is IdentifierNode { Text: "blocked" });
         Check((await checker.GetTypeAtLocationAsync(blocked.Name!)).Symbol?.Name == "C");
-        Check(diagnostics.Count(d => d.Code == 2322) >= 3);
+        Check(diagnostics.Count(d => d.Code == DiagnosticCode.Type0IsNotAssignableToType1) >= 3);
         await checker.CheckProgramAsync();
         Check(checker.DetailedDiagnosticsForProgramFile(source).Count == diagnostics.Count);
         Check(before.All(p => p.Parent == p.Node.Parent && p.Pos == p.Node.Pos && p.End == p.Node.End && p.Flags == p.Node.Flags));
@@ -388,20 +479,30 @@ internal static class CheckerProgramTests
         await checker.CheckProgramAsync();
         IReadOnlyList<Diagnostic> Errors(string name) =>
             checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/" + name)!.Syntax);
-        Check(Errors("a.ts").Count(d => d.Code == 6053) == 1 && Errors("b.ts").Count(d => d.Code == 6053) == 1);
-        Check(Errors("a.ts").Single(d => d.Code == 6053).Arguments.SequenceEqual(["./missing.ts"]));
-        Check(program.IncludeDiagnostics.Count(d => d.Code == 6053 && d.Arguments.SequenceEqual(["./missing.ts"])) == 2);
+        Check(
+            Errors("a.ts").Count(d => d.Code == DiagnosticCode.File0NotFound) == 1
+                && Errors("b.ts").Count(d => d.Code == DiagnosticCode.File0NotFound) == 1);
+        Check(Errors("a.ts").Single(d => d.Code == DiagnosticCode.File0NotFound).Arguments.SequenceEqual(["./missing.ts"]));
+        Check(
+            program.IncludeDiagnostics.Count(
+                d => d.Code == DiagnosticCode.File0NotFound && d.Arguments.SequenceEqual(["./missing.ts"])) == 2);
         Check(Errors("ignore.ts").Count == 0);
-        Check(Errors("expect.ts").Select(d => d.Code).SequenceEqual([2578]));
-        Check(Errors("self.ts").Select(d => d.Code).SequenceEqual([1006]));
-        Check(Errors("weak.ts").Any(d => d.Code == 2559));
-        Check(Errors("weak.ts").Single(d => d.Code == 2560).RelatedInformation.Any(d => d.Code == 6212));
-        Check(Errors("main.tsx").All(d => d.Code != 7006));
+        Check(Errors("expect.ts").Select(d => d.Code).SequenceEqual([DiagnosticCode.UnusedTsExpectErrorDirective]));
+        Check(Errors("self.ts").Select(d => d.Code).SequenceEqual([DiagnosticCode.AFileCannotHaveAReferenceToItself]));
+        Check(Errors("weak.ts").Any(d => d.Code == DiagnosticCode.Type0HasNoPropertiesInCommonWithType1));
+        Check(
+            Errors("weak.ts").Single(
+                d => d.Code == DiagnosticCode.ValueOfType0HasNoPropertiesInCommonWithType1DidYouMeanToCallIt).RelatedInformation.Any(
+                    d => d.Code == DiagnosticCode.DidYouMeanToCallThisExpression));
+        Check(Errors("main.tsx").All(d => d.Code != DiagnosticCode.Parameter0ImplicitlyHasAn1Type));
         var arrowParameter = source.DescendantsAndSelf().OfType<ArrowFunctionNode>().Single().Parameters![0];
         Check(await checker.GetTypeAtLocationAsync(((ParameterDeclarationNode)arrowParameter).Name!) == checker.Context.NumberType);
         Check(snapshot.All(p => p.Parent == p.Node.Parent && p.Pos == p.Node.Pos && p.End == p.Node.End && p.Flags == p.Node.Flags));
         await checker.CheckProgramAsync();
-        Check(Errors("a.ts").Count(d => d.Code == 6053) == 1 && Errors("weak.ts").Count(d => d.Code == 2560) == 1);
+        Check(
+            Errors("a.ts").Count(d => d.Code == DiagnosticCode.File0NotFound) == 1
+                && Errors("weak.ts").Count(
+                    d => d.Code == DiagnosticCode.ValueOfType0HasNoPropertiesInCommonWithType1DidYouMeanToCallIt) == 1);
         return checks;
     }
 
@@ -464,7 +565,9 @@ internal static class CheckerProgramTests
                 "class B{x!:number;y!:number}interface I extends B{[key:string]:string}class C{p:number;p:string}interface O{m(x:number):void;m?(x:string):void}"),
             ["/project/recursive.ts"] = Wtf8.Encode("const recursive = () => 42 satisfies typeof recursive;"),
             ["/project/recovery.ts"] = Wtf8.Encode("const f: () => { return 1; };")
-        }), "/project", new("/project/tsconfig.json", options, ["/project/main.ts", "/project/recursive.ts", "/project/recovery.ts"], [], [], []));
+        }),
+            "/project",
+            new("/project/tsconfig.json", options, ["/project/main.ts", "/project/recursive.ts", "/project/recovery.ts"], [], [], []));
         var checker = await program.CreateCheckerAsync();
         var source = program.GetFile("/project/main.ts")!.Syntax;
         var recovery = program.GetFile("/project/recovery.ts")!.Syntax;
@@ -473,14 +576,19 @@ internal static class CheckerProgramTests
                 && recovery.DescendantsAndSelf().OfType<TypeLiteralNode>().All(n => n.Members?.Count == 0));
         await checker.CheckProgramAsync();
         var diagnostics = checker.DetailedDiagnosticsForProgramFile(source);
-        Check(diagnostics.Count(d => d.Code == 2300) == 2);
-        var properties = diagnostics.Where(d => d.Code == 2411).ToArray();
+        Check(diagnostics.Count(d => d.Code == DiagnosticCode.DuplicateIdentifier0) == 2);
+        var properties = diagnostics.Where(d => d.Code == DiagnosticCode.Property0OfType1IsNotAssignableTo2IndexType3).ToArray();
         Check(properties.Length == 2 && properties.Select(d => d.Arguments[0]).Order().SequenceEqual(["x", "y"]));
         Check(properties[0].Start == properties[1].Start && properties[0].Length == properties[1].Length);
-        Check(diagnostics.Count(d => d.Code == 2386) == 1);
-        Check(checker.DetailedDiagnosticsForProgramFile(recovery).All(d => d.Code != 7008));
+        Check(diagnostics.Count(d => d.Code == DiagnosticCode.OverloadSignaturesMustAllBeOptionalOrRequired) == 1);
+        Check(checker.DetailedDiagnosticsForProgramFile(recovery).All(d => d.Code != DiagnosticCode.Member0ImplicitlyHasAn1Type));
         Check(checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/recursive.ts")!.Syntax)
-            .Where(d => d.Code == 1360).Single().Arguments.SequenceEqual(["number", "() => any"]));
+            .Where(
+                d => d.Code == DiagnosticCode.Type0DoesNotSatisfyTheExpectedType1).Single().Arguments.SequenceEqual(
+                    [
+                        "number",
+                        "() => any"
+                    ]));
         await checker.CheckProgramAsync();
         Check(checker.DetailedDiagnosticsForProgramFile(source).Count == diagnostics.Count);
         var grouped = checker.GroupDiagnosticsByFile();
@@ -530,13 +638,23 @@ internal static class CheckerProgramTests
         var checker = await program.CreateCheckerAsync();
         await checker.CheckProgramAsync();
         var diagnostics = checker.DetailedDiagnosticsForFile(source);
-        Check(diagnostics.Count(d => d.Code == 2343) == 1
-            && diagnostics.Single(d => d.Code == 2343).Arguments.SequenceEqual(["tslib", "__importDefault"]));
-        Check(diagnostics.Any(d => d.Code == 2480));
-        Check(diagnostics.Any(d => d.Code == 2481 && d.Arguments.SequenceEqual(["shadow", "shadow"])));
-        Check(diagnostics.Count(d => d.Code == 1255) == 1);
-        Check(diagnostics.Count(d => d.Code == 1257) == 1);
-        Check(diagnostics.All(d => d.Code != 2305));
+        Check(
+            diagnostics.Count(
+                d => d.Code == DiagnosticCode.ThisSyntaxRequiresAnImportedHelperNamed1WhichDoesNotExistIn0ConsiderUpgradingYourVersionOf0) == 1
+            && diagnostics.Single(
+                d => d.Code == DiagnosticCode.ThisSyntaxRequiresAnImportedHelperNamed1WhichDoesNotExistIn0ConsiderUpgradingYourVersionOf0).Arguments.SequenceEqual(
+                    [
+                        "tslib",
+                        "__importDefault"
+                    ]));
+        Check(diagnostics.Any(d => d.Code == DiagnosticCode.XLetIsNotAllowedToBeUsedAsANameInLetOrConstDeclarations));
+        Check(
+            diagnostics.Any(
+                d => d.Code == DiagnosticCode.CannotInitializeOuterScopedVariable0InTheSameScopeAsBlockScopedDeclaration1
+                    && d.Arguments.SequenceEqual(["shadow", "shadow"])));
+        Check(diagnostics.Count(d => d.Code == DiagnosticCode.ADefiniteAssignmentAssertionIsNotPermittedInThisContext) == 1);
+        Check(diagnostics.Count(d => d.Code == DiagnosticCode.ARequiredElementCannotFollowAnOptionalElement) == 1);
+        Check(diagnostics.All(d => d.Code != DiagnosticCode.Module0HasNoExportedMember1));
         var imports = source.DescendantsAndSelf().OfType<ImportSpecifierNode>().ToArray();
         Check(await checker.GetTypeAtLocationAsync(imports[0].Name!) is LiteralType { Value: double first } && first == 1);
         Check(await checker.GetTypeAtLocationAsync(imports[1].Name!) is LiteralType { Value: double second } && second == 2);
@@ -767,8 +885,8 @@ internal static class CheckerProgramTests
         await semanticChecker.CheckProgramAsync();
         Check(
             semanticChecker.CheckedFileCount == 1
-                && semanticChecker.Diagnostics.Contains(2322)
-                && semanticChecker.Environment.Diagnostics.Contains(2304));
+                && semanticChecker.Diagnostics.Contains(DiagnosticCode.Type0IsNotAssignableToType1)
+                && semanticChecker.Environment.Diagnostics.Contains(DiagnosticCode.CannotFindName0));
         Check(semanticChecker.CurrentSourceNode is null && semanticChecker.Instantiation.Engine.Depth == 0);
         int diagnosticCount = semanticChecker.Diagnostics.Count + semanticChecker.Environment.Diagnostics.Count;
         semanticChecker.BeforeSourceElement = _ => throw new InvalidOperationException("Completed source was checked again");
@@ -817,10 +935,10 @@ internal static class CheckerProgramTests
         var mainFile = moduleProgram.GetFile("/project/main.ts")!.Syntax;
         var depFile = moduleProgram.GetFile("/project/dep.ts")!.Syntax;
         await moduleChecker.CheckSourceFileAsync(mainFile);
-        Check(moduleChecker.DiagnosticCodesForFile(mainFile).SequenceEqual([2322]));
-        Check(moduleChecker.DiagnosticCodesForFile(depFile).SequenceEqual([2304]));
+        Check(moduleChecker.DiagnosticCodesForFile(mainFile).SequenceEqual([DiagnosticCode.Type0IsNotAssignableToType1]));
+        Check(moduleChecker.DiagnosticCodesForFile(depFile).SequenceEqual([DiagnosticCode.CannotFindName0]));
         await moduleChecker.CheckSourceFileAsync(depFile);
-        Check(moduleChecker.DiagnosticCodesForFile(depFile).SequenceEqual([2304]));
+        Check(moduleChecker.DiagnosticCodesForFile(depFile).SequenceEqual([DiagnosticCode.CannotFindName0]));
         Check(moduleChecker.CheckedFileCount == 2);
         var moduleDiagnostics = moduleChecker.DiagnosticCodesForFile(mainFile).ToArray();
         await moduleChecker.CheckProgramAsync();
@@ -828,7 +946,7 @@ internal static class CheckerProgramTests
         var independentModuleChecker = await moduleProgram.CreateCheckerAsync();
         await independentModuleChecker.CheckProgramAsync();
         Check(independentModuleChecker.DiagnosticCodesForFile(mainFile).SequenceEqual(moduleDiagnostics)
-            && independentModuleChecker.DiagnosticCodesForFile(depFile).SequenceEqual([2304]));
+            && independentModuleChecker.DiagnosticCodesForFile(depFile).SequenceEqual([DiagnosticCode.CannotFindName0]));
         var finalOptions = new CompilerOptions();
         finalOptions.SetRaw("strict", "true");
         finalOptions.SetRaw("noUnusedLocals", "true");
@@ -842,17 +960,31 @@ internal static class CheckerProgramTests
         var finalMain = finalProgram.GetFile("/project/main.ts")!.Syntax;
         var finalDep = finalProgram.GetFile("/project/dep.ts")!.Syntax;
         await finalChecker.CheckSourceFileAsync(finalMain);
-        Check(finalChecker.DiagnosticCodesForFile(finalMain).SequenceEqual([2339, 6133, 6133, 6196]));
+        Check(
+            finalChecker.DiagnosticCodesForFile(finalMain).SequenceEqual(
+                [
+                        DiagnosticCode.Property0DoesNotExistOnType1,
+                        DiagnosticCode.X0IsDeclaredButItsValueIsNeverRead,
+                        DiagnosticCode.X0IsDeclaredButItsValueIsNeverRead,
+                        DiagnosticCode.X0IsDeclaredButNeverUsed
+                    ]));
         Check(finalChecker.DeferredMissingProperties.Count == 1 && finalChecker.DiagnosticCodesForFile(finalDep).Count == 0);
         await finalChecker.CheckSourceFileAsync(finalDep);
-        Check(finalChecker.DiagnosticCodesForFile(finalDep).SequenceEqual([2339]));
+        Check(finalChecker.DiagnosticCodesForFile(finalDep).SequenceEqual([DiagnosticCode.Property0DoesNotExistOnType1]));
         Check(finalChecker.DeferredMissingProperties.Count == 0 && finalChecker.CheckedFileCount == 2);
         await finalChecker.CheckProgramAsync();
-        Check(finalChecker.DiagnosticCodesForFile(finalMain).SequenceEqual([2339, 6133, 6133, 6196]));
+        Check(
+            finalChecker.DiagnosticCodesForFile(finalMain).SequenceEqual(
+                [
+                        DiagnosticCode.Property0DoesNotExistOnType1,
+                        DiagnosticCode.X0IsDeclaredButItsValueIsNeverRead,
+                        DiagnosticCode.X0IsDeclaredButItsValueIsNeverRead,
+                        DiagnosticCode.X0IsDeclaredButNeverUsed
+                    ]));
         var finalIndependent = await finalProgram.CreateCheckerAsync();
         await finalIndependent.CheckProgramAsync();
         Check(finalIndependent.DiagnosticCodesForFile(finalMain).SequenceEqual(finalChecker.DiagnosticCodesForFile(finalMain))
-            && finalIndependent.DiagnosticCodesForFile(finalDep).SequenceEqual([2339]));
+            && finalIndependent.DiagnosticCodesForFile(finalDep).SequenceEqual([DiagnosticCode.Property0DoesNotExistOnType1]));
         var directiveProgram = await Build(new()
         {
             ["/project/directives.ts"] = "// 日本語 😀\n// @ts-ignore\nlet first:number='bad';\n// @ts-expect-error\n\n// comment\nlet second:number='bad';\n// @ts-expect-error\nlet unused=1;\n// @ts-ignore\n/* barrier */\nlet barrier:number='bad';"
@@ -860,13 +992,23 @@ internal static class CheckerProgramTests
         var directiveChecker = await directiveProgram.CreateCheckerAsync();
         await directiveChecker.CheckProgramAsync();
         var directiveFile = directiveProgram.SourceFiles[0].Syntax;
-        Check(directiveChecker.DiagnosticCodesForFile(directiveFile).SequenceEqual([2322, 2322, 2322]));
-        Check(directiveChecker.DiagnosticCodesForProgramFile(directiveFile).SequenceEqual([2322, 2578]));
+        Check(
+            directiveChecker.DiagnosticCodesForFile(directiveFile).SequenceEqual(
+                [
+                        DiagnosticCode.Type0IsNotAssignableToType1,
+                        DiagnosticCode.Type0IsNotAssignableToType1,
+                        DiagnosticCode.Type0IsNotAssignableToType1
+                    ]));
+        Check(
+            directiveChecker.DiagnosticCodesForProgramFile(directiveFile).SequenceEqual(
+                [DiagnosticCode.Type0IsNotAssignableToType1, DiagnosticCode.UnusedTsExpectErrorDirective]));
         Check(directiveFile.CommentDirectives.Count(d => d.ExpectError) == 2);
         var duplicateProgram = await Build(new() { ["/project/duplicate.ts"] = "const duplicate=1;const duplicate=2;" });
         var duplicateChecker = await duplicateProgram.CreateCheckerAsync();
         await duplicateChecker.CheckProgramAsync();
-        Check(duplicateChecker.DiagnosticCodesForProgramFile(duplicateProgram.SourceFiles[0].Syntax).SequenceEqual([2451, 2451]));
+        Check(
+            duplicateChecker.DiagnosticCodesForProgramFile(duplicateProgram.SourceFiles[0].Syntax).SequenceEqual(
+                [DiagnosticCode.CannotRedeclareBlockScopedVariable0, DiagnosticCode.CannotRedeclareBlockScopedVariable0]));
         var noCheckOptions = new CompilerOptions();
         noCheckOptions.SetRaw("noCheck", "true");
         var noCheckProgram = await Build(new() { ["/project/unchecked.ts"] = "absent;" }, configuredOptions: noCheckOptions);
@@ -951,12 +1093,14 @@ internal static class CheckerProgramTests
         var file = program.GetFile("/project/main.ts")!.Syntax;
         await checker.CheckProgramAsync();
         var diagnostics = checker.DetailedDiagnosticsForProgramFile(file);
-        var missing = diagnostics.Single(d => d.Code == 2304);
+        var missing = diagnostics.Single(d => d.Code == DiagnosticCode.CannotFindName0);
         if (missing.Arguments is not ["absent"] || missing.FileName != file.FileName
             || missing.Start != file.Source.ToBytePosition(source.IndexOf("absent", StringComparison.Ordinal))
             || missing.Length != 6 || missing.Format() != "Cannot find name 'absent'.")
             throw new InvalidOperationException("Complete missing-name diagnostic");
-        if (diagnostics.Count != 2 || diagnostics.Single(d => d.Code == 2578).Format() != "Unused '@ts-expect-error' directive.")
+        if (diagnostics.Count != 2
+            || diagnostics.Single(
+                d => d.Code == DiagnosticCode.UnusedTsExpectErrorDirective).Format() != "Unused '@ts-expect-error' directive.")
             throw new InvalidOperationException("Diagnostic directive filtering");
         var repeat = checker.DetailedDiagnosticsForProgramFile(file);
         if (!repeat.SequenceEqual(diagnostics))
@@ -1020,7 +1164,22 @@ internal static class CheckerProgramTests
         var file = program.GetFile("/project/main.ts")!.Syntax;
         await checker.CheckSourceFileAsync(file);
         var codes = checker.DiagnosticCodesForFile(file);
-        if (!codes.SequenceEqual([1039, 1039, 1039, 1196, 1197, 1254, 1254, 1254, 2322, 2492, 2858, 2858, 2858]))
+        if (!codes.SequenceEqual(
+            [
+                    DiagnosticCode.InitializersAreNotAllowedInAmbientContexts,
+                    DiagnosticCode.InitializersAreNotAllowedInAmbientContexts,
+                    DiagnosticCode.InitializersAreNotAllowedInAmbientContexts,
+                    DiagnosticCode.CatchClauseVariableTypeAnnotationMustBeAnyOrUnknownIfSpecified,
+                    DiagnosticCode.CatchClauseVariableCannotHaveAnInitializer,
+                    DiagnosticCode.AConstInitializerInAnAmbientContextMustBeAStringOrNumericLiteralOrLiteralEnumReference,
+                    DiagnosticCode.AConstInitializerInAnAmbientContextMustBeAStringOrNumericLiteralOrLiteralEnumReference,
+                    DiagnosticCode.AConstInitializerInAnAmbientContextMustBeAStringOrNumericLiteralOrLiteralEnumReference,
+                    DiagnosticCode.Type0IsNotAssignableToType1,
+                    DiagnosticCode.CannotRedeclareIdentifier0InCatchClause,
+                    DiagnosticCode.ImportAttributeValuesMustBeStringLiteralExpressions,
+                    DiagnosticCode.ImportAttributeValuesMustBeStringLiteralExpressions,
+                    DiagnosticCode.ImportAttributeValuesMustBeStringLiteralExpressions
+                ]))
             throw new InvalidOperationException($"Context grammar diagnostics: {string.Join(',', codes)}");
         return 1;
     }
@@ -1061,7 +1220,16 @@ internal static class CheckerProgramTests
         var file = program.GetFile("/project/main.mts")!.Syntax;
         await checker.CheckSourceFileAsync(file);
         var codes = checker.DiagnosticCodesForFile(file);
-        if (!codes.SequenceEqual([2591, 2732, 2834, 2835, 2835, 2882, 7016]))
+        if (!codes.SequenceEqual(
+            [
+                    DiagnosticCode.CannotFindName0DoYouNeedToInstallTypeDefinitionsForNodeTryNpmISaveDevTypesSlashnodeAndThenAddNodeToTheTypesFieldInYourTsconfig,
+                    DiagnosticCode.CannotFindModule0ConsiderUsingResolveJsonModuleToImportModuleWithJsonExtension,
+                    DiagnosticCode.RelativeImportPathsNeedExplicitFileExtensionsInECMAScriptImportsWhenModuleResolutionIsNode16OrNodenextConsiderAddingAnExtensionToTheImportPath,
+                    DiagnosticCode.RelativeImportPathsNeedExplicitFileExtensionsInECMAScriptImportsWhenModuleResolutionIsNode16OrNodenextDidYouMean0,
+                    DiagnosticCode.RelativeImportPathsNeedExplicitFileExtensionsInECMAScriptImportsWhenModuleResolutionIsNode16OrNodenextDidYouMean0,
+                    DiagnosticCode.CannotFindModuleOrTypeDeclarationsForSideEffectImportOf0,
+                    DiagnosticCode.CouldNotFindADeclarationFileForModule01ImplicitlyHasAnAnyType
+                ]))
             throw new InvalidOperationException($"Import path diagnostics: {string.Join(',', codes)}");
         if (checker.SuggestedImportExtension("/project/dep") != ".mjs")
             throw new InvalidOperationException("Import extension priority changed");
@@ -1090,7 +1258,12 @@ internal static class CheckerProgramTests
         });
         var duplicateChecker = await duplicates.CreateCheckerAsync();
         foreach (var file in duplicates.SourceFiles)
-            if (!duplicateChecker.DiagnosticCodesForFile(file.Syntax).SequenceEqual([2300, 2451, 2567]))
+            if (!duplicateChecker.DiagnosticCodesForFile(file.Syntax).SequenceEqual(
+                [
+                        DiagnosticCode.DuplicateIdentifier0,
+                        DiagnosticCode.CannotRedeclareBlockScopedVariable0,
+                        DiagnosticCode.EnumDeclarationsCanOnlyMergeWithNamespaceOrOtherEnumDeclarations
+                    ]))
                 throw new InvalidOperationException("Merge diagnostics lost declaration file attribution");
         var related = duplicates.SourceFiles.SelectMany(file => duplicateChecker.DetailedDiagnosticsForFile(file.Syntax)).ToArray();
         if (related.Length != 6 || related.Any(d => d.RelatedInformation.Count != 1
@@ -1103,7 +1276,7 @@ internal static class CheckerProgramTests
         });
         var jsChecker = await plainJs.CreateCheckerAsync();
         if (jsChecker.DiagnosticCodesForFile(plainJs.GetFile("/project/a.js")!.Syntax).Count != 0
-            || !jsChecker.DiagnosticCodesForFile(plainJs.GetFile("/project/b.ts")!.Syntax).SequenceEqual([2300]))
+            || !jsChecker.DiagnosticCodesForFile(plainJs.GetFile("/project/b.ts")!.Syntax).SequenceEqual([DiagnosticCode.DuplicateIdentifier0]))
             throw new InvalidOperationException("Plain JavaScript merge suppression affected the TypeScript declaration");
         const string source = """
             export {};
@@ -1122,7 +1295,15 @@ internal static class CheckerProgramTests
             var checker = await names.CreateCheckerAsync();
             var file = names.GetFile("/project/main.ts")!.Syntax;
             await checker.CheckSourceFileAsync(file);
-            int[] expected = noEmit ? [] : [2441, 2441, 2818, 18027];
+            DiagnosticCode[] expected = noEmit
+                ? []
+                :
+                    [
+                        DiagnosticCode.DuplicateIdentifier0CompilerReservesName1InTopLevelScopeOfAModule,
+                        DiagnosticCode.DuplicateIdentifier0CompilerReservesName1InTopLevelScopeOfAModule,
+                        DiagnosticCode.DuplicateIdentifier0CompilerReservesName1WhenEmittingSuperReferencesInStaticInitializers,
+                        DiagnosticCode.CompilerReservesName0WhenEmittingPrivateIdentifierDownlevel
+                    ];
             var codes = checker.DiagnosticCodesForFile(file);
             if (!codes.SequenceEqual(expected))
                 throw new InvalidOperationException($"Declaration collision diagnostics (noEmit={noEmit}): {string.Join(',', codes)}");
@@ -1178,7 +1359,12 @@ internal static class CheckerProgramTests
         var parents = nodes.Select(n => n.Parent).ToArray();
         await checker.CheckSourceFileAsync(file);
         var codes = checker.DiagnosticCodesForFile(file);
-        if (!codes.SequenceEqual([1340, 2322, 7036]))
+        if (!codes.SequenceEqual(
+            [
+                    DiagnosticCode.Module0DoesNotReferToATypeButIsUsedAsATypeHereDidYouMeanTypeofImport0,
+                    DiagnosticCode.Type0IsNotAssignableToType1,
+                    DiagnosticCode.DynamicImportSSpecifierMustBeOfTypeStringButHereHasType0
+                ]))
             throw new InvalidOperationException($"Import diagnostics: {string.Join(',', codes)}");
         if (!nodes.Select(n => n.Parent).SequenceEqual(parents))
             throw new InvalidOperationException("Import checking changed source parents");
@@ -1241,7 +1427,15 @@ internal static class CheckerProgramTests
         }
         var (checker, file) = await Create(source, library, null, false);
         await checker.CheckSourceFileAsync(file);
-        int[] expected = [1492, 1547, 2850, 2851, 2852, 18054];
+        DiagnosticCode[] expected =
+            [
+                DiagnosticCode.X0DeclarationsMayNotHaveBindingPatterns,
+                DiagnosticCode.XUsingDeclarationsAreNotAllowedInCaseOrDefaultClausesUnlessContainedWithinABlock,
+                DiagnosticCode.TheInitializerOfAUsingDeclarationMustBeEitherAnObjectWithASymbolDisposeMethodOrBeNullOrUndefined,
+                DiagnosticCode.TheInitializerOfAnAwaitUsingDeclarationMustBeEitherAnObjectWithASymbolAsyncDisposeOrSymbolDisposeMethodOrBeNullOrUndefined,
+                DiagnosticCode.XAwaitUsingStatementsAreOnlyAllowedWithinAsyncFunctionsAndAtTheTopLevelsOfModules,
+                DiagnosticCode.XAwaitUsingStatementsCannotBeUsedInsideAClassStaticBlock
+            ];
         var codes = checker.DiagnosticCodesForFile(file);
         if (!codes.SequenceEqual(expected))
             throw new InvalidOperationException($"Disposable diagnostics: {string.Join(',', codes)}");
@@ -1255,7 +1449,15 @@ internal static class CheckerProgramTests
         {
             var (helperChecker, helperFile) = await Create("export {}; using first = null; using second = null;", library, helpers, true);
             await helperChecker.CheckSourceFileAsync(helperFile);
-            int[] helperExpected = helpers is null ? [2354] : helpers == "export {};" ? [2343, 2343] : [];
+            DiagnosticCode[] helperExpected = helpers is null
+                ? [DiagnosticCode.ThisSyntaxRequiresAnImportedHelperButModule0CannotBeFound]
+                : helpers == "export {};"
+                    ?
+                        [
+                            DiagnosticCode.ThisSyntaxRequiresAnImportedHelperNamed1WhichDoesNotExistIn0ConsiderUpgradingYourVersionOf0,
+                            DiagnosticCode.ThisSyntaxRequiresAnImportedHelperNamed1WhichDoesNotExistIn0ConsiderUpgradingYourVersionOf0
+                        ]
+                    : [];
             var helperCodes = helperChecker.DiagnosticCodesForFile(helperFile);
             if (!helperCodes.SequenceEqual(helperExpected))
                 throw new InvalidOperationException($"Disposable helper diagnostics: {string.Join(',', helperCodes)}");
@@ -2151,7 +2353,7 @@ internal static class CheckerProgramTests
         }
         writer.WriteEndArray();
         writer.WriteStartArray("diagnostics");
-        IEnumerable<int> diagnostics = host.Diagnostics;
+        IEnumerable<DiagnosticCode> diagnostics = host.Diagnostics;
         if (typeHost is not null)
             diagnostics = diagnostics.Concat(typeHost.Diagnostics).Concat(typeHost.Instantiation.Diagnostics)
                 .Concat(typeHost.Instantiation.ConstraintDiagnostics).Concat(typeHost.AlgebraDiagnostics);
@@ -2161,8 +2363,11 @@ internal static class CheckerProgramTests
         if (identifierOption.ValueKind == JsonValueKind.True)
         {
             writer.WriteStartArray("assignmentHints");
-            foreach (int code in typeHost!.AssignmentHints.Select(h => h.Construct ? 6213 : 6212).Order())
-                writer.WriteNumberValue(code);
+            foreach (DiagnosticCode code in typeHost!.AssignmentHints.Select(
+                h => h.Construct
+                    ? DiagnosticCode.DidYouMeanToUseNewWithThisExpression
+                    : DiagnosticCode.DidYouMeanToCallThisExpression).Order())
+                writer.WriteNumberValue((int)code);
             writer.WriteEndArray();
             writer.WriteStartArray("identifierSuggestions");
             foreach (int code in host.ValueSuggestions.Concat(typeHost!.Suggestions).Order())

@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 
 namespace TypeScript.Compiler.Checking;
 
@@ -19,7 +20,7 @@ internal interface IElementAccessErrorHost
         SyntaxNode node,
         Type objectType,
         Type indexType,
-        int code,
+        DiagnosticCode code,
         CancellationToken cancellation,
         Type? fullIndex = null,
         string? suggestion = null);
@@ -36,7 +37,12 @@ internal sealed class ElementAccessErrors(TypeContext context, TypeAlgebra algeb
         {
             if (host.NoImplicitAny && (index.Flags & TypeFlags.StringOrNumberLiteral) != 0)
             {
-                await host.InvalidIndexAsync(node, type, index, 2339, cancellation).ConfigureAwait(false);
+                await host.InvalidIndexAsync(
+                    node,
+                    type,
+                    index,
+                    DiagnosticCode.Property0DoesNotExistOnType1,
+                    cancellation).ConfigureAwait(false);
                 return context.UndefinedType;
             }
             if ((index.Flags & (TypeFlags.Number | TypeFlags.String)) != 0)
@@ -50,13 +56,28 @@ internal sealed class ElementAccessErrors(TypeContext context, TypeAlgebra algeb
         }
         if (type.Symbol == symbols.GlobalThisSymbol && name is not null
             && symbols.GlobalThisSymbol.Exports.GetValueOrDefault(name) is { Flags: var globalFlags } && (globalFlags & SymbolFlags.BlockScoped) != 0)
-            await host.InvalidIndexAsync(node, type, index, 2339, cancellation).ConfigureAwait(false);
+            await host.InvalidIndexAsync(
+                node,
+                type,
+                index,
+                DiagnosticCode.Property0DoesNotExistOnType1,
+                cancellation).ConfigureAwait(false);
         else if (host.NoImplicitAny && (flags & AccessFlags.SuppressNoImplicitAnyError) == 0)
         {
             if (name is not null && await host.StaticPropertyAsync(name, type, cancellation).ConfigureAwait(false))
-                await host.InvalidIndexAsync(node, type, index, 2576, cancellation).ConfigureAwait(false);
+                await host.InvalidIndexAsync(
+                    node,
+                    type,
+                    index,
+                    DiagnosticCode.Property0DoesNotExistOnType1DidYouMeanToAccessTheStaticMember2Instead,
+                    cancellation).ConfigureAwait(false);
             else if ((await host.IndexesAsync(type, cancellation).ConfigureAwait(false)).Any(i => i.KeyType == context.NumberType))
-                await host.InvalidIndexAsync(node.ArgumentExpression!, type, index, 7015, cancellation).ConfigureAwait(false);
+                await host.InvalidIndexAsync(
+                    node.ArgumentExpression!,
+                    type,
+                    index,
+                    DiagnosticCode.ElementImplicitlyHasAnAnyTypeBecauseIndexExpressionIsNotOfTypeNumber,
+                    cancellation).ConfigureAwait(false);
             else
             {
                 string? suggestion = name is not null
@@ -67,7 +88,7 @@ internal sealed class ElementAccessErrors(TypeContext context, TypeAlgebra algeb
                         node.ArgumentExpression!,
                         type,
                         index,
-                        2551,
+                        DiagnosticCode.Property0DoesNotExistOnType1DidYouMean2,
                         cancellation,
                         suggestion: suggestion).ConfigureAwait(false);
                 else if (await host.IndexSuggestionAsync(
@@ -75,9 +96,21 @@ internal sealed class ElementAccessErrors(TypeContext context, TypeAlgebra algeb
                     node,
                     index,
                     cancellation).ConfigureAwait(false) is { Length: > 0 } indexSuggestion)
-                    await host.InvalidIndexAsync(node, type, index, 7052, cancellation, suggestion: indexSuggestion).ConfigureAwait(false);
+                    await host.InvalidIndexAsync(
+                        node,
+                        type,
+                        index,
+                        DiagnosticCode.ElementImplicitlyHasAnAnyTypeBecauseType0HasNoIndexSignatureDidYouMeanToCall1,
+                        cancellation,
+                        suggestion: indexSuggestion).ConfigureAwait(false);
                 else
-                    await host.InvalidIndexAsync(node, type, index, 7053, cancellation, fullIndex).ConfigureAwait(false);
+                    await host.InvalidIndexAsync(
+                        node,
+                        type,
+                        index,
+                        DiagnosticCode.ElementImplicitlyHasAnAnyTypeBecauseExpressionOfType0CanTBeUsedToIndexType1,
+                        cancellation,
+                        fullIndex).ConfigureAwait(false);
             }
         }
         return null;

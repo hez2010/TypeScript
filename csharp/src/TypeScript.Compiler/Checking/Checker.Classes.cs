@@ -13,13 +13,16 @@ internal sealed partial class Checker
     {
         if (!expression && SemanticSyntax.Name(node) is null && !SemanticSyntax.HasModifier(node, SyntaxKind.DefaultKeyword)
             && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
-            Error(node, 1211);
+            Error(node, DiagnosticCode.AClassDeclarationWithoutTheDefaultModifierMustHaveAName);
         if (!CheckClassModifiers(node))
         {
             HeritageGrammar(
                 node,
                 node is ClassDeclarationNode classNode ? classNode.HeritageClauses : ((ClassExpressionNode)node).HeritageClauses);
-            EmptyTypeListError(node, node is ClassDeclarationNode c ? c.TypeParameters : ((ClassExpressionNode)node).TypeParameters, 1098);
+            EmptyTypeListError(
+                node,
+                node is ClassDeclarationNode c ? c.TypeParameters : ((ClassExpressionNode)node).TypeParameters,
+                DiagnosticCode.TypeParameterListCannotBeEmpty);
         }
         CheckDeclarationName(node);
         MarkPrivateIdentifierScopes(node);
@@ -28,7 +31,7 @@ internal sealed partial class Checker
         if (!expression)
             await CheckMergedExportsAsync(node, cancellation).ConfigureAwait(false);
         if (SemanticSyntax.Name(node) is IdentifierNode name && ReservedTypeName(name.Text))
-            Error(name, 2414, name.Text);
+            Error(name, DiagnosticCode.ClassNameCannotBe0, name.Text);
         var parameters = node is ClassDeclarationNode declaration ? declaration.TypeParameters : ((ClassExpressionNode)node).TypeParameters;
         if (parameters is not null)
             foreach (TypeParameterDeclarationNode parameter in parameters)
@@ -61,7 +64,7 @@ internal sealed partial class Checker
                     {
                         Error(
                             baseNode,
-                            2675,
+                            DiagnosticCode.CannotExtendAClass0ClassConstructorIsMarkedAsPrivate,
                             await FullyQualifiedNameAsync(program.Symbols.Declaration(ctor.Parent!)!, null, cancellation));
                         break;
                     }
@@ -76,21 +79,34 @@ internal sealed partial class Checker
                             break;
                 var baseWithThis = await Bases.WithThisAsync(baseType, type.ThisType, cancellation: cancellation).ConfigureAwait(false);
                 if (!await AssignableAsync(withThis, baseWithThis, cancellation).ConfigureAwait(false))
-                    await ClassMemberErrorsAsync(node, withThis, baseWithThis, 2415, cancellation).ConfigureAwait(false);
+                    await ClassMemberErrorsAsync(
+                        node,
+                        withThis,
+                        baseWithThis,
+                        DiagnosticCode.Class0IncorrectlyExtendsBaseClass1,
+                        cancellation).ConfigureAwait(false);
                 else
                     await RelationDiagnostics.CheckAsync(
                         staticType,
                         await WithoutSignaturesAsync(staticBase, cancellation).ConfigureAwait(false),
-                    RelationKind.Assignable, SemanticSyntax.Name(node) ?? node, null, 2417, cancellation).ConfigureAwait(false);
+                    RelationKind.Assignable,
+                        SemanticSyntax.Name(node) ?? node,
+                        null,
+                        DiagnosticCode.ClassStaticSide0IncorrectlyExtendsBaseClassStaticSide1,
+                        cancellation).ConfigureAwait(false);
                 if ((constructor.Flags & TypeFlags.TypeVariable) != 0)
                 {
                     if (!await Composites.MixinAsync(
                         await SignaturesAsync(staticType, true, cancellation).ConfigureAwait(false),
                         cancellation).ConfigureAwait(false))
-                        Error(SemanticSyntax.Name(node) ?? node, 2545);
+                        Error(
+                            SemanticSyntax.Name(node) ?? node,
+                            DiagnosticCode.AMixinClassMustHaveAConstructorWithASingleRestParameterOfTypeAny);
                     else if (constructors.Any(s => (s.Flags & SignatureFlags.Abstract) != 0)
                         && !SemanticSyntax.HasModifier(node, SyntaxKind.AbstractKeyword))
-                        Error(node, 2797);
+                        Error(
+                            node,
+                            DiagnosticCode.AMixinClassThatExtendsFromATypeVariableContainingAnAbstractConstructSignatureMustAlsoBeDeclaredAbstract);
                 }
                 if (staticBase.Symbol is not { Flags: var flags } || (flags & SymbolFlags.Class) == 0)
                     if ((constructor.Flags & TypeFlags.TypeVariable) == 0)
@@ -103,7 +119,7 @@ internal sealed partial class Checker
                                 baseType,
                                 cancellation).ConfigureAwait(false))
                             {
-                                Error(baseNode.Expression!, 2510);
+                                Error(baseNode.Expression!, DiagnosticCode.BaseConstructorsMustAllHaveTheSameReturnType);
                                 break;
                             }
                 await CheckClassOverridesAsync(node, type, baseType, cancellation).ConfigureAwait(false);
@@ -112,7 +128,11 @@ internal sealed partial class Checker
         else if (PropertyInitialization.Members(node).Any(m => SemanticSyntax.HasModifier(m, SyntaxKind.OverrideKeyword)))
             foreach (var member in PropertyInitialization.Members(node).Where(
                 m => SemanticSyntax.HasModifier(m, SyntaxKind.OverrideKeyword)))
-                Error(SemanticSyntax.Name(member) ?? member, (node.Flags & NodeFlags.JavaScriptFile) != 0 ? 4121 : 4112,
+                Error(
+                    SemanticSyntax.Name(member) ?? member,
+                    (node.Flags & NodeFlags.JavaScriptFile) != 0
+                        ? DiagnosticCode.ThisMemberCannotHaveAJSDocCommentWithAnOverrideTagBecauseItsContainingClass0DoesNotExtendAnotherClass
+                        : DiagnosticCode.ThisMemberCannotHaveAnOverrideModifierBecauseItsContainingClass0DoesNotExtendAnotherClass,
                     await TypeDisplay.GetAsync(type, cancellation));
         foreach (HeritageClauseNode clause in ((IEnumerable<SyntaxNode>?)(node is ClassDeclarationNode c
             ? c.HeritageClauses
@@ -127,7 +147,9 @@ internal sealed partial class Checker
                     if (reference is ExpressionWithTypeArgumentsNode heritage
                         && (!ConstantEvaluator.EntityName(heritage.Expression!)
                             || (heritage.Expression!.Flags & NodeFlags.OptionalChain) != 0))
-                        Error(heritage.Expression!, 2500);
+                        Error(
+                            heritage.Expression!,
+                            DiagnosticCode.AClassCanOnlyImplementAnIdentifierSlashqualifiedNameWithOptionalTypeArguments);
                     await TypeReferenceChecks.CheckAsync(reference, cancellation).ConfigureAwait(false);
                     var target = await Views.ReducedAsync(
                         await Nodes.FromNodeAsync(reference, cancellation).ConfigureAwait(false),
@@ -136,7 +158,9 @@ internal sealed partial class Checker
                         continue;
                     if (!await Bases.ValidAsync(target, cancellation).ConfigureAwait(false))
                     {
-                        Error(reference, 2422);
+                        Error(
+                            reference,
+                            DiagnosticCode.AClassCanOnlyImplementAnObjectTypeOrIntersectionOfObjectTypesWithStaticallyKnownMembers);
                         continue;
                     }
                     var targetWithThis = await Bases.WithThisAsync(target, type.ThisType, cancellation: cancellation).ConfigureAwait(false);
@@ -145,7 +169,9 @@ internal sealed partial class Checker
                             node,
                             withThis,
                             targetWithThis,
-                            (target.Symbol?.Flags & SymbolFlags.Class) != 0 ? 2720 : 2420,
+                            (target.Symbol?.Flags & SymbolFlags.Class) != 0
+                                ? DiagnosticCode.Class0IncorrectlyImplementsClass1DidYouMeanToExtend1AndInheritItsMembersAsASubclass
+                                : DiagnosticCode.Class0IncorrectlyImplementsInterface1,
                             cancellation).ConfigureAwait(false);
                 }
         await IndexDeclarationChecks.CheckAsync(type, false, cancellation).ConfigureAwait(false);
@@ -188,7 +214,12 @@ internal sealed partial class Checker
         return type;
     }
 
-    private async ValueTask ClassMemberErrorsAsync(SyntaxNode node, Type source, Type target, int broadCode, CancellationToken cancellation)
+    private async ValueTask ClassMemberErrorsAsync(
+        SyntaxNode node,
+        Type source,
+        Type target,
+        DiagnosticCode broadCode,
+        CancellationToken cancellation)
     {
         bool reported = false;
         foreach (var member in PropertyInitialization.Members(node))
@@ -212,7 +243,10 @@ internal sealed partial class Checker
                     TypeDisplay.SymbolName(property),
                     await TypeDisplay.GetAsync(source, cancellation),
                     await TypeDisplay.GetAsync(target, cancellation));
-                await ReportRelationMessageAsync(location, 2322, await Values.GetAsync(property, cancellation),
+                await ReportRelationMessageAsync(
+                    location,
+                    DiagnosticCode.Type0IsNotAssignableToType1,
+                    await Values.GetAsync(property, cancellation),
                     await Values.GetAsync(inherited, cancellation), RelationKind.Assignable, cancellation, head);
                 reported = true;
             }
@@ -256,7 +290,11 @@ internal sealed partial class Checker
                 && @static
                 && symbol?.Name is { } name
                 && (name == "prototype" || !UseDefineForClassFields && name is "name" or "length" or "caller" or "arguments"))
-                Error(SemanticSyntax.Name(member)!, 2699, name, program.Symbols.Declaration(node) is { } owner
+                Error(
+                    SemanticSyntax.Name(member)!,
+                    DiagnosticCode.StaticProperty0ConflictsWithBuiltInPropertyFunction0OfConstructorFunction1,
+                    name,
+                    program.Symbols.Declaration(node) is { } owner
                     ? await SymbolDisplayNameAsync(owner, null, SymbolFlags.All, cancellation) : "(Anonymous class)");
             Check(
                 member,
@@ -279,7 +317,7 @@ internal sealed partial class Checker
                             if (program.Symbols.Declaration(duplicate)?.Name == symbol.Name)
                                 Error(
                                     SemanticSyntax.Name(duplicate)!,
-                                    2804,
+                                    DiagnosticCode.DuplicateIdentifier0StaticAndInstanceElementsCannotShareTheSamePrivateName,
                                     CheckerDiagnostic.DeclarationName(SemanticSyntax.Name(duplicate)!));
                 }
             }
@@ -314,9 +352,9 @@ internal sealed partial class Checker
         if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
         {
             if (node.TypeParameters is not null)
-                ListError(node, node.TypeParameters, 1092);
+                ListError(node, node.TypeParameters, DiagnosticCode.TypeParametersCannotAppearOnAConstructorDeclaration);
             if (node.Type is not null)
-                Error(node.Type, 1093);
+                Error(node.Type, DiagnosticCode.TypeAnnotationCannotAppearOnAConstructorDeclaration);
         }
         await CheckSourceElementAsync(node.Body, cancellation).ConfigureAwait(false);
         await CheckOverloadDeclarationsAsync(program.Symbols.Declaration(node)!, cancellation).ConfigureAwait(false);
@@ -332,11 +370,11 @@ internal sealed partial class Checker
         if (super is null)
         {
             if (!extendsNull)
-                Error(node, 2377);
+                Error(node, DiagnosticCode.ConstructorsForDerivedClassesMustContainASuperCall);
             return;
         }
         if (extendsNull)
-            Error(super, 17005);
+            Error(super, DiagnosticCode.AConstructorCannotContainASuperCallWhenItsClassExtendsNull);
         bool rootRequired = !UseDefineForClassFields && (PropertyInitialization.Members(node.Parent!).Any(
             m => SemanticSyntax.Name(m) is PrivateIdentifierNode
             || m is PropertyDeclarationNode { Initializer: not null }
@@ -348,7 +386,9 @@ internal sealed partial class Checker
             parent = parent.Parent;
         if (parent is not ExpressionStatementNode || parent.Parent != node.Body)
         {
-            Error(super, 2401);
+            Error(
+                super,
+                DiagnosticCode.ASuperCallMustBeARootLevelStatementWithinAConstructorOfADerivedClassThatContainsInitializedPropertiesParameterPropertiesOrPrivateIdentifiers);
             return;
         }
         bool valid = false;
@@ -364,7 +404,9 @@ internal sealed partial class Checker
                 break;
         }
         if (!valid)
-            Error(node, 2376);
+            Error(
+                node,
+                DiagnosticCode.ASuperCallMustBeTheFirstStatementInTheConstructorToReferToSuperOrThisWhenADerivedClassContainsInitializedPropertiesParameterPropertiesOrPrivateIdentifiers);
     }
 
     private static IEnumerable<SyntaxNode> ImmediateNodes(SyntaxNode root, bool skipProperties)

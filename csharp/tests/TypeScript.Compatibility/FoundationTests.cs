@@ -95,7 +95,7 @@ internal static class FoundationTests
         fs.AppendFile("/project/surrogate-\ud800.ts", [3]);
         Check(fs.ReadFile("/project/surrogate-\ud800.ts")!.SequenceEqual(new byte[] { 1, 2, 3 }), "VFS surrogate path and append");
         var parsed = new CommandLineParser(fs, "/project").Parse(["@a.rsp", "--noEmit", "--strictNullChecks", "--not-an-option"]);
-        Check(parsed.Diagnostics is [{ Code: 5023 }], "CLI unknown option");
+        Check(parsed.Diagnostics is [{ Code: DiagnosticCode.UnknownCompilerOption0 }], "CLI unknown option");
         Check(parsed.Options.Boolean("strict") == false && parsed.Options.Boolean("noEmit") == true, "CLI boolean values");
         Check(parsed.Options.String("outDir") == "/project/output" && parsed.Options.String("target") == "esnext", "CLI paths and enums");
         Check(parsed.FileNames.SequenceEqual(["space name.ts"]), "Response file cycles and quoted filename");
@@ -115,7 +115,10 @@ internal static class FoundationTests
             configParser.Parse("nested/tsconfig.json").FileNames.SequenceEqual(config.FileNames),
             "Inherited include keeps base config directory");
         fs.WriteFile("/project/cycle.json", Encoding.UTF8.GetBytes("{\"extends\":\"./cycle\"}"));
-        Check(configParser.Parse("cycle.json").Diagnostics.Any(d => d.Code == 18000), "Config inheritance cycle diagnostic");
+        Check(
+            configParser.Parse("cycle.json").Diagnostics.Any(
+                d => d.Code == DiagnosticCode.CircularityDetectedWhileResolvingConfigurationColon0),
+            "Config inheritance cycle diagnostic");
         var directives = TestDirectives.Parse(
             "// @target: es6, es2015, esnext\n// @strict: *, -false\n// @filename: a.ts\nconst a = 1;\n// @symlink: link.ts\n// @filename: b.ts\nexport {};",
             "test.ts");

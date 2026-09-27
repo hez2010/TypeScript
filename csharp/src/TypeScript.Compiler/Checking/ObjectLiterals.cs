@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -23,9 +24,9 @@ internal interface IObjectLiteralHost
 
     void DeferExpression(SyntaxNode node);
 
-    void ExpressionError(SyntaxNode node, int code);
+    void ExpressionError(SyntaxNode node, DiagnosticCode code);
 
-    ValueTask TypeExpressionErrorAsync(SyntaxNode node, int code, Type type, CancellationToken cancellation);
+    ValueTask TypeExpressionErrorAsync(SyntaxNode node, DiagnosticCode code, Type type, CancellationToken cancellation);
 
     void DuplicateObjectProperty(SyntaxNode node, string name);
 
@@ -107,7 +108,7 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
                             cancellation).ConfigureAwait(false)).Any(i => i.KeyType == context.StringType))
                             await host.TypeExpressionErrorAsync(
                                 ((INamedNode)declaration).Name!,
-                                2353,
+                                DiagnosticCode.ObjectLiteralMayOnlySpecifyKnownPropertiesAnd0DoesNotExistInType1,
                                 contextual,
                                 cancellation).ConfigureAwait(false);
                     }
@@ -165,7 +166,7 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
                     }
                     else
                     {
-                        host.ExpressionError(spread, 2698);
+                        host.ExpressionError(spread, DiagnosticCode.SpreadTypesMayOnlyBeCreatedFromObjectTypes);
                         spreadType = context.ErrorType;
                     }
                     continue;
@@ -291,7 +292,7 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
                         context.StringNumberSymbolType,
                         RelationKind.Assignable,
                         cancellation).ConfigureAwait(false))
-                host.ExpressionError(node, 2464);
+                host.ExpressionError(node, DiagnosticCode.AComputedPropertyNameMustBeOfTypeStringNumberSymbolOrAny);
             cancellation.ThrowIfCancellationRequested();
             return type;
         }
@@ -361,7 +362,7 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
     {
         var seen = new Dictionary<string, int>(StringComparer.Ordinal);
         bool grammarErrors = SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0;
-        void Error(SyntaxNode location, int code)
+        void Error(SyntaxNode location, DiagnosticCode code)
         {
             if (grammarErrors)
                 host.ExpressionError(location, code);
@@ -375,23 +376,25 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
                     expression = parentheses.Expression!;
                 if (destructuring && expression is ArrayLiteralExpressionNode or ObjectLiteralExpressionNode)
                 {
-                    Error(spread.Expression!, 2501);
+                    Error(spread.Expression!, DiagnosticCode.ARestElementCannotContainABindingPattern);
                     return;
                 }
                 continue;
             }
             var name = ((INamedNode)property).Name!;
             if (name is ComputedPropertyNameNode { Expression: BinaryExpressionNode { OperatorToken.Kind: SyntaxKind.CommaToken } comma })
-                Error(comma, 1171);
+                Error(comma, DiagnosticCode.ACommaExpressionIsNotAllowedInAComputedPropertyName);
             if (!destructuring && property is ShorthandPropertyAssignmentNode { ObjectAssignmentInitializer: not null } shorthand)
-                Error(shorthand.EqualsToken!, 1312);
+                Error(
+                    shorthand.EqualsToken!,
+                    DiagnosticCode.DidYouMeanToUseAColonAnCanOnlyFollowAPropertyNameWhenTheContainingObjectLiteralIsPartOfADestructuringPattern);
             if (name is PrivateIdentifierNode)
-                Error(name, 18016);
+                Error(name, DiagnosticCode.PrivateIdentifiersAreNotAllowedOutsideClassBodies);
             if (property is IModifiedNode { Modifiers: { } modifiers })
                 foreach (var modifier in modifiers)
                     if (modifier.Kind != SyntaxKind.Decorator
                         && (modifier.Kind != SyntaxKind.AsyncKeyword || property is not MethodDeclarationNode))
-                        Error(modifier, 1042);
+                        Error(modifier, DiagnosticCode.X0ModifierCannotBeUsedHere);
             int kind = property switch
             {
                 PropertyAssignmentNode or ShorthandPropertyAssignmentNode => 1,
@@ -406,16 +409,20 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
                     ? assignment.PostfixToken
                     : ((ShorthandPropertyAssignmentNode)property).PostfixToken;
                 if (postfix?.Kind == SyntaxKind.ExclamationToken)
-                    Error(postfix, 1255);
+                    Error(postfix, DiagnosticCode.ADefiniteAssignmentAssertionIsNotPermittedInThisContext);
                 if (postfix?.Kind == SyntaxKind.QuestionToken)
-                    Error(postfix, 1162);
+                    Error(postfix, DiagnosticCode.AnObjectMemberCannotBeDeclaredOptional);
                 if (name is NumericLiteralNode)
                     host.LiteralGrammar(name);
                 if (name is BigIntLiteralNode)
-                    host.ExpressionError(name, 1539);
+                    host.ExpressionError(name, DiagnosticCode.ABigintLiteralCannotBeUsedAsAPropertyName);
             }
             else if (property is MethodDeclarationNode { PostfixToken: { } postfix })
-                Error(postfix, postfix.Kind == SyntaxKind.QuestionToken ? 1162 : 1255);
+                Error(
+                    postfix,
+                    postfix.Kind == SyntaxKind.QuestionToken
+                        ? DiagnosticCode.AnObjectMemberCannotBeDeclaredOptional
+                        : DiagnosticCode.ADefiniteAssignmentAssertionIsNotPermittedInThisContext);
             if (destructuring)
                 continue;
             if (!effectiveNames.TryGetValue(name, out var text))
@@ -431,7 +438,7 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
             if (!seen.TryGetValue(text, out int old))
                 seen[text] = kind;
             else if ((kind & old & 2) != 0)
-                Error(name, 2300);
+                Error(name, DiagnosticCode.DuplicateIdentifier0);
             else if ((kind & old & 1) != 0)
             {
                 if (SemanticSyntax.Source(name)?.ParseDiagnostics.Count == 0)
@@ -443,13 +450,13 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
                     seen[text] = kind | old;
                 else
                 {
-                    Error(name, 1118);
+                    Error(name, DiagnosticCode.AnObjectLiteralCannotHaveMultipleGetSlashsetAccessorsWithTheSameName);
                     return;
                 }
             }
             else
             {
-                Error(name, 1119);
+                Error(name, DiagnosticCode.AnObjectLiteralCannotHavePropertyAndAccessorWithTheSameName);
                 return;
             }
         }

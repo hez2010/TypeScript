@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 using Checking = TypeScript.Compiler.Checking;
 
@@ -100,9 +101,9 @@ internal sealed partial class Checker
                 {
                     inBounds ??= await BindingIterationAsync(source, array, false, cancellation);
                     if (i != array.Elements.Count - 1)
-                        Error(element, 2462);
+                        Error(element, DiagnosticCode.ARestElementMustBeLastInADestructuringPattern);
                     else if (spread.Expression is BinaryExpressionNode { OperatorToken.Kind: SyntaxKind.EqualsToken } restDefault)
-                        Error(restDefault.OperatorToken!, 1186);
+                        Error(restDefault.OperatorToken!, DiagnosticCode.ARestElementCannotHaveAnInitializer);
                     else
                     {
                         DestructuringTrailingComma(array.Elements, array);
@@ -144,7 +145,7 @@ internal sealed partial class Checker
         {
             var name = SemanticSyntax.Name(property)!;
             if (name is PrivateIdentifierNode && SemanticSyntax.Source(name)?.ParseDiagnostics.Count == 0)
-                Error(name, 18064);
+                Error(name, DiagnosticCode.PrivateIdentifiersCannotBeUsedInDestructuringPatterns);
             var key = await LiteralNameTypeAsync(name, cancellation);
             if ((key.Flags & TypeFlags.StringOrNumberLiteralOrUnique) != 0
                 && await Properties.PropertyAsync(source, MappedMembers.PropertyName(key), cancellation: cancellation) is { } symbol)
@@ -165,7 +166,7 @@ internal sealed partial class Checker
         {
             if (index != node.Properties.Count - 1)
             {
-                Error(property, 2462);
+                Error(property, DiagnosticCode.ARestElementMustBeLastInADestructuringPattern);
                 return;
             }
             if (TargetYear < 2018)
@@ -176,12 +177,12 @@ internal sealed partial class Checker
             await CheckDestructuringAsync(spread.Expression!, rest, 0, false, cancellation);
         }
         else
-            Error(property, 1136);
+            Error(property, DiagnosticCode.PropertyAssignmentExpected);
     }
 
     private void DestructuringTrailingComma(NodeList nodes, SyntaxNode node)
     {
         if (nodes.HasTrailingComma && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
-            TrailingCommaError(node, nodes, 1013);
+            TrailingCommaError(node, nodes, DiagnosticCode.ARestParameterOrBindingPatternMayNotHaveATrailingComma);
     }
 }

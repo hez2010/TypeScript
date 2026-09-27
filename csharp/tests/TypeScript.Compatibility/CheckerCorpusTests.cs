@@ -30,8 +30,8 @@ internal static class CheckerCorpusTests
         CompilerProgram? previous)
     {
         CompilerProgram? program = null;
-        List<(string File, IReadOnlyList<int> Codes)> diagnostics = [];
-        IReadOnlyList<int> globals = [];
+        List<(string File, IReadOnlyList<DiagnosticCode> Codes)> diagnostics = [];
+        IReadOnlyList<DiagnosticCode> globals = [];
         bool includeDetails = input.TryGetProperty("includeDiagnosticDetails", out var details) && details.GetBoolean();
         var semanticDetails = new List<Diagnostic>();
         IReadOnlyList<Diagnostic> globalDetails = [];
@@ -162,7 +162,7 @@ internal static class CheckerCorpusTests
             writer.WriteString("file", diagnostic.FileName ?? "");
             writer.WriteNumber("start", diagnostic.Start);
             writer.WriteNumber("length", diagnostic.Length);
-            writer.WriteNumber("code", diagnostic.Code);
+            writer.WriteNumber("code", (int)diagnostic.Code);
             writer.WriteNumber("category", (int)diagnostic.Message.Category);
             writer.WriteString("key", diagnostic.Message.Key);
             writer.WriteStartArray("arguments");

@@ -1,6 +1,7 @@
 using System.Globalization;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -16,10 +17,10 @@ internal interface ILiteralElaborationHost
         Type target,
         RelationKind kind,
         SyntaxNode? node,
-        int? headCode,
+        DiagnosticCode? headCode,
         CancellationToken cancellation);
 
-    ValueTask LiteralRelationErrorAsync(SyntaxNode node, int code, Type source, Type target, CancellationToken cancellation);
+    ValueTask LiteralRelationErrorAsync(SyntaxNode node, DiagnosticCode code, Type source, Type target, CancellationToken cancellation);
 
     ValueTask ExpectedPropertyInfoAsync(SyntaxNode node, Type target, Type key, Symbol? property, CancellationToken cancellation);
 
@@ -56,9 +57,9 @@ internal sealed class LiteralElaboration(TypeContext context, CheckerSymbols sym
                     continue;
                 var declarationName = ((INamedNode)property).Name!;
                 var next = (property as PropertyAssignmentNode)?.Initializer;
-                int? code = declarationName is ComputedPropertyNameNode computed
+                DiagnosticCode? code = declarationName is ComputedPropertyNameNode computed
                     && computed.Expression is not StringLiteralNode and not NumericLiteralNode
-                    ? 2418
+                    ? DiagnosticCode.TypeOfComputedPropertySValueIs0WhichIsNotAssignableToType1
                     : null;
                 reported = await ElementAsync(source, target, kind, declarationName, next, name, code, cancellation).ConfigureAwait(false)
                     || reported;
@@ -140,7 +141,7 @@ internal sealed class LiteralElaboration(TypeContext context, CheckerSymbols sym
     }
 
     internal async ValueTask<bool> ElementAsync(Type source, Type target, RelationKind kind, SyntaxNode property, SyntaxNode? next,
-        Type key, int? code, CancellationToken cancellation)
+        Type key, DiagnosticCode? code, CancellationToken cancellation)
     {
         var targetType = await indexed.TryGetAsync(target, key, cancellation: cancellation).ConfigureAwait(false);
         if (targetType is null
@@ -165,7 +166,12 @@ internal sealed class LiteralElaboration(TypeContext context, CheckerSymbols sym
             && (targetType == context.MissingType
                 || targetType is UnionType targetUnion && targetUnion.Types.Contains(context.MissingType)))
         {
-            await host.LiteralRelationErrorAsync(property, 2412, specific, targetType, cancellation).ConfigureAwait(false);
+            await host.LiteralRelationErrorAsync(
+                property,
+                DiagnosticCode.Type0IsNotAssignableToType1WithExactOptionalPropertyTypesColonTrueConsiderAddingUndefinedToTheTypeOfTheTarget,
+                specific,
+                targetType,
+                cancellation).ConfigureAwait(false);
             await host.ExpectedPropertyInfoAsync(property, target, key,
                 await properties.PropertyAsync(target, MappedMembers.PropertyName(key), cancellation: cancellation).ConfigureAwait(false),
                 cancellation).ConfigureAwait(false);

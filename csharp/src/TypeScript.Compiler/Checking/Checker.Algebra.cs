@@ -1,11 +1,12 @@
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 
 namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker : ITypeAlgebraHost
 {
-    internal List<int> AlgebraDiagnostics { get; } = [];
+    internal List<DiagnosticCode> AlgebraDiagnostics { get; } = [];
 
     ValueTask<Type?> ITypeAlgebraHost.GetBaseConstraintAsync(Type type, CancellationToken cancellation) =>
         Instantiation.Constraints.BaseConstraintAsync(type, cancellation);
@@ -48,8 +49,8 @@ internal sealed partial class Checker : ITypeAlgebraHost
 
     void ITypeAlgebraHost.ReportComplexity(string operation, long size)
     {
-        AlgebraDiagnostics.Add(2590);
-        TrackDiagnostic(DiagnosticNode, 2590);
+        AlgebraDiagnostics.Add(DiagnosticCode.ExpressionProducesAUnionTypeThatIsTooComplexToRepresent);
+        TrackDiagnostic(DiagnosticNode, DiagnosticCode.ExpressionProducesAUnionTypeThatIsTooComplexToRepresent);
     }
 
     public async ValueTask<bool> DerivedAsync(Type source, Type target, CancellationToken cancellation)

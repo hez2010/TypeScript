@@ -11,7 +11,10 @@ internal sealed partial class Checker : IVariableTypeHost
     internal WideningDiagnostics WideningDiagnostics { get; }
 
     private async ValueTask WideningPropertyErrorAsync(SyntaxNode node, Symbol property, Type type, CancellationToken cancellation) =>
-        Error(node, 7018, await SymbolDisplayNameAsync(property, null, SymbolFlags.All, cancellation),
+        Error(
+            node,
+            DiagnosticCode.ObjectLiteralSProperty0ImplicitlyHasAn1Type,
+            await SymbolDisplayNameAsync(property, null, SymbolFlags.All, cancellation),
             await TypeDisplay.GetAsync(type, cancellation));
 
     internal PropertyInitialization PropertyInitializers { get; }
@@ -23,7 +26,9 @@ internal sealed partial class Checker : IVariableTypeHost
         var name = SemanticSyntax.Name(node)!;
         string text = CheckerDiagnostic.DeclarationName(name);
         var diagnostic = CheckerDiagnostic.Create(name, DiagnosticLocalization.GetMessage(
-            node is PropertyDeclarationNode or PropertySignatureDeclarationNode ? 2717 : 2403),
+            node is PropertyDeclarationNode or PropertySignatureDeclarationNode
+                ? DiagnosticCode.SubsequentPropertyDeclarationsMustHaveTheSameTypeProperty0MustBeOfType1ButHereHasType2
+                : DiagnosticCode.SubsequentVariableDeclarationsMustHaveTheSameTypeVariable0MustBeOfType1ButHereHasType2),
             text, await TypeDisplay.GetAsync(firstType, cancellation), await TypeDisplay.GetAsync(nextType, cancellation));
         if (symbol.ValueDeclaration is { } first)
             diagnostic = diagnostic with
@@ -64,7 +69,7 @@ internal sealed partial class Checker : IVariableTypeHost
         else if (symbol.ValueDeclaration is { } first)
             mismatch = !Same(node, first);
         if (mismatch && SemanticSyntax.Name(node) is { } name)
-            Error(name, 2687, CheckerDiagnostic.DeclarationName(name));
+            Error(name, DiagnosticCode.AllDeclarationsOf0MustHaveIdenticalModifiers, CheckerDiagnostic.DeclarationName(name));
     }
 
     public void CheckVariableShadowing(SyntaxNode node, CancellationToken cancellation)
@@ -88,7 +93,7 @@ internal sealed partial class Checker : IVariableTypeHost
         if (!sharedScope)
         {
             string text = TypeDisplay.SymbolName(local);
-            Error(node, 2481, text, text);
+            Error(node, DiagnosticCode.CannotInitializeOuterScopedVariable0InTheSameScopeAsBlockScopedDeclaration1, text, text);
         }
     }
 
@@ -196,7 +201,7 @@ internal sealed partial class Checker : IVariableTypeHost
             && program.Symbols.Program.Configuration.Options.Boolean("checkJs") != true)
             return;
         string typeText = await TypeDisplay.GetAsync(await Widening.GetAsync(type, cancellation), cancellation);
-        int code;
+        DiagnosticCode code;
         if (declaration is ParameterDeclarationNode parameter)
         {
             if (parameter.Parent is FunctionTypeNode or MethodSignatureDeclarationNode or CallSignatureDeclarationNode
@@ -206,38 +211,54 @@ internal sealed partial class Checker : IVariableTypeHost
                     or "never" or "void" or "undefined";
                 if (keyword || await program.EntityNames.ResolveAsync(name, SymbolFlags.Type, true, cancellation: cancellation) is not null)
                 {
-                    code = 7051;
+                    code = DiagnosticCode.ParameterHasANameButNoTypeDidYouMean0Colon1;
                     int index = Signatures.Parameters(parameter.Parent!)?.IndexOf(parameter) ?? -1;
                     Report("arg" + index.ToString(System.Globalization.CultureInfo.InvariantCulture),
                         CheckerDiagnostic.DeclarationName(name) + (parameter.DotDotDotToken is null ? "" : "[]"));
                     return;
                 }
             }
-            code = parameter.DotDotDotToken is not null ? NoImplicitAny ? 7019 : 7047 : NoImplicitAny ? 7006 : 7044;
+            code = parameter.DotDotDotToken is not null
+                ? NoImplicitAny
+                    ? DiagnosticCode.RestParameter0ImplicitlyHasAnAnyType
+                    : DiagnosticCode.RestParameter0ImplicitlyHasAnAnyTypeButABetterTypeMayBeInferredFromUsage
+                : NoImplicitAny
+                    ? DiagnosticCode.Parameter0ImplicitlyHasAn1Type
+                    : DiagnosticCode.Parameter0ImplicitlyHasAn1TypeButABetterTypeMayBeInferredFromUsage;
         }
         else if (declaration is PropertyDeclarationNode or PropertySignatureDeclarationNode or BinaryExpressionNode)
-            code = NoImplicitAny ? 7008 : 7045;
+            code = NoImplicitAny
+                ? DiagnosticCode.Member0ImplicitlyHasAn1Type
+                : DiagnosticCode.Member0ImplicitlyHasAn1TypeButABetterTypeMayBeInferredFromUsage;
         else if (declaration is BindingElementNode)
         {
             if (!NoImplicitAny)
                 return;
-            code = 7031;
+            code = DiagnosticCode.BindingElement0ImplicitlyHasAn1Type;
         }
         else if (declaration is FunctionDeclarationNode or FunctionExpressionNode or ArrowFunctionNode or MethodDeclarationNode
             or MethodSignatureDeclarationNode or GetAccessorDeclarationNode or SetAccessorDeclarationNode)
         {
             var name = (declaration as INamedNode)?.Name;
             if (NoImplicitAny && name is null)
-                code = kind == WideningKind.GeneratorYield ? 7025 : 7011;
+                code = kind == WideningKind.GeneratorYield
+                    ? DiagnosticCode.GeneratorImplicitlyHasYieldType0ConsiderSupplyingAReturnTypeAnnotation
+                    : DiagnosticCode.FunctionExpressionWhichLacksReturnTypeAnnotationImplicitlyHasAn0ReturnType;
             else if (!NoImplicitAny)
-                code = 7050;
+                code = DiagnosticCode.X0ImplicitlyHasAn1ReturnTypeButABetterTypeMayBeInferredFromUsage;
             else if ((declaration.Flags & NodeFlags.Reparsed) != 0)
-                code = name is null ? 7012 : 7010;
+                code = name is null
+                    ? DiagnosticCode.ThisOverloadImplicitlyReturnsTheType0BecauseItLacksAReturnTypeAnnotation
+                    : DiagnosticCode.X0WhichLacksReturnTypeAnnotationImplicitlyHasAn1ReturnType;
             else
-                code = kind == WideningKind.GeneratorYield ? 7055 : 7010;
+                code = kind == WideningKind.GeneratorYield
+                    ? DiagnosticCode.X0WhichLacksReturnTypeAnnotationImplicitlyHasAn1YieldType
+                    : DiagnosticCode.X0WhichLacksReturnTypeAnnotationImplicitlyHasAn1ReturnType;
         }
         else
-            code = NoImplicitAny ? 7005 : 7043;
+            code = NoImplicitAny
+                ? DiagnosticCode.Variable0ImplicitlyHasAn1Type
+                : DiagnosticCode.Variable0ImplicitlyHasAn1TypeButABetterTypeMayBeInferredFromUsage;
         var declarationName = SemanticSyntax.Name(declaration) ?? (declaration is BinaryExpressionNode binary ? binary.Left switch
         {
             PropertyAccessExpressionNode property => property.Name,
@@ -245,7 +266,12 @@ internal sealed partial class Checker : IVariableTypeHost
             _ => binary.Left
         } : null);
         string nameText = declarationName is null ? "" : CheckerDiagnostic.DeclarationName(declarationName);
-        Report(code is 7011 or 7012 or 7025 ? [typeText] : [nameText, typeText]);
+        Report(
+            code is DiagnosticCode.FunctionExpressionWhichLacksReturnTypeAnnotationImplicitlyHasAn0ReturnType
+                or DiagnosticCode.ThisOverloadImplicitlyReturnsTheType0BecauseItLacksAReturnTypeAnnotation
+                or DiagnosticCode.GeneratorImplicitlyHasYieldType0ConsiderSupplyingAReturnTypeAnnotation
+                ? [typeText]
+                : [nameText, typeText]);
         void Report(params string[] arguments)
         {
             if (NoImplicitAny)

@@ -1,4 +1,5 @@
 using TypeScript.Compiler.Ast;
+using TypeScript.Compiler.Diagnostics;
 
 namespace TypeScript.Compiler.Checking;
 
@@ -33,7 +34,7 @@ internal sealed partial class Checker : IConditionalTypeHost, IConditionalRelati
     public void ConditionalDepthExceeded()
     {
         if (ReportTypeRecursionLimit())
-            Diagnostics.Add(2589);
+            Diagnostics.Add(DiagnosticCode.TypeInstantiationIsExcessivelyDeepAndPossiblyInfinite);
     }
 
     public async ValueTask<TypeMapper> InferConditionalRelationAsync(IReadOnlyList<TypeParameter> parameters, Type source, Type target,

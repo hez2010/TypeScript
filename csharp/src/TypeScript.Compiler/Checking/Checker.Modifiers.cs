@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -17,9 +18,9 @@ internal sealed partial class Checker
         if (first is null)
             return false;
         if (IllegalDeclarationModifier(node, first.Kind))
-            return Report(first, 1184);
+            return Report(first, DiagnosticCode.ModifiersCannotAppearHere);
         if (node is ParameterDeclarationNode { Name: IdentifierNode { Text: "this" } })
-            return Report(node, 1433);
+            return Report(node, DiagnosticCode.NeitherDecoratorsNorModifiersMayBeAppliedToThisParameters);
         var seen = new HashSet<SyntaxKind>();
         bool moduleElement = node.Parent is SourceFileNode or ModuleBlockNode;
         foreach (var modifier in modifiers)
@@ -29,15 +30,15 @@ internal sealed partial class Checker
             var kind = modifier.Kind;
             bool parsed = (modifier.Flags & NodeFlags.Reparsed) == 0;
             if (kind != SyntaxKind.ReadonlyKeyword && node is PropertySignatureDeclarationNode or MethodSignatureDeclarationNode)
-                return Report(modifier, 1070);
+                return Report(modifier, DiagnosticCode.X0ModifierCannotAppearOnATypeMember);
             if (kind != SyntaxKind.ReadonlyKeyword && node is IndexSignatureDeclarationNode
                 && (kind != SyntaxKind.StaticKeyword || !SemanticSyntax.ClassLike(node.Parent)))
-                return Report(modifier, 1071);
+                return Report(modifier, DiagnosticCode.X0ModifierCannotAppearOnAnIndexSignature);
             bool access = kind is SyntaxKind.PublicKeyword or SyntaxKind.ProtectedKeyword or SyntaxKind.PrivateKeyword;
             if (access && seen.Any(k => k is SyntaxKind.PublicKeyword or SyntaxKind.ProtectedKeyword or SyntaxKind.PrivateKeyword))
-                return Report(modifier, 1028);
+                return Report(modifier, DiagnosticCode.AccessibilityModifierAlreadySeen);
             if (seen.Contains(kind) && kind is not SyntaxKind.ConstKeyword and not SyntaxKind.DefaultKeyword)
-                return Report(modifier, 1030);
+                return Report(modifier, DiagnosticCode.X0ModifierAlreadySeen);
             switch (kind)
             {
                 case SyntaxKind.PublicKeyword:
@@ -45,131 +46,162 @@ internal sealed partial class Checker
                 case SyntaxKind.PrivateKeyword:
                     if (parsed && seen.Any(k => k is SyntaxKind.OverrideKeyword or SyntaxKind.StaticKeyword or SyntaxKind.AccessorKeyword
                         or SyntaxKind.ReadonlyKeyword or SyntaxKind.AsyncKeyword))
-                        return Report(modifier, 1029, TokenFacts.Text(kind), Seen(SyntaxKind.OverrideKeyword, SyntaxKind.StaticKeyword,
+                        return Report(
+                            modifier,
+                            DiagnosticCode.X0ModifierMustPrecede1Modifier,
+                            TokenFacts.Text(kind),
+                            Seen(
+                            SyntaxKind.OverrideKeyword,
+                            SyntaxKind.StaticKeyword,
                             SyntaxKind.AccessorKeyword, SyntaxKind.ReadonlyKeyword, SyntaxKind.AsyncKeyword));
                     if (moduleElement)
-                        return Report(modifier, 1044);
+                        return Report(modifier, DiagnosticCode.X0ModifierCannotAppearOnAModuleOrNamespaceElement);
                     if (seen.Contains(SyntaxKind.AbstractKeyword))
                     {
                         if (kind == SyntaxKind.PrivateKeyword)
-                            return Report(modifier, 1243, "private", "abstract");
+                            return Report(modifier, DiagnosticCode.X0ModifierCannotBeUsedWith1Modifier, "private", "abstract");
                         if (parsed)
-                            return Report(modifier, 1029, TokenFacts.Text(kind), "abstract");
+                            return Report(modifier, DiagnosticCode.X0ModifierMustPrecede1Modifier, TokenFacts.Text(kind), "abstract");
                     }
                     if (SemanticSyntax.Name(node) is PrivateIdentifierNode)
-                        return Report(modifier, 18010);
+                        return Report(modifier, DiagnosticCode.AnAccessibilityModifierCannotBeUsedWithAPrivateIdentifier);
                     break;
                 case SyntaxKind.StaticKeyword:
                     if (parsed && seen.Any(k => k is SyntaxKind.ReadonlyKeyword or SyntaxKind.AsyncKeyword or SyntaxKind.AccessorKeyword))
                         return Report(
                             modifier,
-                            1029,
+                            DiagnosticCode.X0ModifierMustPrecede1Modifier,
                             "static",
                             Seen(SyntaxKind.ReadonlyKeyword, SyntaxKind.AsyncKeyword, SyntaxKind.AccessorKeyword));
                     if (moduleElement)
-                        return Report(modifier, 1044);
+                        return Report(modifier, DiagnosticCode.X0ModifierCannotAppearOnAModuleOrNamespaceElement);
                     if (node is ParameterDeclarationNode)
-                        return Report(modifier, 1090);
+                        return Report(modifier, DiagnosticCode.X0ModifierCannotAppearOnAParameter);
                     if (seen.Contains(SyntaxKind.AbstractKeyword))
-                        return Report(modifier, 1243, "static", "abstract");
+                        return Report(modifier, DiagnosticCode.X0ModifierCannotBeUsedWith1Modifier, "static", "abstract");
                     if (parsed && seen.Contains(SyntaxKind.OverrideKeyword))
-                        return Report(modifier, 1029, "static", "override");
+                        return Report(modifier, DiagnosticCode.X0ModifierMustPrecede1Modifier, "static", "override");
                     break;
                 case SyntaxKind.ConstKeyword:
                     if (node is not (EnumDeclarationNode or TypeParameterDeclarationNode))
-                        return Report(node, 1248, "const");
+                        return Report(node, DiagnosticCode.AClassMemberCannotHaveThe0Keyword, "const");
                     break;
                 case SyntaxKind.AccessorKeyword:
                     if (seen.Contains(SyntaxKind.ReadonlyKeyword) || seen.Contains(SyntaxKind.DeclareKeyword))
-                        return Report(modifier, 1243, "accessor", Seen(SyntaxKind.ReadonlyKeyword, SyntaxKind.DeclareKeyword));
+                        return Report(
+                            modifier,
+                            DiagnosticCode.X0ModifierCannotBeUsedWith1Modifier,
+                            "accessor",
+                            Seen(SyntaxKind.ReadonlyKeyword, SyntaxKind.DeclareKeyword));
                     if (node is not PropertyDeclarationNode)
-                        return Report(modifier, 1275);
+                        return Report(modifier, DiagnosticCode.XAccessorModifierCanOnlyAppearOnAPropertyDeclaration);
                     break;
                 case SyntaxKind.ReadonlyKeyword:
                     if (node is not (PropertyDeclarationNode or PropertySignatureDeclarationNode or IndexSignatureDeclarationNode
                         or ParameterDeclarationNode))
-                        return Report(modifier, 1024);
+                        return Report(modifier, DiagnosticCode.XReadonlyModifierCanOnlyAppearOnAPropertyDeclarationOrIndexSignature);
                     if (seen.Contains(SyntaxKind.AccessorKeyword))
-                        return Report(modifier, 1243, "readonly", "accessor");
+                        return Report(modifier, DiagnosticCode.X0ModifierCannotBeUsedWith1Modifier, "readonly", "accessor");
                     break;
                 case SyntaxKind.ExportKeyword:
                     if ((node.Flags & NodeFlags.Ambient) == 0 && node.Parent is SourceFileNode
                         && node is not (TypeAliasDeclarationNode or InterfaceDeclarationNode or ModuleDeclarationNode)
                         && program.Symbols.Program.Configuration.Options.Boolean("verbatimModuleSyntax") == true && EmitModuleKind(node) == 1)
-                        return Report(modifier, 1287);
+                        return Report(
+                            modifier,
+                            DiagnosticCode.ATopLevelExportModifierCannotBeUsedOnValueDeclarationsInACommonJSModuleWhenVerbatimModuleSyntaxIsEnabled);
                     if (parsed && seen.Any(k => k is SyntaxKind.DeclareKeyword or SyntaxKind.AbstractKeyword or SyntaxKind.AsyncKeyword))
                         return Report(
                             modifier,
-                            1029,
+                            DiagnosticCode.X0ModifierMustPrecede1Modifier,
                             "export",
                             Seen(SyntaxKind.DeclareKeyword, SyntaxKind.AbstractKeyword, SyntaxKind.AsyncKeyword));
                     if (SemanticSyntax.ClassLike(node.Parent))
-                        return Report(modifier, 1031);
+                        return Report(modifier, DiagnosticCode.X0ModifierCannotAppearOnClassElementsOfThisKind);
                     if (node is ParameterDeclarationNode)
-                        return Report(modifier, 1090);
+                        return Report(modifier, DiagnosticCode.X0ModifierCannotAppearOnAParameter);
                     break;
                 case SyntaxKind.DefaultKeyword:
                     var container = node.Parent is SourceFileNode ? node.Parent : node.Parent?.Parent;
                     if (container is ModuleDeclarationNode && !AmbientModule(container))
-                        return Report(modifier, 1319);
+                        return Report(modifier, DiagnosticCode.ADefaultExportCanOnlyBeUsedInAnECMAScriptStyleModule);
                     if (parsed && !seen.Contains(SyntaxKind.ExportKeyword))
-                        return Report(modifier, 1029, "export", "default");
+                        return Report(modifier, DiagnosticCode.X0ModifierMustPrecede1Modifier, "export", "default");
                     break;
                 case SyntaxKind.DeclareKeyword:
                     if (seen.Contains(SyntaxKind.AsyncKeyword) || seen.Contains(SyntaxKind.OverrideKeyword))
-                        return Report(modifier, 1040, Seen(SyntaxKind.AsyncKeyword, SyntaxKind.OverrideKeyword));
+                        return Report(
+                            modifier,
+                            DiagnosticCode.X0ModifierCannotBeUsedInAnAmbientContext,
+                            Seen(SyntaxKind.AsyncKeyword, SyntaxKind.OverrideKeyword));
                     if (SemanticSyntax.ClassLike(node.Parent) && node is not PropertyDeclarationNode)
-                        return Report(modifier, 1031);
+                        return Report(modifier, DiagnosticCode.X0ModifierCannotAppearOnClassElementsOfThisKind);
                     if (node is ParameterDeclarationNode)
-                        return Report(modifier, 1090);
+                        return Report(modifier, DiagnosticCode.X0ModifierCannotAppearOnAParameter);
                     if (node.Parent is ModuleBlockNode && (node.Parent.Flags & NodeFlags.Ambient) != 0)
-                        return Report(modifier, 1038);
+                        return Report(modifier, DiagnosticCode.ADeclareModifierCannotBeUsedInAnAlreadyAmbientContext);
                     if (SemanticSyntax.Name(node) is PrivateIdentifierNode)
-                        return Report(modifier, 18019);
+                        return Report(modifier, DiagnosticCode.X0ModifierCannotBeUsedWithAPrivateIdentifier);
                     if (seen.Contains(SyntaxKind.AccessorKeyword))
-                        return Report(modifier, 1243, "declare", "accessor");
+                        return Report(modifier, DiagnosticCode.X0ModifierCannotBeUsedWith1Modifier, "declare", "accessor");
                     break;
                 case SyntaxKind.AbstractKeyword:
                     if (node is not (ClassDeclarationNode or ConstructorTypeNode))
                     {
                         if (node is not (MethodDeclarationNode or PropertyDeclarationNode or GetAccessorDeclarationNode
                             or SetAccessorDeclarationNode))
-                            return Report(modifier, 1242);
+                            return Report(modifier, DiagnosticCode.XAbstractModifierCanOnlyAppearOnAClassMethodOrPropertyDeclaration);
                         if (node.Parent is not ClassDeclarationNode || !SemanticSyntax.HasModifier(node.Parent, SyntaxKind.AbstractKeyword))
-                            return Report(modifier, node is PropertyDeclarationNode ? 1253 : 1244);
+                            return Report(
+                                modifier,
+                                node is PropertyDeclarationNode
+                                    ? DiagnosticCode.AbstractPropertiesCanOnlyAppearWithinAnAbstractClass
+                                    : DiagnosticCode.AbstractMethodsCanOnlyAppearWithinAnAbstractClass);
                         if (seen.Contains(SyntaxKind.StaticKeyword) || seen.Contains(SyntaxKind.PrivateKeyword))
-                            return Report(modifier, 1243, Seen(SyntaxKind.StaticKeyword, SyntaxKind.PrivateKeyword), "abstract");
+                            return Report(
+                                modifier,
+                                DiagnosticCode.X0ModifierCannotBeUsedWith1Modifier,
+                                Seen(SyntaxKind.StaticKeyword, SyntaxKind.PrivateKeyword),
+                                "abstract");
                         if (seen.Contains(SyntaxKind.AsyncKeyword))
-                            return Report(modifiers.First(m => m.Kind == SyntaxKind.AsyncKeyword), 1243, "async", "abstract");
+                            return Report(
+                                modifiers.First(m => m.Kind == SyntaxKind.AsyncKeyword),
+                                DiagnosticCode.X0ModifierCannotBeUsedWith1Modifier,
+                                "async",
+                                "abstract");
                         if (parsed && (seen.Contains(SyntaxKind.OverrideKeyword) || seen.Contains(SyntaxKind.AccessorKeyword)))
-                            return Report(modifier, 1029, "abstract", Seen(SyntaxKind.OverrideKeyword, SyntaxKind.AccessorKeyword));
+                            return Report(
+                                modifier,
+                                DiagnosticCode.X0ModifierMustPrecede1Modifier,
+                                "abstract",
+                                Seen(SyntaxKind.OverrideKeyword, SyntaxKind.AccessorKeyword));
                     }
                     if (SemanticSyntax.Name(node) is PrivateIdentifierNode)
-                        return Report(modifier, 18019);
+                        return Report(modifier, DiagnosticCode.X0ModifierCannotBeUsedWithAPrivateIdentifier);
                     break;
                 case SyntaxKind.AsyncKeyword:
                     if (seen.Contains(SyntaxKind.DeclareKeyword) || (node.Parent?.Flags & NodeFlags.Ambient) != 0)
-                        return Report(modifier, 1040);
+                        return Report(modifier, DiagnosticCode.X0ModifierCannotBeUsedInAnAmbientContext);
                     if (node is ParameterDeclarationNode)
-                        return Report(modifier, 1090);
+                        return Report(modifier, DiagnosticCode.X0ModifierCannotAppearOnAParameter);
                     if (seen.Contains(SyntaxKind.AbstractKeyword))
-                        return Report(modifier, 1243, "async", "abstract");
+                        return Report(modifier, DiagnosticCode.X0ModifierCannotBeUsedWith1Modifier, "async", "abstract");
                     break;
                 case SyntaxKind.OverrideKeyword:
                     if (seen.Contains(SyntaxKind.DeclareKeyword))
-                        return Report(modifier, 1243, "override", "declare");
+                        return Report(modifier, DiagnosticCode.X0ModifierCannotBeUsedWith1Modifier, "override", "declare");
                     if (parsed && seen.Any(k => k is SyntaxKind.ReadonlyKeyword or SyntaxKind.AccessorKeyword or SyntaxKind.AsyncKeyword))
                         return Report(
                             modifier,
-                            1029,
+                            DiagnosticCode.X0ModifierMustPrecede1Modifier,
                             "override",
                             Seen(SyntaxKind.ReadonlyKeyword, SyntaxKind.AccessorKeyword, SyntaxKind.AsyncKeyword));
                     break;
                 case SyntaxKind.InKeyword:
                 case SyntaxKind.OutKeyword:
-                    return Report(modifier, 1274);
+                    return Report(modifier, DiagnosticCode.X0ModifierCanOnlyAppearOnATypeParameterOfAClassInterfaceOrTypeAlias);
                 default:
-                    return Report(modifier, 1042);
+                    return Report(modifier, DiagnosticCode.X0ModifierCannotBeUsedHere);
             }
             seen.Add(kind);
         }
@@ -177,25 +209,35 @@ internal sealed partial class Checker
         {
             foreach (var kind in new[] { SyntaxKind.StaticKeyword, SyntaxKind.OverrideKeyword, SyntaxKind.AsyncKeyword })
                 if (seen.Contains(kind))
-                    return Report(modifiers.First(m => m.Kind == kind), 1089);
+                    return Report(modifiers.First(m => m.Kind == kind), DiagnosticCode.X0ModifierCannotAppearOnAConstructorDeclaration);
             return false;
         }
         if (node is ImportDeclarationNode or ImportEqualsDeclarationNode && seen.Contains(SyntaxKind.DeclareKeyword))
-            return Report(modifiers.First(m => m.Kind == SyntaxKind.DeclareKeyword), 1079);
+            return Report(
+                modifiers.First(m => m.Kind == SyntaxKind.DeclareKeyword),
+                DiagnosticCode.A0ModifierCannotBeUsedWithAnImportDeclaration);
         if (seen.Contains(SyntaxKind.AsyncKeyword)
             && node is not (MethodDeclarationNode or FunctionDeclarationNode or FunctionExpressionNode or ArrowFunctionNode))
-            return Report(modifiers.First(m => m.Kind == SyntaxKind.AsyncKeyword), 1042);
+            return Report(modifiers.First(m => m.Kind == SyntaxKind.AsyncKeyword), DiagnosticCode.X0ModifierCannotBeUsedHere);
         if (node is MethodDeclarationNode { Parent: ObjectLiteralExpressionNode }
             && (modifiers.Count != 1 || first.Kind != SyntaxKind.AsyncKeyword))
-            return Report(first, 1184);
+            return Report(first, DiagnosticCode.ModifiersCannotAppearHere);
         return false;
 
         string Seen(params SyntaxKind[] kinds) => TokenFacts.Text(kinds.First(seen.Contains));
 
-        bool Report(SyntaxNode location, int code, params string[] arguments)
+        bool Report(SyntaxNode location, DiagnosticCode code, params string[] arguments)
         {
             Error(location, code, arguments.Length != 0 ? arguments
-                : code is 1030 or 1040 or 1042 or 1044 or 1070 or 1071 or 1031 or 1090 or 1274 or 18019 or 1089 or 1079
+                : code is DiagnosticCode.X0ModifierAlreadySeen or DiagnosticCode.X0ModifierCannotBeUsedInAnAmbientContext
+                    or DiagnosticCode.X0ModifierCannotBeUsedHere or DiagnosticCode.X0ModifierCannotAppearOnAModuleOrNamespaceElement
+                    or DiagnosticCode.X0ModifierCannotAppearOnATypeMember or DiagnosticCode.X0ModifierCannotAppearOnAnIndexSignature
+                    or DiagnosticCode.X0ModifierCannotAppearOnClassElementsOfThisKind
+                    or DiagnosticCode.X0ModifierCannotAppearOnAParameter
+                    or DiagnosticCode.X0ModifierCanOnlyAppearOnATypeParameterOfAClassInterfaceOrTypeAlias
+                    or DiagnosticCode.X0ModifierCannotBeUsedWithAPrivateIdentifier
+                    or DiagnosticCode.X0ModifierCannotAppearOnAConstructorDeclaration
+                    or DiagnosticCode.A0ModifierCannotBeUsedWithAnImportDeclaration
                     ? [TokenFacts.Text(location.Kind)] : []);
             return true;
         }

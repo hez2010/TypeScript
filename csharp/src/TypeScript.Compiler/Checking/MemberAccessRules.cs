@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -15,7 +16,7 @@ internal interface IMemberAccessHost
 
     ValueTask MemberErrorAsync(
         SyntaxNode node,
-        int code,
+        DiagnosticCode code,
         Symbol symbol,
         CancellationToken cancellation,
         Type? type = null,
@@ -89,10 +90,14 @@ internal sealed class MemberAccessRules(CheckerSymbols symbols, CheckerLinks lin
             && !await order.BeforeUseAsync(declaration, name, cancellation).ConfigureAwait(false)
             && !(declaration is MethodDeclarationNode && SemanticSyntax.IsStatic(declaration))
             && (host.UseDefineForClassFields || !await AncestorPropertyAsync(property, cancellation).ConfigureAwait(false)))
-            await host.MemberErrorAsync(name, 2729, property, cancellation).ConfigureAwait(false);
+            await host.MemberErrorAsync(
+                name,
+                DiagnosticCode.Property0IsUsedBeforeItsInitialization,
+                property,
+                cancellation).ConfigureAwait(false);
         else if (declaration is ClassDeclarationNode && node.Parent is not TypeReferenceNode && (declaration.Flags & NodeFlags.Ambient) == 0
             && !await order.BeforeUseAsync(declaration, name, cancellation).ConfigureAwait(false))
-            await host.MemberErrorAsync(name, 2449, property, cancellation).ConfigureAwait(false);
+            await host.MemberErrorAsync(name, DiagnosticCode.Class0UsedBeforeItsDeclaration, property, cancellation).ConfigureAwait(false);
     }
 
     private async ValueTask<bool> AncestorPropertyAsync(Symbol property, CancellationToken cancellation)

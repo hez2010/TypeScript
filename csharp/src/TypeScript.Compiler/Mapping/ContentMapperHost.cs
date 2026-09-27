@@ -5,13 +5,14 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Configuration;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.Syntax;
 using TypeScript.Compiler.Text;
 
 namespace TypeScript.Compiler.Mapping;
 
-public sealed record MapperOptionDiagnostic(ContentMapper Mapper, JsonElement[] Path, string Source, int Code, string Message);
+public sealed record MapperOptionDiagnostic(ContentMapper Mapper, JsonElement[] Path, string Source, DiagnosticCode Code, string Message);
 public sealed record MapperTiming(string Mapper, string Operation, long Count, TimeSpan Duration);
 
 /// <summary>Owns lazily started mapper processes and retained project configurations.</summary>
@@ -379,7 +380,7 @@ public sealed class ContentMapperHost : IAsyncDisposable
                                         entry.Mapper,
                                         path,
                                         connection.DiagnosticSource,
-                                        diagnostic.GetProperty("code").GetInt32(),
+                                        (DiagnosticCode)diagnostic.GetProperty("code").GetInt32(),
                                         JsonStrings.GetString(diagnostic.GetProperty("messageText"))));
                             }
                         entry.ConfigIdentity = identity;

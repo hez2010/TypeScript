@@ -401,7 +401,9 @@ public sealed partial class CompilerProgram
                                 {
                                     Start = reason.Position,
                                     Length = reason.Length,
-                                    Arguments = diagnostic.Code is 6053 or 6231 && reason.Kind == FileIncludeKind.PathReference
+                                    Arguments = diagnostic.Code is DiagnosticCode.File0NotFound
+                                        or DiagnosticCode.CouldNotResolveThePath0WithTheExtensionsColon1
+                                        && reason.Kind == FileIncludeKind.PathReference
                                         && files.TryGetValue(reason.ContainingFile, out var containing)
                                         ? [containing.Syntax.Source.Text[containing.Syntax.Source.ToUtf16Position(reason.Position)
                                             ..containing.Syntax.Source.ToUtf16Position(reason.Position + reason.Length)].Replace('\\', '/'),

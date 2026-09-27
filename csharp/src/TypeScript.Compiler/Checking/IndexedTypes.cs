@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Semantics;
 using TypeScript.Compiler.Syntax;
 
@@ -31,7 +32,7 @@ internal interface IIndexedTypeHost
         SyntaxNode node,
         Type objectType,
         Type indexType,
-        int code,
+        DiagnosticCode code,
         CancellationToken cancellation,
         Type? fullIndex = null,
         string? suggestion = null);
@@ -165,13 +166,28 @@ internal sealed class IndexedTypes(TypeContext context, TypeAlgebra algebra, Typ
                     {
                         if (position < 0)
                         {
-                            await host.InvalidIndexAsync(IndexNode(node), objectType, indexType, 2514, cancellation).ConfigureAwait(false);
+                            await host.InvalidIndexAsync(
+                                IndexNode(node),
+                                objectType,
+                                indexType,
+                                DiagnosticCode.ATupleTypeCannotBeIndexedWithANegativeValue,
+                                cancellation).ConfigureAwait(false);
                             return context.UndefinedType;
                         }
-                        await host.InvalidIndexAsync(IndexNode(node), objectType, indexType, 2493, cancellation).ConfigureAwait(false);
+                        await host.InvalidIndexAsync(
+                            IndexNode(node),
+                            objectType,
+                            indexType,
+                            DiagnosticCode.TupleType0OfLength1HasNoElementAtIndex2,
+                            cancellation).ConfigureAwait(false);
                     }
                     else
-                        await host.InvalidIndexAsync(IndexNode(node), objectType, indexType, 2339, cancellation).ConfigureAwait(false);
+                        await host.InvalidIndexAsync(
+                            IndexNode(node),
+                            objectType,
+                            indexType,
+                            DiagnosticCode.Property0DoesNotExistOnType1,
+                            cancellation).ConfigureAwait(false);
                 }
                 if (position >= 0)
                 {
@@ -205,7 +221,9 @@ internal sealed class IndexedTypes(TypeContext context, TypeAlgebra algebra, Typ
                             element,
                             original,
                             indexType,
-                            (flags & AccessFlags.Writing) != 0 ? 2862 : 2536,
+                            (flags & AccessFlags.Writing) != 0
+                                ? DiagnosticCode.Type0IsGenericAndCanOnlyBeIndexedForReading
+                                : DiagnosticCode.Type0CannotBeUsedToIndexType1,
                             cancellation).ConfigureAwait(false);
                     return null;
                 }
@@ -213,7 +231,12 @@ internal sealed class IndexedTypes(TypeContext context, TypeAlgebra algebra, Typ
                     && index.KeyType == context.StringType
                     && !await KeyKindAsync(indexType, false, cancellation).ConfigureAwait(false))
                 {
-                    await host.InvalidIndexAsync(IndexNode(node), objectType, indexType, 2538, cancellation).ConfigureAwait(false);
+                    await host.InvalidIndexAsync(
+                        IndexNode(node),
+                        objectType,
+                        indexType,
+                        DiagnosticCode.Type0CannotBeUsedAsAnIndexType,
+                        cancellation).ConfigureAwait(false);
                     return await IncludeMissingAsync(index.ValueType, flags, cancellation).ConfigureAwait(false);
                 }
                 await host.ReadonlyIndexAsync(index, objectType, element, cancellation).ConfigureAwait(false);
@@ -243,8 +266,11 @@ internal sealed class IndexedTypes(TypeContext context, TypeAlgebra algebra, Typ
         if (node is not null)
         {
             var indexNode = IndexNode(node);
-            int code = indexNode is not BigIntLiteralNode && (indexType.Flags & TypeFlags.StringOrNumberLiteral) != 0 ? 2339
-                : (indexType.Flags & (TypeFlags.String | TypeFlags.Number)) != 0 ? 2537 : 2538;
+            DiagnosticCode code = indexNode is not BigIntLiteralNode
+                && (indexType.Flags & TypeFlags.StringOrNumberLiteral) != 0 ? DiagnosticCode.Property0DoesNotExistOnType1
+                : (indexType.Flags & (TypeFlags.String | TypeFlags.Number)) != 0
+                    ? DiagnosticCode.Type0HasNoMatchingIndexSignatureForType1
+                    : DiagnosticCode.Type0CannotBeUsedAsAnIndexType;
             await host.InvalidIndexAsync(indexNode, objectType, indexType, code, cancellation).ConfigureAwait(false);
         }
         return (indexType.Flags & TypeFlags.Any) != 0 ? indexType : null;

@@ -45,7 +45,7 @@ internal sealed partial class Checker : IBindingPatternHost, IExpressionContextH
         if (!reportedSpreadOverrides.Add((node, spread)))
             return;
         var note = CheckerDiagnostic.Create(spread, Messages.This_spread_always_overwrites_this_property);
-        if (reported.Contains((node, 2783)))
+        if (reported.Contains((node, DiagnosticCode.X0IsSpecifiedMoreThanOnceSoThisUsageWillBeOverwritten)))
             AddRelationNote(node, note);
         else
             Error(node, CheckerDiagnostic.Create(node, Messages.X_0_is_specified_more_than_once_so_this_usage_will_be_overwritten,

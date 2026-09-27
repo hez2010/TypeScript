@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Checking;
 using TypeScript.Compiler.Configuration;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.Programs;
 using TypeScript.Compiler.Text;
@@ -90,7 +91,9 @@ internal static class CheckerConditionalTests
         };
         var looping = TypeMapper.Create([loop.Root.OuterTypeParameters![0]], [context.StringType]);
         Check(await host.Conditionals.InstantiateAsync(loop, looping) == context.ErrorType);
-        Check(tailIterations == 1000 && host.Diagnostics.Count(c => c == 2589) == 1);
+        Check(
+            tailIterations == 1000
+                && host.Diagnostics.Count(c => c == DiagnosticCode.TypeInstantiationIsExcessivelyDeepAndPossiblyInfinite) == 1);
         Check(await host.Conditionals.InstantiateAsync(loop, looping) == context.ErrorType && tailIterations == 1000);
         host.BeforeNode = null;
         Check(

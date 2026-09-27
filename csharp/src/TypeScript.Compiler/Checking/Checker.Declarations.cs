@@ -14,7 +14,7 @@ internal sealed partial class Checker
     private async ValueTask CheckInterfaceSourceAsync(InterfaceDeclarationNode node, CancellationToken cancellation)
     {
         if (!AllowsBlockScopedDeclaration(node.Parent) && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
-            Error(node, 1156, "interface");
+            Error(node, DiagnosticCode.X0DeclarationsCanOnlyBeDeclaredInsideABlock, "interface");
         HeritageGrammar(node, node.HeritageClauses, isInterface: true);
         ExportedDeclaration(node, false);
         await CheckMergedExportsAsync(node, cancellation).ConfigureAwait(false);
@@ -22,7 +22,7 @@ internal sealed partial class Checker
             foreach (TypeParameterDeclarationNode parameter in node.TypeParameters)
                 await FunctionDeclarations.TypeParameterAsync(parameter, cancellation).ConfigureAwait(false);
         if (ReservedTypeName(node.Name!.Text))
-            Error(node.Name, 2427, node.Name.Text);
+            Error(node.Name, DiagnosticCode.InterfaceNameCannotBe0, node.Name.Text);
         var symbol = program.Symbols.Declaration(node)!;
         var type = (InterfaceType)await Declared.GetAsync(symbol, cancellation).ConfigureAwait(false);
         await CheckMergedTypeParametersAsync(symbol, type, cancellation).ConfigureAwait(false);
@@ -77,7 +77,13 @@ internal sealed partial class Checker
                     {
                         var target = await Bases.WithThisAsync(baseType, type.ThisType, cancellation: cancellation).ConfigureAwait(false);
                         if (await Relations.ExplainAsync(withThis, target, RelationKind.Assignable, cancellation) is { } explanation)
-                            await ReportRelationMessageAsync(node.Name, 2430, withThis, target, RelationKind.Assignable, cancellation,
+                            await ReportRelationMessageAsync(
+                                node.Name,
+                                DiagnosticCode.Interface0IncorrectlyExtendsInterface1,
+                                withThis,
+                                target,
+                                RelationKind.Assignable,
+                                cancellation,
                                 preparedExplanation: explanation);
                     }
                     await IndexDeclarationChecks.CheckAsync(type, false, cancellation).ConfigureAwait(false);
@@ -96,7 +102,9 @@ internal sealed partial class Checker
                 if (element is ExpressionWithTypeArgumentsNode expression
                     && (!ConstantEvaluator.EntityName(expression.Expression!)
                         || (expression.Expression!.Flags & NodeFlags.OptionalChain) != 0))
-                    Error(expression.Expression!, 2499);
+                    Error(
+                        expression.Expression!,
+                        DiagnosticCode.AnInterfaceCanOnlyExtendAnIdentifierSlashqualifiedNameWithOptionalTypeArguments);
                 await TypeReferenceChecks.CheckAsync(element, cancellation).ConfigureAwait(false);
             }
         foreach (var member in node.Members!)
@@ -162,7 +170,7 @@ internal sealed partial class Checker
         checkedTypeParameterLists.Add(symbol);
         if (!identical)
             foreach (INamedNode declaration in declarations)
-                Error(declaration.Name!, 2428, TypeDisplay.SymbolName(symbol));
+                Error(declaration.Name!, DiagnosticCode.AllDeclarationsOf0MustHaveIdenticalTypeParameters, TypeDisplay.SymbolName(symbol));
     }
 
     private static bool ReservedTypeName(string name) =>

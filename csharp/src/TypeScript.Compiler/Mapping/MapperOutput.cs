@@ -8,7 +8,7 @@ using TypeScript.Compiler.Text;
 namespace TypeScript.Compiler.Mapping;
 
 public sealed record MappedDiagnosticDirective(int OriginalStart, int OriginalEnd, int VirtualStart, int VirtualEnd,
-    bool Expect, string Source, int UnusedCode = 0, string UnusedMessage = "");
+    bool Expect, string Source, DiagnosticCode UnusedCode = DiagnosticCode.None, string UnusedMessage = "");
 public sealed record MapperOutput(SourceText Text, string Extension, SpanMap Mappings, IReadOnlyList<MappedDiagnosticDirective> Directives);
 public sealed record MapperResult(MapperOutput Canonical, IReadOnlyList<MapperOutput> Supplemental, IReadOnlyList<Diagnostic> Diagnostics);
 public sealed record MappedSourceFile(SourceFileNode Syntax, SourceText Original, SpanMap Map, string VirtualFileName,
@@ -88,7 +88,7 @@ internal static class MapperOutputDecoder
                 int low = Position(original, encoding, start), high = Position(original, encoding, checked(start + length));
                 int code = error.TryGetProperty("code", out var rawCode) ? rawCode.GetInt32() : 0;
                 string message = error.TryGetProperty("messageText", out var text) ? JsonStrings.GetString(text) : "";
-                diagnostics.Add(new(new(code, DiagnosticCategory.Error, source + code, message),
+                diagnostics.Add(new(new((DiagnosticCode)code, DiagnosticCategory.Error, source + code, message),
                     low, high - low, [])
                 { Source = source });
             }
@@ -138,7 +138,7 @@ internal static class MapperOutputDecoder
                     {
                         originalStart = originalEnd = 0;
                     }
-                    int code = 0;
+                    DiagnosticCode code = DiagnosticCode.None;
                     string message = "";
                     if (policy == 1)
                     {
@@ -146,7 +146,7 @@ internal static class MapperOutputDecoder
                         int index = tuple.GetArrayLength() == 6 ? tuple[5].GetInt32() : count == 1 ? 0 : -1;
                         if (index < 0 || index >= count)
                             throw new InvalidDataException("Missing unused-expect diagnostic");
-                        code = unused[index].GetProperty("code").GetInt32();
+                        code = (DiagnosticCode)unused[index].GetProperty("code").GetInt32();
                         message = JsonStrings.GetString(unused[index].GetProperty("messageText"));
                     }
                     directives.Add(new(originalStart, originalEnd, start, end, policy == 1, source, code, message));

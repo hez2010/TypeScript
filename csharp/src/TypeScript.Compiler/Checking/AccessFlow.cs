@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -12,7 +13,7 @@ internal interface IAccessFlowHost
 
     ValueTask AccessErrorAsync(
         SyntaxNode node,
-        int code,
+        DiagnosticCode code,
         CancellationToken cancellation,
         Type? type = null,
         Symbol? symbol = null,
@@ -58,7 +59,11 @@ internal sealed class AccessFlow(TypeContext context, TypeAlgebra algebra, Symbo
         var result = await flows.GetAsync(node, type, initial, cancellation: cancellation).ConfigureAwait(false);
         if (uninitialized && !ContainsUndefined(type) && ContainsUndefined(result))
         {
-            await host.AccessErrorAsync(errorNode, 2565, cancellation, symbol: property).ConfigureAwait(false);
+            await host.AccessErrorAsync(
+                errorNode,
+                DiagnosticCode.Property0IsUsedBeforeBeingAssigned,
+                cancellation,
+                symbol: property).ConfigureAwait(false);
             return type;
         }
         return assignment != 0 ? await widening.LiteralBaseAsync(result, cancellation).ConfigureAwait(false) : result;

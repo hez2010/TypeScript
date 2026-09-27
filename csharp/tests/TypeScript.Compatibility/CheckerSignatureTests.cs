@@ -2,6 +2,7 @@ using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Checking;
 using TypeScript.Compiler.Configuration;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.Programs;
 using TypeScript.Compiler.Syntax;
@@ -423,7 +424,14 @@ internal static class CheckerSignatureTests
         var checker = await program.CreateCheckerAsync();
         await checker.CheckProgramAsync();
         var codes = checker.DiagnosticCodesForFile(program.SourceFiles[0].Syntax);
-        if (!codes.SequenceEqual([1225, 1228, 1229, 1230, 2677]))
+        if (!codes.SequenceEqual(
+            [
+                    DiagnosticCode.CannotFindParameter0,
+                    DiagnosticCode.ATypePredicateIsOnlyAllowedInReturnTypePositionForFunctionsAndMethods,
+                    DiagnosticCode.ATypePredicateCannotReferenceARestParameter,
+                    DiagnosticCode.ATypePredicateCannotReferenceElement0InABindingPattern,
+                    DiagnosticCode.ATypePredicateSTypeMustBeAssignableToItsParameterSType
+                ]))
             throw new InvalidOperationException($"Predicate diagnostics: {string.Join(',', codes)}");
         return 1;
     }
@@ -453,7 +461,18 @@ internal static class CheckerSignatureTests
         var file = program.GetFile("/project/main.ts")!.Syntax;
         await checker.CheckSourceFileAsync(file);
         var codes = checker.DiagnosticCodesForFile(file);
-        if (!codes.SequenceEqual([1029, 1030, 1274, 1274, 1274, 1277, 2636, 2636, 2637]))
+        if (!codes.SequenceEqual(
+            [
+                    DiagnosticCode.X0ModifierMustPrecede1Modifier,
+                    DiagnosticCode.X0ModifierAlreadySeen,
+                    DiagnosticCode.X0ModifierCanOnlyAppearOnATypeParameterOfAClassInterfaceOrTypeAlias,
+                    DiagnosticCode.X0ModifierCanOnlyAppearOnATypeParameterOfAClassInterfaceOrTypeAlias,
+                    DiagnosticCode.X0ModifierCanOnlyAppearOnATypeParameterOfAClassInterfaceOrTypeAlias,
+                    DiagnosticCode.X0ModifierCanOnlyAppearOnATypeParameterOfAFunctionMethodOrClass,
+                    DiagnosticCode.Type0IsNotAssignableToType1AsImpliedByVarianceAnnotation,
+                    DiagnosticCode.Type0IsNotAssignableToType1AsImpliedByVarianceAnnotation,
+                    DiagnosticCode.VarianceAnnotationsAreOnlySupportedInTypeAliasesForObjectFunctionConstructorAndMappedTypes
+                ]))
             throw new InvalidOperationException($"Variance diagnostics: {string.Join(',', codes)}");
         if (checker.VarianceTypeParameter is not null || checker.Variances.Measuring)
             throw new InvalidOperationException("Variance annotation checking retained active state");
@@ -497,8 +516,16 @@ internal static class CheckerSignatureTests
             class D { @decorator classValue!: C; @decorator interfaceValue!: I; }
             """;
         int checks = 0;
-        foreach (var (source, old, emit, expected) in new (string, bool, bool, int[])[]
-            { (standard, false, false, [1240, 1270]), (legacy, true, false, []), (metadata, true, true, [1272]) })
+        foreach (var (source, old, emit, expected) in new (string, bool, bool, DiagnosticCode[])[]
+            {
+                (standard, false, false,
+                    [
+                        DiagnosticCode.UnableToResolveSignatureOfPropertyDecoratorWhenCalledAsAnExpression,
+                        DiagnosticCode.DecoratorFunctionReturnType0IsNotAssignableToType1
+                    ]),
+                (legacy, true, false, []),
+                (metadata, true, true, [DiagnosticCode.ATypeReferencedInADecoratedSignatureMustBeImportedWithImportTypeOrANamespaceImportWhenIsolatedModulesAndEmitDecoratorMetadataAreEnabled])
+            })
         {
             var options = new CompilerOptions();
             options.SetRaw("noLib", "true");
@@ -595,7 +622,8 @@ internal static class CheckerSignatureTests
         await inheritedDocumentationChecker.CheckProgramAsync();
         Check(
             inheritedDocumentationChecker.DiagnosticCodesForProgramFile(
-                inheritedDocumentationProgram.SourceFiles[0].Syntax).Contains(8024));
+                inheritedDocumentationProgram.SourceFiles[0].Syntax).Contains(
+                    DiagnosticCode.JSDocParamTagHasName0ButThereIsNoParameterWithThatName));
         return checks;
     }
 
@@ -627,12 +655,16 @@ internal static class CheckerSignatureTests
         Check(await host.Iterators.IterableAsync(values, IterationUse.Destructuring) == result && host.Iterators.CacheCount == cached);
         var node = symbols.Globals["values"].ValueDeclaration!;
         Check(await host.Iteration.CheckAsync(IterationUse.Spread, values, context.UndefinedType, node) == context.NumberType);
-        Check(host.Diagnostics.Contains(2764));
+        Check(
+            host.Diagnostics.Contains(
+                DiagnosticCode.CannotIterateValueBecauseTheNextMethodOfItsIteratorExpectsType1ButArraySpreadWillAlwaysSend0));
         var invalid = await host.Declared.GetAsync(symbols.Globals["Invalid"]);
         Check(!(await host.Iterators.IterableAsync(invalid, IterationUse.Spread)).HasTypes);
         cached = host.Iterators.CacheCount;
         Check(!(await host.Iterators.IterableAsync(invalid, IterationUse.Spread, node)).HasTypes);
-        Check(host.Iterators.CacheCount == cached && host.DeferredIterationDiagnostics.Single().Related.Single().Code == 2489);
+        Check(
+            host.Iterators.CacheCount == cached
+                && host.DeferredIterationDiagnostics.Single().Related.Single().Code == DiagnosticCode.AnIteratorMustHaveANextMethod);
         var yielded = await host.Declared.GetAsync(symbols.Globals["Yielded"]);
         var returned = await host.Declared.GetAsync(symbols.Globals["Returned"]);
         Check(await host.Iterators.ResultAsync(yielded) == new IterationTypes(context.NumberType, context.VoidType, null));
@@ -766,7 +798,9 @@ internal static class CheckerSignatureTests
             host.CallResolution.ActiveCount == 0
                 && host.CallResolution.ResolutionDepth == 0
                 && host.Instantiation.Resolutions.ResolutionStart == 0);
-        Check(await host.Calls.CheckAsync(calls[1]) == context.NumberType && host.Diagnostics.Contains(2345));
+        Check(
+            await host.Calls.CheckAsync(calls[1]) == context.NumberType
+                && host.Diagnostics.Contains(DiagnosticCode.ArgumentOfType0IsNotAssignableToParameterOfType1));
         var arrow = (ArrowFunctionNode)calls[2].Arguments![1];
         using (var cancellation = new CancellationTokenSource())
         {

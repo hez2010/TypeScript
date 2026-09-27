@@ -309,7 +309,10 @@ internal static class ContentMapperTests
             "Owned mapper host executes a configuration-discovered package and closes it after construction");
         var syntax = Parser.ParseSourceFile(new("/project/test.view", ScriptKind.TS), new SourceText("__field + generated"));
         var map = new MappedSourceFile(syntax, new SourceText("field"), new SpanMap([new(0, 7, 0, 5, MappingKind.Alias)]),
-            "/project/test.view.ts", "fixture@1", "identity", [new(0, 5, 0, 7, true, "fixture", 777, "Unused expectation")]);
+            "/project/test.view.ts",
+            "fixture@1",
+            "identity",
+            [new(0, 5, 0, 7, true, "fixture", (DiagnosticCode)777, "Unused expectation")]);
         var error = new Diagnostic(Messages.Cannot_find_name_0, 0, 7, ["__field"]) { FileName = syntax.FileName };
         var presentation = map.Present(error);
         Check(presentation.Length == 5 && presentation.Message.Contains("field", StringComparison.Ordinal)
@@ -320,7 +323,7 @@ internal static class ContentMapperTests
         var external = error with { Source = "fixture", Length = 5 };
         var remaining = map.ApplyDiagnosticDirectives([external]);
         Check(
-            remaining.Count == 2 && remaining[1].Code == 777 && remaining[1].Source == "fixture",
+            remaining.Count == 2 && (int)remaining[1].Code == 777 && remaining[1].Source == "fixture",
             "Mapper errors do not satisfy an expected compiler diagnostic");
         Check(ReferenceEquals(map.Present(external).Text, map.Original), "Mapper-authored ranges are already in original coordinates");
         Console.WriteLine($"Content mapper lifecycle and graph: {assertions} assertions");

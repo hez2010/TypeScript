@@ -9,7 +9,7 @@ internal sealed partial class Checker
 {
     internal Dictionary<SyntaxNode, IReadOnlyList<Symbol>> RequiredPropertyDeclarations { get; } = [];
 
-    private async ValueTask<int?> MissingRequiredPropertyCodeAsync(Type source, Type target, RelationKind relation,
+    private async ValueTask<DiagnosticCode?> MissingRequiredPropertyCodeAsync(Type source, Type target, RelationKind relation,
         SyntaxNode node, CancellationToken cancellation)
     {
         if (source is not (ObjectType or IntersectionType) || target is not ObjectType)
@@ -65,7 +65,11 @@ internal sealed partial class Checker
                 return null;
         }
         RequiredPropertyDeclarations[node] = missing;
-        return missing.Count == 1 ? 2741 : missing.Count > 5 ? 2740 : 2739;
+        return missing.Count == 1
+            ? DiagnosticCode.Property0IsMissingInType1ButRequiredInType2
+            : missing.Count > 5
+                ? DiagnosticCode.Type0IsMissingTheFollowingPropertiesFromType1Colon2And3More
+                : DiagnosticCode.Type0IsMissingTheFollowingPropertiesFromType1Colon2;
     }
 
     private async ValueTask CheckMissingPropertiesAsync(SourceFileNode file, CancellationToken cancellation)
@@ -90,7 +94,7 @@ internal sealed partial class Checker
                             displayedName, await TypeDisplay.GetAsync(await Views.ReducedAsync(part, cancellation), cancellation));
                         break;
                     }
-            Diagnostic Report(int code, params string[] arguments) => CheckerDiagnostic.Create(
+            Diagnostic Report(DiagnosticCode code, params string[] arguments) => CheckerDiagnostic.Create(
                 node,
                 DiagnosticLocalization.GetMessage(code),
                 arguments)
@@ -98,15 +102,23 @@ internal sealed partial class Checker
             { MessageChain = chain is null ? [] : [chain] };
             Diagnostic diagnostic;
             if (await StaticPropertyAsync(name, type, cancellation).ConfigureAwait(false))
-                diagnostic = Report(2576, displayedName, receiver, receiver + "." + displayedName);
+                diagnostic = Report(
+                    DiagnosticCode.Property0DoesNotExistOnType1DidYouMeanToAccessTheStaticMember2Instead,
+                    displayedName,
+                    receiver,
+                    receiver + "." + displayedName);
             else if (await Awaited.OfPromiseAsync(type, cancellation: cancellation).ConfigureAwait(false) is { } promised
                 && await Properties.PropertyAsync(promised, name, cancellation: cancellation).ConfigureAwait(false) is not null)
-                diagnostic = Report(2339, displayedName, receiver) with
+                diagnostic = Report(DiagnosticCode.Property0DoesNotExistOnType1, displayedName, receiver) with
                 { RelatedInformation = [CheckerDiagnostic.Create(node, Messages.Did_you_forget_to_use_await)] };
             else if (LibraryFeatures.PropertyLibrary(
                 (await ApparentAsync(type, cancellation).ConfigureAwait(false)).Symbol?.Name,
                 displayedName) is { } library)
-                diagnostic = Report(2550, displayedName, receiver, library);
+                diagnostic = Report(
+                    DiagnosticCode.Property0DoesNotExistOnType1DoYouNeedToChangeYourTargetLibraryTryChangingTheLibCompilerOptionTo2OrLater,
+                    displayedName,
+                    receiver,
+                    library);
             else
             {
                 var candidates = new List<Symbol>();
@@ -124,7 +136,13 @@ internal sealed partial class Checker
                 var similar = await SymbolSuggestions.FindAsync(name, candidates, SymbolFlags.Value, cancellation).ConfigureAwait(false);
                 if (similar is not null)
                 {
-                    diagnostic = Report(suggestion ? 2568 : 2551, displayedName, receiver, similar.Name);
+                    diagnostic = Report(
+                        suggestion
+                            ? DiagnosticCode.Property0MayNotExistOnType1DidYouMean2
+                            : DiagnosticCode.Property0DoesNotExistOnType1DidYouMean2,
+                        displayedName,
+                        receiver,
+                        similar.Name);
                     if (similar.ValueDeclaration is { } declaration)
                         diagnostic = diagnostic with
                         {
@@ -139,7 +157,7 @@ internal sealed partial class Checker
                     if (type is IntersectionType intersection && (type.ObjectFlags & ObjectFlags.IsNeverIntersection) != 0)
                     {
                         Symbol? conflict = null;
-                        int code = 18031;
+                        DiagnosticCode code = DiagnosticCode.TheIntersection0WasReducedToNeverBecauseProperty1HasConflictingTypesInSomeConstituents;
                         foreach (var property in await Properties.CompositePropertiesAsync(intersection, cancellation))
                             if ((property.Flags & SymbolFlags.Optional) == 0
                                 && (property.CheckFlags & (CheckFlags.NonUniformAndLiteral | CheckFlags.HasNeverType)) == CheckFlags.NonUniformAndLiteral
@@ -150,7 +168,7 @@ internal sealed partial class Checker
                             }
                         if (conflict is null)
                         {
-                            code = 18032;
+                            code = DiagnosticCode.TheIntersection0WasReducedToNeverBecauseProperty1ExistsInMultipleConstituentsAndIsPrivateInSome;
                             conflict = (await Properties.CompositePropertiesAsync(intersection, cancellation))
                                 .FirstOrDefault(p => p.ValueDeclaration is null && (p.CheckFlags & CheckFlags.ContainsPrivate) != 0);
                         }
@@ -159,12 +177,14 @@ internal sealed partial class Checker
                                 TypeDisplay.SymbolName(conflict));
                     }
                     diagnostic = Report(
-                        await EmptyDomTypeAsync(type, cancellation).ConfigureAwait(false) ? 2812 : 2339,
+                        await EmptyDomTypeAsync(type, cancellation).ConfigureAwait(false)
+                            ? DiagnosticCode.Property0DoesNotExistOnType1TryChangingTheLibCompilerOptionToIncludeDom
+                            : DiagnosticCode.Property0DoesNotExistOnType1,
                         displayedName,
                         receiver);
                 }
             }
-            if (suggestion && diagnostic.Code == 2568)
+            if (suggestion && diagnostic.Code == DiagnosticCode.Property0MayNotExistOnType1DidYouMean2)
                 ExpressionSuggestion(node, diagnostic.Code);
             else
                 Error(node, diagnostic);

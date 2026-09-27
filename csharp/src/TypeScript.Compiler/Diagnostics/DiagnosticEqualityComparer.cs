@@ -58,5 +58,6 @@ internal sealed class DiagnosticEqualityComparer(bool relatedInformation = true)
         return hash.ToHashCode();
     }
 
-    internal static string Identity(Diagnostic diagnostic) => diagnostic.Code == -1 ? diagnostic.Message.Text : diagnostic.Message.Key;
+    internal static string Identity(Diagnostic diagnostic) =>
+        diagnostic.Code == DiagnosticCode.Custom ? diagnostic.Message.Text : diagnostic.Message.Key;
 }

@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -306,7 +307,7 @@ internal sealed partial class Checker
                         _ => null
                     };
                     if (Name(baseNode.Expression) is { } baseName && Name(annotated.Expression) is { } name)
-                        Error(name, 8023, tag.TagName!.Text, name.Text, baseName.Text);
+                        Error(name, DiagnosticCode.JSDoc01DoesNotMatchTheExtends2Clause, tag.TagName!.Text, name.Text, baseName.Text);
                 }
     }
 }

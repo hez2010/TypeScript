@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -25,7 +26,7 @@ internal interface IIdentifierTypeHost
 
     ValueTask<Type> DeclarationInitializerAsync(SyntaxNode declaration, CheckMode mode, CancellationToken cancellation);
 
-    void IdentifierError(SyntaxNode node, int code, Symbol symbol, Type? type = null);
+    void IdentifierError(SyntaxNode node, DiagnosticCode code, Symbol symbol, Type? type = null);
 
     void CircularInitializer(Symbol symbol);
 }
@@ -46,7 +47,10 @@ internal sealed class IdentifierTypes(TypeContext context, CheckerLinks links, C
         {
             if (PropertyInitializerOrStaticBlock(node, true))
             {
-                host.IdentifierError(node, 2815, symbol);
+                host.IdentifierError(
+                    node,
+                    DiagnosticCode.XArgumentsCannotBeReferencedInPropertyInitializersOrClassStaticInitializationBlocks,
+                    symbol);
                 return context.ErrorType;
             }
             return await values.GetAsync(symbol, cancellation).ConfigureAwait(false);
@@ -69,15 +73,22 @@ internal sealed class IdentifierTypes(TypeContext context, CheckerLinks links, C
             if ((exported.Flags & SymbolFlags.Variable) == 0
                 && !((node.Flags & NodeFlags.JavaScriptFile) != 0 && (exported.Flags & SymbolFlags.ValueModule) != 0))
             {
-                int code = (exported.Flags & SymbolFlags.Enum) != 0 ? 2628 : (exported.Flags & SymbolFlags.Class) != 0 ? 2629
-                    : (exported.Flags & SymbolFlags.Module) != 0 ? 2631 : (exported.Flags & SymbolFlags.Function) != 0 ? 2630
-                    : (exported.Flags & SymbolFlags.Alias) != 0 ? 2632 : 2539;
+                DiagnosticCode code = (exported.Flags & SymbolFlags.Enum) != 0 ? DiagnosticCode.CannotAssignTo0BecauseItIsAnEnum : (exported.Flags & SymbolFlags.Class) != 0 ? DiagnosticCode.CannotAssignTo0BecauseItIsAClass
+                    : (exported.Flags & SymbolFlags.Module) != 0 ? DiagnosticCode.CannotAssignTo0BecauseItIsANamespace : (exported.Flags & SymbolFlags.Function) != 0 ? DiagnosticCode.CannotAssignTo0BecauseItIsAFunction
+                    : (exported.Flags & SymbolFlags.Alias) != 0
+                        ? DiagnosticCode.CannotAssignTo0BecauseItIsAnImport
+                        : DiagnosticCode.CannotAssignTo0BecauseItIsNotAVariable;
                 host.IdentifierError(node, code, symbol);
                 return context.ErrorType;
             }
             if (host.IsReadonly(exported))
             {
-                host.IdentifierError(node, (exported.Flags & SymbolFlags.Variable) != 0 ? 2588 : 2540, symbol);
+                host.IdentifierError(
+                    node,
+                    (exported.Flags & SymbolFlags.Variable) != 0
+                        ? DiagnosticCode.CannotAssignTo0BecauseItIsAConstant
+                        : DiagnosticCode.CannotAssignTo0BecauseItIsAReadOnlyProperty,
+                    symbol);
                 return context.ErrorType;
             }
         }
@@ -135,15 +146,19 @@ internal sealed class IdentifierTypes(TypeContext context, CheckerLinks links, C
             {
                 if (host.NoImplicitAny)
                 {
-                    host.IdentifierError(SemanticSyntax.Name(declaration)!, 7034, symbol, flowType);
-                    host.IdentifierError(node, 7005, symbol, flowType);
+                    host.IdentifierError(
+                        SemanticSyntax.Name(declaration)!,
+                        DiagnosticCode.Variable0ImplicitlyHasType1InSomeLocationsWhereItsTypeCannotBeDetermined,
+                        symbol,
+                        flowType);
+                    host.IdentifierError(node, DiagnosticCode.Variable0ImplicitlyHasAn1Type, symbol, flowType);
                 }
                 return flows.ConvertAuto(flowType);
             }
         }
         else if (!assumeInitialized && !ContainsUndefined(type) && ContainsUndefined(flowType))
         {
-            host.IdentifierError(node, 2454, symbol);
+            host.IdentifierError(node, DiagnosticCode.Variable0IsUsedBeforeBeingAssigned, symbol);
             return type;
         }
         return assignmentKind != 0 ? await widening.LiteralBaseAsync(flowType, cancellation).ConfigureAwait(false) : flowType;

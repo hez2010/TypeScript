@@ -2,6 +2,7 @@ using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Checking;
 using TypeScript.Compiler.Configuration;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.Programs;
 using TypeScript.Compiler.Syntax;
@@ -54,7 +55,9 @@ internal static class CheckerReferenceTests
             checks++;
         }
         Check(links.SymbolNodes.Get(use).ResolvedSymbol is null);
-        Check(scope.ReferenceSymbols.Resolve(use) == symbols.Globals["later"] && scope.Diagnostics.Contains(2448));
+        Check(
+            scope.ReferenceSymbols.Resolve(use) == symbols.Globals["later"]
+                && scope.Diagnostics.Contains(DiagnosticCode.BlockScopedVariable0UsedBeforeItsDeclaration));
         try
         {
             scope.ReferenceSymbols.Resolve(use, cancellation.Token);

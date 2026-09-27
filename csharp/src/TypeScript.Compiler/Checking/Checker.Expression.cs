@@ -13,24 +13,30 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
     internal ExpressionChecks ExpressionChecks { get; }
     internal TypePredicates Predicates { get; }
     internal HashSet<SyntaxNode> DeferredExpressions { get; } = [];
-    internal List<int> Suggestions { get; } = [];
-    private readonly HashSet<(SyntaxNode, int)> suggestionLocations = [];
+    internal List<DiagnosticCode> Suggestions { get; } = [];
+    private readonly HashSet<(SyntaxNode, DiagnosticCode)> suggestionLocations = [];
 
-    public void DuplicateObjectProperty(SyntaxNode node, string name) => Error(node, 1117, CheckerDiagnostic.DeclarationName(node));
+    public void DuplicateObjectProperty(SyntaxNode node, string name) =>
+        Error(node, DiagnosticCode.AnObjectLiteralCannotHaveMultiplePropertiesWithTheSameName, CheckerDiagnostic.DeclarationName(node));
 
-    public void ExpressionError(SyntaxNode node, int code)
+    public void ExpressionError(SyntaxNode node, DiagnosticCode code)
     {
-        if (code == 1005 && node is IdentifierNode { Text: "defer", Parent: MetaPropertyNode { KeywordToken: SyntaxKind.ImportKeyword } })
+        if (code == DiagnosticCode.X0Expected
+            && node is IdentifierNode { Text: "defer", Parent: MetaPropertyNode { KeywordToken: SyntaxKind.ImportKeyword } })
         {
             Error(node, CheckerDiagnostic.Create(node, Messages.X_0_expected, "(") with { Start = node.End, Length = 0 });
             return;
         }
-        if (code == 1013 && node is ParameterDeclarationNode && node.Parent is IFunctionSignature { Parameters: { } trailingParameters })
+        if (code == DiagnosticCode.ARestParameterOrBindingPatternMayNotHaveATrailingComma
+            && node is ParameterDeclarationNode
+            && node.Parent is IFunctionSignature { Parameters: { } trailingParameters })
         {
             TrailingCommaError(node, trailingParameters, code);
             return;
         }
-        if (code == 1346 && node.Parent is { } function && SemanticSyntax.Body(function) is BlockNode body)
+        if (code == DiagnosticCode.ThisParameterIsNotAllowedWithUseStrictDirective
+            && node.Parent is { } function
+            && SemanticSyntax.Body(function) is BlockNode body)
         {
             var directive = body.Statements!.OfType<ExpressionStatementNode>().First(n =>
                 n.Expression is StringLiteralNode { Text: "use strict" });
@@ -38,7 +44,8 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
             { RelatedInformation = [CheckerDiagnostic.Create(directive, Messages.X_use_strict_directive_used_here)] });
             return;
         }
-        if (code == 1347 && node.Parent?.Parent is IFunctionSignature signatureWithDirective)
+        if (code == DiagnosticCode.XUseStrictDirectiveCannotBeUsedWithNonSimpleParameterList
+            && node.Parent?.Parent is IFunctionSignature signatureWithDirective)
         {
             var parameters = signatureWithDirective.Parameters!.OfType<ParameterDeclarationNode>().Where(p =>
                 p.Initializer is not null || p.Name is BindingPatternNode || p.DotDotDotToken is not null);
@@ -49,12 +56,14 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
             });
             return;
         }
-        if (code == 1005 && node is MethodDeclarationNode { Parent: ObjectLiteralExpressionNode, Body: null })
+        if (code == DiagnosticCode.X0Expected && node is MethodDeclarationNode { Parent: ObjectLiteralExpressionNode, Body: null })
         {
             Error(node, CheckerDiagnostic.Create(node, Messages.X_0_expected, "{") with { Start = node.End - 1, Length = 1 });
             return;
         }
-        if (code == 1294 && node is TypeAssertionNode assertion && SemanticSyntax.Source(node) is { } assertionFile)
+        if (code == DiagnosticCode.ThisSyntaxIsNotAllowedWhenErasableSyntaxOnlyIsEnabled
+            && node is TypeAssertionNode assertion
+            && SemanticSyntax.Source(node) is { } assertionFile)
         {
             int start = CheckerDiagnostic.TokenRange(assertionFile, node.Pos).Start;
             Error(node, CheckerDiagnostic.Create(node, Messages.This_syntax_is_not_allowed_when_erasableSyntaxOnly_is_enabled)
@@ -62,7 +71,9 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
             { Start = start, Length = assertion.Expression!.Pos - start });
             return;
         }
-        if (code is 1308 or 2852 && SemanticSyntax.Source(node) is { } file)
+        if (code is DiagnosticCode.XAwaitExpressionsAreOnlyAllowedWithinAsyncFunctionsAndAtTheTopLevelsOfModules
+            or DiagnosticCode.XAwaitUsingStatementsAreOnlyAllowedWithinAsyncFunctionsAndAtTheTopLevelsOfModules
+            && SemanticSyntax.Source(node) is { } file)
         {
             var (start, end) = CheckerDiagnostic.TokenRange(file, node.Pos);
             var diagnostic = CheckerDiagnostic.Create(
@@ -77,43 +88,55 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
             Error(node, diagnostic);
             return;
         }
-        if (code == 1098 && node is IFunctionSignature signature)
+        if (code == DiagnosticCode.TypeParameterListCannotBeEmpty && node is IFunctionSignature signature)
         {
             EmptyTypeListError(node, signature.TypeParameters, code);
             return;
         }
         string[] arguments = code switch
         {
-            1042 => [TokenFacts.Text(node.Kind)!],
-            2680 => [SyntaxNameText.Get(((ParameterDeclarationNode)node).Name!)],
-            2716 => [SyntaxNameText.Get(((TypeParameterDeclarationNode)node.Parent!).Name!)],
-            2368 => [CheckerDiagnostic.DeclarationName(node)],
-            2469 when node.Parent is PrefixUnaryExpressionNode unary => [TokenFacts.Text(unary.Operator)!],
-            17013 => ["new.target"],
-            18061 => [CheckerDiagnostic.DeclarationName(node is MetaPropertyNode meta ? meta.Name! : node)],
-            5076 when node is BinaryExpressionNode { OperatorToken.Kind: SyntaxKind.QuestionQuestionToken }
+            DiagnosticCode.X0ModifierCannotBeUsedHere => [TokenFacts.Text(node.Kind)!],
+            DiagnosticCode.A0ParameterMustBeTheFirstParameter => [SyntaxNameText.Get(((ParameterDeclarationNode)node).Name!)],
+            DiagnosticCode.TypeParameter0HasACircularDefault => [SyntaxNameText.Get(((TypeParameterDeclarationNode)node.Parent!).Name!)],
+            DiagnosticCode.TypeParameterNameCannotBe0 => [CheckerDiagnostic.DeclarationName(node)],
+            DiagnosticCode.The0OperatorCannotBeAppliedToTypeSymbol when node.Parent is PrefixUnaryExpressionNode unary => [TokenFacts.Text(unary.Operator)!],
+            DiagnosticCode.MetaProperty0IsOnlyAllowedInTheBodyOfAFunctionDeclarationFunctionExpressionOrConstructor => ["new.target"],
+            DiagnosticCode.X0IsNotAValidMetaPropertyForKeywordImportDidYouMeanMetaOrDefer => [CheckerDiagnostic.DeclarationName(
+                node is MetaPropertyNode meta
+                ? meta.Name!
+                : node)],
+            DiagnosticCode.X0And1OperationsCannotBeMixedWithoutParentheses when node is BinaryExpressionNode { OperatorToken.Kind: SyntaxKind.QuestionQuestionToken }
                 && node.Parent is BinaryExpressionNode outer => ["??", TokenFacts.Text(outer.OperatorToken!.Kind)!],
-            5076 when node is BinaryExpressionNode mixed => node.Parent is BinaryExpressionNode parent && parent.Right == node
+            DiagnosticCode.X0And1OperationsCannotBeMixedWithoutParentheses when node is BinaryExpressionNode mixed => node.Parent is BinaryExpressionNode parent
+                && parent.Right == node
                 ? ["??", TokenFacts.Text(mixed.OperatorToken!.Kind)!]
                 : [TokenFacts.Text(mixed.OperatorToken!.Kind)!, "??"],
-            17012 when node.Parent is MetaPropertyNode meta => [CheckerDiagnostic.DeclarationName(node),
+            DiagnosticCode.X0IsNotAValidMetaPropertyForKeyword1DidYouMean2 when node.Parent is MetaPropertyNode meta => [CheckerDiagnostic.DeclarationName(node),
                 TokenFacts.Text(meta.KeywordToken)!, meta.KeywordToken == SyntaxKind.NewKeyword ? "target" : "meta"],
-            2564 => [CheckerDiagnostic.DeclarationName(node)],
-            18046 or 18047 or 18048 or 18049 => [ExpressionChecks.EntityText(node)!],
-            18050 => [node.Kind == SyntaxKind.NullKeyword ? "null" : "undefined"],
-            2748 => [IsolatedModuleOptionName],
+            DiagnosticCode.Property0HasNoInitializerAndIsNotDefinitelyAssignedInTheConstructor => [CheckerDiagnostic.DeclarationName(node)],
+            DiagnosticCode.X0IsOfTypeUnknown or DiagnosticCode.X0IsPossiblyNull or DiagnosticCode.X0IsPossiblyUndefined
+                or DiagnosticCode.X0IsPossiblyNullOrUndefined => [ExpressionChecks.EntityText(node)!],
+            DiagnosticCode.TheValue0CannotBeUsedHere => [node.Kind == SyntaxKind.NullKeyword ? "null" : "undefined"],
+            DiagnosticCode.CannotAccessAmbientConstEnumsWhen0IsEnabled => [IsolatedModuleOptionName],
             _ => []
         };
         Error(node, code, arguments);
     }
 
-    public async ValueTask TypeExpressionErrorAsync(SyntaxNode node, int code, Type type, CancellationToken cancellation)
+    public async ValueTask TypeExpressionErrorAsync(SyntaxNode node, DiagnosticCode code, Type type, CancellationToken cancellation)
     {
-        if (code == 2736)
+        if (code == DiagnosticCode.Operator0CannotBeAppliedToType1)
             type = await Widening.LiteralBaseAsync(type, cancellation);
         string display = await TypeDisplay.GetAsync(type, cancellation);
-        Error(node, code, code == 2353 ? [CheckerDiagnostic.DeclarationName(node), display]
-            : code == 2736 ? ["+", display] : [display]);
+        Error(
+            node,
+            code,
+            code == DiagnosticCode.ObjectLiteralMayOnlySpecifyKnownPropertiesAnd0DoesNotExistInType1 ?
+                [
+                    CheckerDiagnostic.DeclarationName(node),
+                    display
+                ]
+            : code == DiagnosticCode.Operator0CannotBeAppliedToType1 ? ["+", display] : [display]);
     }
 
     public void DeferExpression(SyntaxNode node)
@@ -178,11 +201,13 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
             if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
             {
                 if (PrivateAccess.ContainingClass(node) is null)
-                    Error(node, 18016);
+                    Error(node, DiagnosticCode.PrivateIdentifiersAreNotAllowedOutsideClassBodies);
                 else if (node.Parent?.Kind != SyntaxKind.ForInStatement
                     && !(node.Parent is BinaryExpressionNode { OperatorToken.Kind: SyntaxKind.InKeyword } inExpression
                         && inExpression.Left == node))
-                    Error(node, 1451);
+                    Error(
+                        node,
+                        DiagnosticCode.PrivateIdentifiersAreOnlyAllowedInClassBodiesAndMayOnlyBeUsedAsPartOfAClassMemberDeclarationPropertyAccessOrOnTheLeftHandSideOfAnInExpression);
             }
             return context.AnyType;
         }
@@ -282,10 +307,13 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
     {
         if (!await AssignableAsync(type, context.NumberOrBigIntType, cancellation))
         {
-            Error(operand, 2356);
+            Error(operand, DiagnosticCode.AnArithmeticOperandMustBeOfTypeAnyNumberBigintOrAnEnumType);
             return;
         }
-        AssignmentChecks.Reference(operand, 2357, 2777);
+        AssignmentChecks.Reference(
+            operand,
+            DiagnosticCode.TheOperandOfAnIncrementOrDecrementOperatorMustBeAVariableOrAPropertyAccess,
+            DiagnosticCode.TheOperandOfAnIncrementOrDecrementOperatorMayNotBeAnOptionalPropertyAccess);
     }
 
     public void LiteralGrammar(SyntaxNode node)
@@ -299,12 +327,14 @@ internal sealed partial class Checker : IExpressionTypeHost, IExpressionCheckHos
             scanner.ResetPosition(file.Source.ToUtf16Position(node.Pos));
             scanner.Scan();
             if (!scanner.TokenText.Contains('.') && (number.TokenFlags & TokenFlags.Scientific) == 0
-                && JsNumber.FromString(number.Text) > JsNumber.MaxSafeInteger && suggestionLocations.Add((node, 80008)))
-                Suggestions.Add(80008);
+                && JsNumber.FromString(number.Text) > JsNumber.MaxSafeInteger && suggestionLocations.Add(
+                    (node, DiagnosticCode.NumericLiteralsWithAbsoluteValuesEqualTo253OrGreaterAreTooLargeToBeRepresentedAccuratelyAsIntegers)))
+                Suggestions.Add(
+                    DiagnosticCode.NumericLiteralsWithAbsoluteValuesEqualTo253OrGreaterAreTooLargeToBeRepresentedAccuratelyAsIntegers);
         }
         else if (node is BigIntLiteralNode && node.Parent is not LiteralTypeNode
             && !(node.Parent is PrefixUnaryExpressionNode { Parent: LiteralTypeNode }) && (node.Flags & NodeFlags.Ambient) == 0
             && program.Symbols.Program.Configuration.Options.EmitTargetYear < 2020 && file.ParseDiagnostics.Count == 0)
-            Error(node, 2737);
+            Error(node, DiagnosticCode.BigIntLiteralsAreNotAvailableWhenTargetingLowerThanES2020);
     }
 }

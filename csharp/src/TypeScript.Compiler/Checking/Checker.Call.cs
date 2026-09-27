@@ -18,10 +18,15 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
     internal BestMatchingTypes BestMatchingTypes { get; }
     internal LiteralElaboration LiteralElaboration { get; }
     internal HashSet<SyntaxNode> MissingAwaitHints { get; } = [];
-    private int? relationDiagnosticHead;
+    private DiagnosticCode? relationDiagnosticHead;
     internal Action<SyntaxNode>? BeforeCallDiagnostics { get; set; }
 
-    public async ValueTask LiteralRelationErrorAsync(SyntaxNode node, int code, Type source, Type target, CancellationToken cancellation)
+    public async ValueTask LiteralRelationErrorAsync(
+        SyntaxNode node,
+        DiagnosticCode code,
+        Type source,
+        Type target,
+        CancellationToken cancellation)
     {
         if (relationDiagnosticHead is { } head)
             RelationError(node, head);
@@ -160,7 +165,9 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
                     && (await SignaturesAsync(type, true, cancellation)).Count == 0
                     && !await Relations.RelatedAsync(type, GlobalFunction, RelationKind.Subtype, cancellation))
                 {
-                    Error(binary.Right!, 2359);
+                    Error(
+                        binary.Right!,
+                        DiagnosticCode.TheRightHandSideOfAnInstanceofExpressionMustBeEitherOfTypeAnyAClassFunctionOrOtherTypeAssignableToTheFunctionInterfaceTypeOrAnObjectTypeWithASymbolHasInstanceMethod);
                     return await CallResolution.UntypedAsync(node, true, cancellation);
                 }
             }
@@ -183,7 +190,9 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
             if (calls.Count != 0)
                 return await CallResolution.OverloadAsync(node, calls, candidates, mode, cancellation: cancellation);
             if (node.Parent is ArrayLiteralExpressionNode)
-                Error(tagged.Tag!, 2796);
+                Error(
+                    tagged.Tag!,
+                    DiagnosticCode.ItIsLikelyThatYouAreMissingACommaToSeparateTheseTwoTemplateExpressionsTheyFormATaggedTemplateExpressionWhichCannotBeInvoked);
             else
                 await InvocationErrorAsync(tagged.Tag!, apparent, false, cancellation);
             return await CallResolution.UntypedAsync(node, true, cancellation);
@@ -219,7 +228,7 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
         SyntaxNode node,
         Type type,
         bool construct,
-        int? head,
+        DiagnosticCode? head,
         CancellationToken cancellation)
     {
         var awaited = await Awaited.GetAsync(type, cancellation: cancellation);
@@ -228,7 +237,7 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
             ? propertyAccess.Name!
             : node;
         Diagnostic? detail = null;
-        async ValueTask<Diagnostic> Detail(int code, Type value) => CheckerDiagnostic.Create(location,
+        async ValueTask<Diagnostic> Detail(DiagnosticCode code, Type value) => CheckerDiagnostic.Create(location,
             DiagnosticLocalization.GetMessage(code), await TypeDisplay.GetAsync(value, cancellation));
         if (type is UnionType union)
         {
@@ -239,22 +248,35 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
                     callable = true;
                 else if (detail is null)
                 {
-                    var constituent = await Detail(construct ? 2761 : 2757, part);
-                    detail = await Detail(construct ? 2760 : 2756, type) with { MessageChain = [constituent] };
+                    var constituent = await Detail(
+                        construct ? DiagnosticCode.Type0HasNoConstructSignatures : DiagnosticCode.Type0HasNoCallSignatures,
+                        part);
+                    detail = await Detail(
+                        construct
+                            ? DiagnosticCode.NotAllConstituentsOfType0AreConstructable
+                            : DiagnosticCode.NotAllConstituentsOfType0AreCallable,
+                        type) with
+                    { MessageChain = [constituent] };
                 }
                 if (callable && detail is not null)
                     break;
             }
             if (!callable)
-                detail = await Detail(construct ? 2759 : 2755, type);
-            detail ??= await Detail(construct ? 2762 : 2758, type);
+                detail = await Detail(
+                    construct ? DiagnosticCode.NoConstituentOfType0IsConstructable : DiagnosticCode.NoConstituentOfType0IsCallable,
+                    type);
+            detail ??= await Detail(
+                construct
+                    ? DiagnosticCode.EachMemberOfTheUnionType0HasConstructSignaturesButNoneOfThoseSignaturesAreCompatibleWithEachOther
+                    : DiagnosticCode.EachMemberOfTheUnionType0HasSignaturesButNoneOfThoseSignaturesAreCompatibleWithEachOther,
+                type);
         }
         else
-            detail = await Detail(construct ? 2761 : 2757, type);
-        int code = construct ? 2351 : 2349;
+            detail = await Detail(construct ? DiagnosticCode.Type0HasNoConstructSignatures : DiagnosticCode.Type0HasNoCallSignatures, type);
+        DiagnosticCode code = construct ? DiagnosticCode.ThisExpressionIsNotConstructable : DiagnosticCode.ThisExpressionIsNotCallable;
         if (node.Parent is CallExpressionNode { Arguments.Count: 0 }
             && links.SymbolNodes.TryGet(node)?.ResolvedSymbol is { } resolved && (resolved.Flags & SymbolFlags.GetAccessor) != 0)
-            code = 6234;
+            code = DiagnosticCode.ThisExpressionIsNotCallableBecauseItIsAGetAccessorDidYouMeanToUseItWithout;
         var related = new List<Diagnostic>();
         if (missingAwait)
             related.Add(CheckerDiagnostic.Create(node, Messages.Did_you_forget_to_use_await));
@@ -289,14 +311,17 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
     }
 
     public async ValueTask<bool> ArgumentRelatedAsync(Type source, Type target, RelationKind relation, SyntaxNode? errorNode,
-        SyntaxNode expression, int code, CancellationToken cancellation)
+        SyntaxNode expression, DiagnosticCode code, CancellationToken cancellation)
     {
         if (errorNode is null)
             return await Relations.RelatedAsync(source, target, relation, cancellation);
-        int? previous = relationDiagnosticHead;
+        DiagnosticCode? previous = relationDiagnosticHead;
         var previousOutput = relationDiagnosticOutput;
         relationDiagnosticOutput = callDiagnosticOutput;
-        if (code is 2769 or 2860 or >= 1238 and <= 1241)
+        if (code is DiagnosticCode.NoOverloadMatchesThisCall
+            or DiagnosticCode.TheLeftHandSideOfAnInstanceofExpressionMustBeAssignableToTheFirstArgumentOfTheRightHandSideSSymbolHasInstanceMethod
+            or >= DiagnosticCode.UnableToResolveSignatureOfClassDecoratorWhenCalledAsAnExpression
+                and <= DiagnosticCode.UnableToResolveSignatureOfMethodDecoratorWhenCalledAsAnExpression)
             relationDiagnosticHead = code;
         try
         {
@@ -315,7 +340,7 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
         if (node is TaggedTemplateExpressionNode tag && (tag.QuestionDotToken is not null || (tag.Flags & NodeFlags.OptionalChain) != 0))
         {
             if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
-                Error(tag.Template!, 1358);
+                Error(tag.Template!, DiagnosticCode.TaggedTemplateExpressionsAreNotPermittedInAnOptionalChain);
             return ValueTask.CompletedTask;
         }
         if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0 && Checking.CallArguments.TypeNodes(node) is { } types)
@@ -323,7 +348,7 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
             if (types.HasTrailingComma)
                 TrailingCommaError(node, types);
             else if (types.Count == 0)
-                EmptyTypeListError(node, types, 1099);
+                EmptyTypeListError(node, types, DiagnosticCode.TypeArgumentListCannotBeEmpty);
         }
         return ValueTask.CompletedTask;
     }
@@ -331,7 +356,7 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
     public void DeprecatedSignature(SyntaxNode node, Signature signature)
     {
         if (signature.Declaration is { } declaration && program.Deprecations.Declaration(declaration))
-            ExpressionSuggestion(node, 6387);
+            ExpressionSuggestion(node, DiagnosticCode.TheSignature0Of1IsDeprecated);
     }
 
     public async ValueTask<Type?> SpecialCallResultAsync(SyntaxNode node, Type result, CancellationToken cancellation)
@@ -387,10 +412,10 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
                 : ((ParenthesizedExpressionNode)target).Expression!;
         if (target is not IdentifierNode
             && target.Kind is not SyntaxKind.ThisKeyword and not SyntaxKind.SuperKeyword and not SyntaxKind.MetaProperty)
-            Error(node.Expression!, 2776);
+            Error(node.Expression!, DiagnosticCode.AssertionsRequireTheCallTargetToBeAnIdentifierOrQualifiedName);
         else if (await FlowEffects.GetAsync(node, cancellation) is null)
         {
-            Error(node.Expression!, 2775);
+            Error(node.Expression!, DiagnosticCode.AssertionsRequireEveryNameInTheCallTargetToBeDeclaredWithAnExplicitTypeAnnotation);
             var previous = explicitAnnotationError;
             explicitAnnotationError = node.Expression;
             try
@@ -413,7 +438,7 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
         cancellation.ThrowIfCancellationRequested();
         if (state.Node is DecoratorNode decorator)
         {
-            int? previous = relationDiagnosticHead;
+            DiagnosticCode? previous = relationDiagnosticHead;
             var previousOutput = callDiagnosticOutput;
             var output = new List<(SyntaxNode Node, Diagnostic Diagnostic)>();
             relationDiagnosticHead = null;
@@ -422,7 +447,7 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
             {
                 if (state.ArgumentErrors.Count != 0)
                     await CallResolution.ApplicableAsync(state.Node, state.Arguments, state.ArgumentErrors[^1], RelationKind.Assignable, 0,
-                        true, 2345, cancellation);
+                        true, DiagnosticCode.ArgumentOfType0IsNotAssignableToParameterOfType1, cancellation);
                 else
                     await ReportArgumentArityAsync(state, state.ArgumentArityError is { } arityError ? [arityError] : original,
                         cancellation, DecoratorHead(decorator));

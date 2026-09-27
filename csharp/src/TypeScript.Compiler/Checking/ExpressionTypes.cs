@@ -3,6 +3,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Semantics;
 using TypeScript.Compiler.Syntax;
 
@@ -34,9 +35,9 @@ internal interface IExpressionTypeHost
 
     void DeferExpression(SyntaxNode node);
 
-    void ExpressionError(SyntaxNode node, int code);
+    void ExpressionError(SyntaxNode node, DiagnosticCode code);
 
-    ValueTask TypeExpressionErrorAsync(SyntaxNode node, int code, Type type, CancellationToken cancellation);
+    ValueTask TypeExpressionErrorAsync(SyntaxNode node, DiagnosticCode code, Type type, CancellationToken cancellation);
 }
 
 internal sealed class ExpressionTypes(TypeContext context, TypeAlgebra algebra, TypeFactQueries facts, TypeRelations relations,
@@ -147,11 +148,15 @@ internal sealed class ExpressionTypes(TypeContext context, TypeAlgebra algebra, 
             case SyntaxKind.PlusToken or SyntaxKind.MinusToken or SyntaxKind.TildeToken:
                 await host.NonNullAsync(operand, node.Operand!, cancellation).ConfigureAwait(false);
                 if (await host.MaybeKindAsync(operand, TypeFlags.ESSymbolLike, true, cancellation).ConfigureAwait(false))
-                    host.ExpressionError(node.Operand!, 2469);
+                    host.ExpressionError(node.Operand!, DiagnosticCode.The0OperatorCannotBeAppliedToTypeSymbol);
                 if (node.Operator == SyntaxKind.PlusToken)
                 {
                     if (await host.MaybeKindAsync(operand, TypeFlags.BigIntLike, true, cancellation).ConfigureAwait(false))
-                        await host.TypeExpressionErrorAsync(node.Operand!, 2736, operand, cancellation).ConfigureAwait(false);
+                        await host.TypeExpressionErrorAsync(
+                            node.Operand!,
+                            DiagnosticCode.Operator0CannotBeAppliedToType1,
+                            operand,
+                            cancellation).ConfigureAwait(false);
                     return context.NumberType;
                 }
                 return await UnaryResultAsync(operand, cancellation).ConfigureAwait(false);
@@ -195,7 +200,9 @@ internal sealed class ExpressionTypes(TypeContext context, TypeAlgebra algebra, 
             var span = (TemplateSpanNode)node;
             var type = await CheckAsync(span.Expression!, cancellation: cancellation).ConfigureAwait(false);
             if (await host.MaybeKindAsync(type, TypeFlags.ESSymbolLike, true, cancellation).ConfigureAwait(false))
-                host.ExpressionError(span.Expression!, 2731);
+                host.ExpressionError(
+                    span.Expression!,
+                    DiagnosticCode.ImplicitConversionOfASymbolToAStringWillFailAtRuntimeConsiderWrappingThisExpressionInString);
             texts.Add(
                 span.Literal switch
                 {

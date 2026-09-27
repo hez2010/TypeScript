@@ -1,11 +1,12 @@
 using System.Collections.Frozen;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Storage;
 using TypeScript.Compiler.Syntax;
 using TypeScript.Compiler.Text;
 
 namespace TypeScript.Compiler.Experiments;
 
-public readonly record struct ProjectDiagnostic(string File, int Code, int Pos, int Length, string Message);
+public readonly record struct ProjectDiagnostic(string File, DiagnosticCode Code, int Pos, int Length, string Message);
 
 public sealed class SliceSymbol<TStore>(
     SliceFile<TStore> file,
@@ -81,7 +82,11 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
                 string name = file.Store.Get<IdentifierData>(nameId).Text;
                 var symbol = new SliceSymbol<TStore>(file, declaration, name, exported, alias, constant, blockScoped);
                 if (!locals.TryAdd(name, symbol))
-                    Report(file, nameId, alias ? 2300 : 2451, $"Duplicate declaration '{name}'.");
+                    Report(
+                        file,
+                        nameId,
+                        alias ? DiagnosticCode.DuplicateIdentifier0 : DiagnosticCode.CannotRedeclareBlockScopedVariable0,
+                        $"Duplicate declaration '{name}'.");
             }
         }
         foreach (var file in Files.Values.OrderBy(file => file.Name, StringComparer.Ordinal))
@@ -94,7 +99,11 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
                 string specifier = file.Store.Get<StringLiteralData>(import.ModuleSpecifier).Text;
                 string? resolved = ResolveModule(file.Name, specifier);
                 if (resolved is null)
-                    Report(file, import.ModuleSpecifier, 2307, $"Cannot find module '{specifier}'.");
+                    Report(
+                        file,
+                        import.ModuleSpecifier,
+                        DiagnosticCode.CannotFindModule0OrItsCorrespondingTypeDeclarations,
+                        $"Cannot find module '{specifier}'.");
                 var clause = file.Store.Get<ImportClauseData>(import.ImportClause);
                 var named = file.Store.Get<NamedImportsData>(clause.NamedBindings);
                 foreach (NodeId element in file.Store.Get<NodeListData>(named.Elements).Nodes)
@@ -108,12 +117,16 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
                     SliceSymbol<TStore>? symbol = null;
                     if (resolved is not null && (!Locals[resolved].TryGetValue(original, out symbol) || !symbol.Exported))
                     {
-                        Report(file, binding.Name, 2305, $"Module has no exported member '{original}'.");
+                        Report(
+                            file,
+                            binding.Name,
+                            DiagnosticCode.Module0HasNoExportedMember1,
+                            $"Module has no exported member '{original}'.");
                         symbol = null;
                     }
                     symbol ??= new(file, element, local, false, false, false, false, unresolved: true);
                     if (!Locals[file.Name].TryAdd(local, symbol))
-                        Report(file, binding.Name, 2300, $"Duplicate import '{local}'.");
+                        Report(file, binding.Name, DiagnosticCode.DuplicateIdentifier0, $"Duplicate import '{local}'.");
                 }
             }
         }
@@ -162,7 +175,11 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
                 {
                     TypeAtom[] source = Expression(file, declaration.Initializer);
                     if (!declaration.Type.IsNull && !TypeRelations.Assignable<StrictAssignment>(source, target))
-                        Report(file, declaration.Name, 2322, "Initializer is not assignable to the declared type.");
+                        Report(
+                            file,
+                            declaration.Name,
+                            DiagnosticCode.Type0IsNotAssignableToType1,
+                            "Initializer is not assignable to the declared type.");
                 }
             }
         }
@@ -197,7 +214,13 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
                     NodeId name = cyclic.TypeAlias
                         ? cyclic.File.Store.Get<TypeAliasDeclarationData>(cyclic.Declaration).Name
                         : cyclic.File.Store.Get<VariableDeclarationData>(cyclic.Declaration).Name;
-                    Report(cyclic.File, name, cyclic.TypeAlias ? 2456 : 7022, $"Declaration '{cyclic.Name}' circularly references itself.");
+                    Report(
+                        cyclic.File,
+                        name,
+                        cyclic.TypeAlias
+                            ? DiagnosticCode.TypeAlias0CircularlyReferencesItself
+                            : DiagnosticCode.X0ImplicitlyHasTypeAnyBecauseItDoesNotHaveATypeAnnotationAndIsReferencedDirectlyOrIndirectlyInItsOwnInitializer,
+                        $"Declaration '{cyclic.Name}' circularly references itself.");
                     types[cyclic] = Any;
                     if (ReferenceEquals(cyclic, frame.Symbol))
                         break;
@@ -257,7 +280,7 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
         string name = file.Store.Get<IdentifierData>(identifier).Text;
         if (Locals[file.Name].TryGetValue(name, out var symbol))
             return symbol;
-        Report(file, identifier, 2304, $"Cannot find name '{name}'.");
+        Report(file, identifier, DiagnosticCode.CannotFindName0, $"Cannot find name '{name}'.");
         return null;
     }
 
@@ -334,7 +357,11 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
             return Any;
         if (!symbol.TypeAlias)
         {
-            Report(file, name, 2749, "A value cannot be used as a type.");
+            Report(
+                file,
+                name,
+                DiagnosticCode.X0RefersToAValueButIsBeingUsedAsATypeHereDidYouMeanTypeof0,
+                "A value cannot be used as a type.");
             return Any;
         }
         return types.TryGetValue(symbol, out var type) ? type : Any;
@@ -363,19 +390,27 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
                 if (name == "undefined" && !Locals[file.Name].ContainsKey(name))
                     return [new(AtomKind.Undefined)];
                 if (typeOnlyImports.Contains((file.Name, name)))
-                    Report(file, id, 1361, "A type-only import cannot be used as a value.");
+                    Report(
+                        file,
+                        id,
+                        DiagnosticCode.X0CannotBeUsedAsAValueBecauseItWasImportedUsingImportType,
+                        "A type-only import cannot be used as a value.");
                 var symbol = Lookup(file, id);
                 if (symbol is null)
                     return Any;
                 if (symbol.TypeAlias)
                 {
-                    Report(file, id, 2693, "A type cannot be used as a value.");
+                    Report(file, id, DiagnosticCode.X0OnlyRefersToATypeButIsBeingUsedAsAValueHere, "A type cannot be used as a value.");
                     return Any;
                 }
                 if (symbol.BlockScoped
                     && ReferenceEquals(symbol.File, file)
                     && file.Store.Header(id).Pos < file.Store.Header(symbol.Declaration).End)
-                    Report(file, id, 2448, "Block-scoped variable used before its declaration.");
+                    Report(
+                        file,
+                        id,
+                        DiagnosticCode.BlockScopedVariable0UsedBeforeItsDeclaration,
+                        "Block-scoped variable used before its declaration.");
                 return types.TryGetValue(symbol, out var type) ? type : TypeOf(symbol);
             default:
                 throw new InvalidDataException("Unsupported expression");
@@ -396,7 +431,7 @@ public sealed class SliceProject<TStore> where TStore : INodeStore
         return [.. set];
     }
 
-    private void Report(SliceFile<TStore> file, NodeId id, int code, string message)
+    private void Report(SliceFile<TStore> file, NodeId id, DiagnosticCode code, string message)
     {
         NodeHeader header = file.Store.Header(id);
         int pos = header.Pos;

@@ -10,7 +10,7 @@ internal sealed partial class Checker
 {
     private readonly HashSet<Symbol> checkedInferParameters = [];
 
-    private void EmptyTypeListError(SyntaxNode node, NodeList? list, int code)
+    private void EmptyTypeListError(SyntaxNode node, NodeList? list, DiagnosticCode code)
     {
         if (list is not { Count: 0 } || SemanticSyntax.Source(node) is not { ParseDiagnostics.Count: 0 } file)
             return;
@@ -23,7 +23,7 @@ internal sealed partial class Checker
     {
         if (SemanticSyntax.Name(node) is PrivateIdentifierNode
             && DeclarationOrder.Ancestor(node, SemanticSyntax.ClassLike) is null)
-            Error(node, 18016);
+            Error(node, DiagnosticCode.PrivateIdentifiersAreNotAllowedOutsideClassBodies);
         if (SemanticSyntax.Name(node) is not ComputedPropertyNameNode computed)
             return;
         if (node is not (GetAccessorDeclarationNode or SetAccessorDeclarationNode)
@@ -32,15 +32,15 @@ internal sealed partial class Checker
                 or PrefixUnaryExpressionNode { Operator: K.PlusToken or K.MinusToken, Operand: NumericLiteralNode })
             && !LateMembers.LateSyntax(computed))
         {
-            int code = node.Parent switch
+            DiagnosticCode code = node.Parent switch
             {
-                InterfaceDeclarationNode => 1169,
-                TypeLiteralNode => 1170,
-                ClassDeclarationNode or ClassExpressionNode when (node.Flags & NodeFlags.Ambient) != 0 => 1165,
-                ClassDeclarationNode or ClassExpressionNode when node is MethodDeclarationNode { Body: null } => 1168,
-                _ => 0
+                InterfaceDeclarationNode => DiagnosticCode.AComputedPropertyNameInAnInterfaceMustReferToAnExpressionWhoseTypeIsALiteralTypeOrAUniqueSymbolType,
+                TypeLiteralNode => DiagnosticCode.AComputedPropertyNameInATypeLiteralMustReferToAnExpressionWhoseTypeIsALiteralTypeOrAUniqueSymbolType,
+                ClassDeclarationNode or ClassExpressionNode when (node.Flags & NodeFlags.Ambient) != 0 => DiagnosticCode.AComputedPropertyNameInAnAmbientContextMustReferToAnExpressionWhoseTypeIsALiteralTypeOrAUniqueSymbolType,
+                ClassDeclarationNode or ClassExpressionNode when node is MethodDeclarationNode { Body: null } => DiagnosticCode.AComputedPropertyNameInAMethodOverloadMustReferToAnExpressionWhoseTypeIsALiteralTypeOrAUniqueSymbolType,
+                _ => DiagnosticCode.None
             };
-            if (code != 0)
+            if (code != DiagnosticCode.None)
                 Error(computed, code);
         }
         await ComputedNameAsync(computed, cancellation);
@@ -57,11 +57,19 @@ internal sealed partial class Checker
                 or PrefixUnaryExpressionNode { Operator: K.PlusToken or K.MinusToken, Operand: NumericLiteralNode })
             && !LateMembers.LateSyntax(computed))
         {
-            Error(node.Name, node.Parent is InterfaceDeclarationNode ? 1169 : 1170);
+            Error(
+                node.Name,
+                node.Parent is InterfaceDeclarationNode
+                    ? DiagnosticCode.AComputedPropertyNameInAnInterfaceMustReferToAnExpressionWhoseTypeIsALiteralTypeOrAUniqueSymbolType
+                    : DiagnosticCode.AComputedPropertyNameInATypeLiteralMustReferToAnExpressionWhoseTypeIsALiteralTypeOrAUniqueSymbolType);
             return;
         }
         if (node.Initializer is not null)
-            Error(node.Initializer, node.Parent is InterfaceDeclarationNode ? 1246 : 1247);
+            Error(
+                node.Initializer,
+                node.Parent is InterfaceDeclarationNode
+                    ? DiagnosticCode.AnInterfacePropertyCannotHaveAnInitializer
+                    : DiagnosticCode.ATypeLiteralPropertyCannotHaveAnInitializer);
     }
 
     private void SourceFileGrammar(SourceFileNode file)
@@ -75,7 +83,7 @@ internal sealed partial class Checker
                 && !SemanticSyntax.HasModifier(node, K.ExportKeyword)
                 && !SemanticSyntax.HasModifier(node, K.DefaultKeyword))
             {
-                ErrorOnFirstToken(node, 1046);
+                ErrorOnFirstToken(node, DiagnosticCode.TopLevelDeclarationsInDTsFilesMustStartWithEitherADeclareOrExportModifier);
                 break;
             }
     }
@@ -95,7 +103,7 @@ internal sealed partial class Checker
         };
         if (members is not { Count: > 0 })
             return false;
-        Error(members[0], 7061);
+        Error(members[0], DiagnosticCode.AMappedTypeMayNotDeclarePropertiesOrMethods);
         return true;
     }
 
@@ -109,7 +117,7 @@ internal sealed partial class Checker
                 break;
             }
         if (!valid && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
-            Error(node, 1338);
+            Error(node, DiagnosticCode.XInferDeclarationsAreOnlyPermittedInTheExtendsClauseOfAConditionalType);
         var declaration = node.TypeParameter!;
         await FunctionDeclarations.TypeParameterAsync(declaration, cancellation);
         var symbol = program.Symbols.Declaration(declaration)!;
@@ -129,7 +137,7 @@ internal sealed partial class Checker
             checkedInferParameters.Add(symbol);
             if (!identical)
                 foreach (var other in symbol.Declarations.OfType<TypeParameterDeclarationNode>())
-                    Error(other.Name!, 2838, symbol.Name);
+                    Error(other.Name!, DiagnosticCode.AllDeclarationsOf0MustHaveIdenticalConstraints, symbol.Name);
         }
         RegisterUnused(node);
     }
@@ -138,22 +146,22 @@ internal sealed partial class Checker
     {
         foreach (TemplateLiteralTypeSpanNode span in node.TemplateSpans!)
             await RelationDiagnostics.CheckAsync(await Nodes.FromNodeAsync(span.Type!, cancellation), context.TemplateConstraintType,
-                RelationKind.Assignable, span.Type, null, 2322, cancellation);
+                RelationKind.Assignable, span.Type, null, DiagnosticCode.Type0IsNotAssignableToType1, cancellation);
         await Nodes.FromNodeAsync(node, cancellation);
     }
 
     private async ValueTask CheckMappedTypeAsync(MappedTypeNode node, CancellationToken cancellation)
     {
         if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0 && node.Members is { Count: > 0 })
-            Error(node.Members[0], 7061);
+            Error(node.Members[0], DiagnosticCode.AMappedTypeMayNotDeclarePropertiesOrMethods);
         await FunctionDeclarations.TypeParameterAsync(node.TypeParameter!, cancellation);
         if (node.Type is null && NoImplicitAny)
-            Error(node, 7039);
+            Error(node, DiagnosticCode.MappedObjectTypeImplicitlyHasAnAnyTemplateType);
         var type = (MappedType)await Nodes.FromNodeAsync(node, cancellation);
         var nameType = await Instantiation.Mapped.NameAsync(type, cancellation);
         var key = nameType ?? await Instantiation.Mapped.ConstraintAsync(type, cancellation);
         await RelationDiagnostics.CheckAsync(key, context.StringNumberSymbolType, RelationKind.Assignable,
-            node.NameType ?? node.TypeParameter!.Constraint!, null, 2322, cancellation);
+            node.NameType ?? node.TypeParameter!.Constraint!, null, DiagnosticCode.Type0IsNotAssignableToType1, cancellation);
     }
 
     private void HeritageGrammar(SyntaxNode node, NodeList? clauses, bool isInterface = false)
@@ -167,12 +175,14 @@ internal sealed partial class Checker
             {
                 if (extendsSeen || implementsSeen)
                 {
-                    ErrorOnFirstToken(clause, extendsSeen ? 1172 : 1173);
+                    ErrorOnFirstToken(
+                        clause,
+                        extendsSeen ? DiagnosticCode.XExtendsClauseAlreadySeen : DiagnosticCode.XExtendsClauseMustPrecedeImplementsClause);
                     return;
                 }
                 if (!isInterface && clause.Types is { Count: > 1 } types)
                 {
-                    ErrorOnFirstToken(types[1], 1174);
+                    ErrorOnFirstToken(types[1], DiagnosticCode.ClassesCanOnlyExtendASingleClass);
                     return;
                 }
                 extendsSeen = true;
@@ -181,7 +191,11 @@ internal sealed partial class Checker
             {
                 if (isInterface || implementsSeen)
                 {
-                    ErrorOnFirstToken(clause, isInterface ? 1176 : 1175);
+                    ErrorOnFirstToken(
+                        clause,
+                        isInterface
+                            ? DiagnosticCode.InterfaceDeclarationCannotHaveImplementsClause
+                            : DiagnosticCode.XImplementsClauseAlreadySeen);
                     return;
                 }
                 implementsSeen = true;
@@ -191,10 +205,17 @@ internal sealed partial class Checker
             if (elements.HasTrailingComma)
             {
                 int position = Math.Max(elements.Pos, elements.End - 1);
-                Error(clause, new Diagnostic(DiagnosticLocalization.GetMessage(1009), position, 1, []) { FileName = file.FileName });
+                Error(
+                    clause,
+                    new Diagnostic(
+                        DiagnosticLocalization.GetMessage(DiagnosticCode.TrailingCommaNotAllowed),
+                        position,
+                        1,
+                        [])
+                    { FileName = file.FileName });
             }
             else if (elements.Count == 0)
-                Error(clause, new Diagnostic(DiagnosticLocalization.GetMessage(1097), elements.Pos, 0,
+                Error(clause, new Diagnostic(DiagnosticLocalization.GetMessage(DiagnosticCode.X0ListCannotBeEmpty), elements.Pos, 0,
                     [clause.Token == K.ExtendsKeyword ? "extends" : "implements"])
                 { FileName = file.FileName });
             else
@@ -216,29 +237,29 @@ internal sealed partial class Checker
                 var type = await Nodes.FromNodeAsync(((ITypedNode)element).Type!, cancellation);
                 if (!await ArrayLikeAsync(type, cancellation))
                 {
-                    Error(element, 2574);
+                    Error(element, DiagnosticCode.ARestElementTypeMustBeAnArrayType);
                     break;
                 }
                 if (IsArray(type) || type is TypeReference { Target: TupleType tuple }
                     && tuple.ElementInfos.Any(e => (e.Flags & ElementFlags.Rest) != 0))
                     flags |= ElementFlags.Rest;
             }
-            int code = 0;
+            DiagnosticCode code = DiagnosticCode.None;
             if ((flags & ElementFlags.Rest) != 0)
             {
                 if (restSeen)
-                    code = 1265;
+                    code = DiagnosticCode.ARestElementCannotFollowAnotherRestElement;
                 restSeen = true;
             }
             else if ((flags & ElementFlags.Optional) != 0)
             {
                 if (restSeen)
-                    code = 1266;
+                    code = DiagnosticCode.AnOptionalElementCannotFollowARestElement;
                 optionalSeen = true;
             }
             else if ((flags & ElementFlags.Required) != 0 && optionalSeen)
-                code = 1257;
-            if (code != 0)
+                code = DiagnosticCode.ARequiredElementCannotFollowAnOptionalElement;
+            if (code != DiagnosticCode.None)
             {
                 if (grammar)
                     Error(element, code);
@@ -253,11 +274,13 @@ internal sealed partial class Checker
         if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count != 0)
             return;
         if (node.DotDotDotToken is not null && node.QuestionToken is not null)
-            Error(node, 5085);
+            Error(node, DiagnosticCode.ATupleMemberCannotBeBothOptionalAndRest);
         if (node.Type is OptionalTypeNode)
-            Error(node.Type, 5086);
+            Error(
+                node.Type,
+                DiagnosticCode.ALabeledTupleElementIsDeclaredAsOptionalWithAQuestionMarkAfterTheNameAndBeforeTheColonRatherThanAfterTheType);
         if (node.Type is RestTypeNode)
-            Error(node.Type, 5087);
+            Error(node.Type, DiagnosticCode.ALabeledTupleElementIsDeclaredAsRestWithABeforeTheNameRatherThanBeforeTheType);
     }
 
     private async ValueTask JsDocTypeGrammarAsync(SyntaxNode node, CancellationToken cancellation)
@@ -272,10 +295,16 @@ internal sealed partial class Checker
             if (node is JSDocNullableTypeNode && type != context.NeverType && type != context.VoidType && context.StrictNullChecks)
                 type = await Algebra.UnionAsync(postfix ? [type, context.UndefinedType]
                     : [type, context.UndefinedType, context.NullType], cancellation: cancellation);
-            Error(node, postfix ? 17019 : 17020, node is JSDocNullableTypeNode ? "?" : "!", await TypeDisplay.GetAsync(type, cancellation));
+            Error(
+                node,
+                postfix
+                    ? DiagnosticCode.X0AtTheEndOfATypeIsNotValidTypeScriptSyntaxDidYouMeanToWrite1
+                    : DiagnosticCode.X0AtTheStartOfATypeIsNotValidTypeScriptSyntaxDidYouMeanToWrite1,
+                node is JSDocNullableTypeNode ? "?" : "!",
+                await TypeDisplay.GetAsync(type, cancellation));
         }
         else
-            Error(node, 8020);
+            Error(node, DiagnosticCode.JSDocTypesCanOnlyBeUsedInsideDocumentationComments);
     }
 
     private void TypeOperatorGrammar(TypeOperatorNode node)
@@ -285,14 +314,14 @@ internal sealed partial class Checker
         if (node.Operator == K.ReadonlyKeyword)
         {
             if (node.Type is not (ArrayTypeNode or TupleTypeNode))
-                ErrorOnFirstToken(node, 1354, "symbol");
+                ErrorOnFirstToken(node, DiagnosticCode.XReadonlyTypeModifierIsOnlyPermittedOnArrayAndTupleLiteralTypes, "symbol");
             return;
         }
         if (node.Operator != K.UniqueKeyword)
             return;
         if (node.Type?.Kind != K.SymbolKeyword)
         {
-            Error(node.Type ?? node, 1005, "symbol");
+            Error(node.Type ?? node, DiagnosticCode.X0Expected, "symbol");
             return;
         }
         var parent = node.Parent;
@@ -302,22 +331,22 @@ internal sealed partial class Checker
         {
             case VariableDeclarationNode declaration:
                 if (declaration.Name is not IdentifierNode)
-                    Error(node, 1333);
+                    Error(node, DiagnosticCode.XUniqueSymbolTypesMayNotBeUsedOnAVariableDeclarationWithABindingName);
                 else if (declaration.Parent is not VariableDeclarationListNode { Parent: VariableStatementNode })
-                    Error(node, 1334);
+                    Error(node, DiagnosticCode.XUniqueSymbolTypesAreOnlyAllowedOnVariablesInAVariableStatement);
                 else if ((declaration.Parent.Flags & NodeFlags.Const) == 0)
-                    Error(declaration.Name, 1332);
+                    Error(declaration.Name, DiagnosticCode.AVariableWhoseTypeIsAUniqueSymbolTypeMustBeConst);
                 break;
             case PropertyDeclarationNode property:
                 if (!SemanticSyntax.IsStatic(property) || !SemanticSyntax.HasModifier(property, K.ReadonlyKeyword))
-                    Error(property.Name!, 1331);
+                    Error(property.Name!, DiagnosticCode.APropertyOfAClassWhoseTypeIsAUniqueSymbolTypeMustBeBothStaticAndReadonly);
                 break;
             case PropertySignatureDeclarationNode property:
                 if (!SemanticSyntax.HasModifier(property, K.ReadonlyKeyword))
-                    Error(property.Name!, 1330);
+                    Error(property.Name!, DiagnosticCode.APropertyOfAnInterfaceOrTypeLiteralWhoseTypeIsAUniqueSymbolTypeMustBeReadonly);
                 break;
             default:
-                Error(node, 1335);
+                Error(node, DiagnosticCode.XUniqueSymbolTypesAreNotAllowedHere);
                 break;
         }
     }

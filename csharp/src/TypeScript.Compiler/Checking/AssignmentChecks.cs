@@ -1,4 +1,5 @@
 using TypeScript.Compiler.Ast;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -21,7 +22,7 @@ internal interface IAssignmentCheckHost
         bool exactOptionalMismatch,
         CancellationToken cancellation);
 
-    void AssignmentError(SyntaxNode node, int code);
+    void AssignmentError(SyntaxNode node, DiagnosticCode code);
 }
 
 internal sealed class AssignmentChecks(TypeContext context, CheckerLinks links, TypePredicates predicates, IAssignmentCheckHost host)
@@ -43,7 +44,10 @@ internal sealed class AssignmentChecks(TypeContext context, CheckerLinks links, 
         if (op is >= SyntaxKind.FirstCompoundAssignment and <= SyntaxKind.LastCompoundAssignment
             && left is PropertyAccessExpressionNode property)
             leftType = await host.PropertyWriteAsync(property, cancellation).ConfigureAwait(false);
-        if (!Reference(left, 2364, 2779))
+        if (!Reference(
+            left,
+            DiagnosticCode.TheLeftHandSideOfAnAssignmentExpressionMustBeAVariableOrAPropertyAccess,
+            DiagnosticCode.TheLeftHandSideOfAnAssignmentExpressionMayNotBeAnOptionalPropertyAccess))
             return;
         bool mismatch = false;
         if (context.ExactOptionalPropertyTypes
@@ -64,12 +68,19 @@ internal sealed class AssignmentChecks(TypeContext context, CheckerLinks links, 
     {
         var type = await host.CheckExpressionAsync(target, mode, cancellation).ConfigureAwait(false);
         bool rest = target.Parent is SpreadAssignmentNode;
-        if (Reference(target, rest ? 2701 : 2364, rest ? 2778 : 2779))
+        if (Reference(
+            target,
+            rest
+                ? DiagnosticCode.TheTargetOfAnObjectRestAssignmentMustBeAVariableOrAPropertyAccess
+                : DiagnosticCode.TheLeftHandSideOfAnAssignmentExpressionMustBeAVariableOrAPropertyAccess,
+            rest
+                ? DiagnosticCode.TheTargetOfAnObjectRestAssignmentMayNotBeAnOptionalPropertyAccess
+                : DiagnosticCode.TheLeftHandSideOfAnAssignmentExpressionMayNotBeAnOptionalPropertyAccess))
             await host.CheckAssignableAsync(source, type, target, target, false, cancellation).ConfigureAwait(false);
         return source;
     }
 
-    internal bool Reference(SyntaxNode expression, int invalidReference, int invalidOptional)
+    internal bool Reference(SyntaxNode expression, DiagnosticCode invalidReference, DiagnosticCode invalidOptional)
     {
         var node = expression;
         while (true)

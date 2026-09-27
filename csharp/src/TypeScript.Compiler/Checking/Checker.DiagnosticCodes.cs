@@ -30,13 +30,15 @@ internal sealed partial class Checker
     {
         if (node is null)
             return diagnostic;
-        if (diagnostic.Code == 2801 || MissingAwaitHints.Contains(node))
+        if (diagnostic.Code == DiagnosticCode.ThisConditionWillAlwaysReturnTrueSinceThis0IsAlwaysDefined
+            || MissingAwaitHints.Contains(node))
         {
             var hint = CheckerDiagnostic.Create(node, Messages.Did_you_forget_to_use_await);
             if (!diagnostic.RelatedInformation.Contains(hint, DiagnosticEqualityComparer.Instance))
                 diagnostic = diagnostic with { RelatedInformation = [.. diagnostic.RelatedInformation, hint] };
         }
-        if (diagnostic.Code == 2775 && AssertionRelatedDeclarations.TryGetValue(node, out var assertionDeclarations))
+        if (diagnostic.Code == DiagnosticCode.AssertionsRequireEveryNameInTheCallTargetToBeDeclaredWithAnExplicitTypeAnnotation
+            && AssertionRelatedDeclarations.TryGetValue(node, out var assertionDeclarations))
             diagnostic = diagnostic with
             {
                 RelatedInformation = assertionDeclarations.Select(d => CheckerDiagnostic.Create(d.Declaration,
@@ -51,7 +53,12 @@ internal sealed partial class Checker
                     .. diagnostic.RelatedInformation
                 ]
             };
-        if (diagnostic.Code is 2322 or 2345 or 2559 or 2560 or 2739 or 2740 or 2741)
+        if (diagnostic.Code is DiagnosticCode.Type0IsNotAssignableToType1
+            or DiagnosticCode.ArgumentOfType0IsNotAssignableToParameterOfType1 or DiagnosticCode.Type0HasNoPropertiesInCommonWithType1
+            or DiagnosticCode.ValueOfType0HasNoPropertiesInCommonWithType1DidYouMeanToCallIt
+            or DiagnosticCode.Type0IsMissingTheFollowingPropertiesFromType1Colon2
+            or DiagnosticCode.Type0IsMissingTheFollowingPropertiesFromType1Colon2And3More
+            or DiagnosticCode.Property0IsMissingInType1ButRequiredInType2)
         {
             bool construct = AssignmentHints.Contains((node, true));
             if (construct || AssignmentHints.Contains((node, false)))
@@ -63,7 +70,8 @@ internal sealed partial class Checker
                     diagnostic = diagnostic with { RelatedInformation = [.. diagnostic.RelatedInformation, hint] };
             }
         }
-        if (diagnostic.Code is 2552 or 2833 && SuggestedNameDeclarations.TryGetValue(node, out var suggestion))
+        if (diagnostic.Code is DiagnosticCode.CannotFindName0DidYouMean1 or DiagnosticCode.CannotFindNamespace0DidYouMean1
+            && SuggestedNameDeclarations.TryGetValue(node, out var suggestion))
             return diagnostic with
             {
                 RelatedInformation = [CheckerDiagnostic.Create(
@@ -71,7 +79,8 @@ internal sealed partial class Checker
                 Messages.X_0_is_declared_here,
                 suggestion.Name)]
             };
-        if (diagnostic.Code == 2741 && RequiredPropertyDeclarations.TryGetValue(node, out var missing)
+        if (diagnostic.Code == DiagnosticCode.Property0IsMissingInType1ButRequiredInType2
+            && RequiredPropertyDeclarations.TryGetValue(node, out var missing)
             && missing[0].Declarations.FirstOrDefault() is { } declaration)
         {
             var related = CheckerDiagnostic.Create(declaration, Messages.X_0_is_declared_here, TypeDisplay.SymbolName(missing[0]));
@@ -82,31 +91,31 @@ internal sealed partial class Checker
         return diagnostic;
     }
 
-    internal void TrackDiagnostic(SyntaxNode? node, int code, params string[] arguments)
+    internal void TrackDiagnostic(SyntaxNode? node, DiagnosticCode code, params string[] arguments)
         => diagnosticFiles.Add((node, CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), arguments)));
 
     internal void TrackDiagnostic(SyntaxNode? node, Diagnostic diagnostic) => diagnosticFiles.Add((node, diagnostic));
 
-    private void ListError(SyntaxNode node, NodeList list, int code, params string[] arguments)
+    private void ListError(SyntaxNode node, NodeList list, DiagnosticCode code, params string[] arguments)
     {
         int start = list.Count == 0 ? list.Pos : CheckerDiagnostic.TokenRange(SemanticSyntax.Source(node)!, list.Pos).Start;
         Error(node, CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), arguments) with
         { Start = start, Length = Math.Max(0, list.End - start) });
     }
 
-    private void TrailingCommaError(SyntaxNode node, NodeList list, int code = 1009)
+    private void TrailingCommaError(SyntaxNode node, NodeList list, DiagnosticCode code = DiagnosticCode.TrailingCommaNotAllowed)
         => Error(node, CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code)) with { Start = list.End - 1, Length = 1 });
 
     internal bool ReportTypeRecursionLimit()
     {
         var node = DiagnosticNode;
-        if (node is not null && !reported.Add((node, 2589)))
+        if (node is not null && !reported.Add((node, DiagnosticCode.TypeInstantiationIsExcessivelyDeepAndPossiblyInfinite)))
             return false;
-        TrackDiagnostic(node, 2589);
+        TrackDiagnostic(node, DiagnosticCode.TypeInstantiationIsExcessivelyDeepAndPossiblyInfinite);
         return true;
     }
 
-    private void ErrorOnFirstToken(SyntaxNode node, int code, params string[] arguments)
+    private void ErrorOnFirstToken(SyntaxNode node, DiagnosticCode code, params string[] arguments)
     {
         if (!reported.Add((node, code)))
             return;
@@ -119,13 +128,15 @@ internal sealed partial class Checker
 
     internal SyntaxNode? DiagnosticNode => Expressions.CurrentNode ?? CurrentSourceNode;
 
-    internal IReadOnlyList<int> DiagnosticCodesForFile(SourceFileNode? file)
+    internal IReadOnlyList<DiagnosticCode> DiagnosticCodesForFile(SourceFileNode? file)
         => DetailedDiagnosticsForFile(file).Select(d => d.Code).Order().ToArray();
 
-    internal IReadOnlyList<int> DiagnosticCodesForProgramFile(SourceFileNode file)
+    internal IReadOnlyList<DiagnosticCode> DiagnosticCodesForProgramFile(SourceFileNode file)
         => DetailedDiagnosticsForProgramFile(file).Select(d => d.Code).Order().ToArray();
 
-    internal IReadOnlyList<Diagnostic> DetailedDiagnosticsForProgramFile(SourceFileNode file, IEnumerable<Diagnostic>? fileDiagnostics = null)
+    internal IReadOnlyList<Diagnostic> DetailedDiagnosticsForProgramFile(
+        SourceFileNode file,
+        IEnumerable<Diagnostic>? fileDiagnostics = null)
     {
         if (SkipProgramFile(file))
             return [];
@@ -190,8 +201,13 @@ internal sealed partial class Checker
         }
         foreach (var directive in directives.Values)
             if (reportUnused && directive.ExpectError)
-                filtered.Add(new(DiagnosticLocalization.GetMessage(2578), directive.Start, directive.End - directive.Start, [])
-                { FileName = file.FileName });
+                filtered.Add(
+                    new(
+                        DiagnosticLocalization.GetMessage(DiagnosticCode.UnusedTsExpectErrorDirective),
+                        directive.Start,
+                        directive.End - directive.Start,
+                        [])
+                    { FileName = file.FileName });
         return filtered;
     }
 }

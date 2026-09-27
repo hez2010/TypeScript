@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -64,7 +65,7 @@ internal sealed partial class Checker : ITypeNormalizationHost, ITypeRelationHos
             if (other is null || (other.Flags & SymbolFlags.EnumMember) == 0)
             {
                 if (operation is not null)
-                    operation.ExplainArguments(2324, TypeDisplay.SymbolName(member),
+                    operation.ExplainArguments(DiagnosticCode.Property0IsMissingInType1, TypeDisplay.SymbolName(member),
                         await TypeDisplay.GetAsync(
                             await Declared.GetAsync(target, cancellation),
                             NodeBuilderFlags.UseFullyQualifiedType,
@@ -91,11 +92,14 @@ internal sealed partial class Checker : ITypeNormalizationHost, ITypeRelationHos
                         _ => throw new InvalidOperationException("Unexpected enum constant")
                     };
                     if (value is not null && otherValue is not null)
-                        operation.ExplainArguments(4125, TypeDisplay.SymbolName(target), TypeDisplay.SymbolName(other),
+                        operation.ExplainArguments(
+                            DiagnosticCode.EachDeclarationOf01DiffersInItsValueWhere2WasExpectedBut3WasGiven,
+                            TypeDisplay.SymbolName(target),
+                            TypeDisplay.SymbolName(other),
                             ValueText(otherValue), ValueText(value));
                     else
                         operation.ExplainArguments(
-                            4126,
+                            DiagnosticCode.OneValueOf01IsTheString2AndTheOtherIsAssumedToBeAnUnknownNumericValue,
                             TypeDisplay.SymbolName(target),
                             TypeDisplay.SymbolName(other),
                             ValueText(value ?? otherValue!));
@@ -108,10 +112,10 @@ internal sealed partial class Checker : ITypeNormalizationHost, ITypeRelationHos
 
     public async ValueTask ComplexityOverflowAsync(Type source, Type target, CancellationToken cancellation)
     {
-        Diagnostics.Add(2859);
+        Diagnostics.Add(DiagnosticCode.ExcessiveComplexityComparingTypes0And1);
         TrackDiagnostic(
             DiagnosticNode,
-            2859,
+            DiagnosticCode.ExcessiveComplexityComparingTypes0And1,
             await TypeDisplay.GetAsync(source, cancellation),
             await TypeDisplay.GetAsync(target, cancellation));
     }

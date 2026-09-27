@@ -10,7 +10,7 @@ internal sealed partial class Checker
 {
     private async ValueTask ReportRelationMessageAsync(
         SyntaxNode node,
-        int code,
+        DiagnosticCode code,
         Type source,
         Type target,
         RelationKind kind,
@@ -18,22 +18,32 @@ internal sealed partial class Checker
         Diagnostic? head = null,
         RelationExplanation? preparedExplanation = null)
     {
-        if (code is not (1270 or 1271 or 1360 or 2322 or 2344 or 2345 or 2352 or 2375 or 2379 or 2412 or 2415 or 2417 or 2418 or 2430
-            or 2420 or 2636 or 2678 or 2684
-            or 2720 or 2739
-            or 2740
-            or 2741
-            or 2787 or 2788
-            or 2789 or 18033 or 18053 or 2850 or 2851 or 2861))
+        if (code is not (DiagnosticCode.DecoratorFunctionReturnType0IsNotAssignableToType1
+            or DiagnosticCode.DecoratorFunctionReturnTypeIs0ButIsExpectedToBeVoidOrAny
+            or DiagnosticCode.Type0DoesNotSatisfyTheExpectedType1 or DiagnosticCode.Type0IsNotAssignableToType1
+            or DiagnosticCode.Type0DoesNotSatisfyTheConstraint1 or DiagnosticCode.ArgumentOfType0IsNotAssignableToParameterOfType1
+            or DiagnosticCode.ConversionOfType0ToType1MayBeAMistakeBecauseNeitherTypeSufficientlyOverlapsWithTheOtherIfThisWasIntentionalConvertTheExpressionToUnknownFirst
+            or DiagnosticCode.Type0IsNotAssignableToType1WithExactOptionalPropertyTypesColonTrueConsiderAddingUndefinedToTheTypesOfTheTargetSProperties
+            or DiagnosticCode.ArgumentOfType0IsNotAssignableToParameterOfType1WithExactOptionalPropertyTypesColonTrueConsiderAddingUndefinedToTheTypesOfTheTargetSProperties
+            or DiagnosticCode.Type0IsNotAssignableToType1WithExactOptionalPropertyTypesColonTrueConsiderAddingUndefinedToTheTypeOfTheTarget
+            or DiagnosticCode.Class0IncorrectlyExtendsBaseClass1 or DiagnosticCode.ClassStaticSide0IncorrectlyExtendsBaseClassStaticSide1
+            or DiagnosticCode.TypeOfComputedPropertySValueIs0WhichIsNotAssignableToType1
+            or DiagnosticCode.Interface0IncorrectlyExtendsInterface1
+            or DiagnosticCode.Class0IncorrectlyImplementsInterface1 or DiagnosticCode.Type0IsNotAssignableToType1AsImpliedByVarianceAnnotation or DiagnosticCode.Type0IsNotComparableToType1 or DiagnosticCode.TheThisContextOfType0IsNotAssignableToMethodSThisOfType1
+            or DiagnosticCode.Class0IncorrectlyImplementsClass1DidYouMeanToExtend1AndInheritItsMembersAsASubclass or DiagnosticCode.Type0IsMissingTheFollowingPropertiesFromType1Colon2
+            or DiagnosticCode.Type0IsMissingTheFollowingPropertiesFromType1Colon2And3More
+            or DiagnosticCode.Property0IsMissingInType1ButRequiredInType2
+            or DiagnosticCode.ItsReturnType0IsNotAValidJSXElement or DiagnosticCode.ItsInstanceType0IsNotAValidJSXElement
+            or DiagnosticCode.ItsElementType0IsNotAValidJSXElement or DiagnosticCode.Type0IsNotAssignableToType1AsRequiredForComputedEnumMemberValues or DiagnosticCode.ItsType0IsNotAValidJSXElementType or DiagnosticCode.TheInitializerOfAUsingDeclarationMustBeEitherAnObjectWithASymbolDisposeMethodOrBeNullOrUndefined or DiagnosticCode.TheInitializerOfAnAwaitUsingDeclarationMustBeEitherAnObjectWithASymbolAsyncDisposeOrSymbolDisposeMethodOrBeNullOrUndefined or DiagnosticCode.AnObjectSSymbolHasInstanceMethodMustReturnABooleanValueForItToBeUsedOnTheRightHandSideOfAnInstanceofExpression))
         {
             RelationError(node, code);
             return;
         }
         var originalTarget = target;
         (source, target) = await RelationErrorTypesAsync(source, target, cancellation);
-        if (code == 2345 && context.ExactOptionalPropertyTypes
+        if (code == DiagnosticCode.ArgumentOfType0IsNotAssignableToParameterOfType1 && context.ExactOptionalPropertyTypes
             && (await RelationDiagnostics.ExactOptionalPropertiesAsync(source, target, cancellation)).Count != 0)
-            code = 2379;
+            code = DiagnosticCode.ArgumentOfType0IsNotAssignableToParameterOfType1WithExactOptionalPropertyTypesColonTrueConsiderAddingUndefinedToTheTypesOfTheTargetSProperties;
         var originalSource = source;
         var (sourceText, targetText) = await RelationTypeNamesAsync(source, target, cancellation);
         if ((target.Flags & TypeFlags.Never) == 0 && source.IsLiteral && !await CouldHaveSingletonTypesAsync(target, cancellation))
@@ -42,11 +52,14 @@ internal sealed partial class Checker
             sourceText = await TypeDisplay.GetAsync(source, NodeBuilderFlags.UseFullyQualifiedType, cancellation);
         }
         string[] arguments;
-        if (code is 2739 or 2740 or 2741 && RequiredPropertyDeclarations.TryGetValue(node, out var missing))
+        if (code is DiagnosticCode.Type0IsMissingTheFollowingPropertiesFromType1Colon2
+            or DiagnosticCode.Type0IsMissingTheFollowingPropertiesFromType1Colon2And3More
+            or DiagnosticCode.Property0IsMissingInType1ButRequiredInType2
+            && RequiredPropertyDeclarations.TryGetValue(node, out var missing))
         {
-            if (code == 2741)
+            if (code == DiagnosticCode.Property0IsMissingInType1ButRequiredInType2)
                 arguments = [TypeDisplay.SymbolName(missing[0]), sourceText, targetText];
-            else if (code == 2740)
+            else if (code == DiagnosticCode.Type0IsMissingTheFollowingPropertiesFromType1Colon2And3More)
                 arguments = [sourceText, targetText, string.Join(", ", missing.Take(4).Select(TypeDisplay.SymbolName)),
                     (missing.Count - 4).ToString(CultureInfo.InvariantCulture)];
             else
@@ -56,14 +69,17 @@ internal sealed partial class Checker
             arguments = [sourceText, targetText];
         var diagnostic = CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), arguments);
         diagnostic = await PrimitiveWrapperNoteAsync(diagnostic, originalSource, target, cancellation);
-        if (code == 2741 && RequiredPropertyDeclarations.TryGetValue(node, out var required)
+        if (code == DiagnosticCode.Property0IsMissingInType1ButRequiredInType2
+            && RequiredPropertyDeclarations.TryGetValue(node, out var required)
             && required[0].Declarations.FirstOrDefault() is { } declaration)
             diagnostic = diagnostic with
             {
                 RelatedInformation = [CheckerDiagnostic.Create(declaration, Messages.X_0_is_declared_here,
                 TypeDisplay.SymbolName(required[0]))]
             };
-        if (code is not (2739 or 2740 or 2741))
+        if (code is not (DiagnosticCode.Type0IsMissingTheFollowingPropertiesFromType1Colon2
+            or DiagnosticCode.Type0IsMissingTheFollowingPropertiesFromType1Colon2And3More
+            or DiagnosticCode.Property0IsMissingInType1ButRequiredInType2))
         {
             var explanation = preparedExplanation ?? await Relations.ExplainAsync(originalSource, target, kind, cancellation);
             if (await RelationChainAsync(explanation?.Next, diagnostic, cancellation) is { } chain)
@@ -84,7 +100,8 @@ internal sealed partial class Checker
         diagnostic = await RelationMessageKindAsync(diagnostic, originalSource, target, sourceText, targetText, cancellation);
         diagnostic = SelectRelationDiagnostic(diagnostic, originalSource, target, sourceText, targetText);
         diagnostic = await SourceConstraintNoteAsync(diagnostic, originalSource, target, cancellation);
-        if (code is not (2322 or 2678) && originalSource.Symbol is { } symbol
+        if (code is not (DiagnosticCode.Type0IsNotAssignableToType1 or DiagnosticCode.Type0IsNotComparableToType1)
+            && originalSource.Symbol is { } symbol
             && links.ExportTypes.TryGet(symbol) is { OriginatingImport: { } import, Target: { } imported }
             && import is not CallExpressionNode
             && await Relations.RelatedAsync(await Values.GetAsync(imported, cancellation), target, kind, cancellation))
@@ -118,21 +135,44 @@ internal sealed partial class Checker
         if (ReadonlyAssignment(source, target))
             return diagnostic with
             {
-                Message = DiagnosticLocalization.GetMessage(4104),
+                Message = DiagnosticLocalization.GetMessage(DiagnosticCode.TheType0IsReadonlyAndCannotBeAssignedToTheMutableType1),
                 Arguments = [sourceText, targetText],
-                MessageChain = diagnostic.Code is 2739 or 2740 or 2741 ? [diagnostic] : diagnostic.MessageChain
+                MessageChain = diagnostic.Code is DiagnosticCode.Type0IsMissingTheFollowingPropertiesFromType1Colon2
+                    or DiagnosticCode.Type0IsMissingTheFollowingPropertiesFromType1Colon2And3More
+                    or DiagnosticCode.Property0IsMissingInType1ButRequiredInType2
+                    ? [diagnostic]
+                    : diagnostic.MessageChain
             };
         if (diagnostic.MessageChain is not [var next])
             return diagnostic;
         bool matches = next.Code switch
         {
-            2353 or 2561 => true,
-            4104 => next.Arguments.SequenceEqual(new[] { sourceText, targetText }),
-            2559 or 2560 => true,
-            2741 when diagnostic.Code is not (2415 or 2417 or 2430 or 2420 or 2720 or 2352 or 2787 or 2788 or 2789) => next.Arguments is [_, var s, var t]
+            DiagnosticCode.ObjectLiteralMayOnlySpecifyKnownPropertiesAnd0DoesNotExistInType1
+                or DiagnosticCode.ObjectLiteralMayOnlySpecifyKnownPropertiesBut0DoesNotExistInType1DidYouMeanToWrite2 => true,
+            DiagnosticCode.TheType0IsReadonlyAndCannotBeAssignedToTheMutableType1 => next.Arguments.SequenceEqual(new[]
+            {
+                sourceText,
+                targetText
+            }),
+            DiagnosticCode.Type0HasNoPropertiesInCommonWithType1
+                or DiagnosticCode.ValueOfType0HasNoPropertiesInCommonWithType1DidYouMeanToCallIt => true,
+            DiagnosticCode.Property0IsMissingInType1ButRequiredInType2 when diagnostic.Code is not (DiagnosticCode.Class0IncorrectlyExtendsBaseClass1
+                or DiagnosticCode.ClassStaticSide0IncorrectlyExtendsBaseClassStaticSide1
+                or DiagnosticCode.Interface0IncorrectlyExtendsInterface1 or DiagnosticCode.Class0IncorrectlyImplementsInterface1
+                or DiagnosticCode.Class0IncorrectlyImplementsClass1DidYouMeanToExtend1AndInheritItsMembersAsASubclass
+                or DiagnosticCode.ConversionOfType0ToType1MayBeAMistakeBecauseNeitherTypeSufficientlyOverlapsWithTheOtherIfThisWasIntentionalConvertTheExpressionToUnknownFirst
+                or DiagnosticCode.ItsReturnType0IsNotAValidJSXElement or DiagnosticCode.ItsInstanceType0IsNotAValidJSXElement
+                or DiagnosticCode.ItsElementType0IsNotAValidJSXElement) => next.Arguments is [_, var s, var t]
                 && s == sourceText
                 && t == targetText,
-            2739 or 2740 when diagnostic.Code is not (2415 or 2417 or 2430 or 2420 or 2720 or 2352 or 2787 or 2788 or 2789) => next.Arguments.Length >= 2
+            DiagnosticCode.Type0IsMissingTheFollowingPropertiesFromType1Colon2
+                or DiagnosticCode.Type0IsMissingTheFollowingPropertiesFromType1Colon2And3More when diagnostic.Code is not (DiagnosticCode.Class0IncorrectlyExtendsBaseClass1
+                    or DiagnosticCode.ClassStaticSide0IncorrectlyExtendsBaseClassStaticSide1
+                    or DiagnosticCode.Interface0IncorrectlyExtendsInterface1 or DiagnosticCode.Class0IncorrectlyImplementsInterface1
+                    or DiagnosticCode.Class0IncorrectlyImplementsClass1DidYouMeanToExtend1AndInheritItsMembersAsASubclass
+                    or DiagnosticCode.ConversionOfType0ToType1MayBeAMistakeBecauseNeitherTypeSufficientlyOverlapsWithTheOtherIfThisWasIntentionalConvertTheExpressionToUnknownFirst
+                    or DiagnosticCode.ItsReturnType0IsNotAValidJSXElement or DiagnosticCode.ItsInstanceType0IsNotAValidJSXElement
+                    or DiagnosticCode.ItsElementType0IsNotAValidJSXElement) => next.Arguments.Length >= 2
                 && next.Arguments[0] == sourceText
                 && next.Arguments[1] == targetText,
             _ => false
@@ -142,14 +182,21 @@ internal sealed partial class Checker
 
     private Diagnostic ObjectRelationNote(Diagnostic diagnostic, Type source, Type target)
         => source == GlobalObject && (target.Flags & TypeFlags.Primitive) == 0 ? diagnostic with
-        { MessageChain = [diagnostic with { Message = DiagnosticLocalization.GetMessage(2696), Arguments = [] }] } : diagnostic;
+        {
+            MessageChain = [diagnostic with
+        {
+            Message = DiagnosticLocalization.GetMessage(
+                DiagnosticCode.TheObjectTypeIsAssignableToVeryFewOtherTypesDidYouMeanToUseTheAnyTypeInstead),
+            Arguments = []
+        }]
+        } : diagnostic;
 
     private async ValueTask<Diagnostic> NeverIntersectionNoteAsync(Diagnostic diagnostic, Type target, CancellationToken cancellation)
     {
         if (target is not IntersectionType intersection || (target.ObjectFlags & ObjectFlags.IsNeverIntersection) == 0)
             return diagnostic;
         Symbol? conflict = null;
-        int code = 18031;
+        DiagnosticCode code = DiagnosticCode.TheIntersection0WasReducedToNeverBecauseProperty1HasConflictingTypesInSomeConstituents;
         var properties = await Properties.CompositePropertiesAsync(intersection, cancellation);
         foreach (var property in properties)
             if (property.ValueDeclaration is not null && await Views.NeverPropertyAsync(property, cancellation))
@@ -161,7 +208,7 @@ internal sealed partial class Checker
         {
             conflict = properties.FirstOrDefault(
                 p => p.ValueDeclaration is null && (p.CheckFlags & Binding.CheckFlags.ContainsPrivate) != 0);
-            code = 18032;
+            code = DiagnosticCode.TheIntersection0WasReducedToNeverBecauseProperty1ExistsInMultipleConstituentsAndIsPrivateInSome;
         }
         return conflict is null ? diagnostic : diagnostic with
         {
@@ -200,9 +247,11 @@ internal sealed partial class Checker
             return null;
         suppressRelatedInformation |= explanation.SuppressRelatedInformation;
         var next = await RelationChainAsync(explanation.Next, location, cancellation, suppressRelatedInformation);
-        if (explanation.Code == 2326 && next?.Code is 2353 or 2561)
+        if (explanation.Code == DiagnosticCode.TypesOfProperty0AreIncompatible
+            && next?.Code is DiagnosticCode.ObjectLiteralMayOnlySpecifyKnownPropertiesAnd0DoesNotExistInType1
+                or DiagnosticCode.ObjectLiteralMayOnlySpecifyKnownPropertiesBut0DoesNotExistInType1DidYouMeanToWrite2)
             return next;
-        if (explanation.Code == 2353)
+        if (explanation.Code == DiagnosticCode.ObjectLiteralMayOnlySpecifyKnownPropertiesAnd0DoesNotExistInType1)
         {
             var property = explanation.Property!;
             var name = SemanticSyntax.Name(property.ValueDeclaration);
@@ -216,7 +265,10 @@ internal sealed partial class Checker
             string propertyText = TypeDisplay.SymbolName(property), targetText = await TypeDisplay.GetAsync(target, cancellation);
             return excessDiagnostic with
             {
-                Message = DiagnosticLocalization.GetMessage(suggestion is null ? 2353 : 2561),
+                Message = DiagnosticLocalization.GetMessage(
+                    suggestion is null
+                        ? DiagnosticCode.ObjectLiteralMayOnlySpecifyKnownPropertiesAnd0DoesNotExistInType1
+                        : DiagnosticCode.ObjectLiteralMayOnlySpecifyKnownPropertiesBut0DoesNotExistInType1DidYouMeanToWrite2),
                 Arguments = suggestion is null ? [propertyText, targetText] : [propertyText, targetText, suggestion.Name],
                 MessageChain = [],
                 RelatedInformation = []
@@ -229,7 +281,7 @@ internal sealed partial class Checker
             MessageChain = next is null ? [] : [next],
             RelatedInformation = next?.RelatedInformation ?? []
         };
-        if (explanation.Code is 2322 or 2678)
+        if (explanation.Code is DiagnosticCode.Type0IsNotAssignableToType1 or DiagnosticCode.Type0IsNotComparableToType1)
         {
             var (source, target) = await RelationErrorTypesAsync(explanation.Source!, explanation.Target!, cancellation);
             if (next is not null && DiagnosticNode is { } node && await OmitJsxRelationHeadAsync(source, target, node, cancellation))
@@ -272,12 +324,20 @@ internal sealed partial class Checker
             {
                 Arguments = explanation.Code switch
                 {
-                    2741 => [TypeDisplay.SymbolName(explanation.Property!), await TypeDisplay.GetAsync(explanation.Source!, cancellation),
+                    DiagnosticCode.Property0IsMissingInType1ButRequiredInType2 => [TypeDisplay.SymbolName(explanation.Property!), await TypeDisplay.GetAsync(
+                        explanation.Source!,
+                        cancellation),
                         await TypeDisplay.GetAsync(explanation.Target!, cancellation)],
-                    2326 or 2530 => [TypeDisplay.SymbolName(explanation.Property!)],
-                    2634 => [await TypeDisplay.GetAsync(explanation.Source!, cancellation)],
-                    2517 or 2518 or 2685 => [],
-                    2330 or 2329 or 2202 or 2203 or 2204 or 2205 =>
+                    DiagnosticCode.TypesOfProperty0AreIncompatible or DiagnosticCode.Property0IsIncompatibleWithIndexSignature => [TypeDisplay.SymbolName(explanation.Property!)],
+                    DiagnosticCode.X0IndexSignaturesAreIncompatible => [await TypeDisplay.GetAsync(explanation.Source!, cancellation)],
+                    DiagnosticCode.CannotAssignAnAbstractConstructorTypeToANonAbstractConstructorType
+                        or DiagnosticCode.AThisBasedTypeGuardIsNotCompatibleWithAParameterBasedTypeGuard
+                        or DiagnosticCode.TheThisTypesOfEachSignatureAreIncompatible => [],
+                    DiagnosticCode.X0And1IndexSignaturesAreIncompatible or DiagnosticCode.IndexSignatureForType0IsMissingInType1
+                        or DiagnosticCode.CallSignatureReturnTypes0And1AreIncompatible
+                        or DiagnosticCode.ConstructSignatureReturnTypes0And1AreIncompatible
+                        or DiagnosticCode.CallSignaturesWithNoArgumentsHaveIncompatibleReturnTypes0And1
+                        or DiagnosticCode.ConstructSignaturesWithNoArgumentsHaveIncompatibleReturnTypes0And1 =>
                         [
                             await TypeDisplay.GetAsync(explanation.Source!, cancellation),
                         await TypeDisplay.GetAsync(explanation.Target!, cancellation)
@@ -285,38 +345,51 @@ internal sealed partial class Checker
                     _ => throw new InvalidOperationException($"Unsupported relation explanation {explanation.Code}")
                 }
             };
-        if (explanation.Code == 2741)
+        if (explanation.Code == DiagnosticCode.Property0IsMissingInType1ButRequiredInType2)
         {
             var (sourceText, targetText) = await RelationTypeNamesAsync(explanation.Source!, explanation.Target!, cancellation);
             diagnostic = diagnostic with { Arguments = [TypeDisplay.SymbolName(explanation.Property!), sourceText, targetText] };
         }
         if (!suppressRelatedInformation
-            && explanation.Code == 2741
+            && explanation.Code == DiagnosticCode.Property0IsMissingInType1ButRequiredInType2
             && explanation.Property!.Declarations.FirstOrDefault() is { } declaration)
             diagnostic = diagnostic with
             {
                 RelatedInformation = [CheckerDiagnostic.Create(declaration, Messages.X_0_is_declared_here,
                 TypeDisplay.SymbolName(explanation.Property))]
             };
-        if (explanation.Code == 2326 && next is { MessageChain.Count: 1 } && next.MessageChain[0] is { Code: >= 2202 and <= 2205 } marker)
+        if (explanation.Code == DiagnosticCode.TypesOfProperty0AreIncompatible
+            && next is { MessageChain.Count: 1 }
+            && next.MessageChain[0] is
+            {
+                Code: >= DiagnosticCode.CallSignatureReturnTypes0And1AreIncompatible
+                and <= DiagnosticCode.ConstructSignaturesWithNoArgumentsHaveIncompatibleReturnTypes0And1
+            } marker)
         {
             string name = PropertyPath(diagnostic.Arguments[0]);
             string path = marker.Code switch
             {
-                2202 => name + "(...)",
-                2203 => "new " + name + "(...)",
-                2204 => name + "()",
+                DiagnosticCode.CallSignatureReturnTypes0And1AreIncompatible => name + "(...)",
+                DiagnosticCode.ConstructSignatureReturnTypes0And1AreIncompatible => "new " + name + "(...)",
+                DiagnosticCode.CallSignaturesWithNoArgumentsHaveIncompatibleReturnTypes0And1 => name + "()",
                 _ => "new " + name + "()"
             };
             diagnostic = diagnostic with
             {
-                Message = DiagnosticLocalization.GetMessage(2201),
+                Message = DiagnosticLocalization.GetMessage(DiagnosticCode.TheTypesReturnedBy0AreIncompatibleBetweenTheseTypes),
                 Arguments = [path],
                 MessageChain = marker.MessageChain
             };
             next = diagnostic.MessageChain.Count == 1 ? diagnostic.MessageChain[0] : null;
         }
-        if (explanation.Code == 2326 && next is { MessageChain.Count: 1 } && next.MessageChain[0] is { Code: 2326 or 2200 or 2201 } inner)
+        if (explanation.Code == DiagnosticCode.TypesOfProperty0AreIncompatible
+            && next is { MessageChain.Count: 1 }
+            && next.MessageChain[0] is
+            {
+                Code: DiagnosticCode.TypesOfProperty0AreIncompatible
+                or DiagnosticCode.TheTypesOf0AreIncompatibleBetweenTheseTypes
+                or DiagnosticCode.TheTypesReturnedBy0AreIncompatibleBetweenTheseTypes
+            } inner)
         {
             string head = PropertyPath(diagnostic.Arguments[0]), tail = PropertyPath(inner.Arguments[0]);
             if (head.StartsWith("new ", StringComparison.Ordinal))
@@ -333,7 +406,10 @@ internal sealed partial class Checker
             }
             diagnostic = diagnostic with
             {
-                Message = DiagnosticLocalization.GetMessage(diagnostic.Code == 2326 ? 2200 : diagnostic.Code),
+                Message = DiagnosticLocalization.GetMessage(
+                    diagnostic.Code == DiagnosticCode.TypesOfProperty0AreIncompatible
+                        ? DiagnosticCode.TheTypesOf0AreIncompatibleBetweenTheseTypes
+                        : diagnostic.Code),
                 Arguments = [tail[..pos] + head + (tail.AsSpan(pos).StartsWith("[", StringComparison.Ordinal) ? "" : ".") + tail[pos..]],
                 MessageChain = inner.MessageChain
             };
@@ -430,15 +506,19 @@ internal sealed partial class Checker
     private async ValueTask<Diagnostic> RelationMessageKindAsync(Diagnostic diagnostic, Type source, Type target,
         string sourceText, string targetText, CancellationToken cancellation)
     {
-        if (diagnostic.Code != 2322)
+        if (diagnostic.Code != DiagnosticCode.Type0IsNotAssignableToType1)
             return diagnostic;
         if (sourceText == targetText)
-            return diagnostic with { Message = DiagnosticLocalization.GetMessage(2719) };
+            return diagnostic with
+            {
+                Message = DiagnosticLocalization.GetMessage(
+                DiagnosticCode.Type0IsNotAssignableToType1TwoDifferentTypesWithThisNameExistButTheyAreUnrelated)
+            };
         if (source is LiteralType { Value: string text } && target is UnionType union
             && await SymbolSuggestions.StringLiteralAsync(text, union, cancellation) is { } suggestion)
             return diagnostic with
             {
-                Message = DiagnosticLocalization.GetMessage(2820),
+                Message = DiagnosticLocalization.GetMessage(DiagnosticCode.Type0IsNotAssignableToType1DidYouMean2),
                 Arguments = [sourceText, targetText, await TypeDisplay.GetAsync(suggestion, cancellation)]
             };
         return diagnostic;
@@ -472,22 +552,22 @@ internal sealed partial class Checker
         if ((targetFlags & TypeFlags.TypeParameter) == 0 || target == context.VarianceCheckSuper || target == context.VarianceCheckSub)
             return diagnostic;
         var constraint = await Instantiation.Constraints.BaseConstraintAsync(target, cancellation);
-        int code;
+        DiagnosticCode code;
         string[] arguments;
         if (target is TypeParameter { IsDistributed: true, Constraint: { } distributed }
             && await Relations.RelatedAsync(source, distributed, RelationKind.Assignable, cancellation))
         {
-            code = 5113;
+            code = DiagnosticCode.X0IsOnlyAssignableToTheNonDistributed1But1HasBeenDistributedHere;
             arguments = [sourceText, targetText];
         }
         else if (constraint is not null && await Relations.RelatedAsync(source, constraint, RelationKind.Assignable, cancellation))
         {
-            code = 5075;
+            code = DiagnosticCode.X0IsAssignableToTheConstraintOfType1But1CouldBeInstantiatedWithADifferentSubtypeOfConstraint2;
             arguments = [sourceText, targetText, await TypeDisplay.GetAsync(constraint, cancellation)];
         }
         else if (constraint is not null && await Relations.RelatedAsync(originalSource, constraint, RelationKind.Assignable, cancellation))
         {
-            code = 5075;
+            code = DiagnosticCode.X0IsAssignableToTheConstraintOfType1But1CouldBeInstantiatedWithADifferentSubtypeOfConstraint2;
             arguments =
                 [
                     await TypeDisplay.GetAsync(originalSource, cancellation),
@@ -497,14 +577,16 @@ internal sealed partial class Checker
         }
         else
         {
-            code = 5082;
+            code = DiagnosticCode.X0CouldBeInstantiatedWithAnArbitraryTypeWhichCouldBeUnrelatedTo1;
             arguments = [targetText, sourceText];
         }
         var reason = diagnostic with
         {
             Message = DiagnosticLocalization.GetMessage(code),
             Arguments = arguments,
-            MessageChain = code == 5082 ? [] : diagnostic.MessageChain,
+            MessageChain = code == DiagnosticCode.X0CouldBeInstantiatedWithAnArbitraryTypeWhichCouldBeUnrelatedTo1
+                ? []
+                : diagnostic.MessageChain,
             RelatedInformation = diagnostic.RelatedInformation
         };
         return diagnostic with { MessageChain = [reason] };

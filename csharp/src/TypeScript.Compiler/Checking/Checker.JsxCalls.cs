@@ -26,7 +26,7 @@ internal sealed partial class Checker
         RelationKind relation,
         CheckMode mode,
         bool report,
-        int headCode,
+        DiagnosticCode headCode,
         CancellationToken cancellation)
     {
         var props = await JsxPropsAsync(signature, node, cancellation);
@@ -36,10 +36,10 @@ internal sealed partial class Checker
             attributes = await ObjectLiterals.RegularAsync(attributes, cancellation);
         if (!await JsxFactoryArityAsync(node, report, cancellation))
             return false;
-        int? previous = relationDiagnosticHead;
+        DiagnosticCode? previous = relationDiagnosticHead;
         var previousOutput = relationDiagnosticOutput;
         relationDiagnosticOutput = report ? callDiagnosticOutput : null;
-        if (report && headCode == 2769)
+        if (report && headCode == DiagnosticCode.NoOverloadMatchesThisCall)
             relationDiagnosticHead = headCode;
         try
         {
@@ -49,7 +49,7 @@ internal sealed partial class Checker
                 relation,
                 report ? JsxTag(node) ?? node : null,
                 JsxAttributes(node),
-                report && headCode == 2769 ? headCode : null, cancellation);
+                report && headCode == DiagnosticCode.NoOverloadMatchesThisCall ? headCode : null, cancellation);
         }
         finally
         {
@@ -125,7 +125,7 @@ internal sealed partial class Checker
                 : await FlowPropertyTypeAsync(intrinsic, name, true, cancellation);
             if (props is null)
             {
-                Error(node, 2339, name, "JSX.IntrinsicElements");
+                Error(node, DiagnosticCode.Property0DoesNotExistOnType1, name, "JSX.IntrinsicElements");
                 return [];
             }
             return [await JsxIntrinsicSignatureAsync(node, props, cancellation)];
@@ -193,7 +193,10 @@ internal sealed partial class Checker
             return await CallResolution.UntypedAsync(node, false, cancellation);
         if (signatures.Count == 0)
         {
-            Error(JsxTag(node) ?? node, 2604, CheckerDiagnostic.DeclarationName(JsxTag(node) ?? node));
+            Error(
+                JsxTag(node) ?? node,
+                DiagnosticCode.JSXElementType0DoesNotHaveAnyConstructOrCallSignatures,
+                CheckerDiagnostic.DeclarationName(JsxTag(node) ?? node));
             return await CallResolution.UntypedAsync(node, true, cancellation);
         }
         return await CallResolution.OverloadAsync(node, signatures, candidates, mode, cancellation: cancellation);

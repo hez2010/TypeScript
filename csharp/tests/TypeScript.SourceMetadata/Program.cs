@@ -69,7 +69,7 @@ while (Console.ReadLine() is { } line)
             foreach (var diagnostic in file.JSDocDiagnostics)
             {
                 writer.WriteStartArray();
-                writer.WriteNumberValue(diagnostic.Code);
+                writer.WriteNumberValue((int)diagnostic.Code);
                 writer.WriteNumberValue(source.ToUtf16Position(diagnostic.Start));
                 writer.WriteNumberValue(
                     source.ToUtf16Position(diagnostic.Start + diagnostic.Length) - source.ToUtf16Position(diagnostic.Start));
@@ -121,7 +121,7 @@ while (Console.ReadLine() is { } line)
             foreach (var diagnostic in file.ParseDiagnostics)
             {
                 writer.WriteStartArray();
-                writer.WriteNumberValue(diagnostic.Code);
+                writer.WriteNumberValue((int)diagnostic.Code);
                 writer.WriteNumberValue(source.ToUtf16Position(diagnostic.Start));
                 writer.WriteNumberValue(
                     source.ToUtf16Position(diagnostic.Start + diagnostic.Length) - source.ToUtf16Position(diagnostic.Start));
@@ -132,7 +132,7 @@ while (Console.ReadLine() is { } line)
             foreach (var diagnostic in file.JSDocDiagnostics)
             {
                 writer.WriteStartArray();
-                writer.WriteNumberValue(diagnostic.Code);
+                writer.WriteNumberValue((int)diagnostic.Code);
                 writer.WriteNumberValue(source.ToUtf16Position(diagnostic.Start));
                 writer.WriteNumberValue(
                     source.ToUtf16Position(diagnostic.Start + diagnostic.Length) - source.ToUtf16Position(diagnostic.Start));
@@ -247,7 +247,7 @@ while (Console.ReadLine() is { } line)
         foreach (var diagnostic in file.ParseDiagnostics)
         {
             writer.WriteStartArray();
-            writer.WriteNumberValue(diagnostic.Code);
+            writer.WriteNumberValue((int)diagnostic.Code);
             Position(diagnostic.Start);
             writer.WriteNumberValue(
                 source.ToUtf16Position(diagnostic.Start + diagnostic.Length) - source.ToUtf16Position(diagnostic.Start));

@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 
 namespace TypeScript.Compiler.Checking;
 
@@ -11,7 +12,7 @@ internal interface IIndexedAccessValidationHost
 
     ValueTask AccessErrorAsync(
         SyntaxNode node,
-        int code,
+        DiagnosticCode code,
         CancellationToken cancellation,
         Type? type = null,
         Symbol? symbol = null,
@@ -48,7 +49,11 @@ internal sealed class IndexedAccessValidation(TypeContext context, TypeKeys keys
         {
             if (node is ElementAccessExpressionNode && ReferenceSyntax.AssignmentTarget(node) is not null
                 && objectType is MappedType mappedObject && (MappedTypes.Modifiers(mappedObject) & MappedTypeModifiers.IncludeReadonly) != 0)
-                await host.AccessErrorAsync(node, 2542, cancellation, objectType).ConfigureAwait(false);
+                await host.AccessErrorAsync(
+                    node,
+                    DiagnosticCode.IndexSignatureInType0OnlyPermitsReading,
+                    cancellation,
+                    objectType).ConfigureAwait(false);
             return type;
         }
         if (((await mapped.GenericFlagsAsync(objectType, cancellation).ConfigureAwait(false)) & ObjectFlags.IsGenericObjectType) != 0
@@ -61,13 +66,22 @@ internal sealed class IndexedAccessValidation(TypeContext context, TypeKeys keys
                 {
                     if ((host.AccessFlags(property, false) & (CheckFlags.ContainsPrivate | CheckFlags.ContainsProtected)) != 0)
                     {
-                        await host.AccessErrorAsync(node, 4105, cancellation, symbol: property).ConfigureAwait(false);
+                        await host.AccessErrorAsync(
+                            node,
+                            DiagnosticCode.PrivateOrProtectedMember0CannotBeAccessedOnATypeParameter,
+                            cancellation,
+                            symbol: property).ConfigureAwait(false);
                         return context.ErrorType;
                     }
                     break;
                 }
         }
-        await host.AccessErrorAsync(node, 2536, cancellation, objectType, index: indexType).ConfigureAwait(false);
+        await host.AccessErrorAsync(
+            node,
+            DiagnosticCode.Type0CannotBeUsedToIndexType1,
+            cancellation,
+            objectType,
+            index: indexType).ConfigureAwait(false);
         return context.ErrorType;
     }
 }

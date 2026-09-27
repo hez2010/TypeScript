@@ -1,0 +1,3072 @@
+{
+    "timestamp": "2026-09-27T10:40:52.234Z",
+    "baseCommit": "d875e4f8117fc8da317e98f4fe7ad79c7918d815",
+    "scope": "Generated DiagnosticCode enum, strongly typed diagnostic identifiers throughout the C# compiler and harnesses, and numeric serialization boundaries.",
+    "catalog": {
+        "path": "built/diagnostic-enums/catalog-audit.json",
+        "sha256": "e4d31cf62cb7ddfeb5c3f14fb9774dab211d22a61d1a6ca3dbe6db10049e966c",
+        "result": {
+            "catalogEntries": 2213,
+            "enumMembers": 2215,
+            "allCodesAndMessageMetadataPreserved": true,
+            "sourceSha256": "500a1f1de21ab45ca04e552b7b9ef10efc25ab9ed76ac08a040ab2d18ef4af25",
+            "enumSha256": "eaf65e0a10eab6e94e2306f58f8df85236008dfcfcbf44abea3be0102729b5e3",
+            "messagesSha256": "0b33d5bf3ee48a8fdc9d8003692b7af91c7ffecf213219ffaf8ec44f0c620b24"
+        }
+    },
+    "sourceAudit": {
+        "path": "built/diagnostic-enums/source-equivalence.json",
+        "sha256": "0b9bae6783889e6dfb397e0d185b1200284d5507c36def2a6c4435835abac20c",
+        "result": {
+            "files": 152,
+            "equivalent": 151,
+            "results": [
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/AccessExpressions.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/AccessFlow.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/AssignmentChecks.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/AwaitExpressions.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/AwaitedTypes.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/BinaryExpressions.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/BindingTypes.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/CallExpressions.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/CallResolution.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/CallSignatures.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Access.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.AccessDiagnostics.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Algebra.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Ambient.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Binary.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Binding.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Call.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.CallDiagnostics.cs",
+                    "equivalent": false,
+                    "firstDifference": {
+                        "index": 2258,
+                        "before": [
+                            "8508:TypeArguments",
+                            "8218:.",
+                            "8508:Count",
+                            "8216:,",
+                            "8508:code",
+                            "8204:=",
+                            "8509:2558",
+                            "8212:;",
+                            "8316:string",
+                            "8207:[",
+                            "8493:",
+                            "8208:]",
+                            "8508:arguments",
+                            "8212:;"
+                        ],
+                        "after": [
+                            "8508:TypeArguments",
+                            "8218:.",
+                            "8508:Count",
+                            "8212:;",
+                            "8309:int",
+                            "8508:code",
+                            "8204:=",
+                            "8509:2558",
+                            "8212:;",
+                            "8316:string",
+                            "8207:[",
+                            "8493:",
+                            "8208:]",
+                            "8508:arguments"
+                        ]
+                    }
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.ClassMembers.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Classes.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Conditional.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Conditions.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Constant.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Context.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.DeclarationNames.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Declarations.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Decorators.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Destructuring.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.DiagnosticCodes.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Disposables.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Documentation.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.EmitHelpers.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Enums.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Expandos.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Expression.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Function.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Identifier.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.ImportAttributes.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.ImportExpressions.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.ImportResolution.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Index.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.IndexDeclarations.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Iteration.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Jsx.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.JsxAttributes.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.JsxCalls.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.JsxDiagnostics.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.JsxNamespace.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.JsxProps.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Member.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.MergedExports.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.MissingNames.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.MissingProperties.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Modifiers.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.ModuleInterop.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Modules.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.OrdinaryExpression.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Overloads.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Predicates.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Relation.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.RelationMessages.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Source.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Statements.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.TypeGrammar.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.TypeParameters.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Unused.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Variable.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/Checker.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/CheckerEnvironment.Aliases.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/CheckerEnvironment.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/ClassBases.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/ConstructorAccess.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/ElementAccessErrors.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/EnumValues.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/ExcessProperties.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/ExpressionChecks.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/ExpressionTypes.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/FunctionBodies.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/FunctionDeclarations.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/GeneratorTypes.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/IdentifierTypes.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/IndexedAccessValidation.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/IndexedTypes.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/InstantiationExpressions.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/InstantiationServices.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/IterationElements.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/IteratorProtocols.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/LateMembers.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/LiteralElaboration.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/MemberAccessRules.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/MemberAccessibility.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/MissingNamePrefixes.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/ObjectLiterals.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/ObjectRelations.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/PrivateAccess.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/PropertyInitialization.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/RelationDiagnostics.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/SignatureAssignability.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/StructuralRelations.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/ThisExpressions.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/TypeAssertions.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/TypeRelations.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/ValueExpressionChecks.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/ValueUseChecks.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Checking/YieldExpressions.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Diagnostics/Diagnostic.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Diagnostics/DiagnosticEqualityComparer.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Experiments/SliceProject.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Mapping/ContentMapperHost.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Mapping/MapperOutput.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Programs/CompilerProgram.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Resolution/ModuleResolver.Exports.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Syntax/Parser.Documentation.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Syntax/SliceLexer.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/src/TypeScript.Compiler/Syntax/SliceParser.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/AlgebraFixtureHost.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/CheckerAccessTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/CheckerAssignabilityTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/CheckerBinaryTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/CheckerConditionalTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/CheckerContextQueryTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/CheckerCorpusTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/CheckerExpressionTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/CheckerFlowTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/CheckerIdentifierTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/CheckerIndexTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/CheckerInstantiationTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/CheckerMappedMemberTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/CheckerMemberTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/CheckerPoolTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/CheckerProgramTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/CheckerQueryTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/CheckerReferenceTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/CheckerRelationTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/CheckerSignatureTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/CheckerSymbolTypeTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/CheckerTypeNodeTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/ConstraintFixtureHost.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/ContentMapperTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/FoundationTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/HostTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/InstantiationFixtureHost.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/JavaScriptSyntaxTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/MapperCodecTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/ModuleSpecifierProgramTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/ParserSafetyTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/PipelineExperiments.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/ProgramGraphTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/ResolutionTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.Compatibility/SyntaxTests.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.RegularExpression/Program.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                },
+                {
+                    "path": "csharp/tests/TypeScript.SourceMetadata/Program.cs",
+                    "equivalent": true,
+                    "firstDifference": null
+                }
+            ]
+        },
+        "reviewedException": "The count/code local declaration was split into two adjacent declarations, preserving initializer order, so count remains int and code becomes DiagnosticCode.",
+        "stringBoundaries": {
+            "path": "built/diagnostic-enums/string-boundaries.json",
+            "sha256": "2d6f315a907516e778e6fdb4b9dbd2102aa22c2b4e5af68e69ca79ac0d54e642",
+            "result": [
+                {
+                    "file": "D:/source/repos/TypeScript/csharp/src/TypeScript.Compiler\\Checking\\Checker.AccessDiagnostics.cs",
+                    "line": 27,
+                    "expression": "{code}"
+                },
+                {
+                    "file": "D:/source/repos/TypeScript/csharp/src/TypeScript.Compiler\\Checking\\Checker.AccessDiagnostics.cs",
+                    "line": 59,
+                    "expression": "{code}"
+                },
+                {
+                    "file": "D:/source/repos/TypeScript/csharp/src/TypeScript.Compiler\\Checking\\Checker.Index.cs",
+                    "line": 63,
+                    "expression": "{code}"
+                },
+                {
+                    "file": "D:/source/repos/TypeScript/csharp/src/TypeScript.Compiler\\Checking\\Checker.RelationMessages.cs",
+                    "line": 285,
+                    "expression": "{explanation.Code}"
+                },
+                {
+                    "file": "D:/source/repos/TypeScript/csharp/tests/TypeScript.Compatibility\\FoundationTests.cs",
+                    "line": 26,
+                    "expression": "{message.Code}"
+                },
+                {
+                    "file": "D:/source/repos/TypeScript/csharp/tests/TypeScript.Compatibility\\FoundationTests.cs",
+                    "line": 27,
+                    "expression": "{message.Code}"
+                },
+                {
+                    "file": "D:/source/repos/TypeScript/csharp/tests/TypeScript.Compatibility\\ParserSafetyTests.cs",
+                    "line": 26,
+                    "expression": "{d.Code}"
+                },
+                {
+                    "file": "D:/source/repos/TypeScript/csharp/tests/TypeScript.Compatibility\\ParserSafetyTests.cs",
+                    "line": 167,
+                    "expression": "{invalid.Diagnostic}"
+                },
+                {
+                    "file": "D:/source/repos/TypeScript/csharp/tests/TypeScript.Compatibility\\ParserSafetyTests.cs",
+                    "line": 246,
+                    "expression": "{invalid.Diagnostic}"
+                }
+            ]
+        },
+        "stringBoundaryReview": "All nine enum-to-string uses are internal exception or test assertion descriptions. Content-mapper message keys retain the raw integer code.",
+        "formatting": {
+            "path": "logs/diagnostic-enums-format.log",
+            "sha256": "01dc0b240548137ada010fae0e7128564e9f860440563b4177bc9f942f492ec9"
+        },
+        "formattingProof": "154 files preserve tokens, comments and syntax in both embedded and nonembedded library configurations; 115 files were formatted."
+    },
+    "compatibility": {
+        "numericCodesPreserved": true,
+        "messageMetadataPreserved": true,
+        "catalogZero": "None",
+        "catalogNegativeOne": "Custom",
+        "externalMapperCodes": "Arbitrary integer identifiers remain supported through explicit enum conversions at input/output boundaries."
+    },
+    "semantic": {
+        "activeConfigurationsPerMode": 13446,
+        "exactGraphsCodesAndDetailsPerMode": 13446,
+        "modeDifferences": 0,
+        "referenceSkips": 1762,
+        "newExclusions": 0,
+        "records": [
+            {
+                "path": "built/csharp/semantic-corpus-diagnostic-enums/single/summary.json",
+                "sha256": "8c2f2c33f84a3a325917883980d610892f7388fda61e4449cf8d05eb1c17e024",
+                "result": {
+                    "timestamp": "2026-09-27T10:34:49.460Z",
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "mode": "single",
+                    "filter": "",
+                    "managed": true,
+                    "reuseSyntax": true,
+                    "referenceJobs": 2,
+                    "scope": "Original compiler test program graphs and semantic/global diagnostics in the selected checker concurrency mode; checker query APIs are validated separately",
+                    "referenceExitCode": 0,
+                    "exportedConfigurations": 15208,
+                    "readyConfigurations": 13446,
+                    "availableConfigurations": 13446,
+                    "referenceInventoryFiles": 12730,
+                    "plannedConfigurations": 15208,
+                    "referenceMissingFiles": [],
+                    "referenceMissingConfigurations": [],
+                    "referenceSkipped": 1762,
+                    "referenceFailed": 0,
+                    "candidateFailures": 0,
+                    "graphMismatches": 0,
+                    "diagnosticMismatches": 0,
+                    "graphAndCodeMatches": 13446,
+                    "detailedDiagnosticMatches": 13446,
+                    "detailedDiagnosticMismatches": 0,
+                    "detailedComparison": "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized",
+                    "errorGroups": [],
+                    "inputSha256": "df21bccda8a3bc5da534586c352dae0175cf4bf260c93ee15694afe19353d5bd",
+                    "referenceInputCorrectionsSha256": "796d2ff79dfe5dfb5d35cd192946d4a1da669b6cea211d31b2b4696d84aa0c0c",
+                    "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+                    "candidateSha256": "6f39c1f4b7968ee235130a39d1bd52a5fd6a15686f22694d6f6253e0c9d55b1b",
+                    "compilerSha256": "674f0a52269be434cdaa9205feb9c2ec9b059fdc682edff64877ca58665acef4",
+                    "mapperFixture": {
+                        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                        "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+                        "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+                        "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+                    },
+                    "candidateOutputSha256": "8390e6e546cf407bd5030dfabecd2983bd7aee283ae8d0a0678963646c6b31a4",
+                    "fullSemanticCorpusGateComplete": true
+                }
+            },
+            {
+                "path": "built/csharp/semantic-corpus-diagnostic-enums/default/summary.json",
+                "sha256": "b52fba67b88f6bad735322346374bc9c9b5a540ac9bd98ef98c6dae5b0b15192",
+                "result": {
+                    "timestamp": "2026-09-27T10:35:06.512Z",
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "mode": "default",
+                    "filter": "",
+                    "managed": true,
+                    "reuseSyntax": true,
+                    "referenceJobs": 2,
+                    "scope": "Original compiler test program graphs and semantic/global diagnostics in the selected checker concurrency mode; checker query APIs are validated separately",
+                    "referenceExitCode": 0,
+                    "exportedConfigurations": 15208,
+                    "readyConfigurations": 13446,
+                    "availableConfigurations": 13446,
+                    "referenceInventoryFiles": 12730,
+                    "plannedConfigurations": 15208,
+                    "referenceMissingFiles": [],
+                    "referenceMissingConfigurations": [],
+                    "referenceSkipped": 1762,
+                    "referenceFailed": 0,
+                    "candidateFailures": 0,
+                    "graphMismatches": 0,
+                    "diagnosticMismatches": 0,
+                    "graphAndCodeMatches": 13446,
+                    "detailedDiagnosticMatches": 13446,
+                    "detailedDiagnosticMismatches": 0,
+                    "detailedComparison": "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized",
+                    "errorGroups": [],
+                    "inputSha256": "b51e79a2ebc4428367c89bceb367fd82a86bdd85b43b847bc17f875b51743a77",
+                    "referenceInputCorrectionsSha256": "f0e9fd99f75e8ac0c3db7ef4ccef21980f74b7b1adcfe189a01c8a762e4613a6",
+                    "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+                    "candidateSha256": "6f39c1f4b7968ee235130a39d1bd52a5fd6a15686f22694d6f6253e0c9d55b1b",
+                    "compilerSha256": "674f0a52269be434cdaa9205feb9c2ec9b059fdc682edff64877ca58665acef4",
+                    "mapperFixture": {
+                        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                        "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+                        "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+                        "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+                    },
+                    "candidateOutputSha256": "8390e6e546cf407bd5030dfabecd2983bd7aee283ae8d0a0678963646c6b31a4",
+                    "fullSemanticCorpusGateComplete": true
+                }
+            }
+        ]
+    },
+    "api": {
+        "families": 31,
+        "activeConfigurations": 1945,
+        "comparisons": 1649908,
+        "referenceFailures": 4,
+        "referenceFailuresAcceptedAsPassing": false,
+        "records": [
+            {
+                "name": "api-locations",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs"
+                ],
+                "log": "logs/diagnostic-enums-api-locations.log",
+                "exitCode": 1,
+                "summary": {
+                    "configurations": 80,
+                    "queries": 3956,
+                    "comparedQueries": 3812,
+                    "exact": 76,
+                    "failed": 4,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 4,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "0fd113eea7c38f18959452244fe0c41c1ef8ea5c9891c58ff69e06b3cc6cadb5",
+                    "resultHash": "1523b8710cb43e877e57adafa92428c137213ee4bd956528838fd04ab35c3394",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-symbol-locations",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--symbols"
+                ],
+                "log": "logs/diagnostic-enums-api-symbol-locations.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 104,
+                    "queries": 5312,
+                    "comparedQueries": 5312,
+                    "exact": 104,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "68eb6b0ac9f7ef354d82a509fe7dfa06df8b3a3d5c7c9bb70a1021376773d09b",
+                    "resultHash": "b6095f3092801a0df026197d97476f053bd5d17e38c89ea33f5fc8296f7a251f",
+                    "managed": true,
+                    "symbolAnswerMatches": 104,
+                    "locationMetadataDifferences": []
+                },
+                "passed": true
+            },
+            {
+                "name": "api-scope-services",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--scopes"
+                ],
+                "log": "logs/diagnostic-enums-api-scope-services.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 104,
+                    "queries": 29500,
+                    "comparedQueries": 29500,
+                    "exact": 104,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "1e81170626ed44a62ddceef58ac1cf0de04bfcdb72d380ab4cdc531521707610",
+                    "resultHash": "6dbc664b5fb4ae6b6572518a667d1a3f961f9ebbb118e137522a77d914bf1e51",
+                    "managed": true,
+                    "services": {
+                        "scopes": 27440,
+                        "symbolTypesAtLocation": 1904,
+                        "symbolTypesWithoutLocation": 1904,
+                        "moduleExports": 52,
+                        "aliasTargets": 60,
+                        "localExportTargets": 16,
+                        "shorthandValues": 16,
+                        "parameterPropertyPairs": 12
+                    }
+                },
+                "passed": true
+            },
+            {
+                "name": "api-context-queries",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--contexts"
+                ],
+                "log": "logs/diagnostic-enums-api-context-queries.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 112,
+                    "queries": 7644,
+                    "comparedQueries": 7644,
+                    "exact": 112,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "c65794a9e5217beddd1f9d63dda5108cbe813f00abaccd4dfcb349ece37e1507",
+                    "resultHash": "017ecbd34b2b995f5f210639dc284b5e0355dcfc594185ec89b80a643b062b25",
+                    "managed": true,
+                    "contextRecords": {
+                        "expressionTypes": 6768,
+                        "objectElements": 36,
+                        "arrayPositions": 108,
+                        "jsxAttributes": 16,
+                        "resolvedSignaturesAndReturns": 108,
+                        "argumentTypes": 240,
+                        "signatureHelp": 324,
+                        "stringCompletions": 44
+                    }
+                },
+                "passed": true
+            },
+            {
+                "name": "api-declaration-visibility",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--visibility"
+                ],
+                "log": "logs/diagnostic-enums-api-declaration-visibility.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 112,
+                    "queries": 24832,
+                    "comparedQueries": 24832,
+                    "exact": 112,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "939873780e0df71241bbf0f9332fcb6a48c303841baa84c1e74f629ea7430cfd",
+                    "resultHash": "68148641cb59a3a77c64840b6da23facc9e202c3139e32864d14df3b9bdc2aa6",
+                    "managed": true,
+                    "visibilityRecords": {
+                        "initial": 5628,
+                        "afterPrecalculation": 5628,
+                        "aliasRetention": 2320,
+                        "afterRetention": 5628,
+                        "afterRepeatedPrecalculation": 5628
+                    }
+                },
+                "passed": true
+            },
+            {
+                "name": "api-symbol-chains",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--chains"
+                ],
+                "log": "logs/diagnostic-enums-api-symbol-chains.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 112,
+                    "queries": 60216,
+                    "comparedQueries": 60216,
+                    "exact": 112,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "179f897a4eb341fc06182bbd343b7fd839685ff1531f5e8bc02b0298feca051a",
+                    "resultHash": "8ac6caa2d6184f867ff53659b9869f5eade4fb9a27d93d22771377742ee731d1",
+                    "managed": true,
+                    "chains": {
+                        "found": 17340,
+                        "absent": 42876,
+                        "longest": 4
+                    }
+                },
+                "passed": true
+            },
+            {
+                "name": "api-accessibility",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--accessibility"
+                ],
+                "log": "logs/diagnostic-enums-api-accessibility.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 156,
+                    "queries": 125544,
+                    "comparedQueries": 125544,
+                    "exact": 156,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "877c6c3ffe48dcc29fcd87366800dc2290d7afcef94cb9caba6bbaa56109490f",
+                    "resultHash": "b18a73d367feb754d56994b7ad9305480336dea83dc64718bc44205743448912",
+                    "managed": true,
+                    "accessibilityRecords": {
+                        "containers": 19452,
+                        "decisions": 77808,
+                        "flagQueries": 19452,
+                        "typeAndValueQueries": 6484,
+                        "entityNames": 2348,
+                        "decisionStates": [
+                            49616,
+                            12808,
+                            15384,
+                            0
+                        ]
+                    },
+                    "symbolDiagnosticNamesCompared": false,
+                    "entityNameVisibilityComparedCompletely": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-symbol-display",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--symbol-display"
+                ],
+                "log": "logs/diagnostic-enums-api-symbol-display.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 172,
+                    "queries": 122012,
+                    "comparedQueries": 122012,
+                    "exact": 172,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "ba123b64cdae9651326bb1ccd33cb16d35a53963a0ae6c98889689c55199b70e",
+                    "resultHash": "8593fcf5040b5a988143d2bbb7b826fab3099ca81af77ac59004b263931eb5c4",
+                    "managed": true,
+                    "symbolDisplayRecords": {
+                        "names": 27116,
+                        "accessibilityResults": 94896
+                    }
+                },
+                "passed": true
+            },
+            {
+                "name": "api-symbol-type-nodes",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--symbol-type-nodes"
+                ],
+                "log": "logs/diagnostic-enums-api-symbol-type-nodes.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 68,
+                    "queries": 490752,
+                    "comparedQueries": 490752,
+                    "exact": 68,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "6fd684bd322350d99d9da928cfbc79dd013d606c5d0928ef6be8d69f506b9479",
+                    "resultHash": "18ccdcf3783dc40d823895f1d00550de981e4b864de88f73950bbea00938ece5",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-computed-symbols",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--computed-symbols"
+                ],
+                "log": "logs/diagnostic-enums-api-computed-symbols.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 32,
+                    "queries": 62688,
+                    "comparedQueries": 62688,
+                    "exact": 32,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "da7fa60b82f001f6ee888c9993235719547dda9429caafe36e8a94876a05bc00",
+                    "resultHash": "6cf4f6f974b41bc5b9d01c5cf253c6a4008bbda38d7bcccc6481fae08e4d4af2",
+                    "managed": true,
+                    "symbolFormatFlags": [
+                        20,
+                        22,
+                        28,
+                        30,
+                        52,
+                        54,
+                        60,
+                        62
+                    ]
+                },
+                "passed": true
+            },
+            {
+                "name": "api-symbol-formats",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--symbol-formats"
+                ],
+                "log": "logs/diagnostic-enums-api-symbol-formats.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 72,
+                    "queries": 275728,
+                    "comparedQueries": 275728,
+                    "exact": 72,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "e281739a187c150c5ae4d1827b67645fa25f7dace7094441ffa24de96740fb45",
+                    "resultHash": "1d3a1277a7ed857bb69f3fc5f8bf90a6f2ce8afc5f7fdf1b4471e27accb36501",
+                    "managed": true,
+                    "symbolFormatFlags": [
+                        0,
+                        1,
+                        2,
+                        6,
+                        8,
+                        10,
+                        12,
+                        14,
+                        16,
+                        17,
+                        32,
+                        34,
+                        36,
+                        38,
+                        40,
+                        42,
+                        44,
+                        46,
+                        64
+                    ]
+                },
+                "passed": true
+            },
+            {
+                "name": "api-type-syntax",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--type-syntax"
+                ],
+                "log": "logs/diagnostic-enums-api-type-syntax.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 32,
+                    "queries": 2880,
+                    "comparedQueries": 2880,
+                    "exact": 32,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "ae3bcf95f95ce4d05a03b702b9758907e5246cecf377d14e9d90fd4b457f9d78",
+                    "resultHash": "94f573fc9d1c0e6be202de52d9b76d730b0684e8decfb12cf3fbffb2022ed52f",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-conditional-syntax",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--conditional-syntax"
+                ],
+                "log": "logs/diagnostic-enums-api-conditional-syntax.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 28,
+                    "queries": 1344,
+                    "comparedQueries": 1344,
+                    "exact": 28,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "2d651fa59427b689aa9298f8d6e8d9f7ba2c42261c69412705eba964fabefd8c",
+                    "resultHash": "ec6aa1c8272d02ba194e7f9628c5a29d2ca12b2d5d4ce8f17e74ffc1898e49a7",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-mapped-syntax",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--mapped-syntax"
+                ],
+                "log": "logs/diagnostic-enums-api-mapped-syntax.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 24,
+                    "queries": 1280,
+                    "comparedQueries": 1280,
+                    "exact": 24,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "0fb5d40db8653694d30d2122eda123a8123c6465a51f17f2b57710aa12ce3c5e",
+                    "resultHash": "71f159275faac2467c93561332efcb2dd7aab7ea9b6fba31459ad2191859670b",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-symbol-type-arguments",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--symbol-type-arguments"
+                ],
+                "log": "logs/diagnostic-enums-api-symbol-type-arguments.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 88,
+                    "queries": 347200,
+                    "comparedQueries": 347200,
+                    "exact": 88,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "30fad4b1c15904d9832c0d59d2bd8e1406038b0624f19337cac6bd5b0abb3b02",
+                    "resultHash": "f36a5fac37ae4dedf945348904af5bbb5c3b95b85392a65b9576bac60dc3214b",
+                    "managed": true,
+                    "symbolFormatFlags": [
+                        5,
+                        7,
+                        13,
+                        15,
+                        21,
+                        23,
+                        29,
+                        31,
+                        37,
+                        39,
+                        45,
+                        47,
+                        53,
+                        55,
+                        61,
+                        63
+                    ]
+                },
+                "passed": true
+            },
+            {
+                "name": "api-signature-syntax",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--signature-syntax"
+                ],
+                "log": "logs/diagnostic-enums-api-signature-syntax.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 48,
+                    "queries": 2496,
+                    "comparedQueries": 2496,
+                    "exact": 48,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "63ebe3a59fd6479734fa22ac874383b8fc8a1a97358c4dd4cc33099e6bf25a6d",
+                    "resultHash": "dca60b6faab5a8b23748371762fb271c281625f3f35bd8842e8556435c7adcd5",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-anonymous-syntax",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--anonymous-syntax"
+                ],
+                "log": "logs/diagnostic-enums-api-anonymous-syntax.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 44,
+                    "queries": 2448,
+                    "comparedQueries": 2448,
+                    "exact": 44,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "09eb7fdf9b133b0453d90bdbb3133251dcae819c635890611ab2ee44cfaf967f",
+                    "resultHash": "f8fc52d96f37b61966b748c7bc35be422d2972ef0b7dee606a10ec9ffa2ad6d4",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-syntax-names",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--syntax-names"
+                ],
+                "log": "logs/diagnostic-enums-api-syntax-names.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 24,
+                    "queries": 4800,
+                    "comparedQueries": 4800,
+                    "exact": 24,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "1a740d3915f2332284a94adff85dda665eb284d2c53da10945df4f8818901818",
+                    "resultHash": "c8f56b3f3d69a632eb864c88f1d312a4d6321ec3bebb3404384d3a467ed55676",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-syntax-options",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--syntax-options"
+                ],
+                "log": "logs/diagnostic-enums-api-syntax-options.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 45,
+                    "queries": 13064,
+                    "comparedQueries": 13064,
+                    "exact": 45,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "f56128d1ec4d24baf4e7e0c40c9f98c8ca5010e2806218b0b6ba35afe6db1e60",
+                    "resultHash": "2992128230c5bee7c72f587ddca36441deee87460ac7096f13d4f58c338d0e7a",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-function-options",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--function-options"
+                ],
+                "log": "logs/diagnostic-enums-api-function-options.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 24,
+                    "queries": 12544,
+                    "comparedQueries": 12544,
+                    "exact": 24,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "ca5bd2098666cc60e999bb39c5ae2f025cf267cc5d03843f04ef509c83ff9909",
+                    "resultHash": "39d04a890bb2be58e36236f698f7944e9d7aeb6f177f1310066b8af638a8bbca",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-generated-names",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--generated-names"
+                ],
+                "log": "logs/diagnostic-enums-api-generated-names.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 40,
+                    "queries": 3584,
+                    "comparedQueries": 3584,
+                    "exact": 40,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "fa138e554a4d067694970b0061f66826fe8ef19b7f3c25701e56b39169a3db9b",
+                    "resultHash": "05229883ce448f796c1a41f9614e0649d1b278bae456dc6b29f69f30232b1619",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-signature-declarations",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--signature-declarations"
+                ],
+                "log": "logs/diagnostic-enums-api-signature-declarations.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 20,
+                    "queries": 13520,
+                    "comparedQueries": 13520,
+                    "exact": 20,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "a855bfe713fb0c1509318b3a166f46cec79bb86865422d1f87eb152b00aeacc6",
+                    "resultHash": "4560fb95bb5394e78394b9927fb064b3f19da1f067d51bcf06f0828db0822378",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-class-options",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--class-options"
+                ],
+                "log": "logs/diagnostic-enums-api-class-options.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 28,
+                    "queries": 7776,
+                    "comparedQueries": 7776,
+                    "exact": 28,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "d11fc4c41a2b2b61a864ee2f245c0504f01ee7c59e62d5e4cbe5f5f1f5a2a415",
+                    "resultHash": "93bf1622611c4b8769b1f5eda43992bccc6472cfd4c881df5d166c9b5497ac7c",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-emit-references",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--emit-references"
+                ],
+                "log": "logs/diagnostic-enums-api-emit-references.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 24,
+                    "queries": 528,
+                    "comparedQueries": 528,
+                    "exact": 24,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "b88fd3f42ef00ae34389a8fbb5f8c3ac8613bf1977d6bf65872880334f86b7ed",
+                    "resultHash": "587a53ae5877097dcf91f48b33c10f3a70b5d241c1977079f52ebe2b23736ac6",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-emit-queries",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--emit-queries"
+                ],
+                "log": "logs/diagnostic-enums-api-emit-queries.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 44,
+                    "queries": 2300,
+                    "comparedQueries": 2300,
+                    "exact": 44,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "77ef181936807b6744541c8277edb58601c5f050c0b1c0ea858531235c68fa09",
+                    "resultHash": "48d53534a15d7b140e0085f0605a917f90c0dcd7224d86373864588005aa4733",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-emit-serialization",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--emit-serialization"
+                ],
+                "log": "logs/diagnostic-enums-api-emit-serialization.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 24,
+                    "queries": 600,
+                    "comparedQueries": 600,
+                    "exact": 24,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "08d11649d6ccac357204b3914e63549fd6f049cfcdf8faa63efcd9c2513660fc",
+                    "resultHash": "50963a323ab0e06adc2fffb19b39acee620879b9558ab78baa129401f45c53f5",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-emit-jsx",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--emit-jsx"
+                ],
+                "log": "logs/diagnostic-enums-api-emit-jsx.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 28,
+                    "queries": 280,
+                    "comparedQueries": 280,
+                    "exact": 28,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "7771f1a0bbf5b5ee4dc44eb07a84df40125e9a49d23f5ade6c495c49c0cac4f3",
+                    "resultHash": "cd54b64e292238cd33a8f0ec1fa8eb2a1033484973c6de7f71e771f99a9ccf28",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-emit-links",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--emit-links"
+                ],
+                "log": "logs/diagnostic-enums-api-emit-links.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 48,
+                    "queries": 420,
+                    "comparedQueries": 420,
+                    "exact": 48,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "6cf171db0d98e85a795c0d6c8d9645cf73aca03a01086b26862f0a9926a1032a",
+                    "resultHash": "6db50e1396765ab9f77ffba4d9c983bb4549776d64284099cdda7c4a415bb882",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-emit-services",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--emit-services"
+                ],
+                "log": "logs/diagnostic-enums-api-emit-services.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 20,
+                    "queries": 944,
+                    "comparedQueries": 944,
+                    "exact": 20,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "f150889aa2f7519da00f8afdc6a098a12797bd7ed45cfe9c04426980b420e543",
+                    "resultHash": "4529b00f9be817e8d720d102e2f009e159cb5befe528323c94c3324e679f7a38",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-emit-recovery",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--emit-recovery"
+                ],
+                "log": "logs/diagnostic-enums-api-emit-recovery.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 56,
+                    "queries": 3672,
+                    "comparedQueries": 3672,
+                    "exact": 56,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "d965845ae5589f096acf2209fe60523963047c5501bd5f1ea876c4b9d465dc09",
+                    "resultHash": "ee2e25148e4ce8cc05fc896805ce217b6372b2d6a08ecde63b976877d7a19bc4",
+                    "managed": true
+                },
+                "passed": true
+            },
+            {
+                "name": "api-emit-syntax",
+                "command": "C:\\Program Files\\nodejs\\node.exe",
+                "args": [
+                    "csharp/tools/checker-locations.mjs",
+                    "--emit-syntax"
+                ],
+                "log": "logs/diagnostic-enums-api-emit-syntax.log",
+                "exitCode": 0,
+                "summary": {
+                    "configurations": 136,
+                    "queries": 20188,
+                    "comparedQueries": 20188,
+                    "exact": 136,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                    "inputHash": "435847869a0a2602aadd883b15432cc9629da72b9ac608685449a1605837fa2b",
+                    "resultHash": "e225a861451d661eb55d3656d94bb2ab471cc4abaf7a039ef974771bea35df05",
+                    "managed": true
+                },
+                "passed": true
+            }
+        ]
+    },
+    "safety": {
+        "suites": 74,
+        "records": [
+            {
+                "name": "module-specifiers-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--module-specifiers-safety"
+                ],
+                "log": "logs/diagnostic-enums-module-specifiers-safety.log",
+                "exitCode": 0,
+                "output": "20 module naming/path/extension/cancellation assertions\r\n",
+                "passed": true
+            },
+            {
+                "name": "module-program-specifiers-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--module-program-specifiers-safety"
+                ],
+                "log": "logs/diagnostic-enums-module-program-specifiers-safety.log",
+                "exitCode": 0,
+                "output": "Program module specifier safety: 12 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "diagnostic-node-printer-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--diagnostic-node-printer-safety"
+                ],
+                "log": "logs/diagnostic-enums-diagnostic-node-printer-safety.log",
+                "exitCode": 0,
+                "output": "Diagnostic node printer safety: 11 assertions passed; depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "computed-symbols-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--computed-symbols-safety"
+                ],
+                "log": "logs/diagnostic-enums-computed-symbols-safety.log",
+                "exitCode": 0,
+                "output": "Computed symbol safety: 7 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "module-generation-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--module-generation-safety"
+                ],
+                "log": "logs/diagnostic-enums-module-generation-safety.log",
+                "exitCode": 0,
+                "output": "Module generation safety: 12 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "module-node-specifiers-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--module-node-specifiers-safety"
+                ],
+                "log": "logs/diagnostic-enums-module-node-specifiers-safety.log",
+                "exitCode": 0,
+                "output": "Node module specifier safety: 10 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "module-package-specifiers-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--module-package-specifiers-safety"
+                ],
+                "log": "logs/diagnostic-enums-module-package-specifiers-safety.log",
+                "exitCode": 0,
+                "output": "19 package-map/output-path/cancellation assertions; depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-emit-syntax-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-emit-syntax-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-emit-syntax-safety.log",
+                "exitCode": 0,
+                "output": "Emit syntax safety: 13 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-node-builder-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-node-builder-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-node-builder-safety.log",
+                "exitCode": 0,
+                "output": "Node builder tracking safety: 17 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-return-syntax-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-return-syntax-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-return-syntax-safety.log",
+                "exitCode": 0,
+                "output": "Return recovery safety: 14 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-module-grammar-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-module-grammar-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-module-grammar-safety.log",
+                "exitCode": 0,
+                "output": "Module grammar safety: 12 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-program-relations-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-program-relations-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-program-relations-safety.log",
+                "exitCode": 0,
+                "output": "Program relation safety: 12 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-mapped-exports-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-mapped-exports-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-mapped-exports-safety.log",
+                "exitCode": 0,
+                "output": "Mapped/export safety: 17 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-private-declarations-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-private-declarations-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-private-declarations-safety.log",
+                "exitCode": 0,
+                "output": "Private/declaration safety: 16 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-diagnostic-values-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-diagnostic-values-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-diagnostic-values-safety.log",
+                "exitCode": 0,
+                "output": "Diagnostic value safety: 16 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-declaration-grammar-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-declaration-grammar-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-declaration-grammar-safety.log",
+                "exitCode": 0,
+                "output": "Declaration grammar safety: 13 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-relation-context-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-relation-context-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-relation-context-safety.log",
+                "exitCode": 0,
+                "output": "Relation context safety: 14 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-module-context-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-module-context-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-module-context-safety.log",
+                "exitCode": 0,
+                "output": "Module context safety: 11 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-declaration-block-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-declaration-block-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-declaration-block-safety.log",
+                "exitCode": 0,
+                "output": "Declaration block safety: 8 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-pool-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-pool-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-pool-safety.log",
+                "exitCode": 0,
+                "output": "Checker pool safety: 19 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-pool-cancellation",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-pool-cancellation"
+                ],
+                "log": "logs/diagnostic-enums-checker-pool-cancellation.log",
+                "exitCode": 0,
+                "output": "Checker pool cancellation: 6 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-diagnostic-identity-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-diagnostic-identity-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-diagnostic-identity-safety.log",
+                "exitCode": 0,
+                "output": "Diagnostic identity safety: 38 assertions passed; chain depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-recovery-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-recovery-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-recovery-safety.log",
+                "exitCode": 0,
+                "output": "Syntax recovery safety: 10 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-emit-links-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-emit-links-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-emit-links-safety.log",
+                "exitCode": 0,
+                "output": "Emit linking safety: 14 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-emit-queries-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-emit-queries-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-emit-queries-safety.log",
+                "exitCode": 0,
+                "output": "Emit query safety: 18 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-signature-declarations-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-signature-declarations-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-signature-declarations-safety.log",
+                "exitCode": 0,
+                "output": "Signature declaration safety: 10 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-syntax-names-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-syntax-names-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-syntax-names-safety.log",
+                "exitCode": 0,
+                "output": "Type syntax names safety: 10 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-syntax-options-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-syntax-options-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-syntax-options-safety.log",
+                "exitCode": 0,
+                "output": "Type syntax options safety: 10 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-symbol-type-arguments-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-symbol-type-arguments-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-symbol-type-arguments-safety.log",
+                "exitCode": 0,
+                "output": "Symbol type arguments safety: 9 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-signature-syntax-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-signature-syntax-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-signature-syntax-safety.log",
+                "exitCode": 0,
+                "output": "Signature syntax safety: 9 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-conditional-syntax-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-conditional-syntax-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-conditional-syntax-safety.log",
+                "exitCode": 0,
+                "output": "Conditional/property syntax safety: 9 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-type-syntax-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-type-syntax-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-type-syntax-safety.log",
+                "exitCode": 0,
+                "output": "Type syntax core safety: 9 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-type-renderer-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-type-renderer-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-type-renderer-safety.log",
+                "exitCode": 0,
+                "output": "Diagnostic renderer safety: 52 assertions passed; array depth 5000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-display-formats-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-display-formats-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-display-formats-safety.log",
+                "exitCode": 0,
+                "output": "Display format safety: 15 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-symbol-type-nodes-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-symbol-type-nodes-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-symbol-type-nodes-safety.log",
+                "exitCode": 0,
+                "output": "Symbol type node safety: 14 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-symbol-formats-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-symbol-formats-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-symbol-formats-safety.log",
+                "exitCode": 0,
+                "output": "Symbol format mode safety: 9 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-symbol-display-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-symbol-display-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-symbol-display-safety.log",
+                "exitCode": 0,
+                "output": "Symbol display/accessibility safety: 17 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-access-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-access-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-access-safety.log",
+                "exitCode": 0,
+                "output": "82 access/optional/member/class/cancellation/spelling assertions; 20,000-level traversal.\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-identifiers-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-identifiers-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-identifiers-safety.log",
+                "exitCode": 0,
+                "output": "39 identifier/binding/default/alias/cancellation/ownership assertions; 20,000-level reference traversal.\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-flow-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-flow-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-flow-safety.log",
+                "exitCode": 0,
+                "output": "52 flow/cache/reachability/assignment/cancellation assertions; 20,000-node traversal and exact 2,000 recursion limit.\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-references-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-references-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-references-safety.log",
+                "exitCode": 0,
+                "output": "23 reference safety assertions; 20,000-level syntax traversal.\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-binary-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-binary-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-binary-safety.log",
+                "exitCode": 0,
+                "output": "31 binary/awaited/recursion/cancellation assertions; 20000-level binary expressions\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-expressions-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-expressions-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-expressions-safety.log",
+                "exitCode": 0,
+                "output": "81 expression/literal/context/enum/cache/cancellation assertions; 20000-level expression, constant and context traversal\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-inference-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-inference-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-inference-safety.log",
+                "exitCode": 0,
+                "output": "37 inference/priority/fixing/cancellation/widening/reverse-map assertions; 20000-level traversal\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-conditional-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-conditional-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-conditional-safety.log",
+                "exitCode": 0,
+                "output": "24 conditional/cache/cancellation assertions; exact 1000 tail and 10 relation nesting limits\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-generic-relations-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-generic-relations-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-generic-relations-safety.log",
+                "exitCode": 0,
+                "output": "27 generic relation/optionality/key variance/cancellation assertions\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-indexing-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-indexing-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-indexing-safety.log",
+                "exitCode": 0,
+                "output": "Checker indexed type safety: 51 assertions; 20,000-level simplification and key traversal\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-assignability-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-assignability-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-assignability-safety.log",
+                "exitCode": 0,
+                "output": "57 structural relation/variance/facts/cancellation assertions\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-relations-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-relations-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-relations-safety.log",
+                "exitCode": 0,
+                "output": "48 relation key/cache/normalization/cancellation assertions; exact 100-level comparison cutoff; key and base chains depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-relation-diagnostics-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-relation-diagnostics-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-relation-diagnostics-safety.log",
+                "exitCode": 0,
+                "output": "Relation diagnostic safety: 10 assertions passed\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-signatures-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-signatures-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-signatures-safety.log",
+                "exitCode": 0,
+                "output": "148 signature/function/call/iteration/inference/context/cancellation assertions; binding and return traversal depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-properties-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-properties-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-properties-safety.log",
+                "exitCode": 0,
+                "output": "49 property/view/index/cache/cancellation assertions; reduction chain depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-values-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-values-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-values-safety.log",
+                "exitCode": 0,
+                "output": "32 symbol read/write/cache/cancellation assertions; instantiated symbol chain depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-members-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-members-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-members-safety.log",
+                "exitCode": 0,
+                "output": "38 structured member/signature assertions; base and signature chains depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-type-nodes-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-type-nodes-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-type-nodes-safety.log",
+                "exitCode": 0,
+                "output": "25 source-type/cache/cancellation assertions; array and alias ancestry depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-alias-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-alias-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-alias-safety.log",
+                "exitCode": 0,
+                "output": "31 alias/cycle/cancellation/module-export assertions; alias chain depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-query-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-query-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-query-safety.log",
+                "exitCode": 0,
+                "output": "20 type-location query ownership/cancellation assertions; depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-symbol-query-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-symbol-query-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-symbol-query-safety.log",
+                "exitCode": 0,
+                "output": "25 symbol-location query identity/ownership/cancellation assertions\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-scope-query-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-scope-query-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-scope-query-safety.log",
+                "exitCode": 0,
+                "output": "23 scope/symbol-type query identity/cancellation assertions\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-context-query-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-context-query-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-context-query-safety.log",
+                "exitCode": 0,
+                "output": "24 context/signature query cache/cancellation assertions\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-visibility-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-visibility-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-visibility-safety.log",
+                "exitCode": 0,
+                "output": "33 declaration visibility/alias/rollback assertions; depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-symbol-chains-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-symbol-chains-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-symbol-chains-safety.log",
+                "exitCode": 0,
+                "output": "18 accessible-chain identity/qualification/rollback assertions; depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-accessibility-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-accessibility-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-accessibility-safety.log",
+                "exitCode": 0,
+                "output": "24 accessibility/container/entity-visibility/rollback assertions\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-program-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-program-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-program-safety.log",
+                "exitCode": 0,
+                "output": "294 program/checker ownership assertions; interface and scope depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-mapped-members-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-mapped-members-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-mapped-members-safety.log",
+                "exitCode": 0,
+                "output": "30 mapped member assertions; key validity, lower-bound and modifier chains at depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-mapped-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-mapped-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-mapped-safety.log",
+                "exitCode": 0,
+                "output": "37 mapped type assertions; actual-variable, generic-flag, kind and unary-tuple analysis depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-objects-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-objects-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-objects-safety.log",
+                "exitCode": 0,
+                "output": "40 object instantiation assertions; reference, parent and entity-name depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-instantiation-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-instantiation-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-instantiation-safety.log",
+                "exitCode": 0,
+                "output": "26 instantiation/signature/tuple assertions; exact 100-depth, 5,000,000-work and 10,000-tuple limits\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-constraints-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-constraints-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-constraints-safety.log",
+                "exitCode": 0,
+                "output": "21 constraint/default/recursion state assertions; default and indexed identity depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-algebra-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-algebra-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-algebra-safety.log",
+                "exitCode": 0,
+                "output": "15 algebra ownership/limit/cancellation assertions; template, intersection and origin depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-names-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-names-safety"
+                ],
+                "log": "logs/diagnostic-enums-checker-names-safety.log",
+                "exitCode": 0,
+                "output": "21 name/symbol state assertions; scope, initializer and merge depth 20000\r\n",
+                "passed": true
+            },
+            {
+                "name": "checker-state",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--checker-state"
+                ],
+                "log": "logs/diagnostic-enums-checker-state.log",
+                "exitCode": 0,
+                "output": "1493 checker ownership/state assertions; mapper and type-order depth 50000; 16 independent contexts\r\n",
+                "passed": true
+            },
+            {
+                "name": "program-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--program-safety"
+                ],
+                "log": "logs/diagnostic-enums-program-safety.log",
+                "exitCode": 0,
+                "output": "Program reuse, invalidation and stack safety: 20 assertions; 12000 syntax levels; 3000 files\r\n",
+                "passed": true
+            },
+            {
+                "name": "parser-safety",
+                "command": "D:/dotnet-sdk-11.0.100-rc.2.26470.103-win-x64/dotnet.exe",
+                "args": [
+                    "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+                    "--parser-safety"
+                ],
+                "log": "logs/diagnostic-enums-parser-safety.log",
+                "exitCode": 0,
+                "output": "Async documentation: single-worker parsing, lazy queries, cloning and cache identity passed.\r\nparentheses.ts: 80 ms\r\nparenthesis-precedence.ts: 0 ms\r\nawait-spans.ts: 2 ms\r\nawait-overlap.ts: 0 ms\r\nawait-end.ts: 0 ms\r\nindex-signatures.ts: 4 ms\r\ngeneric-function-types.ts: 4 ms\r\nheritage-expressions.ts: 3 ms\r\nprivate-type-query.ts: 2 ms\r\nthis-parameters.ts: 0 ms\r\ntuples.ts: 61 ms\r\ngenerics.ts: 99 ms\r\nindexed-access.ts: 60 ms\r\noperators.ts: 15 ms\r\nfunctions.ts: 59 ms\r\nconditionals.ts: 134 ms\r\nmapped.ts: 188 ms\r\ntype-literals.ts: 152 ms\r\ntemplate-types.ts: 123 ms\r\ncompound-types.ts: 152 ms\r\nblocks.ts: 41 ms\r\nif-statements.ts: 68 ms\r\nexpression-parentheses.ts: 42 ms\r\narray-expressions.ts: 49 ms\r\nobject-expressions.ts: 125 ms\r\nbinary-expressions.ts: 43 ms\r\nfunction-expressions.ts: 256 ms\r\njsx.tsx: 145 ms\r\njsx-qualified.tsx: 73 ms\r\njsx-names.tsx: 2 ms\r\nnested.json: 72 ms\r\ndocumentation.js: 151 ms\r\ndocumentation-array.js: 44 ms\r\ndocumentation-host.js: 52 ms\r\ndocumentation-names.js: 26 ms\r\ndocumentation-heritage.js: 104 ms\r\ndocumentation-properties.js: 117 ms\r\ndocumentation-typedef.js: 0 ms\r\nsynchronization-context.ts: 205 ms\r\nParser safety: 39 cases, 1421841 nodes; depth 21000, source positions, parents and cancellation passed.\r\n",
+                "passed": true
+            }
+        ]
+    },
+    "components": [
+        {
+            "name": "component-types",
+            "command": "C:\\Program Files\\nodejs\\node.exe",
+            "args": [
+                "csharp/tools/checker-types.mjs",
+                "--managed",
+                "--no-build"
+            ],
+            "log": "logs/diagnostic-enums-component-types.log",
+            "exitCode": 0,
+            "summary": {
+                "timestamp": "2026-09-27T10:31:45.594Z",
+                "scope": "checker type constructors, identity, order, mapper composition and resolution state; not complete semantic checking",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "managed": true,
+                "runtime": "managed development run",
+                "cases": 2904,
+                "operations": 1333980,
+                "passed": 2904,
+                "failed": 0,
+                "inputSha256": "fe27e1e1f476dd2af15580accca06a83d2f5e5e18bbe25319d7bf624d83a0b2b",
+                "referenceOutputSha256": "d3b720f113d1d27d163a9c8feb67c041f7cddc423327d53fc5d0931fd0ef9a59",
+                "outputSha256": "f21979d22a442df29852f64a095f3603bc7c0634061a9051371fd288233b1c28",
+                "oracleSha256": "d1b28e149f126839bc73264d58f78751e3ccbeb6caf32cb2c6887b51eb3df7f2",
+                "candidateSha256": "6f39c1f4b7968ee235130a39d1bd52a5fd6a15686f22694d6f6253e0c9d55b1b",
+                "sdk": "11.0.100-rc.2.26470.103",
+                "go": "go version go1.27.1 windows/amd64"
+            },
+            "passed": true
+        },
+        {
+            "name": "component-algebra",
+            "command": "C:\\Program Files\\nodejs\\node.exe",
+            "args": [
+                "csharp/tools/checker-algebra.mjs",
+                "--managed",
+                "--no-build"
+            ],
+            "log": "logs/diagnostic-enums-component-algebra.log",
+            "exitCode": 0,
+            "summary": {
+                "timestamp": "2026-09-27T10:31:51.543Z",
+                "scope": "Union/intersection/template/string-mapping normalization with explicit fixture relation services; full semantic checker remains incomplete",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "managed": true,
+                "runtime": "managed development run",
+                "cases": 3885,
+                "operations": 259745,
+                "passed": 3885,
+                "failed": 0,
+                "inputSha256": "c1751d5b1dd803361abec44ebb64ab227a87c1c0c3c1a152f169ba880a0bfb5e",
+                "referenceOutputSha256": "83aea4b6543704520e86520cb64bc4b77d41a0578f12faac807ce068c2883464",
+                "outputSha256": "63097656a9cf2e490af99613930c518cb2957a2aecd7af221c8193c3f513eb06",
+                "oracleSha256": "d1b28e149f126839bc73264d58f78751e3ccbeb6caf32cb2c6887b51eb3df7f2",
+                "candidateSha256": "6f39c1f4b7968ee235130a39d1bd52a5fd6a15686f22694d6f6253e0c9d55b1b",
+                "sdk": "11.0.100-rc.2.26470.103",
+                "go": "go version go1.27.1 windows/amd64"
+            },
+            "passed": true
+        },
+        {
+            "name": "tracking-public-single",
+            "command": "C:\\Program Files\\nodejs\\node.exe",
+            "args": [
+                "csharp/tools/checker-node-builder-tracking.mjs"
+            ],
+            "log": "logs/diagnostic-enums-tracking-public-single.log",
+            "exitCode": 0,
+            "summary": {
+                "timestamp": "2026-09-27T10:31:53.298Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "managed": true,
+                "concurrency": 1,
+                "cases": 26,
+                "queries": 2436,
+                "differences": [],
+                "oracleSha256": "72c924cf8822c5b2db21a97286b33cecab7f06f3496fb28c56bcc6f40ce1ebce",
+                "candidateSha256": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                "referenceExecuted": 0,
+                "referenceReused": 26,
+                "candidateExecuted": 26,
+                "candidateReused": 0
+            },
+            "passed": true
+        },
+        {
+            "name": "tracking-public-default",
+            "command": "C:\\Program Files\\nodejs\\node.exe",
+            "args": [
+                "csharp/tools/checker-node-builder-tracking.mjs",
+                "--default-concurrency"
+            ],
+            "log": "logs/diagnostic-enums-tracking-public-default.log",
+            "exitCode": 0,
+            "summary": {
+                "timestamp": "2026-09-27T10:31:54.242Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "managed": true,
+                "concurrency": 4,
+                "cases": 26,
+                "queries": 2436,
+                "differences": [],
+                "oracleSha256": "72c924cf8822c5b2db21a97286b33cecab7f06f3496fb28c56bcc6f40ce1ebce",
+                "candidateSha256": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                "referenceExecuted": 0,
+                "referenceReused": 26,
+                "candidateExecuted": 26,
+                "candidateReused": 0
+            },
+            "passed": true
+        },
+        {
+            "name": "tracking-internal-flags-single",
+            "command": "C:\\Program Files\\nodejs\\node.exe",
+            "args": [
+                "csharp/tools/checker-node-builder-tracking.mjs",
+                "--internal-flags"
+            ],
+            "log": "logs/diagnostic-enums-tracking-internal-flags-single.log",
+            "exitCode": 0,
+            "summary": {
+                "timestamp": "2026-09-27T10:31:54.973Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "managed": true,
+                "concurrency": 1,
+                "cases": 10,
+                "queries": 1296,
+                "differences": [],
+                "oracleSha256": "72c924cf8822c5b2db21a97286b33cecab7f06f3496fb28c56bcc6f40ce1ebce",
+                "candidateSha256": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                "referenceExecuted": 0,
+                "referenceReused": 10,
+                "candidateExecuted": 10,
+                "candidateReused": 0
+            },
+            "passed": true
+        },
+        {
+            "name": "tracking-internal-flags-default",
+            "command": "C:\\Program Files\\nodejs\\node.exe",
+            "args": [
+                "csharp/tools/checker-node-builder-tracking.mjs",
+                "--internal-flags",
+                "--default-concurrency"
+            ],
+            "log": "logs/diagnostic-enums-tracking-internal-flags-default.log",
+            "exitCode": 0,
+            "summary": {
+                "timestamp": "2026-09-27T10:31:55.677Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "managed": true,
+                "concurrency": 4,
+                "cases": 10,
+                "queries": 1296,
+                "differences": [],
+                "oracleSha256": "72c924cf8822c5b2db21a97286b33cecab7f06f3496fb28c56bcc6f40ce1ebce",
+                "candidateSha256": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                "referenceExecuted": 0,
+                "referenceReused": 10,
+                "candidateExecuted": 10,
+                "candidateReused": 0
+            },
+            "passed": true
+        },
+        {
+            "name": "tracking-context-flags-single",
+            "command": "C:\\Program Files\\nodejs\\node.exe",
+            "args": [
+                "csharp/tools/checker-node-builder-tracking.mjs",
+                "--context-flags"
+            ],
+            "log": "logs/diagnostic-enums-tracking-context-flags-single.log",
+            "exitCode": 0,
+            "summary": {
+                "timestamp": "2026-09-27T10:31:56.403Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "managed": true,
+                "concurrency": 1,
+                "cases": 6,
+                "queries": 336,
+                "differences": [],
+                "oracleSha256": "72c924cf8822c5b2db21a97286b33cecab7f06f3496fb28c56bcc6f40ce1ebce",
+                "candidateSha256": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                "referenceExecuted": 0,
+                "referenceReused": 6,
+                "candidateExecuted": 6,
+                "candidateReused": 0
+            },
+            "passed": true
+        },
+        {
+            "name": "tracking-context-flags-default",
+            "command": "C:\\Program Files\\nodejs\\node.exe",
+            "args": [
+                "csharp/tools/checker-node-builder-tracking.mjs",
+                "--context-flags",
+                "--default-concurrency"
+            ],
+            "log": "logs/diagnostic-enums-tracking-context-flags-default.log",
+            "exitCode": 0,
+            "summary": {
+                "timestamp": "2026-09-27T10:31:57.106Z",
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "managed": true,
+                "concurrency": 4,
+                "cases": 6,
+                "queries": 336,
+                "differences": [],
+                "oracleSha256": "72c924cf8822c5b2db21a97286b33cecab7f06f3496fb28c56bcc6f40ce1ebce",
+                "candidateSha256": "7eb86ef934ee976da6e8957399963be2b0ae86622bc8238ea340d27fea5aa4e8",
+                "referenceExecuted": 0,
+                "referenceReused": 6,
+                "candidateExecuted": 6,
+                "candidateReused": 0
+            },
+            "passed": true
+        }
+    ],
+    "foundations": {
+        "assertions": 4704,
+        "diagnostics": 2213,
+        "locales": 13,
+        "libraries": 108,
+        "log": {
+            "path": "logs/diagnostic-enums-foundations.log",
+            "sha256": "05ea83b0d676a3bbbc872e557668e2a80d107253e039dfe32470cf7ec473567b"
+        }
+    },
+    "hosts": {
+        "assertions": 67,
+        "log": {
+            "path": "logs/diagnostic-enums-hosts.log",
+            "sha256": "bda78f9c54a5522e7141faf16413146708376853b525aaf95f1526244bd40252"
+        }
+    },
+    "contentMappers": {
+        "assertions": 44,
+        "log": {
+            "path": "logs/diagnostic-enums-content-mappers.log",
+            "sha256": "fcd706baef4ef39228efd4daa22c7bf8a6681b7a22cf3b77b416980e91be928d"
+        }
+    },
+    "releaseBuild": {
+        "solution": "csharp/TypeScript.slnx",
+        "warnings": 0,
+        "errors": 0,
+        "log": {
+            "path": "logs/diagnostic-enums-release-final.log",
+            "sha256": "bbc7a5f56ccb5e9a52d366a5252efe291bea7c2ebdb342f73bd752e69afca3c8"
+        }
+    },
+    "nativeAot": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "publishes": 1,
+        "executed": false,
+        "log": {
+            "path": "logs/diagnostic-enums-native-publish.log",
+            "sha256": "eab865c2d7c244d99db706cddc98b1193725f5358046ae915efb5b8987b0166a"
+        },
+        "executable": {
+            "path": "built/csharp/diagnostic-enums-native/TypeScript.Compatibility.exe",
+            "sha256": "a93db86acafa71d34d46150e1f0ea0c0743337c7f2d856994872443778079b4f",
+            "bytes": 27492352
+        }
+    },
+    "generatorChecks": [
+        "node csharp/tools/generate-foundations.mjs --check",
+        "node csharp/tools/generate-checker.mjs --check"
+    ],
+    "whitespace": {
+        "path": "logs/diagnostic-enums-whitespace.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "packageLockChangesIncluded": false,
+    "protectedPathsUnchanged": true
+}

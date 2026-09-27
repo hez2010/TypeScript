@@ -21,10 +21,10 @@ internal sealed partial class Checker : IAccessExpressionHost, IIndexedAccessVal
     public bool NoImplicitThis => program.Symbols.Program.Configuration.Options.StrictOption("noImplicitThis");
     public bool LegacyDecorators => program.Symbols.Program.Configuration.Options.Boolean("experimentalDecorators") == true;
 
-    public void ThisError(SyntaxNode node, int code, SyntaxNode? related = null)
+    public void ThisError(SyntaxNode node, DiagnosticCode code, SyntaxNode? related = null)
     {
         var diagnostic = CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code));
-        if (code == 2683 && related is not null)
+        if (code == DiagnosticCode.XThisImplicitlyHasTypeAnyBecauseItDoesNotHaveATypeAnnotation && related is not null)
             diagnostic = diagnostic with
             {
                 RelatedInformation = [CheckerDiagnostic.Create(related,
@@ -110,7 +110,7 @@ internal sealed partial class Checker : IAccessExpressionHost, IIndexedAccessVal
         if (expression is null
             || await program.EntityNames.ResolveAsync(expression, SymbolFlags.Interface, true, cancellation: cancellation) is null)
             return false;
-        Error(node, 2689, CheckerDiagnostic.DeclarationName(expression));
+        Error(node, DiagnosticCode.CannotExtendAnInterface0DidYouMeanImplements, CheckerDiagnostic.DeclarationName(expression));
         return true;
     }
 
@@ -119,13 +119,13 @@ internal sealed partial class Checker : IAccessExpressionHost, IIndexedAccessVal
     public async ValueTask PropertyDeprecatedAsync(Symbol property, SyntaxNode node, SyntaxNode errorNode, CancellationToken cancellation)
     {
         if (program.Deprecations.Symbol(property) && await program.Deprecations.UncalledAsync(node, property, FlowReferences, cancellation))
-            program.Suggestion(errorNode, 6385, property.Name);
+            program.Suggestion(errorNode, DiagnosticCode.X0IsDeprecated, property.Name);
     }
 
     public ValueTask IndexDeprecatedAsync(IndexInfo index, SyntaxNode node, CancellationToken cancellation)
     {
         if (index.Declaration is { } declaration && program.Deprecations.Declaration(declaration))
-            program.Suggestion(node, 6385, SyntaxNameText.Get(node));
+            program.Suggestion(node, DiagnosticCode.X0IsDeprecated, SyntaxNameText.Get(node));
         return ValueTask.CompletedTask;
     }
 

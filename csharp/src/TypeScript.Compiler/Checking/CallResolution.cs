@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -23,20 +24,20 @@ internal interface ICallResolutionHost
 
     ValueTask<bool> ConstructorAccessibleAsync(SyntaxNode node, IReadOnlyList<Signature> signatures, CancellationToken cancellation);
 
-    ValueTask TypeExpressionErrorAsync(SyntaxNode node, int code, Type type, CancellationToken cancellation);
+    ValueTask TypeExpressionErrorAsync(SyntaxNode node, DiagnosticCode code, Type type, CancellationToken cancellation);
 
     ValueTask<Signature> SpecialCallAsync(SyntaxNode node, List<Signature>? candidates, CheckMode mode, CancellationToken cancellation);
 
     ValueTask InvocationErrorAsync(SyntaxNode node, Type type, bool construct, CancellationToken cancellation);
 
     ValueTask<bool> ArgumentRelatedAsync(Type source, Type target, RelationKind relation, SyntaxNode? errorNode, SyntaxNode expression,
-            int code, CancellationToken cancellation);
+            DiagnosticCode code, CancellationToken cancellation);
 
     ValueTask<Type?> NumberIndexAsync(Type type, CancellationToken cancellation);
 
     ValueTask MissingAwaitInfoAsync(SyntaxNode node, Type source, Type target, RelationKind relation, CancellationToken cancellation);
 
-    void ExpressionError(SyntaxNode node, int code);
+    void ExpressionError(SyntaxNode node, DiagnosticCode code);
 
     void DeferExpression(SyntaxNode node);
 
@@ -48,7 +49,7 @@ internal interface ICallResolutionHost
         RelationKind relation,
         CheckMode mode,
         bool report,
-        int headCode,
+        DiagnosticCode headCode,
         CancellationToken cancellation);
 }
 
@@ -169,7 +170,7 @@ internal sealed partial class CallResolution(TypeContext context, CheckerLinks l
             if ((apparent.Flags & TypeFlags.Any) != 0)
             {
                 if (CallArguments.TypeNodes(node) is { Count: > 0 })
-                    host.ExpressionError(node, 2347);
+                    host.ExpressionError(node, DiagnosticCode.UntypedFunctionCallsMayNotAcceptTypeArguments);
                 return await UntypedAsync(node, false, cancellation).ConfigureAwait(false);
             }
             if (constructors.Count != 0)
@@ -182,7 +183,7 @@ internal sealed partial class CallResolution(TypeContext context, CheckerLinks l
                     || apparent.Symbol?.Declarations.Any(
                         d => SemanticSyntax.ClassLike(d) && SemanticSyntax.HasModifier(d, SyntaxKind.AbstractKeyword)) == true)
                 {
-                    host.ExpressionError(node, 2511);
+                    host.ExpressionError(node, DiagnosticCode.CannotCreateAnInstanceOfAnAbstractClass);
                     return await UntypedAsync(node, true, cancellation).ConfigureAwait(false);
                 }
                 return await OverloadAsync(node, constructors, candidates, mode, 0, cancellation).ConfigureAwait(false);
@@ -194,9 +195,9 @@ internal sealed partial class CallResolution(TypeContext context, CheckerLinks l
                 {
                     if (signature.Declaration is not null
                         && await signatures.ReturnAsync(signature, cancellation).ConfigureAwait(false) != context.VoidType)
-                        host.ExpressionError(node, 2350);
+                        host.ExpressionError(node, DiagnosticCode.OnlyAVoidFunctionCanBeCalledWithTheNewKeyword);
                     if (await parameters.ThisAsync(signature, cancellation).ConfigureAwait(false) == context.VoidType)
-                        host.ExpressionError(node, 2679);
+                        host.ExpressionError(node, DiagnosticCode.AFunctionThatIsCalledWithTheNewKeywordCannotHaveAThisTypeThatIsVoid);
                 }
                 return signature;
             }
@@ -211,7 +212,7 @@ internal sealed partial class CallResolution(TypeContext context, CheckerLinks l
             if (untyped)
             {
                 if (!Error(type) && CallArguments.TypeNodes(node) is not null)
-                    host.ExpressionError(node, 2347);
+                    host.ExpressionError(node, DiagnosticCode.UntypedFunctionCallsMayNotAcceptTypeArguments);
                 return await UntypedAsync(node, false, cancellation).ConfigureAwait(false);
             }
             if (calls.Count != 0)
@@ -232,7 +233,11 @@ internal sealed partial class CallResolution(TypeContext context, CheckerLinks l
             }
             if (constructors.Count != 0)
             {
-                await host.TypeExpressionErrorAsync(node, 2348, apparent, cancellation).ConfigureAwait(false);
+                await host.TypeExpressionErrorAsync(
+                    node,
+                    DiagnosticCode.ValueOfType0IsNotCallableDidYouMeanToIncludeNew,
+                    apparent,
+                    cancellation).ConfigureAwait(false);
                 return await UntypedAsync(node, true, cancellation).ConfigureAwait(false);
             }
         }
@@ -459,8 +464,15 @@ internal sealed partial class CallResolution(TypeContext context, CheckerLinks l
         instantiation.GetAsync(signature, types, ((signature.Declaration?.Flags ?? 0) & NodeFlags.JavaScriptFile) != 0,
             inferred?.InferredTypeParameters?.Cast<TypeParameter>().ToArray(), cancellation);
 
-    internal async ValueTask<bool> ApplicableAsync(SyntaxNode node, IReadOnlyList<SyntaxNode> args, Signature signature,
-        RelationKind relation, CheckMode mode, bool report = false, int headCode = 2345, CancellationToken cancellation = default)
+    internal async ValueTask<bool> ApplicableAsync(
+        SyntaxNode node,
+        IReadOnlyList<SyntaxNode> args,
+        Signature signature,
+        RelationKind relation,
+        CheckMode mode,
+        bool report = false,
+        DiagnosticCode headCode = DiagnosticCode.ArgumentOfType0IsNotAssignableToParameterOfType1,
+        CancellationToken cancellation = default)
     {
         if (node is JsxOpeningElementNode or JsxSelfClosingElementNode or JsxOpeningFragmentNode)
             return await host.JsxApplicableAsync(node, signature, relation, mode, report, headCode, cancellation).ConfigureAwait(false);
@@ -475,7 +487,10 @@ internal sealed partial class CallResolution(TypeContext context, CheckerLinks l
                 await arguments.ThisTypeAsync(receiverNode, cancellation).ConfigureAwait(false),
                 receiver,
                 relation,
-                report ? receiverNode ?? node : null, receiverNode ?? node, 2684, cancellation).ConfigureAwait(false))
+                report ? receiverNode ?? node : null,
+                receiverNode ?? node,
+                DiagnosticCode.TheThisContextOfType0IsNotAssignableToMethodSThisOfType1,
+                cancellation).ConfigureAwait(false))
                 return false;
         }
         var rest = await rules.NonArrayRestAsync(signature, cancellation).ConfigureAwait(false);

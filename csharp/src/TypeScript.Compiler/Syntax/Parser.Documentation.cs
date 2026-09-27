@@ -73,7 +73,7 @@ public sealed partial class Parser
             tokenScanner.SetTextRange(clauseStart, end);
             tokenScanner.ScanJSDocToken();
             for (int i = 0; i < parser.diagnostics.Count; i++)
-                if (parser.diagnostics[i] is { Code: 1109, Length: 0 } diagnostic)
+                if (parser.diagnostics[i] is { Code: DiagnosticCode.ExpressionExpected, Length: 0 } diagnostic)
                     parser.diagnostics[i] = diagnostic with
                     { Start = tokenScanner.TokenStart, Length = tokenScanner.Position - tokenScanner.TokenStart };
         }
@@ -167,7 +167,10 @@ public sealed partial class Parser
 
     private static void CorrectMissingDocumentationName(Parser parser, int position, int end)
     {
-        if (!parser.diagnostics.Any(d => d.Length == 0 && d.Code is 1003 or 1069))
+        if (!parser.diagnostics.Any(
+            d => d.Length == 0
+                && d.Code is DiagnosticCode.IdentifierExpected
+                    or DiagnosticCode.UnexpectedTokenATypeParameterNameWasExpectedWithoutCurlyBraces))
             return;
         var scanner = new Scanner(parser.source, false);
         scanner.SetTextRange(position, end);
@@ -185,7 +188,11 @@ public sealed partial class Parser
         if (scanner.Kind == K.EndOfFile)
             return;
         for (int i = 0; i < parser.diagnostics.Count; i++)
-            if (parser.diagnostics[i] is { Length: 0, Code: 1003 or 1069 } diagnostic)
+            if (parser.diagnostics[i] is
+                {
+                    Length: 0, Code: DiagnosticCode.IdentifierExpected
+                or DiagnosticCode.UnexpectedTokenATypeParameterNameWasExpectedWithoutCurlyBraces
+                } diagnostic)
                 parser.diagnostics[i] = diagnostic with { Start = scanner.TokenStart, Length = scanner.Position - scanner.TokenStart };
     }
 }

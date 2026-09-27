@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Checking;
+using TypeScript.Compiler.Diagnostics;
 using Type = TypeScript.Compiler.Checking.Type;
 
 namespace TypeScript.Compatibility;
@@ -9,7 +10,7 @@ namespace TypeScript.Compatibility;
 internal sealed class ConstraintFixtureHost(TypeContext context, AlgebraFixtureHost properties) : ITypeConstraintHost
 {
     internal Dictionary<SyntaxNode, Func<CancellationToken, ValueTask<Type>>> Nodes { get; } = [];
-    internal List<int> Diagnostics { get; } = [];
+    internal List<DiagnosticCode> Diagnostics { get; } = [];
     internal HashSet<ConditionalType> Restrictive { get; } = [];
     internal Dictionary<ConditionalType, Type> ConditionalInstantiations { get; } = [];
     internal Func<Type, bool, CancellationToken, ValueTask<Type>>? Simplifier { get; set; }
@@ -121,5 +122,6 @@ internal sealed class ConstraintFixtureHost(TypeContext context, AlgebraFixtureH
         CancellationToken cancellation)
             => throw new InvalidOperationException("Fixture requires tuple normalization");
 
-    public void CircularConstraint(TypeParameter parameter, SyntaxNode declaration) => Diagnostics.Add(2313);
+    public void CircularConstraint(TypeParameter parameter, SyntaxNode declaration) =>
+        Diagnostics.Add(DiagnosticCode.TypeParameter0HasACircularConstraint);
 }

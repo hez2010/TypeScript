@@ -57,7 +57,11 @@ internal sealed partial class Checker
             }
             if (duplicateBodies)
                 foreach (var declaration in declarations)
-                    Error(constructor ? declaration : SemanticSyntax.Name(declaration) ?? declaration, constructor ? 2392 : 2393);
+                    Error(
+                        constructor ? declaration : SemanticSyntax.Name(declaration) ?? declaration,
+                        constructor
+                            ? DiagnosticCode.MultipleConstructorImplementationsAreNotAllowed
+                            : DiagnosticCode.DuplicateFunctionImplementation);
             if (hasClass && !constructor && (symbol.Flags & SymbolFlags.Function) != 0)
             {
                 var related = symbol.Declarations.OfType<ClassDeclarationNode>()
@@ -67,7 +71,11 @@ internal sealed partial class Checker
                     {
                         var location = SemanticSyntax.Name(declaration) ?? declaration;
                         Error(location, CheckerDiagnostic.Create(location,
-                            DiagnosticLocalization.GetMessage(declaration is ClassDeclarationNode ? 2813 : 2814), symbol.Name) with
+                            DiagnosticLocalization.GetMessage(
+                                declaration is ClassDeclarationNode
+                                    ? DiagnosticCode.ClassDeclarationCannotImplementOverloadListFor0
+                                    : DiagnosticCode.FunctionWithBodiesCanOnlyMergeWithClassesThatAreAmbient),
+                            symbol.Name) with
                         { RelatedInformation = related });
                     }
             }
@@ -86,16 +94,26 @@ internal sealed partial class Checker
                 foreach (var declaration in group)
                 {
                     if (Effective(declaration, SyntaxKind.ExportKeyword) != Effective(localCanonical!, SyntaxKind.ExportKeyword))
-                        Error(SemanticSyntax.Name(declaration) ?? declaration, 2383);
+                        Error(
+                            SemanticSyntax.Name(declaration) ?? declaration,
+                            DiagnosticCode.OverloadSignaturesMustAllBeExportedOrNonExported);
                     else if (Effective(declaration, SyntaxKind.DeclareKeyword) != Effective(localCanonical!, SyntaxKind.DeclareKeyword))
-                        Error(SemanticSyntax.Name(declaration) ?? declaration, 2384);
+                        Error(
+                            SemanticSyntax.Name(declaration) ?? declaration,
+                            DiagnosticCode.OverloadSignaturesMustAllBeAmbientOrNonAmbient);
                     else if (Effective(declaration, SyntaxKind.PrivateKeyword) != Effective(canonical!, SyntaxKind.PrivateKeyword)
                         || Effective(declaration, SyntaxKind.ProtectedKeyword) != Effective(canonical!, SyntaxKind.ProtectedKeyword))
-                        Error(SemanticSyntax.Name(declaration) ?? declaration, 2385);
+                        Error(
+                            SemanticSyntax.Name(declaration) ?? declaration,
+                            DiagnosticCode.OverloadSignaturesMustAllBePublicPrivateOrProtected);
                     else if (Effective(declaration, SyntaxKind.AbstractKeyword) != Effective(canonical!, SyntaxKind.AbstractKeyword))
-                        Error(SemanticSyntax.Name(declaration) ?? declaration, 2512);
+                        Error(
+                            SemanticSyntax.Name(declaration) ?? declaration,
+                            DiagnosticCode.OverloadSignaturesMustAllBeAbstractOrNonAbstract);
                     if (OptionalOverload(declaration) != OptionalOverload(canonical!))
-                        Error(SemanticSyntax.Name(declaration) ?? declaration, 2386);
+                        Error(
+                            SemanticSyntax.Name(declaration) ?? declaration,
+                            DiagnosticCode.OverloadSignaturesMustAllBeOptionalOrRequired);
                 }
             }
             if (body is null)
@@ -164,16 +182,29 @@ internal sealed partial class Checker
                     {
                         if (node is MethodDeclarationNode or MethodSignatureDeclarationNode
                             && SemanticSyntax.IsStatic(node) != SemanticSyntax.IsStatic(next))
-                            Error(nextName ?? next, SemanticSyntax.IsStatic(node) ? 2387 : 2388);
+                            Error(
+                                nextName ?? next,
+                                SemanticSyntax.IsStatic(node)
+                                    ? DiagnosticCode.FunctionOverloadMustBeStatic
+                                    : DiagnosticCode.FunctionOverloadMustNotBeStatic);
                         return;
                     }
                     if (SemanticSyntax.Body(next) is { } nextBody && nextBody.End > nextBody.Pos)
                     {
-                        Error(nextName ?? next, 2389, name is null ? "" : CheckerDiagnostic.DeclarationName(name));
+                        Error(
+                            nextName ?? next,
+                            DiagnosticCode.FunctionImplementationNameMustBe0,
+                            name is null ? "" : CheckerDiagnostic.DeclarationName(name));
                         return;
                     }
                 }
-                Error(name ?? node, constructor ? 2390 : SemanticSyntax.HasModifier(node, SyntaxKind.AbstractKeyword) ? 2516 : 2391);
+                Error(
+                    name ?? node,
+                    constructor
+                        ? DiagnosticCode.ConstructorImplementationIsMissing
+                        : SemanticSyntax.HasModifier(node, SyntaxKind.AbstractKeyword)
+                            ? DiagnosticCode.AllDeclarationsOfAnAbstractMethodMustBeConsecutive
+                            : DiagnosticCode.FunctionImplementationIsMissingOrNotImmediatelyFollowingTheDeclaration);
             }
         }
     }

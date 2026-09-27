@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -28,7 +29,7 @@ internal sealed partial class Checker : ITypeAssertionHost, IInstantiationExpres
         ListError(
             node,
             node is ExpressionWithTypeArgumentsNode expression ? expression.TypeArguments! : ((TypeQueryNode)node).TypeArguments!,
-            2635, text);
+            DiagnosticCode.Type0HasNoSignaturesForWhichTheTypeArgumentListIsApplicable, text);
     }
 
     public void InstantiationGrammar(SyntaxNode node, NodeList? arguments)
@@ -36,10 +37,10 @@ internal sealed partial class Checker : ITypeAssertionHost, IInstantiationExpres
         if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count != 0)
             return;
         if (node is ExpressionWithTypeArgumentsNode { Expression.Kind: SyntaxKind.ImportKeyword } && arguments is not null)
-            Error(node, 1326);
+            Error(node, DiagnosticCode.ThisUseOfImportIsInvalidImportCallsCanBeWrittenButTheyMustHaveParenthesesAndCannotHaveTypeArguments);
         else if (arguments?.HasTrailingComma == true)
             TrailingCommaError(node, arguments);
         else if (arguments?.Count == 0)
-            EmptyTypeListError(node, arguments, 1099);
+            EmptyTypeListError(node, arguments, DiagnosticCode.TypeArgumentListCannotBeEmpty);
     }
 }

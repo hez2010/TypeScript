@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -23,7 +24,10 @@ internal sealed partial class Checker
             for (int i = 2; i < arguments.Count; i++)
                 await CachedExpressionAsync(arguments[i], 0, cancellation);
             if ((specifierType.Flags & TypeFlags.Nullable) != 0 || !await AssignableAsync(specifierType, context.StringType, cancellation))
-                Error(specifier, 7036, await TypeDisplay.GetAsync(specifierType, cancellation));
+                Error(
+                    specifier,
+                    DiagnosticCode.DynamicImportSSpecifierMustBeOfTypeStringButHereHasType0,
+                    await TypeDisplay.GetAsync(specifierType, cancellation));
             Type? attributes = null;
             if (options is not null)
             {
@@ -31,10 +35,10 @@ internal sealed partial class Checker
                 if (importCallOptionsType != context.EmptyObjectType)
                     await RelationDiagnostics.CheckAsync(options,
                         await Algebra.UnionAsync([importCallOptionsType, context.UndefinedType], cancellation: cancellation),
-                        RelationKind.Assignable, arguments[1], null, 2322, cancellation);
+                        RelationKind.Assignable, arguments[1], null, DiagnosticCode.Type0IsNotAssignableToType1, cancellation);
                 if (arguments[1] is ObjectLiteralExpressionNode literal
                     && literal.Properties!.OfType<PropertyAssignmentNode>().FirstOrDefault(p => p.Name is IdentifierNode { Text: "assert" }) is { } assertion)
-                    Error(assertion.Name!, 2880);
+                    Error(assertion.Name!, DiagnosticCode.ImportAssertionsHaveBeenReplacedByImportAttributesUseWithInsteadOfAssert);
                 if (await Properties.PropertyAsync(options, "with", cancellation: cancellation) is { } property)
                     attributes = await Values.GetAsync(property, cancellation);
             }
@@ -54,13 +58,17 @@ internal sealed partial class Checker
         var promise = await PromiseResultAsync(node, result, false, cancellation);
         if (promise == context.UnknownType)
         {
-            Error(node, 2711);
+            Error(
+                node,
+                DiagnosticCode.ADynamicImportCallReturnsAPromiseMakeSureYouHaveADeclarationForPromiseOrIncludeES2015InYourLibOption);
             return context.ErrorType;
         }
         if (program.Symbols.Lookup(program.Symbols.Globals, "Promise", SymbolFlags.Value) is null)
         {
             program.Error(null, TypeScript.Compiler.Diagnostics.Messages.Cannot_find_global_value_0, "Promise", "es2015");
-            Error(node, 2712);
+            Error(
+                node,
+                DiagnosticCode.ADynamicImportCallInES5RequiresThePromiseConstructorMakeSureYouHaveADeclarationForThePromiseConstructorOrIncludeES2015InYourLibOption);
         }
         return promise;
     }
@@ -76,17 +84,19 @@ internal sealed partial class Checker
         }
         if (node.Expression is MetaPropertyNode && ModuleKind is not (99 or 200))
         {
-            Error(node, 18060);
+            Error(node, DiagnosticCode.DeferredImportsAreOnlySupportedWhenTheModuleFlagIsSetToEsnextOrPreserve);
             return;
         }
         if (node.Expression is not MetaPropertyNode && ModuleKind == 5)
         {
-            Error(node, 1323);
+            Error(
+                node,
+                DiagnosticCode.DynamicImportsAreOnlySupportedWhenTheModuleFlagIsSetToEs2020Es2022EsnextCommonjsAmdSystemUmdNode16Node18Node20OrNodenext);
             return;
         }
         if (node.TypeArguments is not null)
         {
-            Error(node, 1326);
+            Error(node, DiagnosticCode.ThisUseOfImportIsInvalidImportCallsCanBeWrittenButTheyMustHaveParenthesesAndCannotHaveTypeArguments);
             return;
         }
         var arguments = node.Arguments!;
@@ -96,17 +106,19 @@ internal sealed partial class Checker
                 TrailingCommaError(node, arguments);
             if (arguments.Count > 1)
             {
-                Error(arguments[1], 1324);
+                Error(
+                    arguments[1],
+                    DiagnosticCode.DynamicImportsOnlySupportASecondArgumentWhenTheModuleOptionIsSetToEsnextNode16Node18Node20NodenextOrPreserve);
                 return;
             }
         }
         if (arguments.Count is 0 or > 2)
         {
-            Error(node, 1450);
+            Error(node, DiagnosticCode.DynamicImportsCanOnlyAcceptAModuleSpecifierAndAnOptionalSetOfAttributesAsArguments);
             return;
         }
         if (arguments.FirstOrDefault(a => a is SpreadElementNode) is { } spread)
-            Error(spread, 1325);
+            Error(spread, DiagnosticCode.ArgumentOfDynamicImportCannotBeSpreadElement);
     }
 
     private async ValueTask<Type> ResolveImportTypeAsync(ImportTypeNode node, CancellationToken cancellation)
@@ -117,9 +129,9 @@ internal sealed partial class Checker
         if (node.Argument is not LiteralTypeNode { Literal: StringLiteralNode literal })
         {
             if (node.Argument!.Pos == node.Argument.End)
-                ErrorOnFirstToken(node.Argument, 1141);
+                ErrorOnFirstToken(node.Argument, DiagnosticCode.StringLiteralExpected);
             else
-                Error(node.Argument, 1141);
+                Error(node.Argument, DiagnosticCode.StringLiteralExpected);
             links.SymbolNodes.Get(node).ResolvedSymbol = UnknownSymbol;
             return data.ResolvedType = context.ErrorType;
         }
@@ -168,7 +180,7 @@ internal sealed partial class Checker
                 {
                     Error(
                         current,
-                        2694,
+                        DiagnosticCode.Namespace0HasNoExportedMember1,
                         await FullyQualifiedNameAsync(target, null, cancellation),
                         CheckerDiagnostic.DeclarationName(current));
                     return data.ResolvedType = context.ErrorType;
@@ -180,7 +192,12 @@ internal sealed partial class Checker
         }
         else if ((await program.Aliases.FlagsAsync(target, cancellation: cancellation) & meaning) == 0)
         {
-            Error(node, node.IsTypeOf ? 1339 : 1340, literal.Text);
+            Error(
+                node,
+                node.IsTypeOf
+                    ? DiagnosticCode.Module0DoesNotReferToAValueButIsUsedAsAValueHere
+                    : DiagnosticCode.Module0DoesNotReferToATypeButIsUsedAsATypeHereDidYouMeanTypeofImport0,
+                literal.Text);
             links.SymbolNodes.Get(node).ResolvedSymbol = UnknownSymbol;
             return data.ResolvedType = context.ErrorType;
         }

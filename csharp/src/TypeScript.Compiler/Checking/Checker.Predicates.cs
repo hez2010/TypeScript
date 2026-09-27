@@ -13,7 +13,7 @@ internal sealed partial class Checker
             or FunctionTypeNode or MethodDeclarationNode or MethodSignatureDeclarationNode)
             || parent is not ITypedNode typed || typed.Type != node)
         {
-            Error(node, 1228);
+            Error(node, DiagnosticCode.ATypePredicateIsOnlyAllowedInReturnTypePositionForFunctionsAndMethods);
             return;
         }
         var signature = await Signatures.FromDeclarationAsync(parent, cancellation).ConfigureAwait(false);
@@ -23,14 +23,20 @@ internal sealed partial class Checker
         if (predicate.ParameterIndex >= 0)
         {
             if ((signature.Flags & SignatureFlags.HasRestParameter) != 0 && predicate.ParameterIndex == signature.Parameters.Count - 1)
-                Error(node.ParameterName!, 1229);
+                Error(node.ParameterName!, DiagnosticCode.ATypePredicateCannotReferenceARestParameter);
             else if (predicate.Type is { } type)
             {
                 var parameterType = await Values.GetAsync(
                     signature.Parameters[predicate.ParameterIndex],
                     cancellation).ConfigureAwait(false);
                 if (!await AssignableAsync(type, parameterType, cancellation).ConfigureAwait(false))
-                    await ReportRelationMessageAsync(node.Type!, 2322, type, parameterType, RelationKind.Assignable, cancellation,
+                    await ReportRelationMessageAsync(
+                        node.Type!,
+                        DiagnosticCode.Type0IsNotAssignableToType1,
+                        type,
+                        parameterType,
+                        RelationKind.Assignable,
+                        cancellation,
                         CheckerDiagnostic.Create(node.Type!, Messages.A_type_predicate_s_type_must_be_assignable_to_its_parameter_s_type));
             }
         }
@@ -46,13 +52,13 @@ internal sealed partial class Checker
                     {
                         if (element.Name is IdentifierNode identifier && identifier.Text == predicate.ParameterName)
                         {
-                            Error(name, 1230, predicate.ParameterName!);
+                            Error(name, DiagnosticCode.ATypePredicateCannotReferenceElement0InABindingPattern, predicate.ParameterName!);
                             return;
                         }
                         if (element.Name is BindingPatternNode nested)
                             pending.Push(nested);
                     }
-            Error(name, 1225, predicate.ParameterName!);
+            Error(name, DiagnosticCode.CannotFindParameter0, predicate.ParameterName!);
         }
     }
 }

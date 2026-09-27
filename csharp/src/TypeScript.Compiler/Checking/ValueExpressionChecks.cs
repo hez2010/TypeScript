@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -12,7 +13,7 @@ internal interface IValueExpressionHost
 
     bool IsReadonly(Symbol symbol);
 
-    void ExpressionError(SyntaxNode node, int code);
+    void ExpressionError(SyntaxNode node, DiagnosticCode code);
 }
 
 internal sealed class ValueExpressionChecks(TypeContext context, CheckerLinks links, CheckerSymbols symbols,
@@ -26,22 +27,22 @@ internal sealed class ValueExpressionChecks(TypeContext context, CheckerLinks li
             expression = parentheses.Expression!;
         if (expression is not PropertyAccessExpressionNode and not ElementAccessExpressionNode)
         {
-            host.ExpressionError(expression, 2703);
+            host.ExpressionError(expression, DiagnosticCode.TheOperandOfADeleteOperatorMustBeAPropertyReference);
             return context.BooleanType;
         }
         if (expression is PropertyAccessExpressionNode { Name: PrivateIdentifierNode })
-            host.ExpressionError(expression, 18011);
+            host.ExpressionError(expression, DiagnosticCode.TheOperandOfADeleteOperatorCannotBeAPrivateIdentifier);
         if (links.SymbolNodes.TryGet(expression)?.ResolvedSymbol is { } resolved && symbols.ExportedValue(resolved) is { } symbol)
         {
             if (host.IsReadonly(symbol))
-                host.ExpressionError(expression, 2704);
+                host.ExpressionError(expression, DiagnosticCode.TheOperandOfADeleteOperatorCannotBeAReadOnlyProperty);
             else
             {
                 var type = await values.GetAsync(symbol, cancellation).ConfigureAwait(false);
                 if (context.StrictNullChecks && (type.Flags & (TypeFlags.AnyOrUnknown | TypeFlags.Never)) == 0
                     && !(context.ExactOptionalPropertyTypes ? (symbol.Flags & SymbolFlags.Optional) != 0
                         : await facts.GetAsync(type, TypeFacts.IsUndefined, cancellation).ConfigureAwait(false) != 0))
-                    host.ExpressionError(expression, 2790);
+                    host.ExpressionError(expression, DiagnosticCode.TheOperandOfADeleteOperatorMustBeOptional);
             }
         }
         return context.BooleanType;
@@ -54,20 +55,24 @@ internal sealed class ValueExpressionChecks(TypeContext context, CheckerLinks li
         if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
         {
             if (node.KeywordToken == SyntaxKind.NewKeyword && name != "target")
-                host.ExpressionError(node.Name!, 17012);
+                host.ExpressionError(node.Name!, DiagnosticCode.X0IsNotAValidMetaPropertyForKeyword1DidYouMean2);
             else if (node.KeywordToken == SyntaxKind.ImportKeyword && name != "meta")
                 host.ExpressionError(
                     node.Name!,
                     name == "defer"
-                        ? 1005
-                        : node.Parent is CallExpressionNode { Expression: var expression } && expression == node ? 18061 : 17012);
+                        ? DiagnosticCode.X0Expected
+                        : node.Parent is CallExpressionNode { Expression: var expression } && expression == node
+                            ? DiagnosticCode.X0IsNotAValidMetaPropertyForKeywordImportDidYouMeanMetaOrDefer
+                            : DiagnosticCode.X0IsNotAValidMetaPropertyForKeyword1DidYouMean2);
         }
         if (node.KeywordToken == SyntaxKind.NewKeyword)
         {
             var container = MissingNamePrefixes.ThisContainer(node, false, false);
             if (container is not ConstructorDeclarationNode and not FunctionDeclarationNode and not FunctionExpressionNode)
             {
-                host.ExpressionError(node, 17013);
+                host.ExpressionError(
+                    node,
+                    DiagnosticCode.MetaProperty0IsOnlyAllowedInTheBodyOfAFunctionDeclarationFunctionExpressionOrConstructor);
                 return context.ErrorType;
             }
             return await values.GetAsync(
@@ -98,10 +103,12 @@ internal sealed class ValueExpressionChecks(TypeContext context, CheckerLinks li
         if (module is "node16" or "node18" or "node20" or "nodenext")
         {
             if (symbols.Program.SourceFiles.First(f => f.Syntax == SemanticSyntax.Source(node)).ImpliedFormat != ReferenceResolutionMode.Import)
-                host.ExpressionError(node, 1470);
+                host.ExpressionError(node, DiagnosticCode.TheImportMetaMetaPropertyIsNotAllowedInFilesWhichWillBuildIntoCommonJSOutput);
         }
         else if (module is not ("es2020" or "es2022" or "esnext" or "system" or "preserve"))
-            host.ExpressionError(node, 1343);
+            host.ExpressionError(
+                node,
+                DiagnosticCode.TheImportMetaMetaPropertyIsOnlyAllowedWhenTheModuleOptionIsEs2020Es2022EsnextSystemNode16Node18Node20OrNodenext);
         return name == "meta" ? await host.ImportMetaTypeAsync(cancellation).ConfigureAwait(false) : context.ErrorType;
     }
 
@@ -115,7 +122,9 @@ internal sealed class ValueExpressionChecks(TypeContext context, CheckerLinks li
             || node is IdentifierNode or QualifiedNameNode && ImportOrExport(node)
             || node.Parent is TypeQueryNode query && query.ExprName == node || node.Parent is ExportSpecifierNode;
         if (!allowed)
-            host.ExpressionError(node, 2475);
+            host.ExpressionError(
+                node,
+                DiagnosticCode.XConstEnumsCanOnlyBeUsedInPropertyOrIndexAccessExpressionsOrTheRightHandSideOfAnImportDeclarationOrExportAssignmentOrTypeQuery);
         var options = symbols.Program.Configuration.Options;
         var first = node;
         while (first is PropertyAccessExpressionNode or QualifiedNameNode)
@@ -133,7 +142,7 @@ internal sealed class ValueExpressionChecks(TypeContext context, CheckerLinks li
             bool preserved = redirect is not null && (redirect.Project.Options.Boolean("preserveConstEnums") == true
                 || redirect.Project.Options.Boolean("isolatedModules") == true || redirect.Project.Options.Boolean("verbatimModuleSyntax") == true);
             if ((declaration.Flags & NodeFlags.Ambient) != 0 && !ReferenceSyntax.ValidTypeOnlyUse(node) && !preserved)
-                host.ExpressionError(node, 2748);
+                host.ExpressionError(node, DiagnosticCode.CannotAccessAmbientConstEnumsWhen0IsEnabled);
         }
     }
 

@@ -139,7 +139,7 @@ internal static class ResolutionTests
             writer.WriteStringValue(result.AlternateResult);
         writer.WriteStartArray();
         foreach (var diagnostic in result.Diagnostics)
-            writer.WriteNumberValue(diagnostic.Code);
+            writer.WriteNumberValue((int)diagnostic.Code);
         writer.WriteEndArray();
         writer.WriteEndArray();
         if (operation == "resolveTrace")

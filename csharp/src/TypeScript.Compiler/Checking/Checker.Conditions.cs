@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Semantics;
 using TypeScript.Compiler.Syntax;
 
@@ -34,7 +35,10 @@ internal sealed partial class Checker
                 && (links.SymbolNodes.TryGet(enumAccess.Expression!)?.ResolvedSymbol?.Flags & SymbolFlags.Enum) != 0
                 && links.SymbolNodes.TryGet(enumAccess.Expression!)?.ResolvedSymbol is not null)
             {
-                Error(location, 2845, current is LiteralType { Value: { } value } && ConstantEvaluator.IsTruthy(value) ? "true" : "false");
+                Error(
+                    location,
+                    DiagnosticCode.ThisConditionWillAlwaysReturn0,
+                    current is LiteralType { Value: { } value } && ConstantEvaluator.IsTruthy(value) ? "true" : "false");
                 continue;
             }
             bool asserted = location is PropertyAccessExpressionNode access
@@ -63,7 +67,12 @@ internal sealed partial class Checker
             }
             if (!used)
             {
-                Error(location, promise ? 2801 : 2774, promise ? [await TypeDisplay.GetAsync(current, cancellation)] : []);
+                Error(
+                    location,
+                    promise
+                        ? DiagnosticCode.ThisConditionWillAlwaysReturnTrueSinceThis0IsAlwaysDefined
+                        : DiagnosticCode.ThisConditionWillAlwaysReturnTrueSinceThisFunctionIsAlwaysDefinedDidYouMeanToCallItInstead,
+                    promise ? [await TypeDisplay.GetAsync(current, cancellation)] : []);
                 if (promise)
                     MissingAwaitHints.Add(location);
             }

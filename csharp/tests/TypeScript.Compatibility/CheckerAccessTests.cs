@@ -2,6 +2,7 @@ using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Checking;
 using TypeScript.Compiler.Configuration;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.Programs;
 using TypeScript.Compiler.Semantics;
@@ -41,7 +42,9 @@ internal static class CheckerAccessTests
         Check(await host.Expressions.CheckAsync(accesses[0]) == context.NumberType);
         var optional = await host.Expressions.CheckAsync(accesses[1]);
         Check(optional is UnionType union && union.Types.Contains(context.MissingType) && union.Types.Contains(context.StringType));
-        Check(await host.Expressions.CheckAsync(accesses[2]) is LiteralType { Value: 1d } && host.Diagnostics.Contains(2540));
+        Check(
+            await host.Expressions.CheckAsync(accesses[2]) is LiteralType { Value: 1d }
+                && host.Diagnostics.Contains(DiagnosticCode.CannotAssignTo0BecauseItIsAReadOnlyProperty));
         Check(await host.Expressions.CheckAsync(accesses[3]) == context.NumberType);
         Check(
             links.SymbolNodes.Get(accesses[0]).ResolvedSymbol?.Name == "a"
@@ -330,7 +333,18 @@ internal static class CheckerAccessTests
         var file = program.SourceFiles[0].Syntax;
         await checker.CheckSourceFileAsync(file);
         var codes = checker.DiagnosticCodesForFile(file);
-        if (!codes.SequenceEqual([1038, 1042, 1042, 1044, 1070, 1184, 1184, 1275, 2689]))
+        if (!codes.SequenceEqual(
+            [
+                    DiagnosticCode.ADeclareModifierCannotBeUsedInAnAlreadyAmbientContext,
+                    DiagnosticCode.X0ModifierCannotBeUsedHere,
+                    DiagnosticCode.X0ModifierCannotBeUsedHere,
+                    DiagnosticCode.X0ModifierCannotAppearOnAModuleOrNamespaceElement,
+                    DiagnosticCode.X0ModifierCannotAppearOnATypeMember,
+                    DiagnosticCode.ModifiersCannotAppearHere,
+                    DiagnosticCode.ModifiersCannotAppearHere,
+                    DiagnosticCode.XAccessorModifierCanOnlyAppearOnAPropertyDeclaration,
+                    DiagnosticCode.CannotExtendAnInterface0DidYouMeanImplements
+                ]))
             throw new InvalidOperationException($"Declaration/heritage diagnostics: {string.Join(',', codes)}");
         return 1;
     }
@@ -453,7 +467,9 @@ internal static class CheckerAccessTests
         Check(await checker.PropertyInitializers.AssignedAsync(properties[0].Name!, checker.Context.NumberType, constructor));
         Check(!await checker.PropertyInitializers.AssignedAsync(properties[2].Name!, checker.Context.NumberType, constructor));
         await checker.CheckSourceFileAsync(program.SourceFiles[0].Syntax);
-        Check(checker.Diagnostics.Contains(2564) && !checker.Diagnostics.Contains(7008));
+        Check(
+            checker.Diagnostics.Contains(DiagnosticCode.Property0HasNoInitializerAndIsNotDefinitelyAssignedInTheConstructor)
+                && !checker.Diagnostics.Contains(DiagnosticCode.Member0ImplicitlyHasAn1Type));
         Check(nodes.Select(n => n.Parent).SequenceEqual(parents));
         Check(checker.CheckedFileCount == 1 && checker.CurrentSourceNode is null && checker.Instantiation.Resolutions.Count == 0);
         return checks;

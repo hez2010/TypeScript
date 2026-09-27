@@ -1,6 +1,7 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Checking;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 using Type = TypeScript.Compiler.Checking.Type;
 
@@ -95,7 +96,10 @@ internal static class CheckerMappedMemberTests
         var recursive = cycle.Members!["a"];
         host.OnIndex = _ => Check(host.Members.SymbolTypeAsync(recursive).GetAwaiter().GetResult() == context.ErrorType);
         Check(await host.Members.SymbolTypeAsync(recursive) == context.ErrorType);
-        Check(cycle.ContainsError && host.Diagnostics.SequenceEqual([2615]) && host.Resolutions.Count == 0);
+        Check(
+            cycle.ContainsError
+                && host.Diagnostics.SequenceEqual([DiagnosticCode.TypeOfProperty0CircularlyReferencesItselfInMappedType1])
+                && host.Resolutions.Count == 0);
         host.OnIndex = null;
         Check(await host.Members.SymbolTypeAsync(recursive) == context.ErrorType && host.Diagnostics.Count == 1);
 

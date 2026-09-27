@@ -18,8 +18,8 @@ internal sealed class InstantiationServices : ITypeInstantiationHost, ITupleType
     internal TypeNodeFlow TypeNodeFlow { get; }
     internal TypeConstraints Constraints { get; }
     internal TypeResolutionStack Resolutions { get; }
-    internal List<int> Diagnostics { get; } = [];
-    internal List<int> ConstraintDiagnostics { get; } = [];
+    internal List<DiagnosticCode> Diagnostics { get; } = [];
+    internal List<DiagnosticCode> ConstraintDiagnostics { get; } = [];
 
     internal InstantiationServices(TypeContext context, TypeAlgebra algebra, CheckerLinks links, Checker checker)
     {
@@ -197,7 +197,7 @@ internal sealed class InstantiationServices : ITypeInstantiationHost, ITupleType
 
     public void CircularConstraint(TypeParameter parameter, SyntaxNode declaration)
     {
-        ConstraintDiagnostics.Add(2313);
+        ConstraintDiagnostics.Add(DiagnosticCode.TypeParameter0HasACircularConstraint);
         var diagnostic = CheckerDiagnostic.Create(declaration, Messages.Type_parameter_0_has_a_circular_constraint,
             checker.TypeDisplay.SymbolName(parameter.Symbol!));
         if (checker.DiagnosticNode is { } current
@@ -214,15 +214,18 @@ internal sealed class InstantiationServices : ITypeInstantiationHost, ITupleType
 
     public async ValueTask CircularPropertyAsync(Symbol symbol, MappedType type, CancellationToken cancellation)
     {
-        Diagnostics.Add(2615);
-        checker.TrackDiagnostic(checker.DiagnosticNode, 2615, checker.TypeDisplay.SymbolName(symbol),
+        Diagnostics.Add(DiagnosticCode.TypeOfProperty0CircularlyReferencesItselfInMappedType1);
+        checker.TrackDiagnostic(
+            checker.DiagnosticNode,
+            DiagnosticCode.TypeOfProperty0CircularlyReferencesItselfInMappedType1,
+            checker.TypeDisplay.SymbolName(symbol),
             await checker.TypeDisplay.GetAsync(type, cancellation));
     }
 
     public void InstantiationLimit(int depth, int count)
     {
         if (checker.ReportTypeRecursionLimit())
-            Diagnostics.Add(2589);
+            Diagnostics.Add(DiagnosticCode.TypeInstantiationIsExcessivelyDeepAndPossiblyInfinite);
     }
 
     public void TupleTooLarge()
@@ -230,14 +233,16 @@ internal sealed class InstantiationServices : ITypeInstantiationHost, ITupleType
         var node = checker.DiagnosticNode;
         if (checker.Expressions.CurrentNode is null && node is ITypedNode { Type: { } annotation })
             node = annotation;
-        int code = node is not null && QuerySyntax.PartOfType(node) ? 2799 : 2800;
+        DiagnosticCode code = node is not null && QuerySyntax.PartOfType(node)
+            ? DiagnosticCode.TypeProducesATupleTypeThatIsTooLargeToRepresent
+            : DiagnosticCode.ExpressionProducesATupleTypeThatIsTooLargeToRepresent;
         Diagnostics.Add(code);
         checker.TrackDiagnostic(node, code);
     }
 
     public void CrossProductTooLarge(long size)
     {
-        Diagnostics.Add(2590);
-        checker.TrackDiagnostic(checker.DiagnosticNode, 2590);
+        Diagnostics.Add(DiagnosticCode.ExpressionProducesAUnionTypeThatIsTooComplexToRepresent);
+        checker.TrackDiagnostic(checker.DiagnosticNode, DiagnosticCode.ExpressionProducesAUnionTypeThatIsTooComplexToRepresent);
     }
 }

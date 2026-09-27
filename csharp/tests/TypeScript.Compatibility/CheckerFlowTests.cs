@@ -2,6 +2,7 @@ using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Checking;
 using TypeScript.Compiler.Configuration;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.Programs;
 using TypeScript.Compiler.Syntax;
@@ -107,7 +108,10 @@ internal static class CheckerFlowTests
         Check(!host.FlowTypes.AnalysisDisabled);
         deep = new(FlowFlags.TrueCondition, new KeywordExpressionNode(SyntaxKind.FalseKeyword), deep);
         Check(await host.FlowTypes.GetAsync(reference, declared, context.StringType, flow: deep) == context.ErrorType);
-        Check(host.FlowTypes.AnalysisDisabled && host.Diagnostics.Contains(2563) && host.FlowTypes.SharedCount == 0);
+        Check(
+            host.FlowTypes.AnalysisDisabled
+                && host.Diagnostics.Contains(DiagnosticCode.TheContainingFunctionOrModuleBodyIsTooLargeForControlFlowAnalysis)
+                && host.FlowTypes.SharedCount == 0);
         Check(await host.FlowTypes.GetAsync(reference, declared, flow: start) == context.ErrorType);
         host.FlowTypes.AnalysisDisabled = false;
         Check(await host.FlowTypes.GetAsync(reference, declared, context.StringType, flow: start) == context.StringType);
@@ -229,7 +233,7 @@ internal static class CheckerFlowTests
         var file = program.GetFile("/project/main.ts")!.Syntax;
         await checker.CheckSourceFileAsync(file);
         var codes = checker.DiagnosticCodesForFile(file);
-        if (!codes.SequenceEqual([2775]))
+        if (!codes.SequenceEqual([DiagnosticCode.AssertionsRequireEveryNameInTheCallTargetToBeDeclaredWithAnExplicitTypeAnnotation]))
             throw new InvalidOperationException($"Constructor/call diagnostics: {string.Join(',', codes)}");
         var declarations = file.DescendantsAndSelf().OfType<VariableDeclarationNode>()
             .Where(n => n.Name is IdentifierNode).ToDictionary(n => ((IdentifierNode)n.Name!).Text);

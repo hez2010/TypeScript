@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -8,7 +9,7 @@ internal sealed partial class Checker
 {
     private readonly Dictionary<SourceFileNode, Symbol> externalHelperModules = [];
     private readonly HashSet<(SourceFileNode File, string Name)> checkedExternalHelpers = [];
-    private readonly HashSet<(SyntaxNode Node, int Code, string Name)> externalHelperErrors = [];
+    private readonly HashSet<(SyntaxNode Node, DiagnosticCode Code, string Name)> externalHelperErrors = [];
 
     private async ValueTask ExternalHelpersAsync(SyntaxNode node, IReadOnlyList<string> names, CancellationToken cancellation)
     {
@@ -29,7 +30,11 @@ internal sealed partial class Checker
             resolved ??= program.Symbols.PatternAugmentations.GetValueOrDefault("tslib") ?? program.Symbols.Globals.GetValueOrDefault("\"tslib\"");
             module = program.Symbols.Merger.GetMergedSymbol(resolved) ?? UnknownSymbol;
             if (module == UnknownSymbol)
-                Error(node, reference?.Resolution.IsResolved == true ? 2306 : 2354,
+                Error(
+                    node,
+                    reference?.Resolution.IsResolved == true
+                        ? DiagnosticCode.File0IsNotAModule
+                        : DiagnosticCode.ThisSyntaxRequiresAnImportedHelperButModule0CannotBeFound,
                     reference?.Resolution.IsResolved == true ? reference.Resolution.FileName : "tslib");
             externalHelperModules.Add(file, module);
         }
@@ -40,12 +45,12 @@ internal sealed partial class Checker
         {
             if (checkedExternalHelpers.Contains((file, name)))
                 continue;
-            int code = 0;
+            DiagnosticCode code = DiagnosticCode.None;
             var symbol = await program.Aliases.SymbolAsync(
                 program.Symbols.Lookup(exports, name, SymbolFlags.Value),
                 cancellation: cancellation);
             if (symbol is null)
-                code = 2343;
+                code = DiagnosticCode.ThisSyntaxRequiresAnImportedHelperNamed1WhichDoesNotExistIn0ConsiderUpgradingYourVersionOf0;
             else if (name is "__classPrivateFieldGet" or "__classPrivateFieldSet")
             {
                 int minimum = name == "__classPrivateFieldGet" ? 4 : 5;
@@ -57,14 +62,17 @@ internal sealed partial class Checker
                         break;
                     }
                 if (!compatible)
-                    code = 2807;
+                    code = DiagnosticCode.ThisSyntaxRequiresAnImportedHelperNamed1With2ParametersWhichIsNotCompatibleWithTheOneIn0ConsiderUpgradingYourVersionOf0;
             }
             cancellation.ThrowIfCancellationRequested();
-            if (code != 0 && externalHelperErrors.Add((node, code, name)))
+            if (code != DiagnosticCode.None && externalHelperErrors.Add((node, code, name)))
             {
                 // Helpers with different names carry different diagnostic arguments, even at the same syntax location.
                 Diagnostics.Add(code);
-                TrackDiagnostic(node, code, code == 2807
+                TrackDiagnostic(
+                    node,
+                    code,
+                    code == DiagnosticCode.ThisSyntaxRequiresAnImportedHelperNamed1With2ParametersWhichIsNotCompatibleWithTheOneIn0ConsiderUpgradingYourVersionOf0
                     ? ["tslib", name, name == "__classPrivateFieldGet" ? "4" : "5"] : ["tslib", name]);
             }
             checkedExternalHelpers.Add((file, name));

@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -12,13 +13,13 @@ internal sealed partial class Checker
     {
         CheckDeclarationName(node);
         if (ReservedTypeName(node.Name!.Text))
-            Error(node.Name, 2431, node.Name.Text);
+            Error(node.Name, DiagnosticCode.EnumNameCannotBe0, node.Name.Text);
         ExportedDeclaration(node, true);
         await CheckMergedExportsAsync(node, cancellation).ConfigureAwait(false);
         foreach (var member in node.Members!)
             await CheckSourceElementAsync(member, cancellation).ConfigureAwait(false);
         if (ErasableSyntaxOnly && (node.Flags & (NodeFlags.Ambient | NodeFlags.JavaScriptFile)) == 0)
-            Error(node, 1294);
+            Error(node, DiagnosticCode.ThisSyntaxIsNotAllowedWhenErasableSyntaxOnlyIsEnabled);
         if (node.Members.Count != 0)
             await EnumValues.GetAsync((EnumMemberNode)node.Members[0], cancellation).ConfigureAwait(false);
         var symbol = program.Symbols.Declaration(node)!;
@@ -28,11 +29,13 @@ internal sealed partial class Checker
         foreach (var declaration in symbol.Declarations.OfType<EnumDeclarationNode>())
         {
             if (SemanticSyntax.HasModifier(declaration, SyntaxKind.ConstKeyword) != constant)
-                Error(declaration.Name!, 2473);
+                Error(declaration.Name!, DiagnosticCode.EnumDeclarationsMustAllBeConstOrNonConst);
             if (declaration.Members!.FirstOrDefault() is EnumMemberNode { Initializer: null } first)
             {
                 if (missing)
-                    Error(first.Name!, 2432);
+                    Error(
+                        first.Name!,
+                        DiagnosticCode.InAnEnumWithMultipleDeclarationsOnlyOneDeclarationCanOmitAnInitializerForItsFirstEnumElement);
                 missing = true;
             }
         }

@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -93,7 +94,13 @@ internal sealed partial class Checker
             End = errorNode.End,
             Flags = NodeFlags.Synthesized
         };
-        var module = await ResolveImportModuleAsync(errorNode, specifier, null, cancellation, true, 2875);
+        var module = await ResolveImportModuleAsync(
+            errorNode,
+            specifier,
+            null,
+            cancellation,
+            true,
+            DiagnosticCode.ThisJSXTagRequiresTheModulePath0ToExistButNoneCouldBeFoundMakeSureYouHaveTypesForTheAppropriatePackageInstalled);
         if (module is not null)
             module = await program.Aliases.SymbolAsync(module, cancellation: cancellation);
         cancellation.ThrowIfCancellationRequested();
@@ -154,10 +161,10 @@ internal sealed partial class Checker
                 result = index.ValueType;
             }
             else
-                Error(node, 2339, name, "JSX.IntrinsicElements");
+                Error(node, DiagnosticCode.Property0DoesNotExistOnType1, name, "JSX.IntrinsicElements");
         }
         else if (NoImplicitAny)
-            Error(node, 7026, "IntrinsicElements");
+            Error(node, DiagnosticCode.JSXElementImplicitlyHasTypeAnyBecauseNoInterfaceJSX0Exists, "IntrinsicElements");
         links.SymbolNodes.Get(node).ResolvedSymbol = symbol ?? UnknownSymbol;
         return jsxIntrinsicTypes[node] = result;
     }
@@ -175,7 +182,7 @@ internal sealed partial class Checker
         if (properties.Count == 1)
             return properties[0].Name;
         if (type.Symbol?.Declarations.FirstOrDefault() is { } declaration)
-            Error(declaration, 2608, container);
+            Error(declaration, DiagnosticCode.TheGlobalTypeJSX0MayNotHaveMoreThanOneProperty, container);
         return null;
     }
 }

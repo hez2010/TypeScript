@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -17,7 +18,7 @@ internal interface IMemberAccessibilityHost
 
     ValueTask MemberErrorAsync(
         SyntaxNode node,
-        int code,
+        DiagnosticCode code,
         Symbol symbol,
         CancellationToken cancellation,
         Type? type = null,
@@ -44,9 +45,9 @@ internal sealed class MemberAccessibility(CheckerSymbols symbols, CheckerLinks l
         if (super)
         {
             if (abstractMember)
-                return await FailAsync(2513);
+                return await FailAsync(DiagnosticCode.AbstractMethod0InClass1CannotBeAccessedViaSuperExpression);
             if ((flags & CheckFlags.ContainsStatic) == 0 && property.Declarations.Any(host.ClassInstanceProperty))
-                return await FailAsync(2855);
+                return await FailAsync(DiagnosticCode.ClassField0DefinedByTheParentClassIsNotAccessibleInTheChildClassViaSuper);
         }
         if (abstractMember
             && await AnyPropertyAsync(
@@ -57,7 +58,7 @@ internal sealed class MemberAccessibility(CheckerSymbols symbols, CheckerLinks l
                 || node.Parent?.Kind == SyntaxKind.ObjectBindingPattern
                     && node.Parent.Parent is VariableDeclarationNode { Initializer.Kind: SyntaxKind.ThisKeyword })
             && symbols.Parent(property) is { Flags: var parentFlags } && (parentFlags & SymbolFlags.Class) != 0 && UsedDuringInitialization(node))
-            return await FailAsync(2715);
+            return await FailAsync(DiagnosticCode.AbstractProperty0InClass1CannotBeAccessedInTheConstructor);
         var privateFlag = writing ? CheckFlags.ContainsWritePrivate : CheckFlags.ContainsPrivate;
         var protectedFlag = writing ? CheckFlags.ContainsWriteProtected : CheckFlags.ContainsProtected;
         if ((flags & (privateFlag | protectedFlag)) == 0)
@@ -66,7 +67,7 @@ internal sealed class MemberAccessibility(CheckerSymbols symbols, CheckerLinks l
         {
             var declaration = symbols.Parent(property)?.Declarations.FirstOrDefault(SemanticSyntax.ClassLike);
             return declaration is not null && DeclarationOrder.Ancestor(node.Parent, n => n == declaration) is not null
-                || await FailAsync(2341);
+                || await FailAsync(DiagnosticCode.Property0IsPrivateAndOnlyAccessibleWithinClass1);
         }
         if (super)
             return true;
@@ -86,7 +87,7 @@ internal sealed class MemberAccessibility(CheckerSymbols symbols, CheckerLinks l
             if (type is not null && await DerivedFromDeclaringAsync(type, property, writing, cancellation).ConfigureAwait(false))
                 enclosing = type;
             if ((flags & CheckFlags.ContainsStatic) != 0 || enclosing is null)
-                return await FailAsync(2445);
+                return await FailAsync(DiagnosticCode.Property0IsProtectedAndOnlyAccessibleWithinClass1AndItsSubclasses);
         }
         if ((flags & CheckFlags.ContainsStatic) != 0)
             return true;
@@ -97,12 +98,15 @@ internal sealed class MemberAccessibility(CheckerSymbols symbols, CheckerLinks l
         if (receiver is null || !await bases.HasBaseAsync(receiver, enclosing, cancellation).ConfigureAwait(false))
         {
             if (receiver is not null)
-                await FailAsync(2446, enclosing, receiver);
+                await FailAsync(
+                    DiagnosticCode.Property0IsProtectedAndOnlyAccessibleThroughAnInstanceOfClass1ThisIsAnInstanceOfClass2,
+                    enclosing,
+                    receiver);
             return false;
         }
         return true;
 
-        async ValueTask<bool> FailAsync(int code, Type? enclosingType = null, Type? receiverType = null)
+        async ValueTask<bool> FailAsync(DiagnosticCode code, Type? enclosingType = null, Type? receiverType = null)
         {
             if (error is not null)
                 await host.MemberErrorAsync(

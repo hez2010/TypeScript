@@ -3,6 +3,7 @@ using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Checking;
 using TypeScript.Compiler.Configuration;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.Programs;
 using TypeScript.Compiler.Syntax;
@@ -106,9 +107,9 @@ internal static class CheckerContextQueryTests
         int reports = 0;
         fresh.BeforeCallDiagnostics = _ => reports++;
         await fresh.GetContextualTypeAsync(calls[1].Arguments![0], ContextFlags.IgnoreNodeInferences);
-        Check(reports == 0 && !fresh.Diagnostics.Contains(2345));
+        Check(reports == 0 && !fresh.Diagnostics.Contains(DiagnosticCode.ArgumentOfType0IsNotAssignableToParameterOfType1));
         await fresh.GetResolvedSignatureAsync(calls[1]);
-        Check(reports != 0 && fresh.Diagnostics.Contains(2345));
+        Check(reports != 0 && fresh.Diagnostics.Contains(DiagnosticCode.ArgumentOfType0IsNotAssignableToParameterOfType1));
         var array = nodes.OfType<ArrayLiteralExpressionNode>().Single();
         var contextual = await checker.GetContextualTypeAsync(array);
         Check(

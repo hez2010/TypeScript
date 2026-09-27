@@ -1,6 +1,7 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Checking;
 using TypeScript.Compiler.Configuration;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.Programs;
 using TypeScript.Compiler.Syntax;
@@ -242,8 +243,8 @@ internal static class CheckerQueryTests
         other.BeforeExpressionFinish = null;
         Check(await other.GetSymbolAtLocationAsync(import.Name!) == alias);
         await checker.CheckProgramAsync();
-        Check(checker.Environment.Diagnostics.Contains(2304));
-        Check(checker.Environment.Diagnostics.Contains(2882));
+        Check(checker.Environment.Diagnostics.Contains(DiagnosticCode.CannotFindName0));
+        Check(checker.Environment.Diagnostics.Contains(DiagnosticCode.CannotFindModuleOrTypeDeclarationsForSideEffectImportOf0));
         return checks;
     }
 

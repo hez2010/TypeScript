@@ -39,7 +39,7 @@ internal sealed partial class Checker
             Error(node, new Diagnostic(Messages.Unreachable_code_detected, start, endNode.End - start, []) { FileName = source.FileName });
         }
         else
-            ExpressionSuggestion(node, 7027);
+            ExpressionSuggestion(node, DiagnosticCode.UnreachableCodeDetected);
         return true;
     }
 
@@ -89,7 +89,7 @@ internal sealed partial class Checker
         {
             if (current is IFunctionSignature or ClassStaticBlockDeclarationNode)
             {
-                Error(node, 1107);
+                Error(node, DiagnosticCode.JumpTargetCannotCrossFunctionBoundary);
                 return;
             }
             if (current is LabeledStatementNode labeled && label is not null && labeled.Label!.Text == label.Text)
@@ -98,13 +98,21 @@ internal sealed partial class Checker
                 while (target is LabeledStatementNode nested)
                     target = nested.Statement;
                 if (node is ContinueStatementNode && !IterationStatement(target))
-                    Error(node, 1115);
+                    Error(node, DiagnosticCode.AContinueStatementCanOnlyJumpToALabelOfAnEnclosingIterationStatement);
                 return;
             }
             if (label is null && (current is SwitchStatementNode && node is BreakStatementNode || IterationStatement(current)))
                 return;
         }
-        Error(node, label is not null ? node is BreakStatementNode ? 1116 : 1115 : node is BreakStatementNode ? 1105 : 1104);
+        Error(
+            node,
+            label is not null
+                ? node is BreakStatementNode
+                    ? DiagnosticCode.ABreakStatementCanOnlyJumpToALabelOfAnEnclosingStatement
+                    : DiagnosticCode.AContinueStatementCanOnlyJumpToALabelOfAnEnclosingIterationStatement
+                : node is BreakStatementNode
+                    ? DiagnosticCode.ABreakStatementCanOnlyBeUsedWithinAnEnclosingIterationOrSwitchStatement
+                    : DiagnosticCode.AContinueStatementCanOnlyBeUsedWithinAnEnclosingIterationStatement);
     }
 
     private void LabelGrammar(LabeledStatementNode node)
@@ -113,16 +121,16 @@ internal sealed partial class Checker
             for (var parent = node.Parent; parent is not null && parent is not IFunctionSignature; parent = parent.Parent)
                 if (parent is LabeledStatementNode label && label.Label!.Text == node.Label!.Text)
                 {
-                    Error(node.Label, 1114, node.Label.Text);
+                    Error(node.Label, DiagnosticCode.DuplicateLabel0, node.Label.Text);
                     break;
                 }
         if (((node.Label!.Flags | (program.Symbols.Binding(node.Label)?.Get(node.Label)?.Flags ?? 0)) & NodeFlags.Unreachable) != 0
             && program.Symbols.Program.Configuration.Options.Boolean("allowUnusedLabels") != true)
         {
             if (program.Symbols.Program.Configuration.Options.Boolean("allowUnusedLabels") == false)
-                Error(node.Label, 7028);
+                Error(node.Label, DiagnosticCode.UnusedLabel);
             else
-                ExpressionSuggestion(node.Label, 7028);
+                ExpressionSuggestion(node.Label, DiagnosticCode.UnusedLabel);
         }
     }
 
@@ -138,7 +146,7 @@ internal sealed partial class Checker
                 if (sawDefault)
                 {
                     if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
-                        Error(clause, 1113);
+                        Error(clause, DiagnosticCode.ADefaultClauseCannotAppearMoreThanOnceInASwitchStatement);
                     reportedDefault = true;
                 }
                 sawDefault = true;
@@ -154,7 +162,7 @@ internal sealed partial class Checker
                         RelationKind.Comparable,
                         value,
                         null,
-                        2678,
+                        DiagnosticCode.Type0IsNotComparableToType1,
                         cancellation).ConfigureAwait(false);
             }
             foreach (var statement in clause.Statements!)
@@ -163,7 +171,7 @@ internal sealed partial class Checker
                 && program.Symbols.Binding(clause)?.Get(clause)?.EndFlow is { } flow && await FlowTypes.Reachability.ReachableAsync(
                     flow,
                     cancellation).ConfigureAwait(false))
-                Error(clause, 7029);
+                Error(clause, DiagnosticCode.FallthroughCaseInSwitch);
         }
     }
 
@@ -176,14 +184,14 @@ internal sealed partial class Checker
         if (node.Initializer is VariableDeclarationListNode declarations)
         {
             if (declarations.Declarations?.FirstOrDefault() is VariableDeclarationNode { Name: BindingPatternNode pattern })
-                Error(pattern, 2491);
+                Error(pattern, DiagnosticCode.TheLeftHandSideOfAForInStatementCannotBeADestructuringPattern);
             await CheckSourceElementAsync(declarations, cancellation).ConfigureAwait(false);
         }
         else
         {
             var left = await Expressions.CheckAsync(node.Initializer!, cancellation: cancellation).ConfigureAwait(false);
             if (node.Initializer is ArrayLiteralExpressionNode or ObjectLiteralExpressionNode)
-                Error(node.Initializer, 2491);
+                Error(node.Initializer, DiagnosticCode.TheLeftHandSideOfAForInStatementCannotBeADestructuringPattern);
             else
             {
                 var key = await Keys.GetAsync(right, cancellation: cancellation).ConfigureAwait(false);
@@ -195,9 +203,12 @@ internal sealed partial class Checker
                         [key, context.StringType],
                         cancellation: cancellation).ConfigureAwait(false);
                 if (!await AssignableAsync(key == context.NeverType ? context.StringType : key, left, cancellation).ConfigureAwait(false))
-                    Error(node.Initializer!, 2405);
+                    Error(node.Initializer!, DiagnosticCode.TheLeftHandSideOfAForInStatementMustBeOfTypeStringOrAny);
                 else
-                    AssignmentChecks.Reference(node.Initializer!, 2406, 2780);
+                    AssignmentChecks.Reference(
+                        node.Initializer!,
+                        DiagnosticCode.TheLeftHandSideOfAForInStatementMustBeAVariableOrAPropertyAccess,
+                        DiagnosticCode.TheLeftHandSideOfAForInStatementMayNotBeAnOptionalPropertyAccess);
             }
         }
         if (right == context.NeverType
@@ -205,7 +216,10 @@ internal sealed partial class Checker
                 right,
                 TypeFlags.NonPrimitive | TypeFlags.InstantiableNonPrimitive,
                 cancellation).ConfigureAwait(false))
-            Error(node.Expression!, 2407, await TypeDisplay.GetAsync(right, cancellation));
+            Error(
+                node.Expression!,
+                DiagnosticCode.TheRightHandSideOfAForInStatementMustBeOfTypeAnyAnObjectTypeOrATypeParameterButHereHasType0,
+                await TypeDisplay.GetAsync(right, cancellation));
         await CheckSourceElementAsync(node.Statement, cancellation).ConfigureAwait(false);
     }
 
@@ -221,12 +235,15 @@ internal sealed partial class Checker
             if (container is ClassStaticBlockDeclarationNode)
             {
                 if (grammar)
-                    Error(awaitToken, 18038);
+                    Error(awaitToken, DiagnosticCode.XForAwaitLoopsCannotBeUsedInsideAClassStaticBlock);
             }
             else if ((node.Flags & NodeFlags.AwaitContext) == 0 && grammar)
             {
                 if (container is null)
-                    TopLevelAwait(awaitToken, 1431, 1432);
+                    TopLevelAwait(
+                        awaitToken,
+                        DiagnosticCode.XForAwaitLoopsAreOnlyAllowedAtTheTopLevelOfAFileWhenThatFileIsAModuleButThisFileHasNoImportsOrExportsConsiderAddingAnEmptyExportToMakeThisFileAModule,
+                        DiagnosticCode.TopLevelForAwaitLoopsAreOnlyAllowedWhenTheModuleOptionIsSetToEs2022EsnextSystemNode16Node18Node20NodenextOrPreserveAndTheTargetOptionIsSetToEs2017OrHigher);
                 else
                 {
                     var diagnostic = CheckerDiagnostic.Create(awaitToken,
@@ -249,20 +266,32 @@ internal sealed partial class Checker
             return;
         if (forOf && (node.Flags & NodeFlags.AwaitContext) == 0 && node.Initializer is IdentifierNode { Text: "async" })
         {
-            Error(node.Initializer, 1106);
+            Error(node.Initializer, DiagnosticCode.TheLeftHandSideOfAForOfStatementMayNotBeAsync);
             return;
         }
         if (node.Initializer is not VariableDeclarationListNode { Declarations: { Count: > 0 } declarations })
             return;
         if (declarations.Count > 1)
         {
-            ErrorOnFirstToken(declarations[1], forOf ? 1188 : 1091);
+            ErrorOnFirstToken(
+                declarations[1],
+                forOf
+                    ? DiagnosticCode.OnlyASingleVariableDeclarationIsAllowedInAForOfStatement
+                    : DiagnosticCode.OnlyASingleVariableDeclarationIsAllowedInAForInStatement);
             return;
         }
         var variable = (VariableDeclarationNode)declarations[0];
         if (variable.Initializer is not null)
-            Error(variable.Name!, forOf ? 1190 : 1189);
+            Error(
+                variable.Name!,
+                forOf
+                    ? DiagnosticCode.TheVariableDeclarationOfAForOfStatementCannotHaveAnInitializer
+                    : DiagnosticCode.TheVariableDeclarationOfAForInStatementCannotHaveAnInitializer);
         else if (variable.Type is not null)
-            Error(variable, forOf ? 2483 : 2404);
+            Error(
+                variable,
+                forOf
+                    ? DiagnosticCode.TheLeftHandSideOfAForOfStatementCannotUseATypeAnnotation
+                    : DiagnosticCode.TheLeftHandSideOfAForInStatementCannotUseATypeAnnotation);
     }
 }

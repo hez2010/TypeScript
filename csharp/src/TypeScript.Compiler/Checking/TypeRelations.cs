@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 
 namespace TypeScript.Compiler.Checking;
 
@@ -207,7 +208,7 @@ internal sealed class TypeRelations(TypeContext context, TypeNormalization norma
     private static bool LiteralEqual(object? left, object? right) => left is double a && right is double b ? a == b : Equals(left, right);
 }
 
-internal sealed record RelationExplanation(int Code, Type? Source = null, Type? Target = null, Symbol? Property = null,
+internal sealed record RelationExplanation(DiagnosticCode Code, Type? Source = null, Type? Target = null, Symbol? Property = null,
     RelationExplanation? Next = null, IReadOnlyList<object>? Arguments = null, bool SuppressRelatedInformation = false);
 
 internal sealed class RelationOperation(
@@ -227,13 +228,13 @@ internal sealed class RelationOperation(
 
     internal void RestoreExplanation(RelationExplanation? explanation) => Explanation = explanation;
 
-    internal void Explain(int code, Type? source = null, Type? target = null, Symbol? property = null)
+    internal void Explain(DiagnosticCode code, Type? source = null, Type? target = null, Symbol? property = null)
     {
         if (ReportErrors)
             Explanation = new(code, source, target, property, Explanation);
     }
 
-    internal void ExplainArguments(int code, params object[] arguments)
+    internal void ExplainArguments(DiagnosticCode code, params object[] arguments)
     {
         if (ReportErrors)
             Explanation = new(code, Next: Explanation, Arguments: Array.AsReadOnly(arguments));
@@ -306,7 +307,13 @@ internal sealed class RelationOperation(
                     Explanation = current with { Next = Explanation };
             }
             Explanation = result == Ternary.False
-                ? new(kind == RelationKind.Comparable ? 2678 : 2322, source, target, Next: Explanation)
+                ? new(
+                    kind == RelationKind.Comparable
+                        ? DiagnosticCode.Type0IsNotComparableToType1
+                        : DiagnosticCode.Type0IsNotAssignableToType1,
+                    source,
+                    target,
+                    Next: Explanation)
                 : previous;
             return result;
         }

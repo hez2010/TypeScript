@@ -31,7 +31,7 @@ while (Console.ReadLine() is { } line)
         foreach (var diagnostic in scanner.Diagnostics)
         {
             writer.WriteStartArray();
-            writer.WriteNumberValue(diagnostic.Code);
+            writer.WriteNumberValue((int)diagnostic.Code);
             writer.WriteNumberValue(diagnostic.Start);
             writer.WriteNumberValue(diagnostic.Length);
             writer.WriteStartArray();

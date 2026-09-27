@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 
 namespace TypeScript.Compiler.Checking;
 
@@ -19,7 +20,7 @@ internal readonly record struct IterationTypes(Type? Yield, Type? Return, Type? 
 
 internal readonly record struct IterationDiagnostic(
     SyntaxNode Node,
-    int Code,
+    DiagnosticCode Code,
     string? Member = null,
     Type? Source = null,
     Type? Target = null);
@@ -178,7 +179,14 @@ internal sealed class IteratorProtocols(TypeContext context, TypeAlgebra algebra
             await ResolveTypeAsync(result, async, null, cancellation).ConfigureAwait(false) ?? result, next);
 
     private ValueTask<Type?> ResolveTypeAsync(Type type, bool async, SyntaxNode? node, CancellationToken cancellation) =>
-        async ? awaited.GetAsync(type, true, node, 1320, cancellation) : ValueTask.FromResult<Type?>(type);
+        async
+            ? awaited.GetAsync(
+                type,
+                true,
+                node,
+                DiagnosticCode.TypeOfAwaitOperandMustEitherBeAValidPromiseOrMustNotContainACallableThenMember,
+                cancellation)
+            : ValueTask.FromResult<Type?>(type);
 
     internal async ValueTask<IterationTypes> AsyncFromSyncAsync(
         IterationTypes types,
@@ -234,7 +242,7 @@ internal sealed class IteratorProtocols(TypeContext context, TypeAlgebra algebra
         {
             var target = await host.IterationGlobalAsync(async ? "AsyncIterable" : "Iterable", 3, true, cancellation).ConfigureAwait(false);
             if (!await relations.RelatedAsync(type, target, RelationKind.Assignable, cancellation).ConfigureAwait(false))
-                diagnostics.Add(new(node, 2322, Source: type, Target: target));
+                diagnostics.Add(new(node, DiagnosticCode.Type0IsNotAssignableToType1, Source: type, Target: target));
         }
         return default;
     }
@@ -273,7 +281,12 @@ internal sealed class IteratorProtocols(TypeContext context, TypeAlgebra algebra
         var methodSignatures = methodType is null ? [] : await host.SignaturesAsync(methodType, false, cancellation).ConfigureAwait(false);
         if (methodSignatures.Count == 0)
         {
-            await ReportAsync(name == "next" ? async ? 2519 : 2489 : async ? 2768 : 2767).ConfigureAwait(false);
+            await ReportAsync(
+                name == "next"
+                    ? async ? DiagnosticCode.AnAsyncIteratorMustHaveANextMethod : DiagnosticCode.AnIteratorMustHaveANextMethod
+                    : async
+                        ? DiagnosticCode.The0PropertyOfAnAsyncIteratorMustBeAMethod
+                        : DiagnosticCode.The0PropertyOfAnIteratorMustBeAMethod).ConfigureAwait(false);
             return default;
         }
         if (methodSignatures.Count == 1 && methodType!.Symbol is { } symbol)
@@ -331,7 +344,10 @@ internal sealed class IteratorProtocols(TypeContext context, TypeAlgebra algebra
         Type? yield = result.Yield;
         if (!result.HasTypes)
         {
-            await ReportAsync(async ? 2547 : 2490).ConfigureAwait(false);
+            await ReportAsync(
+                async
+                    ? DiagnosticCode.TheTypeReturnedByThe0MethodOfAnAsyncIteratorMustBeAPromiseForATypeWithAValueProperty
+                    : DiagnosticCode.TheTypeReturnedByThe0MethodOfAnIteratorMustHaveAValueProperty).ConfigureAwait(false);
             yield = context.AnyType;
             returns.Add(context.AnyType);
         }
@@ -339,7 +355,7 @@ internal sealed class IteratorProtocols(TypeContext context, TypeAlgebra algebra
             returns.Add(result.Return);
         return new(yield, await algebra.UnionAsync(returns, cancellation: cancellation).ConfigureAwait(false), nextType);
 
-        async ValueTask ReportAsync(int code)
+        async ValueTask ReportAsync(DiagnosticCode code)
         {
             if (node is null)
                 return;

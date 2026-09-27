@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -80,11 +81,19 @@ internal sealed partial class Checker
                     var specific = expression is null ? actual : await Contexts.WithAsync(expression, actual,
                         () => Contexts.MutableAsync(expression, CheckMode.Contextual, cancellation), cancellation);
                     if (child is JsxTextNode)
-                        RelationError(child, 2747, CheckerDiagnostic.DeclarationName(element.OpeningElement!.TagName!),
+                        RelationError(
+                            child,
+                            DiagnosticCode.X0ComponentsDonTAcceptTextAsChildElementsTextInJSXHasTheTypeStringButTheExpectedTypeOf1Is2,
+                            CheckerDiagnostic.DeclarationName(element.OpeningElement!.TagName!),
                             nameOfChildren, await TypeDisplay.GetAsync(childrenTarget, cancellation));
                     else if (context.ExactOptionalPropertyTypes && Predicates.Maybe(specific, TypeFlags.Undefined, cancellation)
                         && (expected == context.MissingType || expected is UnionType union && union.Types.Contains(context.MissingType)))
-                        await LiteralRelationErrorAsync(child, 2375, specific, expected, cancellation);
+                        await LiteralRelationErrorAsync(
+                            child,
+                            DiagnosticCode.Type0IsNotAssignableToType1WithExactOptionalPropertyTypesColonTrueConsiderAddingUndefinedToTheTypesOfTheTargetSProperties,
+                            specific,
+                            expected,
+                            cancellation);
                     else
                     {
                         string propertyName = i.ToString(System.Globalization.CultureInfo.InvariantCulture);
@@ -108,7 +117,7 @@ internal sealed partial class Checker
             {
                 RelationError(
                     element.OpeningElement!.TagName!,
-                    2746,
+                    DiagnosticCode.ThisJSXTagS0PropExpectsASingleChildOfType1ButMultipleChildrenWereProvided,
                     nameOfChildren,
                     await TypeDisplay.GetAsync(childrenTarget, cancellation));
                 reported = true;
@@ -125,7 +134,9 @@ internal sealed partial class Checker
                 child,
                 expression,
                 nameType,
-                child is JsxTextNode ? 2747 : null,
+                child is JsxTextNode
+                    ? DiagnosticCode.X0ComponentsDonTAcceptTextAsChildElementsTextInJSXHasTheTypeStringButTheExpectedTypeOf1Is2
+                    : null,
                 cancellation);
         }
         else if (!await Relations.RelatedAsync(
@@ -134,7 +145,11 @@ internal sealed partial class Checker
             relation,
             cancellation))
         {
-            RelationError(element.OpeningElement!.TagName!, 2745, nameOfChildren, await TypeDisplay.GetAsync(childrenTarget, cancellation));
+            RelationError(
+                element.OpeningElement!.TagName!,
+                DiagnosticCode.ThisJSXTagS0PropExpectsType1WhichRequiresMultipleChildrenButOnlyASingleChildWasProvided,
+                nameOfChildren,
+                await TypeDisplay.GetAsync(childrenTarget, cancellation));
             reported = true;
         }
         return reported;

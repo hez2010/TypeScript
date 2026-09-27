@@ -18,7 +18,7 @@ internal sealed partial class CheckerEnvironment
     public bool IsDeprecated(Symbol symbol) => Deprecations.Symbol(symbol);
 
     public void DeprecatedAlias(SyntaxNode location, Symbol symbol) =>
-        Suggestion(location, 6385, symbol.Name);
+        Suggestion(location, DiagnosticCode.X0IsDeprecated, symbol.Name);
 
     public DiagnosticMessage CannotFindName(IdentifierNode name) => ReferenceSymbols.MissingName(name);
 
@@ -70,9 +70,9 @@ internal sealed partial class CheckerEnvironment
             : null;
         result ??= Symbols.PatternAugmentations.GetValueOrDefault(name) ?? Symbols.Globals.GetValueOrDefault('"' + name + '"');
         if (result is null && reference?.Resolution.IsResolved == true)
-            AliasDiagnostic(2306, specifier!);
+            AliasDiagnostic(DiagnosticCode.File0IsNotAModule, specifier!);
         else if (result is null)
-            AliasDiagnostic(2307, specifier!);
+            AliasDiagnostic(DiagnosticCode.CannotFindModule0OrItsCorrespondingTypeDeclarations, specifier!);
         return Symbols.Merger.GetMergedSymbol(result);
     }
 
@@ -120,7 +120,9 @@ internal sealed partial class CheckerEnvironment
             dontResolveAlias,
             cancellation).ConfigureAwait(false);
         if (result is null)
-            AliasDiagnostic(declaration is ImportClauseNode ? 1192 : 2305, declaration);
+            AliasDiagnostic(
+                declaration is ImportClauseNode ? DiagnosticCode.Module0HasNoDefaultExport : DiagnosticCode.Module0HasNoExportedMember1,
+                declaration);
         return result;
     }
 
@@ -191,29 +193,39 @@ internal sealed partial class CheckerEnvironment
         string moduleName = SemanticChecker is { } checker
             ? await checker.FullyQualifiedNameAsync(module, specifier, cancellation) : module.Name;
         string declarationName = CheckerDiagnostic.DeclarationName(nameNode);
-        int code = suggestion is not null ? 2724 : module.Exports.ContainsKey("default") ? 2614 : 2305;
+        DiagnosticCode code = suggestion is not null
+            ? DiagnosticCode.X0HasNoExportedMemberNamed1DidYouMean2
+            : module.Exports.ContainsKey("default")
+                ? DiagnosticCode.Module0HasNoExportedMember1DidYouMeanToUseImport1From0Instead
+                : DiagnosticCode.Module0HasNoExportedMember1;
         string[] arguments = suggestion is null ? [moduleName, declarationName] : [moduleName, declarationName, suggestion.Name];
         var related = new List<Diagnostic>();
         if (suggestion?.ValueDeclaration is { } suggestedDeclaration)
             related.Add(CheckerDiagnostic.Create(suggestedDeclaration, Messages.X_0_is_declared_here, suggestion.Name));
-        if (code == 2305 && module.ValueDeclaration is { } declaration
+        if (code == DiagnosticCode.Module0HasNoExportedMember1 && module.ValueDeclaration is { } declaration
             && Symbols.Binding(declaration)?.Get(declaration)?.Locals.GetValueOrDefault(name) is { } local)
         {
             if (module.Exports.TryGetValue("export=", out var assignment))
             {
                 if (await SameReferenceAsync(assignment, local))
                 {
-                    code = SemanticChecker?.ModuleKind >= 5 ? 2595 : (nameNode.Flags & NodeFlags.JavaScriptFile) != 0 ? 2597 : 2616;
-                    arguments = code == 2616 ? [declarationName, declarationName, moduleName] : [declarationName];
+                    code = SemanticChecker?.ModuleKind >= 5
+                        ? DiagnosticCode.X0CanOnlyBeImportedByUsingADefaultImport
+                        : (nameNode.Flags & NodeFlags.JavaScriptFile) != 0
+                            ? DiagnosticCode.X0CanOnlyBeImportedByUsingARequireCallOrByUsingADefaultImport
+                            : DiagnosticCode.X0CanOnlyBeImportedByUsingImport1Require2OrADefaultImport;
+                    arguments = code == DiagnosticCode.X0CanOnlyBeImportedByUsingImport1Require2OrADefaultImport
+                        ? [declarationName, declarationName, moduleName]
+                        : [declarationName];
                 }
             }
             else
             {
-                code = 2459;
+                code = DiagnosticCode.Module0Declares1LocallyButItIsNotExported;
                 foreach (var exported in module.Exports.Values)
                     if (await SameReferenceAsync(exported, local))
                     {
-                        code = 2460;
+                        code = DiagnosticCode.Module0Declares1LocallyButItIsExportedAs2;
                         arguments = [moduleName, declarationName, exported.Name];
                         break;
                     }
@@ -244,7 +256,9 @@ internal sealed partial class CheckerEnvironment
 
     public void TypeOnlyImportAlias(ImportEqualsDeclarationNode declaration, SyntaxNode typeOnlyDeclaration, bool exported)
     {
-        int code = exported ? 1379 : 1380;
+        DiagnosticCode code = exported
+            ? DiagnosticCode.AnImportAliasCannotReferenceADeclarationThatWasExportedUsingExportType
+            : DiagnosticCode.AnImportAliasCannotReferenceADeclarationThatWasImportedUsingImportType;
         var node = declaration.ModuleReference!;
         var name = SemanticSyntax.Name(typeOnlyDeclaration) ?? declaration.Name!;
         Diagnostics.Add(code);
@@ -269,7 +283,7 @@ internal sealed partial class CheckerEnvironment
             Messages.Module_0_has_already_exported_a_member_named_1_Consider_explicitly_re_exporting_to_resolve_the_ambiguity,
             earlierSpecifierText, name);
 
-    internal void AliasDiagnostic(int code, SyntaxNode node)
+    internal void AliasDiagnostic(DiagnosticCode code, SyntaxNode node)
     {
         if (reported.Add((node, code, "")))
             AddDiagnostic(node, code);

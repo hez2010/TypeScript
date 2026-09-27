@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -35,7 +36,7 @@ internal interface IBindingTypeHost
 
     FlowNode? FlowOf(SyntaxNode node);
 
-    void BindingError(SyntaxNode node, int code);
+    void BindingError(SyntaxNode node, DiagnosticCode code);
 }
 
 internal sealed class BindingTypes(TypeContext context, CheckerLinks links, CheckerSymbols symbols,
@@ -182,7 +183,7 @@ internal sealed class BindingTypes(TypeContext context, CheckerLinks links, Chec
                 parent = await views.ReducedAsync(parent, cancellation).ConfigureAwait(false);
                 if ((parent.Flags & TypeFlags.Unknown) != 0 || !await ValidSpreadAsync(parent, cancellation).ConfigureAwait(false))
                 {
-                    host.BindingError(element, 2700);
+                    host.BindingError(element, DiagnosticCode.RestTypesMayOnlyBeCreatedFromObjectTypes);
                     return context.ErrorType;
                 }
                 var excluded = pattern.Elements!.OfType<BindingElementNode>().Where(e => e.DotDotDotToken is null)

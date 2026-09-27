@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -32,9 +33,17 @@ internal sealed class ConstructorAccess(CheckerSymbols symbols, DeclaredTypes de
                 continue;
             var type = await declared.GetAsync(target, cancellation).ConfigureAwait(false);
             if (privateAccess)
-                await host.TypeExpressionErrorAsync(node, 2673, type, cancellation).ConfigureAwait(false);
+                await host.TypeExpressionErrorAsync(
+                    node,
+                    DiagnosticCode.ConstructorOfClass0IsPrivateAndOnlyAccessibleWithinTheClassDeclaration,
+                    type,
+                    cancellation).ConfigureAwait(false);
             if (protectedAccess)
-                await host.TypeExpressionErrorAsync(node, 2674, type, cancellation).ConfigureAwait(false);
+                await host.TypeExpressionErrorAsync(
+                    node,
+                    DiagnosticCode.ConstructorOfClass0IsProtectedAndOnlyAccessibleWithinTheClassDeclaration,
+                    type,
+                    cancellation).ConfigureAwait(false);
             return false;
         }
         return true;

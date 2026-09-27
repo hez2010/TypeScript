@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 
 namespace TypeScript.Compiler.Checking;
 
@@ -167,7 +168,11 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
                     cancellation: cancellation).ConfigureAwait(false) is not null
                 && target.Symbol is { } targetSymbol)
             {
-                operation.ExplainArguments(18015, privateName.Text, sourceSymbol, targetSymbol);
+                operation.ExplainArguments(
+                    DiagnosticCode.Property0InType1RefersToADifferentMemberThatCannotBeAccessedFromWithinType2,
+                    privateName.Text,
+                    sourceSymbol,
+                    targetSymbol);
                 return Ternary.False;
             }
             if (!await CallableAsync(source, cancellation).ConfigureAwait(false)
@@ -178,13 +183,22 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
                     && (await host.SignaturesAsync(target, true, cancellation).ConfigureAwait(false)).Count != 0)
             {
                 if (missing.Count == 1)
-                    operation.Explain(2741, source, target, missing[0]);
+                    operation.Explain(DiagnosticCode.Property0IsMissingInType1ButRequiredInType2, source, target, missing[0]);
                 else if (ArrayLikeMissingProperties(source, target))
                 {
                     if (missing.Count > 5)
-                        operation.ExplainArguments(2740, source, target, missing.Take(4).ToArray(), missing.Count - 4);
+                        operation.ExplainArguments(
+                            DiagnosticCode.Type0IsMissingTheFollowingPropertiesFromType1Colon2And3More,
+                            source,
+                            target,
+                            missing.Take(4).ToArray(),
+                            missing.Count - 4);
                     else
-                        operation.ExplainArguments(2739, source, target, missing);
+                        operation.ExplainArguments(
+                            DiagnosticCode.Type0IsMissingTheFollowingPropertiesFromType1Colon2,
+                            source,
+                            target,
+                            missing);
                 }
             }
             return Ternary.False;
@@ -242,9 +256,9 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
                 if (operation.ReportErrors)
                 {
                     if ((sourceFlags & targetFlags & CheckFlags.ContainsPrivate) != 0)
-                        operation.ExplainArguments(2442, target);
+                        operation.ExplainArguments(DiagnosticCode.TypesHaveSeparateDeclarationsOfAPrivateProperty0, target);
                     else
-                        operation.ExplainArguments(2325, target,
+                        operation.ExplainArguments(DiagnosticCode.Property0IsPrivateInType1ButNotInType2, target,
                             (sourceFlags & CheckFlags.ContainsPrivate) != 0 ? sourceObject : targetObject,
                             (sourceFlags & CheckFlags.ContainsPrivate) != 0 ? targetObject : sourceObject);
                 }
@@ -256,7 +270,7 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
             if (!await host.ValidOverrideAsync(source, target, cancellation).ConfigureAwait(false))
             {
                 if (operation.ReportErrors)
-                    operation.ExplainArguments(2443, target,
+                    operation.ExplainArguments(DiagnosticCode.Property0IsProtectedButType1IsNotAClassDerivedFrom2, target,
                         await host.DeclaringClassAsync(source, cancellation).ConfigureAwait(false) ?? sourceObject,
                         await host.DeclaringClassAsync(target, cancellation).ConfigureAwait(false) ?? targetObject);
                 return Ternary.False;
@@ -265,7 +279,7 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
         else if ((sourceFlags & CheckFlags.ContainsProtected) != 0)
         {
             if (operation.ReportErrors)
-                operation.ExplainArguments(2444, target, sourceObject, targetObject);
+                operation.ExplainArguments(DiagnosticCode.Property0IsProtectedInType1ButPublicInType2, target, sourceObject, targetObject);
             return Ternary.False;
         }
         if (operation.Kind == RelationKind.StrictSubtype && host.IsReadonly(source) && !host.IsReadonly(target))
@@ -289,7 +303,7 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
         }
         if (related == Ternary.False)
         {
-            operation.Explain(2326, property: target);
+            operation.Explain(DiagnosticCode.TypesOfProperty0AreIncompatible, property: target);
             return related;
         }
         if (!(skipOptional ?? operation.Kind == RelationKind.Comparable)
@@ -298,7 +312,7 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
             && (target.Flags & SymbolFlags.Optional) == 0)
         {
             if (operation.ReportErrors)
-                operation.ExplainArguments(2327, target, sourceObject, targetObject);
+                operation.ExplainArguments(DiagnosticCode.Property0IsOptionalInType1ButRequiredInType2, target, sourceObject, targetObject);
             return Ternary.False;
         }
         return related;
@@ -337,19 +351,22 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
         if (!sourceRest && sourceArity < targetTuple.MinLength)
         {
             if (operation.ReportErrors)
-                operation.ExplainArguments(2618, sourceArity, targetTuple.MinLength);
+                operation.ExplainArguments(DiagnosticCode.SourceHas0ElementSButTargetRequires1, sourceArity, targetTuple.MinLength);
             return Ternary.False;
         }
         if (!targetVariable && targetArity < sourceMinimum)
         {
             if (operation.ReportErrors)
-                operation.ExplainArguments(2619, sourceMinimum, targetArity);
+                operation.ExplainArguments(DiagnosticCode.SourceHas0ElementSButTargetAllowsOnly1, sourceMinimum, targetArity);
             return Ternary.False;
         }
         if (!targetVariable && (sourceRest || targetArity < sourceArity))
         {
             if (operation.ReportErrors)
-                operation.ExplainArguments(sourceMinimum < targetTuple.MinLength ? 2620 : 2621,
+                operation.ExplainArguments(
+                    sourceMinimum < targetTuple.MinLength
+                        ? DiagnosticCode.TargetRequires0ElementSButSourceMayHaveFewer
+                        : DiagnosticCode.TargetAllowsOnly0ElementSButSourceMayHaveMore,
                     sourceMinimum < targetTuple.MinLength ? targetTuple.MinLength : targetArity);
             return Ternary.False;
         }
@@ -374,7 +391,7 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
                 if (i >= targetArity)
                 {
                     if (operation.ReportErrors)
-                        operation.ExplainArguments(2621, targetArity);
+                        operation.ExplainArguments(DiagnosticCode.TargetAllowsOnly0ElementSButSourceMayHaveMore, targetArity);
                     return Ternary.False;
                 }
                 position = i;
@@ -383,19 +400,22 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
             if ((targetFlags & ElementFlags.Variadic) != 0 && (sourceFlags & ElementFlags.Variadic) == 0)
             {
                 if (operation.ReportErrors)
-                    operation.ExplainArguments(2624, position);
+                    operation.ExplainArguments(DiagnosticCode.SourceProvidesNoMatchForVariadicElementAtPosition0InTarget, position);
                 return Ternary.False;
             }
             if ((sourceFlags & ElementFlags.Variadic) != 0 && (targetFlags & ElementFlags.Variable) == 0)
             {
                 if (operation.ReportErrors)
-                    operation.ExplainArguments(2625, i, position);
+                    operation.ExplainArguments(
+                        DiagnosticCode.VariadicElementAtPosition0InSourceDoesNotMatchElementAtPosition1InTarget,
+                        i,
+                        position);
                 return Ternary.False;
             }
             if ((targetFlags & ElementFlags.Required) != 0 && (sourceFlags & ElementFlags.Required) == 0)
             {
                 if (operation.ReportErrors)
-                    operation.ExplainArguments(2623, position);
+                    operation.ExplainArguments(DiagnosticCode.SourceProvidesNoMatchForRequiredElementAtPosition0InTarget, position);
                 return Ternary.False;
             }
             if (canExclude)
@@ -423,9 +443,16 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
                 if (operation.ReportErrors && (sourceArity > 1 || targetArity > 1))
                 {
                     if (targetRest && i >= start && sourceArity - 1 - i >= end && start != sourceArity - end - 1)
-                        operation.ExplainArguments(2627, start, sourceArity - end - 1, position);
+                        operation.ExplainArguments(
+                            DiagnosticCode.TypeAtPositions0Through1InSourceIsNotCompatibleWithTypeAtPosition2InTarget,
+                            start,
+                            sourceArity - end - 1,
+                            position);
                     else
-                        operation.ExplainArguments(2626, i, position);
+                        operation.ExplainArguments(
+                            DiagnosticCode.TypeAtPosition0InSourceIsNotCompatibleWithTypeAtPosition1InTarget,
+                            i,
+                            position);
                 }
                 return related;
             }
@@ -469,7 +496,12 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
                     intersection: intersection,
                     cancellation: cancellation).ConfigureAwait(false);
                 if (related == Ternary.False)
-                    operation.Explain(sourceIndex.KeyType == index.KeyType ? 2634 : 2330, sourceIndex.KeyType, index.KeyType);
+                    operation.Explain(
+                        sourceIndex.KeyType == index.KeyType
+                            ? DiagnosticCode.X0IndexSignaturesAreIncompatible
+                            : DiagnosticCode.X0And1IndexSignaturesAreIncompatible,
+                        sourceIndex.KeyType,
+                        index.KeyType);
             }
             else if ((intersection & IntersectionState.Source) == 0
                 && (operation.Kind != RelationKind.StrictSubtype || (source.ObjectFlags & ObjectFlags.FreshLiteral) != 0)
@@ -478,7 +510,7 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
             else
             {
                 related = Ternary.False;
-                operation.Explain(2329, index.KeyType, source);
+                operation.Explain(DiagnosticCode.IndexSignatureForType0IsMissingInType1, index.KeyType, source);
             }
             if (related == Ternary.False)
                 return related;
@@ -542,7 +574,7 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
                 cancellation: cancellation).ConfigureAwait(false);
             if (related == Ternary.False)
             {
-                operation.Explain(2530, property: property);
+                operation.Explain(DiagnosticCode.Property0IsIncompatibleWithIndexSignature, property: property);
                 return related;
             }
             result &= related;
@@ -557,7 +589,12 @@ internal sealed class ObjectRelations(TypeContext context, TypeAlgebra algebra, 
                     cancellation: cancellation).ConfigureAwait(false);
                 if (related == Ternary.False)
                 {
-                    operation.Explain(info.KeyType == target.KeyType ? 2634 : 2330, info.KeyType, target.KeyType);
+                    operation.Explain(
+                        info.KeyType == target.KeyType
+                            ? DiagnosticCode.X0IndexSignaturesAreIncompatible
+                            : DiagnosticCode.X0And1IndexSignaturesAreIncompatible,
+                        info.KeyType,
+                        target.KeyType);
                     return related;
                 }
                 result &= related;

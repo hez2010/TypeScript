@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -18,7 +19,7 @@ internal interface ITypeAssertionHost
 
     void DeferExpression(SyntaxNode node);
 
-    void ExpressionError(SyntaxNode node, int code);
+    void ExpressionError(SyntaxNode node, DiagnosticCode code);
 }
 
 internal sealed class TypeAssertions(TypeContext context, TypeAlgebra algebra, TypeWidening widening, ObjectLiterals objects,
@@ -36,15 +37,17 @@ internal sealed class TypeAssertions(TypeContext context, TypeAlgebra algebra, T
         {
             if (source.FileName.EndsWith(".mts", StringComparison.OrdinalIgnoreCase)
                 || source.FileName.EndsWith(".cts", StringComparison.OrdinalIgnoreCase))
-                host.ExpressionError(node, 7059);
+                host.ExpressionError(node, DiagnosticCode.ThisSyntaxIsReservedInFilesWithTheMtsOrCtsExtensionUseAnAsExpressionInstead);
         }
         if (node is TypeAssertionNode && host.ErasableSyntaxOnly && (node.Flags & NodeFlags.JavaScriptFile) == 0)
-            host.ExpressionError(node, 1294);
+            host.ExpressionError(node, DiagnosticCode.ThisSyntaxIsNotAllowedWhenErasableSyntaxOnlyIsEnabled);
         var type = await host.CheckExpressionAsync(expression, mode, cancellation).ConfigureAwait(false);
         if (SemanticSyntax.ConstAssertion(node))
         {
             if (!await host.ConstArgumentAsync(expression, cancellation).ConfigureAwait(false))
-                host.ExpressionError(expression, 1355);
+                host.ExpressionError(
+                    expression,
+                    DiagnosticCode.AConstAssertionCanOnlyBeAppliedToReferencesToEnumMembersOrStringNumberBooleanArrayOrObjectLiterals);
             return await algebra.RegularTypeAsync(type, cancellation).ConfigureAwait(false);
         }
         await host.CheckedFunctionTypeAsync(annotation, cancellation).ConfigureAwait(false);
@@ -71,7 +74,9 @@ internal sealed class TypeAssertions(TypeContext context, TypeAlgebra algebra, T
                 target,
                 RelationKind.Comparable,
                 (annotation.Flags & NodeFlags.Reparsed) != 0 ? annotation : node,
-                null, 2352, cancellation).ConfigureAwait(false);
+                null,
+                DiagnosticCode.ConversionOfType0ToType1MayBeAMistakeBecauseNeitherTypeSufficientlyOverlapsWithTheOtherIfThisWasIntentionalConvertTheExpressionToUnknownFirst,
+                cancellation).ConfigureAwait(false);
     }
 
     internal async ValueTask<Type> SatisfiesAsync(SatisfiesExpressionNode node, CancellationToken cancellation = default)
@@ -87,7 +92,7 @@ internal sealed class TypeAssertions(TypeContext context, TypeAlgebra algebra, T
             RelationKind.Assignable,
             node,
             node.Expression,
-            1360,
+            DiagnosticCode.Type0DoesNotSatisfyTheExpectedType1,
             cancellation).ConfigureAwait(false);
         return type;
     }

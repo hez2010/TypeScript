@@ -1,6 +1,7 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Semantics;
 using TypeScript.Compiler.Syntax;
 using K = TypeScript.Compiler.Syntax.SyntaxKind;
@@ -32,9 +33,9 @@ internal interface IBinaryExpressionHost
 
     ValueTask OperatorErrorAsync(SyntaxNode? node, K op, Type left, Type right, bool suggestAwait, CancellationToken cancellation);
 
-    void ArithmeticError(SyntaxNode node, Type type, int code, bool suggestAwait);
+    void ArithmeticError(SyntaxNode node, Type type, DiagnosticCode code, bool suggestAwait);
 
-    void BinaryDiagnostic(SyntaxNode node, int code, bool suggestion = false, params string[] arguments);
+    void BinaryDiagnostic(SyntaxNode node, DiagnosticCode code, bool suggestion = false, params string[] arguments);
 }
 
 internal sealed class BinaryExpressions(TypeContext context, TypeAlgebra algebra, TypePredicates predicates,
@@ -83,11 +84,19 @@ internal sealed class BinaryExpressions(TypeContext context, TypeAlgebra algebra
                     && op is K.BarToken or K.BarEqualsToken or K.CaretToken or K.CaretEqualsToken or K.AmpersandToken
                         or K.AmpersandEqualsToken)
                 {
-                    host.BinaryDiagnostic(node.OperatorToken, 2447);
+                    host.BinaryDiagnostic(node.OperatorToken, DiagnosticCode.The0OperatorIsNotAllowedForBooleanTypesConsiderUsing1Instead);
                     return context.NumberType;
                 }
-                bool leftOk = await ArithmeticAsync(left, leftType, 2362, cancellation).ConfigureAwait(false);
-                bool rightOk = await ArithmeticAsync(right, rightType, 2363, cancellation).ConfigureAwait(false);
+                bool leftOk = await ArithmeticAsync(
+                    left,
+                    leftType,
+                    DiagnosticCode.TheLeftHandSideOfAnArithmeticOperationMustBeOfTypeAnyNumberBigintOrAnEnumType,
+                    cancellation).ConfigureAwait(false);
+                bool rightOk = await ArithmeticAsync(
+                    right,
+                    rightType,
+                    DiagnosticCode.TheRightHandSideOfAnArithmeticOperationMustBeOfTypeAnyNumberBigintOrAnEnumType,
+                    cancellation).ConfigureAwait(false);
                 Type result;
                 if (await predicates.AssignableAsync(leftType, TypeFlags.AnyOrUnknown, cancellation: cancellation).ConfigureAwait(false)
                     && await predicates.AssignableAsync(rightType, TypeFlags.AnyOrUnknown, cancellation: cancellation).ConfigureAwait(false)
@@ -99,7 +108,9 @@ internal sealed class BinaryExpressions(TypeContext context, TypeAlgebra algebra
                     if (op is K.GreaterThanGreaterThanGreaterThanToken or K.GreaterThanGreaterThanGreaterThanEqualsToken)
                         await OperatorAsync(node, op, leftType, rightType, null, cancellation).ConfigureAwait(false);
                     else if (op is K.AsteriskAsteriskToken or K.AsteriskAsteriskEqualsToken && host.TargetYear < 2016)
-                        host.BinaryDiagnostic(node, 2791);
+                        host.BinaryDiagnostic(
+                            node,
+                            DiagnosticCode.ExponentiationCannotBePerformedOnBigintValuesUnlessTheTargetOptionIsSetToEs2016OrLater);
                     result = context.BigIntType;
                 }
                 else
@@ -127,7 +138,10 @@ internal sealed class BinaryExpressions(TypeContext context, TypeAlgebra algebra
                         SyntaxNode? parent = right.Parent?.Parent;
                         while (parent?.Parent is ParenthesizedExpressionNode)
                             parent = parent.Parent;
-                        host.BinaryDiagnostic(node, 6807, parent is not EnumMemberNode,
+                        host.BinaryDiagnostic(
+                            node,
+                            DiagnosticCode.ThisOperationCanBeSimplifiedThisShiftIsIdenticalTo012,
+                            parent is not EnumMemberNode,
                             CheckerDiagnostic.DeclarationName(left), TokenFacts.Text(op), TokenFacts.NumberText(shift % 32));
                     }
                 }
@@ -197,11 +211,13 @@ internal sealed class BinaryExpressions(TypeContext context, TypeAlgebra algebra
                     if ((LiteralObject(left) || LiteralObject(right))
                         && ((left.Flags & NodeFlags.JavaScriptFile) == 0
                             || op is K.EqualsEqualsEqualsToken or K.ExclamationEqualsEqualsToken))
-                        host.BinaryDiagnostic(node, 2839);
+                        host.BinaryDiagnostic(
+                            node,
+                            DiagnosticCode.ThisConditionWillAlwaysReturn0SinceJavaScriptComparesObjectsByReferenceNotValue);
                     bool leftNaN = await host.GlobalNaNAsync(SkipParentheses(left), cancellation).ConfigureAwait(false);
                     bool rightNaN = await host.GlobalNaNAsync(SkipParentheses(right), cancellation).ConfigureAwait(false);
                     if (leftNaN || rightNaN)
-                        host.BinaryDiagnostic(node, 2845);
+                        host.BinaryDiagnostic(node, DiagnosticCode.ThisConditionWillAlwaysReturn0);
                     if (!await EqualityAsync(leftType, rightType, cancellation).ConfigureAwait(false))
                         await OperatorAsync(
                             node,
@@ -266,8 +282,11 @@ internal sealed class BinaryExpressions(TypeContext context, TypeAlgebra algebra
                         scanner.ResetPosition(file!.Source.ToUtf16Position(left.Pos));
                     scanner?.Scan();
                     int start = scanner is not null ? file!.Source.ToBytePosition(scanner.TokenStart) : left.Pos;
-                    if (file?.ParseDiagnostics.Any(d => d.Code == 2657 && d.Start <= start && start < d.Start + d.Length) != true)
-                        host.BinaryDiagnostic(left, 2695);
+                    if (file?.ParseDiagnostics.Any(
+                        d => d.Code == DiagnosticCode.JSXExpressionsMustHaveOneParentElement
+                            && d.Start <= start
+                            && start < d.Start + d.Length) != true)
+                        host.BinaryDiagnostic(left, DiagnosticCode.LeftSideOfCommaOperatorIsUnusedAndHasNoSideEffects);
                 }
                 return rightType;
             default:
@@ -285,7 +304,7 @@ internal sealed class BinaryExpressions(TypeContext context, TypeAlgebra algebra
             => await predicates.AssignableAsync(left, TypeFlags.BigIntLike, cancellation: cancellation).ConfigureAwait(false)
                 && await predicates.AssignableAsync(right, TypeFlags.BigIntLike, cancellation: cancellation).ConfigureAwait(false);
 
-    private async ValueTask<bool> ArithmeticAsync(SyntaxNode node, Type type, int code, CancellationToken cancellation)
+    private async ValueTask<bool> ArithmeticAsync(SyntaxNode node, Type type, DiagnosticCode code, CancellationToken cancellation)
     {
         if (await relations.RelatedAsync(type, context.NumberOrBigIntType, RelationKind.Assignable, cancellation).ConfigureAwait(false))
             return true;
@@ -306,7 +325,7 @@ internal sealed class BinaryExpressions(TypeContext context, TypeAlgebra algebra
             : await predicates.MaybeAsync(b, TypeFlags.ESSymbolLike, true, cancellation).ConfigureAwait(false) ? right : null;
         if (invalid is null)
             return true;
-        host.BinaryDiagnostic(invalid, 2469);
+        host.BinaryDiagnostic(invalid, DiagnosticCode.The0OperatorCannotBeAppliedToTypeSymbol);
         return false;
     }
 

@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -63,7 +64,14 @@ internal sealed class GeneratorTypes(TypeContext context, TypeAlgebra algebra, I
                 cancellation).ConfigureAwait(false)
             : operand;
         return async
-            ? await awaited.GetAsync(type, true, location, node.AsteriskToken is null ? 1321 : 1322, cancellation).ConfigureAwait(false)
+            ? await awaited.GetAsync(
+                type,
+                true,
+                location,
+                node.AsteriskToken is null
+                    ? DiagnosticCode.TypeOfYieldOperandInAnAsyncGeneratorMustEitherBeAValidPromiseOrMustNotContainACallableThenMember
+                    : DiagnosticCode.TypeOfIteratedElementsOfAYieldAsteriskOperandMustEitherBeAValidPromiseOrMustNotContainACallableThenMember,
+                cancellation).ConfigureAwait(false)
             : type;
     }
 

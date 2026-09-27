@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -43,7 +44,7 @@ internal interface IFunctionDeclarationHost : IConstraintCheckHost
 
     ValueTask TypeParameterModifiersAsync(TypeParameterDeclarationNode node, CancellationToken cancellation);
 
-    void ExpressionError(SyntaxNode node, int code);
+    void ExpressionError(SyntaxNode node, DiagnosticCode code);
 
     void DeferExpression(SyntaxNode node);
 
@@ -73,7 +74,7 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
         var signature = (IFunctionSignature)node;
         bool grammarError = false;
         bool grammar = SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0;
-        void Error(SyntaxNode at, int code)
+        void Error(SyntaxNode at, DiagnosticCode code)
         {
             if (grammar)
             {
@@ -83,7 +84,7 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
         }
         if (signature.TypeParameters is { Count: 0 })
         {
-            Error(node, 1098);
+            Error(node, DiagnosticCode.TypeParameterListCannotBeEmpty);
             return grammarError;
         }
         bool optional = false;
@@ -95,19 +96,19 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
             {
                 if (i != parameters.Count - 1)
                 {
-                    Error(parameter.DotDotDotToken, 1014);
+                    Error(parameter.DotDotDotToken, DiagnosticCode.ARestParameterMustBeLastInAParameterList);
                     return grammarError;
                 }
                 if ((parameter.Flags & NodeFlags.Ambient) == 0 && parameters.HasTrailingComma)
-                    Error(parameter, 1013);
+                    Error(parameter, DiagnosticCode.ARestParameterOrBindingPatternMayNotHaveATrailingComma);
                 if (parameter.QuestionToken is not null)
                 {
-                    Error(parameter.QuestionToken, 1047);
+                    Error(parameter.QuestionToken, DiagnosticCode.ARestParameterCannotBeOptional);
                     return grammarError;
                 }
                 if (parameter.Initializer is not null)
                 {
-                    Error(parameter.Name!, 1048);
+                    Error(parameter.Name!, DiagnosticCode.ARestParameterCannotHaveAnInitializer);
                     return grammarError;
                 }
             }
@@ -116,13 +117,13 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
                 optional = true;
                 if ((parameter.QuestionToken.Flags & NodeFlags.Reparsed) == 0 && parameter.Initializer is not null)
                 {
-                    Error(parameter.Name!, 1015);
+                    Error(parameter.Name!, DiagnosticCode.ParameterCannotHaveQuestionMarkAndInitializer);
                     return grammarError;
                 }
             }
             else if (optional && parameter.Initializer is null)
             {
-                Error(parameter.Name!, 1016);
+                Error(parameter.Name!, DiagnosticCode.ARequiredParameterCannotFollowAnOptionalParameter);
                 return grammarError;
             }
         }
@@ -133,12 +134,14 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
                 && ((TypeParameterDeclarationNode)typeParameters[0]).Constraint is null
                 && (file.FileName.EndsWith(".mts", StringComparison.OrdinalIgnoreCase)
                     || file.FileName.EndsWith(".cts", StringComparison.OrdinalIgnoreCase)))
-                Error(typeParameters[0], 7060);
+                Error(
+                    typeParameters[0],
+                    DiagnosticCode.ThisSyntaxIsReservedInFilesWithTheMtsOrCtsExtensionAddATrailingCommaOrExplicitConstraint);
             var token = arrow.EqualsGreaterThanToken!;
             string text = file.Source.Text[file.Source.ToUtf16Position(token.Pos)..file.Source.ToUtf16Position(token.End)];
             if (text.Any(c => c is '\n' or '\r' or '\u2028' or '\u2029'))
             {
-                Error(token, 1200);
+                Error(token, DiagnosticCode.LineTerminatorNotPermittedBeforeArrow);
                 return grammarError;
             }
         }
@@ -158,13 +161,13 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
                 if (nonSimple.Length == 0)
                     break;
                 foreach (var parameter in nonSimple)
-                    host.ExpressionError(parameter, 1346);
-                host.ExpressionError(statement, 1347);
+                    host.ExpressionError(parameter, DiagnosticCode.ThisParameterIsNotAllowedWithUseStrictDirective);
+                host.ExpressionError(statement, DiagnosticCode.XUseStrictDirectiveCannotBeUsedWithNonSimpleParameterList);
                 return true;
             }
         }
         if (!grammarError && node is MethodDeclarationNode { Parent: ObjectLiteralExpressionNode, Body: null })
-            Error(node, 1005);
+            Error(node, DiagnosticCode.X0Expected);
         return grammarError;
     }
 
@@ -183,22 +186,22 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
             await VariableAsync(parameter, cancellation).ConfigureAwait(false);
             if (parameter.Initializer is null && parameter.QuestionToken is not null && parameter.Name is BindingPatternNode
                 && SemanticSyntax.Body(node) is not null)
-                host.ExpressionError(parameter, 2463);
+                host.ExpressionError(parameter, DiagnosticCode.ABindingPatternParameterCannotBeOptionalInAnImplementationSignature);
             if (parameter.Name is IdentifierNode { Text: "this" or "new" })
             {
                 if (declaredParameters[0] != parameter)
-                    host.ExpressionError(parameter, 2680);
+                    host.ExpressionError(parameter, DiagnosticCode.A0ParameterMustBeTheFirstParameter);
                 if (node is ConstructorDeclarationNode or ConstructSignatureDeclarationNode or ConstructorTypeNode)
-                    host.ExpressionError(parameter, 2681);
+                    host.ExpressionError(parameter, DiagnosticCode.AConstructorCannotHaveAThisParameter);
                 if (node is ArrowFunctionNode)
-                    host.ExpressionError(parameter, 2730);
+                    host.ExpressionError(parameter, DiagnosticCode.AnArrowFunctionCannotHaveAThisParameter);
                 if (node is GetAccessorDeclarationNode or SetAccessorDeclarationNode)
-                    host.ExpressionError(parameter, 2784);
+                    host.ExpressionError(parameter, DiagnosticCode.XGetAndSetAccessorsCannotDeclareThisParameters);
             }
             if (parameter.DotDotDotToken is not null && parameter.Name is not BindingPatternNode
                 && !await relations.RelatedAsync(await values.GetAsync(symbols.Declaration(parameter)!, cancellation).ConfigureAwait(false),
                     host.AnyReadonlyArray, RelationKind.Assignable, cancellation).ConfigureAwait(false))
-                host.ExpressionError(parameter, 2370);
+                host.ExpressionError(parameter, DiagnosticCode.ARestParameterMustBeOfAnArrayType);
         }
         if (node is ITypedNode { Type: { } annotation })
             await host.CheckFunctionReturnAsync(
@@ -207,7 +210,11 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
                 await host.CheckedFunctionTypeAsync(annotation, cancellation).ConfigureAwait(false),
                 cancellation).ConfigureAwait(false);
         else if (host.NoImplicitAny && node is ConstructSignatureDeclarationNode or CallSignatureDeclarationNode)
-            host.ExpressionError(node, node is ConstructSignatureDeclarationNode ? 7013 : 7020);
+            host.ExpressionError(
+                node,
+                node is ConstructSignatureDeclarationNode
+                    ? DiagnosticCode.ConstructSignatureWhichLacksReturnTypeAnnotationImplicitlyHasAnAnyReturnType
+                    : DiagnosticCode.CallSignatureWhichLacksReturnTypeAnnotationImplicitlyHasAnAnyReturnType);
         else if (node is MethodSignatureDeclarationNode)
             await host.ReportImplicitAnyAsync(node, context.AnyType, cancellation).ConfigureAwait(false);
         if (node is not IndexSignatureDeclarationNode)
@@ -232,13 +239,13 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
                     break;
                 if (symbols.Declaration(previous) == symbols.Declaration(node))
                 {
-                    host.ExpressionError(node.Name!, 2300);
+                    host.ExpressionError(node.Name!, DiagnosticCode.DuplicateIdentifier0);
                     break;
                 }
             }
         await host.TypeParameterModifiersAsync(node, cancellation).ConfigureAwait(false);
         if (node.Expression is not null && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
-            host.ExpressionError(node.Expression, 1110);
+            host.ExpressionError(node.Expression, DiagnosticCode.TypeExpected);
         if (node.Constraint is { } constraintNode)
             await host.CheckedFunctionTypeAsync(constraintNode, cancellation).ConfigureAwait(false);
         if (node.DefaultType is { } defaultNode)
@@ -246,7 +253,7 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
         var parameter = scopes.Parameter(symbols.Declaration(node)!);
         await constraints.BaseConstraintAsync(parameter, cancellation).ConfigureAwait(false);
         if (await constraints.ResolvedDefaultAsync(parameter, cancellation).ConfigureAwait(false) == context.CircularConstraintType)
-            host.ExpressionError(node.DefaultType!, 2716);
+            host.ExpressionError(node.DefaultType!, DiagnosticCode.TypeParameter0HasACircularDefault);
         var constraint = await constraints.ConstraintAsync(parameter, cancellation).ConfigureAwait(false);
         var defaultType = await constraints.DefaultAsync(parameter, cancellation).ConfigureAwait(false);
         if (constraint is not null && defaultType is not null)
@@ -260,7 +267,7 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
         }
         if (node.Name!.Text is "any" or "unknown" or "never" or "number" or "string" or "boolean" or "bigint" or "symbol" or "void"
             or "object" or "undefined")
-            host.ExpressionError(node.Name, 2368);
+            host.ExpressionError(node.Name, DiagnosticCode.TypeParameterNameCannotBe0);
         host.DeferExpression(node);
         if (parameters is not null)
         {
@@ -270,10 +277,12 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
                     if (await host.TypeFromNodeAsync(reference, cancellation).ConfigureAwait(false) is TypeParameter type)
                         for (int i = index; i < parameters.Count; i++)
                             if (type.Symbol == symbols.Declaration(parameters[i]))
-                                host.ExpressionError(reference, 2744);
+                                host.ExpressionError(
+                                    reference,
+                                    DiagnosticCode.TypeParameterDefaultsCanOnlyReferencePreviouslyDeclaredTypeParameters);
             if (node.DefaultType is null
                 && parameters.Take(index).OfType<TypeParameterDeclarationNode>().Any(p => p.DefaultType is not null))
-                host.ExpressionError(node, 2706);
+                host.ExpressionError(node, DiagnosticCode.RequiredTypeParametersMayNotFollowOptionalTypeParameters);
         }
     }
 
@@ -322,7 +331,7 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
         var body = SemanticSyntax.Body(function);
         if (initializer is not null && parameterDeclaration && (body is null || body.Pos == body.End))
         {
-            host.ExpressionError(node, 2371);
+            host.ExpressionError(node, DiagnosticCode.AParameterInitializerIsOnlyAllowedInAFunctionOrConstructorImplementation);
             return;
         }
         if (name is BindingPatternNode binding)
@@ -360,7 +369,7 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
         if (await host.VariableAliasAsync(node, symbol, cancellation).ConfigureAwait(false))
             return;
         if (name is BigIntLiteralNode)
-            host.ExpressionError(name, 1539);
+            host.ExpressionError(name, DiagnosticCode.ABigintLiteralCannotBeUsedAsAPropertyName);
         host.CheckDeclarationFlags(node, symbol, cancellation);
         var type = await values.GetAsync(symbol, cancellation).ConfigureAwait(false);
         if (type == context.AutoType)

@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -57,7 +58,7 @@ internal sealed partial class Checker
             if (props is null)
             {
                 if (JsxAttributes(node)?.Properties?.Count > 0)
-                    Error(node, 2607, name!);
+                    Error(node, DiagnosticCode.JSXElementClassDoesNotSupportAttributesBecauseItDoesNotHaveA0Property, name!);
                 return context.UnknownType;
             }
         }

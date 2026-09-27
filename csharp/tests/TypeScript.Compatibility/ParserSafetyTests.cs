@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using TypeScript.Compiler.Ast;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 using TypeScript.Compiler.Text;
 using K = TypeScript.Compiler.Syntax.SyntaxKind;
@@ -147,16 +148,16 @@ internal static class ParserSafetyTests
         Parse(
             "this-parameters.ts",
             "function f(this: C, value: string){} type F=(this:C, value:string)=>void; interface I { get value(): number {} }");
-        (string Text, int Diagnostic)[] invalidTypes =
+        (string Text, DiagnosticCode Diagnostic)[] invalidTypes =
         [
-            ("var v:void.x;", 1005),
-            ("type T=typeof f<<A>()=>A>;", 1005),
-            ("function f(this?:C){}", 1005),
-            ("function f(this:C=foo){}", 1005),
-            ("function f(@dec this:C){}", 1433),
-            ("function f(public this:C){}", 1433),
-            ("interface I { f(): void {} }", 1005),
-            ("type F=A|()=>B;", 1385),
+            ("var v:void.x;", DiagnosticCode.X0Expected),
+            ("type T=typeof f<<A>()=>A>;", DiagnosticCode.X0Expected),
+            ("function f(this?:C){}", DiagnosticCode.X0Expected),
+            ("function f(this:C=foo){}", DiagnosticCode.X0Expected),
+            ("function f(@dec this:C){}", DiagnosticCode.NeitherDecoratorsNorModifiersMayBeAppliedToThisParameters),
+            ("function f(public this:C){}", DiagnosticCode.NeitherDecoratorsNorModifiersMayBeAppliedToThisParameters),
+            ("interface I { f(): void {} }", DiagnosticCode.X0Expected),
+            ("type F=A|()=>B;", DiagnosticCode.FunctionTypeNotationMustBeParenthesizedWhenUsedInAUnionType),
         ];
         foreach (var invalid in invalidTypes)
         {
@@ -224,18 +225,18 @@ internal static class ParserSafetyTests
             jsxThis.DescendantsAndSelf().OfType<JsxSelfClosingElementNode>().Any(
                 n => n.TagName is KeywordExpressionNode { Kind: K.ThisKeyword }),
             "JSX this tag keeps keyword semantics");
-        (string Text, ScriptKind Kind, int Diagnostic)[] invalidJsx =
+        (string Text, ScriptKind Kind, DiagnosticCode Diagnostic)[] invalidJsx =
         [
-            ("<a></b>;", ScriptKind.TSX, 17002),
-            ("<a:b></b>;", ScriptKind.TSX, 17002),
-            ("<a.b.c></a>;", ScriptKind.TSX, 17002),
-            ("<a><b></a>;", ScriptKind.TSX, 17008),
-            (@"<\u0061/>;", ScriptKind.TSX, 17021),
-            (@"<a data-\u0061/>;", ScriptKind.TSX, 17021),
-            ("<this.#private/>;", ScriptKind.TSX, 1003),
-            ("<X a={...a}/>;", ScriptKind.TSX, 1109),
-            ("<X<T>/>;", ScriptKind.JSX, 1003),
-            ("<a/><b/>;", ScriptKind.TSX, 2657),
+            ("<a></b>;", ScriptKind.TSX, DiagnosticCode.ExpectedCorrespondingJSXClosingTagFor0),
+            ("<a:b></b>;", ScriptKind.TSX, DiagnosticCode.ExpectedCorrespondingJSXClosingTagFor0),
+            ("<a.b.c></a>;", ScriptKind.TSX, DiagnosticCode.ExpectedCorrespondingJSXClosingTagFor0),
+            ("<a><b></a>;", ScriptKind.TSX, DiagnosticCode.JSXElement0HasNoCorrespondingClosingTag),
+            (@"<\u0061/>;", ScriptKind.TSX, DiagnosticCode.UnicodeEscapeSequenceCannotAppearHere),
+            (@"<a data-\u0061/>;", ScriptKind.TSX, DiagnosticCode.UnicodeEscapeSequenceCannotAppearHere),
+            ("<this.#private/>;", ScriptKind.TSX, DiagnosticCode.IdentifierExpected),
+            ("<X a={...a}/>;", ScriptKind.TSX, DiagnosticCode.ExpressionExpected),
+            ("<X<T>/>;", ScriptKind.JSX, DiagnosticCode.IdentifierExpected),
+            ("<a/><b/>;", ScriptKind.TSX, DiagnosticCode.JSXExpressionsMustHaveOneParentElement),
         ];
         foreach (var invalid in invalidJsx)
         {

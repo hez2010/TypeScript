@@ -143,7 +143,14 @@ public sealed partial class ModuleResolver
                 : null);
             if (root is null)
             {
-                diagnostics.Add(new(DiagnosticLocalization.GetMessage(imports ? 2209 : 2210), 0, 0,
+                diagnostics.Add(
+                    new(
+                    DiagnosticLocalization.GetMessage(
+                        imports
+                            ? DiagnosticCode.TheProjectRootIsAmbiguousButIsRequiredToResolveExportMapEntry0InFile1SupplyTheRootDirCompilerOptionToDisambiguate
+                            : DiagnosticCode.TheProjectRootIsAmbiguousButIsRequiredToResolveImportMapEntry0InFile1SupplyTheRootDirCompilerOptionToDisambiguate),
+                    0,
+                    0,
                     [entry.Length == 0 ? "." : entry, CompilerPath.Combine(package.Directory, "package.json")]));
                 return new();
             }

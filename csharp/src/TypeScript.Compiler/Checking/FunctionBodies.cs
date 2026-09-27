@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -138,7 +139,12 @@ internal sealed class FunctionBodies(TypeContext context, CheckerSymbols symbols
 
     private async ValueTask<Type> AwaitReturnAsync(Type type, SyntaxNode node, CancellationToken cancellation) =>
             await awaited.UnwrapAsync(
-                await awaited.GetAsync(type, false, node, 1058, cancellation).ConfigureAwait(false) ?? context.ErrorType,
+                await awaited.GetAsync(
+                    type,
+                    false,
+                    node,
+                    DiagnosticCode.TheReturnTypeOfAnAsyncFunctionMustEitherBeAValidPromiseOrMustNotContainACallableThenMember,
+                    cancellation).ConfigureAwait(false) ?? context.ErrorType,
                 cancellation).ConfigureAwait(false);
 
     private async ValueTask<(IReadOnlyList<Type> Types, bool Never)> AggregateAsync(

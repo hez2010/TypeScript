@@ -1,12 +1,13 @@
 using System.Text.Json;
 using TypeScript.Compiler.Ast;
-using TypeScript.Compiler.Checking;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Checking;
 using TypeScript.Compiler.Configuration;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.Programs;
-using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Syntax;
+using TypeScript.Compiler.Text;
 using Type = TypeScript.Compiler.Checking.Type;
 
 namespace TypeScript.Compatibility;
@@ -187,13 +188,18 @@ internal static class CheckerIndexTests
         cancellation.Cancel();
         try
         {
-            await checker.InvalidIndexAsync(node, type, checker.Context.BooleanType, 2538, cancellation.Token);
+            await checker.InvalidIndexAsync(
+                node,
+                type,
+                checker.Context.BooleanType,
+                DiagnosticCode.Type0CannotBeUsedAsAnIndexType,
+                cancellation.Token);
             throw new InvalidOperationException("Cancelled index diagnostic succeeded");
         }
         catch (OperationCanceledException) { }
         if (checker.DetailedDiagnosticsForFile(file).Count != count)
             throw new InvalidOperationException("Cancelled index diagnostic was published");
-        await checker.InvalidIndexAsync(node, type, checker.Context.BooleanType, 2538, default);
+        await checker.InvalidIndexAsync(node, type, checker.Context.BooleanType, DiagnosticCode.Type0CannotBeUsedAsAnIndexType, default);
         if (checker.DetailedDiagnosticsForFile(file).Count != count + 1)
             throw new InvalidOperationException("Cancelled index diagnostic could not be retried");
         return actual.RootElement.GetArrayLength() + 2;

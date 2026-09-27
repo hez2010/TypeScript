@@ -206,19 +206,20 @@ internal sealed partial class Checker
                         cancellation).ConfigureAwait(false);
                     await CheckSourceElementAsync(condition.ThenStatement, cancellation).ConfigureAwait(false);
                     if (condition.ThenStatement?.Kind == SyntaxKind.EmptyStatement)
-                        Error(condition.ThenStatement, 1313);
+                        Error(condition.ThenStatement, DiagnosticCode.TheBodyOfAnIfStatementCannotBeTheEmptyStatement);
                     await CheckSourceElementAsync(condition.ElseStatement, cancellation).ConfigureAwait(false);
                     break;
                 case WithStatementNode statement:
                     if (!AmbientStatement(statement) && (statement.Flags & NodeFlags.AwaitContext) != 0
                         && SemanticSyntax.Source(statement)?.ParseDiagnostics.Count == 0)
-                        ErrorOnFirstToken(statement, 1300);
+                        ErrorOnFirstToken(statement, DiagnosticCode.XWithStatementsAreNotAllowedInAnAsyncFunctionBlock);
                     await Expressions.CheckAsync(statement.Expression!, cancellation: cancellation).ConfigureAwait(false);
                     if (SemanticSyntax.Source(statement)?.ParseDiagnostics.Count == 0)
                     {
                         var diagnostic = CheckerDiagnostic.Create(
                             statement,
-                            TypeScript.Compiler.Diagnostics.DiagnosticLocalization.GetMessage(2410));
+                            TypeScript.Compiler.Diagnostics.DiagnosticLocalization.GetMessage(
+                                DiagnosticCode.TheWithStatementIsNotSupportedAllSymbolsInAWithBlockWillHaveTypeAny));
                         Error(statement, diagnostic with { Length = statement.Statement!.Pos - diagnostic.Start });
                     }
                     break;
@@ -258,7 +259,10 @@ internal sealed partial class Checker
                         else
                         {
                             var left = await Expressions.CheckAsync(loop.Initializer!, cancellation: cancellation).ConfigureAwait(false);
-                            AssignmentChecks.Reference(loop.Initializer!, 2487, 2781);
+                            AssignmentChecks.Reference(
+                                loop.Initializer!,
+                                DiagnosticCode.TheLeftHandSideOfAForOfStatementMustBeAVariableOrAPropertyAccess,
+                                DiagnosticCode.TheLeftHandSideOfAForOfStatementMayNotBeAnOptionalPropertyAccess);
                             await CheckLiteralAssignableAsync(
                                 elementType,
                                 left,
@@ -301,10 +305,10 @@ internal sealed partial class Checker
                                     if (((await Nodes.FromNodeAsync(
                                         caught.Type,
                                         cancellation).ConfigureAwait(false)).Flags & TypeFlags.AnyOrUnknown) == 0)
-                                        Error(caught.Type, 1196);
+                                        Error(caught.Type, DiagnosticCode.CatchClauseVariableTypeAnnotationMustBeAnyOrUnknownIfSpecified);
                                 }
                                 else if (caught.Initializer is not null)
-                                    Error(caught.Initializer, 1197);
+                                    Error(caught.Initializer, DiagnosticCode.CatchClauseVariableCannotHaveAnInitializer);
                                 else
                                 {
                                     var binding = program.Symbols.Binding(clause)!;
@@ -312,7 +316,7 @@ internal sealed partial class Checker
                                     foreach (string name in binding.Get(clause)?.Locals.Keys ?? [])
                                         if (locals?.GetValueOrDefault(name) is { ValueDeclaration: { } declaration } symbol
                                             && (symbol.Flags & SymbolFlags.BlockScopedVariable) != 0)
-                                            Error(declaration, 2492, name);
+                                            Error(declaration, DiagnosticCode.CannotRedeclareIdentifier0InCatchClause, name);
                                 }
                             }
                         }
@@ -330,12 +334,12 @@ internal sealed partial class Checker
                     break;
                 case TypeAliasDeclarationNode alias:
                     if (!AllowsBlockScopedDeclaration(alias.Parent) && SemanticSyntax.Source(alias)?.ParseDiagnostics.Count == 0)
-                        Error(alias, 1156, "type");
+                        Error(alias, DiagnosticCode.X0DeclarationsCanOnlyBeDeclaredInsideABlock, "type");
                     RegisterUnused(alias);
                     ExportedDeclaration(alias, false);
                     await CheckMergedExportsAsync(alias, cancellation).ConfigureAwait(false);
                     if (ReservedTypeName(alias.Name!.Text))
-                        Error(alias.Name, 2457, alias.Name.Text);
+                        Error(alias.Name, DiagnosticCode.TypeAliasNameCannotBe0, alias.Name.Text);
                     if (alias.TypeParameters is not null)
                         foreach (TypeParameterDeclarationNode parameter in alias.TypeParameters)
                             await FunctionDeclarations.TypeParameterAsync(parameter, cancellation).ConfigureAwait(false);
@@ -344,7 +348,7 @@ internal sealed partial class Checker
                         int count = alias.TypeParameters?.Count ?? 0;
                         if (!(count == 0 && alias.Name.Text == "BuiltinIteratorReturn"
                             || count == 1 && alias.Name.Text is "Uppercase" or "Lowercase" or "Capitalize" or "Uncapitalize" or "NoInfer"))
-                            Error(alias.Type, 2795);
+                            Error(alias.Type, DiagnosticCode.TheIntrinsicKeywordCanOnlyBeUsedToDeclareCompilerProvidedIntrinsicTypes);
                         break;
                     }
                     await CheckedFunctionTypeAsync(alias.Type!, cancellation).ConfigureAwait(false);
@@ -372,7 +376,7 @@ internal sealed partial class Checker
                     break;
                 case EnumMemberNode member:
                     if (member.Name is PrivateIdentifierNode)
-                        Error(member, 18024);
+                        Error(member, DiagnosticCode.AnEnumMemberCannotBeNamedWithAPrivateIdentifier);
                     if (member.Initializer is not null)
                         await Expressions.CheckAsync(member.Initializer, cancellation: cancellation).ConfigureAwait(false);
                     break;
@@ -394,7 +398,7 @@ internal sealed partial class Checker
                 case PropertySignatureDeclarationNode property:
                     PropertySignatureGrammar(property);
                     if (property.Name is PrivateIdentifierNode)
-                        Error(property, 18016);
+                        Error(property, DiagnosticCode.PrivateIdentifiersAreNotAllowedOutsideClassBodies);
                     if (property.Name is ComputedPropertyNameNode computed)
                         await ComputedNameAsync(computed, cancellation).ConfigureAwait(false);
                     await FunctionDeclarations.VariableAsync(property, cancellation).ConfigureAwait(false);
@@ -443,7 +447,11 @@ internal sealed partial class Checker
             : node.Parent is BlockNode or ModuleBlockNode or SourceFileNode ? node.Parent : null;
         if (owner is null || links.Nodes.Get(owner).HasReportedStatementInAmbientContext)
             return false;
-        ErrorOnFirstToken(node, owner == node ? 1183 : 1036);
+        ErrorOnFirstToken(
+            node,
+            owner == node
+                ? DiagnosticCode.AnImplementationCannotBeDeclaredInAmbientContexts
+                : DiagnosticCode.StatementsAreNotAllowedInAmbientContexts);
         links.Nodes.Get(owner).HasReportedStatementInAmbientContext = true;
         return true;
     }
@@ -461,7 +469,7 @@ internal sealed partial class Checker
             while (marker is BindingPatternNode pattern)
                 marker = pattern.Elements?.OfType<BindingElementNode>().FirstOrDefault(e => e.Name is not null)?.Name;
             if (marker is IdentifierNode { Text: "__esModule" })
-                Error(marker, 1216);
+                Error(marker, DiagnosticCode.IdentifierExpectedEsModuleIsReservedAsAnExportedMarkerWhenTransformingECMAScriptModules);
         }
         if ((flags & (NodeFlags.Let | NodeFlags.Const)) != 0)
         {
@@ -473,7 +481,7 @@ internal sealed partial class Checker
                 cancellation.ThrowIfCancellationRequested();
                 if (name is IdentifierNode { Text: "let" })
                 {
-                    Error(name, 2480);
+                    Error(name, DiagnosticCode.XLetIsNotAllowedToBeUsedAsANameInLetOrConstDeclarations);
                     continue;
                 }
                 if (name is BindingPatternNode pattern)
@@ -484,7 +492,10 @@ internal sealed partial class Checker
         }
         if ((flags & NodeFlags.Using) != 0 && node.Name is BindingPatternNode)
         {
-            Error(node, 1492, (flags & NodeFlags.BlockScoped) == NodeFlags.AwaitUsing ? "await using" : "using");
+            Error(
+                node,
+                DiagnosticCode.X0DeclarationsMayNotHaveBindingPatterns,
+                (flags & NodeFlags.BlockScoped) == NodeFlags.AwaitUsing ? "await using" : "using");
             return;
         }
         if (node.Parent?.Parent is not ForInOrOfStatementNode)
@@ -494,9 +505,9 @@ internal sealed partial class Checker
             else if (node.Initializer is null)
             {
                 if (node.Name is BindingPatternNode && node.Parent is not BindingPatternNode)
-                    Error(node, 1182);
+                    Error(node, DiagnosticCode.ADestructuringDeclarationMustHaveAnInitializer);
                 else if ((flags & NodeFlags.BlockScoped) is NodeFlags.Const or NodeFlags.Using or NodeFlags.AwaitUsing)
-                    Error(node, 1155, (flags & NodeFlags.BlockScoped) switch
+                    Error(node, DiagnosticCode.X0DeclarationsMustBeInitialized, (flags & NodeFlags.BlockScoped) switch
                     {
                         NodeFlags.Const => "const",
                         NodeFlags.Using => "using",
@@ -509,7 +520,13 @@ internal sealed partial class Checker
                 || node.Type is null
                 || node.Initializer is not null
                 || (flags & NodeFlags.Ambient) != 0))
-            Error(node.ExclamationToken, node.Initializer is not null ? 1263 : node.Type is null ? 1264 : 1255);
+            Error(
+                node.ExclamationToken,
+                node.Initializer is not null
+                    ? DiagnosticCode.DeclarationsWithInitializersCannotAlsoHaveDefiniteAssignmentAssertions
+                    : node.Type is null
+                        ? DiagnosticCode.DeclarationsWithDefiniteAssignmentAssertionsMustAlsoHaveTypeAnnotations
+                        : DiagnosticCode.ADefiniteAssignmentAssertionIsNotPermittedInThisContext);
     }
 
     private async ValueTask CheckReturnSourceAsync(ReturnStatementNode node, CancellationToken cancellation)
@@ -523,7 +540,11 @@ internal sealed partial class Checker
         if (function is null || function is ClassStaticBlockDeclarationNode)
         {
             if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
-                Error(node, function is null ? 1108 : 18041);
+                Error(
+                    node,
+                    function is null
+                        ? DiagnosticCode.AReturnStatementCanOnlyBeUsedWithinAFunctionBody
+                        : DiagnosticCode.AReturnStatementCannotBeUsedInsideAClassStaticBlock);
             return;
         }
         var result = await Signatures.ReturnAsync(
@@ -534,7 +555,7 @@ internal sealed partial class Checker
             if (function is SetAccessorDeclarationNode)
             {
                 if (node.Expression is not null)
-                    Error(node, 2408);
+                    Error(node, DiagnosticCode.SettersCannotReturnAValue);
             }
             else if (function is ConstructorDeclarationNode)
             {
@@ -546,7 +567,7 @@ internal sealed partial class Checker
                         node,
                         node.Expression,
                         cancellation: cancellation).ConfigureAwait(false))
-                    Error(node, 2409);
+                    Error(node, DiagnosticCode.ReturnTypeOfConstructorSignatureMustBeAssignableToTheInstanceTypeOfTheClass);
             }
             else if (await Signatures.AnnotationAsync(function, cancellation).ConfigureAwait(false) is not null)
                 await CheckReturnExpressionAsync(
@@ -557,7 +578,7 @@ internal sealed partial class Checker
         else if (function is not ConstructorDeclarationNode
             && program.Symbols.Program.Configuration.Options.Boolean("noImplicitReturns") == true
             && !await EmptyReturnTypeAsync(function, result, cancellation).ConfigureAwait(false))
-            Error(node, 7030);
+            Error(node, DiagnosticCode.NotAllCodePathsReturnAValue);
     }
 
     private async ValueTask CheckReturnExpressionAsync(
@@ -588,7 +609,12 @@ internal sealed partial class Checker
             return;
         }
         if (SemanticSyntax.HasModifier(function, SyntaxKind.AsyncKeyword))
-            value = await Awaited.GetAsync(value, false, node, 1058, cancellation).ConfigureAwait(false) ?? context.ErrorType;
+            value = await Awaited.GetAsync(
+                value,
+                false,
+                node,
+                DiagnosticCode.TheReturnTypeOfAnAsyncFunctionMustEitherBeAValidPromiseOrMustNotContainACallableThenMember,
+                cancellation).ConfigureAwait(false) ?? context.ErrorType;
         var effectiveExpression = expression is null ? null : CallResolution.EffectiveNode(expression);
         await RelationDiagnostics.CheckAsync(
             value,
@@ -616,13 +642,13 @@ internal sealed partial class Checker
         bool explicitReturn = ((function.Flags | (program.Symbols.Binding(function)?.Get(function)?.Flags ?? 0)) & NodeFlags.HasExplicitReturn) != 0;
         var location = (function as ITypedNode)?.Type ?? (function as IFullSignatureNode)?.FullSignature ?? function;
         if (type is not null && (type.Flags & TypeFlags.Never) != 0)
-            Error(location, 2534);
+            Error(location, DiagnosticCode.AFunctionReturningNeverCannotHaveAReachableEndPoint);
         else if (type is not null && !explicitReturn)
-            Error(location, 2355);
+            Error(location, DiagnosticCode.AFunctionWhoseDeclaredTypeIsNeitherUndefinedVoidNorAnyMustReturnAValue);
         else if (type is not null
             && context.StrictNullChecks
             && !await AssignableAsync(context.UndefinedType, type, cancellation).ConfigureAwait(false))
-            Error(location, 2366);
+            Error(location, DiagnosticCode.FunctionLacksEndingReturnStatementAndReturnTypeDoesNotIncludeUndefined);
         else if (program.Symbols.Program.Configuration.Options.Boolean("noImplicitReturns") == true)
         {
             if (type is null && (!explicitReturn || await EmptyReturnTypeAsync(function,
@@ -631,7 +657,7 @@ internal sealed partial class Checker
                     cancellation).ConfigureAwait(false),
                 cancellation).ConfigureAwait(false)))
                 return;
-            Error(location, 7030);
+            Error(location, DiagnosticCode.NotAllCodePathsReturnAValue);
         }
     }
 
@@ -724,7 +750,7 @@ internal sealed partial class Checker
                     SyntaxNameText.Get(name),
                     cancellation: cancellation).ConfigureAwait(false) is { Declarations.Count: > 0 } property
                 && program.Deprecations.Symbol(property))
-                program.Suggestion(name, 6385, property.Name);
+                program.Suggestion(name, DiagnosticCode.X0IsDeprecated, property.Name);
         }
     }
 }

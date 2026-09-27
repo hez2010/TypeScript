@@ -9,9 +9,16 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class Checker
 {
-    internal async ValueTask<Symbol?> ResolveImportModuleAsync(SyntaxNode location, SyntaxNode? specifier, Type? attributes,
-        CancellationToken cancellation, bool implicitImport = false, int missingModuleCode = 2307, bool ignoreErrors = false,
-        ReferenceResolutionMode? resolutionMode = null, bool reportUnresolved = true)
+    internal async ValueTask<Symbol?> ResolveImportModuleAsync(
+        SyntaxNode location,
+        SyntaxNode? specifier,
+        Type? attributes,
+        CancellationToken cancellation,
+        bool implicitImport = false,
+        DiagnosticCode missingModuleCode = DiagnosticCode.CannotFindModule0OrItsCorrespondingTypeDeclarations,
+        bool ignoreErrors = false,
+        ReferenceResolutionMode? resolutionMode = null,
+        bool reportUnresolved = true)
     {
         cancellation.ThrowIfCancellationRequested();
         string? name = specifier switch
@@ -23,7 +30,7 @@ internal sealed partial class Checker
         if (name is null)
             return null;
         if (!ignoreErrors && name.StartsWith("@types/", StringComparison.Ordinal))
-            Error(specifier!, 6137, name[7..], name);
+            Error(specifier!, DiagnosticCode.CannotImportTypeDeclarationFilesConsiderImporting0InsteadOf1, name[7..], name);
         var file = program.Symbols.Binding(location)!.SourceFile;
         var reference = program.Symbols.Program.GetFile(file.FileName)!.Resolutions.FirstOrDefault(
             r => resolutionMode is { } mode ? r.Specifier == name && r.Mode == mode
@@ -75,14 +82,15 @@ internal sealed partial class Checker
                     ? program.Symbols.PatternAugmentations.GetValueOrDefault(name) ?? target : target;
             }
         }
-        if (module is null && !ignoreErrors && (reportUnresolved || missingModuleCode == 2664
+        if (module is null
+            && !ignoreErrors && (reportUnresolved || missingModuleCode == DiagnosticCode.InvalidModuleNameInAugmentationModule0CannotBeFound
             && reference?.Resolution is { IsResolved: true, Extension: ".js" or ".jsx" or ".mjs" or ".cjs" }))
             ReportUnresolvedImport(implicitImport ? location : specifier!, name, file, reference, missingModuleCode);
         return program.Symbols.Merger.GetMergedSymbol(module);
     }
 
     private void ReportUnresolvedImport(SyntaxNode node, string name, SourceFileNode file,
-        Programs.ModuleReference? reference, int missingModuleCode)
+        Programs.ModuleReference? reference, DiagnosticCode missingModuleCode)
     {
         bool sideEffect = node.Parent is ImportDeclarationNode { ImportClause: null };
         var compiler = program.Symbols.Program;
@@ -109,7 +117,7 @@ internal sealed partial class Checker
                 return;
             if (resolved.Extension is ".js" or ".jsx" or ".mjs" or ".cjs")
             {
-                if (missingModuleCode == 2664)
+                if (missingModuleCode == DiagnosticCode.InvalidModuleNameInAugmentationModule0CannotBeFound)
                     program.Error(
                         node,
                         Messages.Invalid_module_name_in_augmentation_Module_0_resolves_to_an_untyped_module_at_1_which_cannot_be_augmented,
@@ -126,7 +134,7 @@ internal sealed partial class Checker
                         Error(node, diagnostic);
                     }
                     else
-                        program.Suggestion(node, 7016, name);
+                        program.Suggestion(node, DiagnosticCode.CouldNotFindADeclarationFileForModule01ImplicitlyHasAnAnyType, name);
                 }
                 return;
             }
@@ -158,11 +166,20 @@ internal sealed partial class Checker
                 Messages.Relative_import_paths_need_explicit_file_extensions_in_ECMAScript_imports_when_moduleResolution_is_node16_or_nodenext_Consider_adding_an_extension_to_the_import_path);
             return;
         }
-        if (!sideEffect && missingModuleCode == 2307 && node is StringLiteralNode && NodeCoreModules.Contains(name))
+        if (!sideEffect
+            && missingModuleCode == DiagnosticCode.CannotFindModule0OrItsCorrespondingTypeDeclarations
+            && node is StringLiteralNode
+            && NodeCoreModules.Contains(name))
             missingModuleCode = compiler.Configuration.Options.Strings("types")?.Contains("*", StringComparer.Ordinal) == true
-                ? 2580
-                : 2591;
-        program.Error(node, DiagnosticLocalization.GetMessage(sideEffect && missingModuleCode == 2307 ? 2882 : missingModuleCode), name);
+                ? DiagnosticCode.CannotFindName0DoYouNeedToInstallTypeDefinitionsForNodeTryNpmISaveDevTypesSlashnode
+                : DiagnosticCode.CannotFindName0DoYouNeedToInstallTypeDefinitionsForNodeTryNpmISaveDevTypesSlashnodeAndThenAddNodeToTheTypesFieldInYourTsconfig;
+        program.Error(
+            node,
+            DiagnosticLocalization.GetMessage(
+                sideEffect && missingModuleCode == DiagnosticCode.CannotFindModule0OrItsCorrespondingTypeDeclarations
+                    ? DiagnosticCode.CannotFindModuleOrTypeDeclarationsForSideEffectImportOf0
+                    : missingModuleCode),
+            name);
     }
 
     private Dictionary<string, bool>? resolvedPackages;
@@ -171,7 +188,11 @@ internal sealed partial class Checker
     {
         string mangled = ModuleResolver.Mangle(packageName);
         if (resolved.AlternateResult.Length != 0)
-            return CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(6278), resolved.AlternateResult,
+            return CheckerDiagnostic.Create(
+                node,
+                DiagnosticLocalization.GetMessage(
+                    DiagnosticCode.ThereAreTypesAt0ButThisResultCouldNotBeResolvedWhenRespectingPackageJsonExportsThe1LibraryMayNeedToUpdateItsPackageJsonOrTypings),
+                resolved.AlternateResult,
                 resolved.AlternateResult.Contains("/node_modules/@types/", StringComparison.Ordinal) ? "@types/" + mangled : packageName);
         if (resolvedPackages is null)
         {
@@ -183,10 +204,25 @@ internal sealed partial class Checker
                             || reference.Resolution.Extension == ".d.ts";
         }
         if (resolvedPackages.ContainsKey("@types/" + mangled))
-            return CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(7040), packageName, mangled);
+            return CheckerDiagnostic.Create(
+                node,
+                DiagnosticLocalization.GetMessage(
+                    DiagnosticCode.IfThe0PackageActuallyExposesThisModuleConsiderSendingAPullRequestToAmendHttpsColonSlashSlashgithubComSlashDefinitelyTypedSlashDefinitelyTypedSlashtreeSlashmasterSlashtypesSlash1),
+                packageName,
+                mangled);
         if (resolvedPackages.GetValueOrDefault(packageName))
-            return CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(7058), packageName, moduleName);
-        return CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(7035), moduleName, mangled);
+            return CheckerDiagnostic.Create(
+                node,
+                DiagnosticLocalization.GetMessage(
+                    DiagnosticCode.IfThe0PackageActuallyExposesThisModuleTryAddingANewDeclarationDTsFileContainingDeclareModule1),
+                packageName,
+                moduleName);
+        return CheckerDiagnostic.Create(
+            node,
+            DiagnosticLocalization.GetMessage(
+                DiagnosticCode.TryNpmISaveDevTypesSlash1IfItExistsOrAddANewDeclarationDTsFileContainingDeclareModule0),
+            moduleName,
+            mangled);
     }
 
     internal string SuggestedImportExtension(string path)
@@ -209,7 +245,7 @@ internal sealed partial class Checker
     {
         var options = program.Symbols.Program.Configuration.Options;
         if (JsxMode == 0 && reference.Resolution.Extension is ".tsx" or ".jsx")
-            Error(specifier, 6142, name, reference.Resolution.FileName);
+            Error(specifier, DiagnosticCode.Module0WasResolvedTo1ButJsxIsNotSet, name, reference.Resolution.FileName);
         var import = DeclarationOrder.Ancestor(
             location,
             n => n is ImportDeclarationNode or ExportDeclarationNode or ImportEqualsDeclarationNode or ImportTypeNode
@@ -237,11 +273,17 @@ internal sealed partial class Checker
                     suggested += extension is ".mts" or ".d.mts" ? preferTs ? ".mts" : ".mjs"
                         : extension is ".cts" or ".d.cts" ? preferTs ? ".cts" : ".cjs" : preferTs ? ".ts" : ".js";
                 }
-                Error(specifier, 2846, suggested);
+                Error(
+                    specifier,
+                    DiagnosticCode.ADeclarationFileCannotBeImportedWithoutImportTypeDidYouMeanToImportAnImplementationFile0Instead,
+                    suggested);
             }
             else if (!source.IsDeclarationFile && options.Boolean("allowImportingTsExtensions") != true
                 && options.Boolean("rewriteRelativeImportExtensions") != true)
-                Error(specifier, 5097, TypeScriptImportExtension(name));
+                Error(
+                    specifier,
+                    DiagnosticCode.AnImportPathCanOnlyEndWithA0ExtensionWhenAllowImportingTsExtensionsIsEnabled,
+                    TypeScriptImportExtension(name));
         }
         var target = program.Symbols.Program.GetFile(reference.Resolution.FileName);
         if (target is not null && options.Boolean("rewriteRelativeImportExtensions") == true
@@ -254,10 +296,16 @@ internal sealed partial class Checker
             {
                 string relative = CompilerPath.Relative(CompilerPath.DirectoryName(source.FileName), reference.Resolution.FileName,
                     compiler.UseCaseSensitiveFileNames);
-                Error(specifier, 2876, RelativeModuleName(relative) ? relative : "./" + relative);
+                Error(
+                    specifier,
+                    DiagnosticCode.ThisRelativeImportPathIsUnsafeToRewriteBecauseItLooksLikeAFileNameButActuallyResolvesTo0,
+                    RelativeModuleName(relative) ? relative : "./" + relative);
             }
             else if (reference.Resolution.UsingTsExtension && !rewrite && compiler.SourceFileMayBeEmitted(target.Syntax))
-                Error(specifier, 2877, CompilerPath.Extension(name));
+                Error(
+                    specifier,
+                    DiagnosticCode.ThisImportUsesA0ExtensionToResolveToAnInputTypeScriptFileButWillNotBeRewrittenDuringEmitBecauseItIsNotARelativePath,
+                    CompilerPath.Extension(name));
             else if (reference.Resolution.UsingTsExtension && rewrite
                 && (compiler.ProjectReferences.Sources.GetValueOrDefault(target.Syntax.FileName)
                     ?? compiler.ProjectReferences.Outputs.GetValueOrDefault(target.Syntax.FileName)) is { } redirect)
@@ -271,7 +319,9 @@ internal sealed partial class Checker
                 string outputs = CompilerPath.Relative(options.String("outDir") ?? ownRoot,
                     project.Options.String("outDir") ?? otherRoot, compiler.UseCaseSensitiveFileNames);
                 if (roots != outputs)
-                    Error(specifier, 2878);
+                    Error(
+                        specifier,
+                        DiagnosticCode.ThisImportPathIsUnsafeToRewriteBecauseItResolvesToAnotherProjectAndTheRelativePathBetweenTheProjectsOutputFilesIsNotTheSameAsTheRelativePathBetweenItsInputFiles);
             }
         }
         if (target is null || ModuleKind is not (100 or 101) || target.ImpliedFormat != ReferenceResolutionMode.Import)
@@ -285,20 +335,28 @@ internal sealed partial class Checker
             && a.Value is StringLiteralNode { Text: "import" or "require" }) == true;
         if (!sync || mode)
             return;
-        int code = import switch
+        DiagnosticCode code = import switch
         {
-            ImportEqualsDeclarationNode => 1471,
-            ImportTypeNode => 1542,
-            ImportDeclarationNode { ImportClause: { } clause } when SemanticSyntax.TypeOnly(clause) => 1541,
-            _ => 1479
+            ImportEqualsDeclarationNode => DiagnosticCode.Module0CannotBeImportedUsingThisConstructTheSpecifierOnlyResolvesToAnESModuleWhichCannotBeImportedWithRequireUseAnECMAScriptImportInstead,
+            ImportTypeNode => DiagnosticCode.TypeImportOfAnECMAScriptModuleFromACommonJSModuleMustHaveAResolutionModeAttribute,
+            ImportDeclarationNode { ImportClause: { } clause } when SemanticSyntax.TypeOnly(clause) => DiagnosticCode.TypeOnlyImportOfAnECMAScriptModuleFromACommonJSModuleMustHaveAResolutionModeAttribute,
+            _ => DiagnosticCode.TheCurrentFileIsACommonJSModuleWhoseImportsWillProduceRequireCallsHoweverTheReferencedFileIsAnECMAScriptModuleAndCannotBeImportedWithRequireConsiderWritingADynamicImport0CallInstead
         };
         var diagnostic = CheckerDiagnostic.Create(specifier, DiagnosticLocalization.GetMessage(code), name);
-        if (code != 1471 && !source.IsDeclarationFile && CompilerPath.Extension(source.FileName) is ".ts" or ".js" or ".tsx" or ".jsx")
+        if (code != DiagnosticCode.Module0CannotBeImportedUsingThisConstructTheSpecifierOnlyResolvesToAnESModuleWhichCannotBeImportedWithRequireUseAnECMAScriptImportInstead
+            && !source.IsDeclarationFile
+            && CompilerPath.Extension(source.FileName) is ".ts" or ".js" or ".tsx" or ".jsx")
         {
             var metadata = program.Symbols.Program.GetFile(source.FileName)!;
             string extension = CompilerPath.Extension(source.FileName) switch { ".ts" => ".mts", ".js" => ".mjs", _ => "" };
             bool package = metadata.PackageDirectory.Length != 0 && metadata.PackageType.Length == 0;
-            int detailCode = package ? extension.Length != 0 ? 1481 : 1482 : extension.Length != 0 ? 1480 : 1483;
+            DiagnosticCode detailCode = package
+                ? extension.Length != 0
+                    ? DiagnosticCode.ToConvertThisFileToAnECMAScriptModuleChangeItsFileExtensionTo0OrAddTheFieldTypeColonModuleTo1
+                    : DiagnosticCode.ToConvertThisFileToAnECMAScriptModuleAddTheFieldTypeColonModuleTo0
+                : extension.Length != 0
+                    ? DiagnosticCode.ToConvertThisFileToAnECMAScriptModuleChangeItsFileExtensionTo0OrCreateALocalPackageJsonFileWithTypeColonModule
+                    : DiagnosticCode.ToConvertThisFileToAnECMAScriptModuleCreateALocalPackageJsonFileWithTypeColonModule;
             string[] arguments = package ? extension.Length != 0
                 ? [extension, CompilerPath.Combine(metadata.PackageDirectory, "package.json")]
                 : [CompilerPath.Combine(metadata.PackageDirectory, "package.json")]

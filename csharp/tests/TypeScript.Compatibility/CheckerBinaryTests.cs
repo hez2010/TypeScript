@@ -1,6 +1,7 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Checking;
 using TypeScript.Compiler.Configuration;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.Programs;
 using TypeScript.Compiler.Syntax;
@@ -50,15 +51,23 @@ internal static class CheckerBinaryTests
         Check(await host.Awaited.NoAliasAsync(nested) == context.NumberType);
         var loop = await host.Declared.GetAsync(symbols.Globals["Loop"]);
         var location = symbols.Globals["Loop"].Declarations[0];
-        Check(await host.Awaited.NoAliasAsync(loop, location) is null && host.Diagnostics.Contains(1062));
+        Check(
+            await host.Awaited.NoAliasAsync(loop, location) is null
+                && host.Diagnostics.Contains(
+                    DiagnosticCode.TypeIsReferencedDirectlyOrIndirectlyInTheFulfillmentCallbackOfItsOwnThenMethod));
         Check(host.Awaited.StackDepth == 0);
         var bad = await host.Declared.GetAsync(symbols.Globals["Bad"]);
         Check(await host.Awaited.ThenableAsync(bad));
         Check(
-            await host.Awaited.GetAsync(bad, errorNode: symbols.Globals["Bad"].Declarations[0]) is null && host.Diagnostics.Contains(1320));
+            await host.Awaited.GetAsync(bad, errorNode: symbols.Globals["Bad"].Declarations[0]) is null
+                && host.Diagnostics.Contains(
+                    DiagnosticCode.TypeOfAwaitOperandMustEitherBeAValidPromiseOrMustNotContainACallableThenMember));
         var receiver = await host.Declared.GetAsync(symbols.Globals["Receiver"]);
         var promised = await host.Awaited.PromisedAsync(receiver, symbols.Globals["Receiver"].Declarations[0]);
-        Check(promised.Type is null && promised.ThisError == context.StringType && host.Diagnostics.Contains(2684));
+        Check(
+            promised.Type is null
+                && promised.ThisError == context.StringType
+                && host.Diagnostics.Contains(DiagnosticCode.TheThisContextOfType0IsNotAssignableToMethodSThisOfType1));
         Check((await host.Awaited.PromisedAsync(context.StringType)).Type is null);
         Check(await host.Awaited.NoAliasAsync(context.StringType) == context.StringType);
         Check(await host.Awaited.NoAliasAsync(context.AnyType) == context.AnyType);
@@ -94,12 +103,16 @@ internal static class CheckerBinaryTests
         var equality = Binary(Number("1"), SyntaxKind.EqualsEqualsEqualsToken, Number("2"));
         int before = host.Diagnostics.Count;
         Check(await host.Expressions.CheckAsync(equality, CheckMode.TypeOnly) == context.BooleanType && host.Diagnostics.Count == before);
-        Check(await host.Expressions.CheckAsync(equality) == context.BooleanType && host.Diagnostics.Contains(2367));
+        Check(
+            await host.Expressions.CheckAsync(equality) == context.BooleanType
+                && host.Diagnostics.Contains(DiagnosticCode.ThisComparisonAppearsToBeUnintentionalBecauseTheTypes0And1HaveNoOverlap));
         Check(
             await host.Expressions.CheckAsync(Binary(Number("1"), SyntaxKind.EqualsToken, Number("2"))) is LiteralType { Value: 2d }
-                && host.Diagnostics.Contains(2364));
+                && host.Diagnostics.Contains(DiagnosticCode.TheLeftHandSideOfAnAssignmentExpressionMustBeAVariableOrAPropertyAccess));
         var coalesce = Binary(new TokenNode(SyntaxKind.NullKeyword), SyntaxKind.QuestionQuestionToken, Number("3"));
-        Check(await host.Expressions.CheckAsync(coalesce) is LiteralType { Value: 3d } && host.Diagnostics.Contains(2871));
+        Check(
+            await host.Expressions.CheckAsync(coalesce) is LiteralType { Value: 3d }
+                && host.Diagnostics.Contains(DiagnosticCode.ThisExpressionIsAlwaysNullish));
         Check(await host.ExpressionChecks.NullishnessAsync(coalesce) == 2);
         Check(BinaryExpressions.SideEffectFree(Binary(Number("1"), SyntaxKind.PlusToken, Number("2"))));
         Check(!BinaryExpressions.SideEffectFree(Binary(Number("1"), SyntaxKind.EqualsToken, Number("2"))));
@@ -153,7 +166,18 @@ internal static class CheckerBinaryTests
         var parents = nodes.Select(n => n.Parent).ToArray();
         await checker.CheckSourceFileAsync(file);
         var codes = checker.DiagnosticCodesForFile(file).Order().ToArray();
-        int[] expected = [1013, 2322, 2322, 2322, 2462, 2462, 2493, 2493, 2493];
+        DiagnosticCode[] expected =
+            [
+                DiagnosticCode.ARestParameterOrBindingPatternMayNotHaveATrailingComma,
+                DiagnosticCode.Type0IsNotAssignableToType1,
+                DiagnosticCode.Type0IsNotAssignableToType1,
+                DiagnosticCode.Type0IsNotAssignableToType1,
+                DiagnosticCode.ARestElementMustBeLastInADestructuringPattern,
+                DiagnosticCode.ARestElementMustBeLastInADestructuringPattern,
+                DiagnosticCode.TupleType0OfLength1HasNoElementAtIndex2,
+                DiagnosticCode.TupleType0OfLength1HasNoElementAtIndex2,
+                DiagnosticCode.TupleType0OfLength1HasNoElementAtIndex2
+            ];
         if (!codes.SequenceEqual(expected))
             throw new InvalidOperationException($"Destructuring diagnostics: {string.Join(',', codes)}");
         if (!nodes.Select(n => n.Parent).SequenceEqual(parents))

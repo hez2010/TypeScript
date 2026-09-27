@@ -55,13 +55,18 @@ internal sealed partial class Checker : ISignatureHost, IStructuredMemberHost, I
         if (signature.Declaration is not { } declaration)
             return;
         if (declaration is ITypedNode { Type: { } annotation })
-            Error(annotation, 2577);
+            Error(annotation, DiagnosticCode.ReturnTypeAnnotationCircularlyReferencesItself);
         else if (NoImplicitAny)
         {
             if ((SemanticSyntax.Name(declaration) ?? AssignedDeclarationName(declaration)) is { } name)
-                Error(name, 7023, CheckerDiagnostic.DeclarationName(name));
+                Error(
+                    name,
+                    DiagnosticCode.X0ImplicitlyHasReturnTypeAnyBecauseItDoesNotHaveAReturnTypeAnnotationAndIsReferencedDirectlyOrIndirectlyInOneOfItsReturnExpressions,
+                    CheckerDiagnostic.DeclarationName(name));
             else
-                Error(declaration, 7024);
+                Error(
+                    declaration,
+                    DiagnosticCode.FunctionImplicitlyHasReturnTypeAnyBecauseItDoesNotHaveAReturnTypeAnnotationAndIsReferencedDirectlyOrIndirectlyInOneOfItsReturnExpressions);
         }
     }
 
@@ -149,16 +154,22 @@ internal sealed partial class Checker : ISignatureHost, IStructuredMemberHost, I
     public ValueTask<IReadOnlyList<Type>> ClassBasesAsync(InterfaceType type, CancellationToken cancellation) =>
         ClassBases.GetAsync(type, cancellation);
 
-    public async ValueTask ClassBaseErrorAsync(SyntaxNode node, int code, Type type, CancellationToken cancellation)
+    public async ValueTask ClassBaseErrorAsync(SyntaxNode node, DiagnosticCode code, Type type, CancellationToken cancellation)
     {
-        var displayedType = code == 2509 ? await Views.ReducedAsync(type, cancellation) : type;
-        var diagnostic = CheckerDiagnostic.Create(node, DiagnosticLocalization.GetMessage(code), code == 2508 ? []
-            : [code == 2506 && type.Symbol is { } symbol
+        var displayedType = code == DiagnosticCode.BaseConstructorReturnType0IsNotAnObjectTypeOrIntersectionOfObjectTypesWithStaticallyKnownMembers
+            ? await Views.ReducedAsync(type, cancellation)
+            : type;
+        var diagnostic = CheckerDiagnostic.Create(
+            node,
+            DiagnosticLocalization.GetMessage(code),
+            code == DiagnosticCode.NoBaseConstructorHasTheSpecifiedNumberOfTypeArguments ? []
+            : [code == DiagnosticCode.X0IsReferencedDirectlyOrIndirectlyInItsOwnBaseExpression && type.Symbol is { } symbol
                 ? TypeDisplay.SymbolName(symbol)
                 : await TypeDisplay.GetAsync(displayedType, cancellation)]);
-        if (code == 2509)
+        if (code == DiagnosticCode.BaseConstructorReturnType0IsNotAnObjectTypeOrIntersectionOfObjectTypesWithStaticallyKnownMembers)
             diagnostic = await NeverIntersectionNoteAsync(diagnostic, type, cancellation);
-        if (code == 2507 && type is TypeParameter { Symbol: { Declarations.Count: > 0 } parameterSymbol })
+        if (code == DiagnosticCode.Type0IsNotAConstructorFunctionType
+            && type is TypeParameter { Symbol: { Declarations.Count: > 0 } parameterSymbol })
         {
             Type result = context.UnknownType;
             if (await Instantiation.Constraints.ConstraintAsync(type, cancellation) is { } constraint
@@ -178,9 +189,13 @@ internal sealed partial class Checker : ISignatureHost, IStructuredMemberHost, I
             Instantiation.IndexedAccessAsync(objectType, indexType, 0, null, cancellation);
 
     public async ValueTask CircularBaseAsync(SyntaxNode declaration, Type type, CancellationToken cancellation) =>
-        Error(declaration, 2310, await TypeDisplay.GetAsync(type, NodeBuilderFlags.WriteArrayAsGenericType, cancellation));
+        Error(
+            declaration,
+            DiagnosticCode.Type0RecursivelyReferencesItselfAsABaseType,
+            await TypeDisplay.GetAsync(type, NodeBuilderFlags.WriteArrayAsGenericType, cancellation));
 
-    public void InvalidInterfaceBase(SyntaxNode declaration) => Error(declaration, 2312);
+    public void InvalidInterfaceBase(SyntaxNode declaration) =>
+        Error(declaration, DiagnosticCode.AnInterfaceCanOnlyExtendAnObjectTypeOrIntersectionOfObjectTypesWithStaticallyKnownMembers);
 
     public async ValueTask<bool> LateIndexAsync(SyntaxNode declaration, CancellationToken cancellation) =>
         LateMembers.Name(declaration) is { } name && LateMembers.LateSyntax(name)
@@ -288,15 +303,21 @@ internal sealed partial class Checker : ISignatureHost, IStructuredMemberHost, I
         {
             if (declaration is ITypedNode { Type: not null })
             {
-                Error(declaration, 2502, TypeDisplay.SymbolName(symbol));
+                Error(declaration, DiagnosticCode.X0IsReferencedDirectlyOrIndirectlyInItsOwnTypeAnnotation, TypeDisplay.SymbolName(symbol));
                 return context.ErrorType;
             }
             if (NoImplicitAny
                 && (declaration is not ParameterDeclarationNode || ((ParameterDeclarationNode)declaration).Initializer is not null))
-                Error(declaration, 7022, TypeDisplay.SymbolName(symbol));
+                Error(
+                    declaration,
+                    DiagnosticCode.X0ImplicitlyHasTypeAnyBecauseItDoesNotHaveATypeAnnotationAndIsReferencedDirectlyOrIndirectlyInItsOwnInitializer,
+                    TypeDisplay.SymbolName(symbol));
         }
         else if ((symbol.Flags & SymbolFlags.Alias) != 0 && AliasResolver.Declaration(symbol) is { } alias)
-            Error(alias, 2303, alias is ExportAssignmentNode { Expression: IdentifierNode exported }
+            Error(
+                alias,
+                DiagnosticCode.CircularDefinitionOfImportAlias0,
+                alias is ExportAssignmentNode { Expression: IdentifierNode exported }
                 ? exported.Text : TypeDisplay.SymbolName(symbol));
         return context.AnyType;
     }
@@ -307,7 +328,13 @@ internal sealed partial class Checker : ISignatureHost, IStructuredMemberHost, I
             || (declaration as INamedNode)?.Name is PrivateIdentifierNode))
             return;
         if (program.Symbols.Program.Configuration.Options.StrictOption("noImplicitAny"))
-            Error(declaration, declaration is SetAccessorDeclarationNode ? 7032 : declaration is GetAccessorDeclarationNode ? 7033 : 7008,
+            Error(
+                declaration,
+                declaration is SetAccessorDeclarationNode
+                    ? DiagnosticCode.Property0ImplicitlyHasTypeAnyBecauseItsSetAccessorLacksAParameterTypeAnnotation
+                    : declaration is GetAccessorDeclarationNode
+                        ? DiagnosticCode.Property0ImplicitlyHasTypeAnyBecauseItsGetAccessorLacksAReturnTypeAnnotation
+                        : DiagnosticCode.Member0ImplicitlyHasAn1Type,
                 declaration is SetAccessorDeclarationNode or GetAccessorDeclarationNode
                     ? [TypeDisplay.SymbolName(symbol)] : [TypeDisplay.SymbolName(symbol), "any"]);
     }
@@ -315,8 +342,11 @@ internal sealed partial class Checker : ISignatureHost, IStructuredMemberHost, I
     public void CircularAccessor(Symbol symbol, SyntaxNode? annotation, SyntaxNode? getter)
     {
         if (annotation is not null)
-            Error(annotation, 2502, TypeDisplay.SymbolName(symbol));
+            Error(annotation, DiagnosticCode.X0IsReferencedDirectlyOrIndirectlyInItsOwnTypeAnnotation, TypeDisplay.SymbolName(symbol));
         else if (getter is not null && program.Symbols.Program.Configuration.Options.StrictOption("noImplicitAny"))
-            Error(getter, 7023, TypeDisplay.SymbolName(symbol));
+            Error(
+                getter,
+                DiagnosticCode.X0ImplicitlyHasReturnTypeAnyBecauseItDoesNotHaveAReturnTypeAnnotationAndIsReferencedDirectlyOrIndirectlyInOneOfItsReturnExpressions,
+                TypeDisplay.SymbolName(symbol));
     }
 }

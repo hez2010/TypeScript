@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 
 namespace TypeScript.Compiler.Checking;
 
@@ -33,5 +34,5 @@ internal sealed partial class Checker : IBindingTypeHost
             : await References.AliasInstantiationAsync(symbol, [source, keys], cancellation: cancellation);
     }
 
-    public void BindingError(SyntaxNode node, int code) => Error(node, code);
+    public void BindingError(SyntaxNode node, DiagnosticCode code) => Error(node, code);
 }

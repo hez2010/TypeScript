@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -12,7 +13,7 @@ internal interface IYieldExpressionHost
 
     ValueTask CheckLiteralAssignableAsync(Type source, Type target, SyntaxNode node, SyntaxNode expression, CancellationToken cancellation);
 
-    void ExpressionError(SyntaxNode node, int code);
+    void ExpressionError(SyntaxNode node, DiagnosticCode code);
 
     ValueTask AsyncYieldHelpersAsync(SyntaxNode node, CancellationToken cancellation);
 }
@@ -24,9 +25,9 @@ internal sealed class YieldExpressions(TypeContext context, TypeAlgebra algebra,
     {
         cancellation.ThrowIfCancellationRequested();
         if ((node.Flags & NodeFlags.YieldContext) == 0 && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
-            host.ExpressionError(node, 1163);
+            host.ExpressionError(node, DiagnosticCode.AYieldExpressionIsOnlyAllowedInAGeneratorBody);
         if (ThisExpressions.ParameterInitializer(node))
-            host.ExpressionError(node, 2523);
+            host.ExpressionError(node, DiagnosticCode.XYieldExpressionsCannotBeUsedInAParameterInitializer);
         var operand = node.Expression is { } expression
             ? await host.CheckExpressionAsync(expression, 0, cancellation).ConfigureAwait(false) : context.UndefinedWideningType;
         var function = DeclarationOrder.Ancestor(node.Parent, n => n is IFunctionSignature);
@@ -72,7 +73,9 @@ internal sealed class YieldExpressions(TypeContext context, TypeAlgebra algebra,
         {
             var contextual = await expressions.GetAsync(node, cancellation: cancellation).ConfigureAwait(false);
             if (contextual is null || (contextual.Flags & TypeFlags.Any) != 0)
-                host.ExpressionError(node, 7057);
+                host.ExpressionError(
+                    node,
+                    DiagnosticCode.XYieldExpressionImplicitlyResultsInAnAnyTypeBecauseItsContainingGeneratorLacksAReturnTypeAnnotation);
         }
         return context.AnyType;
     }

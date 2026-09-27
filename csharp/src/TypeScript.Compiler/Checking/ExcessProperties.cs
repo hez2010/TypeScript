@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 
 namespace TypeScript.Compiler.Checking;
 
@@ -44,7 +45,10 @@ internal sealed class ExcessProperties(TypeContext context, TypeAlgebra algebra,
             if (!await KnownAsync(reduced, property.Name, jsx, cancellation).ConfigureAwait(false))
             {
                 if (!jsx && operation.ReportErrors)
-                    operation.Explain(2353, target: await algebra.FilterAsync(reduced,
+                    operation.Explain(
+                        DiagnosticCode.ObjectLiteralMayOnlySpecifyKnownPropertiesAnd0DoesNotExistInType1,
+                        target: await algebra.FilterAsync(
+                        reduced,
                         part => ValueTask.FromResult(Target(part)), cancellation).ConfigureAwait(false), property: property);
                 return true;
             }
@@ -70,7 +74,7 @@ internal sealed class ExcessProperties(TypeContext context, TypeAlgebra algebra,
                     await algebra.UnionAsync(types, cancellation: cancellation).ConfigureAwait(false),
                     cancellation: cancellation).ConfigureAwait(false) == Ternary.False)
                 {
-                    operation.Explain(2326, property: property);
+                    operation.Explain(DiagnosticCode.TypesOfProperty0AreIncompatible, property: property);
                     return true;
                 }
             }

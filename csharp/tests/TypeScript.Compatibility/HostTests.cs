@@ -138,7 +138,7 @@ internal static class HostTests
                     writer.WritePropertyName("diagnostics");
                     writer.WriteStartArray();
                     foreach (var diagnostic in result.Diagnostics)
-                        writer.WriteNumberValue(diagnostic.Code);
+                        writer.WriteNumberValue((int)diagnostic.Code);
                     writer.WriteEndArray();
                     writer.WriteEndObject();
                     return;
@@ -191,7 +191,7 @@ internal static class HostTests
             writer.WritePropertyName("diagnostics");
             writer.WriteStartArray();
             foreach (var diagnostic in diagnostics)
-                writer.WriteNumberValue(diagnostic.Code);
+                writer.WriteNumberValue((int)diagnostic.Code);
             writer.WriteEndArray();
         }
         writer.WriteEndObject();
@@ -243,7 +243,8 @@ internal static class HostTests
             "Path mapping ownership and template");
         Check(parsed.References is [{ Path: "/lib", Circular: true }], "Project references");
         Check(
-            parsed.Diagnostics.Select(d => d.Code).SequenceEqual([6046, 5024])
+            parsed.Diagnostics.Select(d => d.Code).SequenceEqual(
+                [DiagnosticCode.ArgumentFor0OptionMustBeColon1, DiagnosticCode.CompilerOption0RequiresAValueOfType1])
                 && parsed.Diagnostics.All(d => d.Length > 0 && d.FileName == "/base/config.json"),
             "List validation with source spans");
         var cli = new CommandLineParser(
@@ -252,7 +253,13 @@ internal static class HostTests
                 ["--composite", "true", "--plugins", "false", "--checkers", "-1", "--lib", "es6,invalid", "--typeRoots", "types", "x.ts"]);
         Check(cli.FileNames.SequenceEqual(["x.ts"]), "Invalid options consume their arguments");
         Check(
-            cli.Diagnostics.Select(d => d.Code).SequenceEqual([6230, 6064, 5002, 6046]),
+            cli.Diagnostics.Select(d => d.Code).SequenceEqual(
+                [
+                        DiagnosticCode.Option0CanOnlyBeSpecifiedInTsconfigJsonFileOrSetToFalseOrNullOnCommandLine,
+                        DiagnosticCode.Option0CanOnlyBeSpecifiedInTsconfigJsonFileOrSetToNullOnCommandLine,
+                        DiagnosticCode.Option0RequiresValueToBeGreaterThan1,
+                        DiagnosticCode.ArgumentFor0OptionMustBeColon1
+                    ]),
             "Config-only, numeric bound and list diagnostics");
         Check(cli.Options.Get("typeRoots")?.EnumerateArray().Single().GetString() == "/app/types", "Command line list file paths");
         Check(
@@ -298,7 +305,10 @@ internal static class HostTests
         fs.CreateSymbolicLink("/app/recur", "/app");
         fs.WriteFile("/app/alias-cycle.json", Encoding.UTF8.GetBytes("{\"extends\":\"./recur/alias-cycle.json\"}"));
         Check(
-            new ConfigParser(fs, "/app").Parse("alias-cycle.json").Diagnostics.Any(d => d.Code == 18000),
+            new ConfigParser(
+                fs,
+                "/app").Parse("alias-cycle.json").Diagnostics.Any(
+                    d => d.Code == DiagnosticCode.CircularityDetectedWhileResolvingConfigurationColon0),
             "Config inheritance detects cycles through directory aliases");
         fs.WriteFile(
             "/app/template.json",
@@ -344,7 +354,8 @@ internal static class HostTests
             Encoding.UTF8.GetBytes("{\"files\":[\"input.ts\"],\"compilerOptions\":{\"bad\\uD800\":true}}"));
         var unknownSurrogate = new ConfigParser(fs, "/app").Parse("unknown-surrogate.json");
         Check(
-            unknownSurrogate.Diagnostics is [{ Code: 5023, Length: > 0 }] && unknownSurrogate.Diagnostics[0].Arguments[0] == "bad\ud800",
+            unknownSurrogate.Diagnostics is [{ Code: DiagnosticCode.UnknownCompilerOption0, Length: > 0 }]
+                && unknownSurrogate.Diagnostics[0].Arguments[0] == "bad\ud800",
             "Unknown option with unpaired-surrogate key is diagnosed losslessly");
         ParsedConfig NumericConfig(string value, bool option, string optionName = "maxNodeModuleJsDepth")
         {
@@ -379,7 +390,8 @@ internal static class HostTests
         {
             var numeric = NumericConfig(value, true, "checkers");
             Check(
-                numeric.Diagnostics is [{ Code: 5024, Length: > 0 }] && numeric.Options.Get("checkers")?.ValueKind == JsonValueKind.Null,
+                numeric.Diagnostics is [{ Code: DiagnosticCode.CompilerOption0RequiresAValueOfType1, Length: > 0 }]
+                    && numeric.Options.Get("checkers")?.ValueKind == JsonValueKind.Null,
                 "Native worker-count option rejects out-of-range values without overflowing: " + value);
         }
         fs.WriteFile(
@@ -473,7 +485,7 @@ internal static class HostTests
                     && physical.RealPath(invalid) == invalid,
                 "NUL physical paths are inaccessible rather than crashing read-only host operations");
             Check(
-                new ConfigParser(physical, scratch).Parse("bad\0.json").Diagnostics is [{ Code: 5083 }],
+                new ConfigParser(physical, scratch).Parse("bad\0.json").Diagnostics is [{ Code: DiagnosticCode.CannotReadFile0 }],
                 "Invalid physical config path produces a read diagnostic");
             if (OperatingSystem.IsWindows())
             {

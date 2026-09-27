@@ -1,8 +1,9 @@
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Checking;
-using Type = TypeScript.Compiler.Checking.Type;
+using TypeScript.Compiler.Diagnostics;
 using F = TypeScript.Compiler.Checking.TypeFlags;
 using O = TypeScript.Compiler.Checking.ObjectFlags;
+using Type = TypeScript.Compiler.Checking.Type;
 
 namespace TypeScript.Compatibility;
 
@@ -12,7 +13,7 @@ namespace TypeScript.Compatibility;
 internal sealed class AlgebraFixtureHost(TypeContext context) : ITypeAlgebraHost
 {
     private readonly Dictionary<Symbol, Type> propertyTypes = [];
-    internal List<int> Diagnostics { get; } = [];
+    internal List<DiagnosticCode> Diagnostics { get; } = [];
     internal Action? BeforeGenericIndex { get; set; }
     internal Func<Type, CancellationToken, ValueTask<Type?>>? ResolveBaseConstraint { get; set; }
     internal Func<Type, CancellationToken, ValueTask<bool>>? EmptyAnonymousSource { get; set; }
@@ -37,7 +38,8 @@ internal sealed class AlgebraFixtureHost(TypeContext context) : ITypeAlgebraHost
         return result;
     }
 
-    public void ReportComplexity(string operation, long size) => Diagnostics.Add(2590);
+    public void ReportComplexity(string operation, long size) =>
+        Diagnostics.Add(DiagnosticCode.ExpressionProducesAUnionTypeThatIsTooComplexToRepresent);
 
     public ValueTask<Type?> GetBaseConstraintAsync(Type type, CancellationToken cancellation)
         => ResolveBaseConstraint is { } resolve ? resolve(

@@ -2,6 +2,7 @@ using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Checking;
 using TypeScript.Compiler.Configuration;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.Programs;
 using TypeScript.Compiler.Syntax;
@@ -60,7 +61,9 @@ internal static class CheckerTypeNodeTests
         var missing = await host.Declared.GetAsync(symbols.Globals["Missing"]);
         Check(missing is IntrinsicType { IntrinsicName: "error", Alias: { TypeArguments.Count: 1 } });
         Check((missing.Alias!.Symbol.CheckFlags & CheckFlags.Unresolved) != 0);
-        Check(await host.Declared.GetAsync(symbols.Globals["Bad"]) == context.ErrorType && host.Diagnostics.Contains(2456));
+        Check(
+            await host.Declared.GetAsync(symbols.Globals["Bad"]) == context.ErrorType
+                && host.Diagnostics.Contains(DiagnosticCode.TypeAlias0CircularlyReferencesItself));
         Check(host.Instantiation.Resolutions.Count == 0);
 
         var d = symbols.Globals["D"];

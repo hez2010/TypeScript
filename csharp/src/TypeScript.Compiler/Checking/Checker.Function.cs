@@ -22,14 +22,22 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
         && program.Symbols.Binding(node)?.CommonJSModuleIndicator is not null
             && (program.ReferenceSymbols.Resolve(identifier).Flags & SymbolFlags.ModuleExports) != 0;
 
-    public void ExpressionSuggestion(SyntaxNode node, int code)
+    public void ExpressionSuggestion(SyntaxNode node, DiagnosticCode code)
     {
         if (suggestionLocations.Add((node, code)))
             Suggestions.Add(code);
     }
 
     public ValueTask<bool> CheckConstraintAsync(Type source, Type target, SyntaxNode node, CancellationToken cancellation)
-        => RelationDiagnostics.CheckAsync(source, target, RelationKind.Assignable, node, null, 2344, cancellation);
+        =>
+            RelationDiagnostics.CheckAsync(
+                source,
+                target,
+                RelationKind.Assignable,
+                node,
+                null,
+                DiagnosticCode.Type0DoesNotSatisfyTheConstraint1,
+                cancellation);
 
     public async ValueTask<Type> CheckedFunctionTypeAsync(SyntaxNode node, CancellationToken cancellation)
     {
@@ -126,9 +134,13 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
     }
 
     public void TopLevelAwait(SyntaxNode node)
-        => TopLevelAwait(node, 1375, 1378);
+        =>
+            TopLevelAwait(
+                node,
+                DiagnosticCode.XAwaitExpressionsAreOnlyAllowedAtTheTopLevelOfAFileWhenThatFileIsAModuleButThisFileHasNoImportsOrExportsConsiderAddingAnEmptyExportToMakeThisFileAModule,
+                DiagnosticCode.TopLevelAwaitExpressionsAreOnlyAllowedWhenTheModuleOptionIsSetToEs2022EsnextSystemNode16Node18Node20NodenextOrPreserveAndTheTargetOptionIsSetToEs2017OrHigher);
 
-    private bool TopLevelAwait(SyntaxNode node, int moduleRequired, int invalidMode)
+    private bool TopLevelAwait(SyntaxNode node, DiagnosticCode moduleRequired, DiagnosticCode invalidMode)
     {
         var file = SemanticSyntax.Source(node)!;
         var options = program.Symbols.Program.Configuration.Options;
@@ -155,7 +167,7 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
         bool nodeModule = module is "node16" or "node18" or "node20" or "nodenext";
         if (nodeModule && program.Symbols.Program.SourceFiles.First(f => f.Syntax == file).ImpliedFormat == ReferenceResolutionMode.Require)
         {
-            ErrorOnFirstToken(node, 1309);
+            ErrorOnFirstToken(node, DiagnosticCode.TheCurrentFileIsACommonJSModuleAndCannotUseAwaitAtTheTopLevel);
             invalid = true;
         }
         else if (TargetYear < 2017 || !nodeModule && module is not ("es2022" or "esnext" or "preserve" or "system"))
@@ -201,11 +213,15 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
         {
             if (result == context.UnknownType)
             {
-                Error(node, 2697);
+                Error(
+                    node,
+                    DiagnosticCode.AnAsyncFunctionOrMethodMustReturnAPromiseMakeSureYouHaveADeclarationForPromiseOrIncludeES2015InYourLibOption);
                 return context.ErrorType;
             }
             if (program.Symbols.Lookup(program.Symbols.Globals, "Promise", SymbolFlags.Value) is null)
-                Error(node, 2705);
+                Error(
+                    node,
+                    DiagnosticCode.AnAsyncFunctionOrMethodInES5RequiresThePromiseConstructorMakeSureYouHaveADeclarationForThePromiseConstructorOrIncludeES2015InYourLibOption);
         }
         return result;
     }
@@ -307,9 +323,9 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
         if (star is null || SemanticSyntax.Source(node)?.ParseDiagnostics.Count != 0)
             return;
         if ((node.Flags & NodeFlags.Ambient) != 0)
-            Error(star, 1221);
+            Error(star, DiagnosticCode.GeneratorsAreNotAllowedInAnAmbientContext);
         else if (SemanticSyntax.Body(node) is null)
-            Error(star, 1222);
+            Error(star, DiagnosticCode.AnOverloadSignatureCannotBeDeclaredAsAGenerator);
     }
 
     public void RegisterUnused(SyntaxNode node) => UnusedIdentifierScopes.Add(node);
@@ -341,7 +357,7 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
             if (SemanticSyntax.Body(node) is null)
                 return;
             if (type == context.VoidType)
-                Error(annotation, 2505);
+                Error(annotation, DiagnosticCode.AGeneratorCannotHaveAVoidTypeAnnotation);
             else
                 await Generators.AssignableReturnAsync(
                     type,
@@ -357,10 +373,18 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
         if (promise != context.EmptyGenericType && !(type is TypeReference reference && reference.Target == promise))
         {
             var awaited = await Awaited.GetAsync(type, false, cancellation: cancellation) ?? context.VoidType;
-            Error(annotation, 1064, await TypeDisplay.GetAsync(awaited, cancellation));
+            Error(
+                annotation,
+                DiagnosticCode.TheReturnTypeOfAnAsyncFunctionOrMethodMustBeTheGlobalPromiseTTypeDidYouMeanToWritePromise0,
+                await TypeDisplay.GetAsync(awaited, cancellation));
             return;
         }
-        await Awaited.GetAsync(type, false, node, 1058, cancellation);
+        await Awaited.GetAsync(
+            type,
+            false,
+            node,
+            DiagnosticCode.TheReturnTypeOfAnAsyncFunctionMustEitherBeAValidPromiseOrMustNotContainACallableThenMember,
+            cancellation);
     }
 
     public ValueTask ParameterEnvironmentAsync(ParameterDeclarationNode node, CancellationToken cancellation)
@@ -372,15 +396,15 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
             if (ParameterProperty(node))
             {
                 if (ErasableSyntaxOnly && (node.Flags & NodeFlags.JavaScriptFile) == 0)
-                    Error(node, 1294);
+                    Error(node, DiagnosticCode.ThisSyntaxIsNotAllowedWhenErasableSyntaxOnlyIsEnabled);
                 if (node.Parent is ConstructorDeclarationNode && node.Name is IdentifierNode { Text: "constructor" })
-                    Error(node.Name, 2398);
+                    Error(node.Name, DiagnosticCode.XConstructorCannotBeUsedAsAParameterPropertyName);
                 if (node.Parent is not ConstructorDeclarationNode { Body: not null })
-                    Error(node, 2369);
+                    Error(node, DiagnosticCode.AParameterPropertyIsOnlyAllowedInAConstructorImplementation);
                 if (node.Name is BindingPatternNode)
-                    Error(node, 1187);
+                    Error(node, DiagnosticCode.AParameterPropertyMayNotBeDeclaredUsingABindingPattern);
                 if (node.DotDotDotToken is not null)
-                    Error(node, 1317);
+                    Error(node, DiagnosticCode.AParameterPropertyCannotBeDeclaredUsingARestParameter);
             }
         }
         CheckDeclarationName(node);
@@ -393,12 +417,12 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
         {
             var elements = ((BindingPatternNode)node.Parent!).Elements!;
             if (elements[^1] != node)
-                Error(node, 2462);
+                Error(node, DiagnosticCode.ARestElementMustBeLastInADestructuringPattern);
             else
             {
                 DestructuringTrailingComma(elements, node);
                 if (node.PropertyName is not null)
-                    Error(node.Name!, 2566);
+                    Error(node.Name!, DiagnosticCode.ARestElementCannotHaveAPropertyName);
                 else if (node.Initializer is not null)
                 {
                     var (start, end) = CheckerDiagnostic.TokenRange(SemanticSyntax.Source(node)!, node.Name!.End);
@@ -408,7 +432,7 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
             }
         }
         if (node.PropertyName is PrivateIdentifierNode && SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
-            Error(node.PropertyName, 18064);
+            Error(node.PropertyName, DiagnosticCode.PrivateIdentifiersCannotBeUsedInDestructuringPatterns);
         if (node.PropertyName is not null && node.Name is IdentifierNode
             && SemanticSyntax.RootDeclaration(node) is ParameterDeclarationNode
             && SemanticSyntax.Body(SemanticSyntax.RootDeclaration(node).Parent!) is null)
@@ -441,7 +465,7 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
     {
         var nonNull = await ExpressionChecks.NonNullAsync(type, node, cancellation);
         if ((nonNull.Flags & TypeFlags.Void) != 0)
-            Error(node, 2532);
+            Error(node, DiagnosticCode.ObjectIsPossiblyUndefined);
     }
 
     public ValueTask<bool> FunctionModifiersAsync(SyntaxNode node, CancellationToken cancellation)

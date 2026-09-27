@@ -18,7 +18,7 @@ internal interface IValueUseHost
 
     void ValueUseSuggestion(SyntaxNode node, DiagnosticMessage message, string name);
 
-    void DeclarationRelatedInfo(SyntaxNode? location, int code, SyntaxNode declaration, bool typeOnly, string name);
+    void DeclarationRelatedInfo(SyntaxNode? location, DiagnosticCode code, SyntaxNode declaration, bool typeOnly, string name);
 }
 
 internal sealed class ValueUseChecks(CheckerSymbols symbols, AliasResolver aliases, DeclarationOrder order, IValueUseHost host)

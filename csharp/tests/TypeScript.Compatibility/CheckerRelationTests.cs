@@ -41,16 +41,28 @@ internal static class CheckerRelationTests
         var snapshot = source.DescendantsAndSelf().Select(n => (Node: n, n.Parent, n.Pos, n.End, n.Flags)).ToArray();
         await checker.CheckProgramAsync();
         var diagnostics = checker.DetailedDiagnosticsForProgramFile(source);
-        static bool Contains(Diagnostic d, int code) => d.Code == code || d.MessageChain.Any(c => Contains(c, code));
+        static bool Contains(Diagnostic d, DiagnosticCode code) => d.Code == code || d.MessageChain.Any(c => Contains(c, code));
         var invariant = diagnostics.Single(d => d.Arguments.SequenceEqual(["Inv<string>", "Inv<unknown>"]));
-        Check(Contains(invariant, 2326) && Contains(invariant, 2328));
+        Check(
+            Contains(invariant, DiagnosticCode.TypesOfProperty0AreIncompatible)
+                && Contains(invariant, DiagnosticCode.TypesOfParameters0And1AreIncompatible));
         var constraint = diagnostics.Single(d => d.Arguments.SequenceEqual(["T", "number"]));
-        Check(constraint.RelatedInformation is [var note] && note.Code == 2208 && note.Arguments.SequenceEqual(["number"]));
-        Check(diagnostics.Count(d => d.Code == 2430) == 2);
-        Check(diagnostics.Where(d => d.Code == 2430).Select(d => d.Arguments[1]).Order().SequenceEqual(["Left", "Right"]));
-        Check(diagnostics.Any(d => Contains(d, 2692)));
-        Check(diagnostics.Any(d => Contains(d, 4125)));
-        Check(diagnostics.Any(d => d.Code == 2322 && d.Arguments.SequenceEqual(["string", "number"])));
+        Check(
+            constraint.RelatedInformation is [var note]
+                && note.Code == DiagnosticCode.ThisTypeParameterMightNeedAnExtends0Constraint
+                && note.Arguments.SequenceEqual(["number"]));
+        Check(diagnostics.Count(d => d.Code == DiagnosticCode.Interface0IncorrectlyExtendsInterface1) == 2);
+        Check(
+            diagnostics.Where(
+                d => d.Code == DiagnosticCode.Interface0IncorrectlyExtendsInterface1).Select(d => d.Arguments[1]).Order().SequenceEqual(
+                    [
+                        "Left",
+                        "Right"
+                    ]));
+        Check(diagnostics.Any(d => Contains(d, DiagnosticCode.X0IsAPrimitiveBut1IsAWrapperObjectPreferUsing0WhenPossible)));
+        Check(diagnostics.Any(d => Contains(d, DiagnosticCode.EachDeclarationOf01DiffersInItsValueWhere2WasExpectedBut3WasGiven)));
+        Check(
+            diagnostics.Any(d => d.Code == DiagnosticCode.Type0IsNotAssignableToType1 && d.Arguments.SequenceEqual(["string", "number"])));
         Check(checker.DetailedDiagnosticsForProgramFile(program.GetFile("/project/excess.ts")!.Syntax).Count == 0);
         await checker.CheckProgramAsync();
         Check(checker.DetailedDiagnosticsForProgramFile(source).SequenceEqual(diagnostics, DiagnosticEqualityComparer.Instance));

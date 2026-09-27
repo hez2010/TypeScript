@@ -8,6 +8,10 @@ Phase 4 is complete. The [checker completion report](../docs/csharp-phase-4-prog
 
 The development SDK is pinned to .NET nightly `11.0.100-rc.2.26470.103`, with C# 15, `OptimizationPreference=Speed`, NativeAOT/trimming analysis, warning errors, and NuGet lockfiles. `NuGet.Config` adds the public `dotnet11` feed for matching nightly packs. The final target is .NET 11 GA; upgrades require refreshing and revalidating the evidence. Node 24 and Go 1.27.1 are required for the reference tooling. The existing Go backend and JS clients remain untouched.
 
+Diagnostic identifiers use the generated `DiagnosticCode` enum throughout the C# compiler, including `Diagnostic.Code`, message lookup, checker callbacks and diagnostic collections. For example, compare against `DiagnosticCode.CannotFindName0` instead of `2304`. Enum members and messages are generated together from the pinned diagnostic catalog by `generate-foundations.mjs`; `generate-checker.mjs` generates the JavaScript diagnostic policy from those names. Both generators support `--check`.
+
+JSON and other external representations retain the original integer codes. Content-mapper identifiers are converted explicitly at the boundary and may contain values outside the TypeScript catalog. `DiagnosticCode.None` and `DiagnosticCode.Custom` preserve the existing zero and negative-one sentinels.
+
 From the repository root (PowerShell example):
 
 ```powershell

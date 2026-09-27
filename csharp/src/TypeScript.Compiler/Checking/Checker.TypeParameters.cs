@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -15,33 +16,39 @@ internal sealed partial class Checker
         bool input = false, output = false;
         foreach (var modifier in modifiers)
         {
-            int code = 0;
+            DiagnosticCode code = DiagnosticCode.None;
             switch (modifier.Kind)
             {
                 case SyntaxKind.ConstKeyword:
                     if (node.Parent is not IFunctionSignature && !SemanticSyntax.ClassLike(node.Parent))
-                        code = 1277;
+                        code = DiagnosticCode.X0ModifierCanOnlyAppearOnATypeParameterOfAFunctionMethodOrClass;
                     break;
                 case SyntaxKind.InKeyword:
                 case SyntaxKind.OutKeyword:
                     if (node.Parent is not (InterfaceDeclarationNode or TypeAliasDeclarationNode)
                         && !SemanticSyntax.ClassLike(node.Parent))
-                        code = 1274;
+                        code = DiagnosticCode.X0ModifierCanOnlyAppearOnATypeParameterOfAClassInterfaceOrTypeAlias;
                     else if (modifier.Kind == SyntaxKind.InKeyword ? input : output)
-                        code = 1030;
+                        code = DiagnosticCode.X0ModifierAlreadySeen;
                     else if (modifier.Kind == SyntaxKind.InKeyword && output)
-                        code = 1029;
+                        code = DiagnosticCode.X0ModifierMustPrecede1Modifier;
                     input |= modifier.Kind == SyntaxKind.InKeyword;
                     output |= modifier.Kind == SyntaxKind.OutKeyword;
                     break;
                 default:
-                    code = modifier is DecoratorNode ? 1206 : 1273;
+                    code = modifier is DecoratorNode
+                        ? DiagnosticCode.DecoratorsAreNotValidHere
+                        : DiagnosticCode.X0ModifierCannotAppearOnATypeParameter;
                     break;
             }
-            if (code != 0)
+            if (code != DiagnosticCode.None)
             {
-                Error(modifier, code, code == 1029 ? ["in", "out"]
-                    : code is 1277 or 1274 or 1030 or 1273 ? [TokenFacts.Text(modifier.Kind)] : []);
+                Error(modifier, code, code == DiagnosticCode.X0ModifierMustPrecede1Modifier ? ["in", "out"]
+                    : code is DiagnosticCode.X0ModifierCanOnlyAppearOnATypeParameterOfAFunctionMethodOrClass
+                        or DiagnosticCode.X0ModifierCanOnlyAppearOnATypeParameterOfAClassInterfaceOrTypeAlias
+                        or DiagnosticCode.X0ModifierAlreadySeen or DiagnosticCode.X0ModifierCannotAppearOnATypeParameter
+                        ? [TokenFacts.Text(modifier.Kind)]
+                        : []);
                 return;
             }
         }
@@ -60,7 +67,7 @@ internal sealed partial class Checker
         var type = await Declared.GetAsync(symbol, cancellation).ConfigureAwait(false);
         if (node.Parent is TypeAliasDeclarationNode && (type.ObjectFlags & (ObjectFlags.Anonymous | ObjectFlags.Mapped)) == 0)
         {
-            Error(node, 2637);
+            Error(node, DiagnosticCode.VarianceAnnotationsAreOnlySupportedInTypeAliasesForObjectFunctionConstructorAndMappedTypes);
             return;
         }
         if (input == output)
@@ -73,7 +80,14 @@ internal sealed partial class Checker
         VarianceTypeParameter = parameter;
         try
         {
-            await RelationDiagnostics.CheckAsync(source, target, RelationKind.Assignable, node, null, 2636, cancellation);
+            await RelationDiagnostics.CheckAsync(
+                source,
+                target,
+                RelationKind.Assignable,
+                node,
+                null,
+                DiagnosticCode.Type0IsNotAssignableToType1AsImpliedByVarianceAnnotation,
+                cancellation);
         }
         finally
         {

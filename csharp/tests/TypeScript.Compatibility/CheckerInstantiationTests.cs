@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Checking;
+using TypeScript.Compiler.Diagnostics;
 using Type = TypeScript.Compiler.Checking.Type;
 
 namespace TypeScript.Compatibility;
@@ -29,7 +30,9 @@ internal static class CheckerInstantiationTests
         for (int i = 0; i < 100; i++)
             chain = context.CreateTypeReference(target, [chain]);
         var instantiated = engine.InstantiateAsync(chain, mapping).GetAwaiter().GetResult();
-        Check(instantiated is TypeReference && host.Diagnostics.Contains(2589));
+        Check(
+            instantiated is TypeReference
+                && host.Diagnostics.Contains(DiagnosticCode.TypeInstantiationIsExcessivelyDeepAndPossiblyInfinite));
         Check(engine.Count == 100 && engine.Depth == 0 && engine.ActiveMappers == 0);
         engine.ResetStatementCount();
         host.Diagnostics.Clear();
@@ -110,7 +113,7 @@ internal static class CheckerInstantiationTests
             host.Tuples.CreateAsync(
                 [context.NumberType, tuple],
                 [new(ElementFlags.Required), new(ElementFlags.Variadic)]).GetAwaiter().GetResult() == context.ErrorType);
-        Check(host.Diagnostics.Contains(2800));
+        Check(host.Diagnostics.Contains(DiagnosticCode.ExpressionProducesATupleTypeThatIsTooLargeToRepresent));
 
         engine.ResetStatementCount();
         host.Diagnostics.Clear();
@@ -118,7 +121,9 @@ internal static class CheckerInstantiationTests
             if (engine.InstantiateAsync(t, mapping).GetAwaiter().GetResult() != context.NumberType)
                 throw new InvalidOperationException("Instantiation budget changed early");
         Check(engine.Count == 5_000_000 && host.Diagnostics.Count == 0);
-        Check(engine.InstantiateAsync(t, mapping).GetAwaiter().GetResult() == context.ErrorType && host.Diagnostics.SequenceEqual([2589]));
+        Check(
+            engine.InstantiateAsync(t, mapping).GetAwaiter().GetResult() == context.ErrorType
+                && host.Diagnostics.SequenceEqual([DiagnosticCode.TypeInstantiationIsExcessivelyDeepAndPossiblyInfinite]));
         Check(engine.Depth == 0 && engine.ActiveMappers == 0);
         Console.WriteLine($"{checks} instantiation/signature/tuple assertions; exact 100-depth, 5,000,000-work and 10,000-tuple limits");
     }

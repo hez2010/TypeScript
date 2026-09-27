@@ -1,6 +1,7 @@
 using System.Globalization;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -16,7 +17,7 @@ internal interface IPrivateAccessHost
 
     ValueTask AccessErrorAsync(
         SyntaxNode node,
-        int code,
+        DiagnosticCode code,
         CancellationToken cancellation,
         Type? type = null,
         Symbol? symbol = null,
@@ -42,7 +43,11 @@ internal sealed class PrivateAccess(TypeContext context, CheckerSymbols symbols,
                 break;
         }
         if (assignment != 0 && lexical?.ValueDeclaration is MethodDeclarationNode)
-            await host.AccessErrorAsync(name, 2803, cancellation, symbol: lexical).ConfigureAwait(false);
+            await host.AccessErrorAsync(
+                name,
+                DiagnosticCode.CannotAssignToPrivateMethod0PrivateMethodsAreNotWritable,
+                cancellation,
+                symbol: lexical).ConfigureAwait(false);
         if (anyLike)
         {
             if (lexical is not null)
@@ -51,7 +56,10 @@ internal sealed class PrivateAccess(TypeContext context, CheckerSymbols symbols,
                     : apparent);
             if (ContainingClass(name) is null)
             {
-                await host.AccessErrorAsync(name, 18016, cancellation).ConfigureAwait(false);
+                await host.AccessErrorAsync(
+                    name,
+                    DiagnosticCode.PrivateIdentifiersAreNotAllowedOutsideClassBodies,
+                    cancellation).ConfigureAwait(false);
                 return (null, context.AnyType);
             }
         }
@@ -63,10 +71,17 @@ internal sealed class PrivateAccess(TypeContext context, CheckerSymbols symbols,
             if (await ReportScopeAsync(left, name, lexical, cancellation).ConfigureAwait(false))
                 return (null, context.ErrorType);
             if (ContainingClass(name) is { } container && SemanticSyntax.Source(container) is { } file && host.PlainJavaScript(file))
-                await host.AccessErrorAsync(name, 1111, cancellation).ConfigureAwait(false);
+                await host.AccessErrorAsync(
+                    name,
+                    DiagnosticCode.PrivateField0MustBeDeclaredInAnEnclosingClass,
+                    cancellation).ConfigureAwait(false);
         }
         else if ((property.Flags & (SymbolFlags.SetAccessor | SymbolFlags.GetAccessor)) == SymbolFlags.SetAccessor && assignment != 1)
-            await host.AccessErrorAsync(node, 2806, cancellation, symbol: property).ConfigureAwait(false);
+            await host.AccessErrorAsync(
+                node,
+                DiagnosticCode.PrivateAccessorWasDefinedWithoutAGetter,
+                cancellation,
+                symbol: property).ConfigureAwait(false);
         return (property, null);
     }
 
@@ -82,9 +97,20 @@ internal sealed class PrivateAccess(TypeContext context, CheckerSymbols symbols,
             if (lexical?.ValueDeclaration is { } lexicalDeclaration
                 && DeclarationOrder.ContainingClass(lexicalDeclaration) is { } lexicalClass
                 && DeclarationOrder.Ancestor(lexicalClass, n => n == owner) is not null)
-                await host.AccessErrorAsync(name, 18014, cancellation, type, lexical, related: property).ConfigureAwait(false);
+                await host.AccessErrorAsync(
+                    name,
+                    DiagnosticCode.TheProperty0CannotBeAccessedOnType1WithinThisClassBecauseItIsShadowedByAnotherPrivateIdentifierWithTheSameSpelling,
+                    cancellation,
+                    type,
+                    lexical,
+                    related: property).ConfigureAwait(false);
             else
-                await host.AccessErrorAsync(name, 18013, cancellation, type, property).ConfigureAwait(false);
+                await host.AccessErrorAsync(
+                    name,
+                    DiagnosticCode.Property0IsNotAccessibleOutsideClass1BecauseItHasAPrivateIdentifier,
+                    cancellation,
+                    type,
+                    property).ConfigureAwait(false);
             return true;
         }
         return false;

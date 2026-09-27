@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Semantics;
 using TypeScript.Compiler.Syntax;
 
@@ -15,7 +16,7 @@ internal interface ILateMemberHost
 
     ValueTask<IReadOnlyDictionary<string, Symbol>> ModuleExportsAsync(Symbol symbol, CancellationToken cancellation);
 
-    void ExpressionError(SyntaxNode node, int code);
+    void ExpressionError(SyntaxNode node, DiagnosticCode code);
 }
 
 internal sealed class LateMembers(CheckerSymbols symbols, CheckerLinks links, ILateMemberHost host)
@@ -142,8 +143,8 @@ internal sealed class LateMembers(CheckerSymbols symbols, CheckerLinks links, IL
                 ? initial.Declarations.Concat(symbol.Declarations)
                 : symbol.Declarations;
             foreach (var previous in declarations)
-                host.ExpressionError((previous as INamedNode)?.Name ?? previous, 2300);
-            host.ExpressionError(nameNode, 2300);
+                host.ExpressionError((previous as INamedNode)?.Name ?? previous, DiagnosticCode.DuplicateIdentifier0);
+            host.ExpressionError(nameNode, DiagnosticCode.DuplicateIdentifier0);
             if ((symbol.Flags & SymbolFlags.Accessor) != 0
                 && (symbol.Flags & SymbolFlags.Accessor) != (original.Flags & SymbolFlags.Accessor))
                 symbol.Flags |= SymbolFlags.Accessor;

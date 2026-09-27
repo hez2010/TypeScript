@@ -43,7 +43,7 @@ internal static class JavaScriptSyntaxTests
             {
                 expected = candidate;
                 JsonElement rejection = fixture.GetProperty("requiredParseDiagnostic");
-                if (!file.ParseDiagnostics.Any(d => d.Code == rejection[0].GetInt32()
+                if (!file.ParseDiagnostics.Any(d => (int)d.Code == rejection[0].GetInt32()
                     && source.ToUtf16Position(d.Start) == rejection[1].GetInt32()
                     && source.ToUtf16Position(d.Start + d.Length) - source.ToUtf16Position(d.Start) == rejection[2].GetInt32()))
                     throw new InvalidDataException($"{name}: documented recovery must still reject the original offending token.");

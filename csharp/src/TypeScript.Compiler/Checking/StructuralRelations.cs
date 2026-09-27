@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 
 namespace TypeScript.Compiler.Checking;
 
@@ -113,7 +114,12 @@ internal sealed class StructuralRelations(TypeContext context, TypeAlgebra algeb
                         break;
                     }
                 }
-                operation.ExplainArguments(callable ? 2560 : 2559, source, target);
+                operation.ExplainArguments(
+                    callable
+                        ? DiagnosticCode.ValueOfType0HasNoPropertiesInCommonWithType1DidYouMeanToCallIt
+                        : DiagnosticCode.Type0HasNoPropertiesInCommonWithType1,
+                    source,
+                    target);
             }
             return Ternary.False;
         }

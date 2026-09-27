@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -155,9 +156,17 @@ internal sealed class AccessExpressions(TypeContext context, CheckerLinks links,
                 {
                     var global = symbols.GlobalThisSymbol.Exports.GetValueOrDefault(SyntaxNameText.Get(right));
                     if (global is not null && (global.Flags & SymbolFlags.BlockScoped) != 0)
-                        await host.AccessErrorAsync(right, 2339, cancellation, leftType).ConfigureAwait(false);
+                        await host.AccessErrorAsync(
+                            right,
+                            DiagnosticCode.Property0DoesNotExistOnType1,
+                            cancellation,
+                            leftType).ConfigureAwait(false);
                     else if (host.NoImplicitAny)
-                        await host.AccessErrorAsync(right, 7017, cancellation, leftType).ConfigureAwait(false);
+                        await host.AccessErrorAsync(
+                            right,
+                            DiagnosticCode.ElementImplicitlyHasAnAnyTypeBecauseType0HasNoIndexSignature,
+                            cancellation,
+                            leftType).ConfigureAwait(false);
                     return context.AnyType;
                 }
                 if (SyntaxNameText.Get(right).Length != 0 && !await host.ExtendingInterfaceAsync(node, cancellation).ConfigureAwait(false))
@@ -169,7 +178,10 @@ internal sealed class AccessExpressions(TypeContext context, CheckerLinks links,
             if (host.NoUncheckedIndexedAccess && assignment != 1)
                 type = await algebra.UnionAsync([type, context.MissingType], cancellation: cancellation).ConfigureAwait(false);
             if (host.NoPropertyAccessFromIndexSignature && node is PropertyAccessExpressionNode)
-                await host.AccessErrorAsync(right, 4111, cancellation).ConfigureAwait(false);
+                await host.AccessErrorAsync(
+                    right,
+                    DiagnosticCode.Property0ComesFromAnIndexSignatureSoItMustBeAccessedWith0,
+                    cancellation).ConfigureAwait(false);
             if (index.Declaration is not null)
                 await host.IndexDeprecatedAsync(index, right, cancellation).ConfigureAwait(false);
         }
@@ -189,7 +201,11 @@ internal sealed class AccessExpressions(TypeContext context, CheckerLinks links,
                 cancellation).ConfigureAwait(false);
             if (await host.ReadonlyAssignmentAsync(node, property, assignment, cancellation).ConfigureAwait(false))
             {
-                await host.AccessErrorAsync(right, 2540, cancellation, symbol: property).ConfigureAwait(false);
+                await host.AccessErrorAsync(
+                    right,
+                    DiagnosticCode.CannotAssignTo0BecauseItIsAReadOnlyProperty,
+                    cancellation,
+                    symbol: property).ConfigureAwait(false);
                 return context.ErrorType;
             }
             type = await host.AutoConstructorPropertyAsync(node, property, cancellation).ConfigureAwait(false) ? context.AutoType
@@ -228,7 +244,10 @@ internal sealed class AccessExpressions(TypeContext context, CheckerLinks links,
             return type;
         if (ConstEnum(type) && node.ArgumentExpression is not (StringLiteralNode or NoSubstitutionTemplateLiteralNode))
         {
-            await host.AccessErrorAsync(node.ArgumentExpression!, 2476, cancellation).ConfigureAwait(false);
+            await host.AccessErrorAsync(
+                node.ArgumentExpression!,
+                DiagnosticCode.AConstEnumMemberCanOnlyBeAccessedUsingAStringLiteral,
+                cancellation).ConfigureAwait(false);
             return context.ErrorType;
         }
         if (await host.NumericForInAsync(node.ArgumentExpression!, cancellation).ConfigureAwait(false))
@@ -256,7 +275,11 @@ internal sealed class AccessExpressions(TypeContext context, CheckerLinks links,
     internal async ValueTask ReadonlyIndexAsync(IndexInfo? index, Type type, SyntaxNode? node, CancellationToken cancellation)
     {
         if (index?.IsReadonly == true && node is not null && (ReferenceSyntax.AssignmentTarget(node) is not null || DeleteTarget(node)))
-            await host.AccessErrorAsync(node, 2542, cancellation, type).ConfigureAwait(false);
+            await host.AccessErrorAsync(
+                node,
+                DiagnosticCode.IndexSignatureInType0OnlyPermitsReading,
+                cancellation,
+                type).ConfigureAwait(false);
     }
 
     internal async ValueTask<Type?> ElementPropertyAsync(Symbol property, Type objectType, ElementAccessExpressionNode node,
@@ -266,7 +289,11 @@ internal sealed class AccessExpressions(TypeContext context, CheckerLinks links,
         int assignment = ReferenceSyntax.AssignmentKind(node);
         if (await host.ReadonlyAssignmentAsync(node, property, assignment, cancellation).ConfigureAwait(false))
         {
-            await host.AccessErrorAsync(node.ArgumentExpression!, 2540, cancellation, symbol: property).ConfigureAwait(false);
+            await host.AccessErrorAsync(
+                node.ArgumentExpression!,
+                DiagnosticCode.CannotAssignTo0BecauseItIsAReadOnlyProperty,
+                cancellation,
+                symbol: property).ConfigureAwait(false);
             return null;
         }
         if ((flags & AccessFlags.CacheSymbol) != 0)

@@ -2,6 +2,7 @@ using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Checking;
 using TypeScript.Compiler.Configuration;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.Programs;
 using TypeScript.Compiler.Syntax;
@@ -62,9 +63,13 @@ internal static class CheckerIdentifierTests
         Check((links.Nodes.Get(parameter).Flags & NodeCheckFlags.InitializerIsUndefinedComputed) != 0);
         Check((links.Nodes.Get(parameter).Flags & NodeCheckFlags.InitializerIsUndefined) == 0);
         Check(await host.Expressions.CheckAsync(queries[0]) == context.StringType);
-        Check(await host.Expressions.CheckAsync(queries[1]) == context.NumberType && host.Diagnostics.Contains(2454));
+        Check(
+            await host.Expressions.CheckAsync(queries[1]) == context.NumberType
+                && host.Diagnostics.Contains(DiagnosticCode.Variable0IsUsedBeforeBeingAssigned));
         Check(await host.Expressions.CheckAsync(queries[2]) == context.NumberType);
-        Check(await host.Expressions.CheckAsync(queries[3]) is LiteralType { Value: 2d } && host.Diagnostics.Contains(2588));
+        Check(
+            await host.Expressions.CheckAsync(queries[3]) is LiteralType { Value: 2d }
+                && host.Diagnostics.Contains(DiagnosticCode.CannotAssignTo0BecauseItIsAConstant));
         Check(host.FlowTypes.ActiveLoopCount == 0 && host.FlowTypes.SharedCount == 0 && host.Instantiation.Resolutions.Count == 0);
         using var cancelled = new CancellationTokenSource();
         cancelled.Cancel();
@@ -108,15 +113,29 @@ internal static class CheckerIdentifierTests
         property.SetParents();
         Check(IdentifierTypes.PropertyInitializerOrStaticBlock(reference, true));
         Check(MissingNamePrefixes.ThisContainer(reference, false, false) == property);
-        Check(host.AssignmentChecks.Reference(nested, 2364, 2779));
-        Check(!host.AssignmentChecks.Reference(new NumericLiteralNode { Text = "1" }, 2701, 2778) && host.Diagnostics.Contains(2701));
+        Check(
+            host.AssignmentChecks.Reference(
+                nested,
+                DiagnosticCode.TheLeftHandSideOfAnAssignmentExpressionMustBeAVariableOrAPropertyAccess,
+                DiagnosticCode.TheLeftHandSideOfAnAssignmentExpressionMayNotBeAnOptionalPropertyAccess));
+        Check(
+            !host.AssignmentChecks.Reference(
+                new NumericLiteralNode { Text = "1" },
+                DiagnosticCode.TheTargetOfAnObjectRestAssignmentMustBeAVariableOrAPropertyAccess,
+                DiagnosticCode.TheTargetOfAnObjectRestAssignmentMayNotBeAnOptionalPropertyAccess)
+                && host.Diagnostics.Contains(DiagnosticCode.TheTargetOfAnObjectRestAssignmentMustBeAVariableOrAPropertyAccess));
         var optional = new PropertyAccessExpressionNode
         {
             Expression = new IdentifierNode { Text = "x" },
             Name = new IdentifierNode { Text = "p" },
             Flags = NodeFlags.OptionalChain
         };
-        Check(!host.AssignmentChecks.Reference(optional, 2357, 2777) && host.Diagnostics.Contains(2777));
+        Check(
+            !host.AssignmentChecks.Reference(
+                optional,
+                DiagnosticCode.TheOperandOfAnIncrementOrDecrementOperatorMustBeAVariableOrAPropertyAccess,
+                DiagnosticCode.TheOperandOfAnIncrementOrDecrementOperatorMayNotBeAnOptionalPropertyAccess)
+                && host.Diagnostics.Contains(DiagnosticCode.TheOperandOfAnIncrementOrDecrementOperatorMayNotBeAnOptionalPropertyAccess));
 
         var aliasProgram = await Build("namespace N { export class C {} } import A = N; import B = A.C; B;");
         var aliasContext = new TypeContext(true, true);
@@ -246,7 +265,20 @@ internal static class CheckerIdentifierTests
         var file = program.GetFile("/project/main.ts")!.Syntax;
         await checker.CheckSourceFileAsync(file);
         var codes = checker.DiagnosticCodesForFile(file);
-        if (!codes.SequenceEqual([2552, 2552, 2661, 2693, 2702, 2708, 2709, 2713, 2749, 2833, 2863]))
+        if (!codes.SequenceEqual(
+            [
+                    DiagnosticCode.CannotFindName0DidYouMean1,
+                    DiagnosticCode.CannotFindName0DidYouMean1,
+                    DiagnosticCode.CannotExport0OnlyLocalDeclarationsCanBeExportedFromAModule,
+                    DiagnosticCode.X0OnlyRefersToATypeButIsBeingUsedAsAValueHere,
+                    DiagnosticCode.X0OnlyRefersToATypeButIsBeingUsedAsANamespaceHere,
+                    DiagnosticCode.CannotUseNamespace0AsAValue,
+                    DiagnosticCode.CannotUseNamespace0AsAType,
+                    DiagnosticCode.CannotAccess01Because0IsATypeButNotANamespaceDidYouMeanToRetrieveTheTypeOfTheProperty1In0With01,
+                    DiagnosticCode.X0RefersToAValueButIsBeingUsedAsATypeHereDidYouMeanTypeof0,
+                    DiagnosticCode.CannotFindNamespace0DidYouMean1,
+                    DiagnosticCode.AClassCannotExtendAPrimitiveTypeLike0ClassesCanOnlyExtendConstructableValues
+                ]))
             throw new InvalidOperationException($"Missing name diagnostics: {string.Join(',', codes)}");
         var spelling = file.DescendantsAndSelf().OfType<IdentifierNode>().Single(n => n.Text == "countr");
         if (checker.SuggestedNameDeclarations.GetValueOrDefault(spelling)?.Name != "counter")

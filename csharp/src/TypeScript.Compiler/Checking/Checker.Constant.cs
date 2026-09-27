@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -11,10 +12,11 @@ internal sealed partial class Checker : IEnumValueHost
     public bool IsolatedModules => program.Symbols.Program.Configuration.Options.Boolean("isolatedModules") == true
         || program.Symbols.Program.Configuration.Options.Boolean("verbatimModuleSyntax") == true;
 
-    public void EnumError(SyntaxNode node, int code) => Error(node, code,
-        code == 18055 && node.Parent is EnumMemberNode member
+    public void EnumError(SyntaxNode node, DiagnosticCode code) => Error(node, code,
+        code == DiagnosticCode.X0HasAStringTypeButMustHaveSyntacticallyRecognizableStringSyntaxWhenIsolatedModulesIsEnabled
+            && node.Parent is EnumMemberNode member
             ? [SyntaxNameText.Get(((EnumDeclarationNode)member.Parent!).Name!) + "." + SyntaxNameText.Get(member.Name!)]
-            : code == 2565 ? [node is ElementAccessExpressionNode element ? element.ArgumentExpression is StringLiteralNode text ? text.Text
+            : code == DiagnosticCode.Property0IsUsedBeforeBeingAssigned ? [node is ElementAccessExpressionNode element ? element.ArgumentExpression is StringLiteralNode text ? text.Text
                 : CheckerDiagnostic.DeclarationName(element.ArgumentExpression!)
                 : CheckerDiagnostic.DeclarationName(node is PropertyAccessExpressionNode access ? access.Name! : node)] : []);
 
@@ -29,6 +31,6 @@ internal sealed partial class Checker : IEnumValueHost
     {
         var type = await LiteralExpressionAsync(member.Initializer!, cancellation);
         await RelationDiagnostics.CheckAsync(type, context.NumberType, RelationKind.Assignable,
-            member.Initializer!, null, 18033, cancellation);
+            member.Initializer!, null, DiagnosticCode.Type0IsNotAssignableToType1AsRequiredForComputedEnumMemberValues, cancellation);
     }
 }

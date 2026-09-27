@@ -55,7 +55,7 @@ internal static class PipelineExperiments
             {
                 writer.WriteStartObject();
                 writer.WriteString("file", diagnostic.File);
-                writer.WriteNumber("code", diagnostic.Code);
+                writer.WriteNumber("code", (int)diagnostic.Code);
                 writer.WriteNumber("pos", diagnostic.Pos);
                 writer.WriteNumber("length", diagnostic.Length);
                 writer.WriteString("message", diagnostic.Message);

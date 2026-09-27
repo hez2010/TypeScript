@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Semantics;
 using TypeScript.Compiler.Syntax;
 
@@ -17,7 +18,7 @@ internal sealed partial class Checker
             || node is VariableDeclarationNode && (flags & NodeFlags.Constant) != 0;
         if (!constant || node is ITypedNode { Type: not null })
         {
-            Error(initializer, 1039);
+            Error(initializer, DiagnosticCode.InitializersAreNotAllowedInAmbientContexts);
             return;
         }
         static bool SimpleLiteral(SyntaxNode expression) => expression is StringLiteralNode or NoSubstitutionTemplateLiteralNode
@@ -31,6 +32,6 @@ internal sealed partial class Checker
             || initializer is ElementAccessExpressionNode element && SimpleLiteral(element.ArgumentExpression!)
                 && ConstantEvaluator.EntityName(element.Expression!);
         if (!enumReference || ((await CachedExpressionAsync(initializer, 0, cancellation)).Flags & TypeFlags.EnumLike) == 0)
-            Error(initializer, 1254);
+            Error(initializer, DiagnosticCode.AConstInitializerInAnAmbientContextMustBeAStringOrNumericLiteralOrLiteralEnumReference);
     }
 }

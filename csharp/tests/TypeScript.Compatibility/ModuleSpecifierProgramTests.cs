@@ -232,7 +232,7 @@ internal static class ModuleSpecifierProgramTests
         writer.WriteEndArray();
         writer.WriteStartArray();
         foreach (var diagnostic in program.Diagnostics.OrderBy(d => d.Code))
-            writer.WriteNumberValue(diagnostic.Code);
+            writer.WriteNumberValue((int)diagnostic.Code);
         writer.WriteEndArray();
         CheckerCorpusTests.WriteDiagnostics(writer, program.Diagnostics);
         writer.WriteEndArray();

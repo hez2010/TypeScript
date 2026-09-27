@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
 namespace TypeScript.Compiler.Checking;
@@ -60,7 +61,7 @@ internal sealed partial class Checker
             foreach (ImportAttributeNode attribute in node.Attributes!)
                 if (attribute.Value is not StringLiteralNode)
                 {
-                    Error(attribute.Value!, 2858);
+                    Error(attribute.Value!, DiagnosticCode.ImportAttributeValuesMustBeStringLiteralExpressions);
                     valid = false;
                 }
         return valid;
@@ -75,7 +76,7 @@ internal sealed partial class Checker
             await RelationDiagnostics.CheckAsync(await ImportAttributesExpressionAsync(node, cancellation),
                 await Algebra.UnionAsync([globalImportAttributes, context.UndefinedType], cancellation: cancellation),
                 RelationKind.Assignable,
-                node, null, 2322, cancellation);
+                node, null, DiagnosticCode.Type0IsNotAssignableToType1, cancellation);
         bool typeOnly = declaration is ImportTypeNode
             || declaration is ImportDeclarationNode { ImportClause: { } clause } && SemanticSyntax.TypeOnly(clause)
             || declaration is ExportDeclarationNode { IsTypeOnly: true };
@@ -91,21 +92,21 @@ internal sealed partial class Checker
         if (typeOnly)
         {
             if (grammar && modeText is not null && !validMode)
-                Error(mode!.Value!, 1453);
+                Error(mode!.Value!, DiagnosticCode.XResolutionModeShouldBeEitherRequireOrImport);
             return;
         }
         if (grammar && ModuleKind is not (99 or 101 or 102 or 199 or 200))
         {
-            Error(node, 2823);
+            Error(node, DiagnosticCode.ImportAttributesAreOnlySupportedWhenTheModuleOptionIsSetToEsnextNode18Node20NodenextOrPreserve);
             return;
         }
         if (grammar && EmitModuleKind(declaration) == 1)
         {
-            Error(node, 2856);
+            Error(node, DiagnosticCode.ImportAttributesAreNotAllowedOnStatementsThatCompileToCommonJSRequireCalls);
             return;
         }
         if (grammar && validMode)
-            Error(node, 1454);
+            Error(node, DiagnosticCode.XResolutionModeCanOnlyBeSetForTypeOnlyImports);
     }
 
     private async ValueTask CheckModuleAttributesAsync(ModuleDeclarationNode node, CancellationToken cancellation)
@@ -114,42 +115,42 @@ internal sealed partial class Checker
         if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count == 0)
         {
             if (ModuleAugmentation(node))
-                Error(attributes, 1551);
+                Error(attributes, DiagnosticCode.ImportAttributesAreNotAllowedOnAModuleAugmentation);
             foreach (var member in attributes.Members!)
             {
                 if (member is not PropertySignatureDeclarationNode property)
                 {
-                    Error(member, 1552);
+                    Error(member, DiagnosticCode.AnImportAttributesTypeMayOnlyContainPropertySignatures);
                     break;
                 }
                 if (property.Modifiers?.FirstOrDefault(m => m.Kind == SyntaxKind.ReadonlyKeyword) is { } readOnly)
                 {
-                    Error(readOnly, 1558);
+                    Error(readOnly, DiagnosticCode.AnImportAttributesPropertyCannotHaveAReadonlyModifier);
                     break;
                 }
                 if (property.Type is null)
                 {
-                    Error(member, 1553);
+                    Error(member, DiagnosticCode.AnImportAttributesPropertyMustHaveATypeAnnotation);
                     break;
                 }
                 if (property.PostfixToken?.Kind == SyntaxKind.QuestionToken)
                 {
-                    Error(member, 1556);
+                    Error(member, DiagnosticCode.AnImportAttributesPropertyCannotBeOptional);
                     break;
                 }
                 if (property.Name is not (StringLiteralNode or IdentifierNode or NoSubstitutionTemplateLiteralNode))
                 {
-                    Error(property.Name!, 1554);
+                    Error(property.Name!, DiagnosticCode.AnImportAttributesPropertyMustHaveAStringLiteralOrIdentifierName);
                     break;
                 }
                 if (ImportAttributeName(property.Name!) == "resolution-mode")
                 {
-                    Error(property.Name!, 1557, ImportAttributeName(property.Name!));
+                    Error(property.Name!, DiagnosticCode.X0IsNotAValidKeyForAnImportAttributesType, ImportAttributeName(property.Name!));
                     break;
                 }
                 if (property.Type is not LiteralTypeNode { Literal: StringLiteralNode or NoSubstitutionTemplateLiteralNode })
                 {
-                    Error(property.Type, 1555);
+                    Error(property.Type, DiagnosticCode.AnImportAttributesPropertyMustHaveAStringLiteralTypeAnnotation);
                     break;
                 }
             }
@@ -158,6 +159,6 @@ internal sealed partial class Checker
         globalImportAttributes ??= await program.Globals.GetAsync("ImportAttributes", 0, true, cancellation);
         if (globalImportAttributes != context.EmptyObjectType)
             await RelationDiagnostics.CheckAsync(await Nodes.FromNodeAsync(attributes, cancellation), globalImportAttributes,
-                RelationKind.Assignable, attributes, null, 2322, cancellation);
+                RelationKind.Assignable, attributes, null, DiagnosticCode.Type0IsNotAssignableToType1, cancellation);
     }
 }
