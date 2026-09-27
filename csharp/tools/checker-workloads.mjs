@@ -21,6 +21,7 @@ const manifest = JSON.parse(manifestText);
 const dotnet = option("--dotnet", process.env.DOTNET_ROOT ? path.join(process.env.DOTNET_ROOT, "dotnet.exe") : "dotnet");
 const executable = option("--candidate-executable");
 const serverGC = process.argv.includes("--server-gc");
+const customInputs = option("--inputs") ? JSON.parse(await readFile(option("--inputs"), "utf8")) : null;
 const dll = path.resolve(option("--candidate-directory", "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0"), "TypeScript.Compatibility.dll");
 const compilerDll = path.join(path.dirname(dll), "TypeScript.Compiler.dll");
 const oracle = path.join(root, "built/csharp/checker-workload-oracle.exe");
@@ -67,7 +68,7 @@ function server(command, args) {
 const samples = [];
 for (const mode of manifest.modes) {
     const directory = path.join(root, "built/csharp/semantic-corpus-preemit-baseline", mode);
-    const references = new Map(
+    const references = new Map(customInputs ? customInputs.map(input => [input.name, input]) :
         (await readFile(path.join(directory, "cases.jsonl"), "utf8")).trim().split(/\r?\n/).map(line => {
             const row = JSON.parse(line);
             return [row.name, row];
@@ -78,9 +79,9 @@ for (const mode of manifest.modes) {
         if (!reference || reference.status !== "ready") {
             throw Error(`Workload has no active reference: ${name}`);
         }
-        const diagnosticCount = reference.semanticDiagnostics.length + reference.globalDiagnostics.length;
-        const graphSha256 = sha256(reference.sources.map(s => `${s.file}\0${s.sha256}\n`).join(""));
-        const input = { ...reference, blobDirectory: path.join(directory, "blobs"), singleThreaded: mode === "single" };
+        const diagnosticCount = reference.expected?.diagnosticCount ?? reference.semanticDiagnostics.length + reference.globalDiagnostics.length;
+        const graphSha256 = reference.expected?.graphSha256 ?? sha256(reference.sources.map(s => `${s.file}\0${s.sha256}\n`).join(""));
+        const input = { ...reference, blobDirectory: reference.blobDirectory ?? path.join(directory, "blobs"), singleThreaded: mode === "single" };
         const processes = baselineDirectory ? {
             before: server(dotnet, [path.resolve(baselineDirectory, "TypeScript.Compatibility.dll"), "--checker-workload-lines"]),
             after: server(dotnet, [dll, "--checker-workload-lines"]),
@@ -139,6 +140,7 @@ const summary = {
     referenceRevision: manifest.referenceRevision,
     manifest,
     manifestSha256: sha256(manifestText),
+    ...(customInputs ? { inputsSha256: sha256(JSON.stringify(customInputs)) } : {}),
     candidateSha256: sha256(await readFile(dll)),
     compilerSha256: sha256(await readFile(compilerDll)),
     ...(baselineDirectory ? {

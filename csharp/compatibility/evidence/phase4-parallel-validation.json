@@ -1,0 +1,156 @@
+{
+  "timestamp": "2026-09-27T16:17:26.391Z",
+  "baseCommit": "12b2f91f44",
+  "sdk": "11.0.100-rtm.26473.115",
+  "configuration": "Release CoreCLR",
+  "compilerSha256": "ff440cabbf9f0742e53b2f92aa0327c9c5d115bed6cb45453c7e92eb19c14c9a",
+  "candidateSha256": "e7263d44b2e7a8ac4c147913ed0f9500e06b07b9969d1245e681f9a00a4cb46b",
+  "semantic": [
+    {
+      "timestamp": "2026-09-27T16:11:18.724Z",
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "mode": "single",
+      "filter": "",
+      "managed": true,
+      "reuseSyntax": true,
+      "referenceJobs": 2,
+      "scope": "Original compiler test program graphs and semantic/global diagnostics in the selected checker concurrency mode; checker query APIs are validated separately",
+      "referenceExitCode": 0,
+      "exportedConfigurations": 15208,
+      "readyConfigurations": 13446,
+      "availableConfigurations": 13446,
+      "referenceInventoryFiles": 12730,
+      "plannedConfigurations": 15208,
+      "referenceMissingFiles": [],
+      "referenceMissingConfigurations": [],
+      "referenceSkipped": 1762,
+      "referenceFailed": 0,
+      "candidateFailures": 0,
+      "graphMismatches": 0,
+      "diagnosticMismatches": 0,
+      "graphAndCodeMatches": 13446,
+      "detailedDiagnosticMatches": 13446,
+      "detailedDiagnosticMismatches": 0,
+      "detailedComparison": "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized",
+      "errorGroups": [],
+      "inputSha256": "df21bccda8a3bc5da534586c352dae0175cf4bf260c93ee15694afe19353d5bd",
+      "referenceInputCorrectionsSha256": "796d2ff79dfe5dfb5d35cd192946d4a1da669b6cea211d31b2b4696d84aa0c0c",
+      "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+      "candidateSha256": "e7263d44b2e7a8ac4c147913ed0f9500e06b07b9969d1245e681f9a00a4cb46b",
+      "compilerSha256": "ff440cabbf9f0742e53b2f92aa0327c9c5d115bed6cb45453c7e92eb19c14c9a",
+      "mapperFixture": {
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+        "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+        "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+      },
+      "candidateOutputSha256": "8390e6e546cf407bd5030dfabecd2983bd7aee283ae8d0a0678963646c6b31a4",
+      "fullSemanticCorpusGateComplete": true
+    },
+    {
+      "timestamp": "2026-09-27T16:14:52.620Z",
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "mode": "default",
+      "filter": "",
+      "managed": true,
+      "reuseSyntax": true,
+      "referenceJobs": 2,
+      "scope": "Original compiler test program graphs and semantic/global diagnostics in the selected checker concurrency mode; checker query APIs are validated separately",
+      "referenceExitCode": 0,
+      "exportedConfigurations": 15208,
+      "readyConfigurations": 13446,
+      "availableConfigurations": 13446,
+      "referenceInventoryFiles": 12730,
+      "plannedConfigurations": 15208,
+      "referenceMissingFiles": [],
+      "referenceMissingConfigurations": [],
+      "referenceSkipped": 1762,
+      "referenceFailed": 0,
+      "candidateFailures": 0,
+      "graphMismatches": 0,
+      "diagnosticMismatches": 0,
+      "graphAndCodeMatches": 13446,
+      "detailedDiagnosticMatches": 13446,
+      "detailedDiagnosticMismatches": 0,
+      "detailedComparison": "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized",
+      "errorGroups": [],
+      "inputSha256": "b51e79a2ebc4428367c89bceb367fd82a86bdd85b43b847bc17f875b51743a77",
+      "referenceInputCorrectionsSha256": "f0e9fd99f75e8ac0c3db7ef4ccef21980f74b7b1adcfe189a01c8a762e4613a6",
+      "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+      "candidateSha256": "e7263d44b2e7a8ac4c147913ed0f9500e06b07b9969d1245e681f9a00a4cb46b",
+      "compilerSha256": "ff440cabbf9f0742e53b2f92aa0327c9c5d115bed6cb45453c7e92eb19c14c9a",
+      "mapperFixture": {
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+        "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+        "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+      },
+      "candidateOutputSha256": "8390e6e546cf407bd5030dfabecd2983bd7aee283ae8d0a0678963646c6b31a4",
+      "fullSemanticCorpusGateComplete": true
+    }
+  ],
+  "graph": {
+    "timestamp": "2026-09-27T16:07:57.663Z",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "managed": true,
+    "cases": 232,
+    "passed": 232,
+    "failed": 0,
+    "inputSha256": "19c5e48c4a46a98fef55794ff836bee40e88429cae341fcef90718a94a9d22bf",
+    "oracleSha256": "99a854150e9056e340bbb4d068db6f51448d8f7f045043d070008081f8d28c20",
+    "candidateSha256": "e7263d44b2e7a8ac4c147913ed0f9500e06b07b9969d1245e681f9a00a4cb46b"
+  },
+  "checks": [
+    {
+      "name": "Program scheduling, reuse, cancellation and deep-graph safety",
+      "assertions": 25,
+      "log": "logs/parallel--program-safety.log",
+      "output": "Program reuse, invalidation and stack safety: 25 assertions; 12000 syntax levels; 3000 files",
+      "sha256": "9e191f3d905f06929f12ba212f84648c267e25a2cb44dd1f23d28ba6b3d6a961"
+    },
+    {
+      "name": "Checker pool ownership and concurrency",
+      "assertions": 19,
+      "log": "logs/parallel--checker-pool-safety.log",
+      "output": "Checker pool safety: 19 assertions passed",
+      "sha256": "883cd88c463819ad846f62b986d88f5905b6aa40814616b3168f5b3eec1972be"
+    },
+    {
+      "name": "Checker pool cancellation",
+      "assertions": 6,
+      "log": "logs/parallel--checker-pool-cancellation.log",
+      "output": "Checker pool cancellation: 6 assertions passed",
+      "sha256": "dd1f3ccc90a769eb2dad5189021f42f711d8b2bb60cbdde73bca458fb9a6c899"
+    },
+    {
+      "name": "Program/checker ownership",
+      "assertions": 294,
+      "log": "logs/parallel--checker-program-safety.log",
+      "output": "294 program/checker ownership assertions; interface and scope depth 20000",
+      "sha256": "14952ed0aa68bab7de8d6b77d523b8c58e029c3685fa57baac5d39a75e054b71"
+    },
+    {
+      "name": "Content mapper lifecycle and graph",
+      "assertions": 44,
+      "log": "logs/parallel-content-mappers.log",
+      "output": "Content mapper lifecycle and graph: 44 assertions",
+      "sha256": "fcd706baef4ef39228efd4daa22c7bf8a6681b7a22cf3b77b416980e91be928d"
+    }
+  ],
+  "reused": "Scanner/parser, type algebra, unchanged query implementations, generated code and wire codecs retain the prior span-text validation. This pass reran both complete semantic corpus modes and the graph, scheduling, ownership and mapper checks affected by moving binding into workers.",
+  "failedInvocations": [
+    {
+      "log": "logs/parallel-content-mappers-wrong-root.log",
+      "reason": "The mapper test was initially given the oracle repository, which did not contain the JavaScript fixture. Rerunning with the actual workspace path passed; no code change."
+    }
+  ],
+  "nativeAot": {
+    "published": true,
+    "executed": false,
+    "warnings": 0,
+    "errors": 0,
+    "bytes": 27226624,
+    "sha256": "8c3b889b32fe9d8513f5c08bbcb46f0f72cb90ba3deadc3187947a3328b4f1d0",
+    "log": "logs/parallel-native-publish.log"
+  }
+}

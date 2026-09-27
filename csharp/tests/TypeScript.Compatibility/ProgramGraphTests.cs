@@ -96,6 +96,73 @@ internal static class ProgramGraphTests
         {
             assertions++;
         }
+        // A slow second file must not prevent the first worker from admitting a third file.
+        using var thirdRead = new ManualResetEventSlim();
+        var scheduledFiles = new Dictionary<string, byte[]>
+        {
+            ["/scheduled/a.ts"] = Wtf8.Encode("export const a = 1;"),
+            ["/scheduled/b.ts"] = Wtf8.Encode("export const b = 2;"),
+            ["/scheduled/c.ts"] = Wtf8.Encode("export const c = 3;")
+        };
+        var scheduledFs = new ObservedFileSystem(new MemoryFileSystem(scheduledFiles), path =>
+        {
+            if (path == "/scheduled/b.ts" && !thirdRead.Wait(TimeSpan.FromSeconds(15)))
+                throw new InvalidOperationException("Program loading waited for a complete batch");
+            if (path == "/scheduled/c.ts")
+                thirdRead.Set();
+        });
+        var scheduledConfig = new ParsedConfig("/scheduled/tsconfig.json", options, scheduledFiles.Keys.ToArray(), [], [], []);
+        var scheduled = await CompilerProgram.CreateAsync(scheduledFs, "/scheduled", scheduledConfig, concurrency: 2);
+        Check(thirdRead.IsSet && scheduled.SourceFiles.Select(f => f.Syntax.FileName).SequenceEqual(scheduledFiles.Keys),
+            "Workers refill without a batch barrier and publication preserves root order");
+        Check(scheduled.SourceFiles.All(f => f.Binding.IsModule && f.Binding.Symbol!.Exports.Count == 1),
+            "Every published file has completed binding");
+        var serialScheduled = await CompilerProgram.CreateAsync(new MemoryFileSystem(scheduledFiles), "/scheduled",
+            scheduledConfig, concurrency: 1);
+        Check(serialScheduled.SourceFiles.Select(f => f.Syntax.FileName).SequenceEqual(scheduled.SourceFiles.Select(f => f.Syntax.FileName)),
+            "Serial and parallel discovery produce the same graph");
+
+        using var otherRead = new ManualResetEventSlim();
+        using var releaseRead = new ManualResetEventSlim();
+        var failureReached = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        int activeReads = 0;
+        var failingFs = new ObservedFileSystem(new MemoryFileSystem(scheduledFiles), path =>
+        {
+            if (path == "/scheduled/a.ts")
+            {
+                if (!otherRead.Wait(TimeSpan.FromSeconds(15)))
+                    throw new InvalidOperationException("The second file did not start");
+                failureReached.SetResult();
+                throw new IOException("Expected file read failure");
+            }
+            if (path == "/scheduled/b.ts")
+            {
+                Interlocked.Increment(ref activeReads);
+                try
+                {
+                    otherRead.Set();
+                    if (!releaseRead.Wait(TimeSpan.FromSeconds(15)))
+                        throw new InvalidOperationException("The outstanding read was not released");
+                }
+                finally { Interlocked.Decrement(ref activeReads); }
+            }
+        });
+        var failedBuild = CompilerProgram.CreateAsync(failingFs, "/scheduled", scheduledConfig, concurrency: 2).AsTask();
+        try
+        {
+            await failureReached.Task.WaitAsync(TimeSpan.FromSeconds(15));
+            Check(!failedBuild.IsCompleted, "Failed builds retain ownership of outstanding workers");
+        }
+        finally { releaseRead.Set(); }
+        try
+        {
+            await failedBuild;
+            throw new InvalidDataException("Expected file read failure");
+        }
+        catch (IOException error) when (error.Message == "Expected file read failure")
+        {
+            Check(activeReads == 0, "Failed builds drain outstanding workers before returning");
+        }
         const int depth = 12000;
         var deep = Parser.ParseSourceFile(
             new("/project/deep.ts"),
@@ -160,6 +227,22 @@ internal static class ProgramGraphTests
         }
         Console.WriteLine(
             $"Program reuse, invalidation and stack safety: {assertions} assertions; {depth} syntax levels; {chainLength} files");
+    }
+
+    private sealed class ObservedFileSystem(IFileSystem inner, Action<string> beforeRead) : IFileSystem
+    {
+        public bool CaseSensitive => inner.CaseSensitive;
+        public byte[]? ReadFile(string path) { beforeRead(path); return inner.ReadFile(path); }
+        public bool FileExists(string path) => inner.FileExists(path);
+        public bool DirectoryExists(string path) => inner.DirectoryExists(path);
+        public string RealPath(string path) => inner.RealPath(path);
+        public DirectoryEntries GetAccessibleEntries(string path) => inner.GetAccessibleEntries(path);
+        public FileEntry? Stat(string path) => inner.Stat(path);
+        public void WriteFile(string path, ReadOnlySpan<byte> contents) => inner.WriteFile(path, contents);
+        public void AppendFile(string path, ReadOnlySpan<byte> contents) => inner.AppendFile(path, contents);
+        public void Remove(string path) => inner.Remove(path);
+        public void SetTimes(string path, DateTime accessTimeUtc, DateTime writeTimeUtc) =>
+            inner.SetTimes(path, accessTimeUtc, writeTimeUtc);
     }
 
     private sealed class RejectContext : SynchronizationContext

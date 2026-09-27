@@ -163,7 +163,10 @@ public sealed partial class CompilerProgram
             string PackageType,
             MappedSourceFiles? Mapping = null,
             Diagnostic[]? Diagnostics = null,
-            bool FailedLookup = false);
+            bool FailedLookup = false)
+        {
+            internal BoundSourceFile? Binding { get; set; }
+        }
 
         internal Builder(
             IFileSystem fs,
@@ -416,75 +419,77 @@ public sealed partial class CompilerProgram
 
         private async ValueTask LoadPending(Queue<(FileIncludeReason Reason, bool Library, int Depth, PackageId? Package)> pending)
         {
-            while (pending.Count != 0)
+            // Keep file-local parsing and binding busy while publishing the graph in discovery order.
+            var scheduled = new Queue<(string Path, bool Library, ParsedConfig Project, ValueTask<ParsedSource> Task)>();
+            try
             {
-                cancellation.ThrowIfCancellationRequested();
-                var batch = new List<(string Path, bool Library, int Depth, ParsedConfig Project, ValueTask<ParsedSource> Task)>();
-                while (pending.Count != 0 && batch.Count < concurrency)
+                while (pending.Count != 0 || scheduled.Count != 0)
                 {
-                    var item = pending.Dequeue();
-                    string original = CompilerPath.Resolve(cwd, item.Reason.FileName), path = references.Redirect(original);
-                    if (!reasons.TryGetValue(original, out var why))
-                        reasons[original] = why = [];
-                    if (!why.Contains(item.Reason))
-                        why.Add(item.Reason);
-                    if (path != original)
-                        redirects[original] = path;
-                    if (item.Package is { } package)
-                        filePackages.TryAdd(path, package);
-                    if (!seen.Add(path))
+                    cancellation.ThrowIfCancellationRequested();
+                    while (pending.Count != 0 && scheduled.Count < concurrency)
                     {
-                        if (item.Depth < loadedDepth[path])
+                        var item = pending.Dequeue();
+                        string original = CompilerPath.Resolve(cwd, item.Reason.FileName), path = references.Redirect(original);
+                        if (!reasons.TryGetValue(original, out var why))
+                            reasons[original] = why = [];
+                        if (!why.Contains(item.Reason))
+                            why.Add(item.Reason);
+                        if (path != original)
+                            redirects[original] = path;
+                        if (item.Package is { } package)
+                            filePackages.TryAdd(path, package);
+                        if (!seen.Add(path))
                         {
-                            loadedDepth[path] = item.Depth;
-                            if (files.TryGetValue(path, out var existing))
+                            if (item.Depth < loadedDepth[path])
                             {
-                                var dependencies = existing.Dependencies.ToList();
-                                var projectOptions = (references.Find(path)?.Project ?? config).Options;
-                                foreach (var reference in existing.Resolutions.Where(r => r.Resolution.IsResolved && !r.Augmentation))
+                                loadedDepth[path] = item.Depth;
+                                if (files.TryGetValue(path, out var existing))
                                 {
-                                    var resolution = reference.Resolution;
-                                    if (projectOptions.Boolean("noResolve") == true)
-                                        continue;
-                                    if (resolution.IsArbitraryExtension && !existing.Syntax.IsDeclarationFile
-                                        && projectOptions.Boolean("allowArbitraryExtensions") != true)
-                                        continue;
-                                    if (resolution.Extension is ".js" or ".jsx" or ".mjs" or ".cjs"
-                                        && !(projectOptions.Boolean("allowJs") ?? projectOptions.Boolean("checkJs") == true))
-                                        continue;
-                                    if (resolution.Extension is ".jsx" or ".tsx" && projectOptions.String("jsx") is null)
-                                        continue;
-                                    int depth = item.Depth + (resolution.External ? 1 : 0);
-                                    bool externalJs = resolution.External && resolution.Extension is ".js" or ".jsx" or ".mjs" or ".cjs";
-                                    if (externalJs && depth > (projectOptions.Number("maxNodeModuleJsDepth") ?? 0))
+                                    var existingDependencies = existing.Dependencies.ToList();
+                                    var projectOptions = (references.Find(path)?.Project ?? config).Options;
+                                    foreach (var reference in existing.Resolutions.Where(r => r.Resolution.IsResolved && !r.Augmentation))
                                     {
-                                        if (!dependencies.Contains(resolution.FileName, files.Comparer))
-                                            dependencies.Add(resolution.FileName);
-                                        continue;
+                                        var resolution = reference.Resolution;
+                                        if (projectOptions.Boolean("noResolve") == true)
+                                            continue;
+                                        if (resolution.IsArbitraryExtension && !existing.Syntax.IsDeclarationFile
+                                            && projectOptions.Boolean("allowArbitraryExtensions") != true)
+                                            continue;
+                                        if (resolution.Extension is ".js" or ".jsx" or ".mjs" or ".cjs"
+                                            && !(projectOptions.Boolean("allowJs") ?? projectOptions.Boolean("checkJs") == true))
+                                            continue;
+                                        if (resolution.Extension is ".jsx" or ".tsx" && projectOptions.String("jsx") is null)
+                                            continue;
+                                        int depth = item.Depth + (resolution.External ? 1 : 0);
+                                        bool externalJs = resolution.External && resolution.Extension is ".js" or ".jsx" or ".mjs" or ".cjs";
+                                        if (externalJs && depth > (projectOptions.Number("maxNodeModuleJsDepth") ?? 0))
+                                        {
+                                            if (!existingDependencies.Contains(resolution.FileName, files.Comparer))
+                                                existingDependencies.Add(resolution.FileName);
+                                            continue;
+                                        }
+                                        if (!existingDependencies.Contains(resolution.FileName, files.Comparer))
+                                            existingDependencies.Add(resolution.FileName);
+                                        pending.Enqueue(
+                                            (new(
+                                                reference.TypeReference ? FileIncludeKind.TypeReference : FileIncludeKind.Import,
+                                                resolution.FileName,
+                                                path,
+                                                reference.Node?.Pos ?? 0), false, depth, resolution.PackageId));
                                     }
-                                    if (!dependencies.Contains(resolution.FileName, files.Comparer))
-                                        dependencies.Add(resolution.FileName);
-                                    pending.Enqueue(
-                                        (new(
-                                            reference.TypeReference ? FileIncludeKind.TypeReference : FileIncludeKind.Import,
-                                            resolution.FileName,
-                                            path,
-                                            reference.Node?.Pos ?? 0), false, depth, resolution.PackageId));
+                                    files[path] = existing with { Dependencies = existingDependencies.ToArray() };
                                 }
-                                files[path] = existing with { Dependencies = dependencies.ToArray() };
                             }
+                            continue;
                         }
-                        continue;
+                        loadedDepth[path] = item.Depth;
+                        var project = references.Find(path)?.Project ?? config;
+                        scheduled.Enqueue((path, item.Library, project, ParseAndBind(path, project, item.Library)));
                     }
-                    loadedDepth[path] = item.Depth;
-                    var project = references.Find(path)?.Project ?? config;
-                    batch.Add((path, item.Library, item.Depth, project, Parse(path, project, item.Library)));
-                }
-                var parsedBatch = await Task.WhenAll(batch.Select(entry => entry.Task.AsTask())).ConfigureAwait(false);
-                for (int batchIndex = 0; batchIndex < batch.Count; batchIndex++)
-                {
-                    var entry = batch[batchIndex];
-                    var parsed = parsedBatch[batchIndex];
+                    if (scheduled.Count == 0)
+                        continue;
+                    var entry = scheduled.Dequeue();
+                    var parsed = await entry.Task.ConfigureAwait(false);
                     if (parsed.File is not { } syntax)
                     {
                         missing.Add(entry.Path);
@@ -636,12 +641,25 @@ public sealed partial class CompilerProgram
                             supplemental[mapped.Syntax.FileName] = mapped;
                             Include(mapped.Syntax.FileName, FileIncludeKind.MapperSupplemental, 0);
                         }
-                    var bound = await Binder.BindAsync(syntax, cancellation).ConfigureAwait(false);
-                    files.Add(entry.Path, new(syntax, bound, parsed.Options, parsed.Format, parsed.PackageDirectory, parsed.PackageType,
+                    files.Add(entry.Path, new(syntax, parsed.Binding!, parsed.Options, parsed.Format, parsed.PackageDirectory, parsed.PackageType,
                         resolutions.ToArray(), dependencies.ToArray(), entry.Library)
                     { Mapping = parsed.Mapping?.Canonical ?? supplemental.GetValueOrDefault(entry.Path) });
                 }
             }
+            finally
+            {
+                // Observe outstanding work before the builder (including its mapper host) is disposed.
+                if (scheduled.Count != 0)
+                    await Task.WhenAll(scheduled.Select(entry => entry.Task.AsTask())).ConfigureAwait(false);
+            }
+        }
+
+        private async ValueTask<ParsedSource> ParseAndBind(string path, ParsedConfig project, bool library)
+        {
+            var parsed = await Parse(path, project, library).ConfigureAwait(false);
+            if (parsed.File is { } syntax)
+                parsed.Binding = await Binder.BindAsync(syntax, cancellation).ConfigureAwait(false);
+            return parsed;
         }
 
         private async ValueTask<ParsedSource> Parse(
