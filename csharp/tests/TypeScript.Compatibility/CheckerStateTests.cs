@@ -2,6 +2,7 @@ using System.Text.Json;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Checking;
+using TypeScript.Compiler.Text;
 using Type = TypeScript.Compiler.Checking.Type;
 
 namespace TypeScript.Compatibility;
@@ -133,6 +134,14 @@ internal static class CheckerStateTests
         var order = new TypeOrder([]);
         Check(order.Compare(left, right) < 0 && order.Compare(right, left) > 0);
         Check(TypeOrder.CompareText("\ue000", "😀") < 0 && TypeOrder.CompareText("\ud800", "\ue000") < 0);
+        string[] names = ["", "a", "aa", "ab", "\0", "\u007f", "\u0080", "\u07ff", "\u0800", "\ud7ff",
+            "\ud800", "\ud800a", "\ud800\ud800", "\ud800\udc00", "\ud800\udc01", "\ud800\ue000",
+            "\udbff\udfff", "\udc00", "\udfff", "\ue000", "\uffff", "😀"];
+        foreach (string prefix in new[] { "", new string('x', 128), "😀\ud800" })
+            foreach (string leftName in names)
+                foreach (string rightName in names)
+                    Check(Math.Sign(TypeOrder.CompareText(prefix + leftName, prefix + rightName))
+                        == Math.Sign(Wtf8.Encode(prefix + leftName).AsSpan().SequenceCompareTo(Wtf8.Encode(prefix + rightName))));
         Check(TypeOrder.CompareSymbolNames(Symbol.InternalPrefix + "type", "😀") > 0
             && TypeOrder.CompareSymbolNames(Symbol.InternalPrefix + Symbol.InternalPrefix + "x", "😀") < 0);
 

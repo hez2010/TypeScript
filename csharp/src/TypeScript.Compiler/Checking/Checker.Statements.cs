@@ -23,7 +23,7 @@ internal sealed partial class Checker
         var statements = Statements(node.Parent);
         if (statements is not null)
         {
-            int index = statements.ToList().IndexOf(node);
+            int index = statements.IndexOf(node);
             for (int i = index + 1; index >= 0 && i < statements.Count; i++)
             {
                 if (!Executable(statements[i]) || !await UnreachableAsync(statements[i], cancellation).ConfigureAwait(false))

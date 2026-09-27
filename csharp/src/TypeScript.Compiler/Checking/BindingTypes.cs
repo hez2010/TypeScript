@@ -73,7 +73,7 @@ internal sealed class BindingTypes(TypeContext context, CheckerLinks links, Chec
             else if (binding.DotDotDotToken is null)
                 type = await InitialArrayElementAsync(
                     type,
-                    pattern.Elements!.ToList().IndexOf(binding),
+                    pattern.Elements!.IndexOf(binding),
                     cancellation).ConfigureAwait(false);
             else
                 type = await tuples.ArrayAsync(await host.BindingIterationAsync(type, null, false, cancellation).ConfigureAwait(false),
@@ -204,7 +204,7 @@ internal sealed class BindingTypes(TypeContext context, CheckerLinks links, Chec
                 pattern,
                 element.DotDotDotToken is null,
                 cancellation).ConfigureAwait(false);
-            int position = pattern.Elements!.ToList().IndexOf(element);
+            int position = pattern.Elements!.IndexOf(element);
             if (element.DotDotDotToken is not null)
             {
                 var baseType = (await algebra.MapAsync(parent, async part => (part.Flags & TypeFlags.InstantiableNonPrimitive) != 0

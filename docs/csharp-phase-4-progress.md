@@ -25,7 +25,15 @@ Evidence: [full semantic rollup](../csharp/compatibility/evidence/phase4-final-s
 
 Validation follows the user's policy: runtime execution uses the normal Release build, unchanged results are reused, and NativeAOT is published only at final completion and is never executed. Formatting was proven to preserve tokens, comments and syntax for 61 C# files under both library configurations, so runtime checks were not repeated for formatting.
 
-The sections below preserve historical checkpoints, including failures that were subsequently corrected. Their old incomplete statuses describe those checkpoints.
+## Quality pass before Phase 5
+
+The follow-up cleanup removes temporary node-list copies from 19 index lookups, groups source-file indices once per checker pool, and reuses the query lease for expression, type-node, type-location and symbol-location queries. Each worker retains program order and collects diagnostics after checking its entire partition. Type-name comparison uses the BCL common-prefix operation while preserving UTF-8/WTF-8 ordering, including lone surrogates. Module-pattern selection uses `MaxBy`.
+
+The display builder and printer now share their truncation limits. Checker-count caps and partition weights have named constants documenting their reference origin; their values and the reference's semantic recursion limits remain unchanged. The corpus runner derives its completion flag from coverage and results instead of an obsolete hard-coded value; filtered and partial runs cannot claim full corpus completion.
+
+Release validation passes 914 selected semantic configurations in each concurrency mode, 19,264 API comparisons across 340 active configurations, and 1,679 safety assertions. This includes 1,452 new comparisons against actual WTF-8 byte ordering. The four known reference query failures remain excluded from passing counts. Unchanged reference results and unrelated validation were reused. NativeAOT was published once at completion with zero warnings or errors and was not executed. This pass does not establish a measured speedup.
+
+Evidence: [quality validation](../csharp/compatibility/evidence/phase4-quality-validation.json). The sections below preserve historical checkpoints, including failures that were subsequently corrected. Their old incomplete statuses describe those checkpoints.
 
 ## Implemented checkpoint
 

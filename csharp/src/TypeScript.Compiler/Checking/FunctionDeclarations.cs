@@ -264,7 +264,7 @@ internal sealed class FunctionDeclarations(TypeContext context, CheckerSymbols s
         host.DeferExpression(node);
         if (parameters is not null)
         {
-            int index = parameters.ToList().IndexOf(node);
+            int index = parameters.IndexOf(node);
             if (node.DefaultType is { } defaultAnnotation)
                 foreach (var reference in defaultAnnotation.DescendantsAndSelf().OfType<TypeReferenceNode>())
                     if (await host.TypeFromNodeAsync(reference, cancellation).ConfigureAwait(false) is TypeParameter type)

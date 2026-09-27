@@ -11,6 +11,8 @@ internal sealed class TypeDisplay(TypeContext context, CheckerLinks links, bool 
     Func<Signature, SyntaxNode?, TypeFormatFlags, CancellationToken, ValueTask<string>> signatureSyntax,
     Func<TypePredicate, SyntaxNode?, TypeFormatFlags, CancellationToken, ValueTask<string>> predicateSyntax)
 {
+    internal const int DefaultMaximumTruncationLength = 160;
+    internal const int NoTruncationMaximumTruncationLength = 1_000_000;
     private int serializationLevel;
 
     internal ValueTask<string> GetSignatureAsync(Signature signature, CancellationToken cancellation = default)
@@ -49,7 +51,9 @@ internal sealed class TypeDisplay(TypeContext context, CheckerLinks links, bool 
         {
             if (noTruncation)
                 flags |= NodeBuilderFlags.NoTruncation;
-            int maximumLength = (flags & NodeBuilderFlags.NoTruncation) != 0 ? 2_000_000 : 320;
+            // The reference permits printed text to reach twice the builder's estimate.
+            int maximumLength = 2 * ((flags & NodeBuilderFlags.NoTruncation) != 0
+                ? NoTruncationMaximumTruncationLength : DefaultMaximumTruncationLength);
             string text = await typeSyntax(type, enclosing, flags, cancellation).ConfigureAwait(false);
             return Encoding.UTF8.GetByteCount(text) >= maximumLength
                 ? Wtf8.DecodeString(Wtf8.Encode(text).AsSpan(0, maximumLength - 3)) + "..." : text;

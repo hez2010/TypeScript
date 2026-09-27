@@ -96,6 +96,8 @@ public sealed class NodeList(SyntaxNode[] nodes, int pos = -1, int end = -1, boo
     public int Count => nodes.Length;
     public SyntaxNode this[int index] => nodes[index];
 
+    public int IndexOf(SyntaxNode node) => Array.IndexOf(nodes, node);
+
     public IEnumerator<SyntaxNode> GetEnumerator() => ((IEnumerable<SyntaxNode>)nodes).GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

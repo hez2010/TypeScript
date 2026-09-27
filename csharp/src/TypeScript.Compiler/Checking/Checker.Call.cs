@@ -46,10 +46,10 @@ internal sealed partial class Checker : ICallArgumentHost, ICallSignatureHost, I
     internal async ValueTask<Type?> ContextualCallArgumentAsync(SyntaxNode call, SyntaxNode argument, CancellationToken cancellation)
     {
         var arguments = await CallArguments.EffectiveAsync(call, cancellation);
-        int index = arguments.ToList().IndexOf(argument);
-        if (index < 0)
-            return null;
-        return await ContextualArgumentAtIndexAsync(call, index, cancellation);
+        for (int index = 0; index < arguments.Count; index++)
+            if (arguments[index] == argument)
+                return await ContextualArgumentAtIndexAsync(call, index, cancellation);
+        return null;
     }
 
     private async ValueTask<Type?> ContextualArgumentAtIndexAsync(SyntaxNode call, int index, CancellationToken cancellation)

@@ -238,7 +238,7 @@ public sealed partial class Binder
                     CheckEval(node, parameter.Name);
                 if (parameter.Name is BindingPatternNode)
                 {
-                    int index = node.Parent is IFunctionSignature { Parameters: { } parameters } ? parameters.ToList().IndexOf(node) : 0;
+                    int index = node.Parent is IFunctionSignature { Parameters: { } parameters } ? parameters.IndexOf(node) : 0;
                     Anonymous(node, S.FunctionScopedVariable, "__" + index);
                 }
                 else

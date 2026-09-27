@@ -233,7 +233,7 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
         CancellationToken cancellation)
     {
         var arguments = await CallArguments.EffectiveAsync(call, cancellation);
-        int index = ((IFunctionSignature)node.Parent!).Parameters!.ToList().IndexOf(node);
+        int index = ((IFunctionSignature)node.Parent!).Parameters!.IndexOf(node);
         if (node.DotDotDotToken is not null)
             return await CallArguments.SpreadAsync(arguments, index, context.AnyType, cancellation: cancellation);
         var data = links.Signatures.Get(call);

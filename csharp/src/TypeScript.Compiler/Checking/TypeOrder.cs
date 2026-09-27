@@ -368,7 +368,11 @@ internal sealed class TypeOrder : IComparer<Type>, IComparer<Symbol>
 
     internal static int CompareText(ReadOnlySpan<char> left, ReadOnlySpan<char> right)
     {
-        int a = 0, b = 0;
+        int prefix = left.CommonPrefixLength(right);
+        // A shared high surrogate may be paired on only one side of the first difference.
+        if (prefix > 0 && char.IsHighSurrogate(left[prefix - 1]))
+            prefix--;
+        int a = prefix, b = prefix;
         while (a < left.Length && b < right.Length)
         {
             int x = Next(left, ref a), y = Next(right, ref b);

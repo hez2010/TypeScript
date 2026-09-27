@@ -50,7 +50,7 @@ internal sealed partial class Checker
                 || !SemanticSyntax.ClassLike(owner.Parent) || parameter.Name is IdentifierNode { Text: "this" })
                 return null;
             var parameters = ((IFunctionSignature)owner).Parameters!;
-            int index = parameters.ToList().IndexOf(parameter) - (parameters[0] is ParameterDeclarationNode { Name: IdentifierNode { Text: "this" } }
+            int index = parameters.IndexOf(parameter) - (parameters[0] is ParameterDeclarationNode { Name: IdentifierNode { Text: "this" } }
                 ? 1
                 : 0);
             var target = owner is ConstructorDeclarationNode ? await Values.GetAsync(

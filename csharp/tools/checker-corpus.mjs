@@ -220,6 +220,9 @@ for (const mode of modes) {
         });
     }
     await Promise.all([new Promise(resolve => results.end(resolve)), new Promise(resolve => differences.end(resolve))]);
+    const passed = referenceRun.exitCode === 0 && !cases.some(c => c.status === "reference-failed")
+        && missingFiles.length === 0 && missingConfigurations.length === 0 && codeMatches === ready.length
+        && (!includeDiagnosticDetails || detailedDiagnosticMatches === ready.length);
     const summary = {
         timestamp: new Date().toISOString(),
         referenceRevision,
@@ -228,7 +231,7 @@ for (const mode of modes) {
         managed,
         reuseSyntax,
         referenceJobs: referenceRun.jobs,
-        scope: "Original compiler test program graphs and semantic diagnostic codes; full diagnostic/type/symbol fidelity and parallel candidate checker scheduling remain incomplete",
+        scope: "Original compiler test program graphs and semantic/global diagnostics in the selected checker concurrency mode; checker query APIs are validated separately",
         referenceExitCode: referenceRun.exitCode,
         exportedConfigurations: cases.length,
         readyConfigurations: ready.length,
@@ -253,12 +256,11 @@ for (const mode of modes) {
         ...managed ? { compilerSha256: sha256(await readFile(compilerDll)) } : {},
         ...mapperFixtureInfo ? { mapperFixture: mapperFixtureInfo } : {},
         candidateOutputSha256: sha256(await readFile(path.join(modeDirectory, "candidate.jsonl"))),
-        fullSemanticCorpusGateComplete: false,
+        fullSemanticCorpusGateComplete: passed && includeDiagnosticDetails && filter === "" && ready.length === availableConfigurations,
     };
     await json(path.join(modeDirectory, "summary.json"), summary);
     if (option("--record")) await json(path.join(root, `csharp/compatibility/evidence/${option("--record")}-${mode}.json`), summary);
     console.log(JSON.stringify(summary, null, 2));
-    failed ||= referenceRun.exitCode !== 0 || summary.referenceFailed > 0 || missingFiles.length > 0 || missingConfigurations.length > 0 || codeMatches !== ready.length;
-    failed ||= includeDiagnosticDetails && detailedDiagnosticMatches !== ready.length;
+    failed ||= !passed;
 }
 if (failed) process.exitCode = 1;

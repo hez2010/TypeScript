@@ -10,17 +10,9 @@ internal sealed partial class Checker
 
     internal async ValueTask<Symbol?> GetSymbolAtLocationAsync(SyntaxNode node, CancellationToken cancellation = default)
     {
-        await queryGate.WaitAsync(cancellation).ConfigureAwait(false);
-        try
-        {
-            RequireNode(node);
-            RequireUsable();
-            return await SymbolAtLocationAsync(QuerySyntax.Reparsed(node), cancellation).ConfigureAwait(false);
-        }
-        finally
-        {
-            queryGate.Release();
-        }
+        ArgumentNullException.ThrowIfNull(node);
+        using var query = await EnterQueryAsync(node, cancellation).ConfigureAwait(false);
+        return await SymbolAtLocationAsync(QuerySyntax.Reparsed(node), cancellation).ConfigureAwait(false);
     }
 
     // Tool-facing lookup follows syntax context. Checker algorithms use their

@@ -29,7 +29,7 @@ internal sealed class AccessNames(EntityNames names, DeclarationOrder order, IAc
             return ConstantEvaluator.EntityName(argument) ? await EntityAsync(argument, cancellation).ConfigureAwait(false) : null;
         }
         if (node is ParameterDeclarationNode parameter)
-            return ((IFunctionSignature)parameter.Parent!).Parameters!.ToList().IndexOf(parameter).ToString(CultureInfo.InvariantCulture);
+            return ((IFunctionSignature)parameter.Parent!).Parameters!.IndexOf(parameter).ToString(CultureInfo.InvariantCulture);
         SyntaxNode? name = node switch
         {
             BindingElementNode binding when binding.Parent!.Kind == Syntax.SyntaxKind.ObjectBindingPattern => binding.PropertyName ?? binding.Name,
@@ -48,7 +48,7 @@ internal sealed class AccessNames(EntityNames names, DeclarationOrder order, IAc
             BindingPatternNode pattern when pattern.Kind == Syntax.SyntaxKind.ArrayBindingPattern => pattern.Elements,
             _ => null
         };
-        return elements is null ? null : elements.ToList().IndexOf(node).ToString(CultureInfo.InvariantCulture);
+        return elements is null ? null : elements.IndexOf(node).ToString(CultureInfo.InvariantCulture);
     }
 
     private async ValueTask<string?> EntityAsync(SyntaxNode node, CancellationToken cancellation)

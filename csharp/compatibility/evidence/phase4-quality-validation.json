@@ -1,0 +1,401 @@
+{
+    "timestamp": "2026-09-27T09:00:15.431Z",
+    "baseCommit": "995a9361cfe8ebc803d501b5edc6ff62e7a03fc7",
+    "scope": "Behavior-preserving Phase 4 quality pass before transformations and emit work.",
+    "changes": [
+        "Replace 18 copied node-list searches with Array.IndexOf through NodeList.IndexOf and one copied effective-argument search with direct indexing.",
+        "Retain source-file indices per checker, preserving partition order and collecting diagnostics after all files are checked.",
+        "Use the existing query lease in four location/expression/type query entry points.",
+        "Use CommonPrefixLength for text ordering, retaining surrogate decoding at the first difference; use MaxBy for module-pattern selection.",
+        "Share builder/printer truncation limits and name reference-calibrated pool policy constants without retuning them.",
+        "Derive corpus completion from validation results and full unfiltered coverage."
+    ],
+    "validationPolicy": {
+        "runtime": "Release CoreCLR",
+        "nativeAotExecuted": false,
+        "unchangedReferenceOutputsReused": true,
+        "unrelatedSuitesReused": true,
+        "performanceMeasurementRepeated": false,
+        "measuredSpeedupClaimed": false
+    },
+    "semantic": {
+        "selectedConfigurationsPerMode": 914,
+        "detailedMatchesPerMode": 914,
+        "modeDifferences": 0,
+        "fullCorpusRerun": false,
+        "previousFullGate": {
+            "path": "csharp/compatibility/evidence/phase4-final-semantics.json",
+            "sha256": "28f71f5f89a7b5c21d8867d756f8f575d88d611f50535de9a4b898690f83e8f7"
+        },
+        "batches": [
+            {
+                "selection": {
+                    "path": "built/csharp/phase4-quality-cases.json",
+                    "sha256": "d40611799d4a3bbbd2938e995a8518b674421876a8b397397fae560262519359"
+                },
+                "summaries": [
+                    {
+                        "path": "built/csharp/semantic-corpus-phase4-quality/single/summary.json",
+                        "sha256": "9c8d8665e509840dc5b4e403ddba3dd6cdce77b217ee9fbc148f2087de03a20b",
+                        "result": {
+                            "timestamp": "2026-09-27T08:54:45.497Z",
+                            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                            "mode": "single",
+                            "filter": "",
+                            "managed": true,
+                            "reuseSyntax": true,
+                            "referenceJobs": 2,
+                            "scope": "Original compiler test program graphs and semantic/global diagnostics in the selected checker concurrency mode; checker query APIs are validated separately",
+                            "referenceExitCode": 0,
+                            "exportedConfigurations": 15208,
+                            "readyConfigurations": 786,
+                            "availableConfigurations": 13446,
+                            "selectionSha256": "d40611799d4a3bbbd2938e995a8518b674421876a8b397397fae560262519359",
+                            "referenceInventoryFiles": 12730,
+                            "plannedConfigurations": 15208,
+                            "referenceMissingFiles": [],
+                            "referenceMissingConfigurations": [],
+                            "referenceSkipped": 1762,
+                            "referenceFailed": 0,
+                            "candidateFailures": 0,
+                            "graphMismatches": 0,
+                            "diagnosticMismatches": 0,
+                            "graphAndCodeMatches": 786,
+                            "detailedDiagnosticMatches": 786,
+                            "detailedDiagnosticMismatches": 0,
+                            "detailedComparison": "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized",
+                            "errorGroups": [],
+                            "inputSha256": "df21bccda8a3bc5da534586c352dae0175cf4bf260c93ee15694afe19353d5bd",
+                            "referenceInputCorrectionsSha256": "796d2ff79dfe5dfb5d35cd192946d4a1da669b6cea211d31b2b4696d84aa0c0c",
+                            "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+                            "candidateSha256": "c1b3b0401acc737509fcafc414f36e6415eeaf0724af8bbaf664a0a04686ac84",
+                            "compilerSha256": "5673ddd04dda4962037acefd894bba933b87ed21979247606daa7875f01adff6",
+                            "candidateOutputSha256": "f61d9093f84c093f77f8dead476da501ce8506b3f9739bc4c4016b9dad814a51",
+                            "fullSemanticCorpusGateComplete": false
+                        }
+                    },
+                    {
+                        "path": "built/csharp/semantic-corpus-phase4-quality/default/summary.json",
+                        "sha256": "673d97a96d65d3d9f24115541cc07dfb11f78132e437aafd6c90c2e8ba49f7e6",
+                        "result": {
+                            "timestamp": "2026-09-27T08:55:22.142Z",
+                            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                            "mode": "default",
+                            "filter": "",
+                            "managed": true,
+                            "reuseSyntax": true,
+                            "referenceJobs": 2,
+                            "scope": "Original compiler test program graphs and semantic/global diagnostics in the selected checker concurrency mode; checker query APIs are validated separately",
+                            "referenceExitCode": 0,
+                            "exportedConfigurations": 15208,
+                            "readyConfigurations": 786,
+                            "availableConfigurations": 13446,
+                            "selectionSha256": "d40611799d4a3bbbd2938e995a8518b674421876a8b397397fae560262519359",
+                            "referenceInventoryFiles": 12730,
+                            "plannedConfigurations": 15208,
+                            "referenceMissingFiles": [],
+                            "referenceMissingConfigurations": [],
+                            "referenceSkipped": 1762,
+                            "referenceFailed": 0,
+                            "candidateFailures": 0,
+                            "graphMismatches": 0,
+                            "diagnosticMismatches": 0,
+                            "graphAndCodeMatches": 786,
+                            "detailedDiagnosticMatches": 786,
+                            "detailedDiagnosticMismatches": 0,
+                            "detailedComparison": "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized",
+                            "errorGroups": [],
+                            "inputSha256": "b51e79a2ebc4428367c89bceb367fd82a86bdd85b43b847bc17f875b51743a77",
+                            "referenceInputCorrectionsSha256": "f0e9fd99f75e8ac0c3db7ef4ccef21980f74b7b1adcfe189a01c8a762e4613a6",
+                            "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+                            "candidateSha256": "c1b3b0401acc737509fcafc414f36e6415eeaf0724af8bbaf664a0a04686ac84",
+                            "compilerSha256": "5673ddd04dda4962037acefd894bba933b87ed21979247606daa7875f01adff6",
+                            "candidateOutputSha256": "f61d9093f84c093f77f8dead476da501ce8506b3f9739bc4c4016b9dad814a51",
+                            "fullSemanticCorpusGateComplete": false
+                        }
+                    }
+                ]
+            },
+            {
+                "selection": {
+                    "path": "built/csharp/phase4-quality-multifile-cases.json",
+                    "sha256": "9632bbc70769f92f07952603c5f2902f070765d1c2b048cd4e3dd9b67c19edc6"
+                },
+                "summaries": [
+                    {
+                        "path": "built/csharp/semantic-corpus-phase4-quality-multifile/single/summary.json",
+                        "sha256": "fdf1e3a25f8e87a5a1d3e1e1a3dee34d6f0f8bf163d0896f79dffe5fc440c5a8",
+                        "result": {
+                            "timestamp": "2026-09-27T08:55:28.695Z",
+                            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                            "mode": "single",
+                            "filter": "",
+                            "managed": true,
+                            "reuseSyntax": true,
+                            "referenceJobs": 2,
+                            "scope": "Original compiler test program graphs and semantic/global diagnostics in the selected checker concurrency mode; checker query APIs are validated separately",
+                            "referenceExitCode": 0,
+                            "exportedConfigurations": 15208,
+                            "readyConfigurations": 128,
+                            "availableConfigurations": 13446,
+                            "selectionSha256": "9632bbc70769f92f07952603c5f2902f070765d1c2b048cd4e3dd9b67c19edc6",
+                            "referenceInventoryFiles": 12730,
+                            "plannedConfigurations": 15208,
+                            "referenceMissingFiles": [],
+                            "referenceMissingConfigurations": [],
+                            "referenceSkipped": 1762,
+                            "referenceFailed": 0,
+                            "candidateFailures": 0,
+                            "graphMismatches": 0,
+                            "diagnosticMismatches": 0,
+                            "graphAndCodeMatches": 128,
+                            "detailedDiagnosticMatches": 128,
+                            "detailedDiagnosticMismatches": 0,
+                            "detailedComparison": "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized",
+                            "errorGroups": [],
+                            "inputSha256": "df21bccda8a3bc5da534586c352dae0175cf4bf260c93ee15694afe19353d5bd",
+                            "referenceInputCorrectionsSha256": "796d2ff79dfe5dfb5d35cd192946d4a1da669b6cea211d31b2b4696d84aa0c0c",
+                            "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+                            "candidateSha256": "c1b3b0401acc737509fcafc414f36e6415eeaf0724af8bbaf664a0a04686ac84",
+                            "compilerSha256": "5673ddd04dda4962037acefd894bba933b87ed21979247606daa7875f01adff6",
+                            "mapperFixture": {
+                                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                                "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+                                "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+                                "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+                            },
+                            "candidateOutputSha256": "2a80c60bc4c73b87b5f10e172272d1c58584160fff5f8d9008ebddc20a71cca8",
+                            "fullSemanticCorpusGateComplete": false
+                        }
+                    },
+                    {
+                        "path": "built/csharp/semantic-corpus-phase4-quality-multifile/default/summary.json",
+                        "sha256": "bfaec9e46bf0ad4b82e84d65e7c1f5f140bc1544bc166ce2d001e2b72f6082d2",
+                        "result": {
+                            "timestamp": "2026-09-27T08:55:36.827Z",
+                            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                            "mode": "default",
+                            "filter": "",
+                            "managed": true,
+                            "reuseSyntax": true,
+                            "referenceJobs": 2,
+                            "scope": "Original compiler test program graphs and semantic/global diagnostics in the selected checker concurrency mode; checker query APIs are validated separately",
+                            "referenceExitCode": 0,
+                            "exportedConfigurations": 15208,
+                            "readyConfigurations": 128,
+                            "availableConfigurations": 13446,
+                            "selectionSha256": "9632bbc70769f92f07952603c5f2902f070765d1c2b048cd4e3dd9b67c19edc6",
+                            "referenceInventoryFiles": 12730,
+                            "plannedConfigurations": 15208,
+                            "referenceMissingFiles": [],
+                            "referenceMissingConfigurations": [],
+                            "referenceSkipped": 1762,
+                            "referenceFailed": 0,
+                            "candidateFailures": 0,
+                            "graphMismatches": 0,
+                            "diagnosticMismatches": 0,
+                            "graphAndCodeMatches": 128,
+                            "detailedDiagnosticMatches": 128,
+                            "detailedDiagnosticMismatches": 0,
+                            "detailedComparison": "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized",
+                            "errorGroups": [],
+                            "inputSha256": "b51e79a2ebc4428367c89bceb367fd82a86bdd85b43b847bc17f875b51743a77",
+                            "referenceInputCorrectionsSha256": "f0e9fd99f75e8ac0c3db7ef4ccef21980f74b7b1adcfe189a01c8a762e4613a6",
+                            "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+                            "candidateSha256": "c1b3b0401acc737509fcafc414f36e6415eeaf0724af8bbaf664a0a04686ac84",
+                            "compilerSha256": "5673ddd04dda4962037acefd894bba933b87ed21979247606daa7875f01adff6",
+                            "mapperFixture": {
+                                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                                "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+                                "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+                                "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+                            },
+                            "candidateOutputSha256": "2a80c60bc4c73b87b5f10e172272d1c58584160fff5f8d9008ebddc20a71cca8",
+                            "fullSemanticCorpusGateComplete": false
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    "api": {
+        "activeConfigurations": 340,
+        "comparisons": 19264,
+        "referenceFailures": 4,
+        "records": [
+            {
+                "name": "type-queries",
+                "path": "csharp/compatibility/evidence/phase4-quality-type-queries.json",
+                "sha256": "ba954ef1b18123cfb01751cf848d0b4ddb05e4e288c45b02cd373b3f15ff54d8",
+                "activeConfigurations": 76,
+                "comparisons": 3812,
+                "referenceFailures": 4
+            },
+            {
+                "name": "symbol-queries",
+                "path": "csharp/compatibility/evidence/phase4-quality-symbol-queries.json",
+                "sha256": "bd62810686ddcb76854155da645d9436cef6e90874efe71b1393578fb1d9df4a",
+                "activeConfigurations": 104,
+                "comparisons": 5312,
+                "referenceFailures": 0
+            },
+            {
+                "name": "context-queries",
+                "path": "csharp/compatibility/evidence/phase4-quality-context-queries.json",
+                "sha256": "87301d25640c26be060a670f84f6c111072e4cdf96dc93a79a76940108038998",
+                "activeConfigurations": 112,
+                "comparisons": 7644,
+                "referenceFailures": 0
+            },
+            {
+                "name": "signature-syntax",
+                "path": "csharp/compatibility/evidence/phase4-quality-signature-syntax.json",
+                "sha256": "c6e4f1fd5a995093b5a3ae15da099a0b152091deced642cce49096f06501d694",
+                "activeConfigurations": 48,
+                "comparisons": 2496,
+                "referenceFailures": 0
+            }
+        ]
+    },
+    "safety": {
+        "assertions": 1679,
+        "newWtf8OrderingComparisons": 1452,
+        "runs": [
+            {
+                "name": "state",
+                "assertions": 1493,
+                "log": {
+                    "path": "logs/phase4-quality-checker-state.log",
+                    "sha256": "edffa7bdb19bbf651bb6ba5a7961ba5cf483ed92317b7666a3b1699bf497f11b"
+                }
+            },
+            {
+                "name": "pool-safety",
+                "assertions": 19,
+                "log": {
+                    "path": "logs/phase4-quality-checker-pool-safety.log",
+                    "sha256": "883cd88c463819ad846f62b986d88f5905b6aa40814616b3168f5b3eec1972be"
+                }
+            },
+            {
+                "name": "pool-cancellation",
+                "assertions": 6,
+                "log": {
+                    "path": "logs/phase4-quality-checker-pool-cancellation.log",
+                    "sha256": "dd1f3ccc90a769eb2dad5189021f42f711d8b2bb60cbdde73bca458fb9a6c899"
+                }
+            },
+            {
+                "name": "query-safety",
+                "assertions": 20,
+                "log": {
+                    "path": "logs/phase4-quality-checker-query-safety.log",
+                    "sha256": "9346b1aec025090efdeeb40ea8e7cc48af9189b2e4bff7e60c3f6a6583990948"
+                }
+            },
+            {
+                "name": "symbol-query-safety",
+                "assertions": 25,
+                "log": {
+                    "path": "logs/phase4-quality-checker-symbol-query-safety.log",
+                    "sha256": "6d8562c56683461975669df64da5179483b78c503727719a57c5a6a49d32d3fa"
+                }
+            },
+            {
+                "name": "context-query-safety",
+                "assertions": 24,
+                "log": {
+                    "path": "logs/phase4-quality-checker-context-query-safety.log",
+                    "sha256": "b4eaab8274760c27cb65cef2febdc28bfbf6068a9433851905e648c3c79678d4"
+                }
+            },
+            {
+                "name": "type-nodes-safety",
+                "assertions": 25,
+                "log": {
+                    "path": "logs/phase4-quality-checker-type-nodes-safety.log",
+                    "sha256": "bba8ecbbaed88b3498f249a36ddda03a5cf601adddb648d9bf8cbb68e7138479"
+                }
+            },
+            {
+                "name": "type-renderer-safety",
+                "assertions": 52,
+                "log": {
+                    "path": "logs/phase4-quality-checker-type-renderer-safety.log",
+                    "sha256": "649470e3a61e23e2ebce9c05117f5dce98024b4a06de81ad152cee2d8d58f305"
+                }
+            },
+            {
+                "name": "display-formats-safety",
+                "assertions": 15,
+                "log": {
+                    "path": "logs/phase4-quality-checker-display-formats-safety.log",
+                    "sha256": "967622aa8e490520fac6ad8c2890e7b9a1070f0721ec6bb442a25fccdd584892"
+                }
+            }
+        ]
+    },
+    "releaseBuild": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": {
+            "path": "logs/phase4-quality-release-build-final.log",
+            "sha256": "75ae8e406c7bda5bbef3929d9bef1748e23717a98776bf739f0c8ff278fc591f"
+        },
+        "candidateSha256": "c1b3b0401acc737509fcafc414f36e6415eeaf0724af8bbaf664a0a04686ac84",
+        "compilerSha256": "5673ddd04dda4962037acefd894bba933b87ed21979247606daa7875f01adff6",
+        "repairedInitialBuild": {
+            "log": {
+                "path": "logs/phase4-quality-release-build.log",
+                "sha256": "4e9094bca8aa32a3f2e64b6944408ec0d8d7bd57ef32054f3bab84ba24f1cf1a"
+            },
+            "reason": "Renamed text-comparison test loop locals that collided with existing type-order locals."
+        }
+    },
+    "sourceNormalization": {
+        "changes": [
+            {
+                "file": "csharp/src/TypeScript.Compiler/Checking/TypeDisplay.cs",
+                "normalizedSha256": "e05ac83a6b95d63af0d73c372ece2d56cc1b872115dc53d5ecd863ee8047d50d"
+            },
+            {
+                "file": "csharp/tools/checker-corpus.mjs",
+                "normalizedSha256": "a147e46703aaed6fc3859a9f863f81bb030c4877fb56c99f4ea90a9cd623f40d"
+            }
+        ],
+        "verification": "Only original line endings were restored after Release validation; LF-normalized contents are byte-identical."
+    },
+    "nativeAot": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "executed": false,
+        "publishes": 1,
+        "command": "dotnet publish csharp/tests/TypeScript.Compatibility/TypeScript.Compatibility.csproj -c Release -r win-x64 --no-restore -p:IlcInstructionSet=native -o built/csharp/phase4-quality-native",
+        "log": {
+            "path": "logs/phase4-quality-native-publish.log",
+            "sha256": "7ffca9617cf2b02648858b03dec9170914c46301cb377ead882d53031467d5ee"
+        },
+        "executable": {
+            "path": "built/csharp/phase4-quality-native/TypeScript.Compatibility.exe",
+            "sha256": "0f026cc590682cc035c3f926abbe57721df767c802516c8fbca3de123dea6acb",
+            "bytes": 27264512
+        }
+    },
+    "formatting": [
+        {
+            "path": "logs/phase4-quality-whitespace.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+            "path": "logs/phase4-quality-tests-whitespace.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+            "path": "logs/phase4-quality-artifact-format.log",
+            "sha256": "d7358d5e8e6e7d97184fb36f55e479af1195d94dcbc7e2313eaf73e07fe91210"
+        }
+    ],
+    "protectedPathsUnchanged": true
+}

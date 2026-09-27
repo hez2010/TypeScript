@@ -50,32 +50,16 @@ internal sealed partial class Checker
 
     internal async ValueTask<Type> GetExpressionTypeAsync(SyntaxNode node, CancellationToken cancellation = default)
     {
-        await queryGate.WaitAsync(cancellation).ConfigureAwait(false);
-        try
-        {
-            RequireNode(node);
-            RequireUsable();
-            return await Expressions.CheckAsync(node, cancellation: cancellation).ConfigureAwait(false);
-        }
-        finally
-        {
-            queryGate.Release();
-        }
+        ArgumentNullException.ThrowIfNull(node);
+        using var query = await EnterQueryAsync(node, cancellation).ConfigureAwait(false);
+        return await Expressions.CheckAsync(node, cancellation: cancellation).ConfigureAwait(false);
     }
 
     internal async ValueTask<Type> GetTypeFromTypeNodeAsync(SyntaxNode node, CancellationToken cancellation = default)
     {
-        await queryGate.WaitAsync(cancellation).ConfigureAwait(false);
-        try
-        {
-            RequireNode(node);
-            RequireUsable();
-            return await Nodes.FromNodeAsync(node, cancellation).ConfigureAwait(false);
-        }
-        finally
-        {
-            queryGate.Release();
-        }
+        ArgumentNullException.ThrowIfNull(node);
+        using var query = await EnterQueryAsync(node, cancellation).ConfigureAwait(false);
+        return await Nodes.FromNodeAsync(node, cancellation).ConfigureAwait(false);
     }
 
     private void RequireNode(SyntaxNode node)

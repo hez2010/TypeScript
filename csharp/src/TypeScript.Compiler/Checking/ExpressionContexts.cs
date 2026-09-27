@@ -200,7 +200,7 @@ internal sealed class ExpressionContexts(TypeContext context, TypeAlgebra algebr
                     node = node.Parent.Parent!;
                     continue;
                 case ArrayLiteralExpressionNode array:
-                    int position = array.Elements!.ToList().IndexOf(node);
+                    int position = array.Elements!.IndexOf(node);
                     if (position < 0)
                         return null;
                     var arrayContext = await ApparentAsync(array, flags, cancellation).ConfigureAwait(false);
@@ -269,7 +269,7 @@ internal sealed class ExpressionContexts(TypeContext context, TypeAlgebra algebr
         if (element.Parent!.Kind == SyntaxKind.ArrayBindingPattern)
             return await ElementAsync(
                 parentType,
-                ((BindingPatternNode)element.Parent).Elements!.ToList().IndexOf(element),
+                ((BindingPatternNode)element.Parent).Elements!.IndexOf(element),
                 cancellation: cancellation).ConfigureAwait(false);
         var key = await host.LiteralNameTypeAsync(name, cancellation).ConfigureAwait(false);
         if ((key.Flags & TypeFlags.StringOrNumberLiteralOrUnique) != 0

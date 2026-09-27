@@ -6,18 +6,27 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed class CheckerPool
 {
+    // Match the reference pool's default and cap; assignments affect checker-local caches.
+    private const int DefaultCheckerCount = 4;
+    private const int MaximumCheckerCount = 256;
     private readonly CompilerProgram program;
     private readonly Checker[] checkers;
     private readonly SemaphoreSlim[] gates;
     private readonly Dictionary<SourceFileNode, int> associations;
+    private readonly List<int>[] filesByChecker;
 
     private CheckerPool(CompilerProgram program, Checker[] checkers, int[] assignments)
     {
         this.program = program;
         this.checkers = checkers;
         gates = checkers.Select(_ => new SemaphoreSlim(1, 1)).ToArray();
-        associations = program.SourceFiles.Select((file, i) => (file.Syntax, Index: assignments[i]))
-            .ToDictionary(p => p.Syntax, p => p.Index);
+        associations = new(program.SourceFiles.Count);
+        filesByChecker = checkers.Select(_ => new List<int>()).ToArray();
+        for (int i = 0; i < program.SourceFiles.Count; i++)
+        {
+            associations.Add(program.SourceFiles[i].Syntax, assignments[i]);
+            filesByChecker[assignments[i]].Add(i);
+        }
     }
 
     internal int Count => checkers.Length;
@@ -26,8 +35,8 @@ internal sealed class CheckerPool
         CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
-        int count = singleThreaded ? 1 : (int?)program.Configuration.Options.Number("checkers") ?? 4;
-        count = Math.Clamp(count, 1, Math.Max(1, Math.Min(program.SourceFiles.Count, 256)));
+        int count = singleThreaded ? 1 : (int?)program.Configuration.Options.Number("checkers") ?? DefaultCheckerCount;
+        count = Math.Clamp(count, 1, Math.Max(1, Math.Min(program.SourceFiles.Count, MaximumCheckerCount)));
         var assignments = CheckerPartitions.ForProgram(program, count, cancellation);
         var checkers = new Checker[count];
         if (count == 1)
@@ -58,12 +67,15 @@ internal sealed class CheckerPool
             using var lease = new Lease(checkers[index], gates[index]);
             // A partition may be empty. Its checker still contributes global diagnostics.
             var checker = checkers[index];
-            foreach (var file in program.SourceFiles)
-                if (associations[file.Syntax] == index && !checker.SkipProgramFile(file.Syntax))
-                    await checker.CheckSourceFileAsync(file.Syntax, cancellation);
-            for (int i = 0; i < program.SourceFiles.Count; i++)
-                if (associations[program.SourceFiles[i].Syntax] == index)
-                    semantic[i] = checker.DetailedDiagnosticsForProgramFile(program.SourceFiles[i].Syntax);
+            foreach (int i in filesByChecker[index])
+            {
+                var file = program.SourceFiles[i].Syntax;
+                if (!checker.SkipProgramFile(file))
+                    await checker.CheckSourceFileAsync(file, cancellation);
+            }
+            // Later files can add diagnostics to earlier files in the same partition.
+            foreach (int i in filesByChecker[index])
+                semantic[i] = checker.DetailedDiagnosticsForProgramFile(program.SourceFiles[i].Syntax);
             globals[index] = checker.DetailedDiagnosticsForFile(null);
         }
         if (Count == 1)

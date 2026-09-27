@@ -5,6 +5,13 @@ namespace TypeScript.Compiler.Checking;
 
 internal static class CheckerPartitions
 {
+    // Calibrated by the reference compiler; changing these changes checker ownership.
+    private const int TextWeightDivisor = 100;
+    private const int SourceFileWeightMultiplier = 4;
+    private const int BalancePenaltyMultiplier = 16;
+    private const int PrioritizedSourcePenalty = 12;
+    private const int StrongBalanceMinCheckerCount = 4;
+
     internal static int[] ForProgram(CompilerProgram program, int count, CancellationToken cancellation)
     {
         var files = program.SourceFiles;
@@ -19,7 +26,7 @@ internal static class CheckerPartitions
         {
             cancellation.ThrowIfCancellationRequested();
             var file = files[i];
-            weights[i] = Math.Max((long)file.Syntax.NodeCount + file.Syntax.Source.Bytes.Length / 100, 1);
+            weights[i] = Math.Max((long)file.Syntax.NodeCount + file.Syntax.Source.Bytes.Length / TextWeightDivisor, 1);
             imports[i] = file.Syntax.Imports.Count;
             declarations[i] = file.Syntax.IsDeclarationFile;
             foreach (var resolution in file.Resolutions.Where(r => !r.TypeReference)
@@ -44,8 +51,8 @@ internal static class CheckerPartitions
             if (declarations[i])
                 declarationWeight += weights[i];
         bool sourceFirst = declarationWeight * count * 2 <= total;
-        int sourceMultiplier = sourceFirst || count < 4 ? 1 : 4;
-        int penaltyMultiplier = sourceFirst ? 12 : count >= 4 ? 16 : 1;
+        int sourceMultiplier = sourceFirst || count < StrongBalanceMinCheckerCount ? 1 : SourceFileWeightMultiplier;
+        int penaltyMultiplier = sourceFirst ? PrioritizedSourcePenalty : count >= StrongBalanceMinCheckerCount ? BalancePenaltyMultiplier : 1;
         weights = weights.Select((weight, i) => declarations[i] ? weight : weight * sourceMultiplier).ToArray();
         total = weights.Sum();
         long totalImports = imports.Sum(i => (long)i);

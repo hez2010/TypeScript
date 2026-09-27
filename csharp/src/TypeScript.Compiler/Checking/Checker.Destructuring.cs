@@ -27,7 +27,7 @@ internal sealed partial class Checker
             case ArrayLiteralExpressionNode array:
                 return await Bindings.InitialArrayElementAsync(
                     await AssignedTypeAsync(array, cancellation),
-                    array.Elements!.ToList().IndexOf(node),
+                    array.Elements!.IndexOf(node),
                     cancellation);
             case SpreadElementNode spread:
                 return await ArrayAsync(

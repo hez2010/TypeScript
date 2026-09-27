@@ -134,7 +134,7 @@ internal sealed partial class Checker : IVariableTypeHost
         var signature = await FullSignatureAsync(parameter.Parent!, cancellation);
         if (signature is null)
             return null;
-        int position = ((IFunctionSignature)parameter.Parent!).Parameters!.ToList().IndexOf(parameter);
+        int position = ((IFunctionSignature)parameter.Parent!).Parameters!.IndexOf(parameter);
         return parameter.DotDotDotToken is null ? await Parameters.AtAsync(signature, position, cancellation)
             : await Parameters.RestAtAsync(signature, position, cancellation: cancellation);
     }
@@ -207,7 +207,7 @@ internal sealed partial class Checker : IVariableTypeHost
                 if (keyword || await program.EntityNames.ResolveAsync(name, SymbolFlags.Type, true, cancellation: cancellation) is not null)
                 {
                     code = 7051;
-                    int index = Signatures.Parameters(parameter.Parent!)?.ToList().IndexOf(parameter) ?? -1;
+                    int index = Signatures.Parameters(parameter.Parent!)?.IndexOf(parameter) ?? -1;
                     Report("arg" + index.ToString(System.Globalization.CultureInfo.InvariantCulture),
                         CheckerDiagnostic.DeclarationName(name) + (parameter.DotDotDotToken is null ? "" : "[]"));
                     return;

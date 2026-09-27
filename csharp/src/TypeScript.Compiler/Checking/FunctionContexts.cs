@@ -130,7 +130,7 @@ internal sealed class FunctionContexts(TypeContext context, CheckerLinks links, 
         if (signature is null)
             return null;
         var declarations = ((IFunctionSignature)node).Parameters!;
-        int index = declarations.ToList().IndexOf(parameter)
+        int index = declarations.IndexOf(parameter)
             - (declarations.FirstOrDefault() is ParameterDeclarationNode { Name: IdentifierNode { Text: "this" } } ? 1 : 0);
         return parameter.DotDotDotToken is not null && declarations[^1] == parameter
             ? await parameters.RestAtAsync(signature, index, cancellation: cancellation).ConfigureAwait(false)

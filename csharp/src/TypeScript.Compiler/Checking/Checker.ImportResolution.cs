@@ -69,7 +69,7 @@ internal sealed partial class Checker
             }
             if (best.Count != 0)
             {
-                var pattern = best.OrderByDescending(p => p.Pattern.IndexOf('*')).First();
+                var pattern = best.MaxBy(p => p.Pattern.IndexOf('*'))!;
                 var target = program.Symbols.Merger.GetMergedSymbol(pattern.Symbol)!;
                 module = program.Symbols.PatternTargets.GetValueOrDefault(name) == target
                     ? program.Symbols.PatternAugmentations.GetValueOrDefault(name) ?? target : target;

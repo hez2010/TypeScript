@@ -333,7 +333,7 @@ internal sealed partial class Checker
         if (parameter.QuestionToken is not null)
             return true;
         var declarations = Signatures.Parameters(parameter.Parent!);
-        int index = declarations is null ? -1 : declarations.ToList().IndexOf(parameter);
+        int index = declarations is null ? -1 : declarations.IndexOf(parameter);
         if (parameter.Initializer is not null)
             return index >= await Parameters.MinimumAsync(await Signatures.FromDeclarationAsync(parameter.Parent!, cancellation),
                 strongUntypedJs: true, voidIsRequired: true, cancellation);

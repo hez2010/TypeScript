@@ -8,17 +8,9 @@ internal sealed partial class Checker
 {
     internal async ValueTask<Type> GetTypeAtLocationAsync(SyntaxNode node, CancellationToken cancellation = default)
     {
-        await queryGate.WaitAsync(cancellation).ConfigureAwait(false);
-        try
-        {
-            RequireNode(node);
-            RequireUsable();
-            return await TypeAtLocationAsync(QuerySyntax.Reparsed(node), cancellation).ConfigureAwait(false);
-        }
-        finally
-        {
-            queryGate.Release();
-        }
+        ArgumentNullException.ThrowIfNull(node);
+        using var query = await EnterQueryAsync(node, cancellation).ConfigureAwait(false);
+        return await TypeAtLocationAsync(QuerySyntax.Reparsed(node), cancellation).ConfigureAwait(false);
     }
 
     private async ValueTask<Type> TypeAtLocationAsync(SyntaxNode node, CancellationToken cancellation)

@@ -43,7 +43,7 @@ internal sealed class InferredConstraints(TypeContext context, TypeAlgebra algeb
             if (parent is TypeReferenceNode reference && !omitReferences)
             {
                 var parameters = await host.ReferenceParametersAsync(reference, cancellation).ConfigureAwait(false);
-                int index = reference.TypeArguments?.ToList().IndexOf(child) ?? -1;
+                int index = reference.TypeArguments?.IndexOf(child) ?? -1;
                 if (index >= 0 && index < parameters.Count
                     && await constraints.ParameterConstraintAsync(parameters[index], cancellation).ConfigureAwait(false) is { } bound)
                 {

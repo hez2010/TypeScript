@@ -18,7 +18,8 @@ internal sealed partial class Checker
 
         internal void Add(string text, int extra = 0) => Add(Encoding.UTF8.GetByteCount(text) + extra);
 
-        internal bool Truncated() => WasTruncated |= Value > (NoTruncation ? 1_000_000 : 160);
+        internal bool Truncated() => WasTruncated |= Value > (NoTruncation
+            ? TypeDisplay.NoTruncationMaximumTruncationLength : TypeDisplay.DefaultMaximumTruncationLength);
     }
 
     private static int IntrinsicSyntaxLength(Type type)
