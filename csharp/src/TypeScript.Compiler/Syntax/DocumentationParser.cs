@@ -227,31 +227,11 @@ internal sealed class DocumentationParser(
         }
         if (tag is "implements" or "augments" or "extends")
         {
-            var parsed = await TypeAsync(pos, end, false, true).ConfigureAwait(false);
-            JSDocTypeExpressionNode? parsedType = parsed.Type;
-            pos = parsed.Position;
-            SyntaxNode? expression = parsedType?.Type;
-            NodeList? arguments = null;
-            if (expression is TypeReferenceNode reference)
-            {
-                expression = reference.TypeName;
-                arguments = reference.TypeArguments;
-            }
-            var qualifiers = new Stack<QualifiedNameNode>();
-            while (expression is QualifiedNameNode { Left: { }, Right: { } } qualified)
-            {
-                qualifiers.Push(qualified);
-                expression = qualified.Left;
-            }
-            while (qualifiers.TryPop(out QualifiedNameNode? qualified))
-                expression = Finish(
-                    factory.NewPropertyAccessExpression(expression, null, qualified.Right, 0),
-                    qualified.Pos,
-                    qualified.End);
-            var className = Finish(
-                factory.NewExpressionWithTypeArguments(expression, arguments),
-                parsedType?.Type?.Pos ?? pos,
-                parsedType?.Type?.End ?? pos);
+            var parsed = await Parser.DocumentationHeritageAsync(source, scriptKind, pos, end, context, cancellation).ConfigureAwait(false);
+            Diagnostics.AddRange(parsed.Diagnostics);
+            SourceFlags |= parsed.SourceFlags;
+            pos = parsed.End;
+            var className = parsed.Node;
             var comments = Comments(pos, end);
             return tag == "implements" ? Finish(factory.NewJSDocImplementsTag(tagName, className, comments), start, end)
                 : Finish(factory.NewJSDocAugmentsTag(tagName, className, comments), start, end);

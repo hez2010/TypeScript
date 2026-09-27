@@ -44,6 +44,8 @@ public sealed partial class Parser
             clause = parser.Finish(parser.factory.NewImportClause(K.TypeKeyword, name, bindings), clauseStart);
             parser.Expected(K.FromKeyword);
         }
+        if (!parser.StartsExpression())
+            parser.Error(Messages.Expression_expected);
         SyntaxNode specifier = await parser.ExpressionCore().ConfigureAwait(false);
         ImportAttributesNode? attributes = null;
         if (parser.Token == K.WithKeyword || !parser.LineBreak && parser.Token == K.AssertKeyword)
@@ -89,6 +91,28 @@ public sealed partial class Parser
     }
 
     internal static async ValueTask<(
+        ExpressionWithTypeArgumentsNode Node,
+        int End,
+        Diagnostic[] Diagnostics,
+        NodeFlags SourceFlags)> DocumentationHeritageAsync(
+        SourceText source, ScriptKind scriptKind, int start, int end, NodeFlags context, CancellationToken cancellation)
+    {
+        var parser = new Parser(new("/documentation", scriptKind), source, cancellation, start, end, true);
+        await parser.ParseStack;
+        parser.context |= context;
+        bool braces = parser.Take(K.OpenBraceToken);
+        int pos = parser.Pos;
+        SyntaxNode expression = parser.Identifier(true);
+        while (parser.Take(K.DotToken))
+            expression = parser.Finish(parser.factory.NewPropertyAccessExpression(expression, null, parser.Identifier(true), 0), pos);
+        var arguments = await parser.TypeArgumentsCore(false).ConfigureAwait(false);
+        var node = parser.Finish(parser.factory.NewExpressionWithTypeArguments(expression, arguments), pos);
+        if (braces)
+            parser.Expected(K.CloseBraceToken);
+        return (node, parser.Pos, parser.diagnostics.ToArray(), parser.sourceFlags);
+    }
+
+    internal static async ValueTask<(
         TypeParameterDeclarationNode? Node,
         int End,
         Diagnostic[] Diagnostics,
@@ -100,6 +124,8 @@ public sealed partial class Parser
         int pos = parser.Pos;
         bool bracketed = parser.Take(K.OpenBracketToken);
         NodeList? modifiers = await parser.ModifiersCore(true).ConfigureAwait(false);
+        if (!parser.IsIdentifier && parser.Token is not (>= K.FirstKeyword and <= K.LastKeyword))
+            parser.Error(Messages.Unexpected_token_A_type_parameter_name_was_expected_without_curly_braces);
         IdentifierNode name = parser.Identifier(true);
         SyntaxNode? defaultType = null;
         if (bracketed)

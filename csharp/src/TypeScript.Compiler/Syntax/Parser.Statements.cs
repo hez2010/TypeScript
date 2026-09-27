@@ -566,7 +566,8 @@ public sealed partial class Parser
             }
 
             if (!IsSemicolon()
-                && Token is not (K.InKeyword or K.OfKeyword or K.EqualsGreaterThanToken or K.CloseParenToken or K.CloseBracketToken)
+                && Token is not (K.InKeyword or K.OfKeyword or K.EqualsGreaterThanToken or K.CloseBracketToken)
+                && !(Token == K.CloseParenToken && (context & NodeFlags.DisallowInContext) != 0)
                 && !StartsStatement())
             {
                 Error(Messages.Variable_declaration_expected);

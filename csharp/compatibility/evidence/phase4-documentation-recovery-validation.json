@@ -1,0 +1,192 @@
+{
+    "timestamp": "2026-09-27T01:45:55.514Z",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "configuration": "Release",
+    "managed": true,
+    "scope": "Retained full baseline plus affected JSDoc, variable-list recovery and module-object spread comparisons",
+    "build": {
+        "exitCode": 0,
+        "warnings": 0,
+        "errors": 0,
+        "log": "logs/phase4-documentation-recovery-build.log",
+        "sha256": "149873e5293c339bc8c2df08c636c46d5de41622b38385074080217ccfac4fe9"
+    },
+    "candidateSha256": "f73d3764bbb4c6825f79e6a23f8400a4ff136dd1413ed8f449c2fb8ad81a3286",
+    "compilerSha256": "31945b533d4cb7dfd25bac447f7f455b28befd9991acc037b1e0c9e576522fc1",
+    "corpus": [
+        {
+            "timestamp": "2026-09-27T01:42:50.152Z",
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "mode": "single",
+            "filter": "",
+            "managed": true,
+            "reuseSyntax": true,
+            "referenceJobs": 4,
+            "scope": "Original compiler test program graphs and semantic diagnostic codes; full diagnostic/type/symbol fidelity and parallel candidate checker scheduling remain incomplete",
+            "referenceExitCode": 0,
+            "exportedConfigurations": 15208,
+            "readyConfigurations": 2103,
+            "availableConfigurations": 13446,
+            "selectionSha256": "96510dba508abda7c3660caf445250bd60e76ffabba6689fd3f2fcae29ac91bb",
+            "referenceInventoryFiles": 12730,
+            "plannedConfigurations": 15208,
+            "referenceMissingFiles": [],
+            "referenceMissingConfigurations": [],
+            "referenceSkipped": 1762,
+            "referenceFailed": 0,
+            "candidateFailures": 0,
+            "graphMismatches": 0,
+            "diagnosticMismatches": 34,
+            "graphAndCodeMatches": 2069,
+            "detailedDiagnosticMatches": 1950,
+            "detailedDiagnosticMismatches": 153,
+            "detailedComparison": "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized",
+            "errorGroups": [],
+            "inputSha256": "63befffd43c6e1a36331426b4dd2f3b01e4002f3d7f124c3da66f30a33a5c180",
+            "referenceInputCorrectionsSha256": "ea569831effe01a55e210da50442c429251d933793905bf1d27a289264a86061",
+            "oracleSha256": "072ce20500e1dfa626e6029e8ba98ed84b925a304216116200dd33d97f54654a",
+            "candidateSha256": "f73d3764bbb4c6825f79e6a23f8400a4ff136dd1413ed8f449c2fb8ad81a3286",
+            "compilerSha256": "31945b533d4cb7dfd25bac447f7f455b28befd9991acc037b1e0c9e576522fc1",
+            "mapperFixture": {
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+                "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+                "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+            },
+            "candidateOutputSha256": "9420cc63b57196d42f1744b18b7a01296f6d2dded5390556712839c6ba6aa0bc",
+            "fullSemanticCorpusGateComplete": false
+        },
+        {
+            "timestamp": "2026-09-27T01:43:27.824Z",
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "mode": "default",
+            "filter": "",
+            "managed": true,
+            "reuseSyntax": true,
+            "referenceJobs": 4,
+            "scope": "Original compiler test program graphs and semantic diagnostic codes; full diagnostic/type/symbol fidelity and parallel candidate checker scheduling remain incomplete",
+            "referenceExitCode": 0,
+            "exportedConfigurations": 15208,
+            "readyConfigurations": 2103,
+            "availableConfigurations": 13446,
+            "selectionSha256": "96510dba508abda7c3660caf445250bd60e76ffabba6689fd3f2fcae29ac91bb",
+            "referenceInventoryFiles": 12730,
+            "plannedConfigurations": 15208,
+            "referenceMissingFiles": [],
+            "referenceMissingConfigurations": [],
+            "referenceSkipped": 1762,
+            "referenceFailed": 0,
+            "candidateFailures": 0,
+            "graphMismatches": 0,
+            "diagnosticMismatches": 34,
+            "graphAndCodeMatches": 2069,
+            "detailedDiagnosticMatches": 1950,
+            "detailedDiagnosticMismatches": 153,
+            "detailedComparison": "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized",
+            "errorGroups": [],
+            "inputSha256": "1021223d26cfedad8b1989a152ffb776bc54750978c457480fc0a0bb8f8bb3bf",
+            "referenceInputCorrectionsSha256": "4c16c7b555e8df466548ca7d8a484772673d2bb3a67015d60276ca9b7b933718",
+            "oracleSha256": "072ce20500e1dfa626e6029e8ba98ed84b925a304216116200dd33d97f54654a",
+            "candidateSha256": "f73d3764bbb4c6825f79e6a23f8400a4ff136dd1413ed8f449c2fb8ad81a3286",
+            "compilerSha256": "31945b533d4cb7dfd25bac447f7f455b28befd9991acc037b1e0c9e576522fc1",
+            "mapperFixture": {
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+                "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+                "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+            },
+            "candidateOutputSha256": "9420cc63b57196d42f1744b18b7a01296f6d2dded5390556712839c6ba6aa0bc",
+            "fullSemanticCorpusGateComplete": false
+        }
+    ],
+    "rollup": [
+        {
+            "mode": "single",
+            "before": {
+                "active": 13446,
+                "codeMatches": 13316,
+                "codeDifferences": 130,
+                "detailedMeasured": 10636,
+                "detailedMatches": 10123,
+                "nonemptyDetailedMatches": 6004
+            },
+            "after": {
+                "active": 13446,
+                "codeMatches": 13336,
+                "codeDifferences": 110,
+                "detailedMeasured": 10777,
+                "detailedMatches": 10271,
+                "nonemptyDetailedMatches": 6039
+            },
+            "affectedConfigurations": 2103,
+            "fixedConfigurations": 20,
+            "detailedFixes": 14,
+            "codeRegressions": 0,
+            "detailedRegressions": 0
+        },
+        {
+            "mode": "default",
+            "before": {
+                "active": 13446,
+                "codeMatches": 13316,
+                "codeDifferences": 130,
+                "detailedMeasured": 13446,
+                "detailedMatches": 12905,
+                "nonemptyDetailedMatches": 6359
+            },
+            "after": {
+                "active": 13446,
+                "codeMatches": 13336,
+                "codeDifferences": 110,
+                "detailedMeasured": 13446,
+                "detailedMatches": 12919,
+                "nonemptyDetailedMatches": 6371
+            },
+            "affectedConfigurations": 2103,
+            "fixedConfigurations": 20,
+            "detailedFixes": 14,
+            "codeRegressions": 0,
+            "detailedRegressions": 0
+        }
+    ],
+    "safety": {
+        "parser": {
+            "cases": 39,
+            "nodes": 1421841,
+            "depth": 21000,
+            "log": "logs/phase4-documentation-parser-safety.log",
+            "sha256": "80c8c01517bcf54d0138d9e2237ed949c8903cce4fe44f93df09e5ae68b6812d"
+        },
+        "objects": {
+            "assertions": 40,
+            "depth": 20000,
+            "log": "logs/phase4-documentation-object-safety.log",
+            "sha256": "3bbaf665fd091597236b3825eec5bea2b11a8c423886e1dae7fb5a1f2e1cf0b5"
+        }
+    },
+    "formatting": {
+        "csharpFiles": 6,
+        "libraryConfigurations": 2,
+        "tokensCommentsAndSyntaxIdentical": true,
+        "dotnetWhitespaceExitCode": 0,
+        "log": "logs/phase4-documentation-format.log",
+        "sha256": "9210a4c6c7508f3971230710a13677a4b5aed2a221c5e5b7f2ccdfac68266a2a"
+    },
+    "reuse": {
+        "previousOverlay": "statement-recovery",
+        "newOverlay": "documentation-recovery",
+        "distinctConfigurationsPerMode": 2103,
+        "referencesReused": true,
+        "reason": "Affected parser recovery, JSDoc, dynamic imports and object spread cases replayed; unchanged candidates and references retained.",
+        "repositoryRecord": "phase4-jsdoc-validation.json",
+        "validatedCommit": "00d370e5b0",
+        "verifiedUnchangedPaths": [
+            "tsc",
+            "packages",
+            "tools",
+            ".github/copilot-instructions.md"
+        ]
+    },
+    "nativeAotVerification": "Deferred until whole phase 4 completion; no NativeAOT build or execution",
+    "phase4Complete": false
+}

@@ -4,7 +4,8 @@ using TypeScript.Compiler.Binding;
 namespace TypeScript.Compiler.Checking;
 
 internal sealed class ObjectSpreads(TypeContext context, CheckerLinks links, TypeAlgebra algebra, TypeFactQueries facts,
-    TypeViews views, TypeProperties properties, SymbolTypes values, MappedTypes mapped, BindingTypes bindings, IBindingTypeHost host)
+    TypeViews views, TypeProperties properties, SymbolTypes values, MappedTypes mapped, BindingTypes bindings,
+    StructuredMembers structuredMembers, IBindingTypeHost host)
 {
     internal async ValueTask<Type> GetAsync(Type left, Type right, Symbol? symbol, ObjectFlags flags, bool readOnly,
         CancellationToken cancellation = default)
@@ -98,11 +99,12 @@ internal sealed class ObjectSpreads(TypeContext context, CheckerLinks links, Typ
         }
         var indexes = indexInfos.Select(info => info.IsReadonly == readOnly ? info
             : context.NewIndexInfo(info.KeyType, info.ValueType, readOnly, info.Declaration, info.Components.ToArray())).ToArray();
-        return Object(
+        return await ObjectAsync(
             symbol,
             members,
             indexes,
-            flags | ObjectFlags.ObjectLiteral | ObjectFlags.ContainsObjectOrArrayLiteral | ObjectFlags.ContainsSpread);
+            flags | ObjectFlags.ObjectLiteral | ObjectFlags.ContainsObjectOrArrayLiteral | ObjectFlags.ContainsSpread,
+            cancellation).ConfigureAwait(false);
     }
 
     internal async ValueTask<Type> MergeEmptyAsync(Type type, bool readOnly, CancellationToken cancellation = default)
@@ -141,18 +143,20 @@ internal sealed class ObjectSpreads(TypeContext context, CheckerLinks links, Typ
             links.MappedSymbols.Get(symbol).SyntheticOrigin = property;
             members[symbol.Name] = symbol;
         }
-        return Object(first.Symbol, members, await host.IndexesAsync(first, cancellation).ConfigureAwait(false),
-            ObjectFlags.ObjectLiteral | ObjectFlags.ContainsObjectOrArrayLiteral);
+        return await ObjectAsync(first.Symbol, members, await host.IndexesAsync(first, cancellation).ConfigureAwait(false),
+            ObjectFlags.ObjectLiteral | ObjectFlags.ContainsObjectOrArrayLiteral, cancellation).ConfigureAwait(false);
     }
 
-    internal ObjectType Object(Symbol? symbol, Dictionary<string, Symbol> members, IReadOnlyList<IndexInfo> indexes, ObjectFlags flags = 0)
+    internal async ValueTask<ObjectType> ObjectAsync(Symbol? symbol, Dictionary<string, Symbol> members,
+        IReadOnlyList<IndexInfo> indexes, ObjectFlags flags = 0, CancellationToken cancellation = default)
     {
         var result = context.NewObjectType(ObjectFlags.Anonymous | ObjectFlags.MembersResolved | flags, symbol);
         result.Members = members.AsReadOnly();
-        result.Properties = members.Values.Where(p => (p.Flags & SymbolFlags.Value) != 0
-            && (!p.Name.StartsWith(Symbol.InternalPrefix, StringComparison.Ordinal)
-                || p.Name.StartsWith(Symbol.InternalPrefix + Symbol.InternalPrefix, StringComparison.Ordinal)
-                || p.Name.Length >= 2 && p.Name[1] is '@' or '#')).Order(algebra.Order).ToArray();
+        var named = new List<Symbol>();
+        foreach (var (name, member) in members)
+            if (await structuredMembers.NamedAsync(name, member, cancellation).ConfigureAwait(false))
+                named.Add(member);
+        result.Properties = named.Order(algebra.Order).ToArray();
         result.CallSignatures = result.ConstructSignatures = [];
         result.IndexInfos = indexes;
         return result;

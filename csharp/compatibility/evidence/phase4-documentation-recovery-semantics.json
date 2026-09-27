@@ -1,0 +1,128 @@
+{
+    "timestamp": "2026-09-27T01:43:59.365Z",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "managed": true,
+    "scope": "Retained full baseline plus affected JSDoc, variable-list recovery and module-object spread comparisons",
+    "modes": [
+        {
+            "mode": "single",
+            "before": {
+                "active": 13446,
+                "codeMatches": 13316,
+                "codeDifferences": 130,
+                "detailedMeasured": 10636,
+                "detailedMatches": 10123,
+                "nonemptyDetailedMatches": 6004
+            },
+            "after": {
+                "active": 13446,
+                "codeMatches": 13336,
+                "codeDifferences": 110,
+                "detailedMeasured": 10777,
+                "detailedMatches": 10271,
+                "nonemptyDetailedMatches": 6039
+            },
+            "affectedConfigurations": 2103,
+            "fixed": [
+                "conformance/legacyNodeModulesExportsSpecifierGenerationConditions.ts",
+                "conformance/nodeModulesImportTypeModeDeclarationEmitErrors1.ts module=node16",
+                "conformance/nodeModulesImportTypeModeDeclarationEmitErrors1.ts module=nodenext",
+                "conformance/nodeModulesImportTypeModeDeclarationEmitErrors1.ts module=node20",
+                "conformance/nodeModulesImportTypeModeDeclarationEmitErrors1.ts module=node18",
+                "conformance/nodeModulesImportAttributesTypeModeDeclarationEmitErrors.ts module=nodenext",
+                "conformance/nodeModulesImportAttributesTypeModeDeclarationEmitErrors.ts module=node20",
+                "conformance/nodeModulesImportAttributesTypeModeDeclarationEmitErrors.ts module=node16",
+                "conformance/nodeModulesImportAttributesTypeModeDeclarationEmitErrors.ts module=node18",
+                "conformance/jsdocTemplateTag3.ts",
+                "conformance/jsdocOuterTypeParameters3.ts",
+                "conformance/jsdocOuterTypeParameters1.ts",
+                "conformance/jsdocImplements_missingType.ts",
+                "conformance/jsdocDisallowedInTypescript.ts",
+                "conformance/jsdocAugmentsMissingType.ts",
+                "conformance/importTag12.ts",
+                "conformance/importTag10.ts",
+                "compiler/spreadExpressionContextualTypeWithNamespace.ts",
+                "compiler/parseAssertEntriesError.ts",
+                "compiler/modulePreserve4.ts"
+            ],
+            "regressions": [],
+            "detailsFixed": [
+                "conformance/legacyNodeModulesExportsSpecifierGenerationConditions.ts",
+                "conformance/nodeModulesImportTypeModeDeclarationEmitErrors1.ts module=node16",
+                "conformance/nodeModulesImportTypeModeDeclarationEmitErrors1.ts module=nodenext",
+                "conformance/nodeModulesImportTypeModeDeclarationEmitErrors1.ts module=node20",
+                "conformance/nodeModulesImportTypeModeDeclarationEmitErrors1.ts module=node18",
+                "conformance/nodeModulesImportAttributesTypeModeDeclarationEmitErrors.ts module=nodenext",
+                "conformance/nodeModulesImportAttributesTypeModeDeclarationEmitErrors.ts module=node20",
+                "conformance/nodeModulesImportAttributesTypeModeDeclarationEmitErrors.ts module=node16",
+                "conformance/nodeModulesImportAttributesTypeModeDeclarationEmitErrors.ts module=node18",
+                "conformance/jsdocDisallowedInTypescript.ts",
+                "compiler/spreadExpressionContextualTypeWithNamespace.ts",
+                "compiler/parseImportAttributesError.ts",
+                "compiler/parseAssertEntriesError.ts",
+                "compiler/modulePreserve4.ts"
+            ],
+            "detailsRegressed": []
+        },
+        {
+            "mode": "default",
+            "before": {
+                "active": 13446,
+                "codeMatches": 13316,
+                "codeDifferences": 130,
+                "detailedMeasured": 13446,
+                "detailedMatches": 12905,
+                "nonemptyDetailedMatches": 6359
+            },
+            "after": {
+                "active": 13446,
+                "codeMatches": 13336,
+                "codeDifferences": 110,
+                "detailedMeasured": 13446,
+                "detailedMatches": 12919,
+                "nonemptyDetailedMatches": 6371
+            },
+            "affectedConfigurations": 2103,
+            "fixed": [
+                "conformance/jsdocAugmentsMissingType.ts",
+                "conformance/importTag12.ts",
+                "conformance/importTag10.ts",
+                "conformance/nodeModulesImportTypeModeDeclarationEmitErrors1.ts module=node20",
+                "conformance/nodeModulesImportTypeModeDeclarationEmitErrors1.ts module=node18",
+                "conformance/nodeModulesImportTypeModeDeclarationEmitErrors1.ts module=nodenext",
+                "conformance/nodeModulesImportTypeModeDeclarationEmitErrors1.ts module=node16",
+                "conformance/jsdocTemplateTag3.ts",
+                "conformance/jsdocOuterTypeParameters3.ts",
+                "conformance/jsdocOuterTypeParameters1.ts",
+                "conformance/jsdocImplements_missingType.ts",
+                "conformance/jsdocDisallowedInTypescript.ts",
+                "conformance/nodeModulesImportAttributesTypeModeDeclarationEmitErrors.ts module=nodenext",
+                "conformance/nodeModulesImportAttributesTypeModeDeclarationEmitErrors.ts module=node18",
+                "conformance/nodeModulesImportAttributesTypeModeDeclarationEmitErrors.ts module=node20",
+                "conformance/nodeModulesImportAttributesTypeModeDeclarationEmitErrors.ts module=node16",
+                "conformance/legacyNodeModulesExportsSpecifierGenerationConditions.ts",
+                "compiler/spreadExpressionContextualTypeWithNamespace.ts",
+                "compiler/parseAssertEntriesError.ts",
+                "compiler/modulePreserve4.ts"
+            ],
+            "regressions": [],
+            "detailsFixed": [
+                "conformance/nodeModulesImportTypeModeDeclarationEmitErrors1.ts module=node20",
+                "conformance/nodeModulesImportTypeModeDeclarationEmitErrors1.ts module=node18",
+                "conformance/nodeModulesImportTypeModeDeclarationEmitErrors1.ts module=nodenext",
+                "conformance/nodeModulesImportTypeModeDeclarationEmitErrors1.ts module=node16",
+                "conformance/jsdocDisallowedInTypescript.ts",
+                "conformance/nodeModulesImportAttributesTypeModeDeclarationEmitErrors.ts module=nodenext",
+                "conformance/nodeModulesImportAttributesTypeModeDeclarationEmitErrors.ts module=node18",
+                "conformance/nodeModulesImportAttributesTypeModeDeclarationEmitErrors.ts module=node20",
+                "conformance/nodeModulesImportAttributesTypeModeDeclarationEmitErrors.ts module=node16",
+                "conformance/legacyNodeModulesExportsSpecifierGenerationConditions.ts",
+                "compiler/spreadExpressionContextualTypeWithNamespace.ts",
+                "compiler/parseImportAttributesError.ts",
+                "compiler/parseAssertEntriesError.ts",
+                "compiler/modulePreserve4.ts"
+            ],
+            "detailsRegressed": []
+        }
+    ]
+}

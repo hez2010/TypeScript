@@ -49,7 +49,8 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
     {
         var symbol = symbols.Declaration(node);
         if (node.Properties is null or { Count: 0 } && symbol?.Exports.Count > 0)
-            return spreads.Object(symbol, new(symbol.Exports), [], JsLiteral(node) ? ObjectFlags.JSLiteral : 0);
+            return await spreads.ObjectAsync(symbol, new(symbol.Exports), [], JsLiteral(node) ? ObjectFlags.JSLiteral : 0,
+                cancellation).ConfigureAwait(false);
         host.DeferExpression(node);
         bool destructuring = ReferenceSyntax.AssignmentTarget(node) is not null;
         await GrammarAsync(node, destructuring, cancellation).ConfigureAwait(false);
@@ -234,11 +235,11 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
                     indexes.Add(await IndexAsync(context.NumberType, ordered.Skip(offset), readOnly, cancellation).ConfigureAwait(false));
                 if (symbolKey)
                     indexes.Add(await IndexAsync(context.ESSymbolType, ordered.Skip(offset), readOnly, cancellation).ConfigureAwait(false));
-                var result = spreads.Object(
+                var result = await spreads.ObjectAsync(
                     symbol,
                     table,
                     indexes,
-                    flags | ObjectFlags.ObjectLiteral | ObjectFlags.ContainsObjectOrArrayLiteral);
+                    flags | ObjectFlags.ObjectLiteral | ObjectFlags.ContainsObjectOrArrayLiteral, cancellation).ConfigureAwait(false);
                 if (contextual is null && JsLiteral(node))
                     result.ObjectFlags |= ObjectFlags.JSLiteral;
                 if (computedPattern)
@@ -348,7 +349,8 @@ internal sealed class ObjectLiterals(TypeContext context, CheckerLinks links, Ch
             var updated = await RegularAsync(original, cancellation).ConfigureAwait(false);
             table[property.Name] = original == updated ? property : widening.WithType(property, updated);
         }
-        var result = spreads.Object(type.Symbol, table, resolved.IndexInfos, resolved.ObjectFlags & ~ObjectFlags.FreshLiteral);
+        var result = await spreads.ObjectAsync(type.Symbol, table, resolved.IndexInfos,
+            resolved.ObjectFlags & ~ObjectFlags.FreshLiteral, cancellation).ConfigureAwait(false);
         result.CallSignatures = resolved.CallSignatures;
         result.ConstructSignatures = resolved.ConstructSignatures;
         cancellation.ThrowIfCancellationRequested();

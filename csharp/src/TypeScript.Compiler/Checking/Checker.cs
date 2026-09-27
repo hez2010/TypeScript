@@ -188,7 +188,7 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
             Instantiation.Members, Indexed, IndexSignatures, Instantiation.Tuples, Instantiation.Constraints,
             Views, Relations, Instantiation.Resolutions);
         ArrayLiterals = new(context, Algebra, Contexts, Properties, Values, Instantiation.Mapped, Instantiation.Tuples, Indexed, this);
-        ObjectSpreads = new(context, links, Algebra, Facts, Views, Properties, Values, Instantiation.Mapped, Bindings, this);
+        ObjectSpreads = new(context, links, Algebra, Facts, Views, Properties, Values, Instantiation.Mapped, Bindings, Members, this);
         ObjectLiterals = new(context, links, program.Symbols, Algebra, Views, Properties, Values, Relations, Predicates,
             Widening, Members, Contexts, Bindings, ObjectSpreads, InferencePatterns, this);
         TypeDiscrimination = new(context, Algebra, Views, Properties, Values, Relations, Discriminants, program.Symbols, Contexts, this);
