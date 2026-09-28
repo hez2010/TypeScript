@@ -1,6 +1,6 @@
 # Satori GC with NativeAOT
 
-The compiler at `eaf5fefb13` was published with the local Satori AOT SDK through `csharp/Directory.Build.targets`. On the five original compiler workloads, Satori reduced default-mode median elapsed time by **15.3–21.6%** against the existing Server GC NativeAOT binary. The five smaller controls changed by **+1.6–5.7%** in default mode. Go remains faster on every workload.
+The compiler at `eaf5fefb13` was published with the local Satori AOT SDK through `csharp/Directory.Build.targets`. A later build audit found that the first comparison omitted the repository's requested `IlcInstructionSet=native` setting. The corrected paired run set it for both .NET binaries. On the five original workloads, Satori reduced default-mode median elapsed time by **15.3–25.7%** against Server GC NativeAOT. The five smaller controls were approximately flat. Go remains faster on every workload.
 
 ## Matched workload results
 
@@ -8,31 +8,31 @@ The comparison used four visible processors, 20 warmups and 15 measured requests
 
 Default-checker medians, in milliseconds:
 
-| Workload | Stock AOT | Satori AOT | Change | Go |
+| Workload | Server AOT | Satori AOT | Change | Go |
 | --- | ---: | ---: | ---: | ---: |
-| JSX signatures | 37.46 | 31.74 | −15.3% | 17.95 |
-| Large conditional type | 88.92 | 74.50 | −16.2% | 61.42 |
-| Static members | 35.03 | 28.48 | −18.7% | 16.37 |
-| Node modules with JS | 35.15 | 27.57 | −21.6% | 16.31 |
-| Large diagnostic program | 34.61 | 27.79 | −19.7% | 16.21 |
-| 5,000 ASCII exports | 10.40 | 10.63 | +2.2% | 6.89 |
-| Unicode strings | 11.91 | 12.44 | +4.4% | 6.99 |
-| Unicode identifiers | 11.86 | 12.05 | +1.6% | 6.98 |
-| Malformed byte run | 10.87 | 11.27 | +3.7% | 6.86 |
-| Sparse malformed byte | 10.88 | 11.50 | +5.7% | 6.94 |
+| JSX signatures | 36.70 | 31.07 | −15.3% | 17.90 |
+| Large conditional type | 87.98 | 73.41 | −16.6% | 59.97 |
+| Static members | 35.78 | 27.73 | −22.5% | 16.56 |
+| Node modules with JS | 36.29 | 26.95 | −25.7% | 16.64 |
+| Large diagnostic program | 34.03 | 26.61 | −21.8% | 16.09 |
+| 5,000 ASCII exports | 10.61 | 10.54 | −0.7% | 6.92 |
+| Unicode strings | 12.09 | 12.09 | 0.0% | 7.18 |
+| Unicode identifiers | 11.97 | 11.96 | −0.1% | 7.03 |
+| Malformed byte run | 10.89 | 10.99 | +0.9% | 7.02 |
+| Sparse malformed byte | 10.90 | 11.06 | +1.4% | 6.88 |
 
-In single-checker mode, Satori's five original-workload medians were 11.5–19.4% lower; the five controls were 0.1–1.3% higher. The Satori default-mode times are still 1.21–1.77 times Go's on the original workloads.
+In single-checker mode, Satori's five original-workload medians were 12.5–22.4% lower; the five controls changed by −2.0% to +0.6%. The Satori default-mode times are still 1.22–1.74 times Go's on the original workloads. The [initial run](../csharp/compatibility/evidence/phase4-satori-nativeaot-performance.json) and its [samples](../csharp/compatibility/evidence/phase4-satori-nativeaot-samples.jsonl) remain available as excluded host-native evidence.
 
 ## GC and memory observations
 
-For the five original default-mode workloads in table order, the runtime's median reported GC pause changed from **7.56, 20.44, 8.81, 9.34 and 8.22 ms** with stock Server GC to **1.95, 2.00, 1.98, 1.83 and 1.85 ms** with Satori. The small controls had no measured stock collection; Satori reported one Gen0 collection and roughly 0.42–0.52 ms of pause per request. These observations align with the large-workload speedup and small-control slowdown, though they do not isolate every source of elapsed-time change.
+For the five original default-mode workloads in table order, the runtime's median reported GC pause changed from **7.41, 20.16, 9.74, 9.79 and 8.48 ms** with Server GC to **1.99, 2.04, 1.90, 1.81 and 2.00 ms** with Satori. These observations align with the large-workload speedup, though they do not isolate every source of elapsed-time change.
 
-Managed allocated bytes were effectively unchanged. Peak working set increased for four of the five original default-mode workloads: the conditional case rose from **105.8 to 123.7 MiB**, while the large diagnostic case remained about **89 MiB**. Peak working set includes runtime memory and retained GC pages, so it is not a live-heap measurement.
+Managed allocated bytes were effectively unchanged. Peak working set includes runtime memory and retained GC pages, so it is not a live-heap measurement. The complete per-case memory figures are retained in the corrected benchmark summary.
 
 ## Build and evidence
 
-The self-contained Windows x64 publish used the .NET SDK at `D:\dotnet-sdk-11.0.100-rtm.26473.115-win-x64`, `PublishAot=true`, `ServerGarbageCollection=true`, `UseSatoriGC=true`, and `SatoriBuildRoot=D:\Satori\artifacts\bin\coreclr\windows.x64.Release`. It completed without warnings or errors. The Satori process reported `.NET 11.0.0-dev`; the stock binary reported `.NET 11.0.0-rtm.26473.115`. The comparison includes any differences between those runtime builds, as well as the GC difference.
+The self-contained Windows x64 publish used the .NET SDK at `D:\dotnet-sdk-11.0.100-rtm.26473.115-win-x64`, `PublishAot=true`, `ServerGarbageCollection=true`, and `IlcInstructionSet=native` for both binaries; the Satori publish also used `UseSatoriGC=true` and `SatoriBuildRoot=D:\Satori\artifacts\bin\coreclr\windows.x64.Release`. Both completed without warnings or errors. The Satori process reported `.NET 11.0.0-dev`; the Server GC binary reported `.NET 11.0.0-rtm.26473.115`. The comparison includes any differences between those runtime builds, as well as the GC difference.
 
-Satori executable SHA-256: `0081829806b5f0d7f2e7ab934a3ebb94379ee7c19372c7f358086cdd3c35b8eb`. Stock executable SHA-256: `01af7cdd6000f40a6493cdbec1b66b1bd6c5fb3b54a67fd83c88c9f4ce48c4ba`. The input and Go executable hashes are recorded in the [benchmark summary](../csharp/compatibility/evidence/phase4-satori-nativeaot-performance.json), which also includes all 20 workload/mode groups. The [raw samples](../csharp/compatibility/evidence/phase4-satori-nativeaot-samples.jsonl) retain every checked request; their SHA-256 is `cccda6e10f410c47dff58b2f9fbdfd4e44bccdb978c24b3b284e864df4bfaa94`.
+Satori executable SHA-256: `7cda08d128a512575ec958b2bc03ed8c8f1842fe3a08bceb6904c9688b4dffd6`. Server GC executable SHA-256: `81e5a76c9a39dc4602b71a6fbc2d88c41fa6bacb7663c07ddebf2e7a3df60bc3`. The input and Go executable hashes are recorded in the [corrected benchmark summary](../csharp/compatibility/evidence/phase4-satori-native-isa-performance.json), which includes all 20 workload/mode groups. The [raw samples](../csharp/compatibility/evidence/phase4-satori-native-isa-samples.jsonl) retain every checked request; their SHA-256 is `46c1e8c49e1e122547636ea0a9e0be36097810d5d5cdcd3458c72d6f672661ab`.
 
 The workload driver checks graph hashes and diagnostic counts. This run did not repeat the full semantic corpus under the Satori runtime. The compiler source is the same as the committed Server GC benchmark; only the build target was added for this experiment.
