@@ -19,9 +19,9 @@ public sealed partial class TokenNode : SyntaxNode
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
     }
 }
 
@@ -45,9 +45,9 @@ public sealed partial class IdentifierNode : SyntaxNode
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
     }
 }
 
@@ -71,9 +71,9 @@ public sealed partial class PrivateIdentifierNode : SyntaxNode
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
     }
 }
 
@@ -107,9 +107,11 @@ public sealed partial class QualifiedNameNode : SyntaxNode
         if (Left is not null) Left = (SyntaxNode)copies[Left];
         if (Right is not null) Right = (SyntaxNode)copies[Right];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Right is { } childRight) pending.Push(childRight);
+        if (Left is { } childLeft) pending.Push(childLeft);
     }
 }
 
@@ -133,9 +135,10 @@ public sealed partial class ComputedPropertyNameNode : SyntaxNode
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Expression is { } childExpression) pending.Push(childExpression);
     }
 }
 
@@ -159,9 +162,10 @@ public sealed partial class DecoratorNode : SyntaxNode
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Expression is { } childExpression) pending.Push(childExpression);
     }
 }
 
@@ -184,9 +188,9 @@ public sealed partial class EmptyStatementNode : SyntaxNode
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
     }
 }
 
@@ -224,9 +228,12 @@ public sealed partial class IfStatementNode : SyntaxNode
         if (ThenStatement is not null) ThenStatement = (SyntaxNode)copies[ThenStatement];
         if (ElseStatement is not null) ElseStatement = (SyntaxNode)copies[ElseStatement];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (ElseStatement is { } childElseStatement) pending.Push(childElseStatement);
+        if (ThenStatement is { } childThenStatement) pending.Push(childThenStatement);
+        if (Expression is { } childExpression) pending.Push(childExpression);
     }
 }
 
@@ -260,9 +267,11 @@ public sealed partial class DoStatementNode : SyntaxNode
         if (Statement is not null) Statement = (SyntaxNode)copies[Statement];
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Expression is { } childExpression) pending.Push(childExpression);
+        if (Statement is { } childStatement) pending.Push(childStatement);
     }
 }
 
@@ -296,9 +305,11 @@ public sealed partial class WhileStatementNode : SyntaxNode
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
         if (Statement is not null) Statement = (SyntaxNode)copies[Statement];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Statement is { } childStatement) pending.Push(childStatement);
+        if (Expression is { } childExpression) pending.Push(childExpression);
     }
 }
 
@@ -344,9 +355,13 @@ public sealed partial class ForStatementNode : SyntaxNode, IInitializedNode
         if (Incrementor is not null) Incrementor = (SyntaxNode)copies[Incrementor];
         if (Statement is not null) Statement = (SyntaxNode)copies[Statement];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Statement is { } childStatement) pending.Push(childStatement);
+        if (Incrementor is { } childIncrementor) pending.Push(childIncrementor);
+        if (Condition is { } childCondition) pending.Push(childCondition);
+        if (Initializer is { } childInitializer) pending.Push(childInitializer);
     }
 }
 
@@ -393,9 +408,13 @@ public sealed partial class ForInOrOfStatementNode : SyntaxNode, IInitializedNod
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
         if (Statement is not null) Statement = (SyntaxNode)copies[Statement];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Statement is { } childStatement) pending.Push(childStatement);
+        if (Expression is { } childExpression) pending.Push(childExpression);
+        if (Initializer is { } childInitializer) pending.Push(childInitializer);
+        if (AwaitModifier is { } childAwaitModifier) pending.Push(childAwaitModifier);
     }
 }
 
@@ -425,9 +444,10 @@ public sealed partial class BreakStatementNode : SyntaxNode
     {
         if (Label is not null) Label = (IdentifierNode)copies[Label];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Label is { } childLabel) pending.Push(childLabel);
     }
 }
 
@@ -457,9 +477,10 @@ public sealed partial class ContinueStatementNode : SyntaxNode
     {
         if (Label is not null) Label = (IdentifierNode)copies[Label];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Label is { } childLabel) pending.Push(childLabel);
     }
 }
 
@@ -489,9 +510,10 @@ public sealed partial class ReturnStatementNode : SyntaxNode
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Expression is { } childExpression) pending.Push(childExpression);
     }
 }
 
@@ -525,9 +547,11 @@ public sealed partial class WithStatementNode : SyntaxNode
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
         if (Statement is not null) Statement = (SyntaxNode)copies[Statement];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Statement is { } childStatement) pending.Push(childStatement);
+        if (Expression is { } childExpression) pending.Push(childExpression);
     }
 }
 
@@ -561,9 +585,11 @@ public sealed partial class SwitchStatementNode : SyntaxNode
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
         if (CaseBlock is not null) CaseBlock = (CaseBlockNode)copies[CaseBlock];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (CaseBlock is { } childCaseBlock) pending.Push(childCaseBlock);
+        if (Expression is { } childExpression) pending.Push(childExpression);
     }
 }
 
@@ -600,10 +626,12 @@ public sealed partial class CaseBlockNode : SyntaxNode
     {
         if (Clauses is not null) Clauses = Clauses.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Clauses?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Clauses?.ConvertPositions(source);
+        if (Clauses is { } listClauses)
+            for (int i = listClauses.Count - 1; i >= 0; i--) pending.Push(listClauses[i]);
     }
 }
 
@@ -643,10 +671,13 @@ public sealed partial class CaseOrDefaultClauseNode : SyntaxNode
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
         if (Statements is not null) Statements = Statements.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Statements?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Statements?.ConvertPositions(source);
+        if (Statements is { } listStatements)
+            for (int i = listStatements.Count - 1; i >= 0; i--) pending.Push(listStatements[i]);
+        if (Expression is { } childExpression) pending.Push(childExpression);
     }
 }
 
@@ -676,9 +707,10 @@ public sealed partial class ThrowStatementNode : SyntaxNode
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Expression is { } childExpression) pending.Push(childExpression);
     }
 }
 
@@ -716,9 +748,12 @@ public sealed partial class TryStatementNode : SyntaxNode
         if (CatchClause is not null) CatchClause = (CatchClauseNode)copies[CatchClause];
         if (FinallyBlock is not null) FinallyBlock = (BlockNode)copies[FinallyBlock];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (FinallyBlock is { } childFinallyBlock) pending.Push(childFinallyBlock);
+        if (CatchClause is { } childCatchClause) pending.Push(childCatchClause);
+        if (TryBlock is { } childTryBlock) pending.Push(childTryBlock);
     }
 }
 
@@ -754,9 +789,11 @@ public sealed partial class CatchClauseNode : SyntaxNode
         if (VariableDeclaration is not null) VariableDeclaration = (VariableDeclarationNode)copies[VariableDeclaration];
         if (Block is not null) Block = (BlockNode)copies[Block];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Block is { } childBlock) pending.Push(childBlock);
+        if (VariableDeclaration is { } childVariableDeclaration) pending.Push(childVariableDeclaration);
     }
 }
 
@@ -779,9 +816,9 @@ public sealed partial class DebuggerStatementNode : SyntaxNode
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
     }
 }
 
@@ -815,9 +852,11 @@ public sealed partial class LabeledStatementNode : SyntaxNode
         if (Label is not null) Label = (IdentifierNode)copies[Label];
         if (Statement is not null) Statement = (SyntaxNode)copies[Statement];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Statement is { } childStatement) pending.Push(childStatement);
+        if (Label is { } childLabel) pending.Push(childLabel);
     }
 }
 
@@ -847,9 +886,10 @@ public sealed partial class ExpressionStatementNode : SyntaxNode
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Expression is { } childExpression) pending.Push(childExpression);
     }
 }
 
@@ -889,10 +929,12 @@ public sealed partial class BlockNode : SyntaxNode
     {
         if (Statements is not null) Statements = Statements.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Statements?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Statements?.ConvertPositions(source);
+        if (Statements is { } listStatements)
+            for (int i = listStatements.Count - 1; i >= 0; i--) pending.Push(listStatements[i]);
     }
 }
 
@@ -932,10 +974,13 @@ public sealed partial class VariableStatementNode : SyntaxNode, IModifiedNode
         if (Modifiers is not null) Modifiers = Modifiers.Map(copies);
         if (DeclarationList is not null) DeclarationList = (VariableDeclarationListNode)copies[DeclarationList];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        if (DeclarationList is { } childDeclarationList) pending.Push(childDeclarationList);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -983,9 +1028,13 @@ public sealed partial class VariableDeclarationNode : SyntaxNode, ITypedNode, II
         if (Type is not null) Type = (SyntaxNode)copies[Type];
         if (Initializer is not null) Initializer = (SyntaxNode)copies[Initializer];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Initializer is { } childInitializer) pending.Push(childInitializer);
+        if (Type is { } childType) pending.Push(childType);
+        if (ExclamationToken is { } childExclamationToken) pending.Push(childExclamationToken);
+        if (Name is { } childName) pending.Push(childName);
     }
 }
 
@@ -1014,10 +1063,12 @@ public sealed partial class VariableDeclarationListNode : SyntaxNode
     {
         if (Declarations is not null) Declarations = Declarations.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Declarations?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Declarations?.ConvertPositions(source);
+        if (Declarations is { } listDeclarations)
+            for (int i = listDeclarations.Count - 1; i >= 0; i--) pending.Push(listDeclarations[i]);
     }
 }
 
@@ -1047,10 +1098,12 @@ public sealed partial class BindingPatternNode : SyntaxNode
     {
         if (Elements is not null) Elements = Elements.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Elements?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Elements?.ConvertPositions(source);
+        if (Elements is { } listElements)
+            for (int i = listElements.Count - 1; i >= 0; i--) pending.Push(listElements[i]);
     }
 }
 
@@ -1112,10 +1165,17 @@ public sealed partial class ParameterDeclarationNode : SyntaxNode, ITypedNode, I
         if (Type is not null) Type = (SyntaxNode)copies[Type];
         if (Initializer is not null) Initializer = (SyntaxNode)copies[Initializer];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        if (Initializer is { } childInitializer) pending.Push(childInitializer);
+        if (Type is { } childType) pending.Push(childType);
+        if (QuestionToken is { } childQuestionToken) pending.Push(childQuestionToken);
+        if (Name is { } childName) pending.Push(childName);
+        if (DotDotDotToken is { } childDotDotDotToken) pending.Push(childDotDotDotToken);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -1163,9 +1223,13 @@ public sealed partial class BindingElementNode : SyntaxNode, IInitializedNode, I
         if (Name is not null) Name = (SyntaxNode)copies[Name];
         if (Initializer is not null) Initializer = (SyntaxNode)copies[Initializer];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Initializer is { } childInitializer) pending.Push(childInitializer);
+        if (Name is { } childName) pending.Push(childName);
+        if (PropertyName is { } childPropertyName) pending.Push(childPropertyName);
+        if (DotDotDotToken is { } childDotDotDotToken) pending.Push(childDotDotDotToken);
     }
 }
 
@@ -1205,10 +1269,12 @@ public sealed partial class MissingDeclarationNode : SyntaxNode, IModifiedNode
     {
         if (Modifiers is not null) Modifiers = Modifiers.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -1297,12 +1363,23 @@ public sealed partial class FunctionDeclarationNode : SyntaxNode, ITypedNode, IF
         if (FullSignature is not null) FullSignature = (SyntaxNode)copies[FullSignature];
         if (Body is not null) Body = (SyntaxNode)copies[Body];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
-        TypeParameters?.ConvertPositions(convert);
-        Parameters?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        TypeParameters?.ConvertPositions(source);
+        Parameters?.ConvertPositions(source);
+        if (Body is { } childBody) pending.Push(childBody);
+        if (FullSignature is { } childFullSignature) pending.Push(childFullSignature);
+        if (Type is { } childType) pending.Push(childType);
+        if (Parameters is { } listParameters)
+            for (int i = listParameters.Count - 1; i >= 0; i--) pending.Push(listParameters[i]);
+        if (TypeParameters is { } listTypeParameters)
+            for (int i = listTypeParameters.Count - 1; i >= 0; i--) pending.Push(listTypeParameters[i]);
+        if (Name is { } childName) pending.Push(childName);
+        if (AsteriskToken is { } childAsteriskToken) pending.Push(childAsteriskToken);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -1379,13 +1456,22 @@ public sealed partial class ClassDeclarationNode : SyntaxNode, IModifiedNode, IN
         if (HeritageClauses is not null) HeritageClauses = HeritageClauses.Map(copies);
         if (Members is not null) Members = Members.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
-        TypeParameters?.ConvertPositions(convert);
-        HeritageClauses?.ConvertPositions(convert);
-        Members?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        TypeParameters?.ConvertPositions(source);
+        HeritageClauses?.ConvertPositions(source);
+        Members?.ConvertPositions(source);
+        if (Members is { } listMembers)
+            for (int i = listMembers.Count - 1; i >= 0; i--) pending.Push(listMembers[i]);
+        if (HeritageClauses is { } listHeritageClauses)
+            for (int i = listHeritageClauses.Count - 1; i >= 0; i--) pending.Push(listHeritageClauses[i]);
+        if (TypeParameters is { } listTypeParameters)
+            for (int i = listTypeParameters.Count - 1; i >= 0; i--) pending.Push(listTypeParameters[i]);
+        if (Name is { } childName) pending.Push(childName);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -1462,13 +1548,22 @@ public sealed partial class ClassExpressionNode : SyntaxNode, IModifiedNode, INa
         if (HeritageClauses is not null) HeritageClauses = HeritageClauses.Map(copies);
         if (Members is not null) Members = Members.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
-        TypeParameters?.ConvertPositions(convert);
-        HeritageClauses?.ConvertPositions(convert);
-        Members?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        TypeParameters?.ConvertPositions(source);
+        HeritageClauses?.ConvertPositions(source);
+        Members?.ConvertPositions(source);
+        if (Members is { } listMembers)
+            for (int i = listMembers.Count - 1; i >= 0; i--) pending.Push(listMembers[i]);
+        if (HeritageClauses is { } listHeritageClauses)
+            for (int i = listHeritageClauses.Count - 1; i >= 0; i--) pending.Push(listHeritageClauses[i]);
+        if (TypeParameters is { } listTypeParameters)
+            for (int i = listTypeParameters.Count - 1; i >= 0; i--) pending.Push(listTypeParameters[i]);
+        if (Name is { } childName) pending.Push(childName);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -1498,10 +1593,12 @@ public sealed partial class HeritageClauseNode : SyntaxNode
     {
         if (Types is not null) Types = Types.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Types?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Types?.ConvertPositions(source);
+        if (Types is { } listTypes)
+            for (int i = listTypes.Count - 1; i >= 0; i--) pending.Push(listTypes[i]);
     }
 }
 
@@ -1578,13 +1675,22 @@ public sealed partial class InterfaceDeclarationNode : SyntaxNode, IModifiedNode
         if (HeritageClauses is not null) HeritageClauses = HeritageClauses.Map(copies);
         if (Members is not null) Members = Members.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
-        TypeParameters?.ConvertPositions(convert);
-        HeritageClauses?.ConvertPositions(convert);
-        Members?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        TypeParameters?.ConvertPositions(source);
+        HeritageClauses?.ConvertPositions(source);
+        Members?.ConvertPositions(source);
+        if (Members is { } listMembers)
+            for (int i = listMembers.Count - 1; i >= 0; i--) pending.Push(listMembers[i]);
+        if (HeritageClauses is { } listHeritageClauses)
+            for (int i = listHeritageClauses.Count - 1; i >= 0; i--) pending.Push(listHeritageClauses[i]);
+        if (TypeParameters is { } listTypeParameters)
+            for (int i = listTypeParameters.Count - 1; i >= 0; i--) pending.Push(listTypeParameters[i]);
+        if (Name is { } childName) pending.Push(childName);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -1648,11 +1754,17 @@ public sealed partial class TypeAliasDeclarationNode : SyntaxNode, ITypedNode, I
         if (TypeParameters is not null) TypeParameters = TypeParameters.Map(copies);
         if (Type is not null) Type = (SyntaxNode)copies[Type];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
-        TypeParameters?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        TypeParameters?.ConvertPositions(source);
+        if (Type is { } childType) pending.Push(childType);
+        if (TypeParameters is { } listTypeParameters)
+            for (int i = listTypeParameters.Count - 1; i >= 0; i--) pending.Push(listTypeParameters[i]);
+        if (Name is { } childName) pending.Push(childName);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -1692,9 +1804,11 @@ public sealed partial class EnumMemberNode : SyntaxNode, IInitializedNode, IName
         if (Name is not null) Name = (SyntaxNode)copies[Name];
         if (Initializer is not null) Initializer = (SyntaxNode)copies[Initializer];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Initializer is { } childInitializer) pending.Push(childInitializer);
+        if (Name is { } childName) pending.Push(childName);
     }
 }
 
@@ -1753,11 +1867,16 @@ public sealed partial class EnumDeclarationNode : SyntaxNode, IModifiedNode, INa
         if (Name is not null) Name = (IdentifierNode)copies[Name];
         if (Members is not null) Members = Members.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
-        Members?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        Members?.ConvertPositions(source);
+        if (Members is { } listMembers)
+            for (int i = listMembers.Count - 1; i >= 0; i--) pending.Push(listMembers[i]);
+        if (Name is { } childName) pending.Push(childName);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -1792,10 +1911,12 @@ public sealed partial class ModuleBlockNode : SyntaxNode
     {
         if (Statements is not null) Statements = Statements.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Statements?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Statements?.ConvertPositions(source);
+        if (Statements is { } listStatements)
+            for (int i = listStatements.Count - 1; i >= 0; i--) pending.Push(listStatements[i]);
     }
 }
 
@@ -1818,9 +1939,9 @@ public sealed partial class NotEmittedStatementNode : SyntaxNode
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
     }
 }
 
@@ -1837,9 +1958,9 @@ public sealed partial class NotEmittedTypeElementNode : SyntaxNode
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
     }
 }
 
@@ -1892,10 +2013,15 @@ public sealed partial class ImportDeclarationNode : SyntaxNode, IModifiedNode
         if (ModuleSpecifier is not null) ModuleSpecifier = (SyntaxNode)copies[ModuleSpecifier];
         if (Attributes is not null) Attributes = (ImportAttributesNode)copies[Attributes];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        if (Attributes is { } childAttributes) pending.Push(childAttributes);
+        if (ModuleSpecifier is { } childModuleSpecifier) pending.Push(childModuleSpecifier);
+        if (ImportClause is { } childImportClause) pending.Push(childImportClause);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -1919,9 +2045,10 @@ public sealed partial class ExternalModuleReferenceNode : SyntaxNode
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Expression is { } childExpression) pending.Push(childExpression);
     }
 }
 
@@ -1957,9 +2084,10 @@ public sealed partial class NamespaceImportNode : SyntaxNode, INamedNode
     {
         if (Name is not null) Name = (IdentifierNode)copies[Name];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Name is { } childName) pending.Push(childName);
     }
 }
 
@@ -1988,10 +2116,12 @@ public sealed partial class NamedImportsNode : SyntaxNode
     {
         if (Elements is not null) Elements = Elements.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Elements?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Elements?.ConvertPositions(source);
+        if (Elements is { } listElements)
+            for (int i = listElements.Count - 1; i >= 0; i--) pending.Push(listElements[i]);
     }
 }
 
@@ -2040,10 +2170,14 @@ public sealed partial class ExportAssignmentNode : SyntaxNode, ITypedNode, IModi
         if (Type is not null) Type = (SyntaxNode)copies[Type];
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        if (Expression is { } childExpression) pending.Push(childExpression);
+        if (Type is { } childType) pending.Push(childType);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -2089,10 +2223,13 @@ public sealed partial class NamespaceExportDeclarationNode : SyntaxNode, IModifi
         if (Modifiers is not null) Modifiers = Modifiers.Map(copies);
         if (Name is not null) Name = (IdentifierNode)copies[Name];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        if (Name is { } childName) pending.Push(childName);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -2128,9 +2265,10 @@ public sealed partial class NamespaceExportNode : SyntaxNode, INamedNode
     {
         if (Name is not null) Name = (SyntaxNode)copies[Name];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Name is { } childName) pending.Push(childName);
     }
 }
 
@@ -2159,10 +2297,12 @@ public sealed partial class NamedExportsNode : SyntaxNode
     {
         if (Elements is not null) Elements = Elements.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Elements?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Elements?.ConvertPositions(source);
+        if (Elements is { } listElements)
+            for (int i = listElements.Count - 1; i >= 0; i--) pending.Push(listElements[i]);
     }
 }
 
@@ -2203,9 +2343,11 @@ public sealed partial class ExportSpecifierNode : SyntaxNode, INamedNode
         if (PropertyName is not null) PropertyName = (SyntaxNode)copies[PropertyName];
         if (Name is not null) Name = (SyntaxNode)copies[Name];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Name is { } childName) pending.Push(childName);
+        if (PropertyName is { } childPropertyName) pending.Push(childPropertyName);
     }
 }
 
@@ -2262,11 +2404,16 @@ public sealed partial class CallSignatureDeclarationNode : SyntaxNode, ITypedNod
         if (Parameters is not null) Parameters = Parameters.Map(copies);
         if (Type is not null) Type = (SyntaxNode)copies[Type];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        TypeParameters?.ConvertPositions(convert);
-        Parameters?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        TypeParameters?.ConvertPositions(source);
+        Parameters?.ConvertPositions(source);
+        if (Type is { } childType) pending.Push(childType);
+        if (Parameters is { } listParameters)
+            for (int i = listParameters.Count - 1; i >= 0; i--) pending.Push(listParameters[i]);
+        if (TypeParameters is { } listTypeParameters)
+            for (int i = listTypeParameters.Count - 1; i >= 0; i--) pending.Push(listTypeParameters[i]);
     }
 }
 
@@ -2323,11 +2470,16 @@ public sealed partial class ConstructSignatureDeclarationNode : SyntaxNode, ITyp
         if (Parameters is not null) Parameters = Parameters.Map(copies);
         if (Type is not null) Type = (SyntaxNode)copies[Type];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        TypeParameters?.ConvertPositions(convert);
-        Parameters?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        TypeParameters?.ConvertPositions(source);
+        Parameters?.ConvertPositions(source);
+        if (Type is { } childType) pending.Push(childType);
+        if (Parameters is { } listParameters)
+            for (int i = listParameters.Count - 1; i >= 0; i--) pending.Push(listParameters[i]);
+        if (TypeParameters is { } listTypeParameters)
+            for (int i = listTypeParameters.Count - 1; i >= 0; i--) pending.Push(listTypeParameters[i]);
     }
 }
 
@@ -2406,12 +2558,21 @@ public sealed partial class ConstructorDeclarationNode : SyntaxNode, ITypedNode,
         if (FullSignature is not null) FullSignature = (SyntaxNode)copies[FullSignature];
         if (Body is not null) Body = (SyntaxNode)copies[Body];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
-        TypeParameters?.ConvertPositions(convert);
-        Parameters?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        TypeParameters?.ConvertPositions(source);
+        Parameters?.ConvertPositions(source);
+        if (Body is { } childBody) pending.Push(childBody);
+        if (FullSignature is { } childFullSignature) pending.Push(childFullSignature);
+        if (Type is { } childType) pending.Push(childType);
+        if (Parameters is { } listParameters)
+            for (int i = listParameters.Count - 1; i >= 0; i--) pending.Push(listParameters[i]);
+        if (TypeParameters is { } listTypeParameters)
+            for (int i = listTypeParameters.Count - 1; i >= 0; i--) pending.Push(listTypeParameters[i]);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -2496,12 +2657,22 @@ public sealed partial class GetAccessorDeclarationNode : SyntaxNode, ITypedNode,
         if (FullSignature is not null) FullSignature = (SyntaxNode)copies[FullSignature];
         if (Body is not null) Body = (SyntaxNode)copies[Body];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
-        TypeParameters?.ConvertPositions(convert);
-        Parameters?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        TypeParameters?.ConvertPositions(source);
+        Parameters?.ConvertPositions(source);
+        if (Body is { } childBody) pending.Push(childBody);
+        if (FullSignature is { } childFullSignature) pending.Push(childFullSignature);
+        if (Type is { } childType) pending.Push(childType);
+        if (Parameters is { } listParameters)
+            for (int i = listParameters.Count - 1; i >= 0; i--) pending.Push(listParameters[i]);
+        if (TypeParameters is { } listTypeParameters)
+            for (int i = listTypeParameters.Count - 1; i >= 0; i--) pending.Push(listTypeParameters[i]);
+        if (Name is { } childName) pending.Push(childName);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -2586,12 +2757,22 @@ public sealed partial class SetAccessorDeclarationNode : SyntaxNode, ITypedNode,
         if (FullSignature is not null) FullSignature = (SyntaxNode)copies[FullSignature];
         if (Body is not null) Body = (SyntaxNode)copies[Body];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
-        TypeParameters?.ConvertPositions(convert);
-        Parameters?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        TypeParameters?.ConvertPositions(source);
+        Parameters?.ConvertPositions(source);
+        if (Body is { } childBody) pending.Push(childBody);
+        if (FullSignature is { } childFullSignature) pending.Push(childFullSignature);
+        if (Type is { } childType) pending.Push(childType);
+        if (Parameters is { } listParameters)
+            for (int i = listParameters.Count - 1; i >= 0; i--) pending.Push(listParameters[i]);
+        if (TypeParameters is { } listTypeParameters)
+            for (int i = listTypeParameters.Count - 1; i >= 0; i--) pending.Push(listTypeParameters[i]);
+        if (Name is { } childName) pending.Push(childName);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -2648,11 +2829,16 @@ public sealed partial class IndexSignatureDeclarationNode : SyntaxNode, ITypedNo
         if (Parameters is not null) Parameters = Parameters.Map(copies);
         if (Type is not null) Type = (SyntaxNode)copies[Type];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
-        Parameters?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        Parameters?.ConvertPositions(source);
+        if (Type is { } childType) pending.Push(childType);
+        if (Parameters is { } listParameters)
+            for (int i = listParameters.Count - 1; i >= 0; i--) pending.Push(listParameters[i]);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -2729,12 +2915,21 @@ public sealed partial class MethodSignatureDeclarationNode : SyntaxNode, ITypedN
         if (Parameters is not null) Parameters = Parameters.Map(copies);
         if (Type is not null) Type = (SyntaxNode)copies[Type];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
-        TypeParameters?.ConvertPositions(convert);
-        Parameters?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        TypeParameters?.ConvertPositions(source);
+        Parameters?.ConvertPositions(source);
+        if (Type is { } childType) pending.Push(childType);
+        if (Parameters is { } listParameters)
+            for (int i = listParameters.Count - 1; i >= 0; i--) pending.Push(listParameters[i]);
+        if (TypeParameters is { } listTypeParameters)
+            for (int i = listTypeParameters.Count - 1; i >= 0; i--) pending.Push(listTypeParameters[i]);
+        if (PostfixToken is { } childPostfixToken) pending.Push(childPostfixToken);
+        if (Name is { } childName) pending.Push(childName);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -2827,12 +3022,24 @@ public sealed partial class MethodDeclarationNode : SyntaxNode, ITypedNode, IFul
         if (FullSignature is not null) FullSignature = (SyntaxNode)copies[FullSignature];
         if (Body is not null) Body = (SyntaxNode)copies[Body];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
-        TypeParameters?.ConvertPositions(convert);
-        Parameters?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        TypeParameters?.ConvertPositions(source);
+        Parameters?.ConvertPositions(source);
+        if (Body is { } childBody) pending.Push(childBody);
+        if (FullSignature is { } childFullSignature) pending.Push(childFullSignature);
+        if (Type is { } childType) pending.Push(childType);
+        if (Parameters is { } listParameters)
+            for (int i = listParameters.Count - 1; i >= 0; i--) pending.Push(listParameters[i]);
+        if (TypeParameters is { } listTypeParameters)
+            for (int i = listTypeParameters.Count - 1; i >= 0; i--) pending.Push(listTypeParameters[i]);
+        if (PostfixToken is { } childPostfixToken) pending.Push(childPostfixToken);
+        if (Name is { } childName) pending.Push(childName);
+        if (AsteriskToken is { } childAsteriskToken) pending.Push(childAsteriskToken);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -2890,10 +3097,16 @@ public sealed partial class PropertySignatureDeclarationNode : SyntaxNode, IType
         if (Type is not null) Type = (SyntaxNode)copies[Type];
         if (Initializer is not null) Initializer = (SyntaxNode)copies[Initializer];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        if (Initializer is { } childInitializer) pending.Push(childInitializer);
+        if (Type is { } childType) pending.Push(childType);
+        if (PostfixToken is { } childPostfixToken) pending.Push(childPostfixToken);
+        if (Name is { } childName) pending.Push(childName);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -2951,10 +3164,16 @@ public sealed partial class PropertyDeclarationNode : SyntaxNode, ITypedNode, II
         if (Type is not null) Type = (SyntaxNode)copies[Type];
         if (Initializer is not null) Initializer = (SyntaxNode)copies[Initializer];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        if (Initializer is { } childInitializer) pending.Push(childInitializer);
+        if (Type is { } childType) pending.Push(childType);
+        if (PostfixToken is { } childPostfixToken) pending.Push(childPostfixToken);
+        if (Name is { } childName) pending.Push(childName);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -2981,9 +3200,9 @@ public sealed partial class SemicolonClassElementNode : SyntaxNode
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
     }
 }
 
@@ -3035,10 +3254,13 @@ public sealed partial class ClassStaticBlockDeclarationNode : SyntaxNode, IModif
         if (Modifiers is not null) Modifiers = Modifiers.Map(copies);
         if (Body is not null) Body = (BlockNode)copies[Body];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        if (Body is { } childBody) pending.Push(childBody);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -3061,9 +3283,9 @@ public sealed partial class OmittedExpressionNode : SyntaxNode
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
     }
 }
 
@@ -3086,9 +3308,9 @@ public sealed partial class KeywordExpressionNode : SyntaxNode
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
     }
 }
 
@@ -3113,9 +3335,9 @@ public sealed partial class StringLiteralNode : SyntaxNode
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
     }
 }
 
@@ -3140,9 +3362,9 @@ public sealed partial class NumericLiteralNode : SyntaxNode
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
     }
 }
 
@@ -3167,9 +3389,9 @@ public sealed partial class BigIntLiteralNode : SyntaxNode
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
     }
 }
 
@@ -3194,9 +3416,9 @@ public sealed partial class RegularExpressionLiteralNode : SyntaxNode
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
     }
 }
 
@@ -3225,9 +3447,9 @@ public sealed partial class NoSubstitutionTemplateLiteralNode : SyntaxNode
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
     }
 }
 
@@ -3283,10 +3505,16 @@ public sealed partial class BinaryExpressionNode : SyntaxNode, ITypedNode, IModi
         if (OperatorToken is not null) OperatorToken = (SyntaxNode)copies[OperatorToken];
         if (Right is not null) Right = (SyntaxNode)copies[Right];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        if (Right is { } childRight) pending.Push(childRight);
+        if (OperatorToken is { } childOperatorToken) pending.Push(childOperatorToken);
+        if (Type is { } childType) pending.Push(childType);
+        if (Left is { } childLeft) pending.Push(childLeft);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -3317,9 +3545,10 @@ public sealed partial class PrefixUnaryExpressionNode : SyntaxNode
     {
         if (Operand is not null) Operand = (SyntaxNode)copies[Operand];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Operand is { } childOperand) pending.Push(childOperand);
     }
 }
 
@@ -3350,9 +3579,10 @@ public sealed partial class PostfixUnaryExpressionNode : SyntaxNode
     {
         if (Operand is not null) Operand = (SyntaxNode)copies[Operand];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Operand is { } childOperand) pending.Push(childOperand);
     }
 }
 
@@ -3386,9 +3616,11 @@ public sealed partial class YieldExpressionNode : SyntaxNode
         if (AsteriskToken is not null) AsteriskToken = (SyntaxNode)copies[AsteriskToken];
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Expression is { } childExpression) pending.Push(childExpression);
+        if (AsteriskToken is { } childAsteriskToken) pending.Push(childAsteriskToken);
     }
 }
 
@@ -3471,12 +3703,22 @@ public sealed partial class ArrowFunctionNode : SyntaxNode, ITypedNode, IFullSig
         if (EqualsGreaterThanToken is not null) EqualsGreaterThanToken = (SyntaxNode)copies[EqualsGreaterThanToken];
         if (Body is not null) Body = (SyntaxNode)copies[Body];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
-        TypeParameters?.ConvertPositions(convert);
-        Parameters?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        TypeParameters?.ConvertPositions(source);
+        Parameters?.ConvertPositions(source);
+        if (Body is { } childBody) pending.Push(childBody);
+        if (EqualsGreaterThanToken is { } childEqualsGreaterThanToken) pending.Push(childEqualsGreaterThanToken);
+        if (FullSignature is { } childFullSignature) pending.Push(childFullSignature);
+        if (Type is { } childType) pending.Push(childType);
+        if (Parameters is { } listParameters)
+            for (int i = listParameters.Count - 1; i >= 0; i--) pending.Push(listParameters[i]);
+        if (TypeParameters is { } listTypeParameters)
+            for (int i = listTypeParameters.Count - 1; i >= 0; i--) pending.Push(listTypeParameters[i]);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -3565,12 +3807,23 @@ public sealed partial class FunctionExpressionNode : SyntaxNode, ITypedNode, IFu
         if (FullSignature is not null) FullSignature = (SyntaxNode)copies[FullSignature];
         if (Body is not null) Body = (SyntaxNode)copies[Body];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
-        TypeParameters?.ConvertPositions(convert);
-        Parameters?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        TypeParameters?.ConvertPositions(source);
+        Parameters?.ConvertPositions(source);
+        if (Body is { } childBody) pending.Push(childBody);
+        if (FullSignature is { } childFullSignature) pending.Push(childFullSignature);
+        if (Type is { } childType) pending.Push(childType);
+        if (Parameters is { } listParameters)
+            for (int i = listParameters.Count - 1; i >= 0; i--) pending.Push(listParameters[i]);
+        if (TypeParameters is { } listTypeParameters)
+            for (int i = listTypeParameters.Count - 1; i >= 0; i--) pending.Push(listTypeParameters[i]);
+        if (Name is { } childName) pending.Push(childName);
+        if (AsteriskToken is { } childAsteriskToken) pending.Push(childAsteriskToken);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -3604,9 +3857,11 @@ public sealed partial class AsExpressionNode : SyntaxNode, ITypedNode
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
         if (Type is not null) Type = (SyntaxNode)copies[Type];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Type is { } childType) pending.Push(childType);
+        if (Expression is { } childExpression) pending.Push(childExpression);
     }
 }
 
@@ -3640,9 +3895,11 @@ public sealed partial class SatisfiesExpressionNode : SyntaxNode, ITypedNode
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
         if (Type is not null) Type = (SyntaxNode)copies[Type];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Type is { } childType) pending.Push(childType);
+        if (Expression is { } childExpression) pending.Push(childExpression);
     }
 }
 
@@ -3688,9 +3945,14 @@ public sealed partial class ConditionalExpressionNode : SyntaxNode
         if (ColonToken is not null) ColonToken = (SyntaxNode)copies[ColonToken];
         if (WhenFalse is not null) WhenFalse = (SyntaxNode)copies[WhenFalse];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (WhenFalse is { } childWhenFalse) pending.Push(childWhenFalse);
+        if (ColonToken is { } childColonToken) pending.Push(childColonToken);
+        if (WhenTrue is { } childWhenTrue) pending.Push(childWhenTrue);
+        if (QuestionToken is { } childQuestionToken) pending.Push(childQuestionToken);
+        if (Condition is { } childCondition) pending.Push(childCondition);
     }
 }
 
@@ -3730,9 +3992,12 @@ public sealed partial class PropertyAccessExpressionNode : SyntaxNode, INamedNod
         if (QuestionDotToken is not null) QuestionDotToken = (SyntaxNode)copies[QuestionDotToken];
         if (Name is not null) Name = (SyntaxNode)copies[Name];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Name is { } childName) pending.Push(childName);
+        if (QuestionDotToken is { } childQuestionDotToken) pending.Push(childQuestionDotToken);
+        if (Expression is { } childExpression) pending.Push(childExpression);
     }
 }
 
@@ -3770,9 +4035,12 @@ public sealed partial class ElementAccessExpressionNode : SyntaxNode
         if (QuestionDotToken is not null) QuestionDotToken = (SyntaxNode)copies[QuestionDotToken];
         if (ArgumentExpression is not null) ArgumentExpression = (SyntaxNode)copies[ArgumentExpression];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (ArgumentExpression is { } childArgumentExpression) pending.Push(childArgumentExpression);
+        if (QuestionDotToken is { } childQuestionDotToken) pending.Push(childQuestionDotToken);
+        if (Expression is { } childExpression) pending.Push(childExpression);
     }
 }
 
@@ -3828,11 +4096,17 @@ public sealed partial class CallExpressionNode : SyntaxNode
         if (TypeArguments is not null) TypeArguments = TypeArguments.Map(copies);
         if (Arguments is not null) Arguments = Arguments.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        TypeArguments?.ConvertPositions(convert);
-        Arguments?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        TypeArguments?.ConvertPositions(source);
+        Arguments?.ConvertPositions(source);
+        if (Arguments is { } listArguments)
+            for (int i = listArguments.Count - 1; i >= 0; i--) pending.Push(listArguments[i]);
+        if (TypeArguments is { } listTypeArguments)
+            for (int i = listTypeArguments.Count - 1; i >= 0; i--) pending.Push(listTypeArguments[i]);
+        if (QuestionDotToken is { } childQuestionDotToken) pending.Push(childQuestionDotToken);
+        if (Expression is { } childExpression) pending.Push(childExpression);
     }
 }
 
@@ -3880,11 +4154,16 @@ public sealed partial class NewExpressionNode : SyntaxNode
         if (TypeArguments is not null) TypeArguments = TypeArguments.Map(copies);
         if (Arguments is not null) Arguments = Arguments.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        TypeArguments?.ConvertPositions(convert);
-        Arguments?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        TypeArguments?.ConvertPositions(source);
+        Arguments?.ConvertPositions(source);
+        if (Arguments is { } listArguments)
+            for (int i = listArguments.Count - 1; i >= 0; i--) pending.Push(listArguments[i]);
+        if (TypeArguments is { } listTypeArguments)
+            for (int i = listTypeArguments.Count - 1; i >= 0; i--) pending.Push(listTypeArguments[i]);
+        if (Expression is { } childExpression) pending.Push(childExpression);
     }
 }
 
@@ -3917,9 +4196,10 @@ public sealed partial class MetaPropertyNode : SyntaxNode, INamedNode
     {
         if (Name is not null) Name = (IdentifierNode)copies[Name];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Name is { } childName) pending.Push(childName);
     }
 }
 
@@ -3949,9 +4229,10 @@ public sealed partial class NonNullExpressionNode : SyntaxNode
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Expression is { } childExpression) pending.Push(childExpression);
     }
 }
 
@@ -3981,9 +4262,10 @@ public sealed partial class SpreadElementNode : SyntaxNode
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Expression is { } childExpression) pending.Push(childExpression);
     }
 }
 
@@ -4022,10 +4304,13 @@ public sealed partial class TemplateExpressionNode : SyntaxNode
         if (Head is not null) Head = (TemplateHeadNode)copies[Head];
         if (TemplateSpans is not null) TemplateSpans = TemplateSpans.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        TemplateSpans?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        TemplateSpans?.ConvertPositions(source);
+        if (TemplateSpans is { } listTemplateSpans)
+            for (int i = listTemplateSpans.Count - 1; i >= 0; i--) pending.Push(listTemplateSpans[i]);
+        if (Head is { } childHead) pending.Push(childHead);
     }
 }
 
@@ -4053,9 +4338,11 @@ public sealed partial class TemplateSpanNode : SyntaxNode
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
         if (Literal is not null) Literal = (SyntaxNode)copies[Literal];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Literal is { } childLiteral) pending.Push(childLiteral);
+        if (Expression is { } childExpression) pending.Push(childExpression);
     }
 }
 
@@ -4102,10 +4389,15 @@ public sealed partial class TaggedTemplateExpressionNode : SyntaxNode
         if (TypeArguments is not null) TypeArguments = TypeArguments.Map(copies);
         if (Template is not null) Template = (SyntaxNode)copies[Template];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        TypeArguments?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        TypeArguments?.ConvertPositions(source);
+        if (Template is { } childTemplate) pending.Push(childTemplate);
+        if (TypeArguments is { } listTypeArguments)
+            for (int i = listTypeArguments.Count - 1; i >= 0; i--) pending.Push(listTypeArguments[i]);
+        if (QuestionDotToken is { } childQuestionDotToken) pending.Push(childQuestionDotToken);
+        if (Tag is { } childTag) pending.Push(childTag);
     }
 }
 
@@ -4135,9 +4427,10 @@ public sealed partial class ParenthesizedExpressionNode : SyntaxNode
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Expression is { } childExpression) pending.Push(childExpression);
     }
 }
 
@@ -4173,10 +4466,12 @@ public sealed partial class ArrayLiteralExpressionNode : SyntaxNode
     {
         if (Elements is not null) Elements = Elements.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Elements?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Elements?.ConvertPositions(source);
+        if (Elements is { } listElements)
+            for (int i = listElements.Count - 1; i >= 0; i--) pending.Push(listElements[i]);
     }
 }
 
@@ -4220,10 +4515,12 @@ public sealed partial class ObjectLiteralExpressionNode : SyntaxNode
     {
         if (Properties is not null) Properties = Properties.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Properties?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Properties?.ConvertPositions(source);
+        if (Properties is { } listProperties)
+            for (int i = listProperties.Count - 1; i >= 0; i--) pending.Push(listProperties[i]);
     }
 }
 
@@ -4257,9 +4554,10 @@ public sealed partial class SpreadAssignmentNode : SyntaxNode
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Expression is { } childExpression) pending.Push(childExpression);
     }
 }
 
@@ -4317,10 +4615,16 @@ public sealed partial class PropertyAssignmentNode : SyntaxNode, ITypedNode, IIn
         if (Type is not null) Type = (SyntaxNode)copies[Type];
         if (Initializer is not null) Initializer = (SyntaxNode)copies[Initializer];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        if (Initializer is { } childInitializer) pending.Push(childInitializer);
+        if (Type is { } childType) pending.Push(childType);
+        if (PostfixToken is { } childPostfixToken) pending.Push(childPostfixToken);
+        if (Name is { } childName) pending.Push(childName);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -4382,10 +4686,17 @@ public sealed partial class ShorthandPropertyAssignmentNode : SyntaxNode, ITyped
         if (EqualsToken is not null) EqualsToken = (SyntaxNode)copies[EqualsToken];
         if (ObjectAssignmentInitializer is not null) ObjectAssignmentInitializer = (SyntaxNode)copies[ObjectAssignmentInitializer];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        if (ObjectAssignmentInitializer is { } childObjectAssignmentInitializer) pending.Push(childObjectAssignmentInitializer);
+        if (EqualsToken is { } childEqualsToken) pending.Push(childEqualsToken);
+        if (Type is { } childType) pending.Push(childType);
+        if (PostfixToken is { } childPostfixToken) pending.Push(childPostfixToken);
+        if (Name is { } childName) pending.Push(childName);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -4415,9 +4726,10 @@ public sealed partial class DeleteExpressionNode : SyntaxNode
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Expression is { } childExpression) pending.Push(childExpression);
     }
 }
 
@@ -4447,9 +4759,10 @@ public sealed partial class TypeOfExpressionNode : SyntaxNode
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Expression is { } childExpression) pending.Push(childExpression);
     }
 }
 
@@ -4479,9 +4792,10 @@ public sealed partial class VoidExpressionNode : SyntaxNode
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Expression is { } childExpression) pending.Push(childExpression);
     }
 }
 
@@ -4511,9 +4825,10 @@ public sealed partial class AwaitExpressionNode : SyntaxNode
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Expression is { } childExpression) pending.Push(childExpression);
     }
 }
 
@@ -4547,9 +4862,11 @@ public sealed partial class TypeAssertionNode : SyntaxNode, ITypedNode
         if (Type is not null) Type = (SyntaxNode)copies[Type];
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Expression is { } childExpression) pending.Push(childExpression);
+        if (Type is { } childType) pending.Push(childType);
     }
 }
 
@@ -4566,9 +4883,9 @@ public sealed partial class KeywordTypeNode : SyntaxNode
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
     }
 }
 
@@ -4597,10 +4914,12 @@ public sealed partial class UnionTypeNode : SyntaxNode
     {
         if (Types is not null) Types = Types.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Types?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Types?.ConvertPositions(source);
+        if (Types is { } listTypes)
+            for (int i = listTypes.Count - 1; i >= 0; i--) pending.Push(listTypes[i]);
     }
 }
 
@@ -4629,10 +4948,12 @@ public sealed partial class IntersectionTypeNode : SyntaxNode
     {
         if (Types is not null) Types = Types.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Types?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Types?.ConvertPositions(source);
+        if (Types is { } listTypes)
+            for (int i = listTypes.Count - 1; i >= 0; i--) pending.Push(listTypes[i]);
     }
 }
 
@@ -4676,9 +4997,13 @@ public sealed partial class ConditionalTypeNode : SyntaxNode
         if (TrueType is not null) TrueType = (SyntaxNode)copies[TrueType];
         if (FalseType is not null) FalseType = (SyntaxNode)copies[FalseType];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (FalseType is { } childFalseType) pending.Push(childFalseType);
+        if (TrueType is { } childTrueType) pending.Push(childTrueType);
+        if (ExtendsType is { } childExtendsType) pending.Push(childExtendsType);
+        if (CheckType is { } childCheckType) pending.Push(childCheckType);
     }
 }
 
@@ -4703,9 +5028,10 @@ public sealed partial class TypeOperatorNode : SyntaxNode, ITypedNode
     {
         if (Type is not null) Type = (SyntaxNode)copies[Type];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Type is { } childType) pending.Push(childType);
     }
 }
 
@@ -4729,9 +5055,10 @@ public sealed partial class InferTypeNode : SyntaxNode
     {
         if (TypeParameter is not null) TypeParameter = (TypeParameterDeclarationNode)copies[TypeParameter];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (TypeParameter is { } childTypeParameter) pending.Push(childTypeParameter);
     }
 }
 
@@ -4755,9 +5082,10 @@ public sealed partial class ArrayTypeNode : SyntaxNode
     {
         if (ElementType is not null) ElementType = (SyntaxNode)copies[ElementType];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (ElementType is { } childElementType) pending.Push(childElementType);
     }
 }
 
@@ -4785,9 +5113,11 @@ public sealed partial class IndexedAccessTypeNode : SyntaxNode
         if (ObjectType is not null) ObjectType = (SyntaxNode)copies[ObjectType];
         if (IndexType is not null) IndexType = (SyntaxNode)copies[IndexType];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (IndexType is { } childIndexType) pending.Push(childIndexType);
+        if (ObjectType is { } childObjectType) pending.Push(childObjectType);
     }
 }
 
@@ -4820,10 +5150,13 @@ public sealed partial class TypeReferenceNode : SyntaxNode
         if (TypeName is not null) TypeName = (SyntaxNode)copies[TypeName];
         if (TypeArguments is not null) TypeArguments = TypeArguments.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        TypeArguments?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        TypeArguments?.ConvertPositions(source);
+        if (TypeArguments is { } listTypeArguments)
+            for (int i = listTypeArguments.Count - 1; i >= 0; i--) pending.Push(listTypeArguments[i]);
+        if (TypeName is { } childTypeName) pending.Push(childTypeName);
     }
 }
 
@@ -4862,10 +5195,13 @@ public sealed partial class ExpressionWithTypeArgumentsNode : SyntaxNode
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
         if (TypeArguments is not null) TypeArguments = TypeArguments.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        TypeArguments?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        TypeArguments?.ConvertPositions(source);
+        if (TypeArguments is { } listTypeArguments)
+            for (int i = listTypeArguments.Count - 1; i >= 0; i--) pending.Push(listTypeArguments[i]);
+        if (Expression is { } childExpression) pending.Push(childExpression);
     }
 }
 
@@ -4889,9 +5225,10 @@ public sealed partial class LiteralTypeNode : SyntaxNode
     {
         if (Literal is not null) Literal = (SyntaxNode)copies[Literal];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Literal is { } childLiteral) pending.Push(childLiteral);
     }
 }
 
@@ -4908,9 +5245,9 @@ public sealed partial class ThisTypeNode : SyntaxNode
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
     }
 }
 
@@ -4942,9 +5279,12 @@ public sealed partial class TypePredicateNode : SyntaxNode, ITypedNode
         if (ParameterName is not null) ParameterName = (SyntaxNode)copies[ParameterName];
         if (Type is not null) Type = (SyntaxNode)copies[Type];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Type is { } childType) pending.Push(childType);
+        if (ParameterName is { } childParameterName) pending.Push(childParameterName);
+        if (AssertsModifier is { } childAssertsModifier) pending.Push(childAssertsModifier);
     }
 }
 
@@ -4974,9 +5314,11 @@ public sealed partial class ImportAttributeNode : SyntaxNode, INamedNode
         if (Name is not null) Name = (SyntaxNode)copies[Name];
         if (Value is not null) Value = (SyntaxNode)copies[Value];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Value is { } childValue) pending.Push(childValue);
+        if (Name is { } childName) pending.Push(childName);
     }
 }
 
@@ -5007,10 +5349,12 @@ public sealed partial class ImportAttributesNode : SyntaxNode
     {
         if (Attributes is not null) Attributes = Attributes.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Attributes?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Attributes?.ConvertPositions(source);
+        if (Attributes is { } listAttributes)
+            for (int i = listAttributes.Count - 1; i >= 0; i--) pending.Push(listAttributes[i]);
     }
 }
 
@@ -5043,10 +5387,13 @@ public sealed partial class TypeQueryNode : SyntaxNode
         if (ExprName is not null) ExprName = (SyntaxNode)copies[ExprName];
         if (TypeArguments is not null) TypeArguments = TypeArguments.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        TypeArguments?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        TypeArguments?.ConvertPositions(source);
+        if (TypeArguments is { } listTypeArguments)
+            for (int i = listTypeArguments.Count - 1; i >= 0; i--) pending.Push(listTypeArguments[i]);
+        if (ExprName is { } childExprName) pending.Push(childExprName);
     }
 }
 
@@ -5109,10 +5456,17 @@ public sealed partial class MappedTypeNode : SyntaxNode, ITypedNode
         if (Type is not null) Type = (SyntaxNode)copies[Type];
         if (Members is not null) Members = Members.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Members?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Members?.ConvertPositions(source);
+        if (Members is { } listMembers)
+            for (int i = listMembers.Count - 1; i >= 0; i--) pending.Push(listMembers[i]);
+        if (Type is { } childType) pending.Push(childType);
+        if (QuestionToken is { } childQuestionToken) pending.Push(childQuestionToken);
+        if (NameType is { } childNameType) pending.Push(childNameType);
+        if (TypeParameter is { } childTypeParameter) pending.Push(childTypeParameter);
+        if (ReadonlyToken is { } childReadonlyToken) pending.Push(childReadonlyToken);
     }
 }
 
@@ -5155,10 +5509,12 @@ public sealed partial class TypeLiteralNode : SyntaxNode
     {
         if (Members is not null) Members = Members.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Members?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Members?.ConvertPositions(source);
+        if (Members is { } listMembers)
+            for (int i = listMembers.Count - 1; i >= 0; i--) pending.Push(listMembers[i]);
     }
 }
 
@@ -5187,10 +5543,12 @@ public sealed partial class TupleTypeNode : SyntaxNode
     {
         if (Elements is not null) Elements = Elements.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Elements?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Elements?.ConvertPositions(source);
+        if (Elements is { } listElements)
+            for (int i = listElements.Count - 1; i >= 0; i--) pending.Push(listElements[i]);
     }
 }
 
@@ -5238,9 +5596,13 @@ public sealed partial class NamedTupleMemberNode : SyntaxNode, ITypedNode, IName
         if (QuestionToken is not null) QuestionToken = (SyntaxNode)copies[QuestionToken];
         if (Type is not null) Type = (SyntaxNode)copies[Type];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Type is { } childType) pending.Push(childType);
+        if (QuestionToken is { } childQuestionToken) pending.Push(childQuestionToken);
+        if (Name is { } childName) pending.Push(childName);
+        if (DotDotDotToken is { } childDotDotDotToken) pending.Push(childDotDotDotToken);
     }
 }
 
@@ -5264,9 +5626,10 @@ public sealed partial class OptionalTypeNode : SyntaxNode, ITypedNode
     {
         if (Type is not null) Type = (SyntaxNode)copies[Type];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Type is { } childType) pending.Push(childType);
     }
 }
 
@@ -5290,9 +5653,10 @@ public sealed partial class RestTypeNode : SyntaxNode, ITypedNode
     {
         if (Type is not null) Type = (SyntaxNode)copies[Type];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Type is { } childType) pending.Push(childType);
     }
 }
 
@@ -5316,9 +5680,10 @@ public sealed partial class ParenthesizedTypeNode : SyntaxNode, ITypedNode
     {
         if (Type is not null) Type = (SyntaxNode)copies[Type];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Type is { } childType) pending.Push(childType);
     }
 }
 
@@ -5375,11 +5740,16 @@ public sealed partial class FunctionTypeNode : SyntaxNode, ITypedNode, IFunction
         if (Parameters is not null) Parameters = Parameters.Map(copies);
         if (Type is not null) Type = (SyntaxNode)copies[Type];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        TypeParameters?.ConvertPositions(convert);
-        Parameters?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        TypeParameters?.ConvertPositions(source);
+        Parameters?.ConvertPositions(source);
+        if (Type is { } childType) pending.Push(childType);
+        if (Parameters is { } listParameters)
+            for (int i = listParameters.Count - 1; i >= 0; i--) pending.Push(listParameters[i]);
+        if (TypeParameters is { } listTypeParameters)
+            for (int i = listTypeParameters.Count - 1; i >= 0; i--) pending.Push(listTypeParameters[i]);
     }
 }
 
@@ -5446,12 +5816,19 @@ public sealed partial class ConstructorTypeNode : SyntaxNode, ITypedNode, IFunct
         if (Parameters is not null) Parameters = Parameters.Map(copies);
         if (Type is not null) Type = (SyntaxNode)copies[Type];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
-        TypeParameters?.ConvertPositions(convert);
-        Parameters?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        TypeParameters?.ConvertPositions(source);
+        Parameters?.ConvertPositions(source);
+        if (Type is { } childType) pending.Push(childType);
+        if (Parameters is { } listParameters)
+            for (int i = listParameters.Count - 1; i >= 0; i--) pending.Push(listParameters[i]);
+        if (TypeParameters is { } listTypeParameters)
+            for (int i = listTypeParameters.Count - 1; i >= 0; i--) pending.Push(listTypeParameters[i]);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -5471,9 +5848,9 @@ public sealed partial class TemplateHeadNode : SyntaxNode
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
     }
 }
 
@@ -5493,9 +5870,9 @@ public sealed partial class TemplateMiddleNode : SyntaxNode
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
     }
 }
 
@@ -5515,9 +5892,9 @@ public sealed partial class TemplateTailNode : SyntaxNode
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
     }
 }
 
@@ -5550,10 +5927,13 @@ public sealed partial class TemplateLiteralTypeNode : SyntaxNode
         if (Head is not null) Head = (TemplateHeadNode)copies[Head];
         if (TemplateSpans is not null) TemplateSpans = TemplateSpans.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        TemplateSpans?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        TemplateSpans?.ConvertPositions(source);
+        if (TemplateSpans is { } listTemplateSpans)
+            for (int i = listTemplateSpans.Count - 1; i >= 0; i--) pending.Push(listTemplateSpans[i]);
+        if (Head is { } childHead) pending.Push(childHead);
     }
 }
 
@@ -5581,9 +5961,11 @@ public sealed partial class TemplateLiteralTypeSpanNode : SyntaxNode, ITypedNode
         if (Type is not null) Type = (SyntaxNode)copies[Type];
         if (Literal is not null) Literal = (SyntaxNode)copies[Literal];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Literal is { } childLiteral) pending.Push(childLiteral);
+        if (Type is { } childType) pending.Push(childType);
     }
 }
 
@@ -5615,9 +5997,10 @@ public sealed partial class SyntheticExpressionNode : SyntaxNode
     {
         if (TupleNameSource is not null) TupleNameSource = (SyntaxNode)copies[TupleNameSource];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (TupleNameSource is { } childTupleNameSource) pending.Push(childTupleNameSource);
     }
 }
 
@@ -5647,9 +6030,10 @@ public sealed partial class PartiallyEmittedExpressionNode : SyntaxNode
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Expression is { } childExpression) pending.Push(childExpression);
     }
 }
 
@@ -5692,10 +6076,14 @@ public sealed partial class JsxElementNode : SyntaxNode
         if (Children is not null) Children = Children.Map(copies);
         if (ClosingElement is not null) ClosingElement = (JsxClosingElementNode)copies[ClosingElement];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Children?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Children?.ConvertPositions(source);
+        if (ClosingElement is { } childClosingElement) pending.Push(childClosingElement);
+        if (Children is { } listChildren)
+            for (int i = listChildren.Count - 1; i >= 0; i--) pending.Push(listChildren[i]);
+        if (OpeningElement is { } childOpeningElement) pending.Push(childOpeningElement);
     }
 }
 
@@ -5738,10 +6126,12 @@ public sealed partial class JsxAttributesNode : SyntaxNode
     {
         if (Properties is not null) Properties = Properties.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Properties?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Properties?.ConvertPositions(source);
+        if (Properties is { } listProperties)
+            for (int i = listProperties.Count - 1; i >= 0; i--) pending.Push(listProperties[i]);
     }
 }
 
@@ -5777,9 +6167,11 @@ public sealed partial class JsxNamespacedNameNode : SyntaxNode, INamedNode
         if (Namespace is not null) Namespace = (IdentifierNode)copies[Namespace];
         if (Name is not null) Name = (IdentifierNode)copies[Name];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Name is { } childName) pending.Push(childName);
+        if (Namespace is { } childNamespace) pending.Push(childNamespace);
     }
 }
 
@@ -5822,10 +6214,14 @@ public sealed partial class JsxOpeningElementNode : SyntaxNode
         if (TypeArguments is not null) TypeArguments = TypeArguments.Map(copies);
         if (Attributes is not null) Attributes = (JsxAttributesNode)copies[Attributes];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        TypeArguments?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        TypeArguments?.ConvertPositions(source);
+        if (Attributes is { } childAttributes) pending.Push(childAttributes);
+        if (TypeArguments is { } listTypeArguments)
+            for (int i = listTypeArguments.Count - 1; i >= 0; i--) pending.Push(listTypeArguments[i]);
+        if (TagName is { } childTagName) pending.Push(childTagName);
     }
 }
 
@@ -5868,10 +6264,14 @@ public sealed partial class JsxSelfClosingElementNode : SyntaxNode
         if (TypeArguments is not null) TypeArguments = TypeArguments.Map(copies);
         if (Attributes is not null) Attributes = (JsxAttributesNode)copies[Attributes];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        TypeArguments?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        TypeArguments?.ConvertPositions(source);
+        if (Attributes is { } childAttributes) pending.Push(childAttributes);
+        if (TypeArguments is { } listTypeArguments)
+            for (int i = listTypeArguments.Count - 1; i >= 0; i--) pending.Push(listTypeArguments[i]);
+        if (TagName is { } childTagName) pending.Push(childTagName);
     }
 }
 
@@ -5914,10 +6314,14 @@ public sealed partial class JsxFragmentNode : SyntaxNode
         if (Children is not null) Children = Children.Map(copies);
         if (ClosingFragment is not null) ClosingFragment = (JsxClosingFragmentNode)copies[ClosingFragment];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Children?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Children?.ConvertPositions(source);
+        if (ClosingFragment is { } childClosingFragment) pending.Push(childClosingFragment);
+        if (Children is { } listChildren)
+            for (int i = listChildren.Count - 1; i >= 0; i--) pending.Push(listChildren[i]);
+        if (OpeningFragment is { } childOpeningFragment) pending.Push(childOpeningFragment);
     }
 }
 
@@ -5940,9 +6344,9 @@ public sealed partial class JsxOpeningFragmentNode : SyntaxNode
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
     }
 }
 
@@ -5965,9 +6369,9 @@ public sealed partial class JsxClosingFragmentNode : SyntaxNode
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
     }
 }
 
@@ -6007,9 +6411,11 @@ public sealed partial class JsxAttributeNode : SyntaxNode, IInitializedNode, INa
         if (Name is not null) Name = (SyntaxNode)copies[Name];
         if (Initializer is not null) Initializer = (SyntaxNode)copies[Initializer];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Initializer is { } childInitializer) pending.Push(childInitializer);
+        if (Name is { } childName) pending.Push(childName);
     }
 }
 
@@ -6033,9 +6439,10 @@ public sealed partial class JsxSpreadAttributeNode : SyntaxNode
     {
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Expression is { } childExpression) pending.Push(childExpression);
     }
 }
 
@@ -6059,9 +6466,10 @@ public sealed partial class JsxClosingElementNode : SyntaxNode
     {
         if (TagName is not null) TagName = (SyntaxNode)copies[TagName];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (TagName is { } childTagName) pending.Push(childTagName);
     }
 }
 
@@ -6095,9 +6503,11 @@ public sealed partial class JsxExpressionNode : SyntaxNode
         if (DotDotDotToken is not null) DotDotDotToken = (SyntaxNode)copies[DotDotDotToken];
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Expression is { } childExpression) pending.Push(childExpression);
+        if (DotDotDotToken is { } childDotDotDotToken) pending.Push(childDotDotDotToken);
     }
 }
 
@@ -6122,9 +6532,9 @@ public sealed partial class JsxTextNode : SyntaxNode
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
     }
 }
 
@@ -6153,9 +6563,11 @@ public sealed partial class SyntaxListNode : SyntaxNode
     {
         Children = Array.ConvertAll(Children, n => copies[n]);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Children is { } listChildren)
+            for (int i = listChildren.Length - 1; i >= 0; i--) pending.Push(listChildren[i]);
     }
 }
 
@@ -6193,11 +6605,15 @@ public sealed partial class JSDocNode : SyntaxNode
         if (Comment is not null) Comment = Comment.Map(copies);
         if (Tags is not null) Tags = Tags.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Comment?.ConvertPositions(convert);
-        Tags?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Comment?.ConvertPositions(source);
+        Tags?.ConvertPositions(source);
+        if (Tags is { } listTags)
+            for (int i = listTags.Count - 1; i >= 0; i--) pending.Push(listTags[i]);
+        if (Comment is { } listComment)
+            for (int i = listComment.Count - 1; i >= 0; i--) pending.Push(listComment[i]);
     }
 }
 
@@ -6221,9 +6637,10 @@ public sealed partial class JSDocTypeExpressionNode : SyntaxNode, ITypedNode
     {
         if (Type is not null) Type = (SyntaxNode)copies[Type];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Type is { } childType) pending.Push(childType);
     }
 }
 
@@ -6247,9 +6664,10 @@ public sealed partial class JSDocNonNullableTypeNode : SyntaxNode, ITypedNode
     {
         if (Type is not null) Type = (SyntaxNode)copies[Type];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Type is { } childType) pending.Push(childType);
     }
 }
 
@@ -6273,9 +6691,10 @@ public sealed partial class JSDocNullableTypeNode : SyntaxNode, ITypedNode
     {
         if (Type is not null) Type = (SyntaxNode)copies[Type];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Type is { } childType) pending.Push(childType);
     }
 }
 
@@ -6292,9 +6711,9 @@ public sealed partial class JSDocAllTypeNode : SyntaxNode
     internal override void RewriteChildren(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies)
     {
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
     }
 }
 
@@ -6318,9 +6737,10 @@ public sealed partial class JSDocVariadicTypeNode : SyntaxNode, ITypedNode
     {
         if (Type is not null) Type = (SyntaxNode)copies[Type];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Type is { } childType) pending.Push(childType);
     }
 }
 
@@ -6344,9 +6764,10 @@ public sealed partial class JSDocOptionalTypeNode : SyntaxNode, ITypedNode
     {
         if (Type is not null) Type = (SyntaxNode)copies[Type];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Type is { } childType) pending.Push(childType);
     }
 }
 
@@ -6383,10 +6804,14 @@ public sealed partial class JSDocTypeTagNode : SyntaxNode, ITypeExpressionNode
         if (TypeExpression is not null) TypeExpression = (SyntaxNode)copies[TypeExpression];
         if (Comment is not null) Comment = Comment.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Comment?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Comment?.ConvertPositions(source);
+        if (Comment is { } listComment)
+            for (int i = listComment.Count - 1; i >= 0; i--) pending.Push(listComment[i]);
+        if (TypeExpression is { } childTypeExpression) pending.Push(childTypeExpression);
+        if (TagName is { } childTagName) pending.Push(childTagName);
     }
 }
 
@@ -6419,10 +6844,13 @@ public sealed partial class JSDocUnknownTagNode : SyntaxNode
         if (TagName is not null) TagName = (IdentifierNode)copies[TagName];
         if (Comment is not null) Comment = Comment.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Comment?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Comment?.ConvertPositions(source);
+        if (Comment is { } listComment)
+            for (int i = listComment.Count - 1; i >= 0; i--) pending.Push(listComment[i]);
+        if (TagName is { } childTagName) pending.Push(childTagName);
     }
 }
 
@@ -6468,11 +6896,17 @@ public sealed partial class JSDocTemplateTagNode : SyntaxNode
         if (TypeParameters is not null) TypeParameters = TypeParameters.Map(copies);
         if (Comment is not null) Comment = Comment.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        TypeParameters?.ConvertPositions(convert);
-        Comment?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        TypeParameters?.ConvertPositions(source);
+        Comment?.ConvertPositions(source);
+        if (Comment is { } listComment)
+            for (int i = listComment.Count - 1; i >= 0; i--) pending.Push(listComment[i]);
+        if (TypeParameters is { } listTypeParameters)
+            for (int i = listTypeParameters.Count - 1; i >= 0; i--) pending.Push(listTypeParameters[i]);
+        if (Constraint is { } childConstraint) pending.Push(childConstraint);
+        if (TagName is { } childTagName) pending.Push(childTagName);
     }
 }
 
@@ -6509,10 +6943,14 @@ public sealed partial class JSDocReturnTagNode : SyntaxNode, ITypeExpressionNode
         if (TypeExpression is not null) TypeExpression = (SyntaxNode)copies[TypeExpression];
         if (Comment is not null) Comment = Comment.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Comment?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Comment?.ConvertPositions(source);
+        if (Comment is { } listComment)
+            for (int i = listComment.Count - 1; i >= 0; i--) pending.Push(listComment[i]);
+        if (TypeExpression is { } childTypeExpression) pending.Push(childTypeExpression);
+        if (TagName is { } childTagName) pending.Push(childTagName);
     }
 }
 
@@ -6545,10 +6983,13 @@ public sealed partial class JSDocPublicTagNode : SyntaxNode
         if (TagName is not null) TagName = (IdentifierNode)copies[TagName];
         if (Comment is not null) Comment = Comment.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Comment?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Comment?.ConvertPositions(source);
+        if (Comment is { } listComment)
+            for (int i = listComment.Count - 1; i >= 0; i--) pending.Push(listComment[i]);
+        if (TagName is { } childTagName) pending.Push(childTagName);
     }
 }
 
@@ -6581,10 +7022,13 @@ public sealed partial class JSDocPrivateTagNode : SyntaxNode
         if (TagName is not null) TagName = (IdentifierNode)copies[TagName];
         if (Comment is not null) Comment = Comment.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Comment?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Comment?.ConvertPositions(source);
+        if (Comment is { } listComment)
+            for (int i = listComment.Count - 1; i >= 0; i--) pending.Push(listComment[i]);
+        if (TagName is { } childTagName) pending.Push(childTagName);
     }
 }
 
@@ -6617,10 +7061,13 @@ public sealed partial class JSDocProtectedTagNode : SyntaxNode
         if (TagName is not null) TagName = (IdentifierNode)copies[TagName];
         if (Comment is not null) Comment = Comment.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Comment?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Comment?.ConvertPositions(source);
+        if (Comment is { } listComment)
+            for (int i = listComment.Count - 1; i >= 0; i--) pending.Push(listComment[i]);
+        if (TagName is { } childTagName) pending.Push(childTagName);
     }
 }
 
@@ -6653,10 +7100,13 @@ public sealed partial class JSDocReadonlyTagNode : SyntaxNode
         if (TagName is not null) TagName = (IdentifierNode)copies[TagName];
         if (Comment is not null) Comment = Comment.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Comment?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Comment?.ConvertPositions(source);
+        if (Comment is { } listComment)
+            for (int i = listComment.Count - 1; i >= 0; i--) pending.Push(listComment[i]);
+        if (TagName is { } childTagName) pending.Push(childTagName);
     }
 }
 
@@ -6689,10 +7139,13 @@ public sealed partial class JSDocOverrideTagNode : SyntaxNode
         if (TagName is not null) TagName = (IdentifierNode)copies[TagName];
         if (Comment is not null) Comment = Comment.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Comment?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Comment?.ConvertPositions(source);
+        if (Comment is { } listComment)
+            for (int i = listComment.Count - 1; i >= 0; i--) pending.Push(listComment[i]);
+        if (TagName is { } childTagName) pending.Push(childTagName);
     }
 }
 
@@ -6725,10 +7178,13 @@ public sealed partial class JSDocDeprecatedTagNode : SyntaxNode
         if (TagName is not null) TagName = (IdentifierNode)copies[TagName];
         if (Comment is not null) Comment = Comment.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Comment?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Comment?.ConvertPositions(source);
+        if (Comment is { } listComment)
+            for (int i = listComment.Count - 1; i >= 0; i--) pending.Push(listComment[i]);
+        if (TagName is { } childTagName) pending.Push(childTagName);
     }
 }
 
@@ -6765,10 +7221,14 @@ public sealed partial class JSDocSeeTagNode : SyntaxNode
         if (NameExpression is not null) NameExpression = (SyntaxNode)copies[NameExpression];
         if (Comment is not null) Comment = Comment.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Comment?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Comment?.ConvertPositions(source);
+        if (Comment is { } listComment)
+            for (int i = listComment.Count - 1; i >= 0; i--) pending.Push(listComment[i]);
+        if (NameExpression is { } childNameExpression) pending.Push(childNameExpression);
+        if (TagName is { } childTagName) pending.Push(childTagName);
     }
 }
 
@@ -6805,10 +7265,14 @@ public sealed partial class JSDocImplementsTagNode : SyntaxNode
         if (ClassName is not null) ClassName = (ExpressionWithTypeArgumentsNode)copies[ClassName];
         if (Comment is not null) Comment = Comment.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Comment?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Comment?.ConvertPositions(source);
+        if (Comment is { } listComment)
+            for (int i = listComment.Count - 1; i >= 0; i--) pending.Push(listComment[i]);
+        if (ClassName is { } childClassName) pending.Push(childClassName);
+        if (TagName is { } childTagName) pending.Push(childTagName);
     }
 }
 
@@ -6845,10 +7309,14 @@ public sealed partial class JSDocAugmentsTagNode : SyntaxNode
         if (ClassName is not null) ClassName = (ExpressionWithTypeArgumentsNode)copies[ClassName];
         if (Comment is not null) Comment = Comment.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Comment?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Comment?.ConvertPositions(source);
+        if (Comment is { } listComment)
+            for (int i = listComment.Count - 1; i >= 0; i--) pending.Push(listComment[i]);
+        if (ClassName is { } childClassName) pending.Push(childClassName);
+        if (TagName is { } childTagName) pending.Push(childTagName);
     }
 }
 
@@ -6885,10 +7353,14 @@ public sealed partial class JSDocSatisfiesTagNode : SyntaxNode, ITypeExpressionN
         if (TypeExpression is not null) TypeExpression = (SyntaxNode)copies[TypeExpression];
         if (Comment is not null) Comment = Comment.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Comment?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Comment?.ConvertPositions(source);
+        if (Comment is { } listComment)
+            for (int i = listComment.Count - 1; i >= 0; i--) pending.Push(listComment[i]);
+        if (TypeExpression is { } childTypeExpression) pending.Push(childTypeExpression);
+        if (TagName is { } childTagName) pending.Push(childTagName);
     }
 }
 
@@ -6925,10 +7397,14 @@ public sealed partial class JSDocThrowsTagNode : SyntaxNode, ITypeExpressionNode
         if (TypeExpression is not null) TypeExpression = (SyntaxNode)copies[TypeExpression];
         if (Comment is not null) Comment = Comment.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Comment?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Comment?.ConvertPositions(source);
+        if (Comment is { } listComment)
+            for (int i = listComment.Count - 1; i >= 0; i--) pending.Push(listComment[i]);
+        if (TypeExpression is { } childTypeExpression) pending.Push(childTypeExpression);
+        if (TagName is { } childTagName) pending.Push(childTagName);
     }
 }
 
@@ -6965,10 +7441,14 @@ public sealed partial class JSDocThisTagNode : SyntaxNode, ITypeExpressionNode
         if (TypeExpression is not null) TypeExpression = (SyntaxNode)copies[TypeExpression];
         if (Comment is not null) Comment = Comment.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Comment?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Comment?.ConvertPositions(source);
+        if (Comment is { } listComment)
+            for (int i = listComment.Count - 1; i >= 0; i--) pending.Push(listComment[i]);
+        if (TypeExpression is { } childTypeExpression) pending.Push(childTypeExpression);
+        if (TagName is { } childTagName) pending.Push(childTagName);
     }
 }
 
@@ -7013,10 +7493,16 @@ public sealed partial class JSDocImportTagNode : SyntaxNode
         if (Attributes is not null) Attributes = (ImportAttributesNode)copies[Attributes];
         if (Comment is not null) Comment = Comment.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Comment?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Comment?.ConvertPositions(source);
+        if (Comment is { } listComment)
+            for (int i = listComment.Count - 1; i >= 0; i--) pending.Push(listComment[i]);
+        if (Attributes is { } childAttributes) pending.Push(childAttributes);
+        if (ModuleSpecifier is { } childModuleSpecifier) pending.Push(childModuleSpecifier);
+        if (ImportClause is { } childImportClause) pending.Push(childImportClause);
+        if (TagName is { } childTagName) pending.Push(childTagName);
     }
 }
 
@@ -7059,10 +7545,15 @@ public sealed partial class JSDocCallbackTagNode : SyntaxNode, ITypeExpressionNo
         if (Name is not null) Name = (SyntaxNode)copies[Name];
         if (Comment is not null) Comment = Comment.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Comment?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Comment?.ConvertPositions(source);
+        if (Comment is { } listComment)
+            for (int i = listComment.Count - 1; i >= 0; i--) pending.Push(listComment[i]);
+        if (Name is { } childName) pending.Push(childName);
+        if (TypeExpression is { } childTypeExpression) pending.Push(childTypeExpression);
+        if (TagName is { } childTagName) pending.Push(childTagName);
     }
 }
 
@@ -7099,10 +7590,14 @@ public sealed partial class JSDocOverloadTagNode : SyntaxNode, ITypeExpressionNo
         if (TypeExpression is not null) TypeExpression = (SyntaxNode)copies[TypeExpression];
         if (Comment is not null) Comment = Comment.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Comment?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Comment?.ConvertPositions(source);
+        if (Comment is { } listComment)
+            for (int i = listComment.Count - 1; i >= 0; i--) pending.Push(listComment[i]);
+        if (TypeExpression is { } childTypeExpression) pending.Push(childTypeExpression);
+        if (TagName is { } childTagName) pending.Push(childTagName);
     }
 }
 
@@ -7145,10 +7640,15 @@ public sealed partial class JSDocTypedefTagNode : SyntaxNode, ITypeExpressionNod
         if (Name is not null) Name = (SyntaxNode)copies[Name];
         if (Comment is not null) Comment = Comment.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Comment?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Comment?.ConvertPositions(source);
+        if (Comment is { } listComment)
+            for (int i = listComment.Count - 1; i >= 0; i--) pending.Push(listComment[i]);
+        if (Name is { } childName) pending.Push(childName);
+        if (TypeExpression is { } childTypeExpression) pending.Push(childTypeExpression);
+        if (TagName is { } childTagName) pending.Push(childTagName);
     }
 }
 
@@ -7205,11 +7705,16 @@ public sealed partial class JSDocSignatureNode : SyntaxNode, ITypedNode, IFuncti
         if (Parameters is not null) Parameters = Parameters.Map(copies);
         if (Type is not null) Type = (SyntaxNode)copies[Type];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        TypeParameters?.ConvertPositions(convert);
-        Parameters?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        TypeParameters?.ConvertPositions(source);
+        Parameters?.ConvertPositions(source);
+        if (Type is { } childType) pending.Push(childType);
+        if (Parameters is { } listParameters)
+            for (int i = listParameters.Count - 1; i >= 0; i--) pending.Push(listParameters[i]);
+        if (TypeParameters is { } listTypeParameters)
+            for (int i = listTypeParameters.Count - 1; i >= 0; i--) pending.Push(listTypeParameters[i]);
     }
 }
 
@@ -7235,9 +7740,10 @@ public sealed partial class JSDocNameReferenceNode : SyntaxNode, INamedNode
     {
         if (Name is not null) Name = (SyntaxNode)copies[Name];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Name is { } childName) pending.Push(childName);
     }
 }
 
@@ -7284,10 +7790,13 @@ public sealed partial class SourceFileNode : SyntaxNode
         if (Statements is not null) Statements = Statements.Map(copies);
         if (EndOfFileToken is not null) EndOfFileToken = (SyntaxNode)copies[EndOfFileToken];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Statements?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Statements?.ConvertPositions(source);
+        if (EndOfFileToken is { } childEndOfFileToken) pending.Push(childEndOfFileToken);
+        if (Statements is { } listStatements)
+            for (int i = listStatements.Count - 1; i >= 0; i--) pending.Push(listStatements[i]);
     }
 }
 
@@ -7346,10 +7855,15 @@ public sealed partial class ModuleDeclarationNode : SyntaxNode, IModifiedNode, I
         if (Attributes is not null) Attributes = (TypeLiteralNode)copies[Attributes];
         if (Body is not null) Body = (SyntaxNode)copies[Body];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        if (Body is { } childBody) pending.Push(childBody);
+        if (Attributes is { } childAttributes) pending.Push(childAttributes);
+        if (Name is { } childName) pending.Push(childName);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -7400,10 +7914,14 @@ public sealed partial class ImportEqualsDeclarationNode : SyntaxNode, IModifiedN
         if (Name is not null) Name = (IdentifierNode)copies[Name];
         if (ModuleReference is not null) ModuleReference = (SyntaxNode)copies[ModuleReference];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        if (ModuleReference is { } childModuleReference) pending.Push(childModuleReference);
+        if (Name is { } childName) pending.Push(childName);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -7456,10 +7974,15 @@ public sealed partial class ExportDeclarationNode : SyntaxNode, IModifiedNode
         if (ModuleSpecifier is not null) ModuleSpecifier = (SyntaxNode)copies[ModuleSpecifier];
         if (Attributes is not null) Attributes = (ImportAttributesNode)copies[Attributes];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        if (Attributes is { } childAttributes) pending.Push(childAttributes);
+        if (ModuleSpecifier is { } childModuleSpecifier) pending.Push(childModuleSpecifier);
+        if (ExportClause is { } childExportClause) pending.Push(childExportClause);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -7501,10 +8024,15 @@ public sealed partial class ImportTypeNode : SyntaxNode
         if (Qualifier is not null) Qualifier = (SyntaxNode)copies[Qualifier];
         if (TypeArguments is not null) TypeArguments = TypeArguments.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        TypeArguments?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        TypeArguments?.ConvertPositions(source);
+        if (TypeArguments is { } listTypeArguments)
+            for (int i = listTypeArguments.Count - 1; i >= 0; i--) pending.Push(listTypeArguments[i]);
+        if (Qualifier is { } childQualifier) pending.Push(childQualifier);
+        if (Attributes is { } childAttributes) pending.Push(childAttributes);
+        if (Argument is { } childArgument) pending.Push(childArgument);
     }
 }
 
@@ -7545,9 +8073,11 @@ public sealed partial class ImportClauseNode : SyntaxNode, INamedNode
         if (Name is not null) Name = (IdentifierNode)copies[Name];
         if (NamedBindings is not null) NamedBindings = (SyntaxNode)copies[NamedBindings];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (NamedBindings is { } childNamedBindings) pending.Push(childNamedBindings);
+        if (Name is { } childName) pending.Push(childName);
     }
 }
 
@@ -7588,9 +8118,11 @@ public sealed partial class ImportSpecifierNode : SyntaxNode, INamedNode
         if (PropertyName is not null) PropertyName = (SyntaxNode)copies[PropertyName];
         if (Name is not null) Name = (IdentifierNode)copies[Name];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Name is { } childName) pending.Push(childName);
+        if (PropertyName is { } childPropertyName) pending.Push(childPropertyName);
     }
 }
 
@@ -7609,9 +8141,9 @@ public sealed partial class JSDocTextNode : SyntaxNode
     {
         Text = (TextSlice[])Text.Clone();
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
     }
 }
 
@@ -7639,9 +8171,10 @@ public sealed partial class JSDocLinkNode : SyntaxNode, INamedNode
         if (Name is not null) Name = (SyntaxNode)copies[Name];
         Text = (TextSlice[])Text.Clone();
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Name is { } childName) pending.Push(childName);
     }
 }
 
@@ -7669,9 +8202,10 @@ public sealed partial class JSDocLinkPlainNode : SyntaxNode, INamedNode
         if (Name is not null) Name = (SyntaxNode)copies[Name];
         Text = (TextSlice[])Text.Clone();
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Name is { } childName) pending.Push(childName);
     }
 }
 
@@ -7699,9 +8233,10 @@ public sealed partial class JSDocLinkCodeNode : SyntaxNode, INamedNode
         if (Name is not null) Name = (SyntaxNode)copies[Name];
         Text = (TextSlice[])Text.Clone();
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (Name is { } childName) pending.Push(childName);
     }
 }
 
@@ -7759,10 +8294,16 @@ public sealed partial class TypeParameterDeclarationNode : SyntaxNode, IModified
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
         if (DefaultType is not null) DefaultType = (SyntaxNode)copies[DefaultType];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Modifiers?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Modifiers?.ConvertPositions(source);
+        if (DefaultType is { } childDefaultType) pending.Push(childDefaultType);
+        if (Expression is { } childExpression) pending.Push(childExpression);
+        if (Constraint is { } childConstraint) pending.Push(childConstraint);
+        if (Name is { } childName) pending.Push(childName);
+        if (Modifiers is { } listModifiers)
+            for (int i = listModifiers.Count - 1; i >= 0; i--) pending.Push(listModifiers[i]);
     }
 }
 
@@ -7796,9 +8337,11 @@ public sealed partial class SyntheticReferenceExpressionNode : SyntaxNode
         if (Expression is not null) Expression = (SyntaxNode)copies[Expression];
         if (ThisArg is not null) ThisArg = (SyntaxNode)copies[ThisArg];
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (ThisArg is { } childThisArg) pending.Push(childThisArg);
+        if (Expression is { } childExpression) pending.Push(childExpression);
     }
 }
 
@@ -7838,9 +8381,11 @@ public sealed partial class JSDocTypeLiteralNode : SyntaxNode
     {
         JSDocPropertyTags = Array.ConvertAll(JSDocPropertyTags, n => copies[n]);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        if (JSDocPropertyTags is { } listJSDocPropertyTags)
+            for (int i = listJSDocPropertyTags.Length - 1; i >= 0; i--) pending.Push(listJSDocPropertyTags[i]);
     }
 }
 
@@ -7887,10 +8432,16 @@ public sealed partial class JSDocParameterOrPropertyTagNode : SyntaxNode, ITypeE
         if (TypeExpression is not null) TypeExpression = (SyntaxNode)copies[TypeExpression];
         if (Comment is not null) Comment = Comment.Map(copies);
     }
-    internal override void ConvertPositions(Func<int, int> convert)
+    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        base.ConvertPositions(convert);
-        Comment?.ConvertPositions(convert);
+        base.ConvertPositions(source, pending);
+        Comment?.ConvertPositions(source);
+        if (Comment is { } listComment)
+            for (int i = listComment.Count - 1; i >= 0; i--) pending.Push(listComment[i]);
+        if (!IsNameFirst && Name is { } childNameLast) pending.Push(childNameLast);
+        if (TypeExpression is { } childTypeExpression) pending.Push(childTypeExpression);
+        if (IsNameFirst && Name is { } childNameFirst) pending.Push(childNameFirst);
+        if (TagName is { } childTagName) pending.Push(childTagName);
     }
 }
 

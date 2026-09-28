@@ -8,6 +8,12 @@ namespace TypeScript.Compiler.Text;
 // maximal invalid subsequence. Encoding.UTF8's replacement fallback differs.
 public static class Wtf8
 {
+    // Continuation bytes, overlong headers and out-of-range headers cannot
+    // begin a code point. Each consumes one replacement character in Go.
+    private static readonly SearchValues<byte> InvalidLeadingBytes = SearchValues.Create(
+        Enumerable.Range(0x80, 0xC2 - 0x80).Concat(Enumerable.Range(0xF5, 0x100 - 0xF5))
+            .Select(static value => (byte)value).ToArray());
+
     public static int Decode(ReadOnlySpan<byte> source, out int consumed)
     {
         if (source.IsEmpty)
@@ -65,24 +71,58 @@ public static class Wtf8
     }
 
     public static string DecodeString(ReadOnlySpan<byte> source)
+        => DecodeString(source, out _);
+
+    internal static string DecodeString(ReadOnlySpan<byte> source, out bool validUtf8)
     {
-        if (Utf8.IsValid(source))
-            return Encoding.UTF8.GetString(source);
-        var buffer = new ArrayBufferWriter<char>(Math.Max(source.Length, 1));
-        while (!source.IsEmpty)
+        validUtf8 = Utf8.IsValid(source);
+        return validUtf8 ? Encoding.UTF8.GetString(source) : DecodeMalformed(source);
+    }
+
+    private static string DecodeMalformed(ReadOnlySpan<byte> source)
+    {
+        char[] buffer = ArrayPool<char>.Shared.Rent(source.Length);
+        try
         {
-            int value = Decode(source, out int consumed);
-            Span<char> target = buffer.GetSpan(2);
-            if (value <= 0xFFFF)
+            Span<char> target = buffer.AsSpan(0, source.Length);
+            int capacity = target.Length;
+            while (!source.IsEmpty)
             {
-                target[0] = (char)value;
-                buffer.Advance(1);
+                if (InvalidLeadingBytes.Contains(source[0]))
+                {
+                    int count = source.IndexOfAnyExcept(InvalidLeadingBytes);
+                    if (count < 0) count = source.Length;
+                    target[..count].Fill('\uFFFD');
+                    target = target[count..];
+                    source = source[count..];
+                    continue;
+                }
+                // Keep BCL bulk transcoding for valid runs even when a file
+                // also contains malformed bytes or WTF-8 surrogate sequences.
+                OperationStatus status = Utf8.ToUtf16(source, target,
+                    out int bytesRead, out int charsWritten, replaceInvalidSequences: false);
+                target = target[charsWritten..];
+                source = source[bytesRead..];
+                if (status == OperationStatus.Done)
+                    break;
+                if (status != OperationStatus.InvalidData)
+                    throw new InvalidOperationException("Unexpected UTF-16 conversion status");
+                int value = Decode(source, out int consumed);
+                if (value <= 0xFFFF)
+                {
+                    target[0] = (char)value;
+                    target = target[1..];
+                }
+                else
+                    target = target[new Rune(value).EncodeToUtf16(target)..];
+                source = source[consumed..];
             }
-            else
-                buffer.Advance(new Rune(value).EncodeToUtf16(target));
-            source = source[consumed..];
+            return new string(buffer.AsSpan(0, capacity - target.Length));
         }
-        return new string(buffer.WrittenSpan);
+        finally
+        {
+            ArrayPool<char>.Shared.Return(buffer);
+        }
     }
 
     // Retains malformed bytes exactly, as Go CombineSurrogatePairs does.

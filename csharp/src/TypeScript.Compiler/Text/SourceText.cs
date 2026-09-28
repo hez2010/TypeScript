@@ -19,8 +19,8 @@ public sealed class SourceText
     private SourceText(byte[] bytes)
     {
         this.bytes = bytes;
-        Text = Wtf8.DecodeString(bytes);
-        map = new PositionMap(bytes);
+        Text = Wtf8.DecodeString(bytes, out bool validUtf8);
+        map = validUtf8 && bytes.Length == Text.Length ? PositionMap.Ascii : new PositionMap(bytes, validUtf8);
     }
 
     public SourceText(string text) : this((TextSlice)text) { }
@@ -29,12 +29,16 @@ public sealed class SourceText
     {
         Text = text;
         bytes = Wtf8.Encode(text);
-        map = new PositionMap(bytes);
+        map = bytes.Length == text.Length ? PositionMap.Ascii : new PositionMap(bytes);
     }
 
     public int ToBytePosition(int utf16Position) => map.Utf16ToUtf8(utf16Position);
 
     public int ToUtf16Position(int bytePosition) => map.Utf8ToUtf16(bytePosition);
+
+    // Starts and ends follow different sequences during a tree walk. Separate
+    // interval hints keep one endpoint from evicting the other's nearby range.
+    internal (int Start, int End) ToByteRange(int start, int end) => map.Utf16ToUtf8(start, end);
 
     public ReadOnlySpan<int> LineStarts
     {

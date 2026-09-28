@@ -86,10 +86,16 @@ public abstract class SyntaxNode(SyntaxKind kind)
         return clone;
     }
 
-    internal virtual void ConvertPositions(Func<int, int> convert)
+    internal virtual void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)
     {
-        Pos = convert(Pos);
-        End = convert(End);
+        (Pos, End) = source.ToByteRange(Pos, End);
+    }
+
+    internal void ConvertTreePositions(SourceText source, Stack<SyntaxNode> pending)
+    {
+        pending.Push(this);
+        while (pending.TryPop(out var node))
+            node.ConvertPositions(source, pending);
     }
 
     public IEnumerable<SyntaxNode> DescendantsAndSelf()
@@ -165,10 +171,9 @@ public sealed class NodeList(SyntaxNode[] nodes, int pos = -1, int end = -1, boo
     internal NodeList Map(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies) =>
         new(Array.ConvertAll(nodes, n => copies[n]), Pos, End, IsMissing);
 
-    internal void ConvertPositions(Func<int, int> convert)
+    internal void ConvertPositions(SourceText source)
     {
-        Pos = convert(Pos);
-        End = convert(End);
+        (Pos, End) = source.ToByteRange(Pos, End);
     }
 }
 

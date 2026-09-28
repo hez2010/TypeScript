@@ -58,6 +58,7 @@ internal static class FoundationTests
         Check(source.Text.Span.StartsWith('a') && source.Bytes.Span[0] == 'a', "Source owns bytes");
         Check(source.GetLineAndCharacter(source.ToBytePosition(7)) == (1, 2), "Byte/UTF-16/line mapping");
         var sharedMap = new PositionMap("Aé😀Z"u8);
+        var sharedSource = new SourceText("Aé😀Z");
         int[] bytePositions = [-1, 0, 1, 2, 2, 3, 4, 5, 4, 5, 6];
         int[] charPositions = [-1, 0, 1, 3, 4, 7, 8, 9];
         int mappingFailure = 0;
@@ -67,12 +68,40 @@ internal static class FoundationTests
             {
                 int b = (step * 7 + worker) % bytePositions.Length;
                 int c = (step * 3 + worker) % charPositions.Length;
+                int next = (c + worker + 1) % charPositions.Length;
+                var range = sharedSource.ToByteRange(c - 1, next - 1);
                 if (sharedMap.Utf8ToUtf16(b - 1) != bytePositions[b]
-                    || sharedMap.Utf16ToUtf8(c - 1) != charPositions[c])
+                    || sharedMap.Utf16ToUtf8(c - 1) != charPositions[c]
+                    || range != (charPositions[c], charPositions[next]))
                     Interlocked.Exchange(ref mappingFailure, 1);
             }
         });
         Check(mappingFailure == 0, "Shared position mapping handles concurrent, nonmonotonic and interior offsets");
+        byte[] malformedBytes = [0xFF, 0x41, 0xED, 0xA0, 0x80, 0xF0, 0x9F, 0x98, 0x80, 0xE2, 0x82];
+        var malformedSource = new SourceText(malformedBytes);
+        Check(malformedSource.Text == "\uFFFDA\uD800😀\uFFFD\uFFFD", "Source decoding preserves WTF-8 and consumes each malformed byte");
+        int[] malformedCharOffsets = [0, 1, 2, 3, 4, 3, 4, 5, 6, 5, 6, 7];
+        int[] malformedByteOffsets = [0, 1, 2, 5, 6, 9, 10, 11];
+        for (int i = 0; i < malformedCharOffsets.Length; i++)
+            Check(malformedSource.ToUtf16Position(i) == malformedCharOffsets[i], "Malformed source interior byte offsets");
+        for (int i = 0; i < malformedByteOffsets.Length; i++)
+            Check(malformedSource.ToBytePosition(i) == malformedByteOffsets[i], "Malformed source interior character offsets");
+        string validRun = new('a', 4096);
+        byte[] mixedEncoding = [.. Encoding.UTF8.GetBytes(validRun), .. malformedBytes, .. Encoding.UTF8.GetBytes(validRun)];
+        Check(Wtf8.DecodeString(mixedEncoding) == validRun + malformedSource.Text + validRun,
+            "Bulk decoding resumes after malformed and WTF-8 sequences");
+        byte[] invalidRun = [.. Enumerable.Repeat((byte)0xFF, 1024), 0xF0, 0x9F, 0x98, .. "é"u8];
+        Check(Wtf8.DecodeString(invalidRun) == new string('\uFFFD', 1027) + "é",
+            "Malformed runs preserve one replacement per byte before valid UTF-8 resumes");
+        for (int prefix = 0; prefix < 128; prefix++)
+        {
+            var vectorSource = new SourceText(new string('a', prefix) + "é漢😀z");
+            Check(vectorSource.ToBytePosition(prefix + 1) == prefix + 2
+                && vectorSource.ToBytePosition(prefix + 2) == prefix + 5
+                && vectorSource.ToBytePosition(prefix + 4) == prefix + 9
+                && vectorSource.ToUtf16Position(prefix + 9) == prefix + 4,
+                "Unicode position maps preserve boundaries across vector lanes and scalar tails");
+        }
         Check(SourceEncoding.Decode([0xFF, 0xFE, 0, 0xD8, 0x41, 0]) == "\ud800A", "UTF-16 LE source preserves surrogate");
         Check(SourceEncoding.Decode([0xFE, 0xFF, 0xD8, 0, 0, 0x41]) == "\ud800A", "UTF-16 BE source preserves surrogate");
         Check(SourceEncoding.Decode([0xEF, 0xBB, 0xBF, 0x41]) == "A", "UTF-8 BOM");

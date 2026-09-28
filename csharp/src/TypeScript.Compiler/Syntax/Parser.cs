@@ -234,12 +234,10 @@ public sealed partial class Parser
         // Source positions remain bytes at the public AST boundary; scanning uses UTF-16.
         if (!source.IsAsciiOnly)
         {
-            Func<int, int> toBytePosition = source.ToBytePosition;
-            foreach (SyntaxNode node in file.DescendantsAndSelf())
-                node.ConvertPositions(toBytePosition);
+            var pending = new Stack<SyntaxNode>();
+            file.ConvertTreePositions(source, pending);
             foreach (JSDocNode comment in documentation.Values.SelectMany(nodes => nodes).Distinct())
-                foreach (SyntaxNode node in comment.DescendantsAndSelf())
-                    node.ConvertPositions(toBytePosition);
+                comment.ConvertTreePositions(source, pending);
         }
         file.SetDocumentation(documentation);
         file.JSDocDiagnostics = documentationDiagnostics.Select(

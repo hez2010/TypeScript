@@ -1,0 +1,2053 @@
+{
+  "timestamp": "2026-09-28T13:22:05.749Z",
+  "compilerSha256": "ad9194cd29979da552549efedc348a4742db2a55927c07d05732a8817a3bf7bc",
+  "semantic": [
+    {
+      "timestamp": "2026-09-28T13:03:29.473Z",
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "mode": "single",
+      "filter": "",
+      "managed": true,
+      "reuseSyntax": true,
+      "referenceJobs": 2,
+      "scope": "Original compiler test program graphs and semantic/global diagnostics in the selected checker concurrency mode; checker query APIs are validated separately",
+      "referenceExitCode": 0,
+      "exportedConfigurations": 15208,
+      "readyConfigurations": 13446,
+      "availableConfigurations": 13446,
+      "referenceInventoryFiles": 12730,
+      "plannedConfigurations": 15208,
+      "referenceMissingFiles": [],
+      "referenceMissingConfigurations": [],
+      "referenceSkipped": 1762,
+      "referenceFailed": 0,
+      "candidateFailures": 0,
+      "graphMismatches": 0,
+      "diagnosticMismatches": 0,
+      "graphAndCodeMatches": 13446,
+      "detailedDiagnosticMatches": 13446,
+      "detailedDiagnosticMismatches": 0,
+      "detailedComparison": "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized",
+      "errorGroups": [],
+      "inputSha256": "df21bccda8a3bc5da534586c352dae0175cf4bf260c93ee15694afe19353d5bd",
+      "referenceInputCorrectionsSha256": "796d2ff79dfe5dfb5d35cd192946d4a1da669b6cea211d31b2b4696d84aa0c0c",
+      "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+      "candidateSha256": "547f419b44348942974fcb50f737f55841e29a24c41eee152bdb19e703a455e3",
+      "compilerSha256": "ad9194cd29979da552549efedc348a4742db2a55927c07d05732a8817a3bf7bc",
+      "mapperFixture": {
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+        "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+        "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+      },
+      "candidateOutputSha256": "8390e6e546cf407bd5030dfabecd2983bd7aee283ae8d0a0678963646c6b31a4",
+      "fullSemanticCorpusGateComplete": true
+    },
+    {
+      "timestamp": "2026-09-28T13:06:31.793Z",
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "mode": "default",
+      "filter": "",
+      "managed": true,
+      "reuseSyntax": true,
+      "referenceJobs": 2,
+      "scope": "Original compiler test program graphs and semantic/global diagnostics in the selected checker concurrency mode; checker query APIs are validated separately",
+      "referenceExitCode": 0,
+      "exportedConfigurations": 15208,
+      "readyConfigurations": 13446,
+      "availableConfigurations": 13446,
+      "referenceInventoryFiles": 12730,
+      "plannedConfigurations": 15208,
+      "referenceMissingFiles": [],
+      "referenceMissingConfigurations": [],
+      "referenceSkipped": 1762,
+      "referenceFailed": 0,
+      "candidateFailures": 0,
+      "graphMismatches": 0,
+      "diagnosticMismatches": 0,
+      "graphAndCodeMatches": 13446,
+      "detailedDiagnosticMatches": 13446,
+      "detailedDiagnosticMismatches": 0,
+      "detailedComparison": "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized",
+      "errorGroups": [],
+      "inputSha256": "b51e79a2ebc4428367c89bceb367fd82a86bdd85b43b847bc17f875b51743a77",
+      "referenceInputCorrectionsSha256": "f0e9fd99f75e8ac0c3db7ef4ccef21980f74b7b1adcfe189a01c8a762e4613a6",
+      "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+      "candidateSha256": "547f419b44348942974fcb50f737f55841e29a24c41eee152bdb19e703a455e3",
+      "compilerSha256": "ad9194cd29979da552549efedc348a4742db2a55927c07d05732a8817a3bf7bc",
+      "mapperFixture": {
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+        "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+        "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+      },
+      "candidateOutputSha256": "8390e6e546cf407bd5030dfabecd2983bd7aee283ae8d0a0678963646c6b31a4",
+      "fullSemanticCorpusGateComplete": true
+    }
+  ],
+  "api": {
+    "families": 31,
+    "queries": 1649908,
+    "passed": true,
+    "knownGoFailures": 4,
+    "records": [
+      {
+        "name": "api-locations",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs"
+        ],
+        "log": "logs/unicode-final-api-locations.log",
+        "exitCode": 1,
+        "summary": {
+          "configurations": 80,
+          "queries": 3956,
+          "comparedQueries": 3812,
+          "exact": 76,
+          "failed": 4,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 4,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "0fd113eea7c38f18959452244fe0c41c1ef8ea5c9891c58ff69e06b3cc6cadb5",
+          "resultHash": "1523b8710cb43e877e57adafa92428c137213ee4bd956528838fd04ab35c3394",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-symbol-locations",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--symbols"
+        ],
+        "log": "logs/unicode-final-api-symbol-locations.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 104,
+          "queries": 5312,
+          "comparedQueries": 5312,
+          "exact": 104,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "68eb6b0ac9f7ef354d82a509fe7dfa06df8b3a3d5c7c9bb70a1021376773d09b",
+          "resultHash": "b6095f3092801a0df026197d97476f053bd5d17e38c89ea33f5fc8296f7a251f",
+          "managed": true,
+          "symbolAnswerMatches": 104,
+          "locationMetadataDifferences": []
+        },
+        "passed": true
+      },
+      {
+        "name": "api-scope-services",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--scopes"
+        ],
+        "log": "logs/unicode-final-api-scope-services.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 104,
+          "queries": 29500,
+          "comparedQueries": 29500,
+          "exact": 104,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "1e81170626ed44a62ddceef58ac1cf0de04bfcdb72d380ab4cdc531521707610",
+          "resultHash": "6dbc664b5fb4ae6b6572518a667d1a3f961f9ebbb118e137522a77d914bf1e51",
+          "managed": true,
+          "services": {
+            "scopes": 27440,
+            "symbolTypesAtLocation": 1904,
+            "symbolTypesWithoutLocation": 1904,
+            "moduleExports": 52,
+            "aliasTargets": 60,
+            "localExportTargets": 16,
+            "shorthandValues": 16,
+            "parameterPropertyPairs": 12
+          }
+        },
+        "passed": true
+      },
+      {
+        "name": "api-context-queries",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--contexts"
+        ],
+        "log": "logs/unicode-final-api-context-queries.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 112,
+          "queries": 7644,
+          "comparedQueries": 7644,
+          "exact": 112,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "c65794a9e5217beddd1f9d63dda5108cbe813f00abaccd4dfcb349ece37e1507",
+          "resultHash": "017ecbd34b2b995f5f210639dc284b5e0355dcfc594185ec89b80a643b062b25",
+          "managed": true,
+          "contextRecords": {
+            "expressionTypes": 6768,
+            "objectElements": 36,
+            "arrayPositions": 108,
+            "jsxAttributes": 16,
+            "resolvedSignaturesAndReturns": 108,
+            "argumentTypes": 240,
+            "signatureHelp": 324,
+            "stringCompletions": 44
+          }
+        },
+        "passed": true
+      },
+      {
+        "name": "api-declaration-visibility",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--visibility"
+        ],
+        "log": "logs/unicode-final-api-declaration-visibility.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 112,
+          "queries": 24832,
+          "comparedQueries": 24832,
+          "exact": 112,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "939873780e0df71241bbf0f9332fcb6a48c303841baa84c1e74f629ea7430cfd",
+          "resultHash": "68148641cb59a3a77c64840b6da23facc9e202c3139e32864d14df3b9bdc2aa6",
+          "managed": true,
+          "visibilityRecords": {
+            "initial": 5628,
+            "afterPrecalculation": 5628,
+            "aliasRetention": 2320,
+            "afterRetention": 5628,
+            "afterRepeatedPrecalculation": 5628
+          }
+        },
+        "passed": true
+      },
+      {
+        "name": "api-symbol-chains",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--chains"
+        ],
+        "log": "logs/unicode-final-api-symbol-chains.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 112,
+          "queries": 60216,
+          "comparedQueries": 60216,
+          "exact": 112,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "179f897a4eb341fc06182bbd343b7fd839685ff1531f5e8bc02b0298feca051a",
+          "resultHash": "8ac6caa2d6184f867ff53659b9869f5eade4fb9a27d93d22771377742ee731d1",
+          "managed": true,
+          "chains": {
+            "found": 17340,
+            "absent": 42876,
+            "longest": 4
+          }
+        },
+        "passed": true
+      },
+      {
+        "name": "api-accessibility",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--accessibility"
+        ],
+        "log": "logs/unicode-final-api-accessibility.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 156,
+          "queries": 125544,
+          "comparedQueries": 125544,
+          "exact": 156,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "877c6c3ffe48dcc29fcd87366800dc2290d7afcef94cb9caba6bbaa56109490f",
+          "resultHash": "b18a73d367feb754d56994b7ad9305480336dea83dc64718bc44205743448912",
+          "managed": true,
+          "accessibilityRecords": {
+            "containers": 19452,
+            "decisions": 77808,
+            "flagQueries": 19452,
+            "typeAndValueQueries": 6484,
+            "entityNames": 2348,
+            "decisionStates": [
+              49616,
+              12808,
+              15384,
+              0
+            ]
+          },
+          "symbolDiagnosticNamesCompared": false,
+          "entityNameVisibilityComparedCompletely": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-symbol-display",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--symbol-display"
+        ],
+        "log": "logs/unicode-final-api-symbol-display.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 172,
+          "queries": 122012,
+          "comparedQueries": 122012,
+          "exact": 172,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "ba123b64cdae9651326bb1ccd33cb16d35a53963a0ae6c98889689c55199b70e",
+          "resultHash": "8593fcf5040b5a988143d2bbb7b826fab3099ca81af77ac59004b263931eb5c4",
+          "managed": true,
+          "symbolDisplayRecords": {
+            "names": 27116,
+            "accessibilityResults": 94896
+          }
+        },
+        "passed": true
+      },
+      {
+        "name": "api-symbol-type-nodes",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--symbol-type-nodes"
+        ],
+        "log": "logs/unicode-final-api-symbol-type-nodes.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 68,
+          "queries": 490752,
+          "comparedQueries": 490752,
+          "exact": 68,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "6fd684bd322350d99d9da928cfbc79dd013d606c5d0928ef6be8d69f506b9479",
+          "resultHash": "18ccdcf3783dc40d823895f1d00550de981e4b864de88f73950bbea00938ece5",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-computed-symbols",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--computed-symbols"
+        ],
+        "log": "logs/unicode-final-api-computed-symbols.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 32,
+          "queries": 62688,
+          "comparedQueries": 62688,
+          "exact": 32,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "da7fa60b82f001f6ee888c9993235719547dda9429caafe36e8a94876a05bc00",
+          "resultHash": "6cf4f6f974b41bc5b9d01c5cf253c6a4008bbda38d7bcccc6481fae08e4d4af2",
+          "managed": true,
+          "symbolFormatFlags": [
+            20,
+            22,
+            28,
+            30,
+            52,
+            54,
+            60,
+            62
+          ]
+        },
+        "passed": true
+      },
+      {
+        "name": "api-symbol-formats",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--symbol-formats"
+        ],
+        "log": "logs/unicode-final-api-symbol-formats.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 72,
+          "queries": 275728,
+          "comparedQueries": 275728,
+          "exact": 72,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "e281739a187c150c5ae4d1827b67645fa25f7dace7094441ffa24de96740fb45",
+          "resultHash": "1d3a1277a7ed857bb69f3fc5f8bf90a6f2ce8afc5f7fdf1b4471e27accb36501",
+          "managed": true,
+          "symbolFormatFlags": [
+            0,
+            1,
+            2,
+            6,
+            8,
+            10,
+            12,
+            14,
+            16,
+            17,
+            32,
+            34,
+            36,
+            38,
+            40,
+            42,
+            44,
+            46,
+            64
+          ]
+        },
+        "passed": true
+      },
+      {
+        "name": "api-type-syntax",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--type-syntax"
+        ],
+        "log": "logs/unicode-final-api-type-syntax.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 32,
+          "queries": 2880,
+          "comparedQueries": 2880,
+          "exact": 32,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "ae3bcf95f95ce4d05a03b702b9758907e5246cecf377d14e9d90fd4b457f9d78",
+          "resultHash": "94f573fc9d1c0e6be202de52d9b76d730b0684e8decfb12cf3fbffb2022ed52f",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-conditional-syntax",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--conditional-syntax"
+        ],
+        "log": "logs/unicode-final-api-conditional-syntax.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 28,
+          "queries": 1344,
+          "comparedQueries": 1344,
+          "exact": 28,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "2d651fa59427b689aa9298f8d6e8d9f7ba2c42261c69412705eba964fabefd8c",
+          "resultHash": "ec6aa1c8272d02ba194e7f9628c5a29d2ca12b2d5d4ce8f17e74ffc1898e49a7",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-mapped-syntax",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--mapped-syntax"
+        ],
+        "log": "logs/unicode-final-api-mapped-syntax.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 24,
+          "queries": 1280,
+          "comparedQueries": 1280,
+          "exact": 24,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "0fb5d40db8653694d30d2122eda123a8123c6465a51f17f2b57710aa12ce3c5e",
+          "resultHash": "71f159275faac2467c93561332efcb2dd7aab7ea9b6fba31459ad2191859670b",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-symbol-type-arguments",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--symbol-type-arguments"
+        ],
+        "log": "logs/unicode-final-api-symbol-type-arguments.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 88,
+          "queries": 347200,
+          "comparedQueries": 347200,
+          "exact": 88,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "30fad4b1c15904d9832c0d59d2bd8e1406038b0624f19337cac6bd5b0abb3b02",
+          "resultHash": "f36a5fac37ae4dedf945348904af5bbb5c3b95b85392a65b9576bac60dc3214b",
+          "managed": true,
+          "symbolFormatFlags": [
+            5,
+            7,
+            13,
+            15,
+            21,
+            23,
+            29,
+            31,
+            37,
+            39,
+            45,
+            47,
+            53,
+            55,
+            61,
+            63
+          ]
+        },
+        "passed": true
+      },
+      {
+        "name": "api-signature-syntax",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--signature-syntax"
+        ],
+        "log": "logs/unicode-final-api-signature-syntax.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 48,
+          "queries": 2496,
+          "comparedQueries": 2496,
+          "exact": 48,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "63ebe3a59fd6479734fa22ac874383b8fc8a1a97358c4dd4cc33099e6bf25a6d",
+          "resultHash": "dca60b6faab5a8b23748371762fb271c281625f3f35bd8842e8556435c7adcd5",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-anonymous-syntax",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--anonymous-syntax"
+        ],
+        "log": "logs/unicode-final-api-anonymous-syntax.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 44,
+          "queries": 2448,
+          "comparedQueries": 2448,
+          "exact": 44,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "09eb7fdf9b133b0453d90bdbb3133251dcae819c635890611ab2ee44cfaf967f",
+          "resultHash": "f8fc52d96f37b61966b748c7bc35be422d2972ef0b7dee606a10ec9ffa2ad6d4",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-syntax-names",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--syntax-names"
+        ],
+        "log": "logs/unicode-final-api-syntax-names.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 24,
+          "queries": 4800,
+          "comparedQueries": 4800,
+          "exact": 24,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "1a740d3915f2332284a94adff85dda665eb284d2c53da10945df4f8818901818",
+          "resultHash": "c8f56b3f3d69a632eb864c88f1d312a4d6321ec3bebb3404384d3a467ed55676",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-syntax-options",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--syntax-options"
+        ],
+        "log": "logs/unicode-final-api-syntax-options.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 45,
+          "queries": 13064,
+          "comparedQueries": 13064,
+          "exact": 45,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "f56128d1ec4d24baf4e7e0c40c9f98c8ca5010e2806218b0b6ba35afe6db1e60",
+          "resultHash": "2992128230c5bee7c72f587ddca36441deee87460ac7096f13d4f58c338d0e7a",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-generated-names",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--generated-names"
+        ],
+        "log": "logs/unicode-final-api-generated-names.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 40,
+          "queries": 3584,
+          "comparedQueries": 3584,
+          "exact": 40,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "fa138e554a4d067694970b0061f66826fe8ef19b7f3c25701e56b39169a3db9b",
+          "resultHash": "05229883ce448f796c1a41f9614e0649d1b278bae456dc6b29f69f30232b1619",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-function-options",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--function-options"
+        ],
+        "log": "logs/unicode-final-api-function-options.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 24,
+          "queries": 12544,
+          "comparedQueries": 12544,
+          "exact": 24,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "ca5bd2098666cc60e999bb39c5ae2f025cf267cc5d03843f04ef509c83ff9909",
+          "resultHash": "39d04a890bb2be58e36236f698f7944e9d7aeb6f177f1310066b8af638a8bbca",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-signature-declarations",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--signature-declarations"
+        ],
+        "log": "logs/unicode-final-api-signature-declarations.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 20,
+          "queries": 13520,
+          "comparedQueries": 13520,
+          "exact": 20,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "a855bfe713fb0c1509318b3a166f46cec79bb86865422d1f87eb152b00aeacc6",
+          "resultHash": "4560fb95bb5394e78394b9927fb064b3f19da1f067d51bcf06f0828db0822378",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-class-options",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--class-options"
+        ],
+        "log": "logs/unicode-final-api-class-options.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 28,
+          "queries": 7776,
+          "comparedQueries": 7776,
+          "exact": 28,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "d11fc4c41a2b2b61a864ee2f245c0504f01ee7c59e62d5e4cbe5f5f1f5a2a415",
+          "resultHash": "93bf1622611c4b8769b1f5eda43992bccc6472cfd4c881df5d166c9b5497ac7c",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-emit-references",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--emit-references"
+        ],
+        "log": "logs/unicode-final-api-emit-references.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 24,
+          "queries": 528,
+          "comparedQueries": 528,
+          "exact": 24,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "b88fd3f42ef00ae34389a8fbb5f8c3ac8613bf1977d6bf65872880334f86b7ed",
+          "resultHash": "587a53ae5877097dcf91f48b33c10f3a70b5d241c1977079f52ebe2b23736ac6",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-emit-queries",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--emit-queries"
+        ],
+        "log": "logs/unicode-final-api-emit-queries.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 44,
+          "queries": 2300,
+          "comparedQueries": 2300,
+          "exact": 44,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "77ef181936807b6744541c8277edb58601c5f050c0b1c0ea858531235c68fa09",
+          "resultHash": "48d53534a15d7b140e0085f0605a917f90c0dcd7224d86373864588005aa4733",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-emit-serialization",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--emit-serialization"
+        ],
+        "log": "logs/unicode-final-api-emit-serialization.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 24,
+          "queries": 600,
+          "comparedQueries": 600,
+          "exact": 24,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "08d11649d6ccac357204b3914e63549fd6f049cfcdf8faa63efcd9c2513660fc",
+          "resultHash": "50963a323ab0e06adc2fffb19b39acee620879b9558ab78baa129401f45c53f5",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-emit-jsx",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--emit-jsx"
+        ],
+        "log": "logs/unicode-final-api-emit-jsx.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 28,
+          "queries": 280,
+          "comparedQueries": 280,
+          "exact": 28,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "7771f1a0bbf5b5ee4dc44eb07a84df40125e9a49d23f5ade6c495c49c0cac4f3",
+          "resultHash": "cd54b64e292238cd33a8f0ec1fa8eb2a1033484973c6de7f71e771f99a9ccf28",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-emit-links",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--emit-links"
+        ],
+        "log": "logs/unicode-final-api-emit-links.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 48,
+          "queries": 420,
+          "comparedQueries": 420,
+          "exact": 48,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "6cf171db0d98e85a795c0d6c8d9645cf73aca03a01086b26862f0a9926a1032a",
+          "resultHash": "6db50e1396765ab9f77ffba4d9c983bb4549776d64284099cdda7c4a415bb882",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-emit-services",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--emit-services"
+        ],
+        "log": "logs/unicode-final-api-emit-services.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 20,
+          "queries": 944,
+          "comparedQueries": 944,
+          "exact": 20,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "f150889aa2f7519da00f8afdc6a098a12797bd7ed45cfe9c04426980b420e543",
+          "resultHash": "4529b00f9be817e8d720d102e2f009e159cb5befe528323c94c3324e679f7a38",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-emit-recovery",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--emit-recovery"
+        ],
+        "log": "logs/unicode-final-api-emit-recovery.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 56,
+          "queries": 3672,
+          "comparedQueries": 3672,
+          "exact": 56,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "d965845ae5589f096acf2209fe60523963047c5501bd5f1ea876c4b9d465dc09",
+          "resultHash": "ee2e25148e4ce8cc05fc896805ce217b6372b2d6a08ecde63b976877d7a19bc4",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-emit-syntax",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--emit-syntax"
+        ],
+        "log": "logs/unicode-final-api-emit-syntax.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 136,
+          "queries": 20188,
+          "comparedQueries": 20188,
+          "exact": 136,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "ba51e7fb825a2716fd8741b839ee8fef77b092a9bf9fdecae0b9a5ed001fa883",
+          "inputHash": "435847869a0a2602aadd883b15432cc9629da72b9ac608685449a1605837fa2b",
+          "resultHash": "e225a861451d661eb55d3656d94bb2ab471cc4abaf7a039ef974771bea35df05",
+          "managed": true
+        },
+        "passed": true
+      }
+    ]
+  },
+  "safety": {
+    "suites": 74,
+    "passed": true,
+    "records": [
+      {
+        "name": "module-specifiers-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--module-specifiers-safety"
+        ],
+        "log": "logs/unicode-final-module-specifiers-safety.log",
+        "exitCode": 0,
+        "output": "20 module naming/path/extension/cancellation assertions\r\n",
+        "passed": true
+      },
+      {
+        "name": "module-program-specifiers-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--module-program-specifiers-safety"
+        ],
+        "log": "logs/unicode-final-module-program-specifiers-safety.log",
+        "exitCode": 0,
+        "output": "Program module specifier safety: 12 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "diagnostic-node-printer-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--diagnostic-node-printer-safety"
+        ],
+        "log": "logs/unicode-final-diagnostic-node-printer-safety.log",
+        "exitCode": 0,
+        "output": "Diagnostic node printer safety: 11 assertions passed; depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "computed-symbols-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--computed-symbols-safety"
+        ],
+        "log": "logs/unicode-final-computed-symbols-safety.log",
+        "exitCode": 0,
+        "output": "Computed symbol safety: 7 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "module-generation-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--module-generation-safety"
+        ],
+        "log": "logs/unicode-final-module-generation-safety.log",
+        "exitCode": 0,
+        "output": "Module generation safety: 12 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "module-node-specifiers-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--module-node-specifiers-safety"
+        ],
+        "log": "logs/unicode-final-module-node-specifiers-safety.log",
+        "exitCode": 0,
+        "output": "Node module specifier safety: 10 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "module-package-specifiers-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--module-package-specifiers-safety"
+        ],
+        "log": "logs/unicode-final-module-package-specifiers-safety.log",
+        "exitCode": 0,
+        "output": "19 package-map/output-path/cancellation assertions; depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-emit-syntax-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-emit-syntax-safety"
+        ],
+        "log": "logs/unicode-final-checker-emit-syntax-safety.log",
+        "exitCode": 0,
+        "output": "Emit syntax safety: 13 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-node-builder-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-node-builder-safety"
+        ],
+        "log": "logs/unicode-final-checker-node-builder-safety.log",
+        "exitCode": 0,
+        "output": "Node builder tracking safety: 17 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-return-syntax-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-return-syntax-safety"
+        ],
+        "log": "logs/unicode-final-checker-return-syntax-safety.log",
+        "exitCode": 0,
+        "output": "Return recovery safety: 14 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-module-grammar-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-module-grammar-safety"
+        ],
+        "log": "logs/unicode-final-checker-module-grammar-safety.log",
+        "exitCode": 0,
+        "output": "Module grammar safety: 12 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-program-relations-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-program-relations-safety"
+        ],
+        "log": "logs/unicode-final-checker-program-relations-safety.log",
+        "exitCode": 0,
+        "output": "Program relation safety: 14 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-mapped-exports-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-mapped-exports-safety"
+        ],
+        "log": "logs/unicode-final-checker-mapped-exports-safety.log",
+        "exitCode": 0,
+        "output": "Mapped/export safety: 17 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-private-declarations-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-private-declarations-safety"
+        ],
+        "log": "logs/unicode-final-checker-private-declarations-safety.log",
+        "exitCode": 0,
+        "output": "Private/declaration safety: 16 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-diagnostic-values-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-diagnostic-values-safety"
+        ],
+        "log": "logs/unicode-final-checker-diagnostic-values-safety.log",
+        "exitCode": 0,
+        "output": "Diagnostic value safety: 16 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-declaration-grammar-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-declaration-grammar-safety"
+        ],
+        "log": "logs/unicode-final-checker-declaration-grammar-safety.log",
+        "exitCode": 0,
+        "output": "Declaration grammar safety: 13 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-relation-context-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-relation-context-safety"
+        ],
+        "log": "logs/unicode-final-checker-relation-context-safety.log",
+        "exitCode": 0,
+        "output": "Relation context safety: 14 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-module-context-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-module-context-safety"
+        ],
+        "log": "logs/unicode-final-checker-module-context-safety.log",
+        "exitCode": 0,
+        "output": "Module context safety: 11 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-declaration-block-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-declaration-block-safety"
+        ],
+        "log": "logs/unicode-final-checker-declaration-block-safety.log",
+        "exitCode": 0,
+        "output": "Declaration block safety: 8 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-pool-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-pool-safety"
+        ],
+        "log": "logs/unicode-final-checker-pool-safety.log",
+        "exitCode": 0,
+        "output": "Checker pool safety: 19 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-pool-cancellation",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-pool-cancellation"
+        ],
+        "log": "logs/unicode-final-checker-pool-cancellation.log",
+        "exitCode": 0,
+        "output": "Checker pool cancellation: 6 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-diagnostic-identity-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-diagnostic-identity-safety"
+        ],
+        "log": "logs/unicode-final-checker-diagnostic-identity-safety.log",
+        "exitCode": 0,
+        "output": "Diagnostic identity safety: 38 assertions passed; chain depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-recovery-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-recovery-safety"
+        ],
+        "log": "logs/unicode-final-checker-recovery-safety.log",
+        "exitCode": 0,
+        "output": "Syntax recovery safety: 10 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-emit-links-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-emit-links-safety"
+        ],
+        "log": "logs/unicode-final-checker-emit-links-safety.log",
+        "exitCode": 0,
+        "output": "Emit linking safety: 14 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-emit-queries-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-emit-queries-safety"
+        ],
+        "log": "logs/unicode-final-checker-emit-queries-safety.log",
+        "exitCode": 0,
+        "output": "Emit query safety: 18 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-signature-declarations-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-signature-declarations-safety"
+        ],
+        "log": "logs/unicode-final-checker-signature-declarations-safety.log",
+        "exitCode": 0,
+        "output": "Signature declaration safety: 10 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-syntax-names-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-syntax-names-safety"
+        ],
+        "log": "logs/unicode-final-checker-syntax-names-safety.log",
+        "exitCode": 0,
+        "output": "Type syntax names safety: 10 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-syntax-options-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-syntax-options-safety"
+        ],
+        "log": "logs/unicode-final-checker-syntax-options-safety.log",
+        "exitCode": 0,
+        "output": "Type syntax options safety: 10 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-symbol-type-arguments-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-symbol-type-arguments-safety"
+        ],
+        "log": "logs/unicode-final-checker-symbol-type-arguments-safety.log",
+        "exitCode": 0,
+        "output": "Symbol type arguments safety: 9 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-signature-syntax-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-signature-syntax-safety"
+        ],
+        "log": "logs/unicode-final-checker-signature-syntax-safety.log",
+        "exitCode": 0,
+        "output": "Signature syntax safety: 9 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-conditional-syntax-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-conditional-syntax-safety"
+        ],
+        "log": "logs/unicode-final-checker-conditional-syntax-safety.log",
+        "exitCode": 0,
+        "output": "Conditional/property syntax safety: 9 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-type-syntax-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-type-syntax-safety"
+        ],
+        "log": "logs/unicode-final-checker-type-syntax-safety.log",
+        "exitCode": 0,
+        "output": "Type syntax core safety: 9 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-type-renderer-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-type-renderer-safety"
+        ],
+        "log": "logs/unicode-final-checker-type-renderer-safety.log",
+        "exitCode": 0,
+        "output": "Diagnostic renderer safety: 52 assertions passed; array depth 5000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-display-formats-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-display-formats-safety"
+        ],
+        "log": "logs/unicode-final-checker-display-formats-safety.log",
+        "exitCode": 0,
+        "output": "Display format safety: 15 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-symbol-type-nodes-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-symbol-type-nodes-safety"
+        ],
+        "log": "logs/unicode-final-checker-symbol-type-nodes-safety.log",
+        "exitCode": 0,
+        "output": "Symbol type node safety: 14 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-symbol-formats-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-symbol-formats-safety"
+        ],
+        "log": "logs/unicode-final-checker-symbol-formats-safety.log",
+        "exitCode": 0,
+        "output": "Symbol format mode safety: 9 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-symbol-display-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-symbol-display-safety"
+        ],
+        "log": "logs/unicode-final-checker-symbol-display-safety.log",
+        "exitCode": 0,
+        "output": "Symbol display/accessibility safety: 17 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-access-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-access-safety"
+        ],
+        "log": "logs/unicode-final-checker-access-safety.log",
+        "exitCode": 0,
+        "output": "83 access/optional/member/class/cancellation/spelling assertions; 20,000-level traversal.\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-identifiers-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-identifiers-safety"
+        ],
+        "log": "logs/unicode-final-checker-identifiers-safety.log",
+        "exitCode": 0,
+        "output": "39 identifier/binding/default/alias/cancellation/ownership assertions; 20,000-level reference traversal.\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-flow-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-flow-safety"
+        ],
+        "log": "logs/unicode-final-checker-flow-safety.log",
+        "exitCode": 0,
+        "output": "52 flow/cache/reachability/assignment/cancellation assertions; 20,000-node traversal and exact 2,000 recursion limit.\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-references-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-references-safety"
+        ],
+        "log": "logs/unicode-final-checker-references-safety.log",
+        "exitCode": 0,
+        "output": "23 reference safety assertions; 20,000-level syntax traversal.\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-binary-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-binary-safety"
+        ],
+        "log": "logs/unicode-final-checker-binary-safety.log",
+        "exitCode": 0,
+        "output": "31 binary/awaited/recursion/cancellation assertions; 20000-level binary expressions\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-expressions-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-expressions-safety"
+        ],
+        "log": "logs/unicode-final-checker-expressions-safety.log",
+        "exitCode": 0,
+        "output": "81 expression/literal/context/enum/cache/cancellation assertions; 20000-level expression, constant and context traversal\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-inference-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-inference-safety"
+        ],
+        "log": "logs/unicode-final-checker-inference-safety.log",
+        "exitCode": 0,
+        "output": "37 inference/priority/fixing/cancellation/widening/reverse-map assertions; 20000-level traversal\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-conditional-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-conditional-safety"
+        ],
+        "log": "logs/unicode-final-checker-conditional-safety.log",
+        "exitCode": 0,
+        "output": "24 conditional/cache/cancellation assertions; exact 1000 tail and 10 relation nesting limits\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-generic-relations-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-generic-relations-safety"
+        ],
+        "log": "logs/unicode-final-checker-generic-relations-safety.log",
+        "exitCode": 0,
+        "output": "27 generic relation/optionality/key variance/cancellation assertions\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-indexing-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-indexing-safety"
+        ],
+        "log": "logs/unicode-final-checker-indexing-safety.log",
+        "exitCode": 0,
+        "output": "Checker indexed type safety: 51 assertions; 20,000-level simplification and key traversal\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-assignability-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-assignability-safety"
+        ],
+        "log": "logs/unicode-final-checker-assignability-safety.log",
+        "exitCode": 0,
+        "output": "57 structural relation/variance/facts/cancellation assertions\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-relations-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-relations-safety"
+        ],
+        "log": "logs/unicode-final-checker-relations-safety.log",
+        "exitCode": 0,
+        "output": "56 relation key/cache/normalization/cancellation assertions; exact 100-level comparison cutoff; key and base chains depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-relation-diagnostics-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-relation-diagnostics-safety"
+        ],
+        "log": "logs/unicode-final-checker-relation-diagnostics-safety.log",
+        "exitCode": 0,
+        "output": "Relation diagnostic safety: 10 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-signatures-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-signatures-safety"
+        ],
+        "log": "logs/unicode-final-checker-signatures-safety.log",
+        "exitCode": 0,
+        "output": "148 signature/function/call/iteration/inference/context/cancellation assertions; binding and return traversal depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-properties-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-properties-safety"
+        ],
+        "log": "logs/unicode-final-checker-properties-safety.log",
+        "exitCode": 0,
+        "output": "49 property/view/index/cache/cancellation assertions; reduction chain depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-values-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-values-safety"
+        ],
+        "log": "logs/unicode-final-checker-values-safety.log",
+        "exitCode": 0,
+        "output": "32 symbol read/write/cache/cancellation assertions; instantiated symbol chain depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-members-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-members-safety"
+        ],
+        "log": "logs/unicode-final-checker-members-safety.log",
+        "exitCode": 0,
+        "output": "38 structured member/signature assertions; base and signature chains depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-type-nodes-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-type-nodes-safety"
+        ],
+        "log": "logs/unicode-final-checker-type-nodes-safety.log",
+        "exitCode": 0,
+        "output": "25 source-type/cache/cancellation assertions; array and alias ancestry depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-alias-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-alias-safety"
+        ],
+        "log": "logs/unicode-final-checker-alias-safety.log",
+        "exitCode": 0,
+        "output": "31 alias/cycle/cancellation/module-export assertions; alias chain depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-query-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-query-safety"
+        ],
+        "log": "logs/unicode-final-checker-query-safety.log",
+        "exitCode": 0,
+        "output": "20 type-location query ownership/cancellation assertions; depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-symbol-query-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-symbol-query-safety"
+        ],
+        "log": "logs/unicode-final-checker-symbol-query-safety.log",
+        "exitCode": 0,
+        "output": "25 symbol-location query identity/ownership/cancellation assertions\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-scope-query-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-scope-query-safety"
+        ],
+        "log": "logs/unicode-final-checker-scope-query-safety.log",
+        "exitCode": 0,
+        "output": "23 scope/symbol-type query identity/cancellation assertions\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-context-query-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-context-query-safety"
+        ],
+        "log": "logs/unicode-final-checker-context-query-safety.log",
+        "exitCode": 0,
+        "output": "24 context/signature query cache/cancellation assertions\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-visibility-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-visibility-safety"
+        ],
+        "log": "logs/unicode-final-checker-visibility-safety.log",
+        "exitCode": 0,
+        "output": "33 declaration visibility/alias/rollback assertions; depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-symbol-chains-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-symbol-chains-safety"
+        ],
+        "log": "logs/unicode-final-checker-symbol-chains-safety.log",
+        "exitCode": 0,
+        "output": "18 accessible-chain identity/qualification/rollback assertions; depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-accessibility-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-accessibility-safety"
+        ],
+        "log": "logs/unicode-final-checker-accessibility-safety.log",
+        "exitCode": 0,
+        "output": "24 accessibility/container/entity-visibility/rollback assertions\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-program-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-program-safety"
+        ],
+        "log": "logs/unicode-final-checker-program-safety.log",
+        "exitCode": 0,
+        "output": "294 program/checker ownership assertions; interface and scope depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-mapped-members-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-mapped-members-safety"
+        ],
+        "log": "logs/unicode-final-checker-mapped-members-safety.log",
+        "exitCode": 0,
+        "output": "30 mapped member assertions; key validity, lower-bound and modifier chains at depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-mapped-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-mapped-safety"
+        ],
+        "log": "logs/unicode-final-checker-mapped-safety.log",
+        "exitCode": 0,
+        "output": "37 mapped type assertions; actual-variable, generic-flag, kind and unary-tuple analysis depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-objects-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-objects-safety"
+        ],
+        "log": "logs/unicode-final-checker-objects-safety.log",
+        "exitCode": 0,
+        "output": "40 object instantiation assertions; reference, parent and entity-name depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-instantiation-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-instantiation-safety"
+        ],
+        "log": "logs/unicode-final-checker-instantiation-safety.log",
+        "exitCode": 0,
+        "output": "26 instantiation/signature/tuple assertions; exact 100-depth, 5,000,000-work and 10,000-tuple limits\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-constraints-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-constraints-safety"
+        ],
+        "log": "logs/unicode-final-checker-constraints-safety.log",
+        "exitCode": 0,
+        "output": "21 constraint/default/recursion state assertions; default and indexed identity depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-algebra-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-algebra-safety"
+        ],
+        "log": "logs/unicode-final-checker-algebra-safety.log",
+        "exitCode": 0,
+        "output": "15 algebra ownership/limit/cancellation assertions; template, intersection and origin depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-names-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-names-safety"
+        ],
+        "log": "logs/unicode-final-checker-names-safety.log",
+        "exitCode": 0,
+        "output": "21 name/symbol state assertions; scope, initializer and merge depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-state",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--checker-state"
+        ],
+        "log": "logs/unicode-final-checker-state.log",
+        "exitCode": 0,
+        "output": "1493 checker ownership/state assertions; mapper and type-order depth 50000; 16 independent contexts\r\n",
+        "passed": true
+      },
+      {
+        "name": "program-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--program-safety"
+        ],
+        "log": "logs/unicode-final-program-safety.log",
+        "exitCode": 0,
+        "output": "Program reuse, invalidation and stack safety: 28 assertions; 12000 syntax levels; 3000 files\r\n",
+        "passed": true
+      },
+      {
+        "name": "parser-safety",
+        "command": "D:/dotnet-sdk-11.0.100-rtm.26473.115-win-x64/dotnet.exe",
+        "args": [
+          "csharp/tests/TypeScript.Compatibility/bin/Release/net11.0/TypeScript.Compatibility.dll",
+          "--parser-safety"
+        ],
+        "log": "logs/unicode-final-parser-safety.log",
+        "exitCode": 0,
+        "output": "Async documentation: single-worker parsing, lazy queries, cloning and cache identity passed.\r\nparentheses.ts: 45 ms\r\nparenthesis-precedence.ts: 0 ms\r\nawait-spans.ts: 2 ms\r\nawait-overlap.ts: 0 ms\r\nawait-end.ts: 0 ms\r\nindex-signatures.ts: 4 ms\r\ngeneric-function-types.ts: 3 ms\r\nheritage-expressions.ts: 3 ms\r\nprivate-type-query.ts: 3 ms\r\nthis-parameters.ts: 0 ms\r\ntuples.ts: 42 ms\r\ngenerics.ts: 75 ms\r\nindexed-access.ts: 44 ms\r\noperators.ts: 16 ms\r\nfunctions.ts: 47 ms\r\nconditionals.ts: 90 ms\r\nmapped.ts: 116 ms\r\ntype-literals.ts: 108 ms\r\ntemplate-types.ts: 82 ms\r\ncompound-types.ts: 83 ms\r\nblocks.ts: 52 ms\r\nif-statements.ts: 41 ms\r\nexpression-parentheses.ts: 26 ms\r\narray-expressions.ts: 40 ms\r\nobject-expressions.ts: 74 ms\r\nbinary-expressions.ts: 26 ms\r\nfunction-expressions.ts: 182 ms\r\njsx.tsx: 92 ms\r\njsx-qualified.tsx: 56 ms\r\njsx-names.tsx: 1 ms\r\nnested.json: 34 ms\r\ndocumentation.js: 141 ms\r\ndocumentation-array.js: 26 ms\r\ndocumentation-host.js: 29 ms\r\ndocumentation-names.js: 25 ms\r\ndocumentation-heritage.js: 72 ms\r\ndocumentation-properties.js: 65 ms\r\ndocumentation-typedef.js: 0 ms\r\nsynchronization-context.ts: 148 ms\r\nParser safety: 39 cases, 1421841 nodes; depth 21000, source positions, parents and cancellation passed.\r\n",
+        "passed": true
+      }
+    ]
+  },
+  "parser": {
+    "timestamp": "2026-09-28T13:01:31.829Z",
+    "recordFormat": "kind-range-flags-text-children-scalars-lists; parse and JavaScript diagnostic buckets",
+    "suite": "parser",
+    "expanded": false,
+    "candidate": "CoreCLR development check",
+    "sdk": "11.0.100-rtm.26473.115",
+    "runtime": null,
+    "instructionSet": null,
+    "optimizationPreference": "Speed",
+    "candidateSha256": "547f419b44348942974fcb50f737f55841e29a24c41eee152bdb19e703a455e3",
+    "inputSha256": "23152fb37d1426a546dec1d6e33422220625f470f1b92858adde9bc6e959ef95",
+    "cases": 12882,
+    "records": 1684933,
+    "runtimeAsync": true,
+    "comparison": "strict",
+    "independentParserVersion": "6.0.3",
+    "passed": 12882,
+    "failed": 0,
+    "strictPassed": 12882,
+    "strictFailed": 0,
+    "permittedDifferences": 0,
+    "failures": [],
+    "oracleSha256": "3b9fe49f45f18c8b77b3d5ef91dbc9a4e6a43c1cb1eecd96273351f84371ec40"
+  },
+  "scanner": {
+    "timestamp": "2026-09-28T13:01:36.968Z",
+    "recordFormat": "kind-fullstart-start-end-tokenflags-value; scanner diagnostics and empty JavaScript diagnostic bucket",
+    "suite": "scanner",
+    "expanded": false,
+    "candidate": "CoreCLR development check",
+    "sdk": "11.0.100-rtm.26473.115",
+    "runtime": null,
+    "instructionSet": null,
+    "optimizationPreference": "Speed",
+    "candidateSha256": "547f419b44348942974fcb50f737f55841e29a24c41eee152bdb19e703a455e3",
+    "inputSha256": "fe7f838adbf84082f28d207c58754c92631a210b0343f2728a4562c62a99b3e0",
+    "cases": 12895,
+    "records": 1828290,
+    "runtimeAsync": true,
+    "comparison": "strict",
+    "independentParserVersion": null,
+    "passed": 12895,
+    "failed": 0,
+    "strictPassed": 12895,
+    "strictFailed": 0,
+    "permittedDifferences": 0,
+    "failures": [],
+    "oracleSha256": "3b9fe49f45f18c8b77b3d5ef91dbc9a4e6a43c1cb1eecd96273351f84371ec40"
+  },
+  "metadata": {
+    "timestamp": "2026-09-28T13:01:39.237Z",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "runtimeKind": "CoreCLR",
+    "runtime": "CoreCLR",
+    "sdk": "11.0.100-rtm.26473.115",
+    "typescriptPragmaReference": "6.0.3",
+    "configuration": {
+      "optimizationPreference": "Speed",
+      "runtimeAsync": true
+    },
+    "seed": "0x497a31f2",
+    "cases": 6778,
+    "failures": 0,
+    "extensionAssertions": 6,
+    "cloneAssertions": 19,
+    "semanticAssertions": 42,
+    "semanticDifferences": 48,
+    "inputSha256": "fdf15bb6a21a0b0874d93fbaf69a65b7591f4af8a19b17e54f4f51e3ccab4c5a",
+    "oracleSha256": "f3dd5a6db7d91c03c5569e55120369e78bfac83f4c2b020fff006a103e8802e6",
+    "candidateSha256": "88e3168d8769af377004f4ab4163e3356f1da44a360a68426d570c5c5638b294"
+  },
+  "documentationBaselineControl": {
+    "cases": 1228,
+    "baselineCompilerSha256": "96e17db06e78e2e112a445bf0d5ef0c09ea959c9c7434b2b7c75d6aabc1e37fa",
+    "candidateCompilerSha256": "ad9194cd29979da552549efedc348a4742db2a55927c07d05732a8817a3bf7bc",
+    "changedCases": 0,
+    "candidateGoFailures": 798,
+    "knownDifferenceExamples": [
+      {
+        "name": "tsc/internal/bundled/libs/lib.decorators.d.ts::0",
+        "difference": {
+          "location": "[0][0][3][0][1][5].Text",
+          "beforeLength": 3,
+          "afterLength": 1
+        }
+      },
+      {
+        "name": "tsc/internal/bundled/libs/lib.dom.d.ts::0",
+        "difference": {
+          "location": "[0][0][3][0][0][6].Comment",
+          "before": [
+            0,
+            31403,
+            31407,
+            false
+          ],
+          "after": null
+        }
+      },
+      {
+        "name": "tsc/internal/bundled/libs/lib.es2015.collection.d.ts::0",
+        "difference": {
+          "location": "[0][0][3][0][1][5].Text",
+          "beforeLength": 3,
+          "afterLength": 1
+        }
+      }
+    ],
+    "passed": true
+  },
+  "documentationGoComparison": {
+    "timestamp": "2026-09-28T13:06:44.226Z",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "sourceFiles": 839,
+    "libraryFiles": 108,
+    "expandedUnits": 1228,
+    "hosts": 12365,
+    "documentationTrees": 12599,
+    "documentationNodes": 50923,
+    "exact": 335,
+    "permittedDifferences": 95,
+    "failures": 798,
+    "policyNegativeControls": 20,
+    "runtimeKind": "CoreCLR",
+    "runtime": "CoreCLR",
+    "sdk": "11.0.100-rtm.26473.115",
+    "configuration": {
+      "optimizationPreference": "Speed",
+      "runtimeAsync": true
+    },
+    "inputSha256": "ada14063d3e4d255905e7b281d4e90ed9437abdbfbf05bccc6f5d764c79f1b09",
+    "candidateSha256": "88e3168d8769af377004f4ab4163e3356f1da44a360a68426d570c5c5638b294",
+    "oracleSha256": "12d981b8e7bbbf85cdfe2bed3cdf1374ac782c16510874aa12d9f48e65e718f0",
+    "invariants": [
+      "acyclic documentation trees",
+      "unique node identity per comment tree",
+      "correct child-parent identity",
+      "source-bounded UTF-8 spans"
+    ]
+  },
+  "foundations": {
+    "assertions": 4929,
+    "diagnostics": 2213,
+    "locales": 13,
+    "libraries": 108,
+    "log": "logs/unicode-final-foundations.log"
+  },
+  "builds": {
+    "release": "logs/unicode-final-build.log",
+    "nativeAot": "logs/unicode-final-native-publish.log",
+    "warnings": 0,
+    "errors": 0
+  },
+  "reused": "Unchanged host, type/algebra and tracking components retain their previous successful evidence; new text/mapping behavior was covered by the complete syntax/semantic/API/safety batches.",
+  "passedNoCorrectnessRegression": true
+}

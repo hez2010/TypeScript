@@ -1,0 +1,2035 @@
+{
+  "timestamp": "2026-09-28T13:22:05.685Z",
+  "baselineCommit": "84fe388abbf8aae7eb141b6343659545a92c5ab6",
+  "compilerSha256": "ad9194cd29979da552549efedc348a4742db2a55927c07d05732a8817a3bf7bc",
+  "compilerSourceSha256": "5c9503a105e10e7d04ff14e22b6d15f9c4d14af84067b1982f06ea7539372a9e",
+  "sourceFingerprintExcludes": "NuGet lock files, including the four preexisting normal SDK-restore changes",
+  "measurements": {
+    "timestamp": "2026-09-28T13:16:22.496Z",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "manifest": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "execution": "NativeAOT Server GC baseline and final Unicode candidate versus pinned Go; matched fresh programs",
+      "scope": "Five original workloads plus ASCII, Unicode string/identifier and malformed-comment controls with a small supplied library",
+      "processorCount": 4,
+      "modes": [
+        "single",
+        "default"
+      ],
+      "warmups": 20,
+      "samples": 15,
+      "provisionalBudgets": {
+        "p95ElapsedMs": 5000,
+        "peakRssBytes": 536870912,
+        "releasedHeapGrowthBytes": 16777216
+      },
+      "budgetScope": "Existing phase 4 operability budgets",
+      "cases": [
+        "compiler/jsxComplexSignatureHasApplicabilityError.tsx",
+        "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+        "conformance/superInStaticMembers1.ts target=es2022",
+        "conformance/nodeModulesAllowJs1.ts module=node18",
+        "compiler/giant.ts",
+        "unicode/ascii.ts",
+        "unicode/strings.ts",
+        "unicode/identifiers.ts",
+        "unicode/malformed-run.ts",
+        "unicode/sparse-malformed.ts"
+      ]
+    },
+    "manifestSha256": "02cb858395cb55d302f4f1f8b1dafe0626c9301e55f22d4b6506ed0b514f4a69",
+    "inputsSha256": "1729d197265faef08f636411408e25df60c5c2eb4be939a0711d4577b68d075a",
+    "candidateSha256": "9c4ad703dc5102645276ed51aa0ea832f725a6c5a92e34f2378e9f043ba49b0b",
+    "executableSha256": "9c4ad703dc5102645276ed51aa0ea832f725a6c5a92e34f2378e9f043ba49b0b",
+    "baseline": {
+      "executable": "D:\\source\\repos\\TypeScript\\built\\aot-performance\\retained-native\\TypeScript.Compatibility.exe",
+      "executableSha256": "0802265655a9bf3041e44f4060fdafbd9ac14840ba527b91e45c4a2b280655c0",
+      "candidateSha256": "0802265655a9bf3041e44f4060fdafbd9ac14840ba527b91e45c4a2b280655c0"
+    },
+    "oracleSha256": "3b24ab2a8765063a904a578271c8def1a0f9607104913f99f17f8801533a2d7a",
+    "samplesSha256": "322e1b17d970a21e495b4231f2558bf135a8b5e867475ba0389a163406215a1a",
+    "machine": {
+      "platform": "win32",
+      "architecture": "x64",
+      "os": "Windows 11 Pro for Workstations",
+      "cpu": "13th Gen Intel(R) Core(TM) i7-13700K",
+      "availableMemoryBytes": 68399497216
+    },
+    "runtime": {
+      "tieredCompilation": null,
+      "processorCount": 4,
+      "nativeAotExecuted": true,
+      "serverGC": true,
+      "executable": "built/unicode-performance/final-native/TypeScript.Compatibility.exe",
+      "label": "NativeAOT"
+    },
+    "groups": [
+      {
+        "name": "compiler/jsxComplexSignatureHasApplicabilityError.tsx",
+        "mode": "single",
+        "before": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 40.3408,
+          "medianProgramMs": 35.509,
+          "medianCheckerMs": 4.659399999999998,
+          "p95Ms": 50.5737,
+          "medianCpuMs": 46.875,
+          "medianAllocatedBytes": 32136272,
+          "peakRssBytes": 76587008,
+          "releasedHeapGrowthBytes": 0
+        },
+        "after": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 39.2759,
+          "medianProgramMs": 34.4841,
+          "medianCheckerMs": 4.806600000000003,
+          "p95Ms": 40.7969,
+          "medianCpuMs": 46.875,
+          "medianAllocatedBytes": 32133232,
+          "peakRssBytes": 83279872,
+          "releasedHeapGrowthBytes": 0
+        },
+        "go": {
+          "runtime": "Go",
+          "serverGC": null,
+          "samples": 15,
+          "medianMs": 20.8863,
+          "medianProgramMs": 17.7043,
+          "medianCheckerMs": 2.7820999999999962,
+          "p95Ms": 21.587,
+          "medianCpuMs": 15.625,
+          "medianAllocatedBytes": 21998472,
+          "peakRssBytes": 46620672,
+          "releasedHeapGrowthBytes": 160
+        },
+        "passed": true,
+        "elapsedRatio": 0.9736024074882005,
+        "allocationRatio": 0.9999054028419974
+      },
+      {
+        "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+        "mode": "single",
+        "before": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 94.7985,
+          "medianProgramMs": 35.5001,
+          "medianCheckerMs": 59.174400000000006,
+          "p95Ms": 95.9842,
+          "medianCpuMs": 109.375,
+          "medianAllocatedBytes": 70894712,
+          "peakRssBytes": 96047104,
+          "releasedHeapGrowthBytes": 0
+        },
+        "after": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 93.8848,
+          "medianProgramMs": 34.4287,
+          "medianCheckerMs": 59.3516,
+          "p95Ms": 95.9308,
+          "medianCpuMs": 125,
+          "medianAllocatedBytes": 70891376,
+          "peakRssBytes": 98131968,
+          "releasedHeapGrowthBytes": 0
+        },
+        "go": {
+          "runtime": "Go",
+          "serverGC": null,
+          "samples": 15,
+          "medianMs": 64.1597,
+          "medianProgramMs": 18.2405,
+          "medianCheckerMs": 45.52719999999999,
+          "p95Ms": 66.2262,
+          "medianCpuMs": 62.5,
+          "medianAllocatedBytes": 34393952,
+          "peakRssBytes": 58998784,
+          "releasedHeapGrowthBytes": 224
+        },
+        "passed": true,
+        "elapsedRatio": 0.9903616618406409,
+        "allocationRatio": 0.999952944304224
+      },
+      {
+        "name": "conformance/superInStaticMembers1.ts target=es2022",
+        "mode": "single",
+        "before": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 40.6127,
+          "medianProgramMs": 38.148,
+          "medianCheckerMs": 2.4696,
+          "p95Ms": 41.3856,
+          "medianCpuMs": 62.5,
+          "medianAllocatedBytes": 29649144,
+          "peakRssBytes": 82964480,
+          "releasedHeapGrowthBytes": 0
+        },
+        "after": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 40.2505,
+          "medianProgramMs": 37.5958,
+          "medianCheckerMs": 2.5526999999999944,
+          "p95Ms": 41.2763,
+          "medianCpuMs": 46.875,
+          "medianAllocatedBytes": 29625832,
+          "peakRssBytes": 82538496,
+          "releasedHeapGrowthBytes": 0
+        },
+        "go": {
+          "runtime": "Go",
+          "serverGC": null,
+          "samples": 15,
+          "medianMs": 19.2659,
+          "medianProgramMs": 18.0672,
+          "medianCheckerMs": 1.030100000000001,
+          "p95Ms": 21.362099999999998,
+          "medianCpuMs": 15.625,
+          "medianAllocatedBytes": 21003056,
+          "peakRssBytes": 45273088,
+          "releasedHeapGrowthBytes": 208
+        },
+        "passed": true,
+        "elapsedRatio": 0.9910816074774641,
+        "allocationRatio": 0.9992137378401211
+      },
+      {
+        "name": "conformance/nodeModulesAllowJs1.ts module=node18",
+        "mode": "single",
+        "before": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 41.1344,
+          "medianProgramMs": 39.5296,
+          "medianCheckerMs": 1.6118999999999986,
+          "p95Ms": 42.5091,
+          "medianCpuMs": 78.125,
+          "medianAllocatedBytes": 28518800,
+          "peakRssBytes": 81641472,
+          "releasedHeapGrowthBytes": 0
+        },
+        "after": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 39.9132,
+          "medianProgramMs": 38.1724,
+          "medianCheckerMs": 1.7408000000000001,
+          "p95Ms": 41.8259,
+          "medianCpuMs": 46.875,
+          "medianAllocatedBytes": 28505856,
+          "peakRssBytes": 82210816,
+          "releasedHeapGrowthBytes": 0
+        },
+        "go": {
+          "runtime": "Go",
+          "serverGC": null,
+          "samples": 15,
+          "medianMs": 19.284699999999997,
+          "medianProgramMs": 18.161199999999997,
+          "medianCheckerMs": 1.0253000000000014,
+          "p95Ms": 21.6847,
+          "medianCpuMs": 15.625,
+          "medianAllocatedBytes": 20623320,
+          "peakRssBytes": 44171264,
+          "releasedHeapGrowthBytes": 496
+        },
+        "passed": true,
+        "elapsedRatio": 0.9703119530125638,
+        "allocationRatio": 0.9995461239603349
+      },
+      {
+        "name": "compiler/giant.ts",
+        "mode": "single",
+        "before": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 38.4482,
+          "medianProgramMs": 35.3244,
+          "medianCheckerMs": 2.9018000000000015,
+          "p95Ms": 42.1059,
+          "medianCpuMs": 46.875,
+          "medianAllocatedBytes": 28329552,
+          "peakRssBytes": 77295616,
+          "releasedHeapGrowthBytes": 0
+        },
+        "after": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 37.0331,
+          "medianProgramMs": 34.1145,
+          "medianCheckerMs": 2.9114000000000004,
+          "p95Ms": 47.2203,
+          "medianCpuMs": 46.875,
+          "medianAllocatedBytes": 28326216,
+          "peakRssBytes": 79192064,
+          "releasedHeapGrowthBytes": 0
+        },
+        "go": {
+          "runtime": "Go",
+          "serverGC": null,
+          "samples": 15,
+          "medianMs": 18.1885,
+          "medianProgramMs": 16.4961,
+          "medianCheckerMs": 1.0458000000000034,
+          "p95Ms": 19.2208,
+          "medianCpuMs": 15.625,
+          "medianAllocatedBytes": 19799360,
+          "peakRssBytes": 44027904,
+          "releasedHeapGrowthBytes": 288
+        },
+        "passed": true,
+        "elapsedRatio": 0.96319463589973,
+        "allocationRatio": 0.9998822431078331
+      },
+      {
+        "name": "unicode/ascii.ts",
+        "mode": "single",
+        "before": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 19.2188,
+          "medianProgramMs": 6.3704,
+          "medianCheckerMs": 12.850500000000002,
+          "p95Ms": 19.7924,
+          "medianCpuMs": 31.25,
+          "medianAllocatedBytes": 21317200,
+          "peakRssBytes": 54165504,
+          "releasedHeapGrowthBytes": 0
+        },
+        "after": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 19.2794,
+          "medianProgramMs": 6.2988,
+          "medianCheckerMs": 13.011099999999999,
+          "p95Ms": 21.0964,
+          "medianCpuMs": 15.625,
+          "medianAllocatedBytes": 21316624,
+          "peakRssBytes": 51683328,
+          "releasedHeapGrowthBytes": 0
+        },
+        "go": {
+          "runtime": "Go",
+          "serverGC": null,
+          "samples": 15,
+          "medianMs": 6.8897,
+          "medianProgramMs": 4.126,
+          "medianCheckerMs": 2.5827999999999998,
+          "p95Ms": 7.7581999999999995,
+          "medianCpuMs": 0,
+          "medianAllocatedBytes": 6480232,
+          "peakRssBytes": 22896640,
+          "releasedHeapGrowthBytes": 224
+        },
+        "passed": true,
+        "elapsedRatio": 1.0031531625283574,
+        "allocationRatio": 0.9999729795657967
+      },
+      {
+        "name": "unicode/strings.ts",
+        "mode": "single",
+        "before": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 21.8216,
+          "medianProgramMs": 8.9736,
+          "medianCheckerMs": 12.8423,
+          "p95Ms": 22.4771,
+          "medianCpuMs": 15.625,
+          "medianAllocatedBytes": 22526280,
+          "peakRssBytes": 53608448,
+          "releasedHeapGrowthBytes": 0
+        },
+        "after": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 20.5661,
+          "medianProgramMs": 7.89,
+          "medianCheckerMs": 12.6273,
+          "p95Ms": 21.3432,
+          "medianCpuMs": 15.625,
+          "medianAllocatedBytes": 21658208,
+          "peakRssBytes": 52883456,
+          "releasedHeapGrowthBytes": 8224
+        },
+        "go": {
+          "runtime": "Go",
+          "serverGC": null,
+          "samples": 15,
+          "medianMs": 7.0844000000000005,
+          "medianProgramMs": 4.212,
+          "medianCheckerMs": 2.5958000000000006,
+          "p95Ms": 8.455400000000001,
+          "medianCpuMs": 0,
+          "medianAllocatedBytes": 6513232,
+          "peakRssBytes": 22888448,
+          "releasedHeapGrowthBytes": 128
+        },
+        "passed": true,
+        "elapsedRatio": 0.9424652637753418,
+        "allocationRatio": 0.9614640322325746
+      },
+      {
+        "name": "unicode/identifiers.ts",
+        "mode": "single",
+        "before": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 21.8059,
+          "medianProgramMs": 9.071,
+          "medianCheckerMs": 12.6622,
+          "p95Ms": 22.1756,
+          "medianCpuMs": 15.625,
+          "medianAllocatedBytes": 21937992,
+          "peakRssBytes": 52129792,
+          "releasedHeapGrowthBytes": 0
+        },
+        "after": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 21.0785,
+          "medianProgramMs": 8.0682,
+          "medianCheckerMs": 12.9485,
+          "p95Ms": 22.109,
+          "medianCpuMs": 15.625,
+          "medianAllocatedBytes": 21503208,
+          "peakRssBytes": 52572160,
+          "releasedHeapGrowthBytes": 0
+        },
+        "go": {
+          "runtime": "Go",
+          "serverGC": null,
+          "samples": 15,
+          "medianMs": 7.2549,
+          "medianProgramMs": 4.2252,
+          "medianCheckerMs": 2.7917000000000005,
+          "p95Ms": 7.822000000000001,
+          "medianCpuMs": 0,
+          "medianAllocatedBytes": 6479032,
+          "peakRssBytes": 22818816,
+          "releasedHeapGrowthBytes": 16
+        },
+        "passed": true,
+        "elapsedRatio": 0.9666420555904593,
+        "allocationRatio": 0.980181230807268
+      },
+      {
+        "name": "unicode/malformed-run.ts",
+        "mode": "single",
+        "before": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 20.1931,
+          "medianProgramMs": 7.5813,
+          "medianCheckerMs": 12.588800000000003,
+          "p95Ms": 20.7006,
+          "medianCpuMs": 31.25,
+          "medianAllocatedBytes": 23036544,
+          "peakRssBytes": 54398976,
+          "releasedHeapGrowthBytes": 0
+        },
+        "after": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 19.7245,
+          "medianProgramMs": 6.6676,
+          "medianCheckerMs": 13.0046,
+          "p95Ms": 19.9681,
+          "medianCpuMs": 15.625,
+          "medianAllocatedBytes": 21478648,
+          "peakRssBytes": 54579200,
+          "releasedHeapGrowthBytes": 0
+        },
+        "go": {
+          "runtime": "Go",
+          "serverGC": null,
+          "samples": 15,
+          "medianMs": 6.906,
+          "medianProgramMs": 4.1295,
+          "medianCheckerMs": 2.8073999999999995,
+          "p95Ms": 7.505999999999999,
+          "medianCpuMs": 0,
+          "medianAllocatedBytes": 6487784,
+          "peakRssBytes": 23003136,
+          "releasedHeapGrowthBytes": 240
+        },
+        "passed": true,
+        "elapsedRatio": 0.9767940534142849,
+        "allocationRatio": 0.9323728420374168
+      },
+      {
+        "name": "unicode/sparse-malformed.ts",
+        "mode": "single",
+        "before": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 21.0794,
+          "medianProgramMs": 8.2538,
+          "medianCheckerMs": 12.725999999999999,
+          "p95Ms": 26.8124,
+          "medianCpuMs": 15.625,
+          "medianAllocatedBytes": 24052584,
+          "peakRssBytes": 55517184,
+          "releasedHeapGrowthBytes": 0
+        },
+        "after": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 19.4736,
+          "medianProgramMs": 6.7135,
+          "medianCheckerMs": 12.6662,
+          "p95Ms": 19.8078,
+          "medianCpuMs": 15.625,
+          "medianAllocatedBytes": 21988648,
+          "peakRssBytes": 55508992,
+          "releasedHeapGrowthBytes": 0
+        },
+        "go": {
+          "runtime": "Go",
+          "serverGC": null,
+          "samples": 15,
+          "medianMs": 6.9593,
+          "medianProgramMs": 4.3854999999999995,
+          "medianCheckerMs": 2.5887000000000002,
+          "p95Ms": 7.4568,
+          "medianCpuMs": 0,
+          "medianAllocatedBytes": 6652264,
+          "peakRssBytes": 23453696,
+          "releasedHeapGrowthBytes": 16
+        },
+        "passed": true,
+        "elapsedRatio": 0.9238213611393115,
+        "allocationRatio": 0.9141906748979652
+      },
+      {
+        "name": "compiler/jsxComplexSignatureHasApplicabilityError.tsx",
+        "mode": "default",
+        "before": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 39.1871,
+          "medianProgramMs": 34.4272,
+          "medianCheckerMs": 4.7851,
+          "p95Ms": 46.1417,
+          "medianCpuMs": 31.25,
+          "medianAllocatedBytes": 34031904,
+          "peakRssBytes": 93323264,
+          "releasedHeapGrowthBytes": 216
+        },
+        "after": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 38.3238,
+          "medianProgramMs": 32.979,
+          "medianCheckerMs": 5.054000000000002,
+          "p95Ms": 39.3257,
+          "medianCpuMs": 46.875,
+          "medianAllocatedBytes": 34030304,
+          "peakRssBytes": 83517440,
+          "releasedHeapGrowthBytes": 2568
+        },
+        "go": {
+          "runtime": "Go",
+          "serverGC": null,
+          "samples": 15,
+          "medianMs": 17.949199999999998,
+          "medianProgramMs": 15.3706,
+          "medianCheckerMs": 2.603999999999999,
+          "p95Ms": 18.5115,
+          "medianCpuMs": 15.625,
+          "medianAllocatedBytes": 22716272,
+          "peakRssBytes": 49016832,
+          "releasedHeapGrowthBytes": 10912
+        },
+        "passed": true,
+        "elapsedRatio": 0.9779697910792071,
+        "allocationRatio": 0.9999529852928594
+      },
+      {
+        "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+        "mode": "default",
+        "before": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 93.6964,
+          "medianProgramMs": 33.2411,
+          "medianCheckerMs": 60.11099999999999,
+          "p95Ms": 107.2952,
+          "medianCpuMs": 140.625,
+          "medianAllocatedBytes": 72625160,
+          "peakRssBytes": 111779840,
+          "releasedHeapGrowthBytes": 72
+        },
+        "after": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 91.2834,
+          "medianProgramMs": 31.9727,
+          "medianCheckerMs": 58.956999999999994,
+          "p95Ms": 113.586,
+          "medianCpuMs": 156.25,
+          "medianAllocatedBytes": 72622152,
+          "peakRssBytes": 110624768,
+          "releasedHeapGrowthBytes": 888
+        },
+        "go": {
+          "runtime": "Go",
+          "serverGC": null,
+          "samples": 15,
+          "medianMs": 60.689,
+          "medianProgramMs": 15.592099999999999,
+          "medianCheckerMs": 45.103899999999996,
+          "p95Ms": 64.0159,
+          "medianCpuMs": 62.5,
+          "medianAllocatedBytes": 35123920,
+          "peakRssBytes": 59990016,
+          "releasedHeapGrowthBytes": 3344
+        },
+        "passed": true,
+        "elapsedRatio": 0.9742466092614017,
+        "allocationRatio": 0.999958581846842
+      },
+      {
+        "name": "conformance/superInStaticMembers1.ts target=es2022",
+        "mode": "default",
+        "before": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 38.2269,
+          "medianProgramMs": 35.4784,
+          "medianCheckerMs": 2.1795999999999935,
+          "p95Ms": 57.3606,
+          "medianCpuMs": 78.125,
+          "medianAllocatedBytes": 32466336,
+          "peakRssBytes": 83742720,
+          "releasedHeapGrowthBytes": 0
+        },
+        "after": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 36.9737,
+          "medianProgramMs": 34.3395,
+          "medianCheckerMs": 2.1614000000000004,
+          "p95Ms": 43.0155,
+          "medianCpuMs": 62.5,
+          "medianAllocatedBytes": 32446568,
+          "peakRssBytes": 84590592,
+          "releasedHeapGrowthBytes": 56
+        },
+        "go": {
+          "runtime": "Go",
+          "serverGC": null,
+          "samples": 15,
+          "medianMs": 16.4787,
+          "medianProgramMs": 15.7876,
+          "medianCheckerMs": 1.0210999999999988,
+          "p95Ms": 17.156000000000002,
+          "medianCpuMs": 15.625,
+          "medianAllocatedBytes": 22016576,
+          "peakRssBytes": 47779840,
+          "releasedHeapGrowthBytes": 9440
+        },
+        "passed": true,
+        "elapsedRatio": 0.9672168028273284,
+        "allocationRatio": 0.9993911231621578
+      },
+      {
+        "name": "conformance/nodeModulesAllowJs1.ts module=node18",
+        "mode": "default",
+        "before": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 37.2829,
+          "medianProgramMs": 36.1176,
+          "medianCheckerMs": 1.2130999999999972,
+          "p95Ms": 52.1945,
+          "medianCpuMs": 78.125,
+          "medianAllocatedBytes": 31157312,
+          "peakRssBytes": 83435520,
+          "releasedHeapGrowthBytes": 200
+        },
+        "after": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 37.013,
+          "medianProgramMs": 35.5634,
+          "medianCheckerMs": 1.3183000000000007,
+          "p95Ms": 51.8956,
+          "medianCpuMs": 46.875,
+          "medianAllocatedBytes": 31143040,
+          "peakRssBytes": 84283392,
+          "releasedHeapGrowthBytes": 16440
+        },
+        "go": {
+          "runtime": "Go",
+          "serverGC": null,
+          "samples": 15,
+          "medianMs": 16.6644,
+          "medianProgramMs": 15.816899999999999,
+          "medianCheckerMs": 1.0004000000000026,
+          "p95Ms": 18.646099999999997,
+          "medianCpuMs": 15.625,
+          "medianAllocatedBytes": 21680264,
+          "peakRssBytes": 47665152,
+          "releasedHeapGrowthBytes": 2784
+        },
+        "passed": true,
+        "elapsedRatio": 0.992760756271642,
+        "allocationRatio": 0.9995419373789369
+      },
+      {
+        "name": "compiler/giant.ts",
+        "mode": "default",
+        "before": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 35.5238,
+          "medianProgramMs": 32.518,
+          "medianCheckerMs": 2.9410999999999987,
+          "p95Ms": 38.8259,
+          "medianCpuMs": 46.875,
+          "medianAllocatedBytes": 30052056,
+          "peakRssBytes": 96452608,
+          "releasedHeapGrowthBytes": 144
+        },
+        "after": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 34.4494,
+          "medianProgramMs": 31.4543,
+          "medianCheckerMs": 2.9998000000000005,
+          "p95Ms": 36.8882,
+          "medianCpuMs": 46.875,
+          "medianAllocatedBytes": 30048672,
+          "peakRssBytes": 94846976,
+          "releasedHeapGrowthBytes": 2408
+        },
+        "go": {
+          "runtime": "Go",
+          "serverGC": null,
+          "samples": 15,
+          "medianMs": 16.061700000000002,
+          "medianProgramMs": 14.8349,
+          "medianCheckerMs": 1.0452000000000012,
+          "p95Ms": 17.861800000000002,
+          "medianCpuMs": 15.625,
+          "medianAllocatedBytes": 20504216,
+          "peakRssBytes": 44916736,
+          "releasedHeapGrowthBytes": 2016
+        },
+        "passed": true,
+        "elapsedRatio": 0.9697554878701039,
+        "allocationRatio": 0.9998873953915166
+      },
+      {
+        "name": "unicode/ascii.ts",
+        "mode": "default",
+        "before": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 19.4028,
+          "medianProgramMs": 6.3439,
+          "medianCheckerMs": 12.922800000000002,
+          "p95Ms": 20.2579,
+          "medianCpuMs": 31.25,
+          "medianAllocatedBytes": 21384960,
+          "peakRssBytes": 54321152,
+          "releasedHeapGrowthBytes": 8224
+        },
+        "after": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 19.628,
+          "medianProgramMs": 6.3092,
+          "medianCheckerMs": 13.285800000000002,
+          "p95Ms": 20.7072,
+          "medianCpuMs": 15.625,
+          "medianAllocatedBytes": 21389056,
+          "peakRssBytes": 53751808,
+          "releasedHeapGrowthBytes": 0
+        },
+        "go": {
+          "runtime": "Go",
+          "serverGC": null,
+          "samples": 15,
+          "medianMs": 6.9658999999999995,
+          "medianProgramMs": 4.3647,
+          "medianCheckerMs": 2.6191999999999993,
+          "p95Ms": 7.4625,
+          "medianCpuMs": 0,
+          "medianAllocatedBytes": 6528552,
+          "peakRssBytes": 23318528,
+          "releasedHeapGrowthBytes": 3856
+        },
+        "passed": true,
+        "elapsedRatio": 1.0116065722473047,
+        "allocationRatio": 1.0001915364817142
+      },
+      {
+        "name": "unicode/strings.ts",
+        "mode": "default",
+        "before": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 21.6129,
+          "medianProgramMs": 9.0175,
+          "medianCheckerMs": 12.7628,
+          "p95Ms": 22.4362,
+          "medianCpuMs": 15.625,
+          "medianAllocatedBytes": 22593424,
+          "peakRssBytes": 55042048,
+          "releasedHeapGrowthBytes": 0
+        },
+        "after": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 20.7622,
+          "medianProgramMs": 7.9142,
+          "medianCheckerMs": 12.8944,
+          "p95Ms": 23.9447,
+          "medianCpuMs": 15.625,
+          "medianAllocatedBytes": 21730368,
+          "peakRssBytes": 52838400,
+          "releasedHeapGrowthBytes": 0
+        },
+        "go": {
+          "runtime": "Go",
+          "serverGC": null,
+          "samples": 15,
+          "medianMs": 6.9198,
+          "medianProgramMs": 4.3206,
+          "medianCheckerMs": 2.5807,
+          "p95Ms": 7.4927,
+          "medianCpuMs": 15.625,
+          "medianAllocatedBytes": 6558936,
+          "peakRssBytes": 23142400,
+          "releasedHeapGrowthBytes": 3328
+        },
+        "passed": true,
+        "elapsedRatio": 0.9606392478566042,
+        "allocationRatio": 0.9618005663948944
+      },
+      {
+        "name": "unicode/identifiers.ts",
+        "mode": "default",
+        "before": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 21.8306,
+          "medianProgramMs": 9.0245,
+          "medianCheckerMs": 12.805099999999998,
+          "p95Ms": 22.5945,
+          "medianCpuMs": 31.25,
+          "medianAllocatedBytes": 22005136,
+          "peakRssBytes": 53166080,
+          "releasedHeapGrowthBytes": 0
+        },
+        "after": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 21.2511,
+          "medianProgramMs": 7.9865,
+          "medianCheckerMs": 13.2644,
+          "p95Ms": 21.716,
+          "medianCpuMs": 15.625,
+          "medianAllocatedBytes": 21575304,
+          "peakRssBytes": 52953088,
+          "releasedHeapGrowthBytes": 56
+        },
+        "go": {
+          "runtime": "Go",
+          "serverGC": null,
+          "samples": 15,
+          "medianMs": 6.9809,
+          "medianProgramMs": 4.2259,
+          "medianCheckerMs": 2.5764999999999993,
+          "p95Ms": 7.3328999999999995,
+          "medianCpuMs": 15.625,
+          "medianAllocatedBytes": 6527784,
+          "peakRssBytes": 23076864,
+          "releasedHeapGrowthBytes": 4912
+        },
+        "passed": true,
+        "elapsedRatio": 0.9734546920377819,
+        "allocationRatio": 0.9804667419460621
+      },
+      {
+        "name": "unicode/malformed-run.ts",
+        "mode": "default",
+        "before": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 20.7008,
+          "medianProgramMs": 7.5797,
+          "medianCheckerMs": 13.017199999999999,
+          "p95Ms": 21.2573,
+          "medianCpuMs": 15.625,
+          "medianAllocatedBytes": 23103688,
+          "peakRssBytes": 54587392,
+          "releasedHeapGrowthBytes": 0
+        },
+        "after": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 19.4949,
+          "medianProgramMs": 6.6067,
+          "medianCheckerMs": 12.843800000000002,
+          "p95Ms": 22.6471,
+          "medianCpuMs": 31.25,
+          "medianAllocatedBytes": 21550792,
+          "peakRssBytes": 53919744,
+          "releasedHeapGrowthBytes": 0
+        },
+        "go": {
+          "runtime": "Go",
+          "serverGC": null,
+          "samples": 15,
+          "medianMs": 6.8407,
+          "medianProgramMs": 4.2486,
+          "medianCheckerMs": 2.589699999999999,
+          "p95Ms": 8.2074,
+          "medianCpuMs": 0,
+          "medianAllocatedBytes": 6536408,
+          "peakRssBytes": 23195648,
+          "releasedHeapGrowthBytes": 12664
+        },
+        "passed": true,
+        "elapsedRatio": 0.9417462127067553,
+        "allocationRatio": 0.9327857959300697
+      },
+      {
+        "name": "unicode/sparse-malformed.ts",
+        "mode": "default",
+        "before": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 21.4731,
+          "medianProgramMs": 8.3067,
+          "medianCheckerMs": 13.1593,
+          "p95Ms": 22.1288,
+          "medianCpuMs": 31.25,
+          "medianAllocatedBytes": 24121648,
+          "peakRssBytes": 55701504,
+          "releasedHeapGrowthBytes": 1560
+        },
+        "after": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 19.8149,
+          "medianProgramMs": 6.7335,
+          "medianCheckerMs": 13.114900000000002,
+          "p95Ms": 20.7148,
+          "medianCpuMs": 15.625,
+          "medianAllocatedBytes": 22056672,
+          "peakRssBytes": 56659968,
+          "releasedHeapGrowthBytes": 0
+        },
+        "go": {
+          "runtime": "Go",
+          "serverGC": null,
+          "samples": 15,
+          "medianMs": 6.858300000000001,
+          "medianProgramMs": 4.2201,
+          "medianCheckerMs": 2.5821999999999994,
+          "p95Ms": 7.7471,
+          "medianCpuMs": 0,
+          "medianAllocatedBytes": 6699224,
+          "peakRssBytes": 23724032,
+          "releasedHeapGrowthBytes": 3456
+        },
+        "passed": true,
+        "elapsedRatio": 0.9227778010627251,
+        "allocationRatio": 0.9143932454366303
+      }
+    ],
+    "passed": true
+  },
+  "primitiveProbes": {
+    "configuration": "Normal Release, Server GC, tiering enabled, 4 processors, 30 warmups / 15 samples; 20 calls per sample except one parse",
+    "before": [
+      {
+        "name": "lib.dom.d.ts",
+        "bytes": 2349483,
+        "characters": 2349323,
+        "nonAscii": 242
+      },
+      {
+        "name": "lib.dom.d.ts",
+        "operation": "validate",
+        "medianMs": 0.044105,
+        "allocatedBytes": 57
+      },
+      {
+        "name": "lib.dom.d.ts",
+        "operation": "decode",
+        "medianMs": 2.2790600000000003,
+        "allocatedBytes": 4698835
+      },
+      {
+        "name": "lib.dom.d.ts",
+        "operation": "map",
+        "medianMs": 0.040244999999999996,
+        "allocatedBytes": 4689
+      },
+      {
+        "name": "lib.dom.d.ts",
+        "operation": "source",
+        "medianMs": 3.02625,
+        "allocatedBytes": 7053078
+      },
+      {
+        "name": "lib.dom.d.ts",
+        "operation": "scan",
+        "medianMs": 0.8646699999999999,
+        "allocatedBytes": 1777
+      },
+      {
+        "name": "lib.dom.d.ts",
+        "operation": "parse",
+        "medianMs": 12.0207,
+        "allocatedBytes": 14589424
+      },
+      {
+        "name": "lib.dom.d.ts",
+        "nodes": 109605,
+        "tokenCount": 34857
+      },
+      {
+        "name": "lib.es5.d.ts",
+        "bytes": 218947,
+        "characters": 218947,
+        "nonAscii": 0
+      },
+      {
+        "name": "lib.es5.d.ts",
+        "operation": "validate",
+        "medianMs": 0.002575,
+        "allocatedBytes": 57
+      },
+      {
+        "name": "lib.es5.d.ts",
+        "operation": "decode",
+        "medianMs": 0.049915,
+        "allocatedBytes": 437953
+      },
+      {
+        "name": "lib.es5.d.ts",
+        "operation": "map",
+        "medianMs": 0.004025,
+        "allocatedBytes": 177
+      },
+      {
+        "name": "lib.es5.d.ts",
+        "operation": "source",
+        "medianMs": 0.08243,
+        "allocatedBytes": 657129
+      },
+      {
+        "name": "lib.es5.d.ts",
+        "operation": "scan",
+        "medianMs": 0.30471,
+        "allocatedBytes": 217
+      },
+      {
+        "name": "lib.es5.d.ts",
+        "operation": "parse",
+        "medianMs": 0.9924,
+        "allocatedBytes": 1450328
+      },
+      {
+        "name": "lib.es5.d.ts",
+        "nodes": 10297,
+        "tokenCount": 13661
+      },
+      {
+        "name": "ascii.ts",
+        "bytes": 210000,
+        "characters": 210000,
+        "nonAscii": 0
+      },
+      {
+        "name": "ascii.ts",
+        "operation": "validate",
+        "medianMs": 0.00223,
+        "allocatedBytes": 57
+      },
+      {
+        "name": "ascii.ts",
+        "operation": "decode",
+        "medianMs": 0.046065,
+        "allocatedBytes": 420057
+      },
+      {
+        "name": "ascii.ts",
+        "operation": "map",
+        "medianMs": 0.0032349999999999996,
+        "allocatedBytes": 177
+      },
+      {
+        "name": "ascii.ts",
+        "operation": "source",
+        "medianMs": 0.55026,
+        "allocatedBytes": 630710
+      },
+      {
+        "name": "ascii.ts",
+        "operation": "scan",
+        "medianMs": 0.69392,
+        "allocatedBytes": 217
+      },
+      {
+        "name": "ascii.ts",
+        "operation": "parse",
+        "medianMs": 3.1557,
+        "allocatedBytes": 7350104
+      },
+      {
+        "name": "ascii.ts",
+        "nodes": 50002,
+        "tokenCount": 50000
+      },
+      {
+        "name": "unicode.ts",
+        "bytes": 370000,
+        "characters": 250000,
+        "nonAscii": 200000
+      },
+      {
+        "name": "unicode.ts",
+        "operation": "validate",
+        "medianMs": 0.203215,
+        "allocatedBytes": 57
+      },
+      {
+        "name": "unicode.ts",
+        "operation": "decode",
+        "medianMs": 0.5930500000000001,
+        "allocatedBytes": 500056
+      },
+      {
+        "name": "unicode.ts",
+        "operation": "map",
+        "medianMs": 3.57979,
+        "allocatedBytes": 3987938
+      },
+      {
+        "name": "unicode.ts",
+        "operation": "source",
+        "medianMs": 2.978625,
+        "allocatedBytes": 4859391
+      },
+      {
+        "name": "unicode.ts",
+        "operation": "scan",
+        "medianMs": 1.091035,
+        "allocatedBytes": 217
+      },
+      {
+        "name": "unicode.ts",
+        "operation": "parse",
+        "medianMs": 7.54,
+        "allocatedBytes": 7612824
+      },
+      {
+        "name": "unicode.ts",
+        "nodes": 50002,
+        "tokenCount": 50000
+      },
+      {
+        "name": "malformed.ts",
+        "bytes": 10000,
+        "characters": 10000,
+        "nonAscii": 10000
+      },
+      {
+        "name": "malformed.ts",
+        "operation": "validate",
+        "medianMs": 0.000155,
+        "allocatedBytes": 24
+      },
+      {
+        "name": "malformed.ts",
+        "operation": "decode",
+        "medianMs": 0.052864999999999995,
+        "allocatedBytes": 80137
+      },
+      {
+        "name": "malformed.ts",
+        "operation": "map",
+        "medianMs": 0.079015,
+        "allocatedBytes": 514353
+      },
+      {
+        "name": "malformed.ts",
+        "operation": "source",
+        "medianMs": 0.128535,
+        "allocatedBytes": 604537
+      },
+      {
+        "name": "mixed-invalid.ts",
+        "bytes": 200001,
+        "characters": 200001,
+        "nonAscii": 1
+      },
+      {
+        "name": "mixed-invalid.ts",
+        "operation": "validate",
+        "medianMs": 0.00121,
+        "allocatedBytes": 57
+      },
+      {
+        "name": "mixed-invalid.ts",
+        "operation": "decode",
+        "medianMs": 1.535765,
+        "allocatedBytes": 1600624
+      },
+      {
+        "name": "mixed-invalid.ts",
+        "operation": "map",
+        "medianMs": 0.003335,
+        "allocatedBytes": 393
+      },
+      {
+        "name": "mixed-invalid.ts",
+        "operation": "source",
+        "medianMs": 1.48372,
+        "allocatedBytes": 1801050
+      }
+    ],
+    "after": [
+      {
+        "name": "lib.dom.d.ts",
+        "bytes": 2349483,
+        "characters": 2349323,
+        "nonAscii": 242
+      },
+      {
+        "name": "lib.dom.d.ts",
+        "operation": "validate",
+        "medianMs": 0.044414999999999996,
+        "allocatedBytes": 57
+      },
+      {
+        "name": "lib.dom.d.ts",
+        "operation": "decode",
+        "medianMs": 1.60414,
+        "allocatedBytes": 4698770
+      },
+      {
+        "name": "lib.dom.d.ts",
+        "operation": "map",
+        "medianMs": 0.121605,
+        "allocatedBytes": 761
+      },
+      {
+        "name": "lib.dom.d.ts",
+        "operation": "source",
+        "medianMs": 2.2797799999999997,
+        "allocatedBytes": 7049163
+      },
+      {
+        "name": "lib.dom.d.ts",
+        "operation": "scan",
+        "medianMs": 0.873555,
+        "allocatedBytes": 1777
+      },
+      {
+        "name": "lib.dom.d.ts",
+        "operation": "parse",
+        "medianMs": 11.701,
+        "allocatedBytes": 14589168
+      },
+      {
+        "name": "lib.dom.d.ts",
+        "nodes": 109605,
+        "tokenCount": 34857
+      },
+      {
+        "name": "lib.es5.d.ts",
+        "bytes": 218947,
+        "characters": 218947,
+        "nonAscii": 0
+      },
+      {
+        "name": "lib.es5.d.ts",
+        "operation": "validate",
+        "medianMs": 0.00236,
+        "allocatedBytes": 57
+      },
+      {
+        "name": "lib.es5.d.ts",
+        "operation": "decode",
+        "medianMs": 0.04874,
+        "allocatedBytes": 437953
+      },
+      {
+        "name": "lib.es5.d.ts",
+        "operation": "map",
+        "medianMs": 0.00558,
+        "allocatedBytes": 105
+      },
+      {
+        "name": "lib.es5.d.ts",
+        "operation": "source",
+        "medianMs": 0.07814499999999999,
+        "allocatedBytes": 656985
+      },
+      {
+        "name": "lib.es5.d.ts",
+        "operation": "scan",
+        "medianMs": 0.29890500000000003,
+        "allocatedBytes": 217
+      },
+      {
+        "name": "lib.es5.d.ts",
+        "operation": "parse",
+        "medianMs": 0.9949,
+        "allocatedBytes": 1450184
+      },
+      {
+        "name": "lib.es5.d.ts",
+        "nodes": 10297,
+        "tokenCount": 13661
+      },
+      {
+        "name": "ascii.ts",
+        "bytes": 210000,
+        "characters": 210000,
+        "nonAscii": 0
+      },
+      {
+        "name": "ascii.ts",
+        "operation": "validate",
+        "medianMs": 0.002175,
+        "allocatedBytes": 57
+      },
+      {
+        "name": "ascii.ts",
+        "operation": "decode",
+        "medianMs": 0.045015,
+        "allocatedBytes": 420057
+      },
+      {
+        "name": "ascii.ts",
+        "operation": "map",
+        "medianMs": 0.00476,
+        "allocatedBytes": 105
+      },
+      {
+        "name": "ascii.ts",
+        "operation": "source",
+        "medianMs": 0.14662999999999998,
+        "allocatedBytes": 630573
+      },
+      {
+        "name": "ascii.ts",
+        "operation": "scan",
+        "medianMs": 0.644325,
+        "allocatedBytes": 217
+      },
+      {
+        "name": "ascii.ts",
+        "operation": "parse",
+        "medianMs": 3.0153,
+        "allocatedBytes": 7349960
+      },
+      {
+        "name": "ascii.ts",
+        "nodes": 50002,
+        "tokenCount": 50000
+      },
+      {
+        "name": "unicode.ts",
+        "bytes": 370000,
+        "characters": 250000,
+        "nonAscii": 200000
+      },
+      {
+        "name": "unicode.ts",
+        "operation": "validate",
+        "medianMs": 0.203835,
+        "allocatedBytes": 57
+      },
+      {
+        "name": "unicode.ts",
+        "operation": "decode",
+        "medianMs": 0.5890799999999999,
+        "allocatedBytes": 500056
+      },
+      {
+        "name": "unicode.ts",
+        "operation": "map",
+        "medianMs": 0.417065,
+        "allocatedBytes": 560105
+      },
+      {
+        "name": "unicode.ts",
+        "operation": "source",
+        "medianMs": 1.8803750000000001,
+        "allocatedBytes": 1430678
+      },
+      {
+        "name": "unicode.ts",
+        "operation": "scan",
+        "medianMs": 1.08558,
+        "allocatedBytes": 217
+      },
+      {
+        "name": "unicode.ts",
+        "operation": "parse",
+        "medianMs": 6.1738,
+        "allocatedBytes": 7612568
+      },
+      {
+        "name": "unicode.ts",
+        "nodes": 50002,
+        "tokenCount": 50000
+      },
+      {
+        "name": "malformed.ts",
+        "bytes": 10000,
+        "characters": 10000,
+        "nonAscii": 10000
+      },
+      {
+        "name": "malformed.ts",
+        "operation": "validate",
+        "medianMs": 0.000095,
+        "allocatedBytes": 24
+      },
+      {
+        "name": "malformed.ts",
+        "operation": "decode",
+        "medianMs": 0.00173,
+        "allocatedBytes": 20057
+      },
+      {
+        "name": "malformed.ts",
+        "operation": "map",
+        "medianMs": 0.0628,
+        "allocatedBytes": 113
+      },
+      {
+        "name": "malformed.ts",
+        "operation": "source",
+        "medianMs": 0.022770000000000002,
+        "allocatedBytes": 30217
+      },
+      {
+        "name": "mixed-invalid.ts",
+        "bytes": 200001,
+        "characters": 200001,
+        "nonAscii": 1
+      },
+      {
+        "name": "mixed-invalid.ts",
+        "operation": "validate",
+        "medianMs": 0.00147,
+        "allocatedBytes": 57
+      },
+      {
+        "name": "mixed-invalid.ts",
+        "operation": "decode",
+        "medianMs": 0.04661,
+        "allocatedBytes": 400057
+      },
+      {
+        "name": "mixed-invalid.ts",
+        "operation": "map",
+        "medianMs": 0.00413,
+        "allocatedBytes": 113
+      },
+      {
+        "name": "mixed-invalid.ts",
+        "operation": "source",
+        "medianMs": 0.096235,
+        "allocatedBytes": 600219
+      }
+    ],
+    "scope": "Sequential process microbenchmarks identify large primitive costs; matched alternating NativeAOT requests establish final whole-workload improvements",
+    "initialMappingProbe": [
+      {
+        "name": "lib.dom.d.ts",
+        "bytes": 2349483,
+        "characters": 2349323,
+        "nonAscii": 242
+      },
+      {
+        "name": "lib.dom.d.ts",
+        "operation": "validate",
+        "medianMs": 0.044255,
+        "allocatedBytes": 57
+      },
+      {
+        "name": "lib.dom.d.ts",
+        "operation": "decode",
+        "medianMs": 1.84783,
+        "allocatedBytes": 4698822
+      },
+      {
+        "name": "lib.dom.d.ts",
+        "operation": "map",
+        "medianMs": 0.04067,
+        "allocatedBytes": 4689
+      },
+      {
+        "name": "lib.dom.d.ts",
+        "operation": "source",
+        "medianMs": 2.791485,
+        "allocatedBytes": 7053091
+      },
+      {
+        "name": "lib.dom.d.ts",
+        "operation": "scan",
+        "medianMs": 0.84213,
+        "allocatedBytes": 1777
+      },
+      {
+        "name": "lib.dom.d.ts",
+        "operation": "parse",
+        "medianMs": 10.9992,
+        "allocatedBytes": 14589424
+      },
+      {
+        "name": "lib.dom.d.ts",
+        "operation": "remap",
+        "medianMs": 1.3982,
+        "nodes": 109605,
+        "tokenCount": 34857
+      },
+      {
+        "name": "lib.es5.d.ts",
+        "bytes": 218947,
+        "characters": 218947,
+        "nonAscii": 0
+      },
+      {
+        "name": "lib.es5.d.ts",
+        "operation": "validate",
+        "medianMs": 0.002135,
+        "allocatedBytes": 57
+      },
+      {
+        "name": "lib.es5.d.ts",
+        "operation": "decode",
+        "medianMs": 0.046525,
+        "allocatedBytes": 437953
+      },
+      {
+        "name": "lib.es5.d.ts",
+        "operation": "map",
+        "medianMs": 0.0032500000000000003,
+        "allocatedBytes": 177
+      },
+      {
+        "name": "lib.es5.d.ts",
+        "operation": "source",
+        "medianMs": 0.5817,
+        "allocatedBytes": 657162
+      },
+      {
+        "name": "lib.es5.d.ts",
+        "operation": "scan",
+        "medianMs": 0.28728,
+        "allocatedBytes": 217
+      },
+      {
+        "name": "lib.es5.d.ts",
+        "operation": "parse",
+        "medianMs": 0.9995,
+        "allocatedBytes": 1450328
+      },
+      {
+        "name": "ascii.ts",
+        "bytes": 210000,
+        "characters": 210000,
+        "nonAscii": 0
+      },
+      {
+        "name": "ascii.ts",
+        "operation": "validate",
+        "medianMs": 0.002125,
+        "allocatedBytes": 57
+      },
+      {
+        "name": "ascii.ts",
+        "operation": "decode",
+        "medianMs": 0.048565000000000004,
+        "allocatedBytes": 420057
+      },
+      {
+        "name": "ascii.ts",
+        "operation": "map",
+        "medianMs": 0.00317,
+        "allocatedBytes": 177
+      },
+      {
+        "name": "ascii.ts",
+        "operation": "source",
+        "medianMs": 0.524465,
+        "allocatedBytes": 630710
+      },
+      {
+        "name": "ascii.ts",
+        "operation": "scan",
+        "medianMs": 0.6099,
+        "allocatedBytes": 217
+      },
+      {
+        "name": "ascii.ts",
+        "operation": "parse",
+        "medianMs": 3.1714,
+        "allocatedBytes": 7350104
+      },
+      {
+        "name": "unicode.ts",
+        "bytes": 370000,
+        "characters": 250000,
+        "nonAscii": 200000
+      },
+      {
+        "name": "unicode.ts",
+        "operation": "validate",
+        "medianMs": 0.203405,
+        "allocatedBytes": 57
+      },
+      {
+        "name": "unicode.ts",
+        "operation": "decode",
+        "medianMs": 0.585975,
+        "allocatedBytes": 500056
+      },
+      {
+        "name": "unicode.ts",
+        "operation": "map",
+        "medianMs": 2.83033,
+        "allocatedBytes": 3988609
+      },
+      {
+        "name": "unicode.ts",
+        "operation": "source",
+        "medianMs": 3.16754,
+        "allocatedBytes": 4859282
+      },
+      {
+        "name": "unicode.ts",
+        "operation": "scan",
+        "medianMs": 1.0315400000000001,
+        "allocatedBytes": 217
+      },
+      {
+        "name": "unicode.ts",
+        "operation": "parse",
+        "medianMs": 7.5205,
+        "allocatedBytes": 7612824
+      },
+      {
+        "name": "unicode.ts",
+        "operation": "remap",
+        "medianMs": 3.7216,
+        "nodes": 50002,
+        "tokenCount": 50000
+      },
+      {
+        "name": "malformed.ts",
+        "bytes": 10000,
+        "characters": 10000,
+        "nonAscii": 10000
+      },
+      {
+        "name": "malformed.ts",
+        "operation": "validate",
+        "medianMs": 0.00007500000000000001,
+        "allocatedBytes": 24
+      },
+      {
+        "name": "malformed.ts",
+        "operation": "decode",
+        "medianMs": 0.05376499999999999,
+        "allocatedBytes": 80137
+      },
+      {
+        "name": "malformed.ts",
+        "operation": "map",
+        "medianMs": 0.06687,
+        "allocatedBytes": 514353
+      },
+      {
+        "name": "malformed.ts",
+        "operation": "source",
+        "medianMs": 0.126195,
+        "allocatedBytes": 604537
+      }
+    ]
+  },
+  "asciiPhases": [
+    {
+      "mode": "single",
+      "backend": "before",
+      "elapsedMs": 19.2188,
+      "programMs": 6.3704,
+      "poolMs": 0.07030000000000047,
+      "checkingMs": 12.7802,
+      "allocatedBytes": 21317200,
+      "gcPauseMs": 2.943000000000012
+    },
+    {
+      "mode": "single",
+      "backend": "after",
+      "elapsedMs": 19.2794,
+      "programMs": 6.2988,
+      "poolMs": 0.07169999999999987,
+      "checkingMs": 12.941299999999998,
+      "allocatedBytes": 21316624,
+      "gcPauseMs": 3.0039999999999907
+    },
+    {
+      "mode": "single",
+      "backend": "go",
+      "elapsedMs": 6.8897,
+      "programMs": 4.126,
+      "poolMs": 0,
+      "checkingMs": 2.5827999999999998,
+      "allocatedBytes": 6480232,
+      "gcPauseMs": 0
+    },
+    {
+      "mode": "default",
+      "backend": "before",
+      "elapsedMs": 19.4028,
+      "programMs": 6.3439,
+      "poolMs": 0.09669999999999934,
+      "checkingMs": 12.813600000000003,
+      "allocatedBytes": 21384960,
+      "gcPauseMs": 3.1310000000000002
+    },
+    {
+      "mode": "default",
+      "backend": "after",
+      "elapsedMs": 19.628,
+      "programMs": 6.3092,
+      "poolMs": 0.08910000000000018,
+      "checkingMs": 13.180100000000001,
+      "allocatedBytes": 21389056,
+      "gcPauseMs": 3.1789999999999736
+    },
+    {
+      "mode": "default",
+      "backend": "go",
+      "elapsedMs": 6.9658999999999995,
+      "programMs": 4.3647,
+      "poolMs": 0,
+      "checkingMs": 2.6191999999999993,
+      "allocatedBytes": 6528552,
+      "gcPauseMs": 0
+    }
+  ],
+  "intermediateRuntimeControl": {
+    "timestamp": "2026-09-28T12:47:02.701Z",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "manifest": {
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "execution": "Matched .NET Server GC before and after Unicode mapping changes; tiered compilation enabled",
+      "scope": "Fresh program construction, binding and complete semantic checking in warm processes; input decoding excluded",
+      "processorCount": 4,
+      "modes": [
+        "single",
+        "default"
+      ],
+      "warmups": 100,
+      "samples": 15,
+      "provisionalBudgets": {
+        "p95ElapsedMs": 5000,
+        "peakRssBytes": 536870912,
+        "releasedHeapGrowthBytes": 16777216
+      },
+      "budgetScope": "Existing phase 4 operability budgets",
+      "cases": [
+        "compiler/jsxComplexSignatureHasApplicabilityError.tsx",
+        "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+        "compiler/giant.ts"
+      ]
+    },
+    "manifestSha256": "c8ad3cf8b0e98c118d67f4f8d11c5384fdf5080dd1b40a0c11fcafb72dfa4ea3",
+    "candidateSha256": "6ae58ba10fe93bcc5725d0c2183b7cb0b76a460d086f5b9ff026378462785c74",
+    "executableSha256": "f408214b2d5ce0596e226a30d41abbd628541b48721d6439867595e7c971f64c",
+    "compilerSha256": "a4481fc265dd7d6a82434c01d44d0ae80212d67271b4d00ab5283e64af6a6514",
+    "baseline": {
+      "executable": "D:\\source\\repos\\TypeScript\\built\\aot-performance\\retained-coreclr\\TypeScript.Compatibility.exe",
+      "executableSha256": "f408214b2d5ce0596e226a30d41abbd628541b48721d6439867595e7c971f64c",
+      "candidateSha256": "6ae58ba10fe93bcc5725d0c2183b7cb0b76a460d086f5b9ff026378462785c74",
+      "compilerSha256": "96e17db06e78e2e112a445bf0d5ef0c09ea959c9c7434b2b7c75d6aabc1e37fa"
+    },
+    "samplesSha256": "0ce766dadcb8da861d247d0a8ffa0cccf1559e9aba9c196ccf707b8a6766f975",
+    "machine": {
+      "platform": "win32",
+      "architecture": "x64",
+      "os": "Windows 11 Pro for Workstations",
+      "cpu": "13th Gen Intel(R) Core(TM) i7-13700K",
+      "availableMemoryBytes": 68399497216
+    },
+    "runtime": {
+      "tieredCompilation": true,
+      "processorCount": 4,
+      "nativeAotExecuted": false,
+      "serverGC": true,
+      "executable": "built/unicode-performance/candidate-runtime/TypeScript.Compatibility.exe",
+      "label": "CoreCLR"
+    },
+    "groups": [
+      {
+        "name": "compiler/jsxComplexSignatureHasApplicabilityError.tsx",
+        "mode": "single",
+        "before": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 33.3315,
+          "medianProgramMs": 29.196,
+          "medianCheckerMs": 4.014700000000001,
+          "p95Ms": 34.8816,
+          "medianCpuMs": 31.25,
+          "medianAllocatedBytes": 32519760,
+          "peakRssBytes": 147296256,
+          "releasedHeapGrowthBytes": 24
+        },
+        "after": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 32.7691,
+          "medianProgramMs": 28.8719,
+          "medianCheckerMs": 3.9288000000000025,
+          "p95Ms": 34.0942,
+          "medianCpuMs": 31.25,
+          "medianAllocatedBytes": 32517584,
+          "peakRssBytes": 148668416,
+          "releasedHeapGrowthBytes": 0
+        },
+        "passed": true,
+        "elapsedRatio": 0.9831270719889595,
+        "allocationRatio": 0.9999330868370492
+      },
+      {
+        "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+        "mode": "single",
+        "before": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 76.1474,
+          "medianProgramMs": 28.8712,
+          "medianCheckerMs": 47.388000000000005,
+          "p95Ms": 79.1923,
+          "medianCpuMs": 125,
+          "medianAllocatedBytes": 71721768,
+          "peakRssBytes": 155844608,
+          "releasedHeapGrowthBytes": 24
+        },
+        "after": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 75.1228,
+          "medianProgramMs": 28.6662,
+          "medianCheckerMs": 46.321799999999996,
+          "p95Ms": 82.9038,
+          "medianCpuMs": 125,
+          "medianAllocatedBytes": 71719920,
+          "peakRssBytes": 154460160,
+          "releasedHeapGrowthBytes": 0
+        },
+        "passed": true,
+        "elapsedRatio": 0.9865445176066417,
+        "allocationRatio": 0.9999742337640087
+      },
+      {
+        "name": "compiler/giant.ts",
+        "mode": "single",
+        "before": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 32.0691,
+          "medianProgramMs": 30.0158,
+          "medianCheckerMs": 2.0533,
+          "p95Ms": 33.7884,
+          "medianCpuMs": 46.875,
+          "medianAllocatedBytes": 28668520,
+          "peakRssBytes": 140124160,
+          "releasedHeapGrowthBytes": 48
+        },
+        "after": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 31.6987,
+          "medianProgramMs": 29.6611,
+          "medianCheckerMs": 2.0964000000000027,
+          "p95Ms": 34.8532,
+          "medianCpuMs": 46.875,
+          "medianAllocatedBytes": 28666672,
+          "peakRssBytes": 138346496,
+          "releasedHeapGrowthBytes": 0
+        },
+        "passed": true,
+        "elapsedRatio": 0.98844994090885,
+        "allocationRatio": 0.9999355390511963
+      },
+      {
+        "name": "compiler/jsxComplexSignatureHasApplicabilityError.tsx",
+        "mode": "default",
+        "before": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 32.591,
+          "medianProgramMs": 28.4078,
+          "medianCheckerMs": 4.048999999999996,
+          "p95Ms": 44.0568,
+          "medianCpuMs": 31.25,
+          "medianAllocatedBytes": 34406728,
+          "peakRssBytes": 159666176,
+          "releasedHeapGrowthBytes": 0
+        },
+        "after": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 32.093,
+          "medianProgramMs": 28.1306,
+          "medianCheckerMs": 3.9766000000000012,
+          "p95Ms": 34.6006,
+          "medianCpuMs": 31.25,
+          "medianAllocatedBytes": 34404312,
+          "peakRssBytes": 165511168,
+          "releasedHeapGrowthBytes": 72
+        },
+        "passed": true,
+        "elapsedRatio": 0.9847197078948177,
+        "allocationRatio": 0.9999297811753561
+      },
+      {
+        "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+        "mode": "default",
+        "before": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 75.888,
+          "medianProgramMs": 27.1627,
+          "medianCheckerMs": 48.933299999999996,
+          "p95Ms": 91.7912,
+          "medianCpuMs": 140.625,
+          "medianAllocatedBytes": 73445160,
+          "peakRssBytes": 162066432,
+          "releasedHeapGrowthBytes": 72
+        },
+        "after": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 74.9116,
+          "medianProgramMs": 27.1491,
+          "medianCheckerMs": 47.947,
+          "p95Ms": 82.5988,
+          "medianCpuMs": 125,
+          "medianAllocatedBytes": 73443368,
+          "peakRssBytes": 160571392,
+          "releasedHeapGrowthBytes": 0
+        },
+        "passed": true,
+        "elapsedRatio": 0.9871336706725701,
+        "allocationRatio": 0.9999756008428602
+      },
+      {
+        "name": "compiler/giant.ts",
+        "mode": "default",
+        "before": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 30.4123,
+          "medianProgramMs": 27.5486,
+          "medianCheckerMs": 2.5558000000000014,
+          "p95Ms": 43.0821,
+          "medianCpuMs": 62.5,
+          "medianAllocatedBytes": 30383776,
+          "peakRssBytes": 153747456,
+          "releasedHeapGrowthBytes": 72
+        },
+        "after": {
+          "runtime": ".NET 11.0.0-rtm.26473.115",
+          "serverGC": true,
+          "samples": 15,
+          "medianMs": 28.9864,
+          "medianProgramMs": 26.5209,
+          "medianCheckerMs": 2.5015,
+          "p95Ms": 48.0611,
+          "medianCpuMs": 62.5,
+          "medianAllocatedBytes": 30381544,
+          "peakRssBytes": 157679616,
+          "releasedHeapGrowthBytes": 0
+        },
+        "passed": true,
+        "elapsedRatio": 0.9531143649115654,
+        "allocationRatio": 0.999926539742789
+      }
+    ],
+    "passed": true
+  },
+  "limitations": [
+    "The intermediate runtime control uses compiler A448 before final vector sizing, repair batching and endpoint hints.",
+    "Standalone PositionMap construction validates before exact sizing and is slower for sparse Unicode; SourceText reuses decoder validation and shares an ASCII identity map.",
+    "Bundled source decoding is reused by the existing library filesystem; fresh ASTs, bindings and checker state are constructed for each measured request.",
+    "C# still trails Go on all selected complete workloads."
+  ],
+  "primarySources": [
+    "https://github.com/simdutf/SimdUnicode/blob/main/src/UTF8.cs",
+    "https://github.com/simdutf/SimdUnicode/blob/main/src/UTF16.cs",
+    "https://github.com/dotnet/runtime/blob/main/src/libraries/System.Private.CoreLib/src/System/Text/Unicode/Utf8.cs"
+  ]
+}

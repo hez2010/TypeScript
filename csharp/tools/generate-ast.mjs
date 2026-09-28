@@ -231,8 +231,13 @@ for (const [name, definition] of Object.entries(definitions)) {
         lines.push(m.list === "raw" ? `        ${n} = Array.ConvertAll(${n}, n => copies[n]);` : m.list ? `        if (${n} is not null) ${n} = ${n}.Map(copies);` : `        if (${n} is not null) ${n} = (${type(m).replace("?", "")})copies[${n}];`);
     }
     for (const m of fields.filter(m => type(m).endsWith("[]") && !isChild(m))) lines.push(`        ${upper(m.name)} = (${type(m)})${upper(m.name)}.Clone();`);
-    lines.push("    }", "    internal override void ConvertPositions(Func<int, int> convert)", "    {", "        base.ConvertPositions(convert);");
-    for (const m of children.filter(m => m.list && m.list !== "raw")) lines.push(`        ${upper(m.name)}?.ConvertPositions(convert);`);
+    lines.push("    }", "    internal override void ConvertPositions(SourceText source, Stack<SyntaxNode> pending)", "    {", "        base.ConvertPositions(source, pending);");
+    for (const m of children.filter(m => m.list && m.list !== "raw")) lines.push(`        ${upper(m.name)}?.ConvertPositions(source);`);
+    for (const m of visitChildren.toReversed()) {
+        const n = upper(m.name);
+        if (m.list) lines.push(`        if (${n} is { } list${n})`, `            for (int i = list${n}.${m.list === "raw" ? "Length" : "Count"} - 1; i >= 0; i--) pending.Push(list${n}[i]);`);
+        else lines.push(`        if (${m.condition ? m.condition + " && " : ""}${n} is { } ${m.local ?? "child" + n}) pending.Push(${m.local ?? "child" + n});`);
+    }
     lines.push("    }", "}", "");
     // Escaping every parameter also covers C# keywords such as 'operator' and 'event'.
     const args = fields.map(m => "@" + (m.name[0].toLowerCase() + m.name.slice(1)));

@@ -76,12 +76,11 @@ public sealed partial class SourceFileNode
             Source.ToUtf16Position(node.Pos),
             Source.ToUtf16Position(node.End),
             node.Kind).ConfigureAwait(false);
-        Func<int, int>? toBytePosition = Source.IsAsciiOnly ? null : Source.ToBytePosition;
+        Stack<SyntaxNode>? pending = Source.IsAsciiOnly ? null : new();
         foreach (JSDocNode comment in nodes)
         {
-            if (toBytePosition is not null)
-                foreach (SyntaxNode child in comment.DescendantsAndSelf())
-                    child.ConvertPositions(toBytePosition);
+            if (pending is not null)
+                comment.ConvertTreePositions(Source, pending);
             comment.Parent = node;
         }
         return documentation.GetOrAdd(node, nodes);
