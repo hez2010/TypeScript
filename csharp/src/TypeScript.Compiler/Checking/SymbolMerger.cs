@@ -1,6 +1,5 @@
 using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
-using System.Collections.Immutable;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using K = TypeScript.Compiler.Syntax.SyntaxKind;
@@ -159,7 +158,7 @@ internal sealed class SymbolMerger(Symbol unknownSymbol, Symbol globalThisSymbol
     // alias resolution belong to the caller and retain their own request lifetime.
     private sealed class MergeJournal
     {
-        private readonly record struct Snapshot(S Flags, Symbol? Parent, SyntaxNode? Value, ImmutableArray<SyntaxNode> Declarations);
+        private readonly record struct Snapshot(S Flags, Symbol? Parent, SyntaxNode? Value, SymbolDeclarations Declarations);
 
         private readonly Dictionary<Symbol, Snapshot> symbols = new(ReferenceEqualityComparer.Instance);
         private readonly Dictionary<Dictionary<TextSlice, Symbol>, KeyValuePair<TextSlice, Symbol>[]> tables = new(ReferenceEqualityComparer.Instance);

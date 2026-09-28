@@ -1,6 +1,5 @@
 using TypeScript.Compiler.Text;
 using System.Collections.ObjectModel;
-using System.Collections.Immutable;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
@@ -28,8 +27,13 @@ public sealed class Symbol
     public Symbol? Parent { get; internal set; }
     public Symbol? ExportSymbol { get; internal set; }
     public SyntaxNode? ValueDeclaration { get; internal set; }
-    internal ImmutableArray<SyntaxNode> DeclarationList { get; set; } = [];
-    public ImmutableArray<SyntaxNode> Declarations => DeclarationList;
+    private object? declarations;
+    internal SymbolDeclarations DeclarationList
+    {
+        get => new(declarations);
+        set => declarations = value.Data;
+    }
+    public SymbolDeclarations Declarations => new(declarations);
 
     internal Dictionary<TextSlice, Symbol> MemberTable
     {

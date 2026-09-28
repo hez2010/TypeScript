@@ -761,7 +761,7 @@ internal sealed partial class Checker
                 continue;
             bool NotOverload(SyntaxNode n) =>
                 n is not FunctionDeclarationNode and not MethodDeclarationNode || SemanticSyntax.Body(n) is not null;
-            int count = exported.Declarations.Count(
+            int count = exported.Declarations.CountWhere(
                 d => NotOverload(d)
                     && d is not GetAccessorDeclarationNode and not SetAccessorDeclarationNode and not InterfaceDeclarationNode);
             if ((exported.Flags & SymbolFlags.TypeAlias) != 0 && count <= 2)

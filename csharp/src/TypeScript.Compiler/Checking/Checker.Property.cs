@@ -106,7 +106,7 @@ internal sealed partial class Checker : ITypePropertyHost, ITypeViewHost, ICompo
                 && AssignmentMarks.Constant(symbol)
             || (symbol.Flags & SymbolFlags.Accessor) != 0
                 && (symbol.Flags & SymbolFlags.SetAccessor) == 0 || (symbol.Flags & SymbolFlags.EnumMember) != 0
-            || symbol.Declarations.OfType<CallExpressionNode>().Any(d => ReadonlyDescriptorAsync(d).GetAwaiter().GetResult());
+            || symbol.Declarations.AnyOfType<CallExpressionNode>(d => ReadonlyDescriptorAsync(d).GetAwaiter().GetResult());
     }
 
     public CheckFlags AccessFlags(Symbol symbol, bool write)
@@ -121,9 +121,9 @@ internal sealed partial class Checker : ITypePropertyHost, ITypeViewHost, ICompo
         if (symbol.ValueDeclaration is not null)
         {
             if (write)
-                declaration = symbol.Declarations.OfType<SetAccessorDeclarationNode>().FirstOrDefault();
+                declaration = symbol.Declarations.FirstOfType<SetAccessorDeclarationNode>();
             if (declaration is null && (symbol.Flags & SymbolFlags.GetAccessor) != 0)
-                declaration = symbol.Declarations.OfType<GetAccessorDeclarationNode>().FirstOrDefault();
+                declaration = symbol.Declarations.FirstOfType<GetAccessorDeclarationNode>();
             declaration ??= symbol.ValueDeclaration;
         }
         if (declaration is null)

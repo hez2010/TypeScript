@@ -1,0 +1,68 @@
+{
+  "timestamp": "2026-09-28T19:15:41.530Z",
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "compilerSourceSha256": "ff4629b9d18083dcbcdf8e34f6f50f86ce38130240cc27a610ec7b1af9d16cc0",
+  "compilerSha256": "c14595a32147d46c7354e38acd43d55415e9f07dcd31f82480f05dda57242e14",
+  "candidateSha256": "4607d5cfb5a371ea48f7f14ce887bf8741410d40bdce5a027134009b90cb509f",
+  "benchmarkHarnessSha256": "afcbd14c8cfcd762e14b1ed22f654b47a4ea873b8d6fa2753825358badb9d0ec",
+  "semantic": [
+    {
+      "mode": "single",
+      "readyConfigurations": 13446,
+      "detailedDiagnosticMatches": 13446,
+      "graphMismatches": 0,
+      "diagnosticMismatches": 0,
+      "candidateFailures": 0,
+      "candidateOutputSha256": "8390e6e546cf407bd5030dfabecd2983bd7aee283ae8d0a0678963646c6b31a4",
+      "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+      "inputSha256": "df21bccda8a3bc5da534586c352dae0175cf4bf260c93ee15694afe19353d5bd",
+      "fullSemanticCorpusGateComplete": true
+    },
+    {
+      "mode": "default",
+      "readyConfigurations": 13446,
+      "detailedDiagnosticMatches": 13446,
+      "graphMismatches": 0,
+      "diagnosticMismatches": 0,
+      "candidateFailures": 0,
+      "candidateOutputSha256": "8390e6e546cf407bd5030dfabecd2983bd7aee283ae8d0a0678963646c6b31a4",
+      "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+      "inputSha256": "b51e79a2ebc4428367c89bceb367fd82a86bdd85b43b847bc17f875b51743a77",
+      "fullSemanticCorpusGateComplete": true
+    }
+  ],
+  "api": {
+    "families": 31,
+    "comparedQueries": 1649908,
+    "knownGoFailures": 4,
+    "candidateFailures": 0,
+    "candidateHash": "2e8788a1eaabe5be5816f33fdbbe928511c2d9e68dc26c48f6dc2aa604b044eb"
+  },
+  "safety": {
+    "suites": 74,
+    "failures": 0,
+    "candidateHash": "2e8788a1eaabe5be5816f33fdbbe928511c2d9e68dc26c48f6dc2aa604b044eb"
+  },
+  "managedPerformance": {
+    "groups": 20,
+    "fasterElapsedMedians": 17,
+    "allocationReductionRangePercent": [
+      3.0465385386775456,
+      5.718415713864222
+    ],
+    "samplesSha256": "ad5deda1b9c41c549f2c9c164c3bd2b8462223d78c47648d2725874032ca6d9c",
+    "compilerSha256": "c14595a32147d46c7354e38acd43d55415e9f07dcd31f82480f05dda57242e14",
+    "candidateSha256": "4607d5cfb5a371ea48f7f14ce887bf8741410d40bdce5a027134009b90cb509f",
+    "baselineCompilerSha256": "f82fc683ab2e8b338446af614d8f0550c4f6c393d7f03ebe3c399167b7f7a16c",
+    "goOracleSha256": "3b24ab2a8765063a904a578271c8def1a0f9607104913f99f17f8801533a2d7a",
+    "tieredCompilation": false,
+    "serverGC": true
+  },
+  "normalReleaseBuild": {
+    "passed": true,
+    "warnings": 0,
+    "errors": 0
+  },
+  "nativeAot": "Deferred until remaining code work is complete",
+  "passedNoSemanticRegression": true
+}
