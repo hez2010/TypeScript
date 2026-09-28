@@ -1,0 +1,58 @@
+{
+  "timestamp": "2026-09-28T21:55:08.169Z",
+  "revision": "62904ab25fc1861d73c2ae4ef2422568c04ea925",
+  "compilerSourceSha256": "9e380487f1e6ad6b4a12a8a72626f7aaca28220b598c991c5759bf523f719fb5",
+  "builds": {
+    "stock": {
+      "worktreeRoot": "C:/Users/i/.codex/worktrees/typescript-stock-aot/TypeScript",
+      "revision": "62904ab25fc1861d73c2ae4ef2422568c04ea925",
+      "executableSha256": "4929f153748f88c550a4294147511ef00de238ed79d1e9e1a14abf9538e029cd",
+      "executableBytes": 27700736,
+      "ilcResponseSha256": "4d65c44e8d9aa2267da835d199c8a6d3d4ce8f3a2a49fd2638740d3fade4b24d",
+      "linkResponseSha256": "f67f3e3cf724bb0c64674229dc627767e4e4af3ada755e133bd02988c195def6",
+      "nativeInstructionSet": true,
+      "optimization": "Ot",
+      "serverGcLibrary": "\"D:\\.nuget\\packages\\microsoft.netcore.app.runtime.nativeaot.win-x64\\11.0.0-rtm.26473.115/runtimes/win-x64/\\native\\Runtime.ServerGC.lib\""
+    },
+    "satori": {
+      "worktreeRoot": "C:/Users/i/.codex/worktrees/typescript-satori-aot/TypeScript",
+      "revision": "62904ab25fc1861d73c2ae4ef2422568c04ea925",
+      "executableSha256": "e2645ad6f04a8bdb36ff16d30ec1ba565c985f01f848dc61cb7a0b05acf6b901",
+      "executableBytes": 27197440,
+      "ilcResponseSha256": "37f0ed65fe28799166bd05b2446ae42dff752bf131fd6c675be419f897cd6ff2",
+      "linkResponseSha256": "ff88e5c788f7cb1177b3fcdf03fcae0d42813a3e60fce1cd021ecfe506a25508",
+      "nativeInstructionSet": true,
+      "optimization": "Ot",
+      "serverGcLibrary": "\"D:\\Satori\\artifacts\\bin\\coreclr\\windows.x64.Release\\aotsdk\\Runtime.ServerGC.lib\""
+    }
+  },
+  "publishLogs": {
+    "stockSha256": "fbe136cfc3acff9fed50714217896a6b08e60b3f38a0ebcff0cd0da30d74390b",
+    "satoriSha256": "afb18dc71f8bb0cf8ee06ff21e52add063c448de22f2cd73450e112c8561022c"
+  },
+  "smoke": {
+    "stockParserCases": 39,
+    "satoriParserCases": 39,
+    "satoriObjectAssertions": 40,
+    "satoriProgramAssertions": 28
+  },
+  "benchmark": {
+    "groups": 20,
+    "requestsChecked": 2100,
+    "inputSha256": "1729d197265faef08f636411408e25df60c5c2eb4be939a0711d4577b68d075a",
+    "goOracleSha256": "3b24ab2a8765063a904a578271c8def1a0f9607104913f99f17f8801533a2d7a",
+    "samplesSha256": "6df641080eabe3eda0f83e7ea4d93687b138cdd15d6b2b0ea679e187efc24317",
+    "satoriFasterThanStockOnOriginalDefaultCases": true,
+    "satoriFasterThanGoOnAllCases": false,
+    "nativeAotExecuted": true,
+    "serverGC": true,
+    "nativeInstructionSet": true
+  },
+  "normalReleaseSemantic": {
+    "casesPerMode": 13446,
+    "outputSha256": "8390e6e546cf407bd5030dfabecd2983bd7aee283ae8d0a0678963646c6b31a4",
+    "apiComparedQueries": 1649908,
+    "candidateApiFailures": 0
+  },
+  "fullNativeSemanticCorpusRepeated": false
+}
