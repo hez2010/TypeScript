@@ -1,0 +1,24 @@
+<Project>
+  <Target Condition="'$(UseSatoriGC)' == 'true'" Name="UseSatoriGC" AfterTargets="ResolveRuntimePackAssets" DependsOnTargets="ResolveRuntimePackAssets">
+    <PropertyGroup>
+      <IlcSdkPath>$(SatoriBuildRoot)\aotsdk\</IlcSdkPath>
+      <SingleFileHostSourcePath>$(SatoriBuildRoot)\corehost\singlefilehost$(_NativeExecutableExtension)</SingleFileHostSourcePath>
+    </PropertyGroup>
+
+    <Error Condition="'$(SatoriBuildRoot)' == '' OR !Exists('$(SatoriBuildRoot)')" Text="A valid SatoriBuildRoot must be set." />
+    <Error Condition="'$(PublishSingleFile)' == 'true' And '$(SelfContained)' == 'true' And !Exists('$(SingleFileHostSourcePath)')" Text="Satori single-file host not found: $(SingleFileHostSourcePath)" />
+
+    <ItemGroup>
+      <_SatoriRuntimePackAsset Include="@(RuntimePackAsset)"
+                               Condition="'%(RuntimePackAsset.NuGetPackageId)' == 'Microsoft.NETCore.App.Runtime.$(RuntimeIdentifier)' And
+                                          ('%(RuntimePackAsset.DestinationSubPath)' == '$(_NativeLibraryPrefix)coreclr$(_NativeLibraryExtension)' Or
+                                           '%(RuntimePackAsset.DestinationSubPath)' == '$(_NativeLibraryPrefix)clrjit$(_NativeLibraryExtension)' Or
+                                           '%(RuntimePackAsset.DestinationSubPath)' == 'System.Private.CoreLib.dll')" />
+      <RuntimePackAsset Remove="@(_SatoriRuntimePackAsset)" />
+      <RuntimePackAsset Include="@(_SatoriRuntimePackAsset->'$(SatoriBuildRoot)\%(DestinationSubPath)')" />
+      <ReferenceCopyLocalPaths Remove="@(_SatoriRuntimePackAsset)" />
+      <ReferenceCopyLocalPaths Include="@(_SatoriRuntimePackAsset->'$(SatoriBuildRoot)\%(DestinationSubPath)')"
+                               Condition="'$(CopyLocalLockFileAssemblies)' == 'true' And '$(SelfContained)' == 'true'" />
+    </ItemGroup>
+  </Target>
+</Project>
