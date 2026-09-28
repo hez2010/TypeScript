@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
+using System.Collections.Immutable;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 using K = TypeScript.Compiler.Syntax.SyntaxKind;
@@ -23,7 +24,7 @@ internal sealed class SymbolMerger(Symbol unknownSymbol, Symbol globalThisSymbol
             symbol.Flags | S.Transient,
             symbol.Name)
         { Parent = symbol.Parent, ValueDeclaration = symbol.ValueDeclaration };
-        result.DeclarationList = result.DeclarationList.AddRange(symbol.Declarations);
+        result.DeclarationList = symbol.Declarations;
         foreach (var pair in symbol.Members)
             result.MemberTable.Add(pair.Key, pair.Value);
         foreach (var pair in symbol.Exports)
@@ -158,7 +159,7 @@ internal sealed class SymbolMerger(Symbol unknownSymbol, Symbol globalThisSymbol
     // alias resolution belong to the caller and retain their own request lifetime.
     private sealed class MergeJournal
     {
-        private readonly record struct Snapshot(S Flags, Symbol? Parent, SyntaxNode? Value, SyntaxNode[] Declarations);
+        private readonly record struct Snapshot(S Flags, Symbol? Parent, SyntaxNode? Value, ImmutableArray<SyntaxNode> Declarations);
 
         private readonly Dictionary<Symbol, Snapshot> symbols = new(ReferenceEqualityComparer.Instance);
         private readonly Dictionary<Dictionary<TextSlice, Symbol>, KeyValuePair<TextSlice, Symbol>[]> tables = new(ReferenceEqualityComparer.Instance);
@@ -167,7 +168,7 @@ internal sealed class SymbolMerger(Symbol unknownSymbol, Symbol globalThisSymbol
         internal void Capture(Symbol symbol)
         {
             if (!symbols.ContainsKey(symbol))
-                symbols.Add(symbol, new(symbol.Flags, symbol.Parent, symbol.ValueDeclaration, symbol.Declarations.ToArray()));
+                symbols.Add(symbol, new(symbol.Flags, symbol.Parent, symbol.ValueDeclaration, symbol.Declarations));
         }
 
         internal void Capture(Dictionary<TextSlice, Symbol> table)
@@ -185,8 +186,7 @@ internal sealed class SymbolMerger(Symbol unknownSymbol, Symbol globalThisSymbol
                 symbol.Flags = snapshot.Flags;
                 symbol.Parent = snapshot.Parent;
                 symbol.ValueDeclaration = snapshot.Value;
-                symbol.DeclarationList = [];
-                symbol.DeclarationList = symbol.DeclarationList.AddRange(snapshot.Declarations);
+                symbol.DeclarationList = snapshot.Declarations;
             }
             foreach (var (table, entries) in tables)
             {

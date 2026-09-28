@@ -7,11 +7,11 @@ namespace TypeScript.Compiler.Binding;
 
 internal static class SemanticSyntax
 {
-    internal static SyntaxNode? Name(SyntaxNode? node) => (node as INamedNode)?.Name;
+    internal static SyntaxNode? Name(SyntaxNode? node) => node?.DeclarationName;
 
     internal static bool HasModifier(SyntaxNode node, K kind)
     {
-        if (node is IModifiedNode { Modifiers: { } list })
+        if (node.ModifierList is { } list)
             foreach (var modifier in list.AsSpan())
                 if (modifier.Kind == kind)
                     return true;

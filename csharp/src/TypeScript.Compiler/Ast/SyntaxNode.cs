@@ -1,4 +1,6 @@
 using System.Collections;
+using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using TypeScript.Compiler.Binding;
 using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Syntax;
@@ -24,7 +26,11 @@ public abstract class SyntaxNode(SyntaxKind kind)
     public int Pos { get; set; } = -1;
     public int End { get; set; } = -1;
     public SyntaxNode? Parent { get; internal set; }
-    internal BoundSourceFile? BindingOwner;
+    internal virtual SyntaxNode? DeclarationName => null;
+    internal virtual NodeList? ModifierList => null;
+    internal virtual bool HasFunctionSignature => false;
+    internal virtual void SetChildParents() { }
+    internal long BindingId;
     internal NodeFlags BindingFlags;
     internal virtual Symbol? BindingSymbol
     {
@@ -64,7 +70,7 @@ public abstract class SyntaxNode(SyntaxKind kind)
 
     internal virtual void ClearBindingState()
     {
-        BindingOwner = null;
+        BindingId = 0;
         BindingFlags = 0;
     }
     public abstract int ChildCount { get; }
@@ -150,9 +156,11 @@ public sealed class NodeList(SyntaxNode[] nodes, int pos = -1, int end = -1, boo
 
     public ReadOnlySpan<SyntaxNode> AsSpan() => nodes;
 
-    public IEnumerator<SyntaxNode> GetEnumerator() => ((IEnumerable<SyntaxNode>)nodes).GetEnumerator();
+    public ImmutableArray<SyntaxNode>.Enumerator GetEnumerator() => ImmutableCollectionsMarshal.AsImmutableArray(nodes).GetEnumerator();
 
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    IEnumerator<SyntaxNode> IEnumerable<SyntaxNode>.GetEnumerator() => ((IEnumerable<SyntaxNode>)nodes).GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() => nodes.GetEnumerator();
 
     internal NodeList Map(IReadOnlyDictionary<SyntaxNode, SyntaxNode> copies) =>
         new(Array.ConvertAll(nodes, n => copies[n]), Pos, End, IsMissing);

@@ -240,13 +240,14 @@ public sealed partial class Scanner(SourceText source, bool skipTrivia = true, b
                 Flags |= TokenFlags.PrecedingJSDocLeadingAsterisks;
                 continue;
             }
-            for (int length = Math.Min(3, end - pos); length > 0; length--)
+            SyntaxKind punctuation = Punctuation(input.AsSpan().Slice(pos, Math.Min(3, end - pos)), out int length);
+            if (punctuation == SyntaxKind.LessThanSlashToken && (!Jsx || Char(2) == '*'))
             {
-                SyntaxKind punctuation = FromText(input.AsSpan().Slice(pos, length));
-                if (punctuation is SyntaxKind.Unknown or SyntaxKind.HashToken or SyntaxKind.BacktickToken)
-                    continue;
-                if (punctuation == SyntaxKind.LessThanSlashToken && (!Jsx || Char(2) == '*'))
-                    continue;
+                punctuation = SyntaxKind.LessThanToken;
+                length = 1;
+            }
+            if (punctuation != SyntaxKind.Unknown)
+            {
                 pos += length;
                 return Kind = punctuation;
             }

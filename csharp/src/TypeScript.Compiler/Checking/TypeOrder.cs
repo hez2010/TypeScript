@@ -35,6 +35,13 @@ internal sealed class TypeOrder : IComparer<Type>, IComparer<Symbol>
     {
         if (ReferenceEquals(left, right))
             return 0;
+        if (left is LiteralType a && right is LiteralType b && a.Flags == b.Flags
+            && (a.Flags & TypeFlags.EnumLike) == 0 && a.Alias is null && b.Alias is null)
+        {
+            a.Context.RequireOwned(b);
+            int result = CompareLiteralValues(a, b);
+            return result != 0 ? result : a.Id.CompareTo(b.Id);
+        }
         var pending = Interlocked.Exchange(ref reusableParts, null) ?? new Stack<Part>();
         try
         {
@@ -237,15 +244,7 @@ internal sealed class TypeOrder : IComparer<Type>, IComparer<Symbol>
             case TypeParameter:
                 return CompareSymbols(a.Symbol, b.Symbol);
             case LiteralType la:
-                object? value = ((LiteralType)b).Value;
-                return la.Value switch
-                {
-                    TextSlice text => CompareText(text, (TextSlice)value!),
-                    double number => number.CompareTo((double)value!),
-                    BigInteger integer => integer.CompareTo((BigInteger)value!),
-                    bool boolean => boolean.CompareTo((bool)value!),
-                    _ => throw new InvalidOperationException("Invalid literal value")
-                };
+                return CompareLiteralValues(la, (LiteralType)b);
             case IndexType xa:
                 var xb = (IndexType)b;
                 pending.Push(new(PartKind.Result, null, null, xa.IndexFlags.CompareTo(xb.IndexFlags)));
@@ -289,6 +288,15 @@ internal sealed class TypeOrder : IComparer<Type>, IComparer<Symbol>
 
     private static uint SortFlags(Type type) => (type.Flags & TypeFlags.EnumLike) != 0 && (type.Flags & TypeFlags.Union) == 0
         ? (uint)TypeFlags.Enum : (uint)type.Flags;
+
+    private static int CompareLiteralValues(LiteralType left, LiteralType right) => left.Value switch
+    {
+        TextSlice text => CompareText(text, (TextSlice)right.Value!),
+        double number => number.CompareTo((double)right.Value!),
+        BigInteger integer => integer.CompareTo((BigInteger)right.Value!),
+        bool boolean => boolean.CompareTo((bool)right.Value!),
+        _ => throw new InvalidOperationException("Invalid literal value")
+    };
 
     private static Symbol? NameSymbol(Type type) => type.Alias?.Symbol
         ?? ((type.Flags & (TypeFlags.TypeParameter | TypeFlags.StringMapping)) != 0

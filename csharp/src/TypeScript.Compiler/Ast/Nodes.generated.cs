@@ -90,6 +90,11 @@ public sealed partial class QualifiedNameNode : SyntaxNode
         base.ClearBindingState();
         BindingFlow = null;
     }
+    internal override void SetChildParents()
+    {
+        if (Left is { } childLeft) childLeft.Parent = this;
+        if (Right is { } childRight) childRight.Parent = this;
+    }
     public override int ChildCount => (Left is null ? 0 : 1) + (Right is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -114,6 +119,10 @@ public sealed partial class ComputedPropertyNameNode : SyntaxNode
     {
     }
     public SyntaxNode? Expression { get; set; }
+    internal override void SetChildParents()
+    {
+        if (Expression is { } childExpression) childExpression.Parent = this;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -136,6 +145,10 @@ public sealed partial class DecoratorNode : SyntaxNode
     {
     }
     public SyntaxNode? Expression { get; set; }
+    internal override void SetChildParents()
+    {
+        if (Expression is { } childExpression) childExpression.Parent = this;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -191,6 +204,12 @@ public sealed partial class IfStatementNode : SyntaxNode
         base.ClearBindingState();
         BindingFlow = null;
     }
+    internal override void SetChildParents()
+    {
+        if (Expression is { } childExpression) childExpression.Parent = this;
+        if (ThenStatement is { } childThenStatement) childThenStatement.Parent = this;
+        if (ElseStatement is { } childElseStatement) childElseStatement.Parent = this;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1) + (ThenStatement is null ? 0 : 1) + (ElseStatement is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -224,6 +243,11 @@ public sealed partial class DoStatementNode : SyntaxNode
         base.ClearBindingState();
         BindingFlow = null;
     }
+    internal override void SetChildParents()
+    {
+        if (Statement is { } childStatement) childStatement.Parent = this;
+        if (Expression is { } childExpression) childExpression.Parent = this;
+    }
     public override int ChildCount => (Statement is null ? 0 : 1) + (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -254,6 +278,11 @@ public sealed partial class WhileStatementNode : SyntaxNode
     {
         base.ClearBindingState();
         BindingFlow = null;
+    }
+    internal override void SetChildParents()
+    {
+        if (Expression is { } childExpression) childExpression.Parent = this;
+        if (Statement is { } childStatement) childStatement.Parent = this;
     }
     public override int ChildCount => (Expression is null ? 0 : 1) + (Statement is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -291,6 +320,13 @@ public sealed partial class ForStatementNode : SyntaxNode, IInitializedNode
         BindingFlow = null;
         BindingLocals = null;
         BindingLocalsView = null;
+    }
+    internal override void SetChildParents()
+    {
+        if (Initializer is { } childInitializer) childInitializer.Parent = this;
+        if (Condition is { } childCondition) childCondition.Parent = this;
+        if (Incrementor is { } childIncrementor) childIncrementor.Parent = this;
+        if (Statement is { } childStatement) childStatement.Parent = this;
     }
     public override int ChildCount => (Initializer is null ? 0 : 1) + (Condition is null ? 0 : 1) + (Incrementor is null ? 0 : 1) + (Statement is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -334,6 +370,13 @@ public sealed partial class ForInOrOfStatementNode : SyntaxNode, IInitializedNod
         BindingLocals = null;
         BindingLocalsView = null;
     }
+    internal override void SetChildParents()
+    {
+        if (AwaitModifier is { } childAwaitModifier) childAwaitModifier.Parent = this;
+        if (Initializer is { } childInitializer) childInitializer.Parent = this;
+        if (Expression is { } childExpression) childExpression.Parent = this;
+        if (Statement is { } childStatement) childStatement.Parent = this;
+    }
     public override int ChildCount => (AwaitModifier is null ? 0 : 1) + (Initializer is null ? 0 : 1) + (Expression is null ? 0 : 1) + (Statement is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -368,6 +411,10 @@ public sealed partial class BreakStatementNode : SyntaxNode
         base.ClearBindingState();
         BindingFlow = null;
     }
+    internal override void SetChildParents()
+    {
+        if (Label is { } childLabel) childLabel.Parent = this;
+    }
     public override int ChildCount => (Label is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -395,6 +442,10 @@ public sealed partial class ContinueStatementNode : SyntaxNode
     {
         base.ClearBindingState();
         BindingFlow = null;
+    }
+    internal override void SetChildParents()
+    {
+        if (Label is { } childLabel) childLabel.Parent = this;
     }
     public override int ChildCount => (Label is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -424,6 +475,10 @@ public sealed partial class ReturnStatementNode : SyntaxNode
         base.ClearBindingState();
         BindingFlow = null;
     }
+    internal override void SetChildParents()
+    {
+        if (Expression is { } childExpression) childExpression.Parent = this;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -452,6 +507,11 @@ public sealed partial class WithStatementNode : SyntaxNode
     {
         base.ClearBindingState();
         BindingFlow = null;
+    }
+    internal override void SetChildParents()
+    {
+        if (Expression is { } childExpression) childExpression.Parent = this;
+        if (Statement is { } childStatement) childStatement.Parent = this;
     }
     public override int ChildCount => (Expression is null ? 0 : 1) + (Statement is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -484,6 +544,11 @@ public sealed partial class SwitchStatementNode : SyntaxNode
         base.ClearBindingState();
         BindingFlow = null;
     }
+    internal override void SetChildParents()
+    {
+        if (Expression is { } childExpression) childExpression.Parent = this;
+        if (CaseBlock is { } childCaseBlock) childCaseBlock.Parent = this;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1) + (CaseBlock is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -515,6 +580,11 @@ public sealed partial class CaseBlockNode : SyntaxNode
         base.ClearBindingState();
         BindingLocals = null;
         BindingLocalsView = null;
+    }
+    internal override void SetChildParents()
+    {
+        if (Clauses is { } listClauses)
+            foreach (var child in listClauses) child.Parent = this;
     }
     public override int ChildCount => (Clauses?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
@@ -551,6 +621,12 @@ public sealed partial class CaseOrDefaultClauseNode : SyntaxNode
         base.ClearBindingState();
         BindingEndFlow = null;
     }
+    internal override void SetChildParents()
+    {
+        if (Expression is { } childExpression) childExpression.Parent = this;
+        if (Statements is { } listStatements)
+            foreach (var child in listStatements) child.Parent = this;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1) + (Statements?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -586,6 +662,10 @@ public sealed partial class ThrowStatementNode : SyntaxNode
         base.ClearBindingState();
         BindingFlow = null;
     }
+    internal override void SetChildParents()
+    {
+        if (Expression is { } childExpression) childExpression.Parent = this;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -615,6 +695,12 @@ public sealed partial class TryStatementNode : SyntaxNode
     {
         base.ClearBindingState();
         BindingFlow = null;
+    }
+    internal override void SetChildParents()
+    {
+        if (TryBlock is { } childTryBlock) childTryBlock.Parent = this;
+        if (CatchClause is { } childCatchClause) childCatchClause.Parent = this;
+        if (FinallyBlock is { } childFinallyBlock) childFinallyBlock.Parent = this;
     }
     public override int ChildCount => (TryBlock is null ? 0 : 1) + (CatchClause is null ? 0 : 1) + (FinallyBlock is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -650,6 +736,11 @@ public sealed partial class CatchClauseNode : SyntaxNode
         base.ClearBindingState();
         BindingLocals = null;
         BindingLocalsView = null;
+    }
+    internal override void SetChildParents()
+    {
+        if (VariableDeclaration is { } childVariableDeclaration) childVariableDeclaration.Parent = this;
+        if (Block is { } childBlock) childBlock.Parent = this;
     }
     public override int ChildCount => (VariableDeclaration is null ? 0 : 1) + (Block is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -707,6 +798,11 @@ public sealed partial class LabeledStatementNode : SyntaxNode
         base.ClearBindingState();
         BindingFlow = null;
     }
+    internal override void SetChildParents()
+    {
+        if (Label is { } childLabel) childLabel.Parent = this;
+        if (Statement is { } childStatement) childStatement.Parent = this;
+    }
     public override int ChildCount => (Label is null ? 0 : 1) + (Statement is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -736,6 +832,10 @@ public sealed partial class ExpressionStatementNode : SyntaxNode
     {
         base.ClearBindingState();
         BindingFlow = null;
+    }
+    internal override void SetChildParents()
+    {
+        if (Expression is { } childExpression) childExpression.Parent = this;
     }
     public override int ChildCount => (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -770,6 +870,11 @@ public sealed partial class BlockNode : SyntaxNode
         BindingLocals = null;
         BindingLocalsView = null;
     }
+    internal override void SetChildParents()
+    {
+        if (Statements is { } listStatements)
+            foreach (var child in listStatements) child.Parent = this;
+    }
     public override int ChildCount => (Statements?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -803,6 +908,13 @@ public sealed partial class VariableStatementNode : SyntaxNode, IModifiedNode
     {
         base.ClearBindingState();
         BindingFlow = null;
+    }
+    internal override NodeList? ModifierList => Modifiers;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
+        if (DeclarationList is { } childDeclarationList) childDeclarationList.Parent = this;
     }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (DeclarationList is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -847,6 +959,14 @@ public sealed partial class VariableDeclarationNode : SyntaxNode, ITypedNode, II
         BindingFlow = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override void SetChildParents()
+    {
+        if (Name is { } childName) childName.Parent = this;
+        if (ExclamationToken is { } childExclamationToken) childExclamationToken.Parent = this;
+        if (Type is { } childType) childType.Parent = this;
+        if (Initializer is { } childInitializer) childInitializer.Parent = this;
+    }
     public override int ChildCount => (Name is null ? 0 : 1) + (ExclamationToken is null ? 0 : 1) + (Type is null ? 0 : 1) + (Initializer is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -875,6 +995,11 @@ public sealed partial class VariableDeclarationListNode : SyntaxNode
     {
     }
     public NodeList? Declarations { get; set; }
+    internal override void SetChildParents()
+    {
+        if (Declarations is { } listDeclarations)
+            foreach (var child in listDeclarations) child.Parent = this;
+    }
     public override int ChildCount => (Declarations?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -903,6 +1028,11 @@ public sealed partial class BindingPatternNode : SyntaxNode
         if (kind is not (SyntaxKind.ObjectBindingPattern or SyntaxKind.ArrayBindingPattern)) throw new ArgumentOutOfRangeException(nameof(kind));
     }
     public NodeList? Elements { get; set; }
+    internal override void SetChildParents()
+    {
+        if (Elements is { } listElements)
+            foreach (var child in listElements) child.Parent = this;
+    }
     public override int ChildCount => (Elements?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -946,6 +1076,18 @@ public sealed partial class ParameterDeclarationNode : SyntaxNode, ITypedNode, I
         BindingFlow = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override NodeList? ModifierList => Modifiers;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
+        if (DotDotDotToken is { } childDotDotDotToken) childDotDotDotToken.Parent = this;
+        if (Name is { } childName) childName.Parent = this;
+        if (QuestionToken is { } childQuestionToken) childQuestionToken.Parent = this;
+        if (Type is { } childType) childType.Parent = this;
+        if (Initializer is { } childInitializer) childInitializer.Parent = this;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (DotDotDotToken is null ? 0 : 1) + (Name is null ? 0 : 1) + (QuestionToken is null ? 0 : 1) + (Type is null ? 0 : 1) + (Initializer is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -997,6 +1139,14 @@ public sealed partial class BindingElementNode : SyntaxNode, IInitializedNode, I
         BindingFlow = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override void SetChildParents()
+    {
+        if (DotDotDotToken is { } childDotDotDotToken) childDotDotDotToken.Parent = this;
+        if (PropertyName is { } childPropertyName) childPropertyName.Parent = this;
+        if (Name is { } childName) childName.Parent = this;
+        if (Initializer is { } childInitializer) childInitializer.Parent = this;
+    }
     public override int ChildCount => (DotDotDotToken is null ? 0 : 1) + (PropertyName is null ? 0 : 1) + (Name is null ? 0 : 1) + (Initializer is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -1034,6 +1184,12 @@ public sealed partial class MissingDeclarationNode : SyntaxNode, IModifiedNode
         BindingSymbol = null;
         BindingLocalSymbol = null;
         BindingFlow = null;
+    }
+    internal override NodeList? ModifierList => Modifiers;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
     }
     public override int ChildCount => (Modifiers?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
@@ -1088,6 +1244,23 @@ public sealed partial class FunctionDeclarationNode : SyntaxNode, ITypedNode, IF
         BindingReturnFlow = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override NodeList? ModifierList => Modifiers;
+    internal override bool HasFunctionSignature => true;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
+        if (AsteriskToken is { } childAsteriskToken) childAsteriskToken.Parent = this;
+        if (Name is { } childName) childName.Parent = this;
+        if (TypeParameters is { } listTypeParameters)
+            foreach (var child in listTypeParameters) child.Parent = this;
+        if (Parameters is { } listParameters)
+            foreach (var child in listParameters) child.Parent = this;
+        if (Type is { } childType) childType.Parent = this;
+        if (FullSignature is { } childFullSignature) childFullSignature.Parent = this;
+        if (Body is { } childBody) childBody.Parent = this;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (AsteriskToken is null ? 0 : 1) + (Name is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1) + (FullSignature is null ? 0 : 1) + (Body is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -1158,6 +1331,20 @@ public sealed partial class ClassDeclarationNode : SyntaxNode, IModifiedNode, IN
         BindingLocalsView = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override NodeList? ModifierList => Modifiers;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
+        if (Name is { } childName) childName.Parent = this;
+        if (TypeParameters is { } listTypeParameters)
+            foreach (var child in listTypeParameters) child.Parent = this;
+        if (HeritageClauses is { } listHeritageClauses)
+            foreach (var child in listHeritageClauses) child.Parent = this;
+        if (Members is { } listMembers)
+            foreach (var child in listMembers) child.Parent = this;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (HeritageClauses?.Count ?? 0) + (Members?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -1227,6 +1414,20 @@ public sealed partial class ClassExpressionNode : SyntaxNode, IModifiedNode, INa
         BindingLocalsView = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override NodeList? ModifierList => Modifiers;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
+        if (Name is { } childName) childName.Parent = this;
+        if (TypeParameters is { } listTypeParameters)
+            foreach (var child in listTypeParameters) child.Parent = this;
+        if (HeritageClauses is { } listHeritageClauses)
+            foreach (var child in listHeritageClauses) child.Parent = this;
+        if (Members is { } listMembers)
+            foreach (var child in listMembers) child.Parent = this;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (HeritageClauses?.Count ?? 0) + (Members?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -1278,6 +1479,11 @@ public sealed partial class HeritageClauseNode : SyntaxNode
     }
     public SyntaxKind Token { get; set; }
     public NodeList? Types { get; set; }
+    internal override void SetChildParents()
+    {
+        if (Types is { } listTypes)
+            foreach (var child in listTypes) child.Parent = this;
+    }
     public override int ChildCount => (Types?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -1324,6 +1530,20 @@ public sealed partial class InterfaceDeclarationNode : SyntaxNode, IModifiedNode
         BindingLocalsView = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override NodeList? ModifierList => Modifiers;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
+        if (Name is { } childName) childName.Parent = this;
+        if (TypeParameters is { } listTypeParameters)
+            foreach (var child in listTypeParameters) child.Parent = this;
+        if (HeritageClauses is { } listHeritageClauses)
+            foreach (var child in listHeritageClauses) child.Parent = this;
+        if (Members is { } listMembers)
+            foreach (var child in listMembers) child.Parent = this;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (HeritageClauses?.Count ?? 0) + (Members?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -1393,6 +1613,17 @@ public sealed partial class TypeAliasDeclarationNode : SyntaxNode, ITypedNode, I
         BindingLocalsView = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override NodeList? ModifierList => Modifiers;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
+        if (Name is { } childName) childName.Parent = this;
+        if (TypeParameters is { } listTypeParameters)
+            foreach (var child in listTypeParameters) child.Parent = this;
+        if (Type is { } childType) childType.Parent = this;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -1443,6 +1674,12 @@ public sealed partial class EnumMemberNode : SyntaxNode, IInitializedNode, IName
         BindingFlow = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override void SetChildParents()
+    {
+        if (Name is { } childName) childName.Parent = this;
+        if (Initializer is { } childInitializer) childInitializer.Parent = this;
+    }
     public override int ChildCount => (Name is null ? 0 : 1) + (Initializer is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -1484,6 +1721,16 @@ public sealed partial class EnumDeclarationNode : SyntaxNode, IModifiedNode, INa
         BindingLocalsView = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override NodeList? ModifierList => Modifiers;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
+        if (Name is { } childName) childName.Parent = this;
+        if (Members is { } listMembers)
+            foreach (var child in listMembers) child.Parent = this;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (Members?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -1525,6 +1772,11 @@ public sealed partial class ModuleBlockNode : SyntaxNode
     {
         base.ClearBindingState();
         BindingFlow = null;
+    }
+    internal override void SetChildParents()
+    {
+        if (Statements is { } listStatements)
+            foreach (var child in listStatements) child.Parent = this;
     }
     public override int ChildCount => (Statements?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
@@ -1611,6 +1863,15 @@ public sealed partial class ImportDeclarationNode : SyntaxNode, IModifiedNode
         BindingLocalSymbol = null;
         BindingFlow = null;
     }
+    internal override NodeList? ModifierList => Modifiers;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
+        if (ImportClause is { } childImportClause) childImportClause.Parent = this;
+        if (ModuleSpecifier is { } childModuleSpecifier) childModuleSpecifier.Parent = this;
+        if (Attributes is { } childAttributes) childAttributes.Parent = this;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (ImportClause is null ? 0 : 1) + (ModuleSpecifier is null ? 0 : 1) + (Attributes is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -1644,6 +1905,10 @@ public sealed partial class ExternalModuleReferenceNode : SyntaxNode
     {
     }
     public SyntaxNode? Expression { get; set; }
+    internal override void SetChildParents()
+    {
+        if (Expression is { } childExpression) childExpression.Parent = this;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -1677,6 +1942,11 @@ public sealed partial class NamespaceImportNode : SyntaxNode, INamedNode
         BindingFlow = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override void SetChildParents()
+    {
+        if (Name is { } childName) childName.Parent = this;
+    }
     public override int ChildCount => (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -1699,6 +1969,11 @@ public sealed partial class NamedImportsNode : SyntaxNode
     {
     }
     public NodeList? Elements { get; set; }
+    internal override void SetChildParents()
+    {
+        if (Elements is { } listElements)
+            foreach (var child in listElements) child.Parent = this;
+    }
     public override int ChildCount => (Elements?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -1738,6 +2013,14 @@ public sealed partial class ExportAssignmentNode : SyntaxNode, ITypedNode, IModi
         BindingSymbol = null;
         BindingLocalSymbol = null;
         BindingFlow = null;
+    }
+    internal override NodeList? ModifierList => Modifiers;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
+        if (Type is { } childType) childType.Parent = this;
+        if (Expression is { } childExpression) childExpression.Parent = this;
     }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Type is null ? 0 : 1) + (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -1782,6 +2065,14 @@ public sealed partial class NamespaceExportDeclarationNode : SyntaxNode, IModifi
         BindingFlow = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override NodeList? ModifierList => Modifiers;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
+        if (Name is { } childName) childName.Parent = this;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -1822,6 +2113,11 @@ public sealed partial class NamespaceExportNode : SyntaxNode, INamedNode
         BindingFlow = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override void SetChildParents()
+    {
+        if (Name is { } childName) childName.Parent = this;
+    }
     public override int ChildCount => (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -1844,6 +2140,11 @@ public sealed partial class NamedExportsNode : SyntaxNode
     {
     }
     public NodeList? Elements { get; set; }
+    internal override void SetChildParents()
+    {
+        if (Elements is { } listElements)
+            foreach (var child in listElements) child.Parent = this;
+    }
     public override int ChildCount => (Elements?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -1884,6 +2185,12 @@ public sealed partial class ExportSpecifierNode : SyntaxNode, INamedNode
         BindingFlow = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override void SetChildParents()
+    {
+        if (PropertyName is { } childPropertyName) childPropertyName.Parent = this;
+        if (Name is { } childName) childName.Parent = this;
+    }
     public override int ChildCount => (PropertyName is null ? 0 : 1) + (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -1923,6 +2230,15 @@ public sealed partial class CallSignatureDeclarationNode : SyntaxNode, ITypedNod
         BindingFlow = null;
         BindingLocals = null;
         BindingLocalsView = null;
+    }
+    internal override bool HasFunctionSignature => true;
+    internal override void SetChildParents()
+    {
+        if (TypeParameters is { } listTypeParameters)
+            foreach (var child in listTypeParameters) child.Parent = this;
+        if (Parameters is { } listParameters)
+            foreach (var child in listParameters) child.Parent = this;
+        if (Type is { } childType) childType.Parent = this;
     }
     public override int ChildCount => (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -1975,6 +2291,15 @@ public sealed partial class ConstructSignatureDeclarationNode : SyntaxNode, ITyp
         BindingFlow = null;
         BindingLocals = null;
         BindingLocalsView = null;
+    }
+    internal override bool HasFunctionSignature => true;
+    internal override void SetChildParents()
+    {
+        if (TypeParameters is { } listTypeParameters)
+            foreach (var child in listTypeParameters) child.Parent = this;
+        if (Parameters is { } listParameters)
+            foreach (var child in listParameters) child.Parent = this;
+        if (Type is { } childType) childType.Parent = this;
     }
     public override int ChildCount => (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -2034,6 +2359,20 @@ public sealed partial class ConstructorDeclarationNode : SyntaxNode, ITypedNode,
         BindingLocalsView = null;
         BindingEndFlow = null;
         BindingReturnFlow = null;
+    }
+    internal override NodeList? ModifierList => Modifiers;
+    internal override bool HasFunctionSignature => true;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
+        if (TypeParameters is { } listTypeParameters)
+            foreach (var child in listTypeParameters) child.Parent = this;
+        if (Parameters is { } listParameters)
+            foreach (var child in listParameters) child.Parent = this;
+        if (Type is { } childType) childType.Parent = this;
+        if (FullSignature is { } childFullSignature) childFullSignature.Parent = this;
+        if (Body is { } childBody) childBody.Parent = this;
     }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1) + (FullSignature is null ? 0 : 1) + (Body is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -2107,6 +2446,22 @@ public sealed partial class GetAccessorDeclarationNode : SyntaxNode, ITypedNode,
         BindingReturnFlow = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override NodeList? ModifierList => Modifiers;
+    internal override bool HasFunctionSignature => true;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
+        if (Name is { } childName) childName.Parent = this;
+        if (TypeParameters is { } listTypeParameters)
+            foreach (var child in listTypeParameters) child.Parent = this;
+        if (Parameters is { } listParameters)
+            foreach (var child in listParameters) child.Parent = this;
+        if (Type is { } childType) childType.Parent = this;
+        if (FullSignature is { } childFullSignature) childFullSignature.Parent = this;
+        if (Body is { } childBody) childBody.Parent = this;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1) + (FullSignature is null ? 0 : 1) + (Body is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -2181,6 +2536,22 @@ public sealed partial class SetAccessorDeclarationNode : SyntaxNode, ITypedNode,
         BindingReturnFlow = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override NodeList? ModifierList => Modifiers;
+    internal override bool HasFunctionSignature => true;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
+        if (Name is { } childName) childName.Parent = this;
+        if (TypeParameters is { } listTypeParameters)
+            foreach (var child in listTypeParameters) child.Parent = this;
+        if (Parameters is { } listParameters)
+            foreach (var child in listParameters) child.Parent = this;
+        if (Type is { } childType) childType.Parent = this;
+        if (FullSignature is { } childFullSignature) childFullSignature.Parent = this;
+        if (Body is { } childBody) childBody.Parent = this;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1) + (FullSignature is null ? 0 : 1) + (Body is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -2246,6 +2617,15 @@ public sealed partial class IndexSignatureDeclarationNode : SyntaxNode, ITypedNo
         BindingLocals = null;
         BindingLocalsView = null;
     }
+    internal override NodeList? ModifierList => Modifiers;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
+        if (Parameters is { } listParameters)
+            foreach (var child in listParameters) child.Parent = this;
+        if (Type is { } childType) childType.Parent = this;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -2302,6 +2682,21 @@ public sealed partial class MethodSignatureDeclarationNode : SyntaxNode, ITypedN
         BindingLocalsView = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override NodeList? ModifierList => Modifiers;
+    internal override bool HasFunctionSignature => true;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
+        if (Name is { } childName) childName.Parent = this;
+        if (PostfixToken is { } childPostfixToken) childPostfixToken.Parent = this;
+        if (TypeParameters is { } listTypeParameters)
+            foreach (var child in listTypeParameters) child.Parent = this;
+        if (Parameters is { } listParameters)
+            foreach (var child in listParameters) child.Parent = this;
+        if (Type is { } childType) childType.Parent = this;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (PostfixToken is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -2376,6 +2771,24 @@ public sealed partial class MethodDeclarationNode : SyntaxNode, ITypedNode, IFul
         BindingReturnFlow = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override NodeList? ModifierList => Modifiers;
+    internal override bool HasFunctionSignature => true;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
+        if (AsteriskToken is { } childAsteriskToken) childAsteriskToken.Parent = this;
+        if (Name is { } childName) childName.Parent = this;
+        if (PostfixToken is { } childPostfixToken) childPostfixToken.Parent = this;
+        if (TypeParameters is { } listTypeParameters)
+            foreach (var child in listTypeParameters) child.Parent = this;
+        if (Parameters is { } listParameters)
+            foreach (var child in listParameters) child.Parent = this;
+        if (Type is { } childType) childType.Parent = this;
+        if (FullSignature is { } childFullSignature) childFullSignature.Parent = this;
+        if (Body is { } childBody) childBody.Parent = this;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (AsteriskToken is null ? 0 : 1) + (Name is null ? 0 : 1) + (PostfixToken is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1) + (FullSignature is null ? 0 : 1) + (Body is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -2444,6 +2857,17 @@ public sealed partial class PropertySignatureDeclarationNode : SyntaxNode, IType
         BindingFlow = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override NodeList? ModifierList => Modifiers;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
+        if (Name is { } childName) childName.Parent = this;
+        if (PostfixToken is { } childPostfixToken) childPostfixToken.Parent = this;
+        if (Type is { } childType) childType.Parent = this;
+        if (Initializer is { } childInitializer) childInitializer.Parent = this;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (PostfixToken is null ? 0 : 1) + (Type is null ? 0 : 1) + (Initializer is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -2494,6 +2918,17 @@ public sealed partial class PropertyDeclarationNode : SyntaxNode, ITypedNode, II
         BindingFlow = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override NodeList? ModifierList => Modifiers;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
+        if (Name is { } childName) childName.Parent = this;
+        if (PostfixToken is { } childPostfixToken) childPostfixToken.Parent = this;
+        if (Type is { } childType) childType.Parent = this;
+        if (Initializer is { } childInitializer) childInitializer.Parent = this;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (PostfixToken is null ? 0 : 1) + (Type is null ? 0 : 1) + (Initializer is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -2576,6 +3011,13 @@ public sealed partial class ClassStaticBlockDeclarationNode : SyntaxNode, IModif
         BindingLocalsView = null;
         BindingEndFlow = null;
         BindingReturnFlow = null;
+    }
+    internal override NodeList? ModifierList => Modifiers;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
+        if (Body is { } childBody) childBody.Parent = this;
     }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Body is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -2809,6 +3251,16 @@ public sealed partial class BinaryExpressionNode : SyntaxNode, ITypedNode, IModi
         BindingLocalSymbol = null;
         BindingFlow = null;
     }
+    internal override NodeList? ModifierList => Modifiers;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
+        if (Left is { } childLeft) childLeft.Parent = this;
+        if (Type is { } childType) childType.Parent = this;
+        if (OperatorToken is { } childOperatorToken) childOperatorToken.Parent = this;
+        if (Right is { } childRight) childRight.Parent = this;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Left is null ? 0 : 1) + (Type is null ? 0 : 1) + (OperatorToken is null ? 0 : 1) + (Right is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -2851,6 +3303,10 @@ public sealed partial class PrefixUnaryExpressionNode : SyntaxNode
         base.ClearBindingState();
         BindingFlow = null;
     }
+    internal override void SetChildParents()
+    {
+        if (Operand is { } childOperand) childOperand.Parent = this;
+    }
     public override int ChildCount => (Operand is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -2880,6 +3336,10 @@ public sealed partial class PostfixUnaryExpressionNode : SyntaxNode
         base.ClearBindingState();
         BindingFlow = null;
     }
+    internal override void SetChildParents()
+    {
+        if (Operand is { } childOperand) childOperand.Parent = this;
+    }
     public override int ChildCount => (Operand is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -2908,6 +3368,11 @@ public sealed partial class YieldExpressionNode : SyntaxNode
     {
         base.ClearBindingState();
         BindingFlow = null;
+    }
+    internal override void SetChildParents()
+    {
+        if (AsteriskToken is { } childAsteriskToken) childAsteriskToken.Parent = this;
+        if (Expression is { } childExpression) childExpression.Parent = this;
     }
     public override int ChildCount => (AsteriskToken is null ? 0 : 1) + (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -2956,6 +3421,21 @@ public sealed partial class ArrowFunctionNode : SyntaxNode, ITypedNode, IFullSig
         BindingLocalsView = null;
         BindingEndFlow = null;
         BindingReturnFlow = null;
+    }
+    internal override NodeList? ModifierList => Modifiers;
+    internal override bool HasFunctionSignature => true;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
+        if (TypeParameters is { } listTypeParameters)
+            foreach (var child in listTypeParameters) child.Parent = this;
+        if (Parameters is { } listParameters)
+            foreach (var child in listParameters) child.Parent = this;
+        if (Type is { } childType) childType.Parent = this;
+        if (FullSignature is { } childFullSignature) childFullSignature.Parent = this;
+        if (EqualsGreaterThanToken is { } childEqualsGreaterThanToken) childEqualsGreaterThanToken.Parent = this;
+        if (Body is { } childBody) childBody.Parent = this;
     }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1) + (FullSignature is null ? 0 : 1) + (EqualsGreaterThanToken is null ? 0 : 1) + (Body is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -3032,6 +3512,23 @@ public sealed partial class FunctionExpressionNode : SyntaxNode, ITypedNode, IFu
         BindingReturnFlow = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override NodeList? ModifierList => Modifiers;
+    internal override bool HasFunctionSignature => true;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
+        if (AsteriskToken is { } childAsteriskToken) childAsteriskToken.Parent = this;
+        if (Name is { } childName) childName.Parent = this;
+        if (TypeParameters is { } listTypeParameters)
+            foreach (var child in listTypeParameters) child.Parent = this;
+        if (Parameters is { } listParameters)
+            foreach (var child in listParameters) child.Parent = this;
+        if (Type is { } childType) childType.Parent = this;
+        if (FullSignature is { } childFullSignature) childFullSignature.Parent = this;
+        if (Body is { } childBody) childBody.Parent = this;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (AsteriskToken is null ? 0 : 1) + (Name is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1) + (FullSignature is null ? 0 : 1) + (Body is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -3090,6 +3587,11 @@ public sealed partial class AsExpressionNode : SyntaxNode, ITypedNode
         base.ClearBindingState();
         BindingFlow = null;
     }
+    internal override void SetChildParents()
+    {
+        if (Expression is { } childExpression) childExpression.Parent = this;
+        if (Type is { } childType) childType.Parent = this;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1) + (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -3120,6 +3622,11 @@ public sealed partial class SatisfiesExpressionNode : SyntaxNode, ITypedNode
     {
         base.ClearBindingState();
         BindingFlow = null;
+    }
+    internal override void SetChildParents()
+    {
+        if (Expression is { } childExpression) childExpression.Parent = this;
+        if (Type is { } childType) childType.Parent = this;
     }
     public override int ChildCount => (Expression is null ? 0 : 1) + (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -3154,6 +3661,14 @@ public sealed partial class ConditionalExpressionNode : SyntaxNode
     {
         base.ClearBindingState();
         BindingFlow = null;
+    }
+    internal override void SetChildParents()
+    {
+        if (Condition is { } childCondition) childCondition.Parent = this;
+        if (QuestionToken is { } childQuestionToken) childQuestionToken.Parent = this;
+        if (WhenTrue is { } childWhenTrue) childWhenTrue.Parent = this;
+        if (ColonToken is { } childColonToken) childColonToken.Parent = this;
+        if (WhenFalse is { } childWhenFalse) childWhenFalse.Parent = this;
     }
     public override int ChildCount => (Condition is null ? 0 : 1) + (QuestionToken is null ? 0 : 1) + (WhenTrue is null ? 0 : 1) + (ColonToken is null ? 0 : 1) + (WhenFalse is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -3194,6 +3709,13 @@ public sealed partial class PropertyAccessExpressionNode : SyntaxNode, INamedNod
         BindingFlow = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override void SetChildParents()
+    {
+        if (Expression is { } childExpression) childExpression.Parent = this;
+        if (QuestionDotToken is { } childQuestionDotToken) childQuestionDotToken.Parent = this;
+        if (Name is { } childName) childName.Parent = this;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1) + (QuestionDotToken is null ? 0 : 1) + (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -3227,6 +3749,12 @@ public sealed partial class ElementAccessExpressionNode : SyntaxNode
     {
         base.ClearBindingState();
         BindingFlow = null;
+    }
+    internal override void SetChildParents()
+    {
+        if (Expression is { } childExpression) childExpression.Parent = this;
+        if (QuestionDotToken is { } childQuestionDotToken) childQuestionDotToken.Parent = this;
+        if (ArgumentExpression is { } childArgumentExpression) childArgumentExpression.Parent = this;
     }
     public override int ChildCount => (Expression is null ? 0 : 1) + (QuestionDotToken is null ? 0 : 1) + (ArgumentExpression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -3266,6 +3794,15 @@ public sealed partial class CallExpressionNode : SyntaxNode
         BindingSymbol = null;
         BindingLocalSymbol = null;
         BindingFlow = null;
+    }
+    internal override void SetChildParents()
+    {
+        if (Expression is { } childExpression) childExpression.Parent = this;
+        if (QuestionDotToken is { } childQuestionDotToken) childQuestionDotToken.Parent = this;
+        if (TypeArguments is { } listTypeArguments)
+            foreach (var child in listTypeArguments) child.Parent = this;
+        if (Arguments is { } listArguments)
+            foreach (var child in listArguments) child.Parent = this;
     }
     public override int ChildCount => (Expression is null ? 0 : 1) + (QuestionDotToken is null ? 0 : 1) + (TypeArguments?.Count ?? 0) + (Arguments?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
@@ -3313,6 +3850,14 @@ public sealed partial class NewExpressionNode : SyntaxNode
         base.ClearBindingState();
         BindingFlow = null;
     }
+    internal override void SetChildParents()
+    {
+        if (Expression is { } childExpression) childExpression.Parent = this;
+        if (TypeArguments is { } listTypeArguments)
+            foreach (var child in listTypeArguments) child.Parent = this;
+        if (Arguments is { } listArguments)
+            foreach (var child in listArguments) child.Parent = this;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1) + (TypeArguments?.Count ?? 0) + (Arguments?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -3357,6 +3902,11 @@ public sealed partial class MetaPropertyNode : SyntaxNode, INamedNode
         BindingFlow = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override void SetChildParents()
+    {
+        if (Name is { } childName) childName.Parent = this;
+    }
     public override int ChildCount => (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -3384,6 +3934,10 @@ public sealed partial class NonNullExpressionNode : SyntaxNode
     {
         base.ClearBindingState();
         BindingFlow = null;
+    }
+    internal override void SetChildParents()
+    {
+        if (Expression is { } childExpression) childExpression.Parent = this;
     }
     public override int ChildCount => (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -3413,6 +3967,10 @@ public sealed partial class SpreadElementNode : SyntaxNode
         base.ClearBindingState();
         BindingFlow = null;
     }
+    internal override void SetChildParents()
+    {
+        if (Expression is { } childExpression) childExpression.Parent = this;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -3441,6 +3999,12 @@ public sealed partial class TemplateExpressionNode : SyntaxNode
     {
         base.ClearBindingState();
         BindingFlow = null;
+    }
+    internal override void SetChildParents()
+    {
+        if (Head is { } childHead) childHead.Parent = this;
+        if (TemplateSpans is { } listTemplateSpans)
+            foreach (var child in listTemplateSpans) child.Parent = this;
     }
     public override int ChildCount => (Head is null ? 0 : 1) + (TemplateSpans?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
@@ -3472,6 +4036,11 @@ public sealed partial class TemplateSpanNode : SyntaxNode
     }
     public SyntaxNode? Expression { get; set; }
     public SyntaxNode? Literal { get; set; }
+    internal override void SetChildParents()
+    {
+        if (Expression is { } childExpression) childExpression.Parent = this;
+        if (Literal is { } childLiteral) childLiteral.Parent = this;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1) + (Literal is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -3504,6 +4073,14 @@ public sealed partial class TaggedTemplateExpressionNode : SyntaxNode
     {
         base.ClearBindingState();
         BindingFlow = null;
+    }
+    internal override void SetChildParents()
+    {
+        if (Tag is { } childTag) childTag.Parent = this;
+        if (QuestionDotToken is { } childQuestionDotToken) childQuestionDotToken.Parent = this;
+        if (TypeArguments is { } listTypeArguments)
+            foreach (var child in listTypeArguments) child.Parent = this;
+        if (Template is { } childTemplate) childTemplate.Parent = this;
     }
     public override int ChildCount => (Tag is null ? 0 : 1) + (QuestionDotToken is null ? 0 : 1) + (TypeArguments?.Count ?? 0) + (Template is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -3544,6 +4121,10 @@ public sealed partial class ParenthesizedExpressionNode : SyntaxNode
         base.ClearBindingState();
         BindingFlow = null;
     }
+    internal override void SetChildParents()
+    {
+        if (Expression is { } childExpression) childExpression.Parent = this;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -3572,6 +4153,11 @@ public sealed partial class ArrayLiteralExpressionNode : SyntaxNode
     {
         base.ClearBindingState();
         BindingFlow = null;
+    }
+    internal override void SetChildParents()
+    {
+        if (Elements is { } listElements)
+            foreach (var child in listElements) child.Parent = this;
     }
     public override int ChildCount => (Elements?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
@@ -3615,6 +4201,11 @@ public sealed partial class ObjectLiteralExpressionNode : SyntaxNode
         BindingLocals = null;
         BindingLocalsView = null;
     }
+    internal override void SetChildParents()
+    {
+        if (Properties is { } listProperties)
+            foreach (var child in listProperties) child.Parent = this;
+    }
     public override int ChildCount => (Properties?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -3651,6 +4242,10 @@ public sealed partial class SpreadAssignmentNode : SyntaxNode
         BindingSymbol = null;
         BindingLocalSymbol = null;
         BindingFlow = null;
+    }
+    internal override void SetChildParents()
+    {
+        if (Expression is { } childExpression) childExpression.Parent = this;
     }
     public override int ChildCount => (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -3689,6 +4284,17 @@ public sealed partial class PropertyAssignmentNode : SyntaxNode, ITypedNode, IIn
         BindingFlow = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override NodeList? ModifierList => Modifiers;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
+        if (Name is { } childName) childName.Parent = this;
+        if (PostfixToken is { } childPostfixToken) childPostfixToken.Parent = this;
+        if (Type is { } childType) childType.Parent = this;
+        if (Initializer is { } childInitializer) childInitializer.Parent = this;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (PostfixToken is null ? 0 : 1) + (Type is null ? 0 : 1) + (Initializer is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -3740,6 +4346,18 @@ public sealed partial class ShorthandPropertyAssignmentNode : SyntaxNode, ITyped
         BindingFlow = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override NodeList? ModifierList => Modifiers;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
+        if (Name is { } childName) childName.Parent = this;
+        if (PostfixToken is { } childPostfixToken) childPostfixToken.Parent = this;
+        if (Type is { } childType) childType.Parent = this;
+        if (EqualsToken is { } childEqualsToken) childEqualsToken.Parent = this;
+        if (ObjectAssignmentInitializer is { } childObjectAssignmentInitializer) childObjectAssignmentInitializer.Parent = this;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (PostfixToken is null ? 0 : 1) + (Type is null ? 0 : 1) + (EqualsToken is null ? 0 : 1) + (ObjectAssignmentInitializer is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -3783,6 +4401,10 @@ public sealed partial class DeleteExpressionNode : SyntaxNode
         base.ClearBindingState();
         BindingFlow = null;
     }
+    internal override void SetChildParents()
+    {
+        if (Expression is { } childExpression) childExpression.Parent = this;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -3810,6 +4432,10 @@ public sealed partial class TypeOfExpressionNode : SyntaxNode
     {
         base.ClearBindingState();
         BindingFlow = null;
+    }
+    internal override void SetChildParents()
+    {
+        if (Expression is { } childExpression) childExpression.Parent = this;
     }
     public override int ChildCount => (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -3839,6 +4465,10 @@ public sealed partial class VoidExpressionNode : SyntaxNode
         base.ClearBindingState();
         BindingFlow = null;
     }
+    internal override void SetChildParents()
+    {
+        if (Expression is { } childExpression) childExpression.Parent = this;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -3866,6 +4496,10 @@ public sealed partial class AwaitExpressionNode : SyntaxNode
     {
         base.ClearBindingState();
         BindingFlow = null;
+    }
+    internal override void SetChildParents()
+    {
+        if (Expression is { } childExpression) childExpression.Parent = this;
     }
     public override int ChildCount => (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -3895,6 +4529,11 @@ public sealed partial class TypeAssertionNode : SyntaxNode, ITypedNode
     {
         base.ClearBindingState();
         BindingFlow = null;
+    }
+    internal override void SetChildParents()
+    {
+        if (Type is { } childType) childType.Parent = this;
+        if (Expression is { } childExpression) childExpression.Parent = this;
     }
     public override int ChildCount => (Type is null ? 0 : 1) + (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -3939,6 +4578,11 @@ public sealed partial class UnionTypeNode : SyntaxNode
     {
     }
     public NodeList? Types { get; set; }
+    internal override void SetChildParents()
+    {
+        if (Types is { } listTypes)
+            foreach (var child in listTypes) child.Parent = this;
+    }
     public override int ChildCount => (Types?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -3966,6 +4610,11 @@ public sealed partial class IntersectionTypeNode : SyntaxNode
     {
     }
     public NodeList? Types { get; set; }
+    internal override void SetChildParents()
+    {
+        if (Types is { } listTypes)
+            foreach (var child in listTypes) child.Parent = this;
+    }
     public override int ChildCount => (Types?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -4004,6 +4653,13 @@ public sealed partial class ConditionalTypeNode : SyntaxNode
         BindingLocals = null;
         BindingLocalsView = null;
     }
+    internal override void SetChildParents()
+    {
+        if (CheckType is { } childCheckType) childCheckType.Parent = this;
+        if (ExtendsType is { } childExtendsType) childExtendsType.Parent = this;
+        if (TrueType is { } childTrueType) childTrueType.Parent = this;
+        if (FalseType is { } childFalseType) childFalseType.Parent = this;
+    }
     public override int ChildCount => (CheckType is null ? 0 : 1) + (ExtendsType is null ? 0 : 1) + (TrueType is null ? 0 : 1) + (FalseType is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -4033,6 +4689,10 @@ public sealed partial class TypeOperatorNode : SyntaxNode, ITypedNode
     }
     public SyntaxKind Operator { get; set; }
     public SyntaxNode? Type { get; set; }
+    internal override void SetChildParents()
+    {
+        if (Type is { } childType) childType.Parent = this;
+    }
     public override int ChildCount => (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -4055,6 +4715,10 @@ public sealed partial class InferTypeNode : SyntaxNode
     {
     }
     public TypeParameterDeclarationNode? TypeParameter { get; set; }
+    internal override void SetChildParents()
+    {
+        if (TypeParameter is { } childTypeParameter) childTypeParameter.Parent = this;
+    }
     public override int ChildCount => (TypeParameter is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -4077,6 +4741,10 @@ public sealed partial class ArrayTypeNode : SyntaxNode
     {
     }
     public SyntaxNode? ElementType { get; set; }
+    internal override void SetChildParents()
+    {
+        if (ElementType is { } childElementType) childElementType.Parent = this;
+    }
     public override int ChildCount => (ElementType is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -4100,6 +4768,11 @@ public sealed partial class IndexedAccessTypeNode : SyntaxNode
     }
     public SyntaxNode? ObjectType { get; set; }
     public SyntaxNode? IndexType { get; set; }
+    internal override void SetChildParents()
+    {
+        if (ObjectType is { } childObjectType) childObjectType.Parent = this;
+        if (IndexType is { } childIndexType) childIndexType.Parent = this;
+    }
     public override int ChildCount => (ObjectType is null ? 0 : 1) + (IndexType is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -4125,6 +4798,12 @@ public sealed partial class TypeReferenceNode : SyntaxNode
     }
     public SyntaxNode? TypeName { get; set; }
     public NodeList? TypeArguments { get; set; }
+    internal override void SetChildParents()
+    {
+        if (TypeName is { } childTypeName) childTypeName.Parent = this;
+        if (TypeArguments is { } listTypeArguments)
+            foreach (var child in listTypeArguments) child.Parent = this;
+    }
     public override int ChildCount => (TypeName is null ? 0 : 1) + (TypeArguments?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -4161,6 +4840,12 @@ public sealed partial class ExpressionWithTypeArgumentsNode : SyntaxNode
         base.ClearBindingState();
         BindingFlow = null;
     }
+    internal override void SetChildParents()
+    {
+        if (Expression is { } childExpression) childExpression.Parent = this;
+        if (TypeArguments is { } listTypeArguments)
+            foreach (var child in listTypeArguments) child.Parent = this;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1) + (TypeArguments?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -4190,6 +4875,10 @@ public sealed partial class LiteralTypeNode : SyntaxNode
     {
     }
     public SyntaxNode? Literal { get; set; }
+    internal override void SetChildParents()
+    {
+        if (Literal is { } childLiteral) childLiteral.Parent = this;
+    }
     public override int ChildCount => (Literal is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -4233,6 +4922,12 @@ public sealed partial class TypePredicateNode : SyntaxNode, ITypedNode
     public SyntaxNode? AssertsModifier { get; set; }
     public SyntaxNode? ParameterName { get; set; }
     public SyntaxNode? Type { get; set; }
+    internal override void SetChildParents()
+    {
+        if (AssertsModifier is { } childAssertsModifier) childAssertsModifier.Parent = this;
+        if (ParameterName is { } childParameterName) childParameterName.Parent = this;
+        if (Type is { } childType) childType.Parent = this;
+    }
     public override int ChildCount => (AssertsModifier is null ? 0 : 1) + (ParameterName is null ? 0 : 1) + (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -4261,6 +4956,12 @@ public sealed partial class ImportAttributeNode : SyntaxNode, INamedNode
     public SyntaxNode? Name { get; set; }
     public SyntaxNode? Value { get; set; }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override void SetChildParents()
+    {
+        if (Name is { } childName) childName.Parent = this;
+        if (Value is { } childValue) childValue.Parent = this;
+    }
     public override int ChildCount => (Name is null ? 0 : 1) + (Value is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -4287,6 +4988,11 @@ public sealed partial class ImportAttributesNode : SyntaxNode
     public SyntaxKind Token { get; set; }
     public NodeList? Attributes { get; set; }
     public bool MultiLine { get; set; }
+    internal override void SetChildParents()
+    {
+        if (Attributes is { } listAttributes)
+            foreach (var child in listAttributes) child.Parent = this;
+    }
     public override int ChildCount => (Attributes?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -4315,6 +5021,12 @@ public sealed partial class TypeQueryNode : SyntaxNode
     }
     public SyntaxNode? ExprName { get; set; }
     public NodeList? TypeArguments { get; set; }
+    internal override void SetChildParents()
+    {
+        if (ExprName is { } childExprName) childExprName.Parent = this;
+        if (TypeArguments is { } listTypeArguments)
+            foreach (var child in listTypeArguments) child.Parent = this;
+    }
     public override int ChildCount => (ExprName is null ? 0 : 1) + (TypeArguments?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -4362,6 +5074,16 @@ public sealed partial class MappedTypeNode : SyntaxNode, ITypedNode
         BindingFlow = null;
         BindingLocals = null;
         BindingLocalsView = null;
+    }
+    internal override void SetChildParents()
+    {
+        if (ReadonlyToken is { } childReadonlyToken) childReadonlyToken.Parent = this;
+        if (TypeParameter is { } childTypeParameter) childTypeParameter.Parent = this;
+        if (NameType is { } childNameType) childNameType.Parent = this;
+        if (QuestionToken is { } childQuestionToken) childQuestionToken.Parent = this;
+        if (Type is { } childType) childType.Parent = this;
+        if (Members is { } listMembers)
+            foreach (var child in listMembers) child.Parent = this;
     }
     public override int ChildCount => (ReadonlyToken is null ? 0 : 1) + (TypeParameter is null ? 0 : 1) + (NameType is null ? 0 : 1) + (QuestionToken is null ? 0 : 1) + (Type is null ? 0 : 1) + (Members?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
@@ -4414,6 +5136,11 @@ public sealed partial class TypeLiteralNode : SyntaxNode
         BindingLocals = null;
         BindingLocalsView = null;
     }
+    internal override void SetChildParents()
+    {
+        if (Members is { } listMembers)
+            foreach (var child in listMembers) child.Parent = this;
+    }
     public override int ChildCount => (Members?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -4441,6 +5168,11 @@ public sealed partial class TupleTypeNode : SyntaxNode
     {
     }
     public NodeList? Elements { get; set; }
+    internal override void SetChildParents()
+    {
+        if (Elements is { } listElements)
+            foreach (var child in listElements) child.Parent = this;
+    }
     public override int ChildCount => (Elements?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -4482,6 +5214,14 @@ public sealed partial class NamedTupleMemberNode : SyntaxNode, ITypedNode, IName
         BindingFlow = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override void SetChildParents()
+    {
+        if (DotDotDotToken is { } childDotDotDotToken) childDotDotDotToken.Parent = this;
+        if (Name is { } childName) childName.Parent = this;
+        if (QuestionToken is { } childQuestionToken) childQuestionToken.Parent = this;
+        if (Type is { } childType) childType.Parent = this;
+    }
     public override int ChildCount => (DotDotDotToken is null ? 0 : 1) + (Name is null ? 0 : 1) + (QuestionToken is null ? 0 : 1) + (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -4510,6 +5250,10 @@ public sealed partial class OptionalTypeNode : SyntaxNode, ITypedNode
     {
     }
     public SyntaxNode? Type { get; set; }
+    internal override void SetChildParents()
+    {
+        if (Type is { } childType) childType.Parent = this;
+    }
     public override int ChildCount => (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -4532,6 +5276,10 @@ public sealed partial class RestTypeNode : SyntaxNode, ITypedNode
     {
     }
     public SyntaxNode? Type { get; set; }
+    internal override void SetChildParents()
+    {
+        if (Type is { } childType) childType.Parent = this;
+    }
     public override int ChildCount => (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -4554,6 +5302,10 @@ public sealed partial class ParenthesizedTypeNode : SyntaxNode, ITypedNode
     {
     }
     public SyntaxNode? Type { get; set; }
+    internal override void SetChildParents()
+    {
+        if (Type is { } childType) childType.Parent = this;
+    }
     public override int ChildCount => (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -4591,6 +5343,15 @@ public sealed partial class FunctionTypeNode : SyntaxNode, ITypedNode, IFunction
         BindingFlow = null;
         BindingLocals = null;
         BindingLocalsView = null;
+    }
+    internal override bool HasFunctionSignature => true;
+    internal override void SetChildParents()
+    {
+        if (TypeParameters is { } listTypeParameters)
+            foreach (var child in listTypeParameters) child.Parent = this;
+        if (Parameters is { } listParameters)
+            foreach (var child in listParameters) child.Parent = this;
+        if (Type is { } childType) childType.Parent = this;
     }
     public override int ChildCount => (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -4644,6 +5405,18 @@ public sealed partial class ConstructorTypeNode : SyntaxNode, ITypedNode, IFunct
         BindingFlow = null;
         BindingLocals = null;
         BindingLocalsView = null;
+    }
+    internal override NodeList? ModifierList => Modifiers;
+    internal override bool HasFunctionSignature => true;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
+        if (TypeParameters is { } listTypeParameters)
+            foreach (var child in listTypeParameters) child.Parent = this;
+        if (Parameters is { } listParameters)
+            foreach (var child in listParameters) child.Parent = this;
+        if (Type is { } childType) childType.Parent = this;
     }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -4755,6 +5528,12 @@ public sealed partial class TemplateLiteralTypeNode : SyntaxNode
     }
     public TemplateHeadNode? Head { get; set; }
     public NodeList? TemplateSpans { get; set; }
+    internal override void SetChildParents()
+    {
+        if (Head is { } childHead) childHead.Parent = this;
+        if (TemplateSpans is { } listTemplateSpans)
+            foreach (var child in listTemplateSpans) child.Parent = this;
+    }
     public override int ChildCount => (Head is null ? 0 : 1) + (TemplateSpans?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -4785,6 +5564,11 @@ public sealed partial class TemplateLiteralTypeSpanNode : SyntaxNode, ITypedNode
     }
     public SyntaxNode? Type { get; set; }
     public SyntaxNode? Literal { get; set; }
+    internal override void SetChildParents()
+    {
+        if (Type is { } childType) childType.Parent = this;
+        if (Literal is { } childLiteral) childLiteral.Parent = this;
+    }
     public override int ChildCount => (Type is null ? 0 : 1) + (Literal is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -4817,6 +5601,10 @@ public sealed partial class SyntheticExpressionNode : SyntaxNode
         base.ClearBindingState();
         BindingFlow = null;
     }
+    internal override void SetChildParents()
+    {
+        if (TupleNameSource is { } childTupleNameSource) childTupleNameSource.Parent = this;
+    }
     public override int ChildCount => (TupleNameSource is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -4844,6 +5632,10 @@ public sealed partial class PartiallyEmittedExpressionNode : SyntaxNode
     {
         base.ClearBindingState();
         BindingFlow = null;
+    }
+    internal override void SetChildParents()
+    {
+        if (Expression is { } childExpression) childExpression.Parent = this;
     }
     public override int ChildCount => (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -4874,6 +5666,13 @@ public sealed partial class JsxElementNode : SyntaxNode
     {
         base.ClearBindingState();
         BindingFlow = null;
+    }
+    internal override void SetChildParents()
+    {
+        if (OpeningElement is { } childOpeningElement) childOpeningElement.Parent = this;
+        if (Children is { } listChildren)
+            foreach (var child in listChildren) child.Parent = this;
+        if (ClosingElement is { } childClosingElement) childClosingElement.Parent = this;
     }
     public override int ChildCount => (OpeningElement is null ? 0 : 1) + (Children?.Count ?? 0) + (ClosingElement is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -4920,6 +5719,11 @@ public sealed partial class JsxAttributesNode : SyntaxNode
         BindingLocals = null;
         BindingLocalsView = null;
     }
+    internal override void SetChildParents()
+    {
+        if (Properties is { } listProperties)
+            foreach (var child in listProperties) child.Parent = this;
+    }
     public override int ChildCount => (Properties?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -4955,6 +5759,12 @@ public sealed partial class JsxNamespacedNameNode : SyntaxNode, INamedNode
         BindingFlow = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override void SetChildParents()
+    {
+        if (Namespace is { } childNamespace) childNamespace.Parent = this;
+        if (Name is { } childName) childName.Parent = this;
+    }
     public override int ChildCount => (Namespace is null ? 0 : 1) + (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -4986,6 +5796,13 @@ public sealed partial class JsxOpeningElementNode : SyntaxNode
     {
         base.ClearBindingState();
         BindingFlow = null;
+    }
+    internal override void SetChildParents()
+    {
+        if (TagName is { } childTagName) childTagName.Parent = this;
+        if (TypeArguments is { } listTypeArguments)
+            foreach (var child in listTypeArguments) child.Parent = this;
+        if (Attributes is { } childAttributes) childAttributes.Parent = this;
     }
     public override int ChildCount => (TagName is null ? 0 : 1) + (TypeArguments?.Count ?? 0) + (Attributes is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -5026,6 +5843,13 @@ public sealed partial class JsxSelfClosingElementNode : SyntaxNode
         base.ClearBindingState();
         BindingFlow = null;
     }
+    internal override void SetChildParents()
+    {
+        if (TagName is { } childTagName) childTagName.Parent = this;
+        if (TypeArguments is { } listTypeArguments)
+            foreach (var child in listTypeArguments) child.Parent = this;
+        if (Attributes is { } childAttributes) childAttributes.Parent = this;
+    }
     public override int ChildCount => (TagName is null ? 0 : 1) + (TypeArguments?.Count ?? 0) + (Attributes is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -5064,6 +5888,13 @@ public sealed partial class JsxFragmentNode : SyntaxNode
     {
         base.ClearBindingState();
         BindingFlow = null;
+    }
+    internal override void SetChildParents()
+    {
+        if (OpeningFragment is { } childOpeningFragment) childOpeningFragment.Parent = this;
+        if (Children is { } listChildren)
+            foreach (var child in listChildren) child.Parent = this;
+        if (ClosingFragment is { } childClosingFragment) childClosingFragment.Parent = this;
     }
     public override int ChildCount => (OpeningFragment is null ? 0 : 1) + (Children?.Count ?? 0) + (ClosingFragment is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -5158,6 +5989,12 @@ public sealed partial class JsxAttributeNode : SyntaxNode, IInitializedNode, INa
         BindingFlow = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override void SetChildParents()
+    {
+        if (Name is { } childName) childName.Parent = this;
+        if (Initializer is { } childInitializer) childInitializer.Parent = this;
+    }
     public override int ChildCount => (Name is null ? 0 : 1) + (Initializer is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -5182,6 +6019,10 @@ public sealed partial class JsxSpreadAttributeNode : SyntaxNode
     {
     }
     public SyntaxNode? Expression { get; set; }
+    internal override void SetChildParents()
+    {
+        if (Expression is { } childExpression) childExpression.Parent = this;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -5204,6 +6045,10 @@ public sealed partial class JsxClosingElementNode : SyntaxNode
     {
     }
     public SyntaxNode? TagName { get; set; }
+    internal override void SetChildParents()
+    {
+        if (TagName is { } childTagName) childTagName.Parent = this;
+    }
     public override int ChildCount => (TagName is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -5232,6 +6077,11 @@ public sealed partial class JsxExpressionNode : SyntaxNode
     {
         base.ClearBindingState();
         BindingFlow = null;
+    }
+    internal override void SetChildParents()
+    {
+        if (DotDotDotToken is { } childDotDotDotToken) childDotDotDotToken.Parent = this;
+        if (Expression is { } childExpression) childExpression.Parent = this;
     }
     public override int ChildCount => (DotDotDotToken is null ? 0 : 1) + (Expression is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -5284,6 +6134,11 @@ public sealed partial class SyntaxListNode : SyntaxNode
     {
     }
     public SyntaxNode[] Children { get; set; } = [];
+    internal override void SetChildParents()
+    {
+        if (Children is { } listChildren)
+            foreach (var child in listChildren) child.Parent = this;
+    }
     public override int ChildCount => Children.Length;
     public override SyntaxNode GetChild(int index)
     {
@@ -5311,6 +6166,13 @@ public sealed partial class JSDocNode : SyntaxNode
     }
     public NodeList? Comment { get; set; }
     public NodeList? Tags { get; set; }
+    internal override void SetChildParents()
+    {
+        if (Comment is { } listComment)
+            foreach (var child in listComment) child.Parent = this;
+        if (Tags is { } listTags)
+            foreach (var child in listTags) child.Parent = this;
+    }
     public override int ChildCount => (Comment?.Count ?? 0) + (Tags?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -5345,6 +6207,10 @@ public sealed partial class JSDocTypeExpressionNode : SyntaxNode, ITypedNode
     {
     }
     public SyntaxNode? Type { get; set; }
+    internal override void SetChildParents()
+    {
+        if (Type is { } childType) childType.Parent = this;
+    }
     public override int ChildCount => (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -5367,6 +6233,10 @@ public sealed partial class JSDocNonNullableTypeNode : SyntaxNode, ITypedNode
     {
     }
     public SyntaxNode? Type { get; set; }
+    internal override void SetChildParents()
+    {
+        if (Type is { } childType) childType.Parent = this;
+    }
     public override int ChildCount => (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -5389,6 +6259,10 @@ public sealed partial class JSDocNullableTypeNode : SyntaxNode, ITypedNode
     {
     }
     public SyntaxNode? Type { get; set; }
+    internal override void SetChildParents()
+    {
+        if (Type is { } childType) childType.Parent = this;
+    }
     public override int ChildCount => (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -5430,6 +6304,10 @@ public sealed partial class JSDocVariadicTypeNode : SyntaxNode, ITypedNode
     {
     }
     public SyntaxNode? Type { get; set; }
+    internal override void SetChildParents()
+    {
+        if (Type is { } childType) childType.Parent = this;
+    }
     public override int ChildCount => (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -5452,6 +6330,10 @@ public sealed partial class JSDocOptionalTypeNode : SyntaxNode, ITypedNode
     {
     }
     public SyntaxNode? Type { get; set; }
+    internal override void SetChildParents()
+    {
+        if (Type is { } childType) childType.Parent = this;
+    }
     public override int ChildCount => (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -5476,6 +6358,13 @@ public sealed partial class JSDocTypeTagNode : SyntaxNode, ITypeExpressionNode
     public IdentifierNode? TagName { get; set; }
     public SyntaxNode? TypeExpression { get; set; }
     public NodeList? Comment { get; set; }
+    internal override void SetChildParents()
+    {
+        if (TagName is { } childTagName) childTagName.Parent = this;
+        if (TypeExpression is { } childTypeExpression) childTypeExpression.Parent = this;
+        if (Comment is { } listComment)
+            foreach (var child in listComment) child.Parent = this;
+    }
     public override int ChildCount => (TagName is null ? 0 : 1) + (TypeExpression is null ? 0 : 1) + (Comment?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -5508,6 +6397,12 @@ public sealed partial class JSDocUnknownTagNode : SyntaxNode
     }
     public IdentifierNode? TagName { get; set; }
     public NodeList? Comment { get; set; }
+    internal override void SetChildParents()
+    {
+        if (TagName is { } childTagName) childTagName.Parent = this;
+        if (Comment is { } listComment)
+            foreach (var child in listComment) child.Parent = this;
+    }
     public override int ChildCount => (TagName is null ? 0 : 1) + (Comment?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -5540,6 +6435,15 @@ public sealed partial class JSDocTemplateTagNode : SyntaxNode
     public SyntaxNode? Constraint { get; set; }
     public NodeList? TypeParameters { get; set; }
     public NodeList? Comment { get; set; }
+    internal override void SetChildParents()
+    {
+        if (TagName is { } childTagName) childTagName.Parent = this;
+        if (Constraint is { } childConstraint) childConstraint.Parent = this;
+        if (TypeParameters is { } listTypeParameters)
+            foreach (var child in listTypeParameters) child.Parent = this;
+        if (Comment is { } listComment)
+            foreach (var child in listComment) child.Parent = this;
+    }
     public override int ChildCount => (TagName is null ? 0 : 1) + (Constraint is null ? 0 : 1) + (TypeParameters?.Count ?? 0) + (Comment?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -5580,6 +6484,13 @@ public sealed partial class JSDocReturnTagNode : SyntaxNode, ITypeExpressionNode
     public IdentifierNode? TagName { get; set; }
     public SyntaxNode? TypeExpression { get; set; }
     public NodeList? Comment { get; set; }
+    internal override void SetChildParents()
+    {
+        if (TagName is { } childTagName) childTagName.Parent = this;
+        if (TypeExpression is { } childTypeExpression) childTypeExpression.Parent = this;
+        if (Comment is { } listComment)
+            foreach (var child in listComment) child.Parent = this;
+    }
     public override int ChildCount => (TagName is null ? 0 : 1) + (TypeExpression is null ? 0 : 1) + (Comment?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -5612,6 +6523,12 @@ public sealed partial class JSDocPublicTagNode : SyntaxNode
     }
     public IdentifierNode? TagName { get; set; }
     public NodeList? Comment { get; set; }
+    internal override void SetChildParents()
+    {
+        if (TagName is { } childTagName) childTagName.Parent = this;
+        if (Comment is { } listComment)
+            foreach (var child in listComment) child.Parent = this;
+    }
     public override int ChildCount => (TagName is null ? 0 : 1) + (Comment?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -5642,6 +6559,12 @@ public sealed partial class JSDocPrivateTagNode : SyntaxNode
     }
     public IdentifierNode? TagName { get; set; }
     public NodeList? Comment { get; set; }
+    internal override void SetChildParents()
+    {
+        if (TagName is { } childTagName) childTagName.Parent = this;
+        if (Comment is { } listComment)
+            foreach (var child in listComment) child.Parent = this;
+    }
     public override int ChildCount => (TagName is null ? 0 : 1) + (Comment?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -5672,6 +6595,12 @@ public sealed partial class JSDocProtectedTagNode : SyntaxNode
     }
     public IdentifierNode? TagName { get; set; }
     public NodeList? Comment { get; set; }
+    internal override void SetChildParents()
+    {
+        if (TagName is { } childTagName) childTagName.Parent = this;
+        if (Comment is { } listComment)
+            foreach (var child in listComment) child.Parent = this;
+    }
     public override int ChildCount => (TagName is null ? 0 : 1) + (Comment?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -5702,6 +6631,12 @@ public sealed partial class JSDocReadonlyTagNode : SyntaxNode
     }
     public IdentifierNode? TagName { get; set; }
     public NodeList? Comment { get; set; }
+    internal override void SetChildParents()
+    {
+        if (TagName is { } childTagName) childTagName.Parent = this;
+        if (Comment is { } listComment)
+            foreach (var child in listComment) child.Parent = this;
+    }
     public override int ChildCount => (TagName is null ? 0 : 1) + (Comment?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -5732,6 +6667,12 @@ public sealed partial class JSDocOverrideTagNode : SyntaxNode
     }
     public IdentifierNode? TagName { get; set; }
     public NodeList? Comment { get; set; }
+    internal override void SetChildParents()
+    {
+        if (TagName is { } childTagName) childTagName.Parent = this;
+        if (Comment is { } listComment)
+            foreach (var child in listComment) child.Parent = this;
+    }
     public override int ChildCount => (TagName is null ? 0 : 1) + (Comment?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -5762,6 +6703,12 @@ public sealed partial class JSDocDeprecatedTagNode : SyntaxNode
     }
     public IdentifierNode? TagName { get; set; }
     public NodeList? Comment { get; set; }
+    internal override void SetChildParents()
+    {
+        if (TagName is { } childTagName) childTagName.Parent = this;
+        if (Comment is { } listComment)
+            foreach (var child in listComment) child.Parent = this;
+    }
     public override int ChildCount => (TagName is null ? 0 : 1) + (Comment?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -5793,6 +6740,13 @@ public sealed partial class JSDocSeeTagNode : SyntaxNode
     public IdentifierNode? TagName { get; set; }
     public SyntaxNode? NameExpression { get; set; }
     public NodeList? Comment { get; set; }
+    internal override void SetChildParents()
+    {
+        if (TagName is { } childTagName) childTagName.Parent = this;
+        if (NameExpression is { } childNameExpression) childNameExpression.Parent = this;
+        if (Comment is { } listComment)
+            foreach (var child in listComment) child.Parent = this;
+    }
     public override int ChildCount => (TagName is null ? 0 : 1) + (NameExpression is null ? 0 : 1) + (Comment?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -5826,6 +6780,13 @@ public sealed partial class JSDocImplementsTagNode : SyntaxNode
     public IdentifierNode? TagName { get; set; }
     public ExpressionWithTypeArgumentsNode? ClassName { get; set; }
     public NodeList? Comment { get; set; }
+    internal override void SetChildParents()
+    {
+        if (TagName is { } childTagName) childTagName.Parent = this;
+        if (ClassName is { } childClassName) childClassName.Parent = this;
+        if (Comment is { } listComment)
+            foreach (var child in listComment) child.Parent = this;
+    }
     public override int ChildCount => (TagName is null ? 0 : 1) + (ClassName is null ? 0 : 1) + (Comment?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -5859,6 +6820,13 @@ public sealed partial class JSDocAugmentsTagNode : SyntaxNode
     public IdentifierNode? TagName { get; set; }
     public ExpressionWithTypeArgumentsNode? ClassName { get; set; }
     public NodeList? Comment { get; set; }
+    internal override void SetChildParents()
+    {
+        if (TagName is { } childTagName) childTagName.Parent = this;
+        if (ClassName is { } childClassName) childClassName.Parent = this;
+        if (Comment is { } listComment)
+            foreach (var child in listComment) child.Parent = this;
+    }
     public override int ChildCount => (TagName is null ? 0 : 1) + (ClassName is null ? 0 : 1) + (Comment?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -5892,6 +6860,13 @@ public sealed partial class JSDocSatisfiesTagNode : SyntaxNode, ITypeExpressionN
     public IdentifierNode? TagName { get; set; }
     public SyntaxNode? TypeExpression { get; set; }
     public NodeList? Comment { get; set; }
+    internal override void SetChildParents()
+    {
+        if (TagName is { } childTagName) childTagName.Parent = this;
+        if (TypeExpression is { } childTypeExpression) childTypeExpression.Parent = this;
+        if (Comment is { } listComment)
+            foreach (var child in listComment) child.Parent = this;
+    }
     public override int ChildCount => (TagName is null ? 0 : 1) + (TypeExpression is null ? 0 : 1) + (Comment?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -5925,6 +6900,13 @@ public sealed partial class JSDocThrowsTagNode : SyntaxNode, ITypeExpressionNode
     public IdentifierNode? TagName { get; set; }
     public SyntaxNode? TypeExpression { get; set; }
     public NodeList? Comment { get; set; }
+    internal override void SetChildParents()
+    {
+        if (TagName is { } childTagName) childTagName.Parent = this;
+        if (TypeExpression is { } childTypeExpression) childTypeExpression.Parent = this;
+        if (Comment is { } listComment)
+            foreach (var child in listComment) child.Parent = this;
+    }
     public override int ChildCount => (TagName is null ? 0 : 1) + (TypeExpression is null ? 0 : 1) + (Comment?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -5958,6 +6940,13 @@ public sealed partial class JSDocThisTagNode : SyntaxNode, ITypeExpressionNode
     public IdentifierNode? TagName { get; set; }
     public SyntaxNode? TypeExpression { get; set; }
     public NodeList? Comment { get; set; }
+    internal override void SetChildParents()
+    {
+        if (TagName is { } childTagName) childTagName.Parent = this;
+        if (TypeExpression is { } childTypeExpression) childTypeExpression.Parent = this;
+        if (Comment is { } listComment)
+            foreach (var child in listComment) child.Parent = this;
+    }
     public override int ChildCount => (TagName is null ? 0 : 1) + (TypeExpression is null ? 0 : 1) + (Comment?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -5993,6 +6982,15 @@ public sealed partial class JSDocImportTagNode : SyntaxNode
     public SyntaxNode? ModuleSpecifier { get; set; }
     public ImportAttributesNode? Attributes { get; set; }
     public NodeList? Comment { get; set; }
+    internal override void SetChildParents()
+    {
+        if (TagName is { } childTagName) childTagName.Parent = this;
+        if (ImportClause is { } childImportClause) childImportClause.Parent = this;
+        if (ModuleSpecifier is { } childModuleSpecifier) childModuleSpecifier.Parent = this;
+        if (Attributes is { } childAttributes) childAttributes.Parent = this;
+        if (Comment is { } listComment)
+            foreach (var child in listComment) child.Parent = this;
+    }
     public override int ChildCount => (TagName is null ? 0 : 1) + (ImportClause is null ? 0 : 1) + (ModuleSpecifier is null ? 0 : 1) + (Attributes is null ? 0 : 1) + (Comment?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -6032,6 +7030,15 @@ public sealed partial class JSDocCallbackTagNode : SyntaxNode, ITypeExpressionNo
     public SyntaxNode? Name { get; set; }
     public NodeList? Comment { get; set; }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override void SetChildParents()
+    {
+        if (TagName is { } childTagName) childTagName.Parent = this;
+        if (TypeExpression is { } childTypeExpression) childTypeExpression.Parent = this;
+        if (Name is { } childName) childName.Parent = this;
+        if (Comment is { } listComment)
+            foreach (var child in listComment) child.Parent = this;
+    }
     public override int ChildCount => (TagName is null ? 0 : 1) + (TypeExpression is null ? 0 : 1) + (Name is null ? 0 : 1) + (Comment?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -6067,6 +7074,13 @@ public sealed partial class JSDocOverloadTagNode : SyntaxNode, ITypeExpressionNo
     public IdentifierNode? TagName { get; set; }
     public SyntaxNode? TypeExpression { get; set; }
     public NodeList? Comment { get; set; }
+    internal override void SetChildParents()
+    {
+        if (TagName is { } childTagName) childTagName.Parent = this;
+        if (TypeExpression is { } childTypeExpression) childTypeExpression.Parent = this;
+        if (Comment is { } listComment)
+            foreach (var child in listComment) child.Parent = this;
+    }
     public override int ChildCount => (TagName is null ? 0 : 1) + (TypeExpression is null ? 0 : 1) + (Comment?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -6102,6 +7116,15 @@ public sealed partial class JSDocTypedefTagNode : SyntaxNode, ITypeExpressionNod
     public SyntaxNode? Name { get; set; }
     public NodeList? Comment { get; set; }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override void SetChildParents()
+    {
+        if (TagName is { } childTagName) childTagName.Parent = this;
+        if (TypeExpression is { } childTypeExpression) childTypeExpression.Parent = this;
+        if (Name is { } childName) childName.Parent = this;
+        if (Comment is { } listComment)
+            foreach (var child in listComment) child.Parent = this;
+    }
     public override int ChildCount => (TagName is null ? 0 : 1) + (TypeExpression is null ? 0 : 1) + (Name is null ? 0 : 1) + (Comment?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -6151,6 +7174,15 @@ public sealed partial class JSDocSignatureNode : SyntaxNode, ITypedNode, IFuncti
         BindingLocals = null;
         BindingLocalsView = null;
     }
+    internal override bool HasFunctionSignature => true;
+    internal override void SetChildParents()
+    {
+        if (TypeParameters is { } listTypeParameters)
+            foreach (var child in listTypeParameters) child.Parent = this;
+        if (Parameters is { } listParameters)
+            foreach (var child in listParameters) child.Parent = this;
+        if (Type is { } childType) childType.Parent = this;
+    }
     public override int ChildCount => (TypeParameters?.Count ?? 0) + (Parameters?.Count ?? 0) + (Type is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -6188,6 +7220,11 @@ public sealed partial class JSDocNameReferenceNode : SyntaxNode, INamedNode
     }
     public SyntaxNode? Name { get; set; }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override void SetChildParents()
+    {
+        if (Name is { } childName) childName.Parent = this;
+    }
     public override int ChildCount => (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -6224,6 +7261,12 @@ public sealed partial class SourceFileNode : SyntaxNode
         BindingFlow = null;
         BindingLocals = null;
         BindingLocalsView = null;
+    }
+    internal override void SetChildParents()
+    {
+        if (Statements is { } listStatements)
+            foreach (var child in listStatements) child.Parent = this;
+        if (EndOfFileToken is { } childEndOfFileToken) childEndOfFileToken.Parent = this;
     }
     public override int ChildCount => (Statements?.Count ?? 0) + (EndOfFileToken is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
@@ -6273,6 +7316,16 @@ public sealed partial class ModuleDeclarationNode : SyntaxNode, IModifiedNode, I
         BindingLocalsView = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override NodeList? ModifierList => Modifiers;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
+        if (Name is { } childName) childName.Parent = this;
+        if (Attributes is { } childAttributes) childAttributes.Parent = this;
+        if (Body is { } childBody) childBody.Parent = this;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (Attributes is null ? 0 : 1) + (Body is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -6320,6 +7373,15 @@ public sealed partial class ImportEqualsDeclarationNode : SyntaxNode, IModifiedN
         BindingFlow = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override NodeList? ModifierList => Modifiers;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
+        if (Name is { } childName) childName.Parent = this;
+        if (ModuleReference is { } childModuleReference) childModuleReference.Parent = this;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (ModuleReference is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -6365,6 +7427,15 @@ public sealed partial class ExportDeclarationNode : SyntaxNode, IModifiedNode
         BindingLocalSymbol = null;
         BindingFlow = null;
     }
+    internal override NodeList? ModifierList => Modifiers;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
+        if (ExportClause is { } childExportClause) childExportClause.Parent = this;
+        if (ModuleSpecifier is { } childModuleSpecifier) childModuleSpecifier.Parent = this;
+        if (Attributes is { } childAttributes) childAttributes.Parent = this;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (ExportClause is null ? 0 : 1) + (ModuleSpecifier is null ? 0 : 1) + (Attributes is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -6402,6 +7473,14 @@ public sealed partial class ImportTypeNode : SyntaxNode
     public ImportAttributesNode? Attributes { get; set; }
     public SyntaxNode? Qualifier { get; set; }
     public NodeList? TypeArguments { get; set; }
+    internal override void SetChildParents()
+    {
+        if (Argument is { } childArgument) childArgument.Parent = this;
+        if (Attributes is { } childAttributes) childAttributes.Parent = this;
+        if (Qualifier is { } childQualifier) childQualifier.Parent = this;
+        if (TypeArguments is { } listTypeArguments)
+            foreach (var child in listTypeArguments) child.Parent = this;
+    }
     public override int ChildCount => (Argument is null ? 0 : 1) + (Attributes is null ? 0 : 1) + (Qualifier is null ? 0 : 1) + (TypeArguments?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {
@@ -6448,6 +7527,12 @@ public sealed partial class ImportClauseNode : SyntaxNode, INamedNode
         BindingFlow = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override void SetChildParents()
+    {
+        if (Name is { } childName) childName.Parent = this;
+        if (NamedBindings is { } childNamedBindings) childNamedBindings.Parent = this;
+    }
     public override int ChildCount => (Name is null ? 0 : 1) + (NamedBindings is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -6485,6 +7570,12 @@ public sealed partial class ImportSpecifierNode : SyntaxNode, INamedNode
         BindingFlow = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override void SetChildParents()
+    {
+        if (PropertyName is { } childPropertyName) childPropertyName.Parent = this;
+        if (Name is { } childName) childName.Parent = this;
+    }
     public override int ChildCount => (PropertyName is null ? 0 : 1) + (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -6532,6 +7623,11 @@ public sealed partial class JSDocLinkNode : SyntaxNode, INamedNode
     public SyntaxNode? Name { get; set; }
     public TextSlice[] Text { get; set; } = [];
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override void SetChildParents()
+    {
+        if (Name is { } childName) childName.Parent = this;
+    }
     public override int ChildCount => (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -6557,6 +7653,11 @@ public sealed partial class JSDocLinkPlainNode : SyntaxNode, INamedNode
     public SyntaxNode? Name { get; set; }
     public TextSlice[] Text { get; set; } = [];
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override void SetChildParents()
+    {
+        if (Name is { } childName) childName.Parent = this;
+    }
     public override int ChildCount => (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -6582,6 +7683,11 @@ public sealed partial class JSDocLinkCodeNode : SyntaxNode, INamedNode
     public SyntaxNode? Name { get; set; }
     public TextSlice[] Text { get; set; } = [];
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override void SetChildParents()
+    {
+        if (Name is { } childName) childName.Parent = this;
+    }
     public override int ChildCount => (Name is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -6620,6 +7726,17 @@ public sealed partial class TypeParameterDeclarationNode : SyntaxNode, IModified
         BindingFlow = null;
     }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override NodeList? ModifierList => Modifiers;
+    internal override void SetChildParents()
+    {
+        if (Modifiers is { } listModifiers)
+            foreach (var child in listModifiers) child.Parent = this;
+        if (Name is { } childName) childName.Parent = this;
+        if (Constraint is { } childConstraint) childConstraint.Parent = this;
+        if (Expression is { } childExpression) childExpression.Parent = this;
+        if (DefaultType is { } childDefaultType) childDefaultType.Parent = this;
+    }
     public override int ChildCount => (Modifiers?.Count ?? 0) + (Name is null ? 0 : 1) + (Constraint is null ? 0 : 1) + (Expression is null ? 0 : 1) + (DefaultType is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -6662,6 +7779,11 @@ public sealed partial class SyntheticReferenceExpressionNode : SyntaxNode
         base.ClearBindingState();
         BindingFlow = null;
     }
+    internal override void SetChildParents()
+    {
+        if (Expression is { } childExpression) childExpression.Parent = this;
+        if (ThisArg is { } childThisArg) childThisArg.Parent = this;
+    }
     public override int ChildCount => (Expression is null ? 0 : 1) + (ThisArg is null ? 0 : 1);
     public override SyntaxNode GetChild(int index)
     {
@@ -6697,6 +7819,11 @@ public sealed partial class JSDocTypeLiteralNode : SyntaxNode
         BindingLocalSymbol = null;
         BindingFlow = null;
     }
+    internal override void SetChildParents()
+    {
+        if (JSDocPropertyTags is { } listJSDocPropertyTags)
+            foreach (var child in listJSDocPropertyTags) child.Parent = this;
+    }
     public override int ChildCount => JSDocPropertyTags.Length;
     public override SyntaxNode GetChild(int index)
     {
@@ -6730,6 +7857,15 @@ public sealed partial class JSDocParameterOrPropertyTagNode : SyntaxNode, ITypeE
     public bool IsNameFirst { get; set; }
     public NodeList? Comment { get; set; }
     SyntaxNode? INamedNode.Name => Name;
+    internal override SyntaxNode? DeclarationName => Name;
+    internal override void SetChildParents()
+    {
+        if (TagName is { } childTagName) childTagName.Parent = this;
+        if (Name is { } childName) childName.Parent = this;
+        if (TypeExpression is { } childTypeExpression) childTypeExpression.Parent = this;
+        if (Comment is { } listComment)
+            foreach (var child in listComment) child.Parent = this;
+    }
     public override int ChildCount => (TagName is null ? 0 : 1) + (Name is null ? 0 : 1) + (TypeExpression is null ? 0 : 1) + (Comment?.Count ?? 0);
     public override SyntaxNode GetChild(int index)
     {

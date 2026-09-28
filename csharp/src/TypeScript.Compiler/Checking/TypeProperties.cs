@@ -165,9 +165,9 @@ internal sealed class TypeProperties(TypeContext context, CheckerLinks links, Ch
     {
         S flags = 0;
         Symbol? single = null;
-        var properties = new List<Symbol>();
-        var propertySet = new HashSet<Symbol>();
-        var indexTypes = new List<Type>();
+        List<Symbol>? properties = null;
+        HashSet<Symbol>? propertySet = null;
+        List<Type>? indexTypes = null;
         bool isUnion = containingType is UnionType, mergedInstantiations = false;
         C checks = isUnion ? 0 : C.Readonly;
         S optional = isUnion ? 0 : S.Optional;
@@ -196,12 +196,12 @@ internal sealed class TypeProperties(TypeContext context, CheckerLinks links, Ch
                             && scopes.Local(parent).Count != 0;
                     else
                     {
-                        if (properties.Count == 0)
+                        if (properties is null)
                         {
-                            properties.Add(single);
-                            propertySet.Add(single);
+                            properties = [single];
+                            propertySet = [single];
                         }
-                        if (propertySet.Add(property))
+                        if (propertySet!.Add(property))
                             properties.Add(property);
                     }
                     if ((flags & S.Accessor) != 0 && (property.Flags & S.Accessor) != (flags & S.Accessor))
@@ -223,13 +223,13 @@ internal sealed class TypeProperties(TypeContext context, CheckerLinks links, Ch
                 {
                     flags = flags & ~S.Accessor | S.Property;
                     checks |= C.WritePartial | (index.IsReadonly ? C.Readonly : 0);
-                    indexTypes.Add(type is TypeReference { Target: TupleType } tuple
+                    (indexTypes ??= []).Add(type is TypeReference { Target: TupleType } tuple
                         ? await host.TupleRestAsync(tuple, cancellation).ConfigureAwait(false) ?? context.UndefinedType : index.ValueType);
                 }
                 else if ((type.ObjectFlags & O.ObjectLiteral) != 0 && (type.ObjectFlags & O.ContainsSpread) == 0)
                 {
                     checks |= C.WritePartial;
-                    indexTypes.Add(context.UndefinedType);
+                    (indexTypes ??= []).Add(context.UndefinedType);
                 }
                 else
                     checks |= C.ReadPartial;
@@ -237,9 +237,9 @@ internal sealed class TypeProperties(TypeContext context, CheckerLinks links, Ch
         }
         if (single is null)
             return null;
-        if (isUnion && (properties.Count != 0 || (checks & C.Partial) != 0)
+        if (isUnion && (properties is not null || (checks & C.Partial) != 0)
             && (checks & (C.ContainsPrivate | C.ContainsProtected | C.ContainsWritePrivate | C.ContainsWriteProtected)) != 0
-            && !(properties.Count != 0 && CommonDeclaration(properties)))
+            && !(properties is not null && CommonDeclaration(properties)))
         {
             if ((checks & (C.ContainsPrivate | C.ContainsProtected)) != 0)
                 return null;
@@ -248,7 +248,7 @@ internal sealed class TypeProperties(TypeContext context, CheckerLinks links, Ch
             else if ((checks & C.ContainsWriteProtected) != 0)
                 checks &= ~C.ContainsWritePublic;
         }
-        if (properties.Count == 0 && (checks & C.ReadPartial) == 0 && indexTypes.Count == 0)
+        if (properties is null && (checks & C.ReadPartial) == 0 && indexTypes is null)
         {
             if (!mergedInstantiations)
                 return single;
@@ -270,8 +270,7 @@ internal sealed class TypeProperties(TypeContext context, CheckerLinks links, Ch
             }
             return clone;
         }
-        if (properties.Count == 0)
-            properties.Add(single);
+        properties ??= [single];
         var declarations = new List<SyntaxNode>();
         var declarationSet = new HashSet<SyntaxNode>();
         Type? firstType = null, nameType = null;
@@ -308,7 +307,8 @@ internal sealed class TypeProperties(TypeContext context, CheckerLinks links, Ch
                 checks |= C.HasNeverType;
             types.Add(type);
         }
-        types.AddRange(indexTypes);
+        if (indexTypes is not null)
+            types.AddRange(indexTypes);
         Type? resolved = null, resolvedWrite = null;
         if (types.Count <= 2)
         {
@@ -351,7 +351,7 @@ internal sealed class TypeProperties(TypeContext context, CheckerLinks links, Ch
             context.RequireOwned(type);
         var result = new Symbol(source.Flags | S.Transient, source.Name)
         { CheckFlags = source.CheckFlags & C.Readonly, Parent = source.Parent, ValueDeclaration = source.ValueDeclaration };
-        result.DeclarationList = result.DeclarationList.AddRange(source.Declarations);
+        result.DeclarationList = source.Declarations;
         var data = links.Values.Get(result);
         data.ResolvedType = type;
         data.Target = source;

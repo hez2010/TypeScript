@@ -57,6 +57,22 @@ internal static class FoundationTests
         sourceBytes[0] = 0;
         Check(source.Text.Span.StartsWith('a') && source.Bytes.Span[0] == 'a', "Source owns bytes");
         Check(source.GetLineAndCharacter(source.ToBytePosition(7)) == (1, 2), "Byte/UTF-16/line mapping");
+        var sharedMap = new PositionMap("Aé😀Z"u8);
+        int[] bytePositions = [-1, 0, 1, 2, 2, 3, 4, 5, 4, 5, 6];
+        int[] charPositions = [-1, 0, 1, 3, 4, 7, 8, 9];
+        int mappingFailure = 0;
+        Parallel.For(0, 8, worker =>
+        {
+            for (int step = 0; step < 1024; step++)
+            {
+                int b = (step * 7 + worker) % bytePositions.Length;
+                int c = (step * 3 + worker) % charPositions.Length;
+                if (sharedMap.Utf8ToUtf16(b - 1) != bytePositions[b]
+                    || sharedMap.Utf16ToUtf8(c - 1) != charPositions[c])
+                    Interlocked.Exchange(ref mappingFailure, 1);
+            }
+        });
+        Check(mappingFailure == 0, "Shared position mapping handles concurrent, nonmonotonic and interior offsets");
         Check(SourceEncoding.Decode([0xFF, 0xFE, 0, 0xD8, 0x41, 0]) == "\ud800A", "UTF-16 LE source preserves surrogate");
         Check(SourceEncoding.Decode([0xFE, 0xFF, 0xD8, 0, 0, 0x41]) == "\ud800A", "UTF-16 BE source preserves surrogate");
         Check(SourceEncoding.Decode([0xEF, 0xBB, 0xBF, 0x41]) == "A", "UTF-8 BOM");

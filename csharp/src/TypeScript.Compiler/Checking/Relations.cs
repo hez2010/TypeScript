@@ -57,13 +57,20 @@ internal sealed class RelationSession(
         expanding = 0;
     }
 
-    internal async ValueTask<Ternary> RecursiveAsync(
+    internal ValueTask<Ternary> RecursiveAsync(
+        Type source, Type target, IntersectionState intersection, RecursionFlags flags, bool reportErrors,
+        Func<ValueTask<Ternary>> structured, Func<Type, Type, CancellationToken, ValueTask> reportOverflow,
+        CancellationToken cancellation = default) =>
+        RecursiveAsync(source, target, intersection, flags, reportErrors, structured, static compare => compare(), reportOverflow, cancellation);
+
+    internal async ValueTask<Ternary> RecursiveAsync<TState>(
         Type source,
         Type target,
         IntersectionState intersection,
         RecursionFlags flags,
         bool reportErrors,
-        Func<ValueTask<Ternary>> structured,
+        TState comparisonState,
+        Func<TState, ValueTask<Ternary>> structured,
         Func<Type, Type, CancellationToken, ValueTask> reportOverflow,
         CancellationToken cancellation = default)
     {
@@ -76,6 +83,7 @@ internal sealed class RelationSession(
                 intersection,
                 flags,
                 reportErrors,
+                comparisonState,
                 structured,
                 reportOverflow,
                 cancellation).ConfigureAwait(false);
@@ -92,13 +100,14 @@ internal sealed class RelationSession(
         }
     }
 
-    private async ValueTask<Ternary> RecursiveCoreAsync(
+    private async ValueTask<Ternary> RecursiveCoreAsync<TState>(
         Type source,
         Type target,
         IntersectionState intersection,
         RecursionFlags flags,
         bool reportErrors,
-        Func<ValueTask<Ternary>> structured,
+        TState comparisonState,
+        Func<TState, ValueTask<Ternary>> structured,
         Func<Type, Type, CancellationToken, ValueTask> reportOverflow,
         CancellationToken cancellation)
     {
@@ -169,7 +178,7 @@ internal sealed class RelationSession(
                     expanding |= ExpandingFlags.Target;
             }
             state.Reliability = 0;
-            result = expanding == ExpandingFlags.Both ? Ternary.Maybe : await structured().ConfigureAwait(false);
+            result = expanding == ExpandingFlags.Both ? Ternary.Maybe : await structured(comparisonState).ConfigureAwait(false);
             cancellation.ThrowIfCancellationRequested();
             reliability = state.Reliability;
         }

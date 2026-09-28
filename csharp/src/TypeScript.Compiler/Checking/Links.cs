@@ -1,4 +1,5 @@
 using TypeScript.Compiler.Text;
+using System.Runtime.InteropServices;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
 
@@ -19,9 +20,8 @@ internal sealed class LinkStore<TKey, TValue> where TKey : class where TValue : 
 
     internal TValue Get(TKey key)
     {
-        if (!values.TryGetValue(key, out var value))
-            values.Add(key, value = new());
-        return value;
+        ref var value = ref CollectionsMarshal.GetValueRefOrAddDefault(values, key, out _);
+        return value ??= new();
     }
 }
 
@@ -137,16 +137,16 @@ internal sealed class CheckerLinks
 
     internal bool HasResolvedProperty(object target, TypeSystemPropertyName property) => property switch
     {
-        TypeSystemPropertyName.Type => Values.Get((Symbol)target).ResolvedType is not null,
-        TypeSystemPropertyName.DeclaredType => TypeAliases.Get((Symbol)target).DeclaredType is not null,
+        TypeSystemPropertyName.Type => Values.TryGet((Symbol)target)?.ResolvedType is not null,
+        TypeSystemPropertyName.DeclaredType => TypeAliases.TryGet((Symbol)target)?.DeclaredType is not null,
         TypeSystemPropertyName.ResolvedTypeArguments => ((TypeReference)target).ResolvedTypeArguments is not null,
         TypeSystemPropertyName.ResolvedBaseTypes => ((InterfaceType)target).BaseTypesResolved,
         TypeSystemPropertyName.ResolvedBaseConstructorType => ((InterfaceType)target).ResolvedBaseConstructorType is not null,
         TypeSystemPropertyName.ResolvedReturnType => ((Signature)target).ResolvedReturnType is not null,
         TypeSystemPropertyName.ResolvedBaseConstraint => ((ConstrainedType)target).ResolvedBaseConstraint is not null,
-        TypeSystemPropertyName.InitializerIsUndefined => (Nodes.Get((SyntaxNode)target).Flags & NodeCheckFlags.InitializerIsUndefinedComputed) != 0,
-        TypeSystemPropertyName.WriteType => Values.Get((Symbol)target).WriteType is not null,
-        TypeSystemPropertyName.AliasTarget => Aliases.Get((Symbol)target).AliasTarget is not null,
+        TypeSystemPropertyName.InitializerIsUndefined => ((Nodes.TryGet((SyntaxNode)target)?.Flags ?? 0) & NodeCheckFlags.InitializerIsUndefinedComputed) != 0,
+        TypeSystemPropertyName.WriteType => Values.TryGet((Symbol)target)?.WriteType is not null,
+        TypeSystemPropertyName.AliasTarget => Aliases.TryGet((Symbol)target)?.AliasTarget is not null,
         _ => throw new ArgumentOutOfRangeException(nameof(property))
     };
 }

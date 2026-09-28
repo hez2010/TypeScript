@@ -96,7 +96,8 @@ internal static class ProgramGraphTests
         {
             assertions++;
         }
-        // A slow second file must not prevent the first worker from admitting a third file.
+        // Publication waits for the first file, but its idle peer must still
+        // admit a third file. A fixed window of outstanding tasks deadlocks here.
         using var thirdRead = new ManualResetEventSlim();
         var scheduledFiles = new Dictionary<string, byte[]>
         {
@@ -106,15 +107,15 @@ internal static class ProgramGraphTests
         };
         var scheduledFs = new ObservedFileSystem(new MemoryFileSystem(scheduledFiles), path =>
         {
-            if (path == "/scheduled/b.ts" && !thirdRead.Wait(TimeSpan.FromSeconds(15)))
-                throw new InvalidOperationException("Program loading waited for a complete batch");
+            if (path == "/scheduled/a.ts" && !thirdRead.Wait(TimeSpan.FromSeconds(15)))
+                throw new InvalidOperationException("Program publication blocked an idle parser worker");
             if (path == "/scheduled/c.ts")
                 thirdRead.Set();
         });
         var scheduledConfig = new ParsedConfig("/scheduled/tsconfig.json", options, scheduledFiles.Keys.ToArray(), [], [], []);
         var scheduled = await CompilerProgram.CreateAsync(scheduledFs, "/scheduled", scheduledConfig, concurrency: 2);
         Check(thirdRead.IsSet && scheduled.SourceFiles.Select(f => f.Syntax.FileName).SequenceEqual(scheduledFiles.Keys),
-            "Workers refill without a batch barrier and publication preserves root order");
+            "Workers refill behind a blocked publication and preserve root order");
         Check(scheduled.SourceFiles.All(f => f.Binding.IsModule && f.Binding.Symbol!.Exports.Count == 1),
             "Every published file has completed binding");
         var serialScheduled = await CompilerProgram.CreateAsync(new MemoryFileSystem(scheduledFiles), "/scheduled",

@@ -308,8 +308,7 @@ public sealed partial class Parser
             hasError = false;
         }
 
-        for (int i = 0; i < node.ChildCount; i++)
-            node.GetChild(i).Parent = node;
+        node.SetChildParents();
         return node;
     }
 
@@ -555,15 +554,15 @@ public sealed partial class Parser
                 or K.AccessorKeyword
                 || allowConst && Token is K.ConstKeyword or K.InKeyword or K.OutKeyword
                 || Token == K.ConstKeyword && NextIs(K.EnumKeyword);
-            if (Token == K.ExportKeyword && Peek(() =>
+            if (Token == K.ExportKeyword && Peek(static parser =>
             {
-                Next();
-                if (Token is K.OpenBraceToken or K.AsteriskToken or K.EqualsToken or K.AsKeyword)
+                parser.Next();
+                if (parser.Token is K.OpenBraceToken or K.AsteriskToken or K.EqualsToken or K.AsKeyword)
                     return true;
-                if (Token == K.TypeKeyword)
-                    return Next() is K.OpenBraceToken or K.AsteriskToken;
-                if (Token == K.DefaultKeyword)
-                    return Next() is not (K.ClassKeyword or K.FunctionKeyword or K.InterfaceKeyword or K.AbstractKeyword
+                if (parser.Token == K.TypeKeyword)
+                    return parser.Next() is K.OpenBraceToken or K.AsteriskToken;
+                if (parser.Token == K.DefaultKeyword)
+                    return parser.Next() is not (K.ClassKeyword or K.FunctionKeyword or K.InterfaceKeyword or K.AbstractKeyword
                         or K.AsyncKeyword or K.AtToken);
                 return false;
             }))
@@ -573,12 +572,13 @@ public sealed partial class Parser
             if (Token == K.StaticKeyword && nodes?.Any(n => n.Kind == K.StaticKeyword) == true)
                 break;
             K modifierKind = Token;
-            if (!modifier || !Peek(() =>
+            if (!modifier || !Peek((Parser: this, Kind: modifierKind), static state =>
             {
-                Next();
-                return (!LineBreak || modifierKind is K.ExportKeyword or K.DefaultKeyword or K.StaticKeyword)
-                    && (Token >= K.Identifier
-                        || Token is K.PrivateIdentifier or K.StringLiteral or K.NumericLiteral or K.BigIntLiteral or K.OpenBracketToken
+                var parser = state.Parser;
+                parser.Next();
+                return (!parser.LineBreak || state.Kind is K.ExportKeyword or K.DefaultKeyword or K.StaticKeyword)
+                    && (parser.Token >= K.Identifier
+                        || parser.Token is K.PrivateIdentifier or K.StringLiteral or K.NumericLiteral or K.BigIntLiteral or K.OpenBracketToken
                             or K.OpenBraceToken or K.DotDotDotToken or K.AsteriskToken or K.AtToken);
             }))
                 break;

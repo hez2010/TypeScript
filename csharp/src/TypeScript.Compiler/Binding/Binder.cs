@@ -94,7 +94,7 @@ public sealed partial class Binder
             : p,
         CallExpressionNode { Arguments: { Count: 3 } args } => args[1],
         ExportAssignmentNode { Expression: IdentifierNode name } => name,
-        _ => (node as INamedNode)?.Name
+        _ => node.DeclarationName
     };
 
     private static bool Has(SyntaxNode node, K kind) => SemanticSyntax.HasModifier(node, kind);
@@ -117,7 +117,7 @@ public sealed partial class Binder
 
     private static bool ClassLike(SyntaxNode node) => node.Kind is K.ClassDeclaration or K.ClassExpression;
 
-    private static bool FunctionLike(SyntaxNode node) => node is IFunctionSignature;
+    private static bool FunctionLike(SyntaxNode node) => node.HasFunctionSignature;
 
     private static SyntaxNode? ContainingClass(SyntaxNode node)
     {
@@ -150,27 +150,65 @@ public sealed partial class Binder
         _ => null
     };
 
-    private async ValueTask Visit(SyntaxNode? node)
+    private ValueTask Visit(SyntaxNode? node)
     {
         if (node is null)
-            return;
-        await Task.CompletedTask.ConfigureAwait(RuntimeHelpers.TryEnsureSufficientExecutionStack()
-            ? ConfigureAwaitOptions.None : ConfigureAwaitOptions.ForceYielding);
+            return default;
         cancellation.ThrowIfCancellationRequested();
+        if (node.Kind <= K.LastToken)
+        {
+            // Tokens cannot recurse. Keep them out of the container and async
+            // traversal machinery, while preserving their flow and error state.
+            switch (node.Kind)
+            {
+                case K.Identifier when node is IdentifierNode:
+                    Data(node).Flow = currentFlow;
+                    CheckIdentifier(node);
+                    break;
+                case K.PrivateIdentifier when node is PrivateIdentifierNode { Text.Span: "#constructor" }:
+                    if (file.ParseDiagnostics.Count == 0)
+                        Error(node, Messages.X_constructor_is_a_reserved_word, SourceName(node));
+                    break;
+                case K.ThisKeyword:
+                    seenThis = true;
+                    Data(node).Flow = currentFlow;
+                    break;
+                case K.SuperKeyword:
+                    Data(node).Flow = currentFlow;
+                    break;
+            }
+            RecordParseError(node, (node.Flags & NodeFlags.ThisNodeHasError) != 0);
+            return default;
+        }
+        if (!RuntimeHelpers.TryEnsureSufficientExecutionStack())
+            return VisitOnFreshStack(node);
         DeclareNode(node);
         bool hasError = (node.Flags & NodeFlags.ThisNodeHasError) != 0;
-        if (node.Kind > K.LastToken)
-        {
-            bool savedError = seenParseError;
-            seenParseError = false;
-            if (IsContainer(node) || BlockScope(node) || node.Kind == K.ModuleBlock
-                || node is PropertyDeclarationNode { Initializer: not null })
-                await VisitContainer(node).ConfigureAwait(false);
-            else
-                await Children(node).ConfigureAwait(false);
-            hasError |= seenParseError;
-            seenParseError = savedError;
-        }
+        return VisitChildren(node, hasError);
+    }
+
+    private async ValueTask VisitOnFreshStack(SyntaxNode node)
+    {
+        await Task.CompletedTask.ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
+        await Visit(node).ConfigureAwait(false);
+    }
+
+    private async ValueTask VisitChildren(SyntaxNode node, bool hasError)
+    {
+        bool savedError = seenParseError;
+        seenParseError = false;
+        if (IsContainer(node) || BlockScope(node) || node.Kind == K.ModuleBlock
+            || node is PropertyDeclarationNode { Initializer: not null })
+            await VisitContainer(node).ConfigureAwait(false);
+        else
+            await Children(node).ConfigureAwait(false);
+        hasError |= seenParseError;
+        seenParseError = savedError;
+        RecordParseError(node, hasError);
+    }
+
+    private void RecordParseError(SyntaxNode node, bool hasError)
+    {
         if (hasError)
         {
             Data(node).Flags |= NodeFlags.ThisNodeOrAnySubNodesHasError;
@@ -188,13 +226,6 @@ public sealed partial class Binder
 
     private void DeclareNode(SyntaxNode node)
     {
-        S optional = node switch
-        {
-            PropertyDeclarationNode { PostfixToken.Kind: K.QuestionToken }
-                or PropertySignatureDeclarationNode { PostfixToken.Kind: K.QuestionToken }
-                or MethodDeclarationNode { PostfixToken.Kind: K.QuestionToken } or MethodSignatureDeclarationNode { PostfixToken.Kind: K.QuestionToken } => S.Optional,
-            _ => 0
-        };
         if (!file.IsDeclarationFile && (node.Flags & NodeFlags.Ambient) == 0 && Has(node, K.AsyncKeyword) && Body(node) is not null
             && node.Kind is K.FunctionDeclaration or K.FunctionExpression or K.ArrowFunction or K.MethodDeclaration
             && node is not (FunctionDeclarationNode { AsteriskToken: not null } or FunctionExpressionNode { AsteriskToken: not null }
@@ -202,20 +233,12 @@ public sealed partial class Binder
             emitFlags |= NodeFlags.HasAsyncFunctions;
         switch (node.Kind)
         {
-            case K.Identifier when node is IdentifierNode:
-                Data(node).Flow = currentFlow;
-                CheckIdentifier(node);
-                break;
             case K.QualifiedName when node is QualifiedNameNode:
                 SyntaxNode qualified = node;
                 while (qualified.Parent is QualifiedNameNode parentName)
                     qualified = parentName;
                 if (qualified.Parent is TypeQueryNode)
                     Data(node).Flow = currentFlow;
-                break;
-            case K.PrivateIdentifier when node is (PrivateIdentifierNode { Text.Span: "#constructor" }):
-                if (file.ParseDiagnostics.Count == 0)
-                    Error(node, Messages.X_constructor_is_a_reserved_word, SourceName(node));
                 break;
             case K.SourceFile when node is SourceFileNode:
                 SetExportContext(node);
@@ -361,17 +384,17 @@ public sealed partial class Binder
                 }
                 break;
             case K.PropertyDeclaration when node is PropertyDeclarationNode:
-                Property(node, (Has(node, K.AccessorKeyword) ? S.Accessor : S.Property) | optional,
+                Property(node, (Has(node, K.AccessorKeyword) ? S.Accessor : S.Property) | OptionalMember(node),
                     Has(node, K.AccessorKeyword) ? S.AccessorExcludes : S.PropertyExcludes);
                 break;
             case K.PropertySignature or K.PropertyAssignment or K.ShorthandPropertyAssignment when node is (PropertySignatureDeclarationNode or PropertyAssignmentNode or ShorthandPropertyAssignmentNode):
-                Property(node, S.Property | optional, S.PropertyExcludes);
+                Property(node, S.Property | OptionalMember(node), S.PropertyExcludes);
                 break;
             case K.EnumMember when node is EnumMemberNode:
                 Property(node, S.EnumMember, S.EnumMemberExcludes);
                 break;
             case K.MethodDeclaration or K.MethodSignature when node is (MethodDeclarationNode or MethodSignatureDeclarationNode):
-                Property(node, S.Method | optional, node.Parent is ObjectLiteralExpressionNode ? S.Value : S.MethodExcludes);
+                Property(node, S.Method | OptionalMember(node), node.Parent is ObjectLiteralExpressionNode ? S.Value : S.MethodExcludes);
                 break;
             case K.GetAccessor when node is GetAccessorDeclarationNode:
                 Property(node, S.GetAccessor, S.GetAccessorExcludes);
@@ -476,9 +499,9 @@ public sealed partial class Binder
                 Error(label.Label!, Messages.A_label_is_not_allowed_here, firstToken: true);
                 break;
         }
-        if (node.Kind is K.ThisKeyword or K.SuperKeyword or K.MetaProperty)
+        if (node.Kind == K.MetaProperty)
             Data(node).Flow = currentFlow;
-        if (node.Kind is K.ThisKeyword or K.ThisType)
+        if (node.Kind == K.ThisType)
             seenThis = true;
     }
 
@@ -487,6 +510,15 @@ public sealed partial class Binder
         result.SymbolCount++;
         return new(flags, name) { Parent = parent };
     }
+
+    private static S OptionalMember(SyntaxNode node) => node switch
+    {
+        PropertyDeclarationNode { PostfixToken.Kind: K.QuestionToken }
+            or PropertySignatureDeclarationNode { PostfixToken.Kind: K.QuestionToken }
+            or MethodDeclarationNode { PostfixToken.Kind: K.QuestionToken }
+            or MethodSignatureDeclarationNode { PostfixToken.Kind: K.QuestionToken } => S.Optional,
+        _ => 0
+    };
 
     private Symbol Anonymous(SyntaxNode node, S flags, TextSlice name)
     {

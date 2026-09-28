@@ -46,6 +46,8 @@ internal static class CheckerWorkloadTests
             writer.WriteString("runtime", RuntimeInformation.FrameworkDescription);
             writer.WriteBoolean("serverGC", GCSettings.IsServerGC);
             writer.WriteNumber("elapsedMs", result.Elapsed);
+            writer.WriteNumber("startedTimestamp", result.Started);
+            writer.WriteNumber("stoppedTimestamp", result.Stopped);
             writer.WriteNumber("cpuMs", result.Cpu);
             writer.WriteNumber("programMs", result.Program);
             writer.WriteNumber("poolMs", result.Pool);
@@ -80,6 +82,7 @@ internal static class CheckerWorkloadTests
         var cpu = process.TotalProcessorTime;
         double pause = GC.GetTotalPauseDuration().TotalMilliseconds;
         int gen0 = GC.CollectionCount(0), gen1 = GC.CollectionCount(1), gen2 = GC.CollectionCount(2);
+        long started = Stopwatch.GetTimestamp();
         var timer = Stopwatch.StartNew();
         var program = await CompilerProgram.CreateAsync(fs, cwd, config, concurrency: single ? 1 : Environment.ProcessorCount,
             defaultLibraryDirectory: libraries);
@@ -89,6 +92,7 @@ internal static class CheckerWorkloadTests
         double poolMs = timer.Elapsed.TotalMilliseconds - programMs;
         var diagnostics = await pool.GetDiagnosticsAsync();
         timer.Stop();
+        long stopped = Stopwatch.GetTimestamp();
         double pauseMs = GC.GetTotalPauseDuration().TotalMilliseconds - pause;
         gen0 = GC.CollectionCount(0) - gen0;
         gen1 = GC.CollectionCount(1) - gen1;
@@ -102,12 +106,13 @@ internal static class CheckerWorkloadTests
         string hash = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(graph.ToString())));
         long live = GC.GetTotalMemory(true);
         var result = new Measurement(timer.Elapsed.TotalMilliseconds, cpuMs, programMs, bytes, live, program.SourceFiles.Count,
-            pool.Count, diagnostics.Semantic.Count + diagnostics.Global.Count, hash, poolMs, programPause, pauseMs, gen0, gen1, gen2);
+            pool.Count, diagnostics.Semantic.Count + diagnostics.Global.Count, hash, poolMs, programPause, pauseMs, gen0, gen1, gen2, started, stopped);
         GC.KeepAlive(pool);
         GC.KeepAlive(program);
         return result;
     }
 
     private readonly record struct Measurement(double Elapsed, double Cpu, double Program, long Allocated, long Live,
-        int SourceFiles, int Checkers, int Diagnostics, string Graph, double Pool, double ProgramPause, double Pause, int Gen0, int Gen1, int Gen2);
+        int SourceFiles, int Checkers, int Diagnostics, string Graph, double Pool, double ProgramPause, double Pause, int Gen0, int Gen1, int Gen2,
+        long Started, long Stopped);
 }

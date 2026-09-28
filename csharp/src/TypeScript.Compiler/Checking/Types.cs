@@ -187,13 +187,19 @@ public sealed class EvolvingArrayType : ObjectType
 
 public abstract class UnionOrIntersectionType : StructuredType
 {
+    private readonly Type[] types;
     public IReadOnlyList<Type> Types { get; }
+    internal ReadOnlySpan<Type> TypesSpan => types;
     internal Dictionary<TextSlice, Symbol>? PropertyCache { get; set; }
     internal Dictionary<TextSlice, Symbol>? PropertyCacheWithoutFunctionAugment { get; set; }
     internal IReadOnlyList<Symbol>? ResolvedProperties { get; set; }
 
     private protected UnionOrIntersectionType(TypeContext context, TypeFlags flags, ObjectFlags objectFlags, ReadOnlySpan<Type> types)
-        : base(context, flags, objectFlags) => Types = Array.AsReadOnly(types.ToArray());
+        : base(context, flags, objectFlags)
+    {
+        this.types = types.ToArray();
+        Types = Array.AsReadOnly(this.types);
+    }
 }
 
 public sealed class UnionType : UnionOrIntersectionType

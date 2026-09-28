@@ -37,7 +37,15 @@ public sealed class Symbol
         {
             if (members is null)
             {
-                members = new();
+                int capacity = DeclarationList is [var declaration, ..] ? declaration switch
+                {
+                    InterfaceDeclarationNode n => n.Members?.Count ?? 0,
+                    TypeLiteralNode n => n.Members?.Count ?? 0,
+                    ObjectLiteralExpressionNode n => n.Properties?.Count ?? 0,
+                    JsxAttributesNode n => n.Properties?.Count ?? 0,
+                    _ => 0
+                } : 0;
+                members = new(capacity);
                 membersView = members.AsReadOnly();
             }
             return members;
@@ -50,7 +58,7 @@ public sealed class Symbol
         {
             if (exports is null)
             {
-                exports = new();
+                exports = new(DeclarationList is [EnumDeclarationNode { Members: { } list }, ..] ? list.Count : 0);
                 exportsView = exports.AsReadOnly();
             }
             return exports;
@@ -155,7 +163,15 @@ public readonly struct NodeBinding
         {
             if (node.BindingLocals is not { } locals)
             {
-                node.BindingLocals = locals = new();
+                // These lists already describe the declarations about to be bound.
+                // Reserve once instead of growing every function's parameter table.
+                int capacity = node switch
+                {
+                    IFunctionSignature signature => (signature.Parameters?.Count ?? 0) + (signature.TypeParameters?.Count ?? 0),
+                    SourceFileNode source => source.Statements?.Count ?? 0,
+                    _ => 0
+                };
+                node.BindingLocals = locals = new(capacity);
                 node.BindingLocalsView = locals.AsReadOnly();
             }
             return locals;
@@ -170,6 +186,9 @@ public readonly struct NodeBinding
 /// <summary>Binding slots belong to one source tree and are published only after a successful bind. Syntax clones clear them.</summary>
 public sealed class BoundSourceFile
 {
+    // Validate ownership without another GC reference from every syntax node.
+    private static long nextId;
+    private readonly long id = Interlocked.Increment(ref nextId);
     public SourceFileNode SourceFile { get; }
     public Symbol? Symbol => Get(SourceFile)?.Symbol;
     public IReadOnlyDictionary<TextSlice, Symbol> Locals => Get(SourceFile)!.Value.Locals;
@@ -182,16 +201,16 @@ public sealed class BoundSourceFile
 
     internal BoundSourceFile(SourceFileNode file) => SourceFile = file;
 
-    public NodeBinding? Get(SyntaxNode node) => ReferenceEquals(node.BindingOwner, this) ? new NodeBinding(node) : null;
+    public NodeBinding? Get(SyntaxNode node) => node.BindingId == id ? new NodeBinding(node) : null;
 
     internal NodeBinding Data(SyntaxNode node)
     {
-        if (!ReferenceEquals(node.BindingOwner, this))
+        if (node.BindingId != id)
         {
-            if (node.BindingOwner is not null)
+            if (node.BindingId != 0)
                 node.ClearBindingState();
             node.BindingFlags = node.Flags;
-            node.BindingOwner = this;
+            node.BindingId = id;
         }
         return new(node);
     }

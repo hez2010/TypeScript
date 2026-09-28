@@ -131,7 +131,8 @@ internal sealed class StructuralRelations(TypeContext context, TypeAlgebra algeb
                 target,
                 recursion,
                 intersection,
-                () => StructuredAsync(operation, source, target, intersection, cancellation),
+                (Relations: this, Operation: operation, Source: source, Target: target, Intersection: intersection, Cancellation: cancellation),
+                static state => state.Relations.StructuredAsync(state.Operation, state.Source, state.Target, state.Intersection, state.Cancellation),
                 cancellation).ConfigureAwait(false);
     }
 
@@ -174,7 +175,7 @@ internal sealed class StructuralRelations(TypeContext context, TypeAlgebra algeb
             && !(target is MappedType gm && await mapped.IsGenericAsync(gm, cancellation).ConfigureAwait(false))
             && !objects.ArrayOrTuple(target) && source is IntersectionType sourceParts
             && ((await views.ApparentAsync(source, cancellation).ConfigureAwait(false)).Flags & TypeFlags.StructuredType) != 0
-            && !sourceParts.Types.Any(t => t == target || (t.ObjectFlags & ObjectFlags.NonInferrableType) != 0))
+            && !HasNonInferrableOrTarget(sourceParts, target))
             result &= await objects.PropertiesAsync(operation, source, target, true, intersection, cancellation).ConfigureAwait(false);
         return result;
     }
@@ -196,12 +197,30 @@ internal sealed class StructuralRelations(TypeContext context, TypeAlgebra algeb
                 || source is IntersectionType && (target.Flags & (TypeFlags.Object | TypeFlags.Union | TypeFlags.Instantiable)) != 0))
                 return Ternary.False;
         }
-        if (await host.VarianceAsync(operation, source, target, intersection, operation.ReportErrors
-            ? () => AfterVarianceAsync(operation, source, target, intersection, previousExplanation, cancellation) : null,
-            cancellation).ConfigureAwait(false) is { } variance)
+        if (await VarianceAsync(operation, source, target, intersection, previousExplanation, cancellation).ConfigureAwait(false) is { } variance)
             return variance;
         return await AfterVarianceAsync(operation, source, target, intersection, previousExplanation, cancellation).ConfigureAwait(false);
     }
+
+    private static bool HasNonInferrableOrTarget(IntersectionType source, Type target)
+    {
+        for (int i = 0; i < source.Types.Count; i++)
+            if (source.Types[i] == target || (source.Types[i].ObjectFlags & ObjectFlags.NonInferrableType) != 0)
+                return true;
+        return false;
+    }
+
+    private ValueTask<Ternary?> VarianceAsync(RelationOperation operation, Type source, Type target,
+        IntersectionState intersection, RelationExplanation? previousExplanation, CancellationToken cancellation) =>
+        operation.ReportErrors
+            ? VarianceWithFallbackAsync(operation, source, target, intersection, previousExplanation, cancellation)
+            : host.VarianceAsync(operation, source, target, intersection, null, cancellation);
+
+    // Keep the diagnostic fallback's closure off the ordinary relation path.
+    private ValueTask<Ternary?> VarianceWithFallbackAsync(RelationOperation operation, Type source, Type target,
+        IntersectionState intersection, RelationExplanation? previousExplanation, CancellationToken cancellation) =>
+        host.VarianceAsync(operation, source, target, intersection,
+            () => AfterVarianceAsync(operation, source, target, intersection, previousExplanation, cancellation), cancellation);
 
     private async ValueTask<Ternary> AfterVarianceAsync(RelationOperation operation, Type source, Type target,
         IntersectionState intersection, RelationExplanation? previousExplanation, CancellationToken cancellation)
@@ -224,9 +243,7 @@ internal sealed class StructuralRelations(TypeContext context, TypeAlgebra algeb
         bool primitive = (source.Flags & TypeFlags.Primitive) != 0;
         var originalSource = source;
         source = await views.ApparentAsync(source, cancellation).ConfigureAwait(false);
-        if (source != originalSource && await host.VarianceAsync(operation, source, target, intersection, operation.ReportErrors
-            ? () => AfterVarianceAsync(operation, source, target, intersection, previousExplanation, cancellation) : null,
-            cancellation).ConfigureAwait(false) is { } apparentVariance)
+        if (source != originalSource && await VarianceAsync(operation, source, target, intersection, previousExplanation, cancellation).ConfigureAwait(false) is { } apparentVariance)
             return apparentVariance;
         if (await host.ArrayRelationAsync(operation, source, target, intersection, cancellation).ConfigureAwait(false) is { } array)
             return array;

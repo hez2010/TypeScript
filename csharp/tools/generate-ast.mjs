@@ -195,8 +195,19 @@ for (const [name, definition] of Object.entries(definitions)) {
         for (const [property] of binding) lines.push(`        Binding${property} = null;`);
         lines.push("    }");
     }
-    if (nameField) lines.push("    SyntaxNode? INamedNode.Name => Name;");
+    if (nameField) lines.push("    SyntaxNode? INamedNode.Name => Name;", "    internal override SyntaxNode? DeclarationName => Name;");
+    if (interfaces.includes("IModifiedNode")) lines.push("    internal override NodeList? ModifierList => Modifiers;");
+    if (interfaces.includes("IFunctionSignature")) lines.push("    internal override bool HasFunctionSignature => true;");
     const children = fields.filter(isChild);
+    if (children.length) {
+        lines.push("    internal override void SetChildParents()", "    {");
+        for (const m of children) {
+            const n = upper(m.name);
+            if (m.list) lines.push(`        if (${n} is { } list${n})`, `            foreach (var child in list${n}) child.Parent = this;`);
+            else lines.push(`        if (${n} is { } child${n}) child${n}.Parent = this;`);
+        }
+        lines.push("    }");
+    }
     lines.push(`    public override int ChildCount => ${children.length ? children.map(m => m.list === "raw" ? `${upper(m.name)}.Length` : m.list ? `(${upper(m.name)}?.Count ?? 0)` : `(${upper(m.name)} is null ? 0 : 1)`).join(" + ") : "0"};`);
     lines.push("    public override SyntaxNode GetChild(int index)", "    {");
     // The schema marks this Go visitor as hand-written: tag spelling decides

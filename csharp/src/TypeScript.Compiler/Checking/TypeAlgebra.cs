@@ -1,5 +1,6 @@
 using TypeScript.Compiler.Text;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using TypeScript.Compiler.Binding;
 using F = TypeScript.Compiler.Checking.TypeFlags;
 using O = TypeScript.Compiler.Checking.ObjectFlags;
@@ -67,7 +68,7 @@ internal sealed partial class TypeAlgebra(TypeContext context, TypeOrder order, 
             uint first = types[0].Id, second = types[1].Id;
             if (first > second)
                 (first, second) = (second, first);
-            var key = (first, second, reduction, TypeCacheKey.Union([], null, alias));
+            var key = (first, second, reduction, alias is null ? default : TypeCacheKey.Union([], null, alias));
             if (unionPairs.TryGetValue(key, out var cached))
                 return cached;
             var result = await UnionWorker(types, reduction, alias, null, cancellation).ConfigureAwait(false);
@@ -151,13 +152,38 @@ internal sealed partial class TypeAlgebra(TypeContext context, TypeOrder order, 
         var objectFlags = (includes & F.NotPrimitiveUnion) == 0 ? O.PrimitiveUnion : O.None;
         if ((includes & F.Intersection) != 0)
             objectFlags |= O.ContainsIntersections;
-        return context.GetUnionFromSortedTypes(set.ToArray(), objectFlags, alias, origin);
+        return context.GetUnionFromSortedTypes(CollectionsMarshal.AsSpan(set), objectFlags, alias, origin);
     }
 
     private (List<Type> Types, F Includes) AddUnionTypes(IReadOnlyList<Type> source, CancellationToken cancellation)
     {
         var types = new List<Type>(source.Count);
         F includes = 0;
+        // Union constituents are already sorted. Adding another type (often
+        // undefined) or union only needs a merge, not another structural sort.
+        if (source.Count == 2 && (source[0] is UnionType || source[1] is UnionType))
+        {
+            var left = source[0] as UnionType;
+            var right = source[1] as UnionType;
+            if (left is { Alias: not null } or { Origin: not null } || right is { Alias: not null } or { Origin: not null })
+                includes |= F.Union;
+            int leftCount = left?.Types.Count ?? 1, rightCount = right?.Types.Count ?? 1;
+            types.EnsureCapacity(leftCount + rightCount);
+            int i = 0, j = 0;
+            while (i < leftCount && j < rightCount)
+            {
+                cancellation.ThrowIfCancellationRequested();
+                var a = left is null ? source[0] : left.Types[i];
+                var b = right is null ? source[1] : right.Types[j];
+                int comparison = order.Compare(a, b);
+                Add(comparison <= 0 ? a : b);
+                if (comparison <= 0) i++;
+                if (comparison >= 0) j++;
+            }
+            for (; i < leftCount; i++) Add(left is null ? source[0] : left.Types[i]);
+            for (; j < rightCount; j++) Add(right is null ? source[1] : right.Types[j]);
+            return (types, includes);
+        }
         Type? previous = null;
         foreach (var type in source)
         {
@@ -175,7 +201,14 @@ internal sealed partial class TypeAlgebra(TypeContext context, TypeOrder order, 
                 Add(type);
             previous = type;
         }
-        types.Sort(order);
+        // Flattened unions frequently arrive in canonical order already. Avoid
+        // sorting them again: structural type comparison can traverse whole types.
+        for (int i = 1; i < types.Count; i++)
+            if (order.Compare(types[i - 1], types[i]) > 0)
+            {
+                types.Sort(order);
+                break;
+            }
         if (types.Count > 1)
         {
             int unique = 1;
@@ -278,7 +311,7 @@ internal sealed partial class TypeAlgebra(TypeContext context, TypeOrder order, 
     {
         if (types.Count < 2)
             return types;
-        var key = new TypeCacheKey(types.ToArray());
+        var key = new TypeCacheKey(CollectionsMarshal.AsSpan(types));
         if (subtypeReductions.TryGetValue(key, out var cached))
             return new(cached);
         bool hasEmptyObject = false;

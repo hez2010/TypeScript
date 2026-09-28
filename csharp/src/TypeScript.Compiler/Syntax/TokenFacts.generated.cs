@@ -2,156 +2,765 @@
 namespace TypeScript.Compiler.Syntax;
 public static partial class TokenFacts
 {
-    public static SyntaxKind FromText(ReadOnlySpan<char> text) => text switch
+    public static SyntaxKind FromText(ReadOnlySpan<char> text) => text.Length switch
     {
-        "abstract" => SyntaxKind.AbstractKeyword,
-        "accessor" => SyntaxKind.AccessorKeyword,
-        "any" => SyntaxKind.AnyKeyword,
-        "as" => SyntaxKind.AsKeyword,
-        "asserts" => SyntaxKind.AssertsKeyword,
-        "assert" => SyntaxKind.AssertKeyword,
-        "bigint" => SyntaxKind.BigIntKeyword,
-        "boolean" => SyntaxKind.BooleanKeyword,
-        "break" => SyntaxKind.BreakKeyword,
-        "case" => SyntaxKind.CaseKeyword,
-        "catch" => SyntaxKind.CatchKeyword,
-        "class" => SyntaxKind.ClassKeyword,
-        "continue" => SyntaxKind.ContinueKeyword,
-        "const" => SyntaxKind.ConstKeyword,
-        "constructor" => SyntaxKind.ConstructorKeyword,
-        "debugger" => SyntaxKind.DebuggerKeyword,
-        "declare" => SyntaxKind.DeclareKeyword,
-        "default" => SyntaxKind.DefaultKeyword,
-        "defer" => SyntaxKind.DeferKeyword,
-        "delete" => SyntaxKind.DeleteKeyword,
-        "do" => SyntaxKind.DoKeyword,
-        "else" => SyntaxKind.ElseKeyword,
-        "enum" => SyntaxKind.EnumKeyword,
-        "export" => SyntaxKind.ExportKeyword,
-        "extends" => SyntaxKind.ExtendsKeyword,
-        "false" => SyntaxKind.FalseKeyword,
-        "finally" => SyntaxKind.FinallyKeyword,
-        "for" => SyntaxKind.ForKeyword,
-        "from" => SyntaxKind.FromKeyword,
-        "function" => SyntaxKind.FunctionKeyword,
-        "get" => SyntaxKind.GetKeyword,
-        "if" => SyntaxKind.IfKeyword,
-        "immediate" => SyntaxKind.ImmediateKeyword,
-        "implements" => SyntaxKind.ImplementsKeyword,
-        "import" => SyntaxKind.ImportKeyword,
-        "in" => SyntaxKind.InKeyword,
-        "infer" => SyntaxKind.InferKeyword,
-        "instanceof" => SyntaxKind.InstanceOfKeyword,
-        "interface" => SyntaxKind.InterfaceKeyword,
-        "intrinsic" => SyntaxKind.IntrinsicKeyword,
-        "is" => SyntaxKind.IsKeyword,
-        "keyof" => SyntaxKind.KeyOfKeyword,
-        "let" => SyntaxKind.LetKeyword,
-        "module" => SyntaxKind.ModuleKeyword,
-        "namespace" => SyntaxKind.NamespaceKeyword,
-        "never" => SyntaxKind.NeverKeyword,
-        "new" => SyntaxKind.NewKeyword,
-        "null" => SyntaxKind.NullKeyword,
-        "number" => SyntaxKind.NumberKeyword,
-        "object" => SyntaxKind.ObjectKeyword,
-        "package" => SyntaxKind.PackageKeyword,
-        "private" => SyntaxKind.PrivateKeyword,
-        "protected" => SyntaxKind.ProtectedKeyword,
-        "public" => SyntaxKind.PublicKeyword,
-        "override" => SyntaxKind.OverrideKeyword,
-        "out" => SyntaxKind.OutKeyword,
-        "readonly" => SyntaxKind.ReadonlyKeyword,
-        "require" => SyntaxKind.RequireKeyword,
-        "global" => SyntaxKind.GlobalKeyword,
-        "return" => SyntaxKind.ReturnKeyword,
-        "satisfies" => SyntaxKind.SatisfiesKeyword,
-        "set" => SyntaxKind.SetKeyword,
-        "static" => SyntaxKind.StaticKeyword,
-        "string" => SyntaxKind.StringKeyword,
-        "super" => SyntaxKind.SuperKeyword,
-        "switch" => SyntaxKind.SwitchKeyword,
-        "symbol" => SyntaxKind.SymbolKeyword,
-        "this" => SyntaxKind.ThisKeyword,
-        "throw" => SyntaxKind.ThrowKeyword,
-        "true" => SyntaxKind.TrueKeyword,
-        "try" => SyntaxKind.TryKeyword,
-        "type" => SyntaxKind.TypeKeyword,
-        "typeof" => SyntaxKind.TypeOfKeyword,
-        "undefined" => SyntaxKind.UndefinedKeyword,
-        "unique" => SyntaxKind.UniqueKeyword,
-        "unknown" => SyntaxKind.UnknownKeyword,
-        "using" => SyntaxKind.UsingKeyword,
-        "var" => SyntaxKind.VarKeyword,
-        "void" => SyntaxKind.VoidKeyword,
-        "while" => SyntaxKind.WhileKeyword,
-        "with" => SyntaxKind.WithKeyword,
-        "yield" => SyntaxKind.YieldKeyword,
-        "async" => SyntaxKind.AsyncKeyword,
-        "await" => SyntaxKind.AwaitKeyword,
-        "of" => SyntaxKind.OfKeyword,
-        "{" => SyntaxKind.OpenBraceToken,
-        "}" => SyntaxKind.CloseBraceToken,
-        "(" => SyntaxKind.OpenParenToken,
-        ")" => SyntaxKind.CloseParenToken,
-        "[" => SyntaxKind.OpenBracketToken,
-        "]" => SyntaxKind.CloseBracketToken,
-        "." => SyntaxKind.DotToken,
-        "..." => SyntaxKind.DotDotDotToken,
-        ";" => SyntaxKind.SemicolonToken,
-        "," => SyntaxKind.CommaToken,
-        "<" => SyntaxKind.LessThanToken,
-        ">" => SyntaxKind.GreaterThanToken,
-        "<=" => SyntaxKind.LessThanEqualsToken,
-        ">=" => SyntaxKind.GreaterThanEqualsToken,
-        "==" => SyntaxKind.EqualsEqualsToken,
-        "!=" => SyntaxKind.ExclamationEqualsToken,
-        "===" => SyntaxKind.EqualsEqualsEqualsToken,
-        "!==" => SyntaxKind.ExclamationEqualsEqualsToken,
-        "=>" => SyntaxKind.EqualsGreaterThanToken,
-        "+" => SyntaxKind.PlusToken,
-        "-" => SyntaxKind.MinusToken,
-        "**" => SyntaxKind.AsteriskAsteriskToken,
-        "*" => SyntaxKind.AsteriskToken,
-        "/" => SyntaxKind.SlashToken,
-        "%" => SyntaxKind.PercentToken,
-        "++" => SyntaxKind.PlusPlusToken,
-        "--" => SyntaxKind.MinusMinusToken,
-        "<<" => SyntaxKind.LessThanLessThanToken,
-        "</" => SyntaxKind.LessThanSlashToken,
-        ">>" => SyntaxKind.GreaterThanGreaterThanToken,
-        ">>>" => SyntaxKind.GreaterThanGreaterThanGreaterThanToken,
-        "&" => SyntaxKind.AmpersandToken,
-        "|" => SyntaxKind.BarToken,
-        "^" => SyntaxKind.CaretToken,
-        "!" => SyntaxKind.ExclamationToken,
-        "~" => SyntaxKind.TildeToken,
-        "&&" => SyntaxKind.AmpersandAmpersandToken,
-        "||" => SyntaxKind.BarBarToken,
-        "?" => SyntaxKind.QuestionToken,
-        "??" => SyntaxKind.QuestionQuestionToken,
-        "?." => SyntaxKind.QuestionDotToken,
-        ":" => SyntaxKind.ColonToken,
-        "=" => SyntaxKind.EqualsToken,
-        "+=" => SyntaxKind.PlusEqualsToken,
-        "-=" => SyntaxKind.MinusEqualsToken,
-        "*=" => SyntaxKind.AsteriskEqualsToken,
-        "**=" => SyntaxKind.AsteriskAsteriskEqualsToken,
-        "/=" => SyntaxKind.SlashEqualsToken,
-        "%=" => SyntaxKind.PercentEqualsToken,
-        "<<=" => SyntaxKind.LessThanLessThanEqualsToken,
-        ">>=" => SyntaxKind.GreaterThanGreaterThanEqualsToken,
-        ">>>=" => SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken,
-        "&=" => SyntaxKind.AmpersandEqualsToken,
-        "|=" => SyntaxKind.BarEqualsToken,
-        "^=" => SyntaxKind.CaretEqualsToken,
-        "||=" => SyntaxKind.BarBarEqualsToken,
-        "&&=" => SyntaxKind.AmpersandAmpersandEqualsToken,
-        "??=" => SyntaxKind.QuestionQuestionEqualsToken,
-        "@" => SyntaxKind.AtToken,
-        "#" => SyntaxKind.HashToken,
-        "`" => SyntaxKind.BacktickToken,
+        1 => text[0] switch
+        {
+            '{' => text switch
+            {
+                "{" => SyntaxKind.OpenBraceToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '}' => text switch
+            {
+                "}" => SyntaxKind.CloseBraceToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '(' => text switch
+            {
+                "(" => SyntaxKind.OpenParenToken,
+                _ => SyntaxKind.Unknown,
+            },
+            ')' => text switch
+            {
+                ")" => SyntaxKind.CloseParenToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '[' => text switch
+            {
+                "[" => SyntaxKind.OpenBracketToken,
+                _ => SyntaxKind.Unknown,
+            },
+            ']' => text switch
+            {
+                "]" => SyntaxKind.CloseBracketToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '.' => text switch
+            {
+                "." => SyntaxKind.DotToken,
+                _ => SyntaxKind.Unknown,
+            },
+            ';' => text switch
+            {
+                ";" => SyntaxKind.SemicolonToken,
+                _ => SyntaxKind.Unknown,
+            },
+            ',' => text switch
+            {
+                "," => SyntaxKind.CommaToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '<' => text switch
+            {
+                "<" => SyntaxKind.LessThanToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '>' => text switch
+            {
+                ">" => SyntaxKind.GreaterThanToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '+' => text switch
+            {
+                "+" => SyntaxKind.PlusToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '-' => text switch
+            {
+                "-" => SyntaxKind.MinusToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '*' => text switch
+            {
+                "*" => SyntaxKind.AsteriskToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '/' => text switch
+            {
+                "/" => SyntaxKind.SlashToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '%' => text switch
+            {
+                "%" => SyntaxKind.PercentToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '&' => text switch
+            {
+                "&" => SyntaxKind.AmpersandToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '|' => text switch
+            {
+                "|" => SyntaxKind.BarToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '^' => text switch
+            {
+                "^" => SyntaxKind.CaretToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '!' => text switch
+            {
+                "!" => SyntaxKind.ExclamationToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '~' => text switch
+            {
+                "~" => SyntaxKind.TildeToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '?' => text switch
+            {
+                "?" => SyntaxKind.QuestionToken,
+                _ => SyntaxKind.Unknown,
+            },
+            ':' => text switch
+            {
+                ":" => SyntaxKind.ColonToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '=' => text switch
+            {
+                "=" => SyntaxKind.EqualsToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '@' => text switch
+            {
+                "@" => SyntaxKind.AtToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '#' => text switch
+            {
+                "#" => SyntaxKind.HashToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '`' => text switch
+            {
+                "`" => SyntaxKind.BacktickToken,
+                _ => SyntaxKind.Unknown,
+            },
+            _ => SyntaxKind.Unknown,
+        },
+        2 => text[0] switch
+        {
+            'a' => text switch
+            {
+                "as" => SyntaxKind.AsKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'd' => text switch
+            {
+                "do" => SyntaxKind.DoKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'i' => text switch
+            {
+                "if" => SyntaxKind.IfKeyword,
+                "in" => SyntaxKind.InKeyword,
+                "is" => SyntaxKind.IsKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'o' => text switch
+            {
+                "of" => SyntaxKind.OfKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            '<' => text switch
+            {
+                "<=" => SyntaxKind.LessThanEqualsToken,
+                "<<" => SyntaxKind.LessThanLessThanToken,
+                "</" => SyntaxKind.LessThanSlashToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '>' => text switch
+            {
+                ">=" => SyntaxKind.GreaterThanEqualsToken,
+                ">>" => SyntaxKind.GreaterThanGreaterThanToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '=' => text switch
+            {
+                "==" => SyntaxKind.EqualsEqualsToken,
+                "=>" => SyntaxKind.EqualsGreaterThanToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '!' => text switch
+            {
+                "!=" => SyntaxKind.ExclamationEqualsToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '*' => text switch
+            {
+                "**" => SyntaxKind.AsteriskAsteriskToken,
+                "*=" => SyntaxKind.AsteriskEqualsToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '+' => text switch
+            {
+                "++" => SyntaxKind.PlusPlusToken,
+                "+=" => SyntaxKind.PlusEqualsToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '-' => text switch
+            {
+                "--" => SyntaxKind.MinusMinusToken,
+                "-=" => SyntaxKind.MinusEqualsToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '&' => text switch
+            {
+                "&&" => SyntaxKind.AmpersandAmpersandToken,
+                "&=" => SyntaxKind.AmpersandEqualsToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '|' => text switch
+            {
+                "||" => SyntaxKind.BarBarToken,
+                "|=" => SyntaxKind.BarEqualsToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '?' => text switch
+            {
+                "??" => SyntaxKind.QuestionQuestionToken,
+                "?." => SyntaxKind.QuestionDotToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '/' => text switch
+            {
+                "/=" => SyntaxKind.SlashEqualsToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '%' => text switch
+            {
+                "%=" => SyntaxKind.PercentEqualsToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '^' => text switch
+            {
+                "^=" => SyntaxKind.CaretEqualsToken,
+                _ => SyntaxKind.Unknown,
+            },
+            _ => SyntaxKind.Unknown,
+        },
+        3 => text[0] switch
+        {
+            'a' => text switch
+            {
+                "any" => SyntaxKind.AnyKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'f' => text switch
+            {
+                "for" => SyntaxKind.ForKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'g' => text switch
+            {
+                "get" => SyntaxKind.GetKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'l' => text switch
+            {
+                "let" => SyntaxKind.LetKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'n' => text switch
+            {
+                "new" => SyntaxKind.NewKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'o' => text switch
+            {
+                "out" => SyntaxKind.OutKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            's' => text switch
+            {
+                "set" => SyntaxKind.SetKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            't' => text switch
+            {
+                "try" => SyntaxKind.TryKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'v' => text switch
+            {
+                "var" => SyntaxKind.VarKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            '.' => text switch
+            {
+                "..." => SyntaxKind.DotDotDotToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '=' => text switch
+            {
+                "===" => SyntaxKind.EqualsEqualsEqualsToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '!' => text switch
+            {
+                "!==" => SyntaxKind.ExclamationEqualsEqualsToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '>' => text switch
+            {
+                ">>>" => SyntaxKind.GreaterThanGreaterThanGreaterThanToken,
+                ">>=" => SyntaxKind.GreaterThanGreaterThanEqualsToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '*' => text switch
+            {
+                "**=" => SyntaxKind.AsteriskAsteriskEqualsToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '<' => text switch
+            {
+                "<<=" => SyntaxKind.LessThanLessThanEqualsToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '|' => text switch
+            {
+                "||=" => SyntaxKind.BarBarEqualsToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '&' => text switch
+            {
+                "&&=" => SyntaxKind.AmpersandAmpersandEqualsToken,
+                _ => SyntaxKind.Unknown,
+            },
+            '?' => text switch
+            {
+                "??=" => SyntaxKind.QuestionQuestionEqualsToken,
+                _ => SyntaxKind.Unknown,
+            },
+            _ => SyntaxKind.Unknown,
+        },
+        4 => text[0] switch
+        {
+            'c' => text switch
+            {
+                "case" => SyntaxKind.CaseKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'e' => text switch
+            {
+                "else" => SyntaxKind.ElseKeyword,
+                "enum" => SyntaxKind.EnumKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'f' => text switch
+            {
+                "from" => SyntaxKind.FromKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'n' => text switch
+            {
+                "null" => SyntaxKind.NullKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            't' => text switch
+            {
+                "this" => SyntaxKind.ThisKeyword,
+                "true" => SyntaxKind.TrueKeyword,
+                "type" => SyntaxKind.TypeKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'v' => text switch
+            {
+                "void" => SyntaxKind.VoidKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'w' => text switch
+            {
+                "with" => SyntaxKind.WithKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            '>' => text switch
+            {
+                ">>>=" => SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken,
+                _ => SyntaxKind.Unknown,
+            },
+            _ => SyntaxKind.Unknown,
+        },
+        5 => text[0] switch
+        {
+            'b' => text switch
+            {
+                "break" => SyntaxKind.BreakKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'c' => text switch
+            {
+                "catch" => SyntaxKind.CatchKeyword,
+                "class" => SyntaxKind.ClassKeyword,
+                "const" => SyntaxKind.ConstKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'd' => text switch
+            {
+                "defer" => SyntaxKind.DeferKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'f' => text switch
+            {
+                "false" => SyntaxKind.FalseKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'i' => text switch
+            {
+                "infer" => SyntaxKind.InferKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'k' => text switch
+            {
+                "keyof" => SyntaxKind.KeyOfKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'n' => text switch
+            {
+                "never" => SyntaxKind.NeverKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            's' => text switch
+            {
+                "super" => SyntaxKind.SuperKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            't' => text switch
+            {
+                "throw" => SyntaxKind.ThrowKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'u' => text switch
+            {
+                "using" => SyntaxKind.UsingKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'w' => text switch
+            {
+                "while" => SyntaxKind.WhileKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'y' => text switch
+            {
+                "yield" => SyntaxKind.YieldKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'a' => text switch
+            {
+                "async" => SyntaxKind.AsyncKeyword,
+                "await" => SyntaxKind.AwaitKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            _ => SyntaxKind.Unknown,
+        },
+        6 => text[0] switch
+        {
+            'a' => text switch
+            {
+                "assert" => SyntaxKind.AssertKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'b' => text switch
+            {
+                "bigint" => SyntaxKind.BigIntKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'd' => text switch
+            {
+                "delete" => SyntaxKind.DeleteKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'e' => text switch
+            {
+                "export" => SyntaxKind.ExportKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'i' => text switch
+            {
+                "import" => SyntaxKind.ImportKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'm' => text switch
+            {
+                "module" => SyntaxKind.ModuleKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'n' => text switch
+            {
+                "number" => SyntaxKind.NumberKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'o' => text switch
+            {
+                "object" => SyntaxKind.ObjectKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'p' => text switch
+            {
+                "public" => SyntaxKind.PublicKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'g' => text switch
+            {
+                "global" => SyntaxKind.GlobalKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'r' => text switch
+            {
+                "return" => SyntaxKind.ReturnKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            's' => text switch
+            {
+                "static" => SyntaxKind.StaticKeyword,
+                "string" => SyntaxKind.StringKeyword,
+                "switch" => SyntaxKind.SwitchKeyword,
+                "symbol" => SyntaxKind.SymbolKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            't' => text switch
+            {
+                "typeof" => SyntaxKind.TypeOfKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'u' => text switch
+            {
+                "unique" => SyntaxKind.UniqueKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            _ => SyntaxKind.Unknown,
+        },
+        7 => text[0] switch
+        {
+            'a' => text switch
+            {
+                "asserts" => SyntaxKind.AssertsKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'b' => text switch
+            {
+                "boolean" => SyntaxKind.BooleanKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'd' => text switch
+            {
+                "declare" => SyntaxKind.DeclareKeyword,
+                "default" => SyntaxKind.DefaultKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'e' => text switch
+            {
+                "extends" => SyntaxKind.ExtendsKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'f' => text switch
+            {
+                "finally" => SyntaxKind.FinallyKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'p' => text switch
+            {
+                "package" => SyntaxKind.PackageKeyword,
+                "private" => SyntaxKind.PrivateKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'r' => text switch
+            {
+                "require" => SyntaxKind.RequireKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'u' => text switch
+            {
+                "unknown" => SyntaxKind.UnknownKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            _ => SyntaxKind.Unknown,
+        },
+        8 => text[0] switch
+        {
+            'a' => text switch
+            {
+                "abstract" => SyntaxKind.AbstractKeyword,
+                "accessor" => SyntaxKind.AccessorKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'c' => text switch
+            {
+                "continue" => SyntaxKind.ContinueKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'd' => text switch
+            {
+                "debugger" => SyntaxKind.DebuggerKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'f' => text switch
+            {
+                "function" => SyntaxKind.FunctionKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'o' => text switch
+            {
+                "override" => SyntaxKind.OverrideKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'r' => text switch
+            {
+                "readonly" => SyntaxKind.ReadonlyKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            _ => SyntaxKind.Unknown,
+        },
+        9 => text[0] switch
+        {
+            'i' => text switch
+            {
+                "immediate" => SyntaxKind.ImmediateKeyword,
+                "interface" => SyntaxKind.InterfaceKeyword,
+                "intrinsic" => SyntaxKind.IntrinsicKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'n' => text switch
+            {
+                "namespace" => SyntaxKind.NamespaceKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'p' => text switch
+            {
+                "protected" => SyntaxKind.ProtectedKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            's' => text switch
+            {
+                "satisfies" => SyntaxKind.SatisfiesKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            'u' => text switch
+            {
+                "undefined" => SyntaxKind.UndefinedKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            _ => SyntaxKind.Unknown,
+        },
+        10 => text[0] switch
+        {
+            'i' => text switch
+            {
+                "implements" => SyntaxKind.ImplementsKeyword,
+                "instanceof" => SyntaxKind.InstanceOfKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            _ => SyntaxKind.Unknown,
+        },
+        11 => text[0] switch
+        {
+            'c' => text switch
+            {
+                "constructor" => SyntaxKind.ConstructorKeyword,
+                _ => SyntaxKind.Unknown,
+            },
+            _ => SyntaxKind.Unknown,
+        },
         _ => SyntaxKind.Unknown,
     };
+    internal static SyntaxKind Punctuation(ReadOnlySpan<char> text, out int length)
+    {
+        if (text.IsEmpty) { length = 0; return SyntaxKind.Unknown; }
+        switch (text[0])
+        {
+            case '{':
+                length = 1; return SyntaxKind.OpenBraceToken;
+            case '}':
+                length = 1; return SyntaxKind.CloseBraceToken;
+            case '(':
+                length = 1; return SyntaxKind.OpenParenToken;
+            case ')':
+                length = 1; return SyntaxKind.CloseParenToken;
+            case '[':
+                length = 1; return SyntaxKind.OpenBracketToken;
+            case ']':
+                length = 1; return SyntaxKind.CloseBracketToken;
+            case '.':
+                if (text.StartsWith("...")) { length = 3; return SyntaxKind.DotDotDotToken; }
+                length = 1; return SyntaxKind.DotToken;
+            case ';':
+                length = 1; return SyntaxKind.SemicolonToken;
+            case ',':
+                length = 1; return SyntaxKind.CommaToken;
+            case '<':
+                if (text.StartsWith("<<=")) { length = 3; return SyntaxKind.LessThanLessThanEqualsToken; }
+                if (text.StartsWith("<=")) { length = 2; return SyntaxKind.LessThanEqualsToken; }
+                if (text.StartsWith("<<")) { length = 2; return SyntaxKind.LessThanLessThanToken; }
+                if (text.StartsWith("</")) { length = 2; return SyntaxKind.LessThanSlashToken; }
+                length = 1; return SyntaxKind.LessThanToken;
+            case '>':
+                if (text.StartsWith(">>>=")) { length = 4; return SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken; }
+                if (text.StartsWith(">>>")) { length = 3; return SyntaxKind.GreaterThanGreaterThanGreaterThanToken; }
+                if (text.StartsWith(">>=")) { length = 3; return SyntaxKind.GreaterThanGreaterThanEqualsToken; }
+                if (text.StartsWith(">=")) { length = 2; return SyntaxKind.GreaterThanEqualsToken; }
+                if (text.StartsWith(">>")) { length = 2; return SyntaxKind.GreaterThanGreaterThanToken; }
+                length = 1; return SyntaxKind.GreaterThanToken;
+            case '=':
+                if (text.StartsWith("===")) { length = 3; return SyntaxKind.EqualsEqualsEqualsToken; }
+                if (text.StartsWith("==")) { length = 2; return SyntaxKind.EqualsEqualsToken; }
+                if (text.StartsWith("=>")) { length = 2; return SyntaxKind.EqualsGreaterThanToken; }
+                length = 1; return SyntaxKind.EqualsToken;
+            case '!':
+                if (text.StartsWith("!==")) { length = 3; return SyntaxKind.ExclamationEqualsEqualsToken; }
+                if (text.StartsWith("!=")) { length = 2; return SyntaxKind.ExclamationEqualsToken; }
+                length = 1; return SyntaxKind.ExclamationToken;
+            case '+':
+                if (text.StartsWith("++")) { length = 2; return SyntaxKind.PlusPlusToken; }
+                if (text.StartsWith("+=")) { length = 2; return SyntaxKind.PlusEqualsToken; }
+                length = 1; return SyntaxKind.PlusToken;
+            case '-':
+                if (text.StartsWith("--")) { length = 2; return SyntaxKind.MinusMinusToken; }
+                if (text.StartsWith("-=")) { length = 2; return SyntaxKind.MinusEqualsToken; }
+                length = 1; return SyntaxKind.MinusToken;
+            case '*':
+                if (text.StartsWith("**=")) { length = 3; return SyntaxKind.AsteriskAsteriskEqualsToken; }
+                if (text.StartsWith("**")) { length = 2; return SyntaxKind.AsteriskAsteriskToken; }
+                if (text.StartsWith("*=")) { length = 2; return SyntaxKind.AsteriskEqualsToken; }
+                length = 1; return SyntaxKind.AsteriskToken;
+            case '/':
+                if (text.StartsWith("/=")) { length = 2; return SyntaxKind.SlashEqualsToken; }
+                length = 1; return SyntaxKind.SlashToken;
+            case '%':
+                if (text.StartsWith("%=")) { length = 2; return SyntaxKind.PercentEqualsToken; }
+                length = 1; return SyntaxKind.PercentToken;
+            case '&':
+                if (text.StartsWith("&&=")) { length = 3; return SyntaxKind.AmpersandAmpersandEqualsToken; }
+                if (text.StartsWith("&&")) { length = 2; return SyntaxKind.AmpersandAmpersandToken; }
+                if (text.StartsWith("&=")) { length = 2; return SyntaxKind.AmpersandEqualsToken; }
+                length = 1; return SyntaxKind.AmpersandToken;
+            case '|':
+                if (text.StartsWith("||=")) { length = 3; return SyntaxKind.BarBarEqualsToken; }
+                if (text.StartsWith("||")) { length = 2; return SyntaxKind.BarBarToken; }
+                if (text.StartsWith("|=")) { length = 2; return SyntaxKind.BarEqualsToken; }
+                length = 1; return SyntaxKind.BarToken;
+            case '^':
+                if (text.StartsWith("^=")) { length = 2; return SyntaxKind.CaretEqualsToken; }
+                length = 1; return SyntaxKind.CaretToken;
+            case '~':
+                length = 1; return SyntaxKind.TildeToken;
+            case '?':
+                if (text.StartsWith("??=")) { length = 3; return SyntaxKind.QuestionQuestionEqualsToken; }
+                if (text.StartsWith("??")) { length = 2; return SyntaxKind.QuestionQuestionToken; }
+                if (text.StartsWith("?.")) { length = 2; return SyntaxKind.QuestionDotToken; }
+                length = 1; return SyntaxKind.QuestionToken;
+            case ':':
+                length = 1; return SyntaxKind.ColonToken;
+            case '@':
+                length = 1; return SyntaxKind.AtToken;
+        }
+        length = 0;
+        return SyntaxKind.Unknown;
+    }
     public static string Text(SyntaxKind kind) => kind switch
     {
         SyntaxKind.AbstractKeyword => "abstract",

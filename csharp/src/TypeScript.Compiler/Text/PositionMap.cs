@@ -6,6 +6,7 @@ public sealed class PositionMap
     private readonly int[] utf8Ends;
     private readonly int[] utf16Ends;
     private readonly int[] deltas;
+    private int lastUtf8 = -1, lastUtf16 = -1;
 
     public PositionMap(ReadOnlySpan<byte> text)
     {
@@ -34,15 +35,22 @@ public sealed class PositionMap
 
     public bool IsAsciiOnly => deltas.Length == 0;
 
-    public int Utf8ToUtf16(int offset) => offset - DeltaAt(utf8Ends, offset);
+    public int Utf8ToUtf16(int offset) => offset - DeltaAt(utf8Ends, offset, ref lastUtf8);
 
-    public int Utf16ToUtf8(int offset) => offset + DeltaAt(utf16Ends, offset);
+    public int Utf16ToUtf8(int offset) => offset + DeltaAt(utf16Ends, offset, ref lastUtf16);
 
-    private int DeltaAt(int[] ends, int offset)
+    private int DeltaAt(int[] ends, int offset, ref int previous)
     {
-        int index = Array.BinarySearch(ends, offset);
+        // AST positions cluster in ASCII runs between Unicode characters. The
+        // cached interval is only a hint: validate both bounds so concurrent
+        // readers sharing immutable source text can safely use an older hint.
+        int index = previous;
+        if ((index < 0 || ends[index] <= offset) && (index + 1 == ends.Length || offset < ends[index + 1]))
+            return index < 0 ? 0 : deltas[index];
+        index = ends.AsSpan().BinarySearch(offset);
         if (index < 0)
             index = ~index - 1;
+        previous = index;
         return index < 0 ? 0 : deltas[index];
     }
 }

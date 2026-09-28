@@ -7,6 +7,16 @@ namespace TypeScript.Compiler.Syntax;
 
 public sealed partial class Parser
 {
+    private readonly Stack<List<SyntaxNode>> nodeLists = [];
+
+    private List<SyntaxNode> RentNodeList() => nodeLists.TryPop(out var list) ? list : [];
+
+    private void ReturnNodeList(List<SyntaxNode> list)
+    {
+        list.Clear();
+        nodeLists.Push(list);
+    }
+
     // BCL continuation scheduling provides a fresh stack only when the runtime's
     // stack-space check requires one. The common path completes synchronously.
     private ConfiguredTaskAwaitable ParseStack => Task.CompletedTask.ConfigureAwait(
@@ -29,39 +39,46 @@ public sealed partial class Parser
     {
         await ParseStack;
         int start = Pos;
-        var nodes = new List<SyntaxNode>();
-        // Speculative productions must keep their delimiters so a failed arrow
-        // or type-argument parse can return to the surrounding expression.
-        bool recoveringReparse = reparsingTopLevelAwait && speculationDepth == 0;
-        while (Token != end && Token != K.EndOfFile && stop?.Invoke() != true)
+        var nodes = RentNodeList();
+        try
         {
-            if (startsElement?.Invoke() == false)
+            // Speculative productions must keep their delimiters so a failed arrow
+            // or type-argument parse can return to the surrounding expression.
+            bool recoveringReparse = reparsingTopLevelAwait && speculationDepth == 0;
+            while (Token != end && Token != K.EndOfFile && stop?.Invoke() != true)
             {
-                if (reportInvalidElement is not null)
-                    reportInvalidElement();
-                else
-                    Error(elementExpected!);
-                if ((recoveryBoundary?.Invoke() ?? (!recoveringReparse && Token != K.SemicolonToken && StartsStatement()))
-                    || variableDeclarationDepth != 0 && Token == K.EqualsGreaterThanToken
-                    || !recoveringReparse && Token is K.CloseBraceToken or K.CloseParenToken or K.CloseBracketToken)
+                if (startsElement?.Invoke() == false)
+                {
+                    if (reportInvalidElement is not null)
+                        reportInvalidElement();
+                    else
+                        Error(elementExpected!);
+                    if ((recoveryBoundary?.Invoke() ?? (!recoveringReparse && Token != K.SemicolonToken && StartsStatement()))
+                        || variableDeclarationDepth != 0 && Token == K.EqualsGreaterThanToken
+                        || !recoveringReparse && Token is K.CloseBraceToken or K.CloseParenToken or K.CloseBracketToken)
+                        break;
+                    Next();
+                    continue;
+                }
+                int before = Pos;
+                nodes.Add(await element().ConfigureAwait(false));
+                if (Token == end || stop?.Invoke() == true)
                     break;
-                Next();
-                continue;
+                if (!Take(K.CommaToken) && !(semicolons && (Take(K.SemicolonToken) || LineBreak)))
+                {
+                    Error(Messages.X_0_expected, semicolons ? ";" : ",");
+                    if (!recoveringReparse && Token is K.CloseBraceToken or K.CloseParenToken or K.CloseBracketToken)
+                        break;
+                }
+                if (Pos == before)
+                    Next();
             }
-            int before = Pos;
-            nodes.Add(await element().ConfigureAwait(false));
-            if (Token == end || stop?.Invoke() == true)
-                break;
-            if (!Take(K.CommaToken) && !(semicolons && (Take(K.SemicolonToken) || LineBreak)))
-            {
-                Error(Messages.X_0_expected, semicolons ? ";" : ",");
-                if (!recoveringReparse && Token is K.CloseBraceToken or K.CloseParenToken or K.CloseBracketToken)
-                    break;
-            }
-            if (Pos == before)
-                Next();
+            return new(nodes.ToArray(), start, Pos);
         }
-        return new(nodes.ToArray(), start, Pos);
+        finally
+        {
+            ReturnNodeList(nodes);
+        }
     }
 
     private async ValueTask<NodeList> ListCore(
@@ -73,9 +90,9 @@ public sealed partial class Parser
     {
         await ParseStack;
         int start = Pos;
-        var nodes = new List<SyntaxNode>();
+        var nodes = RentNodeList();
         var outerReparses = reparsedStatements;
-        reparsedStatements = [];
+        reparsedStatements = RentNodeList();
         try
         {
             while (Token != end && Token != K.EndOfFile && stop?.Invoke() != true)
@@ -111,12 +128,14 @@ public sealed partial class Parser
                     Next();
                 }
             }
+            return new(nodes.ToArray(), start, Pos);
         }
         finally
         {
+            ReturnNodeList(nodes);
+            ReturnNodeList(reparsedStatements);
             reparsedStatements = outerReparses;
         }
-        return new(nodes.ToArray(), start, Pos);
     }
 
 }

@@ -3,18 +3,7 @@
     <NuGetLockFilePath Condition="'$(PublishAot)' == 'true'">packages.aot.lock.json</NuGetLockFilePath>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
-  <!-- Compile the production scanner independently so this focused harness can
-       run while the parser is being edited, without sharing build outputs. -->
   <ItemGroup>
-    <Compile Include="../../src/TypeScript.Compiler/Syntax/Scanner*.cs" Link="Scanner/%(Filename)%(Extension)" />
-    <Compile Include="../../src/TypeScript.Compiler/Syntax/Token*.cs" Link="Scanner/%(Filename)%(Extension)" />
-    <Compile Include="../../src/TypeScript.Compiler/Syntax/SyntaxKind.generated.cs" Link="Scanner/SyntaxKind.generated.cs" />
-    <Compile Include="../../src/TypeScript.Compiler/Syntax/IdentifierRanges.generated.cs" Link="Scanner/IdentifierRanges.generated.cs" />
-    <Compile Include="../../src/TypeScript.Compiler/Syntax/RegularExpressionUnicodeProperties*.cs" Link="Scanner/%(Filename)%(Extension)" />
-    <Compile Include="../../src/TypeScript.Compiler/Text/*.cs" Link="Text/%(Filename)%(Extension)" />
-    <Compile Include="../../src/TypeScript.Compiler/Semantics/JsNumber.cs" Link="Semantics/JsNumber.cs" />
-    <Compile Include="../../src/TypeScript.Compiler/Diagnostics/Diagnostic.cs" Link="Diagnostics/Diagnostic.cs" />
-    <Compile Include="../../src/TypeScript.Compiler/Diagnostics/DiagnosticCode.generated.cs" Link="Diagnostics/DiagnosticCode.generated.cs" />
-    <Compile Include="../../src/TypeScript.Compiler/Diagnostics/Messages.generated.cs" Link="Diagnostics/Messages.generated.cs" />
+    <ProjectReference Include="../../src/TypeScript.Compiler/TypeScript.Compiler.csproj" />
   </ItemGroup>
 </Project>

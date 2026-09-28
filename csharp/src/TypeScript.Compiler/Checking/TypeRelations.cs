@@ -19,26 +19,23 @@ internal interface ITypeRelationHost
 internal sealed class TypeRelations(TypeContext context, TypeNormalization normalization, TypeViews views,
     RelationKeys keys, TypeRecursion recursion, ITypeRelationHost host)
 {
-    private readonly Dictionary<RelationKind, Relation> relations = Enum.GetValues<RelationKind>().ToDictionary(
-        k => k,
-        k => new Relation(k));
-    private readonly Dictionary<RelationKind, Stack<RelationSession>> availableSessions = [];
+    private readonly Relation[] relations = Array.ConvertAll(Enum.GetValues<RelationKind>(), static kind => new Relation(kind));
+    private readonly Stack<RelationSession>?[] availableSessions = new Stack<RelationSession>?[Enum.GetValues<RelationKind>().Length];
     internal RelationState State { get; } = new();
 
     private RelationSession RentSession(RelationKind kind)
     {
-        if (availableSessions.TryGetValue(kind, out var available) && available.TryPop(out var session))
+        if (availableSessions[(int)kind] is { } available && available.TryPop(out var session))
         {
             session.Reset();
             return session;
         }
-        return new(context, relations[kind], keys, recursion, State);
+        return new(context, relations[(int)kind], keys, recursion, State);
     }
 
     private void ReturnSession(RelationKind kind, RelationSession session)
     {
-        if (!availableSessions.TryGetValue(kind, out var available))
-            availableSessions.Add(kind, available = []);
+        var available = availableSessions[(int)kind] ??= [];
         available.Push(session);
     }
 
@@ -46,10 +43,10 @@ internal sealed class TypeRelations(TypeContext context, TypeNormalization norma
     {
         var (key, _) = await keys.CreateAsync(source, target, identity: kind == RelationKind.Identity,
             cancellation: cancellation).ConfigureAwait(false);
-        return (relations[kind].Get(key) & RelationComparisonResult.Overflow) != 0;
+        return (relations[(int)kind].Get(key) & RelationComparisonResult.Overflow) != 0;
     }
 
-    internal Relation Cache(RelationKind kind) => relations[kind];
+    internal Relation Cache(RelationKind kind) => relations[(int)kind];
 
     internal async ValueTask<RelationExplanation?> ExplainAsync(Type source, Type target, RelationKind kind, CancellationToken cancellation)
     {
@@ -129,7 +126,9 @@ internal sealed class TypeRelations(TypeContext context, TypeNormalization norma
             if ((source.Flags & TypeFlags.Singleton) != 0)
                 return true;
         }
-        var relation = relations[kind];
+        if (((source.Flags | target.Flags) & TypeFlags.StructuredOrInstantiable) == 0)
+            return false;
+        var relation = relations[(int)kind];
         if (source is ObjectType && target is ObjectType)
         {
             var (key, _) = await keys.CreateAsync(
@@ -141,8 +140,6 @@ internal sealed class TypeRelations(TypeContext context, TypeNormalization norma
             if (cached != 0)
                 return (cached & RelationComparisonResult.Succeeded) != 0;
         }
-        if (((source.Flags | target.Flags) & TypeFlags.StructuredOrInstantiable) == 0)
-            return false;
         var session = RentSession(kind);
         var operation = new RelationOperation(context, this, session, normalization, host, kind);
         try
@@ -230,7 +227,8 @@ internal sealed class TypeRelations(TypeContext context, TypeNormalization norma
                 || (t & (TypeFlags.NumberLiteral | TypeFlags.EnumLiteral)) == (TypeFlags.NumberLiteral | TypeFlags.EnumLiteral)
                     && LiteralEqual(((LiteralType)source).Value, ((LiteralType)target).Value)))
                 return true;
-            if (await views.UnknownLikeUnionAsync(target, cancellation).ConfigureAwait(false))
+            if (context.StrictNullChecks && target is UnionType
+                && await views.UnknownLikeUnionAsync(target, cancellation).ConfigureAwait(false))
                 return true;
         }
         return false;
@@ -301,8 +299,10 @@ internal sealed class RelationOperation(
     internal ValueTask<bool> SimpleAsync(Type source, Type target, CancellationToken cancellation = default, bool report = true)
         => relations.SimpleAsync(source, target, kind, cancellation, report && ReportErrors ? this : null);
 
-    internal ValueTask<Ternary> RecursiveAsync(Type source, Type target, RecursionFlags recursion, IntersectionState intersection,
-        Func<ValueTask<Ternary>> compare, CancellationToken cancellation = default)
+    private readonly Func<Type, Type, CancellationToken, ValueTask> reportOverflow = host.ComplexityOverflowAsync;
+
+    internal ValueTask<Ternary> RecursiveAsync<TState>(Type source, Type target, RecursionFlags recursion, IntersectionState intersection,
+        TState comparisonState, Func<TState, ValueTask<Ternary>> compare, CancellationToken cancellation = default)
         =>
             session.RecursiveAsync(
                 source,
@@ -310,8 +310,9 @@ internal sealed class RelationOperation(
                 intersection,
                 recursion,
                 ReportErrors,
+                comparisonState,
                 compare,
-                host.ComplexityOverflowAsync,
+                reportOverflow,
                 cancellation);
 
     internal ValueTask<Ternary> CompareContinuingAsync(Type source, Type target, RecursionFlags recursion = RecursionFlags.Both,
@@ -386,8 +387,9 @@ internal sealed class RelationOperation(
                 0,
                 recursion,
                 false,
-                () => host.IdentityAsync(this, source, target, cancellation),
-                host.ComplexityOverflowAsync,
+                (Host: host, Operation: this, Source: source, Target: target, Cancellation: cancellation),
+                static state => state.Host.IdentityAsync(state.Operation, state.Source, state.Target, state.Cancellation),
+                reportOverflow,
                 cancellation).ConfigureAwait(false);
         }
         return await host.RelatedAsync(this, source, target, recursion, intersection, cancellation).ConfigureAwait(false);

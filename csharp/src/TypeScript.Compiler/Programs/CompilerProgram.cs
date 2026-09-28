@@ -130,6 +130,7 @@ public sealed partial class CompilerProgram
         internal string GlobalTypingsCache { get; }
         internal IEnumerable<string> ExternalLibraryFiles => loadedDepth.Where(p => p.Value > 0).Select(p => p.Key);
         private readonly int concurrency;
+        private readonly SemaphoreSlim parseSlots;
         private readonly CancellationToken cancellation;
         internal readonly ProjectReferences references;
         internal readonly Dictionary<string, ProgramFile> files;
@@ -195,6 +196,7 @@ public sealed partial class CompilerProgram
                 ContentMappers = config.ContentMappers.ToArray()
             };
             this.concurrency = concurrency;
+            parseSlots = new(concurrency, concurrency);
             this.cancellation = cancellation;
             this.libraryDirectory = libraryDirectory ?? (fs is LibraryFileSystem libraries ? libraries.LibraryDirectory : "");
             var comparer = fs.CaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
@@ -426,7 +428,9 @@ public sealed partial class CompilerProgram
                 while (pending.Count != 0 || scheduled.Count != 0)
                 {
                     cancellation.ThrowIfCancellationRequested();
-                    while (pending.Count != 0 && scheduled.Count < concurrency)
+                    // Queue known files independently of publication. A slow
+                    // earlier file must not leave free parser workers idle.
+                    while (pending.Count != 0 && (concurrency > 1 || scheduled.Count == 0))
                     {
                         var item = pending.Dequeue();
                         string original = CompilerPath.Resolve(cwd, item.Reason.FileName), path = references.Redirect(original);
@@ -656,10 +660,20 @@ public sealed partial class CompilerProgram
 
         private async ValueTask<ParsedSource> ParseAndBind(string path, ParsedConfig project, bool library)
         {
-            var parsed = await Parse(path, project, library).ConfigureAwait(false);
-            if (parsed.File is { } syntax)
-                parsed.Binding = await Binder.BindAsync(syntax, cancellation).ConfigureAwait(false);
-            return parsed;
+            if (concurrency > 1)
+                await parseSlots.WaitAsync(cancellation).ConfigureAwait(false);
+            try
+            {
+                var parsed = await Parse(path, project, library).ConfigureAwait(false);
+                if (parsed.File is { } syntax)
+                    parsed.Binding = await Binder.BindAsync(syntax, cancellation).ConfigureAwait(false);
+                return parsed;
+            }
+            finally
+            {
+                if (concurrency > 1)
+                    parseSlots.Release();
+            }
         }
 
         private async ValueTask<ParsedSource> Parse(

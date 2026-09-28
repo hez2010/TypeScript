@@ -16,29 +16,28 @@ internal readonly struct RelationKey : IEquatable<RelationKey>
         this.source = source;
         this.target = target;
         Intersection = intersection;
-        var builder = new HashCode();
-        builder.Add(intersection);
-        builder.Add(new Part((byte)'s'));
-        builder.Add(new Part((byte)'t', source));
-        builder.Add(new Part((byte)'t', target));
-        hash = builder.ToHashCode();
+        hash = HashCode.Combine(source.Id, target.Id, intersection);
     }
 
     internal RelationKey(IEnumerable<Part> parts, IntersectionState intersection)
     {
         this.parts = parts.ToArray();
         Intersection = intersection;
-        var builder = new HashCode();
-        builder.Add(intersection);
-        foreach (var part in this.parts)
-            builder.Add(part);
-        hash = builder.ToHashCode();
         if (this.parts is [{ Kind: (byte)'s', Type: null, Ordinal: 0 },
             { Kind: (byte)'t', Type: not null, Ordinal: 0 }, { Kind: (byte)'t', Type: not null, Ordinal: 0 }])
         {
             source = this.parts[1].Type;
             target = this.parts[2].Type;
             this.parts = null;
+            hash = HashCode.Combine(source!.Id, target!.Id, intersection);
+        }
+        else
+        {
+            var builder = new HashCode();
+            builder.Add(intersection);
+            foreach (var part in this.parts)
+                builder.Add(part);
+            hash = builder.ToHashCode();
         }
     }
 

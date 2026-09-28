@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using F = TypeScript.Compiler.Checking.TypeFlags;
 using O = TypeScript.Compiler.Checking.ObjectFlags;
 
@@ -6,6 +7,9 @@ namespace TypeScript.Compiler.Checking;
 
 internal sealed partial class TypeAlgebra
 {
+    private Stack<Type>? intersectionPending;
+    private HashSet<Type>? intersectionSeen;
+
     internal async ValueTask<Type> IntersectionAsync(IReadOnlyList<Type> types, IntersectionFlags flags = 0,
         TypeAlias? alias = null, CancellationToken cancellation = default)
     {
@@ -86,8 +90,10 @@ internal sealed partial class TypeAlgebra
                 {
                     if (await host.IsSubtypeAsync(constraint, primitive, true, cancellation).ConfigureAwait(false))
                         return variable;
-                    bool someSubtype = false;
-                    if (constraint is UnionType union)
+                    // Identity proves this constituent is a subtype without
+                    // comparing every preceding member of a large union.
+                    bool someSubtype = constraint is UnionType knownUnion && knownUnion.TypesSpan.BinarySearch(primitive, order) >= 0;
+                    if (!someSubtype && constraint is UnionType union)
                         foreach (var constituent in union.Types)
                             if (await host.IsSubtypeAsync(constituent, primitive, true, cancellation).ConfigureAwait(false))
                             {
@@ -103,13 +109,17 @@ internal sealed partial class TypeAlgebra
         // NoSupertypeReduction has already affected the constituent set. Only
         // NoConstraintReduction distinguishes cache entries, and suppresses the alias key.
         var cacheFlags = flags & IntersectionFlags.NoConstraintReduction;
-        var key = (TypeCacheKey.Union(set.ToArray(), null, cacheFlags == 0 ? alias : null), cacheFlags);
+        var key = (TypeCacheKey.Union(CollectionsMarshal.AsSpan(set), null, cacheFlags == 0 ? alias : null), cacheFlags);
         if (intersections.TryGetValue(key, out var existing))
             return existing;
         Type result;
         if ((includes & F.Union) == 0)
         {
-            result = context.NewIntersectionType(set.ToArray(), objectFlags | TypeContext.PropagatingFlags(types.ToArray(), F.Nullable));
+            O propagated = 0;
+            for (int i = 0; i < types.Count; i++)
+                if ((types[i].Flags & F.Nullable) == 0)
+                    propagated |= types[i].ObjectFlags;
+            result = context.NewIntersectionType(CollectionsMarshal.AsSpan(set), objectFlags | (propagated & O.PropagatingFlags));
             result.Alias = alias;
         }
         else if (IntersectPrimitiveUnions(set))
@@ -143,7 +153,7 @@ internal sealed partial class TypeAlgebra
                 return context.ErrorType;
             var constituents = await CrossProductIntersections(set, flags, cancellation).ConfigureAwait(false);
             Type? origin = constituents.Any(t => t is IntersectionType) && ConstituentCount(constituents) > ConstituentCount(set)
-                ? context.NewIntersectionType(set.ToArray()) : null;
+                ? context.NewIntersectionType(CollectionsMarshal.AsSpan(set)) : null;
             result = await UnionAsync(constituents, alias: alias, origin: origin, cancellation: cancellation).ConfigureAwait(false);
         }
         intersections[key] = result;
@@ -155,10 +165,18 @@ internal sealed partial class TypeAlgebra
     private bool ContainsMissing(Type type) =>
         type == context.MissingType || type is UnionType union && union.Types[0] == context.MissingType;
 
-    private async ValueTask<bool> PrimitiveOrEmptyConstraint(Type type, CancellationToken cancellation)
+    private ValueTask<bool> PrimitiveOrEmptyConstraint(Type type, CancellationToken cancellation)
     {
-        var types = type is UnionType union ? union.Types : (IReadOnlyList<Type>)[type];
-        foreach (var constituent in types)
+        if (type is not UnionType union)
+            return (type.Flags & (F.Primitive | F.NonPrimitive)) != 0 ? ValueTask.FromResult(true) : EmptyAnonymous(type, cancellation);
+        // Normalization has already classified every constituent of this union.
+        return (union.ObjectFlags & O.PrimitiveUnion) != 0 ? ValueTask.FromResult(true)
+            : PrimitiveOrEmptyUnion(union, cancellation);
+    }
+
+    private async ValueTask<bool> PrimitiveOrEmptyUnion(UnionType union, CancellationToken cancellation)
+    {
+        foreach (var constituent in union.Types)
             if ((constituent.Flags & (F.Primitive | F.NonPrimitive)) == 0
                 && !await EmptyAnonymous(constituent, cancellation).ConfigureAwait(false))
                 return false;
@@ -168,54 +186,66 @@ internal sealed partial class TypeAlgebra
     private async ValueTask<(List<Type> Types, F Includes)> AddIntersectionTypes(IReadOnlyList<Type> source, CancellationToken cancellation)
     {
         var types = new List<Type>(source.Count);
-        var seen = new HashSet<Type>();
-        var pending = new Stack<Type>(source.Reverse());
-        F includes = 0;
-        while (pending.TryPop(out var original))
+        var seen = Interlocked.Exchange(ref intersectionSeen, null) ?? new();
+        var pending = Interlocked.Exchange(ref intersectionPending, null) ?? new();
+        try
         {
-            cancellation.ThrowIfCancellationRequested();
-            var type = await RegularTypeAsync(original, cancellation).ConfigureAwait(false);
-            var flags = type.Flags;
-            if (type is IntersectionType intersection)
+            for (int i = source.Count - 1; i >= 0; i--)
+                pending.Push(source[i]);
+            F includes = 0;
+            while (pending.TryPop(out var original))
             {
-                for (int i = intersection.Types.Count - 1; i >= 0; i--)
-                    pending.Push(intersection.Types[i]);
-                continue;
-            }
-            if (await EmptyAnonymous(type, cancellation).ConfigureAwait(false))
-            {
-                if ((includes & F.IncludesEmptyObject) == 0)
+                cancellation.ThrowIfCancellationRequested();
+                var type = await RegularTypeAsync(original, cancellation).ConfigureAwait(false);
+                var flags = type.Flags;
+                if (type is IntersectionType intersection)
                 {
-                    includes |= F.IncludesEmptyObject;
-                    seen.Add(type);
-                    types.Add(type);
+                    for (int i = intersection.Types.Count - 1; i >= 0; i--)
+                        pending.Push(intersection.Types[i]);
+                    continue;
                 }
-                continue;
-            }
-            if ((flags & F.AnyOrUnknown) != 0)
-            {
-                if (type == context.WildcardType)
-                    includes |= F.IncludesWildcard;
-                if (IsError(type))
-                    includes |= F.IncludesError;
-            }
-            else if (context.StrictNullChecks || (flags & F.Nullable) == 0)
-            {
-                if (type == context.MissingType)
+                if (await EmptyAnonymous(type, cancellation).ConfigureAwait(false))
                 {
-                    includes |= F.IncludesMissingType;
-                    type = context.UndefinedType;
+                    if ((includes & F.IncludesEmptyObject) == 0)
+                    {
+                        includes |= F.IncludesEmptyObject;
+                        seen.Add(type);
+                        types.Add(type);
+                    }
+                    continue;
                 }
-                if (seen.Add(type))
+                if ((flags & F.AnyOrUnknown) != 0)
                 {
-                    if (type.IsUnit && (includes & F.Unit) != 0)
-                        includes |= F.NonPrimitive;
-                    types.Add(type);
+                    if (type == context.WildcardType)
+                        includes |= F.IncludesWildcard;
+                    if (IsError(type))
+                        includes |= F.IncludesError;
                 }
+                else if (context.StrictNullChecks || (flags & F.Nullable) == 0)
+                {
+                    if (type == context.MissingType)
+                    {
+                        includes |= F.IncludesMissingType;
+                        type = context.UndefinedType;
+                    }
+                    if (seen.Add(type))
+                    {
+                        if (type.IsUnit && (includes & F.Unit) != 0)
+                            includes |= F.NonPrimitive;
+                        types.Add(type);
+                    }
+                }
+                includes |= flags & F.IncludesMask;
             }
-            includes |= flags & F.IncludesMask;
+            return (types, includes);
         }
-        return (types, includes);
+        finally
+        {
+            seen.Clear();
+            pending.Clear();
+            Interlocked.CompareExchange(ref intersectionSeen, seen, null);
+            Interlocked.CompareExchange(ref intersectionPending, pending, null);
+        }
     }
 
     private bool IntersectPrimitiveUnions(List<Type> types)
@@ -249,7 +279,7 @@ internal sealed partial class TypeAlgebra
                     else
                         Insert(result, type);
                 }
-        types[index] = context.GetUnionFromSortedTypes(result.ToArray(), O.PrimitiveUnion);
+        types[index] = context.GetUnionFromSortedTypes(CollectionsMarshal.AsSpan(result), O.PrimitiveUnion);
         return true;
     }
 
