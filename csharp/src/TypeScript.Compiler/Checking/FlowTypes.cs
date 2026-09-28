@@ -137,7 +137,11 @@ internal sealed partial class FlowTypes(TypeContext context, TypeAlgebra algebra
             ? declared : result;
     }
 
-    internal async ValueTask<Type> StableAsync(Func<ValueTask<Type>> check, CancellationToken cancellation = default)
+    internal ValueTask<Type> StableAsync(Func<ValueTask<Type>> check, CancellationToken cancellation = default) =>
+        StableAsync(check, static callback => callback(), cancellation);
+
+    internal async ValueTask<Type> StableAsync<TState>(TState state, Func<TState, ValueTask<Type>> check,
+        CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
         var savedStack = loopStack;
@@ -146,7 +150,7 @@ internal sealed partial class FlowTypes(TypeContext context, TypeAlgebra algebra
         ExpressionCache = null;
         try
         {
-            return await check().ConfigureAwait(false);
+            return await check(state).ConfigureAwait(false);
         }
         finally
         {

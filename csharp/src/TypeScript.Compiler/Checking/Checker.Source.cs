@@ -474,21 +474,29 @@ internal sealed partial class Checker
         }
         if ((flags & (NodeFlags.Let | NodeFlags.Const)) != 0)
         {
-            var names = new Stack<SyntaxNode>();
-            if (node.Name is { } rootName)
-                names.Push(rootName);
-            while (names.TryPop(out var name))
+            if (node.Name is IdentifierNode identifier)
             {
                 cancellation.ThrowIfCancellationRequested();
-                if (name is IdentifierNode { Text.Span: "let" })
+                if (identifier.Text.Span is "let")
+                    Error(identifier, DiagnosticCode.XLetIsNotAllowedToBeUsedAsANameInLetOrConstDeclarations);
+            }
+            else if (node.Name is { } rootName)
+            {
+                var names = new Stack<SyntaxNode>();
+                names.Push(rootName);
+                while (names.TryPop(out var name))
                 {
-                    Error(name, DiagnosticCode.XLetIsNotAllowedToBeUsedAsANameInLetOrConstDeclarations);
-                    continue;
+                    cancellation.ThrowIfCancellationRequested();
+                    if (name is IdentifierNode { Text.Span: "let" })
+                    {
+                        Error(name, DiagnosticCode.XLetIsNotAllowedToBeUsedAsANameInLetOrConstDeclarations);
+                        continue;
+                    }
+                    if (name is BindingPatternNode pattern)
+                        for (int i = pattern.Elements!.Count - 1; i >= 0; i--)
+                            if (pattern.Elements[i] is BindingElementNode { Name: { } bindingName })
+                                names.Push(bindingName);
                 }
-                if (name is BindingPatternNode pattern)
-                    for (int i = pattern.Elements!.Count - 1; i >= 0; i--)
-                        if (pattern.Elements[i] is BindingElementNode { Name: { } bindingName })
-                            names.Push(bindingName);
             }
         }
         if ((flags & NodeFlags.Using) != 0 && node.Name is BindingPatternNode)

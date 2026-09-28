@@ -151,6 +151,11 @@ public sealed partial class Parser
         var key = (Pos, context, allowReturnType);
         if (notArrows?.Contains(key) == true)
             return false;
+        return await PeekArrowCore(key, allowReturnType).ConfigureAwait(false);
+    }
+
+    private async ValueTask<bool> PeekArrowCore((int Position, NodeFlags Context, bool ReturnType) key, bool allowReturnType)
+    {
         bool result = await PeekCore(async () =>
         {
             bool async = Token == K.AsyncKeyword && !NextIs(K.EqualsGreaterThanToken);

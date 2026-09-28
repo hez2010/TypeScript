@@ -191,7 +191,8 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
         var data = links.TypeNodes.Get(node);
         if (data.ResolvedType is { } type)
             return type;
-        type = await FlowTypes.StableAsync(() => Expressions.CheckAsync(node, cancellation: cancellation), cancellation);
+        type = await FlowTypes.StableAsync((Expressions, node, cancellation),
+            static state => state.Expressions.CheckAsync(state.node, cancellation: state.cancellation), cancellation);
         cancellation.ThrowIfCancellationRequested();
         Functions.RecordExpressionCache(node, type);
         return data.ResolvedType = type;

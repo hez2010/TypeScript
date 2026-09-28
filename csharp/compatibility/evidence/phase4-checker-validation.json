@@ -1,0 +1,1336 @@
+{
+    "timestamp": "2026-09-28T15:26:06.978Z",
+    "compilerSourceSha256": "c952a6cf7193c21c5c42aa634ac662211eb3a4df47a6fec1fbcc523df274510a",
+    "compilerSha256": "be91c48b8e7a8cdc1e68569a6f239e5aaddb3a33b5c3bbde794b043f42aa3f4f",
+    "semantic": [
+        {
+            "timestamp": "2026-09-28T15:07:18.522Z",
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "mode": "single",
+            "filter": "",
+            "managed": true,
+            "reuseSyntax": true,
+            "referenceJobs": 2,
+            "scope": "Original compiler test program graphs and semantic/global diagnostics in the selected checker concurrency mode; checker query APIs are validated separately",
+            "referenceExitCode": 0,
+            "exportedConfigurations": 15208,
+            "readyConfigurations": 13446,
+            "availableConfigurations": 13446,
+            "referenceInventoryFiles": 12730,
+            "plannedConfigurations": 15208,
+            "referenceMissingFiles": [],
+            "referenceMissingConfigurations": [],
+            "referenceSkipped": 1762,
+            "referenceFailed": 0,
+            "candidateFailures": 0,
+            "graphMismatches": 0,
+            "diagnosticMismatches": 0,
+            "graphAndCodeMatches": 13446,
+            "detailedDiagnosticMatches": 13446,
+            "detailedDiagnosticMismatches": 0,
+            "detailedComparison": "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized",
+            "errorGroups": [],
+            "inputSha256": "df21bccda8a3bc5da534586c352dae0175cf4bf260c93ee15694afe19353d5bd",
+            "referenceInputCorrectionsSha256": "796d2ff79dfe5dfb5d35cd192946d4a1da669b6cea211d31b2b4696d84aa0c0c",
+            "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+            "candidateSha256": "122a489efeb08828e36a1d8c612da6d60ad48de5d371abaf90b65220200a8978",
+            "compilerSha256": "be91c48b8e7a8cdc1e68569a6f239e5aaddb3a33b5c3bbde794b043f42aa3f4f",
+            "mapperFixture": {
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+                "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+                "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+            },
+            "candidateOutputSha256": "8390e6e546cf407bd5030dfabecd2983bd7aee283ae8d0a0678963646c6b31a4",
+            "fullSemanticCorpusGateComplete": true
+        },
+        {
+            "timestamp": "2026-09-28T15:09:58.655Z",
+            "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+            "mode": "default",
+            "filter": "",
+            "managed": true,
+            "reuseSyntax": true,
+            "referenceJobs": 2,
+            "scope": "Original compiler test program graphs and semantic/global diagnostics in the selected checker concurrency mode; checker query APIs are validated separately",
+            "referenceExitCode": 0,
+            "exportedConfigurations": 15208,
+            "readyConfigurations": 13446,
+            "availableConfigurations": 13446,
+            "referenceInventoryFiles": 12730,
+            "plannedConfigurations": 15208,
+            "referenceMissingFiles": [],
+            "referenceMissingConfigurations": [],
+            "referenceSkipped": 1762,
+            "referenceFailed": 0,
+            "candidateFailures": 0,
+            "graphMismatches": 0,
+            "diagnosticMismatches": 0,
+            "graphAndCodeMatches": 13446,
+            "detailedDiagnosticMatches": 13446,
+            "detailedDiagnosticMismatches": 0,
+            "detailedComparison": "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized",
+            "errorGroups": [],
+            "inputSha256": "b51e79a2ebc4428367c89bceb367fd82a86bdd85b43b847bc17f875b51743a77",
+            "referenceInputCorrectionsSha256": "f0e9fd99f75e8ac0c3db7ef4ccef21980f74b7b1adcfe189a01c8a762e4613a6",
+            "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+            "candidateSha256": "122a489efeb08828e36a1d8c612da6d60ad48de5d371abaf90b65220200a8978",
+            "compilerSha256": "be91c48b8e7a8cdc1e68569a6f239e5aaddb3a33b5c3bbde794b043f42aa3f4f",
+            "mapperFixture": {
+                "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+                "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+                "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+            },
+            "candidateOutputSha256": "8390e6e546cf407bd5030dfabecd2983bd7aee283ae8d0a0678963646c6b31a4",
+            "fullSemanticCorpusGateComplete": true
+        }
+    ],
+    "api": {
+        "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+        "families": 31,
+        "comparedQueries": 1649908,
+        "knownReferenceFailures": 4,
+        "candidateFailures": 0,
+        "records": [
+            {
+                "name": "api-locations",
+                "exitCode": 1,
+                "passed": true,
+                "summary": {
+                    "configurations": 80,
+                    "queries": 3956,
+                    "comparedQueries": 3812,
+                    "exact": 76,
+                    "failed": 4,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 4,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "0fd113eea7c38f18959452244fe0c41c1ef8ea5c9891c58ff69e06b3cc6cadb5",
+                    "resultHash": "1523b8710cb43e877e57adafa92428c137213ee4bd956528838fd04ab35c3394",
+                    "managed": true
+                }
+            },
+            {
+                "name": "api-symbol-locations",
+                "exitCode": 0,
+                "passed": true,
+                "summary": {
+                    "configurations": 104,
+                    "queries": 5312,
+                    "comparedQueries": 5312,
+                    "exact": 104,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "68eb6b0ac9f7ef354d82a509fe7dfa06df8b3a3d5c7c9bb70a1021376773d09b",
+                    "resultHash": "b6095f3092801a0df026197d97476f053bd5d17e38c89ea33f5fc8296f7a251f",
+                    "managed": true,
+                    "symbolAnswerMatches": 104,
+                    "locationMetadataDifferences": []
+                }
+            },
+            {
+                "name": "api-scope-services",
+                "exitCode": 0,
+                "passed": true,
+                "summary": {
+                    "configurations": 104,
+                    "queries": 29500,
+                    "comparedQueries": 29500,
+                    "exact": 104,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "1e81170626ed44a62ddceef58ac1cf0de04bfcdb72d380ab4cdc531521707610",
+                    "resultHash": "6dbc664b5fb4ae6b6572518a667d1a3f961f9ebbb118e137522a77d914bf1e51",
+                    "managed": true,
+                    "services": {
+                        "scopes": 27440,
+                        "symbolTypesAtLocation": 1904,
+                        "symbolTypesWithoutLocation": 1904,
+                        "moduleExports": 52,
+                        "aliasTargets": 60,
+                        "localExportTargets": 16,
+                        "shorthandValues": 16,
+                        "parameterPropertyPairs": 12
+                    }
+                }
+            },
+            {
+                "name": "api-context-queries",
+                "exitCode": 0,
+                "passed": true,
+                "summary": {
+                    "configurations": 112,
+                    "queries": 7644,
+                    "comparedQueries": 7644,
+                    "exact": 112,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "c65794a9e5217beddd1f9d63dda5108cbe813f00abaccd4dfcb349ece37e1507",
+                    "resultHash": "017ecbd34b2b995f5f210639dc284b5e0355dcfc594185ec89b80a643b062b25",
+                    "managed": true,
+                    "contextRecords": {
+                        "expressionTypes": 6768,
+                        "objectElements": 36,
+                        "arrayPositions": 108,
+                        "jsxAttributes": 16,
+                        "resolvedSignaturesAndReturns": 108,
+                        "argumentTypes": 240,
+                        "signatureHelp": 324,
+                        "stringCompletions": 44
+                    }
+                }
+            },
+            {
+                "name": "api-declaration-visibility",
+                "exitCode": 0,
+                "passed": true,
+                "summary": {
+                    "configurations": 112,
+                    "queries": 24832,
+                    "comparedQueries": 24832,
+                    "exact": 112,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "939873780e0df71241bbf0f9332fcb6a48c303841baa84c1e74f629ea7430cfd",
+                    "resultHash": "68148641cb59a3a77c64840b6da23facc9e202c3139e32864d14df3b9bdc2aa6",
+                    "managed": true,
+                    "visibilityRecords": {
+                        "initial": 5628,
+                        "afterPrecalculation": 5628,
+                        "aliasRetention": 2320,
+                        "afterRetention": 5628,
+                        "afterRepeatedPrecalculation": 5628
+                    }
+                }
+            },
+            {
+                "name": "api-symbol-chains",
+                "exitCode": 0,
+                "passed": true,
+                "summary": {
+                    "configurations": 112,
+                    "queries": 60216,
+                    "comparedQueries": 60216,
+                    "exact": 112,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "179f897a4eb341fc06182bbd343b7fd839685ff1531f5e8bc02b0298feca051a",
+                    "resultHash": "8ac6caa2d6184f867ff53659b9869f5eade4fb9a27d93d22771377742ee731d1",
+                    "managed": true,
+                    "chains": {
+                        "found": 17340,
+                        "absent": 42876,
+                        "longest": 4
+                    }
+                }
+            },
+            {
+                "name": "api-accessibility",
+                "exitCode": 0,
+                "passed": true,
+                "summary": {
+                    "configurations": 156,
+                    "queries": 125544,
+                    "comparedQueries": 125544,
+                    "exact": 156,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "877c6c3ffe48dcc29fcd87366800dc2290d7afcef94cb9caba6bbaa56109490f",
+                    "resultHash": "b18a73d367feb754d56994b7ad9305480336dea83dc64718bc44205743448912",
+                    "managed": true,
+                    "accessibilityRecords": {
+                        "containers": 19452,
+                        "decisions": 77808,
+                        "flagQueries": 19452,
+                        "typeAndValueQueries": 6484,
+                        "entityNames": 2348,
+                        "decisionStates": [
+                            49616,
+                            12808,
+                            15384,
+                            0
+                        ]
+                    },
+                    "symbolDiagnosticNamesCompared": false,
+                    "entityNameVisibilityComparedCompletely": true
+                }
+            },
+            {
+                "name": "api-symbol-display",
+                "exitCode": 0,
+                "passed": true,
+                "summary": {
+                    "configurations": 172,
+                    "queries": 122012,
+                    "comparedQueries": 122012,
+                    "exact": 172,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "ba123b64cdae9651326bb1ccd33cb16d35a53963a0ae6c98889689c55199b70e",
+                    "resultHash": "8593fcf5040b5a988143d2bbb7b826fab3099ca81af77ac59004b263931eb5c4",
+                    "managed": true,
+                    "symbolDisplayRecords": {
+                        "names": 27116,
+                        "accessibilityResults": 94896
+                    }
+                }
+            },
+            {
+                "name": "api-symbol-type-nodes",
+                "exitCode": 0,
+                "passed": true,
+                "summary": {
+                    "configurations": 68,
+                    "queries": 490752,
+                    "comparedQueries": 490752,
+                    "exact": 68,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "6fd684bd322350d99d9da928cfbc79dd013d606c5d0928ef6be8d69f506b9479",
+                    "resultHash": "18ccdcf3783dc40d823895f1d00550de981e4b864de88f73950bbea00938ece5",
+                    "managed": true
+                }
+            },
+            {
+                "name": "api-computed-symbols",
+                "exitCode": 0,
+                "passed": true,
+                "summary": {
+                    "configurations": 32,
+                    "queries": 62688,
+                    "comparedQueries": 62688,
+                    "exact": 32,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "da7fa60b82f001f6ee888c9993235719547dda9429caafe36e8a94876a05bc00",
+                    "resultHash": "6cf4f6f974b41bc5b9d01c5cf253c6a4008bbda38d7bcccc6481fae08e4d4af2",
+                    "managed": true,
+                    "symbolFormatFlags": [
+                        20,
+                        22,
+                        28,
+                        30,
+                        52,
+                        54,
+                        60,
+                        62
+                    ]
+                }
+            },
+            {
+                "name": "api-symbol-formats",
+                "exitCode": 0,
+                "passed": true,
+                "summary": {
+                    "configurations": 72,
+                    "queries": 275728,
+                    "comparedQueries": 275728,
+                    "exact": 72,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "e281739a187c150c5ae4d1827b67645fa25f7dace7094441ffa24de96740fb45",
+                    "resultHash": "1d3a1277a7ed857bb69f3fc5f8bf90a6f2ce8afc5f7fdf1b4471e27accb36501",
+                    "managed": true,
+                    "symbolFormatFlags": [
+                        0,
+                        1,
+                        2,
+                        6,
+                        8,
+                        10,
+                        12,
+                        14,
+                        16,
+                        17,
+                        32,
+                        34,
+                        36,
+                        38,
+                        40,
+                        42,
+                        44,
+                        46,
+                        64
+                    ]
+                }
+            },
+            {
+                "name": "api-type-syntax",
+                "exitCode": 0,
+                "passed": true,
+                "summary": {
+                    "configurations": 32,
+                    "queries": 2880,
+                    "comparedQueries": 2880,
+                    "exact": 32,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "ae3bcf95f95ce4d05a03b702b9758907e5246cecf377d14e9d90fd4b457f9d78",
+                    "resultHash": "94f573fc9d1c0e6be202de52d9b76d730b0684e8decfb12cf3fbffb2022ed52f",
+                    "managed": true
+                }
+            },
+            {
+                "name": "api-conditional-syntax",
+                "exitCode": 0,
+                "passed": true,
+                "summary": {
+                    "configurations": 28,
+                    "queries": 1344,
+                    "comparedQueries": 1344,
+                    "exact": 28,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "2d651fa59427b689aa9298f8d6e8d9f7ba2c42261c69412705eba964fabefd8c",
+                    "resultHash": "ec6aa1c8272d02ba194e7f9628c5a29d2ca12b2d5d4ce8f17e74ffc1898e49a7",
+                    "managed": true
+                }
+            },
+            {
+                "name": "api-mapped-syntax",
+                "exitCode": 0,
+                "passed": true,
+                "summary": {
+                    "configurations": 24,
+                    "queries": 1280,
+                    "comparedQueries": 1280,
+                    "exact": 24,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "0fb5d40db8653694d30d2122eda123a8123c6465a51f17f2b57710aa12ce3c5e",
+                    "resultHash": "71f159275faac2467c93561332efcb2dd7aab7ea9b6fba31459ad2191859670b",
+                    "managed": true
+                }
+            },
+            {
+                "name": "api-symbol-type-arguments",
+                "exitCode": 0,
+                "passed": true,
+                "summary": {
+                    "configurations": 88,
+                    "queries": 347200,
+                    "comparedQueries": 347200,
+                    "exact": 88,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "30fad4b1c15904d9832c0d59d2bd8e1406038b0624f19337cac6bd5b0abb3b02",
+                    "resultHash": "f36a5fac37ae4dedf945348904af5bbb5c3b95b85392a65b9576bac60dc3214b",
+                    "managed": true,
+                    "symbolFormatFlags": [
+                        5,
+                        7,
+                        13,
+                        15,
+                        21,
+                        23,
+                        29,
+                        31,
+                        37,
+                        39,
+                        45,
+                        47,
+                        53,
+                        55,
+                        61,
+                        63
+                    ]
+                }
+            },
+            {
+                "name": "api-signature-syntax",
+                "exitCode": 0,
+                "passed": true,
+                "summary": {
+                    "configurations": 48,
+                    "queries": 2496,
+                    "comparedQueries": 2496,
+                    "exact": 48,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "63ebe3a59fd6479734fa22ac874383b8fc8a1a97358c4dd4cc33099e6bf25a6d",
+                    "resultHash": "dca60b6faab5a8b23748371762fb271c281625f3f35bd8842e8556435c7adcd5",
+                    "managed": true
+                }
+            },
+            {
+                "name": "api-anonymous-syntax",
+                "exitCode": 0,
+                "passed": true,
+                "summary": {
+                    "configurations": 44,
+                    "queries": 2448,
+                    "comparedQueries": 2448,
+                    "exact": 44,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "09eb7fdf9b133b0453d90bdbb3133251dcae819c635890611ab2ee44cfaf967f",
+                    "resultHash": "f8fc52d96f37b61966b748c7bc35be422d2972ef0b7dee606a10ec9ffa2ad6d4",
+                    "managed": true
+                }
+            },
+            {
+                "name": "api-syntax-names",
+                "exitCode": 0,
+                "passed": true,
+                "summary": {
+                    "configurations": 24,
+                    "queries": 4800,
+                    "comparedQueries": 4800,
+                    "exact": 24,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "1a740d3915f2332284a94adff85dda665eb284d2c53da10945df4f8818901818",
+                    "resultHash": "c8f56b3f3d69a632eb864c88f1d312a4d6321ec3bebb3404384d3a467ed55676",
+                    "managed": true
+                }
+            },
+            {
+                "name": "api-syntax-options",
+                "exitCode": 0,
+                "passed": true,
+                "summary": {
+                    "configurations": 45,
+                    "queries": 13064,
+                    "comparedQueries": 13064,
+                    "exact": 45,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "f56128d1ec4d24baf4e7e0c40c9f98c8ca5010e2806218b0b6ba35afe6db1e60",
+                    "resultHash": "2992128230c5bee7c72f587ddca36441deee87460ac7096f13d4f58c338d0e7a",
+                    "managed": true
+                }
+            },
+            {
+                "name": "api-generated-names",
+                "exitCode": 0,
+                "passed": true,
+                "summary": {
+                    "configurations": 40,
+                    "queries": 3584,
+                    "comparedQueries": 3584,
+                    "exact": 40,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "fa138e554a4d067694970b0061f66826fe8ef19b7f3c25701e56b39169a3db9b",
+                    "resultHash": "05229883ce448f796c1a41f9614e0649d1b278bae456dc6b29f69f30232b1619",
+                    "managed": true
+                }
+            },
+            {
+                "name": "api-function-options",
+                "exitCode": 0,
+                "passed": true,
+                "summary": {
+                    "configurations": 24,
+                    "queries": 12544,
+                    "comparedQueries": 12544,
+                    "exact": 24,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "ca5bd2098666cc60e999bb39c5ae2f025cf267cc5d03843f04ef509c83ff9909",
+                    "resultHash": "39d04a890bb2be58e36236f698f7944e9d7aeb6f177f1310066b8af638a8bbca",
+                    "managed": true
+                }
+            },
+            {
+                "name": "api-signature-declarations",
+                "exitCode": 0,
+                "passed": true,
+                "summary": {
+                    "configurations": 20,
+                    "queries": 13520,
+                    "comparedQueries": 13520,
+                    "exact": 20,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "a855bfe713fb0c1509318b3a166f46cec79bb86865422d1f87eb152b00aeacc6",
+                    "resultHash": "4560fb95bb5394e78394b9927fb064b3f19da1f067d51bcf06f0828db0822378",
+                    "managed": true
+                }
+            },
+            {
+                "name": "api-class-options",
+                "exitCode": 0,
+                "passed": true,
+                "summary": {
+                    "configurations": 28,
+                    "queries": 7776,
+                    "comparedQueries": 7776,
+                    "exact": 28,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "d11fc4c41a2b2b61a864ee2f245c0504f01ee7c59e62d5e4cbe5f5f1f5a2a415",
+                    "resultHash": "93bf1622611c4b8769b1f5eda43992bccc6472cfd4c881df5d166c9b5497ac7c",
+                    "managed": true
+                }
+            },
+            {
+                "name": "api-emit-references",
+                "exitCode": 0,
+                "passed": true,
+                "summary": {
+                    "configurations": 24,
+                    "queries": 528,
+                    "comparedQueries": 528,
+                    "exact": 24,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "b88fd3f42ef00ae34389a8fbb5f8c3ac8613bf1977d6bf65872880334f86b7ed",
+                    "resultHash": "587a53ae5877097dcf91f48b33c10f3a70b5d241c1977079f52ebe2b23736ac6",
+                    "managed": true
+                }
+            },
+            {
+                "name": "api-emit-queries",
+                "exitCode": 0,
+                "passed": true,
+                "summary": {
+                    "configurations": 44,
+                    "queries": 2300,
+                    "comparedQueries": 2300,
+                    "exact": 44,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "77ef181936807b6744541c8277edb58601c5f050c0b1c0ea858531235c68fa09",
+                    "resultHash": "48d53534a15d7b140e0085f0605a917f90c0dcd7224d86373864588005aa4733",
+                    "managed": true
+                }
+            },
+            {
+                "name": "api-emit-serialization",
+                "exitCode": 0,
+                "passed": true,
+                "summary": {
+                    "configurations": 24,
+                    "queries": 600,
+                    "comparedQueries": 600,
+                    "exact": 24,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "08d11649d6ccac357204b3914e63549fd6f049cfcdf8faa63efcd9c2513660fc",
+                    "resultHash": "50963a323ab0e06adc2fffb19b39acee620879b9558ab78baa129401f45c53f5",
+                    "managed": true
+                }
+            },
+            {
+                "name": "api-emit-jsx",
+                "exitCode": 0,
+                "passed": true,
+                "summary": {
+                    "configurations": 28,
+                    "queries": 280,
+                    "comparedQueries": 280,
+                    "exact": 28,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "7771f1a0bbf5b5ee4dc44eb07a84df40125e9a49d23f5ade6c495c49c0cac4f3",
+                    "resultHash": "cd54b64e292238cd33a8f0ec1fa8eb2a1033484973c6de7f71e771f99a9ccf28",
+                    "managed": true
+                }
+            },
+            {
+                "name": "api-emit-links",
+                "exitCode": 0,
+                "passed": true,
+                "summary": {
+                    "configurations": 48,
+                    "queries": 420,
+                    "comparedQueries": 420,
+                    "exact": 48,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "6cf171db0d98e85a795c0d6c8d9645cf73aca03a01086b26862f0a9926a1032a",
+                    "resultHash": "6db50e1396765ab9f77ffba4d9c983bb4549776d64284099cdda7c4a415bb882",
+                    "managed": true
+                }
+            },
+            {
+                "name": "api-emit-services",
+                "exitCode": 0,
+                "passed": true,
+                "summary": {
+                    "configurations": 20,
+                    "queries": 944,
+                    "comparedQueries": 944,
+                    "exact": 20,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "f150889aa2f7519da00f8afdc6a098a12797bd7ed45cfe9c04426980b420e543",
+                    "resultHash": "4529b00f9be817e8d720d102e2f009e159cb5befe528323c94c3324e679f7a38",
+                    "managed": true
+                }
+            },
+            {
+                "name": "api-emit-recovery",
+                "exitCode": 0,
+                "passed": true,
+                "summary": {
+                    "configurations": 56,
+                    "queries": 3672,
+                    "comparedQueries": 3672,
+                    "exact": 56,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "d965845ae5589f096acf2209fe60523963047c5501bd5f1ea876c4b9d465dc09",
+                    "resultHash": "ee2e25148e4ce8cc05fc896805ce217b6372b2d6a08ecde63b976877d7a19bc4",
+                    "managed": true
+                }
+            },
+            {
+                "name": "api-emit-syntax",
+                "exitCode": 0,
+                "passed": true,
+                "summary": {
+                    "configurations": 136,
+                    "queries": 20188,
+                    "comparedQueries": 20188,
+                    "exact": 136,
+                    "failed": 0,
+                    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+                    "referenceFailures": 0,
+                    "candidateFailures": 0,
+                    "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+                    "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+                    "inputHash": "435847869a0a2602aadd883b15432cc9629da72b9ac608685449a1605837fa2b",
+                    "resultHash": "e225a861451d661eb55d3656d94bb2ab471cc4abaf7a039ef974771bea35df05",
+                    "managed": true
+                }
+            }
+        ]
+    },
+    "safety": {
+        "candidateHash": "00cedb5c80705b192d8bc97b8d8910e09342b982cff57183eac545a0de9f673f",
+        "suites": 74,
+        "records": [
+            {
+                "name": "module-specifiers-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "20 module naming/path/extension/cancellation assertions\r\n"
+            },
+            {
+                "name": "module-program-specifiers-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Program module specifier safety: 12 assertions passed\r\n"
+            },
+            {
+                "name": "diagnostic-node-printer-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Diagnostic node printer safety: 11 assertions passed; depth 20000\r\n"
+            },
+            {
+                "name": "computed-symbols-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Computed symbol safety: 7 assertions passed\r\n"
+            },
+            {
+                "name": "module-generation-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Module generation safety: 12 assertions passed\r\n"
+            },
+            {
+                "name": "module-node-specifiers-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Node module specifier safety: 10 assertions passed\r\n"
+            },
+            {
+                "name": "module-package-specifiers-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "19 package-map/output-path/cancellation assertions; depth 20000\r\n"
+            },
+            {
+                "name": "checker-emit-syntax-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Emit syntax safety: 13 assertions passed\r\n"
+            },
+            {
+                "name": "checker-node-builder-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Node builder tracking safety: 17 assertions passed\r\n"
+            },
+            {
+                "name": "checker-return-syntax-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Return recovery safety: 14 assertions passed\r\n"
+            },
+            {
+                "name": "checker-module-grammar-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Module grammar safety: 12 assertions passed\r\n"
+            },
+            {
+                "name": "checker-program-relations-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Program relation safety: 14 assertions passed\r\n"
+            },
+            {
+                "name": "checker-mapped-exports-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Mapped/export safety: 17 assertions passed\r\n"
+            },
+            {
+                "name": "checker-private-declarations-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Private/declaration safety: 16 assertions passed\r\n"
+            },
+            {
+                "name": "checker-diagnostic-values-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Diagnostic value safety: 16 assertions passed\r\n"
+            },
+            {
+                "name": "checker-declaration-grammar-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Declaration grammar safety: 13 assertions passed\r\n"
+            },
+            {
+                "name": "checker-relation-context-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Relation context safety: 14 assertions passed\r\n"
+            },
+            {
+                "name": "checker-module-context-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Module context safety: 11 assertions passed\r\n"
+            },
+            {
+                "name": "checker-declaration-block-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Declaration block safety: 8 assertions passed\r\n"
+            },
+            {
+                "name": "checker-pool-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Checker pool safety: 19 assertions passed\r\n"
+            },
+            {
+                "name": "checker-pool-cancellation",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Checker pool cancellation: 6 assertions passed\r\n"
+            },
+            {
+                "name": "checker-diagnostic-identity-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Diagnostic identity safety: 38 assertions passed; chain depth 20000\r\n"
+            },
+            {
+                "name": "checker-recovery-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Syntax recovery safety: 10 assertions passed\r\n"
+            },
+            {
+                "name": "checker-emit-links-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Emit linking safety: 14 assertions passed\r\n"
+            },
+            {
+                "name": "checker-emit-queries-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Emit query safety: 18 assertions passed\r\n"
+            },
+            {
+                "name": "checker-signature-declarations-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Signature declaration safety: 10 assertions passed\r\n"
+            },
+            {
+                "name": "checker-syntax-names-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Type syntax names safety: 10 assertions passed\r\n"
+            },
+            {
+                "name": "checker-syntax-options-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Type syntax options safety: 10 assertions passed\r\n"
+            },
+            {
+                "name": "checker-symbol-type-arguments-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Symbol type arguments safety: 9 assertions passed\r\n"
+            },
+            {
+                "name": "checker-signature-syntax-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Signature syntax safety: 9 assertions passed\r\n"
+            },
+            {
+                "name": "checker-conditional-syntax-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Conditional/property syntax safety: 9 assertions passed\r\n"
+            },
+            {
+                "name": "checker-type-syntax-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Type syntax core safety: 9 assertions passed\r\n"
+            },
+            {
+                "name": "checker-type-renderer-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Diagnostic renderer safety: 52 assertions passed; array depth 5000\r\n"
+            },
+            {
+                "name": "checker-display-formats-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Display format safety: 15 assertions passed\r\n"
+            },
+            {
+                "name": "checker-symbol-type-nodes-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Symbol type node safety: 14 assertions passed\r\n"
+            },
+            {
+                "name": "checker-symbol-formats-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Symbol format mode safety: 9 assertions passed\r\n"
+            },
+            {
+                "name": "checker-symbol-display-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Symbol display/accessibility safety: 17 assertions passed\r\n"
+            },
+            {
+                "name": "checker-access-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "83 access/optional/member/class/cancellation/spelling assertions; 20,000-level traversal.\r\n"
+            },
+            {
+                "name": "checker-identifiers-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "39 identifier/binding/default/alias/cancellation/ownership assertions; 20,000-level reference traversal.\r\n"
+            },
+            {
+                "name": "checker-flow-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "52 flow/cache/reachability/assignment/cancellation assertions; 20,000-node traversal and exact 2,000 recursion limit.\r\n"
+            },
+            {
+                "name": "checker-references-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "23 reference safety assertions; 20,000-level syntax traversal.\r\n"
+            },
+            {
+                "name": "checker-binary-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "31 binary/awaited/recursion/cancellation assertions; 20000-level binary expressions\r\n"
+            },
+            {
+                "name": "checker-expressions-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "81 expression/literal/context/enum/cache/cancellation assertions; 20000-level expression, constant and context traversal\r\n"
+            },
+            {
+                "name": "checker-inference-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "37 inference/priority/fixing/cancellation/widening/reverse-map assertions; 20000-level traversal\r\n"
+            },
+            {
+                "name": "checker-conditional-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "24 conditional/cache/cancellation assertions; exact 1000 tail and 10 relation nesting limits\r\n"
+            },
+            {
+                "name": "checker-generic-relations-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "27 generic relation/optionality/key variance/cancellation assertions\r\n"
+            },
+            {
+                "name": "checker-indexing-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Checker indexed type safety: 51 assertions; 20,000-level simplification and key traversal\r\n"
+            },
+            {
+                "name": "checker-assignability-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "57 structural relation/variance/facts/cancellation assertions\r\n"
+            },
+            {
+                "name": "checker-relations-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "56 relation key/cache/normalization/cancellation assertions; exact 100-level comparison cutoff; key and base chains depth 20000\r\n"
+            },
+            {
+                "name": "checker-relation-diagnostics-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Relation diagnostic safety: 10 assertions passed\r\n"
+            },
+            {
+                "name": "checker-signatures-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "148 signature/function/call/iteration/inference/context/cancellation assertions; binding and return traversal depth 20000\r\n"
+            },
+            {
+                "name": "checker-properties-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "49 property/view/index/cache/cancellation assertions; reduction chain depth 20000\r\n"
+            },
+            {
+                "name": "checker-values-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "32 symbol read/write/cache/cancellation assertions; instantiated symbol chain depth 20000\r\n"
+            },
+            {
+                "name": "checker-members-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "38 structured member/signature assertions; base and signature chains depth 20000\r\n"
+            },
+            {
+                "name": "checker-type-nodes-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "25 source-type/cache/cancellation assertions; array and alias ancestry depth 20000\r\n"
+            },
+            {
+                "name": "checker-alias-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "31 alias/cycle/cancellation/module-export assertions; alias chain depth 20000\r\n"
+            },
+            {
+                "name": "checker-query-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "20 type-location query ownership/cancellation assertions; depth 20000\r\n"
+            },
+            {
+                "name": "checker-symbol-query-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "25 symbol-location query identity/ownership/cancellation assertions\r\n"
+            },
+            {
+                "name": "checker-scope-query-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "23 scope/symbol-type query identity/cancellation assertions\r\n"
+            },
+            {
+                "name": "checker-context-query-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "24 context/signature query cache/cancellation assertions\r\n"
+            },
+            {
+                "name": "checker-visibility-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "33 declaration visibility/alias/rollback assertions; depth 20000\r\n"
+            },
+            {
+                "name": "checker-symbol-chains-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "18 accessible-chain identity/qualification/rollback assertions; depth 20000\r\n"
+            },
+            {
+                "name": "checker-accessibility-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "24 accessibility/container/entity-visibility/rollback assertions\r\n"
+            },
+            {
+                "name": "checker-program-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "294 program/checker ownership assertions; interface and scope depth 20000\r\n"
+            },
+            {
+                "name": "checker-mapped-members-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "30 mapped member assertions; key validity, lower-bound and modifier chains at depth 20000\r\n"
+            },
+            {
+                "name": "checker-mapped-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "37 mapped type assertions; actual-variable, generic-flag, kind and unary-tuple analysis depth 20000\r\n"
+            },
+            {
+                "name": "checker-objects-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "40 object instantiation assertions; reference, parent and entity-name depth 20000\r\n"
+            },
+            {
+                "name": "checker-instantiation-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "26 instantiation/signature/tuple assertions; exact 100-depth, 5,000,000-work and 10,000-tuple limits\r\n"
+            },
+            {
+                "name": "checker-constraints-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "21 constraint/default/recursion state assertions; default and indexed identity depth 20000\r\n"
+            },
+            {
+                "name": "checker-algebra-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "15 algebra ownership/limit/cancellation assertions; template, intersection and origin depth 20000\r\n"
+            },
+            {
+                "name": "checker-names-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "21 name/symbol state assertions; scope, initializer and merge depth 20000\r\n"
+            },
+            {
+                "name": "checker-state",
+                "exitCode": 0,
+                "passed": true,
+                "output": "1493 checker ownership/state assertions; mapper and type-order depth 50000; 16 independent contexts\r\n"
+            },
+            {
+                "name": "program-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Program reuse, invalidation and stack safety: 28 assertions; 12000 syntax levels; 3000 files\r\n"
+            },
+            {
+                "name": "parser-safety",
+                "exitCode": 0,
+                "passed": true,
+                "output": "Async documentation: single-worker parsing, lazy queries, cloning and cache identity passed.\r\nparentheses.ts: 48 ms\r\nparenthesis-precedence.ts: 0 ms\r\nawait-spans.ts: 2 ms\r\nawait-overlap.ts: 0 ms\r\nawait-end.ts: 0 ms\r\nindex-signatures.ts: 5 ms\r\ngeneric-function-types.ts: 4 ms\r\nheritage-expressions.ts: 4 ms\r\nprivate-type-query.ts: 2 ms\r\nthis-parameters.ts: 0 ms\r\ntuples.ts: 42 ms\r\ngenerics.ts: 70 ms\r\nindexed-access.ts: 45 ms\r\noperators.ts: 15 ms\r\nfunctions.ts: 49 ms\r\nconditionals.ts: 98 ms\r\nmapped.ts: 122 ms\r\ntype-literals.ts: 109 ms\r\ntemplate-types.ts: 66 ms\r\ncompound-types.ts: 88 ms\r\nblocks.ts: 42 ms\r\nif-statements.ts: 37 ms\r\nexpression-parentheses.ts: 28 ms\r\narray-expressions.ts: 36 ms\r\nobject-expressions.ts: 82 ms\r\nbinary-expressions.ts: 27 ms\r\nfunction-expressions.ts: 182 ms\r\njsx.tsx: 77 ms\r\njsx-qualified.tsx: 52 ms\r\njsx-names.tsx: 1 ms\r\nnested.json: 33 ms\r\ndocumentation.js: 131 ms\r\ndocumentation-array.js: 30 ms\r\ndocumentation-host.js: 32 ms\r\ndocumentation-names.js: 23 ms\r\ndocumentation-heritage.js: 58 ms\r\ndocumentation-properties.js: 71 ms\r\ndocumentation-typedef.js: 0 ms\r\nsynchronization-context.ts: 126 ms\r\nParser safety: 39 cases, 1421841 nodes; depth 21000, source positions, parents and cancellation passed.\r\n"
+            }
+        ]
+    },
+    "parser": {
+        "cases": 12865,
+        "identical": 12865,
+        "differences": [],
+        "baselineCompilerSha256": "ad9194cd29979da552549efedc348a4742db2a55927c07d05732a8817a3bf7bc",
+        "candidateCompilerSha256": "be91c48b8e7a8cdc1e68569a6f239e5aaddb3a33b5c3bbde794b043f42aa3f4f",
+        "focusedCases": 17,
+        "focusedStrictDifferences": 0,
+        "goAudit": {
+            "currentOracleSha256": "dd7b4f89aa069f04ffe8f6f4d91f3ac0aea5feae2547c15da36c24fc6ae8a44b",
+            "priorOracleSha256": "3b9fe49f45f18c8b77b3d5ef91dbc9a4e6a43c1cb1eecd96273351f84371ec40",
+            "unresolved": 37,
+            "cases": 12882,
+            "strictDifferences": 422,
+            "alsoPresentOnCommittedBaseline": true,
+            "logSha256": "6833f62595fe31f020b72f5b011502832a4ee7e10910ff10e2d2340efb07e53e"
+        }
+    },
+    "metadata": {
+        "timestamp": "2026-09-28T15:19:07.743Z",
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "runtimeKind": "CoreCLR",
+        "runtime": "CoreCLR",
+        "sdk": "11.0.100-rtm.26473.115",
+        "typescriptPragmaReference": "6.0.3",
+        "configuration": {
+            "optimizationPreference": "Speed",
+            "runtimeAsync": true
+        },
+        "seed": "0x497a31f2",
+        "cases": 6778,
+        "failures": 0,
+        "extensionAssertions": 6,
+        "cloneAssertions": 19,
+        "semanticAssertions": 42,
+        "semanticDifferences": 48,
+        "inputSha256": "fdf15bb6a21a0b0874d93fbaf69a65b7591f4af8a19b17e54f4f51e3ccab4c5a",
+        "oracleSha256": "f3dd5a6db7d91c03c5569e55120369e78bfac83f4c2b020fff006a103e8802e6",
+        "candidateSha256": "09cd3e6c3c4d661dbc3d6c10114576498729ec998846c44bc2b3ba0a37a02c23"
+    },
+    "hostAssertions": 73,
+    "builds": {
+        "release": {
+            "exitCode": 0,
+            "warnings": 0,
+            "errors": 0,
+            "logSha256": "d3498d41ed7a584172e9c94d6b206b9c9d619a8356dab86eea316b2977e1d90e"
+        },
+        "nativeServerGC": {
+            "exitCode": 0,
+            "warnings": 0,
+            "errors": 0,
+            "executableSha256": "01af7cdd6000f40a6493cdbec1b66b1bd6c5fb3b54a67fd83c88c9f4ce48c4ba",
+            "logSha256": "bc2900d80765cee6340c6777e949ec3b5879c5d4d637f1d44214ba771267ebdd"
+        }
+    },
+    "generatorChecks": [
+        "generate-ast",
+        "generate-foundations",
+        "generate-checker"
+    ],
+    "reused": [
+        "Unchanged scanner and foundation suites from phase4-unicode-validation.json"
+    ],
+    "passedNoBehaviorRegression": true,
+    "fasterThanGo": false
+}

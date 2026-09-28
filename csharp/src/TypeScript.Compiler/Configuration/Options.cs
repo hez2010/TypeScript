@@ -120,7 +120,12 @@ public sealed class CompilerOptions
 {
     public bool StrictOption(string name) => Boolean(name) ?? Boolean("strict") ?? true;
 
-    internal int EmitTargetYear => String("target") switch
+    // Resolved target years are positive. An integer cache also permits benign
+    // concurrent initialization by parsers and checkers sharing these options.
+    private int emitTargetYear;
+    internal int EmitTargetYear => emitTargetYear == 0 ? emitTargetYear = ComputeTargetYear() : emitTargetYear;
+
+    private int ComputeTargetYear() => String("target") switch
     {
         "es5" => 2009,
         "es6" or "es2015" => 2015,
@@ -139,18 +144,30 @@ public sealed class CompilerOptions
     };
 
     private readonly Dictionary<string, JsonElement> values = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> strings = new(StringComparer.Ordinal);
     public IReadOnlyDictionary<string, JsonElement> Values => values;
 
-    public void Set(string name, JsonElement value) => values[name] = value.Clone();
+    public void Set(string name, JsonElement value) => Store(name, value.Clone());
+
+    private void Store(string name, JsonElement value)
+    {
+        values[name] = value;
+        if (value.ValueKind == JsonValueKind.String)
+            strings[name] = JsonStrings.GetString(value);
+        else
+            strings.Remove(name);
+        if (name == "target")
+            emitTargetYear = 0;
+    }
 
     public JsonElement? Get(string name) => values.TryGetValue(name, out var value) ? value : null;
 
     public bool? Boolean(string name) =>
-        Get(name) is { ValueKind: JsonValueKind.True } ? true : Get(name) is { ValueKind: JsonValueKind.False } ? false : null;
+        Get(name)?.ValueKind switch { JsonValueKind.True => true, JsonValueKind.False => false, _ => null };
 
     public double? Number(string name) => Get(name) is { ValueKind: JsonValueKind.Number } value ? value.GetDouble() : null;
 
-    public string? String(string name) => Get(name) is { ValueKind: JsonValueKind.String } value ? JsonStrings.GetString(value) : null;
+    public string? String(string name) => strings.GetValueOrDefault(name);
 
     public string[]? Strings(string name) =>
         Get(name) is { ValueKind: JsonValueKind.Array } value
@@ -160,7 +177,7 @@ public sealed class CompilerOptions
     public void Merge(CompilerOptions other)
     {
         foreach (var entry in other.values)
-            values[entry.Key] = entry.Value;
+            Store(entry.Key, entry.Value);
     }
 
     internal void SetRaw(string name, string json)

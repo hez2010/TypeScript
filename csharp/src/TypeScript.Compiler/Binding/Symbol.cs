@@ -189,6 +189,7 @@ public sealed class BoundSourceFile
     // Validate ownership without another GC reference from every syntax node.
     private static long nextId;
     private readonly long id = Interlocked.Increment(ref nextId);
+    internal long Id => id;
     public SourceFileNode SourceFile { get; }
     public Symbol? Symbol => Get(SourceFile)?.Symbol;
     public IReadOnlyDictionary<TextSlice, Symbol> Locals => Get(SourceFile)!.Value.Locals;

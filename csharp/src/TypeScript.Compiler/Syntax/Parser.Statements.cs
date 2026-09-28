@@ -55,11 +55,16 @@ public sealed partial class Parser
 
     private void AmbientModifiers(NodeList? modifiers)
     {
-        if (modifiers?.Any(m => m.Kind == K.DeclareKeyword) != true)
+        if (modifiers is null)
+            return;
+        int index = 0;
+        while (index < modifiers.Count && modifiers[index].Kind != K.DeclareKeyword)
+            index++;
+        if (index == modifiers.Count)
             return;
         context |= NodeFlags.Ambient;
-        foreach (SyntaxNode modifier in modifiers)
-            modifier.Flags |= NodeFlags.Ambient;
+        for (int i = 0; i < modifiers.Count; i++)
+            modifiers[i].Flags |= NodeFlags.Ambient;
     }
 
     private async ValueTask<SyntaxNode> ParseStatementWorkerCore(bool skipExportDispatch = false)

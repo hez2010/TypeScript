@@ -373,6 +373,11 @@ public sealed partial class Binder
 
     private void Initialized(SyntaxNode node)
     {
+        if (Name(node) is not BindingPatternNode)
+        {
+            currentFlow = Mutation(F.Assignment, node);
+            return;
+        }
         var stack = new Stack<SyntaxNode>();
         stack.Push(node);
         while (stack.TryPop(out var declaration))

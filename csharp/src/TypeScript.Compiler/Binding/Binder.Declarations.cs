@@ -227,13 +227,12 @@ public sealed partial class Binder
         if (file.ParseDiagnostics.Count != 0 || (node.Flags & (NodeFlags.Ambient | NodeFlags.JSDoc)) != 0 || IdentifierName(node))
             return;
         TextSlice text = ((IdentifierNode)node).Text;
-        TextSlice display = SourceName(node);
         K keyword = TokenFacts.FromText(text);
         if (keyword >= K.FirstFutureReservedWord && keyword <= K.LastFutureReservedWord)
             Error(node, ContainingClass(node) is not null
                 ? Messages.Identifier_expected_0_is_a_reserved_word_in_strict_mode_Class_definitions_are_automatically_in_strict_mode
                 : file.ExternalModuleIndicator is not null ? Messages.Identifier_expected_0_is_a_reserved_word_in_strict_mode_Modules_are_automatically_in_strict_mode
-                : Messages.Identifier_expected_0_is_a_reserved_word_in_strict_mode, display);
+                : Messages.Identifier_expected_0_is_a_reserved_word_in_strict_mode, SourceName(node));
         else if (keyword == K.AwaitKeyword)
         {
             bool topLevel = true;
@@ -247,12 +246,12 @@ public sealed partial class Binder
                     break;
                 }
             if (file.ExternalModuleIndicator is not null && topLevel)
-                Error(node, Messages.Identifier_expected_0_is_a_reserved_word_at_the_top_level_of_a_module, display);
+                Error(node, Messages.Identifier_expected_0_is_a_reserved_word_at_the_top_level_of_a_module, SourceName(node));
             else if ((node.Flags & NodeFlags.AwaitContext) != 0)
-                Error(node, Messages.Identifier_expected_0_is_a_reserved_word_that_cannot_be_used_here, display);
+                Error(node, Messages.Identifier_expected_0_is_a_reserved_word_that_cannot_be_used_here, SourceName(node));
         }
         else if (keyword == K.YieldKeyword && (node.Flags & NodeFlags.YieldContext) != 0)
-            Error(node, Messages.Identifier_expected_0_is_a_reserved_word_that_cannot_be_used_here, display);
+            Error(node, Messages.Identifier_expected_0_is_a_reserved_word_that_cannot_be_used_here, SourceName(node));
     }
 
     private static bool IdentifierName(SyntaxNode node) => node.Parent switch

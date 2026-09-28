@@ -100,7 +100,8 @@ internal sealed partial class Checker : IFlowTypeHost, IFlowReferenceHost, IFlow
         var data = links.TypeNodes.Get(node);
         if (data.ResolvedType is { } cached)
             return cached;
-        var result = await FlowTypes.StableAsync(() => ExpressionAsync(node, cancellation), cancellation);
+        var result = await FlowTypes.StableAsync((checker: this, node, cancellation),
+            static state => state.checker.ExpressionAsync(state.node, state.cancellation), cancellation);
         cancellation.ThrowIfCancellationRequested();
         return data.ResolvedType = result;
     }

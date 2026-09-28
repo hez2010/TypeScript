@@ -29,6 +29,11 @@ internal sealed class GenericExpressions(TypeContext context, StructuredMembers 
         context.RequireOwned(type);
         if ((mode & (CheckMode.Inferential | CheckMode.SkipGenericFunctions)) == 0)
             return type;
+        return await FinishInferentialAsync(node, type, mode, cancellation).ConfigureAwait(false);
+    }
+
+    private async ValueTask<Type> FinishInferentialAsync(SyntaxNode node, Type type, CheckMode mode, CancellationToken cancellation)
+    {
         var call = await SingleAsync(type, false, true, cancellation).ConfigureAwait(false);
         var construct = await SingleAsync(type, true, true, cancellation).ConfigureAwait(false);
         var signature = call ?? construct;

@@ -213,6 +213,30 @@ internal static class HostTests
             if (!valid)
                 throw new InvalidDataException(message);
         }
+        var changingOptions = new CompilerOptions();
+        Check(changingOptions.EmitTargetYear == 2025, "Unset target uses the default year");
+        changingOptions.SetRaw("target", "\"es2015\"");
+        Check(changingOptions.EmitTargetYear == 2015 && changingOptions.String("target") == "es2015",
+            "Setting a target invalidates its previously computed default");
+        changingOptions.SetRaw("target", "1");
+        Check(changingOptions.EmitTargetYear == 2009 && changingOptions.String("target") is null,
+            "Replacing a string option with a number updates both accessors");
+        var overrideOptions = new CompilerOptions();
+        overrideOptions.SetRaw("target", "\"esnext\"");
+        overrideOptions.SetRaw("strict", "false");
+        changingOptions.Merge(overrideOptions);
+        Check(changingOptions.EmitTargetYear == int.MaxValue && changingOptions.String("target") == "esnext"
+            && !changingOptions.StrictOption("noImplicitAny"), "Merging options invalidates cached strings and target years");
+        changingOptions.SetRaw("target", "null");
+        Check(changingOptions.EmitTargetYear == 2025 && changingOptions.String("target") is null,
+            "Null option values clear a previously decoded string");
+        int optionReadFailures = 0;
+        Parallel.For(0, 128, _ =>
+        {
+            if (changingOptions.EmitTargetYear != 2025 || changingOptions.StrictOption("noImplicitAny"))
+                Interlocked.Increment(ref optionReadFailures);
+        });
+        Check(optionReadFailures == 0, "Parsed options permit concurrent reads and target initialization");
         var files = new Dictionary<string, byte[]>
         {
             ["/base/config.json"] = Encoding.UTF8.GetBytes(

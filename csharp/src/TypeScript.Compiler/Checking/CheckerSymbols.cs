@@ -51,7 +51,8 @@ internal sealed class CheckerSymbols
     private readonly CompilerProgram program;
     private readonly ICheckerSymbolHost host;
     private readonly CheckerLinks links;
-    private readonly Dictionary<SyntaxNode, BoundSourceFile> bindings = new(ReferenceEqualityComparer.Instance);
+    private readonly Dictionary<long, BoundSourceFile> bindingsById = [];
+    private readonly Dictionary<SourceFileNode, BoundSourceFile> sourceBindings = new(ReferenceEqualityComparer.Instance);
     private readonly Dictionary<Symbol, S> references = new(ReferenceEqualityComparer.Instance);
     private readonly Dictionary<TextSlice, Symbol> globals;
     private readonly List<PatternModule> patterns = [];
@@ -82,7 +83,10 @@ internal sealed class CheckerSymbols
         PatternTargets = patternTargets.AsReadOnly();
         Merger = new(UnknownSymbol, GlobalThisSymbol, host.ResolveSymbol, host.MergeConflict);
         foreach (var file in program.SourceFiles)
-            bindings.Add(file.Syntax, file.Binding);
+        {
+            bindingsById.Add(file.Binding.Id, file.Binding);
+            sourceBindings.Add(file.Syntax, file.Binding);
+        }
     }
 
     internal static async ValueTask<CheckerSymbols> CreateAsync(CompilerProgram program,
@@ -97,16 +101,14 @@ internal sealed class CheckerSymbols
 
     internal BoundSourceFile? Binding(SyntaxNode node)
     {
-        if (bindings.TryGetValue(node, out var binding))
-            return binding;
-        SyntaxNode? current = node;
-        while (current is not null && !bindings.TryGetValue(current, out binding))
-            current = current.Parent;
-        if (current is null)
-            return null;
-        for (var child = node; child != current; child = child.Parent!)
-            bindings.Add(child, binding!);
-        return binding;
+        for (SyntaxNode? current = node; current is not null; current = current.Parent)
+        {
+            if (current.BindingId != 0 && bindingsById.TryGetValue(current.BindingId, out var binding))
+                return binding;
+            if (current is SourceFileNode file && sourceBindings.TryGetValue(file, out binding))
+                return binding;
+        }
+        return null;
     }
 
     internal Symbol? Declaration(SyntaxNode node)

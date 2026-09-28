@@ -16,14 +16,21 @@ internal sealed partial class Checker
             if (symbol?.ExportSymbol is null)
                 return;
         }
-        if (symbol.Declarations.FirstOrDefault(d => d.Kind == node.Kind) != node)
+        if (symbol.Declarations.Length == 1 && DirectDeclarationSpaces(node) is not null)
+            return;
+        bool firstOfKind = false;
+        foreach (var declaration in symbol.Declarations)
+            if (declaration.Kind == node.Kind)
+            {
+                firstOfKind = declaration == node;
+                break;
+            }
+        if (!firstOfKind)
             return;
         DeclarationSpaces exported = 0, local = 0, defaultExport = 0;
-        var spaces = new List<(SyntaxNode Node, DeclarationSpaces Spaces)>();
         foreach (var declaration in symbol.Declarations)
         {
             var space = await DeclarationSpacesAsync(declaration, cancellation).ConfigureAwait(false);
-            spaces.Add((declaration, space));
             if (!Effective(declaration, SyntaxKind.ExportKeyword))
                 local |= space;
             else if (Effective(declaration, SyntaxKind.DefaultKeyword))
@@ -33,7 +40,11 @@ internal sealed partial class Checker
         }
         var exportConflict = exported & local;
         var defaultConflict = defaultExport & (exported | local);
-        foreach (var (declaration, space) in spaces)
+        if ((exportConflict | defaultConflict) == 0)
+            return;
+        foreach (var declaration in symbol.Declarations)
+        {
+            var space = await DeclarationSpacesAsync(declaration, cancellation).ConfigureAwait(false);
             if ((space & defaultConflict) != 0)
                 Error(
                     SemanticSyntax.Name(declaration) ?? declaration,
@@ -44,10 +55,29 @@ internal sealed partial class Checker
                     SemanticSyntax.Name(declaration) ?? declaration,
                     DiagnosticCode.IndividualDeclarationsInMergedDeclaration0MustBeAllExportedOrAllLocal,
                     TypeDisplay.SymbolName(symbol));
+        }
     }
+
+    private DeclarationSpaces? DirectDeclarationSpaces(SyntaxNode node) => node switch
+    {
+        InterfaceDeclarationNode or TypeAliasDeclarationNode or MethodSignatureDeclarationNode or PropertySignatureDeclarationNode
+            => DeclarationSpaces.ExportType,
+        ModuleDeclarationNode module => DeclarationSpaces.ExportNamespace
+            | (AmbientModule(module) || Binder.ModuleState(module) != 0 ? DeclarationSpaces.ExportValue : 0),
+        ClassDeclarationNode or EnumDeclarationNode or EnumMemberNode
+            => DeclarationSpaces.ExportType | DeclarationSpaces.ExportValue,
+        SourceFileNode => DeclarationSpaces.ExportType | DeclarationSpaces.ExportValue | DeclarationSpaces.ExportNamespace,
+        VariableDeclarationNode or BindingElementNode or FunctionDeclarationNode or ImportSpecifierNode => DeclarationSpaces.ExportValue,
+        ExportAssignmentNode or BinaryExpressionNode when (program.Symbols.Declaration(node)!.Flags & SymbolFlags.Alias) == 0
+            => DeclarationSpaces.ExportValue,
+        _ => null
+    };
 
     private async ValueTask<DeclarationSpaces> DeclarationSpacesAsync(SyntaxNode node, CancellationToken cancellation)
     {
+        cancellation.ThrowIfCancellationRequested();
+        if (DirectDeclarationSpaces(node) is { } direct)
+            return direct;
         DeclarationSpaces result = 0;
         var pending = new Stack<SyntaxNode>();
         var seen = new HashSet<SyntaxNode>();
@@ -57,23 +87,13 @@ internal sealed partial class Checker
             cancellation.ThrowIfCancellationRequested();
             if (!seen.Add(declaration))
                 continue;
+            if (DirectDeclarationSpaces(declaration) is { } space)
+            {
+                result |= space;
+                continue;
+            }
             switch (declaration)
             {
-                case InterfaceDeclarationNode or TypeAliasDeclarationNode or MethodSignatureDeclarationNode
-                    or PropertySignatureDeclarationNode:
-                    result |= DeclarationSpaces.ExportType;
-                    break;
-                case ModuleDeclarationNode module:
-                    result |= DeclarationSpaces.ExportNamespace;
-                    if (AmbientModule(module) || Binder.ModuleState(module) != 0)
-                        result |= DeclarationSpaces.ExportValue;
-                    break;
-                case ClassDeclarationNode or EnumDeclarationNode or EnumMemberNode:
-                    result |= DeclarationSpaces.ExportType | DeclarationSpaces.ExportValue;
-                    break;
-                case SourceFileNode:
-                    result |= DeclarationSpaces.ExportType | DeclarationSpaces.ExportValue | DeclarationSpaces.ExportNamespace;
-                    break;
                 case ImportEqualsDeclarationNode or NamespaceImportNode or ImportClauseNode:
                 case ExportAssignmentNode or BinaryExpressionNode when (program.Symbols.Declaration(declaration)!.Flags & SymbolFlags.Alias) != 0:
                     var target = await program.Aliases.ResolveAsync(
@@ -81,10 +101,6 @@ internal sealed partial class Checker
                         cancellation).ConfigureAwait(false);
                     foreach (var targetDeclaration in target.Declarations)
                         pending.Push(targetDeclaration);
-                    break;
-                case VariableDeclarationNode or BindingElementNode or FunctionDeclarationNode or ImportSpecifierNode
-                    or ExportAssignmentNode or BinaryExpressionNode:
-                    result |= DeclarationSpaces.ExportValue;
                     break;
                 default:
                     throw new InvalidOperationException($"Checker requires declaration-space checking for {declaration.Kind}");

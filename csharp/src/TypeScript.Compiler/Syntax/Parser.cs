@@ -519,12 +519,14 @@ public sealed partial class Parser
     {
         await ParseStack;
         int start = Pos;
+        SyntaxNode? first = null;
         List<SyntaxNode>? nodes = null;
         while (true)
         {
             if (Token == K.AtToken)
             {
-                if (nodes?.Any(n => n.Kind is not (K.Decorator or K.ExportKeyword or K.DefaultKeyword)) == true)
+                if (first is not null && (nodes?.Any(n => n.Kind is not (K.Decorator or K.ExportKeyword or K.DefaultKeyword))
+                    ?? first.Kind is not (K.Decorator or K.ExportKeyword or K.DefaultKeyword)))
                     Error(Messages.Decorators_must_precede_the_name_and_all_keywords_of_property_declarations);
                 int at = Pos;
                 Next();
@@ -543,7 +545,11 @@ public sealed partial class Parser
                         await PrimaryExpressionCore().ConfigureAwait(false),
                         true).ConfigureAwait(false);
                 context = saved;
-                (nodes ??= []).Add(Finish(factory.NewDecorator(expression), at));
+                var decorator = Finish(factory.NewDecorator(expression), at);
+                if (first is null)
+                    first = decorator;
+                else
+                    (nodes ??= [first]).Add(decorator);
                 continue;
             }
 
@@ -567,7 +573,8 @@ public sealed partial class Parser
                 break;
             if (stopOnStaticBlock && Token == K.StaticKeyword && NextIs(K.OpenBraceToken))
                 break;
-            if (Token == K.StaticKeyword && nodes?.Any(n => n.Kind == K.StaticKeyword) == true)
+            if (Token == K.StaticKeyword && (nodes?.Any(n => n.Kind == K.StaticKeyword)
+                ?? first?.Kind == K.StaticKeyword))
                 break;
             K modifierKind = Token;
             if (!modifier || !Peek((Parser: this, Kind: modifierKind), static state =>
@@ -580,9 +587,13 @@ public sealed partial class Parser
                             or K.OpenBraceToken or K.DotDotDotToken or K.AsteriskToken or K.AtToken);
             }))
                 break;
-            (nodes ??= []).Add(ParseToken());
+            var token = ParseToken();
+            if (first is null)
+                first = token;
+            else
+                (nodes ??= [first]).Add(token);
         }
 
-        return nodes is null ? null : new(nodes.ToArray(), start, Pos);
+        return first is null ? null : new(nodes?.ToArray() ?? [first], start, Pos);
     }
 }

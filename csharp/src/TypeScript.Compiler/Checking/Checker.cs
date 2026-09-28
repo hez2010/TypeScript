@@ -403,7 +403,8 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
         var data = links.TypeNodes.Get(node);
         if (data.ResolvedType is { } cached)
             return cached;
-        var type = await FlowTypes.StableAsync(() => Expressions.CheckAsync(node, cancellation: cancellation), cancellation);
+        var type = await FlowTypes.StableAsync((Expressions, node, cancellation),
+            static state => state.Expressions.CheckAsync(state.node, cancellation: state.cancellation), cancellation);
         cancellation.ThrowIfCancellationRequested();
         Functions.RecordExpressionCache(node, type);
         return data.ResolvedType = type;

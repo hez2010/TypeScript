@@ -124,7 +124,8 @@ internal sealed partial class Checker : IVariableTypeHost
                 type = cached;
             else
             {
-                type = await FlowTypes.StableAsync(() => Expressions.CheckAsync(node, cancellation: cancellation), cancellation);
+                type = await FlowTypes.StableAsync((Expressions, node, cancellation),
+                    static state => state.Expressions.CheckAsync(state.node, cancellation: state.cancellation), cancellation);
                 cancellation.ThrowIfCancellationRequested();
                 Functions.RecordExpressionCache(node, type);
                 data.ResolvedType = type;
