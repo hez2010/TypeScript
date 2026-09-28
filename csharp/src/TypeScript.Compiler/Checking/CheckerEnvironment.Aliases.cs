@@ -1,6 +1,7 @@
 using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Configuration;
 using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 using S = TypeScript.Compiler.Binding.SymbolFlags;
@@ -86,7 +87,7 @@ internal sealed partial class CheckerEnvironment
     {
         if (SemanticChecker is { } checker)
             return await checker.AdjustModuleAsync(module, target, declaration, specifier, cancellation).ConfigureAwait(false);
-        if ((target.Flags & S.Module) == 0 || Symbols.Program.Configuration.Options.Boolean("esModuleInterop") == true
+        if ((target.Flags & S.Module) == 0 || Symbols.Program.Configuration.Options.ESModuleInterop == true
             || module.Declarations.OfType<SourceFileNode>().Any(f => f.ScriptKind is ScriptKind.JS or ScriptKind.JSX))
             throw new InvalidOperationException("Checker requires ES module wrapper/type evaluation");
         if (specifier.Parent is ImportDeclarationNode { ImportClause.NamedBindings: NamespaceImportNode }
@@ -114,7 +115,7 @@ internal sealed partial class CheckerEnvironment
     {
         if (SemanticChecker is { } checker)
             return await checker.ModuleDefaultAsync(module, declaration, dontResolveAlias, cancellation).ConfigureAwait(false);
-        if (module.Exports.ContainsKey("export=") || Symbols.Program.Configuration.Options.Boolean("allowSyntheticDefaultImports") == true)
+        if (module.Exports.ContainsKey("export=") || Symbols.Program.Configuration.Options.AllowSyntheticDefaultImports == true)
             throw new InvalidOperationException("Checker requires synthetic default interop");
         var result = await Aliases.SymbolAsync(
             module.Exports.GetValueOrDefault("default"),
@@ -180,7 +181,7 @@ internal sealed partial class CheckerEnvironment
         SyntaxNode nameNode,
         CancellationToken cancellation)
     {
-        if (Symbols.Program.Configuration.Options.Boolean("noCheck") == true)
+        if (Symbols.Program.Configuration.Options.NoCheck == true)
             return;
         TextSlice name = AliasTargets.Text(nameNode) ?? SyntaxNameText.Get(nameNode);
         var suggestion = nameNode is IdentifierNode ? await new SymbolSuggestions(
@@ -270,7 +271,7 @@ internal sealed partial class CheckerEnvironment
         }));
     }
 
-    public bool UsesRequireModuleExports => Symbols.Program.Configuration.Options.String("module") is "node20" or "nodenext";
+    public bool UsesRequireModuleExports => Symbols.Program.Configuration.Options.Module is ModuleKind.Node20 or ModuleKind.NodeNext;
 
     public ValueTask<Symbol?> ExportOfModuleAsync(Symbol module, TextSlice name, SyntaxNode declaration, CancellationToken cancellation)
         => ModuleExports.ExportAsync(module, name, declaration, true, cancellation);

@@ -17,7 +17,7 @@ internal sealed partial class Checker : IIteratorProtocolHost, IIterationElement
     internal List<(SyntaxNode Node, Type Type, bool Async, IReadOnlyList<IterationDiagnostic> Related)> DeferredIterationDiagnostics { get; } = [];
     internal List<(SyntaxNode Node, DiagnosticCode Code)> IterationAwaitHints { get; } = [];
 
-    public bool StrictBuiltinIteratorReturn => program.Symbols.Program.Configuration.Options.StrictOption("strictBuiltinIteratorReturn");
+    public bool StrictBuiltinIteratorReturn => program.Symbols.Program.Configuration.Options.EffectiveStrictBuiltinIteratorReturn;
 
     public async ValueTask<Type> IterationGlobalAsync(TextSlice name, int arity, bool report, CancellationToken cancellation)
     {

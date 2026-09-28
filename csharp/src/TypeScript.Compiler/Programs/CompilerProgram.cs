@@ -79,7 +79,7 @@ public sealed partial class CompilerProgram
             p => p.Key,
             p => (IReadOnlyList<FileIncludeReason>)p.Value.AsReadOnly(),
             files.Comparer);
-        string common = Configuration.Options.String("rootDir") ?? (Configuration.FileName.Length != 0
+        string common = Configuration.Options.RootDir ?? (Configuration.FileName.Length != 0
             ? CompilerPath.DirectoryName(Configuration.FileName) : ProjectReferences.CommonDirectory(
                 ordered.Where(f => SourceFileMayBeEmitted(f.Syntax)).Select(f => f.Syntax.FileName), fileSystem.CaseSensitive));
         if (common.Length == 0 && ordered.All(f => !SourceFileMayBeEmitted(f.Syntax)))
@@ -240,7 +240,7 @@ public sealed partial class CompilerProgram
             {
                 if (mapperProject is null && config.ContentMappers.Length != 0)
                 {
-                    ownedHost = new(config.Options.String("locale") ?? "");
+                    ownedHost = new(config.Options.Locale ?? "");
                     mapperProject = await ownedHost.GetProjectAsync(config, cancellation).ConfigureAwait(false);
                 }
                 return await BuildGraph().ConfigureAwait(false);
@@ -287,9 +287,9 @@ public sealed partial class CompilerProgram
                     diagnostics.Add(new(Messages.Cannot_find_type_definition_file_for_0, 0, 0, [type]));
             }
             await LoadPending(pending).ConfigureAwait(false);
-            if (config.FileNames.Length != 0 && config.Options.Boolean("noLib") != true)
+            if (config.FileNames.Length != 0 && config.Options.NoLib != true)
             {
-                string[] libs = config.Options.Strings("lib") ?? [DefaultLibrary(config.Options)];
+                string[] libs = config.Options.Lib ?? [DefaultLibrary(config.Options)];
                 foreach (string lib in libs)
                 {
                     string path = await LibraryPath(lib).ConfigureAwait(false);
@@ -321,7 +321,7 @@ public sealed partial class CompilerProgram
                 if (fs.CaseSensitive && visited.Contains(path))
                     continue;
                 if (spellings.TryGetValue(path, out string? spelling) && spelling != path
-                    && (fs.CaseSensitive || config.Options.Boolean("forceConsistentCasingInFileNames") != false)
+                    && (fs.CaseSensitive || config.Options.ForceConsistentCasingInFileNames != false)
                     && spelling[CompilerPath.RootLength(spelling)..] != path[CompilerPath.RootLength(path)..])
                 {
                     var reason = entry.Reason;
@@ -367,7 +367,7 @@ public sealed partial class CompilerProgram
                     };
                     files[path] = file;
                 }
-                if (config.Options.Boolean("deduplicatePackages") != false && filePackages.TryGetValue(path, out var package))
+                if (config.Options.DeduplicatePackages != false && filePackages.TryGetValue(path, out var package))
                 {
                     if (packageOwners.TryGetValue(package, out string? owner) && owner != path)
                     {
@@ -454,19 +454,19 @@ public sealed partial class CompilerProgram
                                     foreach (var reference in existing.Resolutions.Where(r => r.Resolution.IsResolved && !r.Augmentation))
                                     {
                                         var resolution = reference.Resolution;
-                                        if (projectOptions.Boolean("noResolve") == true)
+                                        if (projectOptions.NoResolve == true)
                                             continue;
                                         if (resolution.IsArbitraryExtension && !existing.Syntax.IsDeclarationFile
-                                            && projectOptions.Boolean("allowArbitraryExtensions") != true)
+                                            && projectOptions.AllowArbitraryExtensions != true)
                                             continue;
                                         if (resolution.Extension is ".js" or ".jsx" or ".mjs" or ".cjs"
-                                            && !(projectOptions.Boolean("allowJs") ?? projectOptions.Boolean("checkJs") == true))
+                                            && !(projectOptions.AllowJs ?? projectOptions.CheckJs == true))
                                             continue;
-                                        if (resolution.Extension is ".jsx" or ".tsx" && projectOptions.String("jsx") is null)
+                                        if (resolution.Extension is ".jsx" or ".tsx" && projectOptions.Jsx == JsxEmit.None)
                                             continue;
                                         int depth = item.Depth + (resolution.External ? 1 : 0);
                                         bool externalJs = resolution.External && resolution.Extension is ".js" or ".jsx" or ".mjs" or ".cjs";
-                                        if (externalJs && depth > (projectOptions.Number("maxNodeModuleJsDepth") ?? 0))
+                                        if (externalJs && depth > (projectOptions.MaxNodeModuleJsDepth ?? 0))
                                         {
                                             if (!existingDependencies.Contains(resolution.FileName, files.Comparer))
                                                 existingDependencies.Add(resolution.FileName);
@@ -520,7 +520,7 @@ public sealed partial class CompilerProgram
                         dependencies.Add(path);
                         pending.Enqueue((new(kind, path, entry.Path, pos, length), lib, depth ?? currentDepth, package));
                     }
-                    if (options.Boolean("noResolve") != true)
+                    if (options.NoResolve != true)
                     {
                         foreach (var reference in syntax.ReferencedFiles)
                         {
@@ -565,7 +565,7 @@ public sealed partial class CompilerProgram
                                     { FileName = entry.Path });
                         }
                     }
-                    if (options.Boolean("noLib") != true)
+                    if (options.NoLib != true)
                         foreach (var reference in syntax.LibReferenceDirectives)
                             Include(
                                 await LibraryPath(reference.FileName).ConfigureAwait(false),
@@ -575,19 +575,19 @@ public sealed partial class CompilerProgram
                                 length: reference.End - reference.Pos);
                     var imports = new List<(SyntaxNode? Node, string Name)>();
                     bool javaScript = syntax.ScriptKind is ScriptKind.JS or ScriptKind.JSX;
-                    if (options.Boolean("importHelpers") == true && (javaScript || !syntax.IsDeclarationFile
+                    if (options.ImportHelpers == true && (javaScript || !syntax.IsDeclarationFile
                         && (syntax.ExternalModuleIndicator is not null
-                            || options.Boolean("isolatedModules") == true
-                            || options.Boolean("verbatimModuleSyntax") == true)))
+                            || options.IsolatedModules == true
+                            || options.VerbatimModuleSyntax == true)))
                         imports.Add((null, "tslib"));
                     string? Pragma(string name) =>
                         syntax.Pragmas.LastOrDefault(p => p.Name == name).Arguments?.GetValueOrDefault("factory").Value;
                     if ((javaScript || syntax.ScriptKind == ScriptKind.TSX) && Pragma("jsxruntime") != "classic"
-                        && (options.String("jsx") is "react-jsx" or "react-jsxdev" || options.String("jsxImportSource") is not null
+                        && (options.Jsx is JsxEmit.ReactJSX or JsxEmit.ReactJSXDev || options.JsxImportSource is not null
                             || Pragma("jsximportsource") is not null || Pragma("jsxruntime") == "automatic"))
                     {
-                        string jsx = Pragma("jsximportsource") ?? options.String("jsxImportSource") ?? "react";
-                        imports.Add((null, jsx + (options.String("jsx") == "react-jsxdev" ? "/jsx-dev-runtime" : "/jsx-runtime")));
+                        string jsx = Pragma("jsximportsource") ?? options.JsxImportSource ?? "react";
+                        imports.Add((null, jsx + (options.Jsx == JsxEmit.ReactJSXDev ? "/jsx-dev-runtime" : "/jsx-runtime")));
                     }
                     imports.AddRange(syntax.Imports.Select(n => (Node: (SyntaxNode?)n, Name: ImportText(n).ToString())));
                     foreach (var import in imports)
@@ -602,11 +602,11 @@ public sealed partial class CompilerProgram
                             cancellation: cancellation).ConfigureAwait(false);
                         resolutions.Add(new(import.Name, mode, import.Node, resolved));
                         diagnostics.AddRange(resolved.Diagnostics);
-                        if (!resolved.IsResolved || options.Boolean("noResolve") == true)
+                        if (!resolved.IsResolved || options.NoResolve == true)
                             continue;
                         if (resolved.IsArbitraryExtension
                             && !syntax.IsDeclarationFile
-                            && options.Boolean("allowArbitraryExtensions") != true)
+                            && options.AllowArbitraryExtensions != true)
                             continue;
                         if (syntax.ScriptKind is not (ScriptKind.JS or ScriptKind.JSX)
                             && (import.Node?.Flags & NodeFlags.JSDoc) != 0
@@ -614,16 +614,16 @@ public sealed partial class CompilerProgram
                             continue;
                         bool js = resolved.Extension is ".js" or ".jsx" or ".mjs" or ".cjs";
                         int depth = currentDepth + (resolved.External ? 1 : 0);
-                        if (js && !(options.Boolean("allowJs") ?? options.Boolean("checkJs") == true))
+                        if (js && !(options.AllowJs ?? options.CheckJs == true))
                             continue;
                         if (js && resolved.External && resolved.FileName.Contains("/node_modules/", StringComparison.Ordinal)
-                            && depth > (options.Number("maxNodeModuleJsDepth") ?? 0))
+                            && depth > (options.MaxNodeModuleJsDepth ?? 0))
                         {
                             // An elided dependency can still be loaded through an explicit root or a shallower import.
                             dependencies.Add(resolved.FileName);
                             continue;
                         }
-                        if (resolved.Extension is ".tsx" or ".jsx" && options.String("jsx") is null)
+                        if (resolved.Extension is ".tsx" or ".jsx" && options.Jsx == JsxEmit.None)
                             continue;
                         Include(resolved.FileName, FileIncludeKind.Import, import.Node?.Pos ?? 0, depth: depth, package: resolved.PackageId,
                             length: import.Node is null ? 0 : import.Node.End - import.Node.Pos);
@@ -698,18 +698,15 @@ public sealed partial class CompilerProgram
             if (ext == ".json")
                 format = ReferenceResolutionMode.Unspecified;
             var options = project.Options;
-            string detection = options.String("moduleDetection") ?? (options.String("module") is "node16" or "node18" or "node20"
-                or "nodenext"
-                ? "force"
-                : "auto");
-            bool force = !CompilerPath.IsDeclarationFile(path) && (detection == "force" || detection == "auto"
+            ModuleDetectionKind detection = options.EmitModuleDetectionKind;
+            bool force = !CompilerPath.IsDeclarationFile(path) && (detection == ModuleDetectionKind.Force || detection == ModuleDetectionKind.Auto
                 && (ext is ".mts" or ".cts" or ".mjs" or ".cjs"
                     || ImpliedMode(path, options, format, type) == ReferenceResolutionMode.Import));
             var parseOptions = new ParseOptions(path, ForceExternalModule: force,
-                JsxExternalModule: detection == "auto" && options.String("jsx") is "react-jsx" or "react-jsxdev");
+                JsxExternalModule: detection == ModuleDetectionKind.Auto && options.Jsx is JsxEmit.ReactJSX or JsxEmit.ReactJSXDev);
             if (supplemental.TryGetValue(path, out var mappedSource))
                 return new(mappedSource.Syntax, parseOptions, format, scope?.Directory ?? "", type);
-            if (options.Boolean("allowNonTsExtensions") != true && !SupportedSource(path, project))
+            if (options.AllowNonTsExtensions != true && !SupportedSource(path, project))
             {
                 bool js = ext is ".js" or ".jsx" or ".mjs" or ".cjs";
                 var diagnostic = new Diagnostic(ext.Length == 0 ? Messages.Could_not_resolve_the_path_0_with_the_extensions_Colon_1

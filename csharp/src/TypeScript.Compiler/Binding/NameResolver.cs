@@ -149,14 +149,14 @@ public sealed class NameResolver(CompilerOptions options, Func<SyntaxNode, Bound
                     if (result is not null)
                     {
                         if (nameNotFoundMessage is not null
-                            && (options.Boolean("isolatedModules") == true || options.Boolean("verbatimModuleSyntax") == true)
+                            && (options.IsolatedModules == true || options.VerbatimModuleSyntax == true)
                             && (location.Flags & NodeFlags.Ambient) == 0 && Source(location) != Source(result.ValueDeclaration))
                             Error?.Invoke(
                                 original,
                                 Messages.Cannot_access_0_from_another_file_without_qualification_when_1_is_enabled_Use_2_instead,
                                 [
                                         name,
-                                        options.Boolean("verbatimModuleSyntax") == true ? "verbatimModuleSyntax" : "isolatedModules",
+                                        options.VerbatimModuleSyntax == true ? "verbatimModuleSyntax" : "isolatedModules",
                                         TextSlice.Concat(UserName(enumeration), ".", name)
                                     ]);
                         goto Resolved;
@@ -318,14 +318,7 @@ public sealed class NameResolver(CompilerOptions options, Func<SyntaxNode, Bound
         return false;
     }
 
-    private int Target => options.String("target")?.ToLowerInvariant() switch
-    {
-        "es3" => 3,
-        "es5" => 5,
-        "es6" or "es2015" => 2015,
-        { } text when text.StartsWith("es", StringComparison.Ordinal) && int.TryParse(text.AsSpan(2), out int year) => year,
-        _ => int.MaxValue
-    };
+    private int Target => options.EmitTargetYear;
 
     private bool RequiresScopeChange(SyntaxNode parameter)
     {
@@ -354,7 +347,7 @@ public sealed class NameResolver(CompilerOptions options, Func<SyntaxNode, Bound
                 case K.PropertyDeclaration:
                     if (HasModifier(node, K.StaticKeyword))
                     {
-                        if (!(options.Boolean("useDefineForClassFields") != false && Target >= 2022))
+                        if (!(options.UseDefineForClassFields != false && Target >= 2022))
                             return true;
                     }
                     else if (Name(node) is { } propertyName)

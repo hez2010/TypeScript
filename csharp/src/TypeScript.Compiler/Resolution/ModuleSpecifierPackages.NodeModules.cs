@@ -101,7 +101,7 @@ internal sealed partial class ModuleSpecifierPackages
         if (package is null)
             return new(target, target[(parts.PackageRoot + 1)..] is "index.d.ts" or "index.js" or "index.ts" or "index.tsx" ? root : "");
 
-        if (options.Boolean("resolvePackageJsonExports") != false
+        if (options.ResolvePackageJsonExports != false
             && package.Get("exports") is { ValueKind: not JsonValueKind.Undefined } exports)
         {
             mode = ModuleSpecifierPaths.Extension(target) switch
@@ -125,7 +125,8 @@ internal sealed partial class ModuleSpecifierPackages
         using var versionPaths = NamingVersionPaths(package);
         if (versionPaths is not null)
         {
-            string mapped = ModuleSpecifierPaths.FromPaths(target[(root.Length + 1)..], versionPaths.RootElement, endings, root,
+            string mapped = ModuleSpecifierPaths.FromPaths(target[(root.Length + 1)..],
+                CompilerOptions.ParsePaths(versionPaths.RootElement) ?? [], endings, root,
                 options, fileSystem, currentDirectory, cancellation);
             blockedByVersions = mapped.Length == 0;
             if (!blockedByVersions)

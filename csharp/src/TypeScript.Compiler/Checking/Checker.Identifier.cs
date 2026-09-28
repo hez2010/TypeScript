@@ -12,7 +12,7 @@ internal sealed partial class Checker : IIdentifierTypeHost, IReferenceTypeNarro
     internal AssignmentChecks AssignmentChecks { get; }
     internal RelationDiagnostics RelationDiagnostics { get; }
     internal HashSet<(SyntaxNode Node, bool Construct)> AssignmentHints { get; } = [];
-    public bool NoCheck => program.Symbols.Program.Configuration.Options.Boolean("noCheck") == true;
+    public bool NoCheck => program.Symbols.Program.Configuration.Options.NoCheck == true;
     internal ReferenceTypeNarrowing ReferenceNarrowing { get; }
     internal SymbolNarrowing SymbolNarrowing { get; }
     internal AliasReferences AliasReferences { get; }

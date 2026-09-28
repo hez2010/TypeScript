@@ -341,7 +341,7 @@ internal sealed partial class Checker
                     continue;
                 bool hasOverride = SemanticSyntax.HasModifier(member, SyntaxKind.OverrideKeyword);
                 bool isJs = (node.Flags & NodeFlags.JavaScriptFile) != 0;
-                if (!hasOverride && program.Symbols.Program.Configuration.Options.Boolean("noImplicitOverride") != true)
+                if (!hasOverride && program.Symbols.Program.Configuration.Options.NoImplicitOverride != true)
                     continue;
                 if (hasOverride && symbol.Name == Symbol.InternalPrefix + "computed")
                 {
@@ -382,7 +382,7 @@ internal sealed partial class Checker
                     && inherited is { Declarations.Length: > 0 }
                     && !hasOverride
                     && (node.Flags & NodeFlags.Ambient) == 0
-                    && program.Symbols.Program.Configuration.Options.Boolean("noImplicitOverride") == true)
+                    && program.Symbols.Program.Configuration.Options.NoImplicitOverride == true)
                 {
                     if (!inherited.Declarations.Any(d => SemanticSyntax.HasModifier(d, SyntaxKind.AbstractKeyword)))
                         Error(

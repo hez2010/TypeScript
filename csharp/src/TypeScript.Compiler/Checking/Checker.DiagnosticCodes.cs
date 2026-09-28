@@ -145,12 +145,12 @@ internal sealed partial class Checker
         foreach (var diagnostic in program.Symbols.Binding(file)!.Diagnostics)
             diagnostics.Add(diagnostic with { FileName = file.FileName });
         if ((file.Flags & NodeFlags.JavaScriptFile) != 0
-            && (file.CheckJsDirective?.Enabled ?? program.Symbols.Program.Configuration.Options.Boolean("checkJs") ?? false))
+            && (file.CheckJsDirective?.Enabled ?? program.Symbols.Program.Configuration.Options.CheckJs ?? false))
             foreach (var diagnostic in file.JSDocDiagnostics)
                 diagnostics.Add(diagnostic with { FileName = file.FileName });
         diagnostics = diagnostics.Distinct(DiagnosticEqualityComparer.Instance).ToList();
         bool plainJavaScript = (file.Flags & NodeFlags.JavaScriptFile) != 0 && file.CheckJsDirective?.Enabled != true
-            && program.Symbols.Program.Configuration.Options.Boolean("checkJs") != true;
+            && program.Symbols.Program.Configuration.Options.CheckJs != true;
         if (plainJavaScript)
             diagnostics.RemoveAll(d => !JavaScriptDiagnostics.IsPlainError(d.Code));
         else

@@ -39,7 +39,7 @@ internal sealed partial class Checker
         var module = program.Symbols.Globals.GetValueOrDefault(TextSlice.Concat("\"", name, "\""));
         if (module is null && reference?.Resolution.IsResolved == true
             && !(reference.Resolution.IsArbitraryExtension && !file.IsDeclarationFile
-                && program.Symbols.Program.Configuration.Options.Boolean("allowArbitraryExtensions") != true))
+                && program.Symbols.Program.Configuration.Options.AllowArbitraryExtensions != true))
         {
             if (!implicitImport && !ignoreErrors)
                 CheckResolvedImport(location, specifier!, name, file, reference);
@@ -96,7 +96,7 @@ internal sealed partial class Checker
         bool sideEffect = node.Parent is ImportDeclarationNode { ImportClause: null };
         var compiler = program.Symbols.Program;
         if (reference?.Resolution.IsArbitraryExtension == true && !file.IsDeclarationFile
-            && compiler.Configuration.Options.Boolean("allowArbitraryExtensions") != true)
+            && compiler.Configuration.Options.AllowArbitraryExtensions != true)
         {
             program.Error(
                 node,
@@ -140,7 +140,7 @@ internal sealed partial class Checker
                 return;
             }
         }
-        bool resolveJson = compiler.Configuration.Options.Boolean("resolveJsonModule")
+        bool resolveJson = compiler.Configuration.Options.ResolveJsonModule
             ?? (compiler.ModuleResolutionKind == "bundler" || ModuleKind is 102 or 199);
         if (!resolveJson && name.Span.EndsWith(".json", StringComparison.Ordinal))
         {
@@ -171,7 +171,7 @@ internal sealed partial class Checker
             && missingModuleCode == DiagnosticCode.CannotFindModule0OrItsCorrespondingTypeDeclarations
             && node is StringLiteralNode
             && NodeCoreModules.Contains(name))
-            missingModuleCode = compiler.Configuration.Options.Strings("types")?.Contains("*", StringComparer.Ordinal) == true
+            missingModuleCode = compiler.Configuration.Options.Types?.Contains("*", StringComparer.Ordinal) == true
                 ? DiagnosticCode.CannotFindName0DoYouNeedToInstallTypeDefinitionsForNodeTryNpmISaveDevTypesSlashnode
                 : DiagnosticCode.CannotFindName0DoYouNeedToInstallTypeDefinitionsForNodeTryNpmISaveDevTypesSlashnodeAndThenAddNodeToTheTypesFieldInYourTsconfig;
         program.Error(
@@ -269,8 +269,8 @@ internal sealed partial class Checker
                 TextSlice suggested = name[..^extension.Length];
                 if (ModuleKind is >= 5 and <= 99 || reference.Mode == ReferenceResolutionMode.Import)
                 {
-                    bool preferTs = options.Boolean("allowImportingTsExtensions") == true
-                        || options.Boolean("rewriteRelativeImportExtensions") == true;
+                    bool preferTs = options.AllowImportingTsExtensions == true
+                        || options.RewriteRelativeImportExtensions == true;
                     suggested += extension.Span is ".mts" or ".d.mts" ? preferTs ? ".mts" : ".mjs"
                         : extension.Span is ".cts" or ".d.cts" ? preferTs ? ".cts" : ".cjs" : preferTs ? ".ts" : ".js";
                 }
@@ -279,15 +279,15 @@ internal sealed partial class Checker
                     DiagnosticCode.ADeclarationFileCannotBeImportedWithoutImportTypeDidYouMeanToImportAnImplementationFile0Instead,
                     suggested);
             }
-            else if (!source.IsDeclarationFile && options.Boolean("allowImportingTsExtensions") != true
-                && options.Boolean("rewriteRelativeImportExtensions") != true)
+            else if (!source.IsDeclarationFile && options.AllowImportingTsExtensions != true
+                && options.RewriteRelativeImportExtensions != true)
                 Error(
                     specifier,
                     DiagnosticCode.AnImportPathCanOnlyEndWithA0ExtensionWhenAllowImportingTsExtensionsIsEnabled,
                     TypeScriptImportExtension(name));
         }
         var target = program.Symbols.Program.GetFile(reference.Resolution.FileName);
-        if (target is not null && options.Boolean("rewriteRelativeImportExtensions") == true
+        if (target is not null && options.RewriteRelativeImportExtensions == true
             && (location.Flags & NodeFlags.Ambient) == 0 && !declarationExtension
             && (emitted || import is ImportDeclarationNode { ImportClause: null }))
         {
@@ -312,13 +312,13 @@ internal sealed partial class Checker
                     ?? compiler.ProjectReferences.Outputs.GetValueOrDefault(target.Syntax.FileName)) is { } redirect)
             {
                 var project = redirect.Project;
-                TextSlice otherRoot = project.Options.String("rootDir") ?? (project.Options.Boolean("composite") == true
+                TextSlice otherRoot = project.Options.RootDir ?? (project.Options.Composite == true
                     ? CompilerPath.DirectoryName(project.FileName) : Programs.ProjectReferences.CommonDirectory(
                         project.FileNames.Where(f => !CompilerPath.IsDeclarationFile(f)), compiler.UseCaseSensitiveFileNames));
                 TextSlice ownRoot = compiler.CommonSourceDirectory;
                 TextSlice roots = CompilerPath.Relative((ownRoot).ToString(), (otherRoot).ToString(), compiler.UseCaseSensitiveFileNames);
-                TextSlice outputs = CompilerPath.Relative(options.String("outDir") ?? (ownRoot).ToString(),
-                    project.Options.String("outDir") ?? (otherRoot).ToString(), compiler.UseCaseSensitiveFileNames);
+                TextSlice outputs = CompilerPath.Relative(options.OutDir ?? (ownRoot).ToString(),
+                    project.Options.OutDir ?? (otherRoot).ToString(), compiler.UseCaseSensitiveFileNames);
                 if (roots != outputs)
                     Error(
                         specifier,

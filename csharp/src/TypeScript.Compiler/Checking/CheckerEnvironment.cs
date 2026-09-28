@@ -108,7 +108,7 @@ internal sealed partial class CheckerEnvironment(TypeContext context, CheckerLin
         {
             var file = SemanticSyntax.Source(symbol.Declarations.FirstOrDefault());
             if (file is { ScriptKind: ScriptKind.JS or ScriptKind.JSX, CheckJsDirective: null }
-                && Symbols.Program.Configuration.Options.Boolean("checkJs") is null)
+                && Symbols.Program.Configuration.Options.CheckJs is null)
                 return;
             foreach (var declaration in symbol.Declarations)
             {

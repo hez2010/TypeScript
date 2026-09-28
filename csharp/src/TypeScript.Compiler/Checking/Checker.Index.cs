@@ -15,8 +15,8 @@ internal sealed partial class Checker : ITypeKeyHost, IIndexedTypeHost
     public ValueTask<Type> ReducedTypeAsync(Type type, CancellationToken cancellation) => Views.ReducedAsync(type, cancellation);
 
     public IndexInfo EnumNumberIndex => Members.EnumNumberIndex;
-    public bool NoUncheckedIndexedAccess => program.Symbols.Program.Configuration.Options.Boolean("noUncheckedIndexedAccess") == true;
-    public bool NoImplicitAny => program.Symbols.Program.Configuration.Options.StrictOption("noImplicitAny");
+    public bool NoUncheckedIndexedAccess => program.Symbols.Program.Configuration.Options.NoUncheckedIndexedAccess == true;
+    public bool NoImplicitAny => program.Symbols.Program.Configuration.Options.StrictNoImplicitAny;
 
     public ValueTask<Type> IndexedAccessAsync(
         Type objectType,

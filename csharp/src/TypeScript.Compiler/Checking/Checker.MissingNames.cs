@@ -251,7 +251,7 @@ internal sealed partial class Checker
     {
         var file = SemanticSyntax.Source(location)!;
         if (file.ScriptKind is not (ScriptKind.JS or ScriptKind.JSX) || file.CheckJsDirective is not null
-            || program.Symbols.Program.Configuration.Options.Boolean("checkJs") is not null)
+            || program.Symbols.Program.Configuration.Options.CheckJs is not null)
             return false;
         var declarationFile = SemanticSyntax.Source(suggestion.Declarations.FirstOrDefault());
         return declarationFile is null || declarationFile == file || program.Symbols.Binding(declarationFile)?.IsModule == true;

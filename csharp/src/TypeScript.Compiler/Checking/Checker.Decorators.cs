@@ -111,7 +111,7 @@ internal sealed partial class Checker
         if (LegacyDecorators)
         {
             await ExternalHelpersAsync(first, node is ParameterDeclarationNode ? ["__decorate", "__param"] : ["__decorate"], cancellation);
-            if (program.Symbols.Program.Configuration.Options.Boolean("emitDecoratorMetadata") == true)
+            if (program.Symbols.Program.Configuration.Options.EmitDecoratorMetadata == true)
                 await DecoratorMetadataAsync(node, first, cancellation);
         }
         else if (TargetYear < int.MaxValue)

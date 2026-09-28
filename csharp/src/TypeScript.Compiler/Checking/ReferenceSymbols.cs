@@ -21,7 +21,7 @@ internal sealed class ReferenceSymbols(CheckerSymbols symbols, CheckerLinks link
 
     internal DiagnosticMessage MissingName(IdentifierNode node)
     {
-        bool wildcard = symbols.Program.Configuration.Options.Strings("types")?.Contains("*", StringComparer.Ordinal) == true;
+        bool wildcard = symbols.Program.Configuration.Options.Types?.Contains("*", StringComparer.Ordinal) == true;
         return node.Text.Span switch
         {
             "document" or "console" => Messages.Cannot_find_name_0_Do_you_need_to_change_your_target_library_Try_changing_the_lib_compiler_option_to_include_dom,

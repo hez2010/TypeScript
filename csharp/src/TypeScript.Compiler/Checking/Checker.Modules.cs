@@ -10,23 +10,7 @@ namespace TypeScript.Compiler.Checking;
 internal sealed partial class Checker
 {
     private readonly HashSet<Symbol> checkedModuleExports = [];
-    internal int ModuleKind => (int?)program.Symbols.Program.Configuration.Options.Number("module") ?? program.Symbols.Program.Configuration.Options.String("module") switch
-    {
-        "commonjs" => 1,
-        "amd" => 2,
-        "umd" => 3,
-        "system" => 4,
-        "es6" or "es2015" => 5,
-        "es2020" => 6,
-        "es2022" => 7,
-        "esnext" => 99,
-        "node16" => 100,
-        "node18" => 101,
-        "node20" => 102,
-        "nodenext" => 199,
-        "preserve" => 200,
-        _ => TargetYear == int.MaxValue ? 99 : TargetYear >= 2022 ? 7 : TargetYear >= 2020 ? 6 : TargetYear >= 2015 ? 5 : 1
-    };
+    internal int ModuleKind => program.Symbols.Program.Configuration.Options.EmitModuleKind;
 
     private int EmitModuleKind(SyntaxNode node)
     {
@@ -112,7 +96,7 @@ internal sealed partial class Checker
         if (node is not IModifiedNode { Modifiers: { } modifiers })
             return;
         if (value && node.Parent is SourceFileNode && (node.Flags & NodeFlags.Ambient) == 0
-            && program.Symbols.Program.Configuration.Options.Boolean("verbatimModuleSyntax") == true && EmitModuleKind(node) == 1
+            && program.Symbols.Program.Configuration.Options.VerbatimModuleSyntax == true && EmitModuleKind(node) == 1
             && modifiers.FirstOrDefault(m => m.Kind == SyntaxKind.ExportKeyword) is { } export)
             Error(
                 export,
@@ -160,7 +144,7 @@ internal sealed partial class Checker
         await CheckMergedExportsAsync(node, cancellation).ConfigureAwait(false);
         int state = Binder.ModuleState(node);
         bool instantiated = state == 2
-            || state == 1 && (IsolatedModules || program.Symbols.Program.Configuration.Options.Boolean("preserveConstEnums") == true);
+            || state == 1 && (IsolatedModules || program.Symbols.Program.Configuration.Options.PreserveConstEnums == true);
         if ((symbol.Flags & SymbolFlags.ValueModule) != 0 && !ambient && instantiated)
         {
             if (ErasableSyntaxOnly && (node.Flags & NodeFlags.JavaScriptFile) == 0)
@@ -336,7 +320,7 @@ internal sealed partial class Checker
                     DiagnosticCode.ImportingAJSONFileIntoAnECMAScriptModuleRequiresATypeColonJsonImportAttributeWhenModuleIsSetTo0,
                     ModuleKind switch { 101 => "Node18", 102 => "Node20", _ => "NodeNext" });
         }
-        else if (program.Symbols.Program.Configuration.Options.Boolean("noUncheckedSideEffectImports") != false)
+        else if (program.Symbols.Program.Configuration.Options.NoUncheckedSideEffectImports != false)
         {
             await program.ExternalModuleAsync(node, node.ModuleSpecifier, node.Attributes, cancellation).ConfigureAwait(false);
         }
@@ -432,7 +416,7 @@ internal sealed partial class Checker
                     ? DiagnosticCode.ExportDeclarationConflictsWithExportedDeclarationOf0
                     : DiagnosticCode.ImportDeclarationConflictsWithLocalDeclarationOf0,
                 TypeDisplay.SymbolName(symbol));
-        else if (node is not ExportSpecifierNode && program.Symbols.Program.Configuration.Options.Boolean("isolatedModules") == true
+        else if (node is not ExportSpecifierNode && program.Symbols.Program.Configuration.Options.IsolatedModules == true
             && !AliasResolver.IsTypeOnly(node) && (symbol.Flags & (SymbolFlags.Value | SymbolFlags.ExportValue)) != 0)
             Error(
                 node,
@@ -444,7 +428,7 @@ internal sealed partial class Checker
         {
             var typeOnlyDeclaration = await program.Aliases.TypeOnlyAsync(symbol, cancellation: cancellation).ConfigureAwait(false);
             bool type = (flags & SymbolFlags.Value) == 0;
-            bool verbatim = program.Symbols.Program.Configuration.Options.Boolean("verbatimModuleSyntax") == true;
+            bool verbatim = program.Symbols.Program.Configuration.Options.VerbatimModuleSyntax == true;
             if (type || typeOnlyDeclaration is not null)
             {
                 if (node is ImportClauseNode or ImportSpecifierNode or ImportEqualsDeclarationNode)
@@ -488,8 +472,8 @@ internal sealed partial class Checker
                 && (enumDeclaration.Flags & NodeFlags.Ambient) != 0)
             {
                 var redirect = program.Symbols.Program.ProjectReferences.Outputs.GetValueOrDefault(SemanticSyntax.Source(enumDeclaration)!.FileName);
-                if (redirect is null || !(redirect.Project.Options.Boolean("preserveConstEnums") == true
-                    || redirect.Project.Options.Boolean("isolatedModules") == true || redirect.Project.Options.Boolean("verbatimModuleSyntax") == true))
+                if (redirect is null || !(redirect.Project.Options.PreserveConstEnums == true
+                    || redirect.Project.Options.IsolatedModules == true || redirect.Project.Options.VerbatimModuleSyntax == true))
                     Error(node, DiagnosticCode.CannotAccessAmbientConstEnumsWhen0IsEnabled, IsolatedModuleOptionName);
             }
         }
@@ -511,7 +495,7 @@ internal sealed partial class Checker
             ".cjs",
             StringComparison.OrdinalIgnoreCase) ? DiagnosticCode.ECMAScriptImportsAndExportsCannotBeWrittenInACommonJSFileUnderVerbatimModuleSyntax : DiagnosticCode.ECMAScriptImportsAndExportsCannotBeWrittenInACommonJSFileUnderVerbatimModuleSyntaxAdjustTheTypeFieldInTheNearestPackageJsonToMakeThisFileAnECMAScriptModuleOrAdjustYourVerbatimModuleSyntaxModuleAndModuleResolutionSettingsInTypeScript;
 
-    private TextSlice IsolatedModuleOptionName => program.Symbols.Program.Configuration.Options.Boolean("verbatimModuleSyntax") == true
+    private TextSlice IsolatedModuleOptionName => program.Symbols.Program.Configuration.Options.VerbatimModuleSyntax == true
         ? "verbatimModuleSyntax" : "isolatedModules";
 
     private void TypeOnlyAliasError(
@@ -636,7 +620,7 @@ internal sealed partial class Checker
             Error(node, DiagnosticCode.ThisSyntaxIsNotAllowedWhenErasableSyntaxOnlyIsEnabled);
         if (!DeclarationModifiers(node) && node.Modifiers is { Count: > 0 })
             ErrorOnFirstToken(node, DiagnosticCode.AnExportAssignmentCannotHaveModifiers);
-        bool verbatim = program.Symbols.Program.Configuration.Options.Boolean("verbatimModuleSyntax") == true;
+        bool verbatim = program.Symbols.Program.Configuration.Options.VerbatimModuleSyntax == true;
         bool illegalDefault = !node.IsExportEquals && (node.Flags & NodeFlags.Ambient) == 0 && verbatim && EmitModuleKind(node) == 1;
         if (node.Expression is IdentifierNode identifier)
         {

@@ -29,7 +29,7 @@ internal sealed partial class Checker
                     return parsed;
                 }
             }
-            return program.Symbols.Program.Configuration.Options.String("jsxFragmentFactory") is { Length: > 0 } configured
+            return program.Symbols.Program.Configuration.Options.JsxFragmentFactory is { Length: > 0 } configured
                 ? ParseEmitJsxFactory(configured) : null;
         }
         if (location is not null)
@@ -45,7 +45,7 @@ internal sealed partial class Checker
     {
         if (file is null ? emitJsxFactory is not null : (fragment ? emitLocalJsxFragments : emitLocalJsxFactories).ContainsKey(file))
             return name;
-        var parsed = file is not null || program.Symbols.Program.Configuration.Options.String("jsxFactory") is { Length: > 0 }
+        var parsed = file is not null || program.Symbols.Program.Configuration.Options.JsxFactory is { Length: > 0 }
             ? ParseEmitJsxFactory(name) : null;
         if (parsed is null && file is null)
         {

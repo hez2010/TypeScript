@@ -35,7 +35,7 @@ internal sealed class CheckerPool
         CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
-        int count = singleThreaded ? 1 : (int?)program.Configuration.Options.Number("checkers") ?? DefaultCheckerCount;
+        int count = singleThreaded ? 1 : program.Configuration.Options.Checkers ?? DefaultCheckerCount;
         count = Math.Clamp(count, 1, Math.Max(1, Math.Min(program.SourceFiles.Count, MaximumCheckerCount)));
         var assignments = CheckerPartitions.ForProgram(program, count, cancellation);
         var checkers = new Checker[count];

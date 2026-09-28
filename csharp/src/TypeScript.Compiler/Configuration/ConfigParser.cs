@@ -163,7 +163,7 @@ public sealed partial class ConfigParser(IFileSystem fileSystem, string currentD
                 foreach (string name in new[] { "allowJs", "skipLibCheck", "noEmit" })
                     if (options.Get(name) is null)
                         options.SetRaw(name, "true");
-                if (options.Get("maxNodeModuleJsDepth") is null)
+                if (options.MaxNodeModuleJsDepth is null)
                     options.SetRaw("maxNodeModuleJsDepth", "2");
                 acquisition.SetRaw("enable", "true");
             }
@@ -348,8 +348,8 @@ public sealed partial class ConfigParser(IFileSystem fileSystem, string currentD
             : [])).Select(Substitute).ToArray();
         string[] excludes = (result.Exclude ?? new[]
         {
-            result.Options.String("outDir"),
-            result.Options.String("declarationDir")
+            result.Options.OutDir,
+            result.Options.DeclarationDir
         }.OfType<string>().ToArray()).Select(Substitute).ToArray();
         ConfigSyntax main = layers[fileName].Syntax;
         ContentMapper[] contentMappers = ReadContentMappers(
@@ -471,8 +471,8 @@ public sealed partial class ConfigParser(IFileSystem fileSystem, string currentD
         var literals = new HashSet<string>(literalFiles, comparer);
         var wildcards = new List<string>();
         var jsonFiles = new List<string>();
-        bool allowJs = options.Boolean("allowJs") ?? options.Boolean("checkJs") ?? false;
-        bool resolveJson = options.Boolean("resolveJsonModule") ?? options.String("moduleResolution") == "bundler";
+        bool allowJs = options.AllowJs ?? options.CheckJs ?? false;
+        bool resolveJson = options.ResolveJsonModule ?? options.ModuleResolution == ModuleResolutionKind.Bundler;
         string[] extensions = new[]
         {
             ".ts",

@@ -55,17 +55,11 @@ public sealed partial class ModuleResolver
         this.extraExtensions = extraExtensions?.OrderByDescending(e => e.Length).ToArray() ?? [];
         CompilerVersion = compilerVersion ?? new(7, 1, 0, "dev");
         Packages = new(fs, cwd);
-        ResolutionKind = options.String("moduleResolution") switch
+        ResolutionKind = options.EmitModuleResolutionKind switch
         {
-            "node16" => "node16",
-            "nodenext" => "nodenext",
-            "bundler" => "bundler",
-            _ => options.String("module") switch
-            {
-                "node16" or "node18" or "node20" => "node16",
-                "nodenext" => "nodenext",
-                _ => "bundler"
-            }
+            ModuleResolutionKind.Node16 => "node16",
+            ModuleResolutionKind.NodeNext => "nodenext",
+            _ => "bundler"
         };
     }
 
@@ -94,7 +88,7 @@ public sealed partial class ModuleResolver
         lock (gate)
         {
             version = generation;
-            if (options.Boolean("traceResolution") != true && cache.TryGetValue(key, out var cached))
+            if (options.TraceResolution != true && cache.TryGetValue(key, out var cached))
                 return cached;
         }
         var request = new Request(this, name, directory, mode, typeReference, cancellation, inferredTypes: inferred);
@@ -113,13 +107,13 @@ public sealed partial class ModuleResolver
         return result;
     }
 
-    public string[] TypeRoots() => options.Strings("typeRoots") ?? PackageJsonCache.Ancestors(
+    public string[] TypeRoots() => options.TypeRoots ?? PackageJsonCache.Ancestors(
         configFile.Length == 0 ? cwd : CompilerPath.DirectoryName(configFile))
         .Select(d => CompilerPath.Combine(d, "node_modules/@types")).ToArray();
 
     public string[] AutomaticTypeDirectives()
     {
-        string[] types = options.Strings("types") ?? [];
+        string[] types = options.Types ?? [];
         if (!types.Contains("*"))
             return types;
         var matches = new List<string>();
@@ -151,7 +145,7 @@ public sealed partial class ModuleResolver
         return null;
         ResolvedModule Result(string path)
         {
-            string real = options.Boolean("preserveSymlinks") == true ? path : fs.RealPath(path);
+            string real = options.PreserveSymlinks == true ? path : fs.RealPath(path);
             return new(real, OriginalPath: real == path ? "" : path);
         }
     }
@@ -255,10 +249,10 @@ public sealed partial class ModuleResolver
             this.inferredTypes = inferredTypes;
             options = resolver.options;
             fs = resolver.fs;
-            extensions = types ? Extensions.Declaration : options.Boolean("noDtsResolution") == true
+            extensions = types ? Extensions.Declaration : options.NoDtsResolution == true
                 ? Extensions.TypeScript | Extensions.JavaScript : Extensions.TypeScript | Extensions.JavaScript | Extensions.Declaration;
-            if (!types && (options.Boolean("resolveJsonModule") ?? (resolver.ResolutionKind == "bundler"
-                || options.String("module") is "node20" or "nodenext")))
+            if (!types && (options.ResolveJsonModule ?? (resolver.ResolutionKind == "bundler"
+                || options.Module is ModuleKind.Node20 or ModuleKind.NodeNext)))
                 extensions |= Extensions.Json;
             if (configLookup)
                 extensions = Extensions.Json;
@@ -266,16 +260,16 @@ public sealed partial class ModuleResolver
             conditions = [mode == ReferenceResolutionMode.Import || mode == 0 && resolver.ResolutionKind == "bundler"
                 ? "import"
                 : "require",
-                .. options.Boolean("noDtsResolution") != true ? new[] { "types" } : [],
-                .. resolver.ResolutionKind == "bundler" ? [] : new[] { "node" }, .. options.Strings("customConditions") ?? []];
+                .. options.NoDtsResolution != true ? new[] { "types" } : [],
+                .. resolver.ResolutionKind == "bundler" ? [] : new[] { "node" }, .. options.CustomConditions ?? []];
             // The pinned Node16/Next resolver always enables maps; only Bundler consults these switches.
-            exports = resolver.ResolutionKind != "bundler" || options.Boolean("resolvePackageJsonExports") != false;
-            imports = resolver.ResolutionKind != "bundler" || options.Boolean("resolvePackageJsonImports") != false;
+            exports = resolver.ResolutionKind != "bundler" || options.ResolvePackageJsonExports != false;
+            imports = resolver.ResolutionKind != "bundler" || options.ResolvePackageJsonImports != false;
         }
 
         private void Trace(string operation, string path, string detail = "")
         {
-            if (options.Boolean("traceResolution") == true)
+            if (options.TraceResolution == true)
                 trace.Add(new(operation, path, detail));
         }
 
@@ -338,7 +332,7 @@ public sealed partial class ModuleResolver
                     if (global?.IsResolved == true)
                         result = global with { External = true };
                 }
-                if (result.IsResolved && options.Boolean("preserveSymlinks") != true && (types || result.External && !Relative(name)))
+                if (result.IsResolved && options.PreserveSymlinks != true && (types || result.External && !Relative(name)))
                 {
                     string real = CompilerPath.Normalize(fs.RealPath(result.FileName));
                     Trace("realpath", result.FileName, real);
@@ -356,9 +350,9 @@ public sealed partial class ModuleResolver
 
         private async ValueTask<ResolvedModule?> ModuleAsync()
         {
-            if (!Relative(name) && options.Get("paths") is { ValueKind: JsonValueKind.Object } paths)
+            if (!Relative(name) && options.Paths is { } paths)
             {
-                var mapped = Paths(extensions, name, options.String("pathsBasePath") ?? resolver.cwd, paths,
+                var mapped = Paths(extensions, name, options.PathsBasePath ?? resolver.cwd, paths,
                     candidate => RelativeLoad(extensions, candidate));
                 if (mapped is not null)
                     return mapped;
@@ -368,7 +362,7 @@ public sealed partial class ModuleResolver
                 string candidate = CompilerPath.Resolve(directory, name);
                 if (name.AsSpan(name.LastIndexOf('/') + 1) is "." or "..")
                     candidate = CompilerPath.EnsureTrailingSeparator(candidate);
-                if (options.Strings("rootDirs") is { Length: > 0 } roots)
+                if (options.RootDirs is { Length: > 0 } roots)
                 {
                     string? root = roots.Select(CompilerPath.EnsureTrailingSeparator)
                         .Where(r => candidate.StartsWith(r, StringComparison.Ordinal)).OrderByDescending(r => r.Length).FirstOrDefault();
@@ -403,7 +397,7 @@ public sealed partial class ModuleResolver
                 && Truthy(scope.Get("exports")))
             {
                 string subpath = name == self ? "." : "." + name[self.Length..];
-                bool allowJs = options.Boolean("allowJs") ?? options.Boolean("checkJs") == true;
+                bool allowJs = options.AllowJs ?? options.CheckJs == true;
                 foreach (Extensions ext in allowJs && !directory.Contains("/node_modules/", StringComparison.Ordinal)
                     ? new[] { extensions } : new[]
                     {
@@ -417,20 +411,20 @@ public sealed partial class ModuleResolver
                 return null;
             if (await NearestAsync(extensions).ConfigureAwait(false) is { } found)
                 return External(found);
-            if ((extensions & Extensions.Declaration) != 0 && options.Strings("typeRoots") is { } typeRoots)
+            if ((extensions & Extensions.Declaration) != 0 && options.TypeRoots is { } typeRoots)
                 return FromTypeRoots(typeRoots, true);
             return null;
         }
 
         private async ValueTask<ResolvedModule?> TypeReferenceAsync()
         {
-            var primary = FromTypeRoots(resolver.TypeRoots(), options.Get("typeRoots") is not null);
+            var primary = FromTypeRoots(resolver.TypeRoots(), options.TypeRoots is not null);
             if (primary is not null)
             {
                 Primary = primary.IsResolved;
                 return primary;
             }
-            if (inferredTypes && options.Get("typeRoots") is not null)
+            if (inferredTypes && options.TypeRoots is not null)
                 return null;
             return Relative(name) ? RelativeLoad(Extensions.Declaration, CompilerPath.Resolve(directory, name))
                 : await NearestAsync(Extensions.Declaration).ConfigureAwait(false);
@@ -520,7 +514,8 @@ public sealed partial class ModuleResolver
                 if (exports && Truthy(info.Get("exports")))
                     return await ExportsAsync(info, rest.Length == 0 ? "." : "./" + rest, ext).ConfigureAwait(false);
                 if (rest.Length != 0 && info.VersionPaths(resolver.CompilerVersion) is { ValueKind: JsonValueKind.Object } paths
-                    && Paths(ext, rest, packageDirectory, paths, Load) is { } mapped)
+                    && CompilerOptions.ParsePaths(paths) is { } mappings
+                    && Paths(ext, rest, packageDirectory, mappings, Load) is { } mapped)
                     return mapped;
             }
             return Load(candidate);

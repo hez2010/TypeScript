@@ -10,8 +10,8 @@ internal sealed partial class Checker : IEnumValueHost
 {
     internal EnumValues EnumValues { get; }
     internal Action<SyntaxNode>? BeforeConstantReference { get; set; }
-    public bool IsolatedModules => program.Symbols.Program.Configuration.Options.Boolean("isolatedModules") == true
-        || program.Symbols.Program.Configuration.Options.Boolean("verbatimModuleSyntax") == true;
+    public bool IsolatedModules => program.Symbols.Program.Configuration.Options.IsolatedModules == true
+        || program.Symbols.Program.Configuration.Options.VerbatimModuleSyntax == true;
 
     public void EnumError(SyntaxNode node, DiagnosticCode code) => Error(node, code,
         code == DiagnosticCode.X0HasAStringTypeButMustHaveSyntacticallyRecognizableStringSyntaxWhenIsolatedModulesIsEnabled

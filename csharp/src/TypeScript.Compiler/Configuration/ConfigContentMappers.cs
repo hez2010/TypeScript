@@ -97,7 +97,7 @@ public sealed partial class ConfigParser
                 : null;
             definitions.Add((JsonStrings.GetString(package), accepted.ToArray(), mapperOptions, optionSyntax));
         }
-        if (definitions.Count > 0 && options.Boolean("runExternalCode") != true)
+        if (definitions.Count > 0 && options.RunExternalCode != true)
         {
             Error(Messages.Content_mappers_require_the_runExternalCode_command_line_flag_to_be_enabled);
             return [];

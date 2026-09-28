@@ -78,7 +78,7 @@ internal sealed class GlobalTypes(TypeContext context, CheckerLinks links, Check
         types["Array"] = await GetAsync("Array", 1, true, cancellation).ConfigureAwait(false);
         types["Object"] = await GetAsync("Object", 0, true, cancellation).ConfigureAwait(false);
         types["Function"] = await GetAsync("Function", 0, true, cancellation).ConfigureAwait(false);
-        bool strict = symbols.Program.Configuration.Options.StrictOption("strictBindCallApply");
+        bool strict = symbols.Program.Configuration.Options.EffectiveStrictBindCallApply;
         types["CallableFunction"] = strict
             ? await GetAsync("CallableFunction", 0, true, cancellation).ConfigureAwait(false)
             : types["Function"];

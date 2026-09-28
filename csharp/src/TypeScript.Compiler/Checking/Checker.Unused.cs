@@ -72,7 +72,8 @@ internal sealed partial class Checker
     {
         if (((declaration.Flags | (program.Symbols.Binding(declaration)?.Get(declaration)?.Flags ?? 0)) & (NodeFlags.Ambient | NodeFlags.ThisNodeOrAnySubNodesHasError)) != 0)
             return;
-        if (program.Symbols.Program.Configuration.Options.Boolean(parameter ? "noUnusedParameters" : "noUnusedLocals") == true)
+        var options = program.Symbols.Program.Configuration.Options;
+        if ((parameter ? options.NoUnusedParameters : options.NoUnusedLocals) == true)
         {
             TextSlice[] arguments = [];
             if (code is DiagnosticCode.X0IsDeclaredButItsValueIsNeverRead or DiagnosticCode.Property0IsDeclaredButItsValueIsNeverRead

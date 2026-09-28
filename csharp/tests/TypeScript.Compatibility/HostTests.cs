@@ -215,28 +215,71 @@ internal static class HostTests
         }
         var changingOptions = new CompilerOptions();
         Check(changingOptions.EmitTargetYear == 2025, "Unset target uses the default year");
+        Check(changingOptions.EmitModuleKind == 7, "Unset module follows the default target year");
         changingOptions.SetRaw("target", "\"es2015\"");
         Check(changingOptions.EmitTargetYear == 2015 && changingOptions.String("target") == "es2015",
             "Setting a target invalidates its previously computed default");
+        Check(changingOptions.EmitModuleKind == 5, "Changing the target updates the inferred module kind");
+        changingOptions.SetRaw("module", "\"commonjs\"");
+        Check(changingOptions.EmitModuleKind == 1, "An explicit module kind overrides the target default");
         changingOptions.SetRaw("target", "1");
         Check(changingOptions.EmitTargetYear == 2009 && changingOptions.String("target") is null,
             "Replacing a string option with a number updates both accessors");
+        Check(changingOptions.EmitModuleKind == 1, "Target changes preserve an explicit module kind");
         var overrideOptions = new CompilerOptions();
         overrideOptions.SetRaw("target", "\"esnext\"");
+        overrideOptions.SetRaw("module", "\"node20\"");
         overrideOptions.SetRaw("strict", "false");
         changingOptions.Merge(overrideOptions);
         Check(changingOptions.EmitTargetYear == int.MaxValue && changingOptions.String("target") == "esnext"
-            && !changingOptions.StrictOption("noImplicitAny"), "Merging options invalidates cached strings and target years");
+            && !changingOptions.StrictOption("noImplicitAny"), "Merging options updates strings and target years");
+        Check(changingOptions.EmitModuleKind == 102, "Merging options invalidates a cached module kind");
+        changingOptions.SetRaw("module", "99");
+        Check(changingOptions.EmitModuleKind == 99, "Numeric module kinds replace string module kinds");
+        changingOptions.SetRaw("module", "null");
+        Check(changingOptions.EmitModuleKind == 99, "Null module values use the target-derived default");
         changingOptions.SetRaw("target", "null");
         Check(changingOptions.EmitTargetYear == 2025 && changingOptions.String("target") is null,
-            "Null option values clear a previously decoded string");
+            "Null option values clear string access");
         int optionReadFailures = 0;
         Parallel.For(0, 128, _ =>
         {
-            if (changingOptions.EmitTargetYear != 2025 || changingOptions.StrictOption("noImplicitAny"))
+            if (changingOptions.EmitTargetYear != 2025 || changingOptions.EmitModuleKind != 7
+                || changingOptions.StrictOption("noImplicitAny"))
                 Interlocked.Increment(ref optionReadFailures);
         });
         Check(optionReadFailures == 0, "Parsed options permit concurrent reads and target initialization");
+        var typedOptions = new CompilerOptions();
+        typedOptions.SetRaw("strict", "false");
+        typedOptions.SetRaw("noImplicitAny", "true");
+        typedOptions.SetRaw("allowUnreachableCode", "false");
+        typedOptions.SetRaw("verbatimModuleSyntax", "true");
+        typedOptions.SetRaw("noEmit", "true");
+        Check(typedOptions.StrictNoImplicitAny && typedOptions.AllowUnreachableCode == false
+            && typedOptions.VerbatimModuleSyntax == true && typedOptions.NoEmit == true,
+            "Typed checker options preserve explicit true and false values");
+        var typedOverride = new CompilerOptions();
+        typedOverride.SetRaw("noImplicitAny", "null");
+        typedOverride.SetRaw("verbatimModuleSyntax", "false");
+        typedOverride.SetRaw("noEmit", "null");
+        typedOptions.Merge(typedOverride);
+        Check(!typedOptions.StrictNoImplicitAny && typedOptions.AllowUnreachableCode == false
+            && typedOptions.VerbatimModuleSyntax == false && typedOptions.NoEmit is null,
+            "Merging typed options restores strict fallback and nullable values");
+        typedOptions.SetRaw("allowUnreachableCode", "null");
+        Check(typedOptions.AllowUnreachableCode is null, "Null clears the typed reachability option");
+        typedOptions.SetRaw("jsx", "\"react-jsx\"");
+        typedOptions.SetRaw("moduleResolution", "\"nodenext\"");
+        typedOptions.SetRaw("moduleDetection", "\"force\"");
+        Check(typedOptions.Jsx == JsxEmit.ReactJSX && typedOptions.ModuleResolution == ModuleResolutionKind.NodeNext
+            && typedOptions.ModuleDetection == ModuleDetectionKind.Force,
+            "Typed enum options use the same wire values as the Go compiler");
+        typedOptions.SetRaw("lib", "[\"es5\",\"dom\",1]");
+        typedOptions.SetRaw("paths", "{\"@/*\":[\"src/*\"]}");
+        Check(typedOptions.Lib is ["es5", "dom"] && typedOptions.Paths is [{ Key: "@/*", Value: ["src/*"] }],
+            "Typed list and path options retain their contents and order");
+        typedOptions.SetRaw("paths", "null");
+        Check(typedOptions.Paths is null, "Null clears a typed path map");
         var files = new Dictionary<string, byte[]>
         {
             ["/base/config.json"] = Encoding.UTF8.GetBytes(

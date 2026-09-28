@@ -1,0 +1,87 @@
+{
+  "timestamp": "2026-09-28T17:53:35.215Z",
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "compilerSourceSha256": "7a55cec8693a1528660f6e80296ed0a860a04882d523bd1b628ae81c66f5d338",
+  "compilerSha256": "ee994a76e7dc6917a4a02b775b988d062e7f8b8875cc1446fdf3c61398fba2ab",
+  "candidateSha256": "52184659ffef20baf73efd20f2494fd2984aac85da8439f7d0051b07b29a979b",
+  "semantic": [
+    {
+      "mode": "single",
+      "readyConfigurations": 13446,
+      "detailedDiagnosticMatches": 13446,
+      "graphMismatches": 0,
+      "diagnosticMismatches": 0,
+      "candidateFailures": 0,
+      "candidateOutputSha256": "8390e6e546cf407bd5030dfabecd2983bd7aee283ae8d0a0678963646c6b31a4",
+      "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+      "inputSha256": "df21bccda8a3bc5da534586c352dae0175cf4bf260c93ee15694afe19353d5bd",
+      "fullSemanticCorpusGateComplete": true
+    },
+    {
+      "mode": "default",
+      "readyConfigurations": 13446,
+      "detailedDiagnosticMatches": 13446,
+      "graphMismatches": 0,
+      "diagnosticMismatches": 0,
+      "candidateFailures": 0,
+      "candidateOutputSha256": "8390e6e546cf407bd5030dfabecd2983bd7aee283ae8d0a0678963646c6b31a4",
+      "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+      "inputSha256": "b51e79a2ebc4428367c89bceb367fd82a86bdd85b43b847bc17f875b51743a77",
+      "fullSemanticCorpusGateComplete": true
+    }
+  ],
+  "api": {
+    "families": 31,
+    "comparedQueries": 1649908,
+    "knownGoFailures": 4,
+    "candidateFailures": 0,
+    "candidateHash": "44a76bd689f38a711d878d8d82745a61e1a185c67f41a93da7fb140992f456b9"
+  },
+  "safety": {
+    "suites": 74,
+    "failures": 0,
+    "candidateHash": "44a76bd689f38a711d878d8d82745a61e1a185c67f41a93da7fb140992f456b9"
+  },
+  "metadata": {
+    "timestamp": "2026-09-28T17:47:26.560Z",
+    "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+    "runtimeKind": "CoreCLR",
+    "runtime": "CoreCLR",
+    "sdk": "11.0.100-rtm.26473.115",
+    "typescriptPragmaReference": "6.0.3",
+    "configuration": {
+      "optimizationPreference": "Speed",
+      "runtimeAsync": true
+    },
+    "seed": "0x497a31f2",
+    "cases": 6778,
+    "failures": 0,
+    "extensionAssertions": 6,
+    "cloneAssertions": 19,
+    "semanticAssertions": 42,
+    "semanticDifferences": 48,
+    "inputSha256": "fdf15bb6a21a0b0874d93fbaf69a65b7591f4af8a19b17e54f4f51e3ccab4c5a",
+    "oracleSha256": "f3dd5a6db7d91c03c5569e55120369e78bfac83f4c2b020fff006a103e8802e6",
+    "candidateSha256": "04b841018b53c1c171b9ab90617387422376cf57e4b54f1df1be914024c3ca60"
+  },
+  "hosts": {
+    "assertions": 86,
+    "logSha256": "018d12559eb0448f551164d5e184e794fe760c7a6a404d55d023f99a72a0d986"
+  },
+  "moduleSafety": {
+    "suites": 4,
+    "logSha256": "cecad2fba42919da98d77444954f581f96d8bc6c41ccb429fdb794e93174fe5a"
+  },
+  "generatorCheck": {
+    "passed": true,
+    "logSha256": "d0f42ef29621d8cfe955a03c0cdb962d9b74a4e08dfec22acad45321e65c32a1"
+  },
+  "normalReleaseBuild": {
+    "passed": true,
+    "warnings": 0,
+    "errors": 0,
+    "logSha256": "9e23e9e9df6f9f83fbf0e5f5a8975d4599f16a6cf4adb365800120ebbb364e5c"
+  },
+  "nativeAotForCompleteModel": "Deferred until remaining performance work is complete",
+  "passedNoSemanticRegression": true
+}

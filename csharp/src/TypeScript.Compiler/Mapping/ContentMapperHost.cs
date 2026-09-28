@@ -68,7 +68,7 @@ public sealed class ContentMapperHost : IAsyncDisposable
         try
         {
             ObjectDisposedException.ThrowIf(closed, this);
-            if (config.ContentMappers.Length > 0 && config.Options.Boolean("runExternalCode") != true)
+            if (config.ContentMappers.Length > 0 && config.Options.RunExternalCode != true)
                 throw new InvalidOperationException("Content mappers require runExternalCode");
             if (projects.TryGetValue(config, out var existing))
             {

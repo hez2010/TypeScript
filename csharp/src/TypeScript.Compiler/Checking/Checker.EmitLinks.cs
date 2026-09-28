@@ -102,7 +102,7 @@ internal sealed partial class Checker
             }
             return;
         }
-        if (program.Symbols.Program.Configuration.Options.Boolean("emitDecoratorMetadata") == true
+        if (program.Symbols.Program.Configuration.Options.EmitDecoratorMetadata == true
             && HasDecorators(node)
             && CanDecorate(node))
             await DecoratorMetadataAsync(node, ((IModifiedNode)node).Modifiers!.OfType<DecoratorNode>().First(), cancellation);

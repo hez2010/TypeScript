@@ -47,7 +47,7 @@ internal sealed partial class ModuleSpecifierPackages(IFileSystem fileSystem, Co
         CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
-        if (options.Boolean("resolvePackageJsonImports") == false)
+        if (options.ResolvePackageJsonImports == false)
             return "";
         PackageJson? package = null;
         foreach (string directory in PackageJsonCache.Ancestors(CompilerPath.Resolve(currentDirectory, sourceDirectory)))
@@ -89,27 +89,15 @@ internal sealed partial class ModuleSpecifierPackages(IFileSystem fileSystem, Co
     {
         string resolution = ResolutionKind();
         return [mode == ReferenceResolutionMode.Import || mode == 0 && resolution == "bundler" ? "import" : "require",
-            .. options.Boolean("noDtsResolution") != true ? new[] { "types" } : [],
-            .. resolution != "bundler" ? new[] { "node" } : [], .. options.Strings("customConditions") ?? []];
+            .. options.NoDtsResolution != true ? new[] { "types" } : [],
+            .. resolution != "bundler" ? new[] { "node" } : [], .. options.CustomConditions ?? []];
     }
 
-    private string ResolutionKind() => options.String("moduleResolution") switch
+    private string ResolutionKind() => options.EmitModuleResolutionKind switch
     {
-        "bundler" => "bundler",
-        "node16" => "node16",
-        "nodenext" => "nodenext",
-        _ => options.Number("moduleResolution") switch
-        {
-            100 => "bundler",
-            3 => "node16",
-            99 => "nodenext",
-            _ => options.String("module") switch
-            {
-                "node16" or "node18" or "node20" => "node16",
-                "nodenext" => "nodenext",
-                _ => options.Number("module") switch { 100 or 101 or 102 => "node16", 199 => "nodenext", _ => "bundler" }
-            }
-        }
+        ModuleResolutionKind.Node16 => "node16",
+        ModuleResolutionKind.NodeNext => "nodenext",
+        _ => "bundler"
     };
 
     private static PackageSpecifierMatch MatchMode(string key) => key.EndsWith('/') ? PackageSpecifierMatch.Directory
@@ -225,14 +213,14 @@ internal sealed partial class ModuleSpecifierPackages(IFileSystem fileSystem, Co
     internal string OutputFile(string source, bool declaration)
     {
         string directory = declaration
-            ? options.String("declarationDir") ?? options.String("outDir") ?? ""
-            : options.String("outDir") ?? "";
+            ? options.DeclarationDir ?? options.OutDir ?? ""
+            : options.OutDir ?? "";
         string path = directory.Length == 0 ? source : CompilerPath.Resolve(CompilerPath.Resolve(currentDirectory, directory),
             Relative(commonSourceDirectory, source));
         if (!declaration)
         {
             string outputExtension = source.EndsWith(".json", StringComparison.Ordinal) ? ".json"
-                : (options.String("jsx") == "preserve" || options.Number("jsx") == 1)
+                : options.Jsx == JsxEmit.Preserve
                     && (source.EndsWith(".jsx", StringComparison.Ordinal) || source.EndsWith(".tsx", StringComparison.Ordinal)) ? ".jsx"
                 : source.EndsWith(".mts", StringComparison.Ordinal) || source.EndsWith(".mjs", StringComparison.Ordinal) ? ".mjs"
                 : source.EndsWith(".cts", StringComparison.Ordinal) || source.EndsWith(".cjs", StringComparison.Ordinal) ? ".cjs" : ".js";

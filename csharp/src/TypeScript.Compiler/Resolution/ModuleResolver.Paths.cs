@@ -79,7 +79,7 @@ public sealed partial class ModuleResolver
             string ext = Extension(candidate);
             if (!IsTypeScript(ext) && ext is not (".js" or ".jsx" or ".mjs" or ".cjs" or ".json"))
                 ext = "";
-            string[]? suffixes = options.Strings("moduleSuffixes");
+            string[]? suffixes = options.ModuleSuffixes;
             foreach (string suffix in suffixes is { Length: > 0 } ? suffixes : [""])
             {
                 cancellation.ThrowIfCancellationRequested();
@@ -126,10 +126,11 @@ public sealed partial class ModuleResolver
             }
             string index = CompilerPath.Combine(candidate, configLookup ? "tsconfig" : "index");
             if (package?.VersionPaths(resolver.CompilerVersion) is { ValueKind: JsonValueKind.Object } paths
-                && (packageFile is null || CompilerPath.Contains(candidate, packageFile, true)))
+                && (packageFile is null || CompilerPath.Contains(candidate, packageFile, true))
+                && CompilerOptions.ParsePaths(paths) is { } mappings)
             {
                 string module = CompilerPath.Relative(candidate, packageFile ?? index, true);
-                if (Paths(ext, module, candidate, paths, Load) is { } mapped)
+                if (Paths(ext, module, candidate, mappings, Load) is { } mapped)
                     return mapped;
             }
             if (packageFile is not null && Load(packageFile) is { } result)
@@ -171,38 +172,35 @@ public sealed partial class ModuleResolver
             Extensions ext,
             string module,
             string directory,
-            JsonElement paths,
+            IReadOnlyList<KeyValuePair<string, string[]>> paths,
             Func<string, ResolvedModule?> load)
         {
-            JsonProperty? best = null;
+            KeyValuePair<string, string[]>? best = null;
             string star = "";
             int bestPrefix = -1;
-            foreach (var entry in PackageJson.Properties(paths))
+            foreach (var entry in paths)
             {
-                if (entry.Name == module)
+                if (entry.Key == module)
                 {
                     best = entry;
                     star = "";
                     break;
                 }
-                int index = entry.Name.IndexOf('*');
-                if (index < 0 || entry.Name.IndexOf('*', index + 1) >= 0 || index <= bestPrefix)
+                int index = entry.Key.IndexOf('*');
+                if (index < 0 || entry.Key.IndexOf('*', index + 1) >= 0 || index <= bestPrefix)
                     continue;
-                if (module.Length < entry.Name.Length - 1 || !module.StartsWith(entry.Name[..index], StringComparison.Ordinal)
-                    || !module.EndsWith(entry.Name[(index + 1)..], StringComparison.Ordinal))
+                if (module.Length < entry.Key.Length - 1 || !module.StartsWith(entry.Key[..index], StringComparison.Ordinal)
+                    || !module.EndsWith(entry.Key[(index + 1)..], StringComparison.Ordinal))
                     continue;
                 best = entry;
                 bestPrefix = index;
-                star = module.Substring(index, module.Length - entry.Name.Length + 1);
+                star = module.Substring(index, module.Length - entry.Key.Length + 1);
             }
-            if (best is not { Value.ValueKind: JsonValueKind.Array } matched)
+            if (best is not { } matched)
                 return null;
-            Trace("paths", module, matched.Name);
-            foreach (var value in matched.Value.EnumerateArray())
+            Trace("paths", module, matched.Key);
+            foreach (string substitution in matched.Value)
             {
-                if (value.ValueKind != JsonValueKind.String)
-                    continue;
-                string substitution = JsonStrings.GetString(value);
                 int index = substitution.IndexOf('*');
                 string candidate = CompilerPath.Resolve(
                     directory,

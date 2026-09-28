@@ -19,7 +19,7 @@ internal sealed partial class Checker : ITypeAssertionHost, IInstantiationExpres
     public async ValueTask<Type> ImportMetaTypeAsync(CancellationToken cancellation) =>
             importMetaType ??= await program.Globals.GetAsync("ImportMeta", 0, true, cancellation);
 
-    public bool ErasableSyntaxOnly => program.Symbols.Program.Configuration.Options.Boolean("erasableSyntaxOnly") == true;
+    public bool ErasableSyntaxOnly => program.Symbols.Program.Configuration.Options.ErasableSyntaxOnly == true;
 
     public async ValueTask InapplicableInstantiationAsync(SyntaxNode node, Type type, CancellationToken cancellation)
     {

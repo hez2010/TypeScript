@@ -122,7 +122,7 @@ internal sealed partial class ModuleSpecifierGenerator(IModuleSpecifierHost host
         ReferenceResolutionMode mode, bool pathsOnly = false, CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
-        JsonElement? paths = options.Get("paths") is { ValueKind: JsonValueKind.Object } pathsObject ? pathsObject : null;
+        var paths = options.Paths;
         if (pathsOnly && paths is null)
             return "";
         string directory = CompilerPath.DirectoryName(source.FileName);
@@ -133,7 +133,7 @@ internal sealed partial class ModuleSpecifierGenerator(IModuleSpecifierHost host
             mode,
             preferences.Ending,
             cancellation: cancellation);
-        var roots = options.Strings("rootDirs");
+        var roots = options.RootDirs;
         string relative = roots is { Length: > 0 }
             ? ModuleSpecifierPaths.FromRootDirectories(
                 roots,
@@ -150,11 +150,11 @@ internal sealed partial class ModuleSpecifierGenerator(IModuleSpecifierHost host
                 CompilerPath.Resolve(host.CurrentDirectory, target),
                 host.FileSystem.CaseSensitive)),
                 endings, options, host.FileSystem, host.CurrentDirectory, cancellation);
-        if (paths is null && options.Boolean("resolvePackageJsonImports") == false || preferences.Relative == "relative")
+        if (paths is null && options.ResolvePackageJsonImports == false || preferences.Relative == "relative")
             return pathsOnly ? "" : relative;
 
         string baseDirectory = CompilerPath.Resolve(host.CurrentDirectory,
-            paths is { } pathMap && pathMap.EnumerateObject().Any() ? options.String("pathsBasePath") ?? "" : "");
+            paths is { Count: > 0 } ? options.PathsBasePath ?? "" : "");
         string relativeToBase = ModuleSpecifierPaths.RelativeIfSameVolume(target, baseDirectory, host.FileSystem.CaseSensitive);
         if (relativeToBase.Length == 0)
             return pathsOnly ? "" : relative;

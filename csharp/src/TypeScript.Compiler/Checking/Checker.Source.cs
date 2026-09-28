@@ -31,10 +31,10 @@ internal sealed partial class Checker
     internal bool SkipProgramFile(SourceFileNode file) => NoCheck || file.CheckJsDirective?.Enabled == false
         || file.ScriptKind is not (ScriptKind.TS or ScriptKind.TSX)
             && (file.ScriptKind is not (ScriptKind.JS or ScriptKind.JSX)
-                || file.CheckJsDirective?.Enabled != true && program.Symbols.Program.Configuration.Options.Boolean("checkJs") == false)
-        || file.IsDeclarationFile && program.Symbols.Program.Configuration.Options.Boolean("skipLibCheck") == true
+                || file.CheckJsDirective?.Enabled != true && program.Symbols.Program.Configuration.Options.CheckJs == false)
+        || file.IsDeclarationFile && program.Symbols.Program.Configuration.Options.SkipLibCheck == true
         || program.Symbols.Program.GetFile(file.FileName)!.Library
-            && program.Symbols.Program.Configuration.Options.Boolean("skipDefaultLibCheck") == true;
+            && program.Symbols.Program.Configuration.Options.SkipDefaultLibCheck == true;
 
     internal async ValueTask CheckSourceFileAsync(SourceFileNode file, CancellationToken cancellation = default)
     {
@@ -112,7 +112,7 @@ internal sealed partial class Checker
                         if (part is JSDocLinkNode or JSDocLinkCodeNode or JSDocLinkPlainNode
                             && ((INamedNode)part).Name is IdentifierNode or QualifiedNameNode)
                             await DocumentationMemberAsync(((INamedNode)part).Name!, cancellation).ConfigureAwait(false);
-            if (!withinUnreachable && program.Symbols.Program.Configuration.Options.Boolean("allowUnreachableCode") != true
+            if (!withinUnreachable && program.Symbols.Program.Configuration.Options.AllowUnreachableCode != true
                 && await CheckUnreachableAsync(node, cancellation).ConfigureAwait(false))
                 withinUnreachable = true;
             switch (node)
@@ -464,7 +464,7 @@ internal sealed partial class Checker
         var flags = node.Flags | (node.Parent is VariableDeclarationListNode list ? list.Flags : 0);
         if (EmitModuleKind(node) < 4 && node.Parent?.Parent is VariableStatementNode statement
             && (statement.Flags & NodeFlags.Ambient) == 0 && SemanticSyntax.HasModifier(statement, SyntaxKind.ExportKeyword)
-            && program.Symbols.Program.Configuration.Options.Boolean("noEmit") != true)
+            && program.Symbols.Program.Configuration.Options.NoEmit != true)
         {
             var marker = node.Name;
             while (marker is BindingPatternNode pattern)
@@ -585,7 +585,7 @@ internal sealed partial class Checker
                     node, node.Expression, value, false, cancellation).ConfigureAwait(false);
         }
         else if (function is not ConstructorDeclarationNode
-            && program.Symbols.Program.Configuration.Options.Boolean("noImplicitReturns") == true
+            && program.Symbols.Program.Configuration.Options.NoImplicitReturns == true
             && !await EmptyReturnTypeAsync(function, result, cancellation).ConfigureAwait(false))
             Error(node, DiagnosticCode.NotAllCodePathsReturnAValue);
     }
@@ -658,7 +658,7 @@ internal sealed partial class Checker
             && context.StrictNullChecks
             && !await AssignableAsync(context.UndefinedType, type, cancellation).ConfigureAwait(false))
             Error(location, DiagnosticCode.FunctionLacksEndingReturnStatementAndReturnTypeDoesNotIncludeUndefined);
-        else if (program.Symbols.Program.Configuration.Options.Boolean("noImplicitReturns") == true)
+        else if (program.Symbols.Program.Configuration.Options.NoImplicitReturns == true)
         {
             if (type is null && (!explicitReturn || await EmptyReturnTypeAsync(function,
                 await Signatures.ReturnAsync(

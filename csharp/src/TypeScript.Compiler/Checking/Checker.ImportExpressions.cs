@@ -78,7 +78,7 @@ internal sealed partial class Checker
     {
         if (SemanticSyntax.Source(node)?.ParseDiagnostics.Count != 0)
             return;
-        if (program.Symbols.Program.Configuration.Options.Boolean("verbatimModuleSyntax") == true && ModuleKind == 1)
+        if (program.Symbols.Program.Configuration.Options.VerbatimModuleSyntax == true && ModuleKind == 1)
         {
             Error(node, VerbatimModuleCode(node));
             return;

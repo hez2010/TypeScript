@@ -12,7 +12,7 @@ internal sealed partial class Checker : IBinaryExpressionHost, IAwaitedTypeHost
     internal AwaitedTypes Awaited { get; }
     private readonly Dictionary<bool, Symbol?> awaitedSymbols = [];
     public int TargetYear => program.Symbols.Program.Configuration.Options.EmitTargetYear;
-    public bool AllowUnreachableCode => program.Symbols.Program.Configuration.Options.Boolean("allowUnreachableCode") == true;
+    public bool AllowUnreachableCode => program.Symbols.Program.Configuration.Options.AllowUnreachableCode == true;
 
     public ValueTask<Type> CheckExpressionAsync(SyntaxNode node, CheckMode mode, CancellationToken cancellation)
             => Expressions.CheckAsync(node, mode, cancellation);

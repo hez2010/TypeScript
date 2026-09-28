@@ -195,7 +195,7 @@ internal sealed partial class Checker
 
     private async ValueTask<bool> EmptyDomTypeAsync(Type type, CancellationToken cancellation)
     {
-        if (program.Symbols.Program.Configuration.Options.Strings("lib")?.Any(l => l is "dom" or "lib.dom.d.ts") == true)
+        if (program.Symbols.Program.Configuration.Options.Lib?.Any(l => l is "dom" or "lib.dom.d.ts") == true)
             return false;
         var pending = new Stack<Type>();
         pending.Push(type);

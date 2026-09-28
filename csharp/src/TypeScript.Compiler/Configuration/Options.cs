@@ -116,35 +116,55 @@ public static partial class OptionDefinitions
     }
 }
 
-public sealed class CompilerOptions
+public sealed partial class CompilerOptions
 {
-    public bool StrictOption(string name) => Boolean(name) ?? Boolean("strict") ?? true;
+    public bool StrictOption(string name) => EffectiveStrict(Boolean(name));
+    private bool EffectiveStrict(bool? value) => value ?? Strict ?? true;
+    internal bool StrictNoImplicitAny => EffectiveStrict(NoImplicitAny);
+    internal bool EffectiveNoImplicitThis => EffectiveStrict(NoImplicitThis);
+    internal bool EffectiveStrictPropertyInitialization => EffectiveStrict(StrictPropertyInitialization);
+    internal bool EffectiveStrictBuiltinIteratorReturn => EffectiveStrict(StrictBuiltinIteratorReturn);
+    internal bool EffectiveStrictNullChecks => EffectiveStrict(StrictNullChecks);
+    internal bool EffectiveStrictFunctionTypes => EffectiveStrict(StrictFunctionTypes);
+    internal bool EffectiveUseUnknownInCatchVariables => EffectiveStrict(UseUnknownInCatchVariables);
+    internal bool EffectiveStrictBindCallApply => EffectiveStrict(StrictBindCallApply);
 
     // Resolved target years are positive. An integer cache also permits benign
     // concurrent initialization by parsers and checkers sharing these options.
     private int emitTargetYear;
     internal int EmitTargetYear => emitTargetYear == 0 ? emitTargetYear = ComputeTargetYear() : emitTargetYear;
 
-    private int ComputeTargetYear() => String("target") switch
+    private int emitModuleKind = int.MinValue;
+    internal int EmitModuleKind => emitModuleKind == int.MinValue ? emitModuleKind = ComputeModuleKind() : emitModuleKind;
+    internal ModuleKind EmitModule => (ModuleKind)EmitModuleKind;
+
+    private int ComputeTargetYear() => Target switch
     {
-        "es5" => 2009,
-        "es6" or "es2015" => 2015,
-        "es2016" => 2016,
-        "es2017" => 2017,
-        "es2018" => 2018,
-        "es2019" => 2019,
-        "es2020" => 2020,
-        "es2021" => 2021,
-        "es2022" => 2022,
-        "es2023" => 2023,
-        "es2024" => 2024,
-        "es2025" => 2025,
-        "esnext" => int.MaxValue,
-        _ => Number("target") switch { 1 => 2009, >= 2 and <= 12 and var value => (int)value + 2013, 99 => int.MaxValue, _ => 2025 }
+        ScriptTarget.ES5 => 2009,
+        >= ScriptTarget.ES2015 and <= ScriptTarget.ES2025 => (int)Target + 2013,
+        ScriptTarget.ESNext => int.MaxValue,
+        _ => 2025
     };
 
+    private int ComputeModuleKind() => Module != ModuleKind.None ? (int)Module
+        : EmitTargetYear == int.MaxValue ? 99 : EmitTargetYear >= 2022 ? 7 : EmitTargetYear >= 2020 ? 6 : EmitTargetYear >= 2015 ? 5 : 1;
+
+    internal ModuleResolutionKind EmitModuleResolutionKind => ModuleResolution switch
+    {
+        ModuleResolutionKind.Unknown or ModuleResolutionKind.Classic or ModuleResolutionKind.Node10 =>
+            EmitModuleKind switch
+            {
+                100 or 101 or 102 => ModuleResolutionKind.Node16,
+                199 => ModuleResolutionKind.NodeNext,
+                _ => ModuleResolutionKind.Bundler
+            },
+        _ => ModuleResolution
+    };
+
+    internal ModuleDetectionKind EmitModuleDetectionKind => ModuleDetection != ModuleDetectionKind.None
+        ? ModuleDetection : EmitModuleKind is >= 100 and <= 199 ? ModuleDetectionKind.Force : ModuleDetectionKind.Auto;
+
     private readonly Dictionary<string, JsonElement> values = new(StringComparer.Ordinal);
-    private readonly Dictionary<string, string> strings = new(StringComparer.Ordinal);
     public IReadOnlyDictionary<string, JsonElement> Values => values;
 
     public void Set(string name, JsonElement value) => Store(name, value.Clone());
@@ -152,12 +172,12 @@ public sealed class CompilerOptions
     private void Store(string name, JsonElement value)
     {
         values[name] = value;
-        if (value.ValueKind == JsonValueKind.String)
-            strings[name] = JsonStrings.GetString(value);
-        else
-            strings.Remove(name);
+        string? text = value.ValueKind == JsonValueKind.String ? JsonStrings.GetString(value) : null;
+        AssignTyped(name, value, text);
         if (name == "target")
             emitTargetYear = 0;
+        if (name is "module" or "target")
+            emitModuleKind = int.MinValue;
     }
 
     public JsonElement? Get(string name) => values.TryGetValue(name, out var value) ? value : null;
@@ -167,7 +187,7 @@ public sealed class CompilerOptions
 
     public double? Number(string name) => Get(name) is { ValueKind: JsonValueKind.Number } value ? value.GetDouble() : null;
 
-    public string? String(string name) => strings.GetValueOrDefault(name);
+    public string? String(string name) => Get(name) is { ValueKind: JsonValueKind.String } value ? JsonStrings.GetString(value) : null;
 
     public string[]? Strings(string name) =>
         Get(name) is { ValueKind: JsonValueKind.Array } value

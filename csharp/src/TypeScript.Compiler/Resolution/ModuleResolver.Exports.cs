@@ -141,11 +141,11 @@ public sealed partial class ModuleResolver
         {
             if (configLookup)
                 return null;
-            string? outDir = options.String("outDir"), declarationDir = options.String("declarationDir");
+            string? outDir = options.OutDir, declarationDir = options.DeclarationDir;
             if (outDir is null && declarationDir is null || path.Contains("/node_modules/", StringComparison.Ordinal)
                 || resolver.configFile.Length != 0 && !CompilerPath.Contains(package.Directory, resolver.configFile, fs.CaseSensitive))
                 return null;
-            string? root = options.String("rootDir") ?? (resolver.configFile.Length != 0
+            string? root = options.RootDir ?? (resolver.configFile.Length != 0
                 ? CompilerPath.DirectoryName(resolver.configFile)
                 : null);
             if (root is null)

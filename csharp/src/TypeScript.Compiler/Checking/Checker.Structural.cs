@@ -13,7 +13,7 @@ internal sealed partial class Checker : IStructuralRelationHost, IObjectRelation
     internal DiscriminantRelations Discriminants { get; }
     internal TemplateMatching Templates { get; }
     internal GenericRelations Generics { get; }
-    public bool StrictFunctionTypes => program.Symbols.Program.Configuration.Options.StrictOption("strictFunctionTypes");
+    public bool StrictFunctionTypes => program.Symbols.Program.Configuration.Options.EffectiveStrictFunctionTypes;
 
     public bool IsReadonlyArray(Type type) => Instantiation.IsReadonlyArrayType(type);
 

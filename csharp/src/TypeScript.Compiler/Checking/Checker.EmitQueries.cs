@@ -160,9 +160,9 @@ internal sealed partial class Checker
             ? union.Types.All(t => (t.Flags & TypeFlags.Undefined) == 0) : (type.Flags & TypeFlags.Undefined) == 0);
     }
 
-    private bool CollectEmitAliases => program.Symbols.Program.Configuration.Options.Boolean("verbatimModuleSyntax") != true;
-    private bool PreserveEmitConstEnums => program.Symbols.Program.Configuration.Options.Boolean("preserveConstEnums") == true
-        || program.Symbols.Program.Configuration.Options.Boolean("isolatedModules") == true || !CollectEmitAliases;
+    private bool CollectEmitAliases => program.Symbols.Program.Configuration.Options.VerbatimModuleSyntax != true;
+    private bool PreserveEmitConstEnums => program.Symbols.Program.Configuration.Options.PreserveConstEnums == true
+        || program.Symbols.Program.Configuration.Options.IsolatedModules == true || !CollectEmitAliases;
 
     internal async ValueTask<bool> IsReferencedAliasForEmitAsync(SyntaxNode node, CancellationToken cancellation = default)
     {

@@ -315,7 +315,7 @@ internal sealed partial class Checker : ITypeNodeHost, IDeclaredTypeHost, ITypeR
         TypeDisplay = new(
             context,
             links,
-            program.Symbols.Program.Configuration.Options.Boolean("noErrorTruncation") == true,
+            program.Symbols.Program.Configuration.Options.NoErrorTruncation == true,
             DiagnosticTypeSyntaxAsync, DiagnosticSignatureSyntaxAsync, DiagnosticPredicateSyntaxAsync);
         ValueExpressions = new(context, links, program.Symbols, Values, Facts, this);
         InstantiationExpressions = new(context, Algebra, Instantiation.Constraints, Members, CallSignatures, SignatureInstantiation, this);

@@ -41,14 +41,14 @@ public sealed partial class CompilerProgram
                     index++;
                 }
             }
-        bool declarations = options.Boolean("declaration") == true || options.Boolean("composite") == true;
-        if (options.String("declarationDir") is { Length: > 0 } && !declarations)
+        bool declarations = options.Declaration == true || options.Composite == true;
+        if (options.DeclarationDir is { Length: > 0 } && !declarations)
             yield return Create(Messages.Option_0_cannot_be_specified_without_specifying_option_1_or_option_2,
                 Property(optionSyntax, "declarationDir", "declaration")?.Name, "declarationDir", "declaration", "composite");
 
-        if (options.Boolean("noEmit") == true || options.Boolean("composite") == true || options.String("rootDir") is { Length: > 0 }
-            || Configuration.FileName.Length == 0 || !(options.String("outDir") is { Length: > 0 }
-                || declarations && options.String("declarationDir") is { Length: > 0 } || options.String("outFile") is { Length: > 0 }))
+        if (options.NoEmit == true || options.Composite == true || options.RootDir is { Length: > 0 }
+            || Configuration.FileName.Length == 0 || !(options.OutDir is { Length: > 0 }
+                || declarations && options.DeclarationDir is { Length: > 0 } || options.OutFile is { Length: > 0 }))
             yield break;
         string[] emitted = SourceFiles.Where(f => SourceFileMayBeEmitted(f.Syntax)).Select(f => f.Syntax.FileName).ToArray();
         string computed = emitted.Length == 0 ? CurrentDirectory : ProjectReferences.CommonDirectory(emitted, fileSystem.CaseSensitive);
@@ -58,9 +58,9 @@ public sealed partial class CompilerProgram
         if (ModuleSpecifierGenerator.CanonicalFileName(computed, fileSystem.CaseSensitive)
             == ModuleSpecifierGenerator.CanonicalFileName(CommonSourceDirectory, fileSystem.CaseSensitive))
             yield break;
-        string option = options.String("outFile") is { Length: > 0 }
+        string option = options.OutFile is { Length: > 0 }
             ? "outFile"
-            : options.String("outDir") is { Length: > 0 } ? "outDir" : "declarationDir";
+            : options.OutDir is { Length: > 0 } ? "outDir" : "declarationDir";
         string relative = ModuleSpecifierPaths.NonModulePath(
             CompilerPath.Relative(CompilerPath.DirectoryName(Configuration.FileName), computed, fileSystem.CaseSensitive));
         yield return Create(

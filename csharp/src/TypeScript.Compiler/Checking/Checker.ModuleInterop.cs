@@ -1,8 +1,10 @@
 using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Configuration;
 using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
+using ModuleOptionKind = TypeScript.Compiler.Configuration.ModuleKind;
 
 namespace TypeScript.Compiler.Checking;
 
@@ -84,8 +86,8 @@ internal sealed partial class Checker
             if (target == ReferenceResolutionMode.Unspecified && file.IsDeclarationFile
                 && program.Symbols.Program.ProjectReferences.Find(file.FileName) is { } redirect && mode == ReferenceResolutionMode.Import)
             {
-                ReadOnlySpan<char> declaredMode = redirect.Project.Options.String("module").AsSpan();
-                if (declaredMode is "es6" or "es2015" or "es2020" or "es2022" or "esnext")
+                ModuleOptionKind declaredMode = redirect.Project.Options.Module;
+                if (declaredMode is ModuleOptionKind.ES2015 or ModuleOptionKind.ES2020 or ModuleOptionKind.ES2022 or ModuleOptionKind.ESNext)
                     return false;
             }
         }

@@ -60,7 +60,7 @@ internal sealed class ValueUseChecks(CheckerSymbols symbols, AliasResolver alias
             if (merged.Declarations.Length != 0 && merged.Declarations.All(d => d is NamespaceExportDeclarationNode
                 || d is SourceFileNode && symbols.Binding(d)?.GlobalExports.Count > 0))
             {
-                if (symbols.Program.Configuration.Options.Boolean("allowUmdGlobalAccess") == true)
+                if (symbols.Program.Configuration.Options.AllowUmdGlobalAccess == true)
                     host.ValueUseSuggestion(
                         location,
                         Messages.X_0_refers_to_a_UMD_global_but_the_current_file_is_a_module_Consider_adding_an_import_instead,
@@ -96,7 +96,7 @@ internal sealed class ValueUseChecks(CheckerSymbols symbols, AliasResolver alias
             host.ValueUseError(location, message, name);
             host.DeclarationRelatedInfo(location, message.Code, typeOnly, true, name);
         }
-        if (symbols.Program.Configuration.Options.Boolean("isolatedModules") == true && inModule && valueMeaning
+        if (symbols.Program.Configuration.Options.IsolatedModules == true && inModule && valueMeaning
             && symbols.Lookup(symbols.Globals, name, meaning) == symbol
             && symbols.Lookup(symbols.Binding(last!)?.Get(last!)?.Locals, name, ~SymbolFlags.Value) is { } nonValue)
         {
@@ -125,8 +125,8 @@ internal sealed class ValueUseChecks(CheckerSymbols symbols, AliasResolver alias
         var message = (symbol.Flags & SymbolFlags.BlockScopedVariable) != 0 ? Messages.Block_scoped_variable_0_used_before_its_declaration
             : (symbol.Flags & SymbolFlags.Class) != 0 ? Messages.Class_0_used_before_its_declaration
             : (symbol.Flags & SymbolFlags.RegularEnum) != 0
-                || options.Boolean("isolatedModules") == true
-                || options.Boolean("verbatimModuleSyntax") == true
+                || options.IsolatedModules == true
+                || options.VerbatimModuleSyntax == true
                 ? Messages.Enum_0_used_before_its_declaration : null;
         if (message is not null)
         {

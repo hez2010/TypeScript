@@ -32,7 +32,7 @@ internal sealed partial class Checker
                 endNode = statements[i];
             }
         }
-        if (program.Symbols.Program.Configuration.Options.Boolean("allowUnreachableCode") == false)
+        if (program.Symbols.Program.Configuration.Options.AllowUnreachableCode == false)
         {
             var source = SemanticSyntax.Source(node)!;
             int start = CheckerDiagnostic.TokenRange(source, node.Pos).Start;
@@ -49,13 +49,13 @@ internal sealed partial class Checker
         if (((node.Flags | (data?.Flags ?? 0)) & NodeFlags.Unreachable) != 0)
         {
             if (node is EnumDeclarationNode && SemanticSyntax.HasModifier(node, SyntaxKind.ConstKeyword))
-                return program.Symbols.Program.Configuration.Options.Boolean("preserveConstEnums") == true || IsolatedModules;
+                return program.Symbols.Program.Configuration.Options.PreserveConstEnums == true || IsolatedModules;
             if (node is ModuleDeclarationNode module)
             {
                 int state = Binder.ModuleState(module);
                 return state == 2
                     || state == 1
-                        && (program.Symbols.Program.Configuration.Options.Boolean("preserveConstEnums") == true || IsolatedModules);
+                        && (program.Symbols.Program.Configuration.Options.PreserveConstEnums == true || IsolatedModules);
             }
             return true;
         }
@@ -125,9 +125,9 @@ internal sealed partial class Checker
                     break;
                 }
         if (((node.Label!.Flags | (program.Symbols.Binding(node.Label)?.Get(node.Label)?.Flags ?? 0)) & NodeFlags.Unreachable) != 0
-            && program.Symbols.Program.Configuration.Options.Boolean("allowUnusedLabels") != true)
+            && program.Symbols.Program.Configuration.Options.AllowUnusedLabels != true)
         {
-            if (program.Symbols.Program.Configuration.Options.Boolean("allowUnusedLabels") == false)
+            if (program.Symbols.Program.Configuration.Options.AllowUnusedLabels == false)
                 Error(node.Label, DiagnosticCode.UnusedLabel);
             else
                 ExpressionSuggestion(node.Label, DiagnosticCode.UnusedLabel);
@@ -167,7 +167,7 @@ internal sealed partial class Checker
             }
             foreach (var statement in clause.Statements!)
                 await CheckSourceElementAsync(statement, cancellation).ConfigureAwait(false);
-            if (program.Symbols.Program.Configuration.Options.Boolean("noFallthroughCasesInSwitch") == true
+            if (program.Symbols.Program.Configuration.Options.NoFallthroughCasesInSwitch == true
                 && program.Symbols.Binding(clause)?.Get(clause)?.EndFlow is { } flow && await FlowTypes.Reachability.ReachableAsync(
                     flow,
                     cancellation).ConfigureAwait(false))

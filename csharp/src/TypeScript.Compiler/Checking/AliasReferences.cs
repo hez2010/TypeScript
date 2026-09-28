@@ -66,7 +66,7 @@ internal sealed class AliasReferences(CheckerSymbols symbols, CheckerLinks links
     internal async ValueTask IdentifierAsync(IdentifierNode location, CancellationToken cancellation = default)
     {
         var options = symbols.Program.Configuration.Options;
-        if (options.Boolean("verbatimModuleSyntax") == true
+        if (options.VerbatimModuleSyntax == true
             || (location.Flags & NodeFlags.Ambient) != 0
             || FlowReferences.ThisInQuery(location))
             return;
@@ -77,7 +77,7 @@ internal sealed class AliasReferences(CheckerSymbols symbols, CheckerLinks links
     {
         cancellation.ThrowIfCancellationRequested();
         var options = symbols.Program.Configuration.Options;
-        if (options.Boolean("verbatimModuleSyntax") == true || (location.Flags & NodeFlags.Ambient) != 0)
+        if (options.VerbatimModuleSyntax == true || (location.Flags & NodeFlags.Ambient) != 0)
             return;
         for (var current = location; current.Parent is not null; current = current.Parent)
             if (current.Parent is ImportEqualsDeclarationNode import && import.ModuleReference == current)
@@ -88,8 +88,8 @@ internal sealed class AliasReferences(CheckerSymbols symbols, CheckerLinks links
         var parent = references.Resolve(identifier, cancellation);
         if (parent == symbols.UnknownSymbol)
             return;
-        bool isolated = options.Boolean("isolatedModules") == true || options.Boolean("verbatimModuleSyntax") == true;
-        if (isolated || (options.Boolean("preserveConstEnums") == true || isolated) && ExportExpression(location)
+        bool isolated = options.IsolatedModules == true || options.VerbatimModuleSyntax == true;
+        if (isolated || (options.PreserveConstEnums == true || isolated) && ExportExpression(location)
             || (parentType.Flags & TypeFlags.Any) != 0 || parentType == parentType.Context.SilentNeverType
             || !(property is not null && ((property.Flags & (SymbolFlags.ConstEnum | SymbolFlags.ConstEnumOnlyModule)) != 0
                 || (property.Flags & SymbolFlags.EnumMember) != 0 && location.Parent is EnumMemberNode)))
@@ -112,8 +112,8 @@ internal sealed class AliasReferences(CheckerSymbols symbols, CheckerLinks links
                 if ((await aliases.FlagsAsync(symbol, true, cancellation: cancellation).ConfigureAwait(false)
                     & (SymbolFlags.Value | SymbolFlags.ExportValue)) == 0)
                     return;
-                bool isolated = options.Boolean("isolatedModules") == true || options.Boolean("verbatimModuleSyntax") == true;
-                if (!(isolated || (options.Boolean("preserveConstEnums") == true || isolated) && ExportExpression(location)
+                bool isolated = options.IsolatedModules == true || options.VerbatimModuleSyntax == true;
+                if (!(isolated || (options.PreserveConstEnums == true || isolated) && ExportExpression(location)
                     || (symbols.ExportedValue(target)!.Flags & (SymbolFlags.ConstEnum | SymbolFlags.ConstEnumOnlyModule)) == 0))
                     return;
                 var data = links.Aliases.Get(symbol);

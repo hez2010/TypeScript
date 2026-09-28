@@ -19,8 +19,8 @@ internal sealed partial class Checker : IAccessExpressionHost, IIndexedAccessVal
     internal SymbolSuggestions SymbolSuggestions { get; }
     internal ThisExpressions ThisExpressions { get; }
     internal AccessNames AccessNames { get; }
-    public bool NoImplicitThis => program.Symbols.Program.Configuration.Options.StrictOption("noImplicitThis");
-    public bool LegacyDecorators => program.Symbols.Program.Configuration.Options.Boolean("experimentalDecorators") == true;
+    public bool NoImplicitThis => program.Symbols.Program.Configuration.Options.EffectiveNoImplicitThis;
+    public bool LegacyDecorators => program.Symbols.Program.Configuration.Options.ExperimentalDecorators == true;
 
     public void ThisError(SyntaxNode node, DiagnosticCode code, SyntaxNode? related = null)
     {
@@ -35,10 +35,10 @@ internal sealed partial class Checker : IAccessExpressionHost, IIndexedAccessVal
     }
 
     internal List<(SyntaxNode Node, Type Type, bool Suggestion)> DeferredMissingProperties { get; } = [];
-    public bool StrictPropertyInitialization => program.Symbols.Program.Configuration.Options.StrictOption("strictPropertyInitialization");
+    public bool StrictPropertyInitialization => program.Symbols.Program.Configuration.Options.EffectiveStrictPropertyInitialization;
     public bool NoPropertyAccessFromIndexSignature =>
-        program.Symbols.Program.Configuration.Options.Boolean("noPropertyAccessFromIndexSignature") == true;
-    public bool UseDefineForClassFields => program.Symbols.Program.Configuration.Options.Boolean("useDefineForClassFields")
+        program.Symbols.Program.Configuration.Options.NoPropertyAccessFromIndexSignature == true;
+    public bool UseDefineForClassFields => program.Symbols.Program.Configuration.Options.UseDefineForClassFields
         ?? program.Symbols.Program.Configuration.Options.EmitTargetYear >= 2022;
 
     public ValueTask MarkPropertyAliasAsync(SyntaxNode node, Symbol? property, Type parentType, CancellationToken cancellation) =>
@@ -58,7 +58,7 @@ internal sealed partial class Checker : IAccessExpressionHost, IIndexedAccessVal
     {
         cancellation.ThrowIfCancellationRequested();
         var file = SemanticSyntax.Source(node)!;
-        if (program.Symbols.Program.Configuration.Options.Boolean("checkJs") is not null || file.CheckJsDirective is not null
+        if (program.Symbols.Program.Configuration.Options.CheckJs is not null || file.CheckJsDirective is not null
             || file.ScriptKind is not (ScriptKind.JS or ScriptKind.JSX))
             return ValueTask.FromResult(false);
         var declarationFile = SemanticSyntax.Source(symbol?.Declarations.FirstOrDefault());
@@ -288,7 +288,7 @@ internal sealed partial class Checker : IAccessExpressionHost, IIndexedAccessVal
     }
 
     public bool PlainJavaScript(SourceFileNode file) => file.ScriptKind is ScriptKind.JS or ScriptKind.JSX && file.CheckJsDirective is null
-            && program.Symbols.Program.Configuration.Options.Boolean("checkJs") is null;
+            && program.Symbols.Program.Configuration.Options.CheckJs is null;
 
     public ValueTask PrivateEmitHelpersAsync(SyntaxNode node, bool read, bool write, CancellationToken cancellation)
             => ExternalHelpersAsync(node, read && write ? ["__classPrivateFieldGet", "__classPrivateFieldSet"]

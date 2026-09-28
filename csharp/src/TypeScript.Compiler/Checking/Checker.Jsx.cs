@@ -32,11 +32,11 @@ internal sealed partial class Checker
                 await CheckJsxOpeningAsync(fragment.OpeningFragment!, cancellation);
                 var file = SemanticSyntax.Source(node)!;
                 var options = program.Symbols.Program.Configuration.Options;
-                if (JsxMode is 2 or 4 or 5 && (options.String("jsxFactory") is not null || JsxPragma(file, "jsx") is not null)
-                    && options.String("jsxFragmentFactory") is null && JsxPragma(file, "jsxfrag") is null)
+                if (JsxMode is 2 or 4 or 5 && (options.JsxFactory is not null || JsxPragma(file, "jsx") is not null)
+                    && options.JsxFragmentFactory is null && JsxPragma(file, "jsxfrag") is null)
                     Error(
                         node,
-                        options.String("jsxFactory") is not null
+                        options.JsxFactory is not null
                             ? DiagnosticCode.TheJsxFragmentFactoryCompilerOptionMustBeProvidedToUseJSXFragmentsWithTheJsxFactoryCompilerOption
                             : DiagnosticCode.AnJsxFragPragmaIsRequiredWhenUsingAnJsxPragmaWithJSXFragments);
                 await JsxChildrenAsync(node, 0, cancellation);
@@ -178,7 +178,7 @@ internal sealed partial class Checker
         if (jsxFragmentTypes.TryGetValue(file, out var cached))
             return cached;
         TextSlice name = JsxFactoryRoot(JsxFactoryName(node, true));
-        if ((JsxMode != 2 && program.Symbols.Program.Configuration.Options.String("jsxFragmentFactory") is null) || name == "null")
+        if ((JsxMode != 2 && program.Symbols.Program.Configuration.Options.JsxFragmentFactory is null) || name == "null")
             return jsxFragmentTypes[file] = context.AnyType;
         var symbol = await JsxImplicitModuleAsync(node, cancellation);
         symbol ??= program.Symbols.NameResolver(cancellation).Resolve(

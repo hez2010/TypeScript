@@ -38,7 +38,7 @@ internal sealed partial class Checker
     {
         cancellation.ThrowIfCancellationRequested();
         var options = program.Configuration.Options;
-        var context = new TypeContext(options.StrictOption("strictNullChecks"), options.Boolean("exactOptionalPropertyTypes") == true);
+        var context = new TypeContext(options.EffectiveStrictNullChecks, options.ExactOptionalPropertyTypes == true);
         var links = new CheckerLinks();
         var environment = new CheckerEnvironment(context, links);
         Checker? checker = null;

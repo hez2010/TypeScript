@@ -1,6 +1,7 @@
 using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Configuration;
 using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
@@ -85,28 +86,13 @@ internal sealed class ValueExpressionChecks(TypeContext context, CheckerLinks li
         if (name == "defer")
             return context.ErrorType;
         var options = symbols.Program.Configuration.Options;
-        TextSlice module = options.String("module") ?? options.Number("module") switch
-        {
-            4 => "system",
-            6 => "es2020",
-            7 => "es2022",
-            99 => "esnext",
-            100 => "node16",
-            101 => "node18",
-            102 => "node20",
-            199 => "nodenext",
-            200 => "preserve",
-            null or 0 => options.EmitTargetYear >= 2022 ? "es2022" : "commonjs",
-            _ => "other"
-        };
-        if (module == "none")
-            module = options.EmitTargetYear >= 2022 ? "es2022" : "commonjs";
-        if (module.Span is "node16" or "node18" or "node20" or "nodenext")
+        ModuleKind module = options.EmitModule;
+        if (module is ModuleKind.Node16 or ModuleKind.Node18 or ModuleKind.Node20 or ModuleKind.NodeNext)
         {
             if (symbols.Program.SourceFiles.First(f => f.Syntax == SemanticSyntax.Source(node)).ImpliedFormat != ReferenceResolutionMode.Import)
                 host.ExpressionError(node, DiagnosticCode.TheImportMetaMetaPropertyIsNotAllowedInFilesWhichWillBuildIntoCommonJSOutput);
         }
-        else if (module.Span is not ("es2020" or "es2022" or "esnext" or "system" or "preserve"))
+        else if (module is not (ModuleKind.ES2020 or ModuleKind.ES2022 or ModuleKind.ESNext or ModuleKind.System or ModuleKind.Preserve))
             host.ExpressionError(
                 node,
                 DiagnosticCode.TheImportMetaMetaPropertyIsOnlyAllowedWhenTheModuleOptionIsEs2020Es2022EsnextSystemNode16Node18Node20OrNodenext);
@@ -130,7 +116,7 @@ internal sealed class ValueExpressionChecks(TypeContext context, CheckerLinks li
         var first = node;
         while (first is PropertyAccessExpressionNode or QualifiedNameNode)
             first = first is PropertyAccessExpressionNode access ? access.Expression! : ((QualifiedNameNode)first).Left!;
-        if (options.Boolean("isolatedModules") == true || options.Boolean("verbatimModuleSyntax") == true && allowed
+        if (options.IsolatedModules == true || options.VerbatimModuleSyntax == true && allowed
             && symbols.NameResolver(cancellation).Resolve(
                 node,
                 ((IdentifierNode)first).Text,
@@ -140,8 +126,8 @@ internal sealed class ValueExpressionChecks(TypeContext context, CheckerLinks li
             var declaration = symbol.ValueDeclaration!;
             var source = SemanticSyntax.Source(declaration)!;
             var redirect = symbols.Program.ProjectReferences.Outputs.GetValueOrDefault(source.FileName);
-            bool preserved = redirect is not null && (redirect.Project.Options.Boolean("preserveConstEnums") == true
-                || redirect.Project.Options.Boolean("isolatedModules") == true || redirect.Project.Options.Boolean("verbatimModuleSyntax") == true);
+            bool preserved = redirect is not null && (redirect.Project.Options.PreserveConstEnums == true
+                || redirect.Project.Options.IsolatedModules == true || redirect.Project.Options.VerbatimModuleSyntax == true);
             if ((declaration.Flags & NodeFlags.Ambient) != 0 && !ReferenceSyntax.ValidTypeOnlyUse(node) && !preserved)
                 host.ExpressionError(node, DiagnosticCode.CannotAccessAmbientConstEnumsWhen0IsEnabled);
         }

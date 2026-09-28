@@ -47,7 +47,7 @@ internal sealed partial class Checker
             || AliasResolver.IsTypeOnly(node)
             || SemanticSyntax.RootDeclaration(node) is ParameterDeclarationNode parameter && SemanticSyntax.Body(parameter.Parent!) is null)
             return;
-        if (program.Symbols.Program.Configuration.Options.Boolean("noEmit") == true)
+        if (program.Symbols.Program.Configuration.Options.NoEmit == true)
             return;
         if ((node is not ModuleDeclarationNode declaration || Binder.ModuleState(declaration) == 2)
             && SemanticSyntax.DeclarationContainer(node) is SourceFileNode file && program.Symbols.Binding(file)?.IsModule == true)

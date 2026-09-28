@@ -117,7 +117,7 @@ internal sealed partial class Checker
                 case SyntaxKind.ExportKeyword:
                     if ((node.Flags & NodeFlags.Ambient) == 0 && node.Parent is SourceFileNode
                         && node is not (TypeAliasDeclarationNode or InterfaceDeclarationNode or ModuleDeclarationNode)
-                        && program.Symbols.Program.Configuration.Options.Boolean("verbatimModuleSyntax") == true && EmitModuleKind(node) == 1)
+                        && program.Symbols.Program.Configuration.Options.VerbatimModuleSyntax == true && EmitModuleKind(node) == 1)
                         return Report(
                             modifier,
                             DiagnosticCode.ATopLevelExportModifierCannotBeUsedOnValueDeclarationsInACommonJSModuleWhenVerbatimModuleSyntaxIsEnabled);

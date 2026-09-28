@@ -29,8 +29,8 @@ public sealed class ProjectReferences
         CancellationToken cancellation = default)
     {
         fs = fileSystem;
-        preserveSymlinks = root.Options.Boolean("preserveSymlinks") == true;
-        UseSources = useSources && root.Options.Boolean("disableSourceOfProjectReferenceRedirect") != true;
+        preserveSymlinks = root.Options.PreserveSymlinks == true;
+        UseSources = useSources && root.Options.DisableSourceOfProjectReferenceRedirect != true;
         var comparer = fs.CaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
         projects = new(comparer);
         sources = new(comparer);
@@ -63,9 +63,9 @@ public sealed class ProjectReferences
                 var child = projects.GetValueOrDefault(path) ?? parser.Parse(path, cancellation: cancellation);
                 if (config.FileNames.Length != 0)
                 {
-                    if (child.Options.Boolean("composite") != true)
+                    if (child.Options.Composite != true)
                         errors.Add(new(Messages.Referenced_project_0_must_have_setting_composite_Colon_true, 0, 0, [reference.Path]));
-                    if (child.Options.Boolean("noEmit") == true)
+                    if (child.Options.NoEmit == true)
                         errors.Add(new(Messages.Referenced_project_0_may_not_disable_emit, 0, 0, [reference.Path]));
                 }
                 projects[path] = child;
@@ -74,7 +74,7 @@ public sealed class ProjectReferences
             references[config.FileName] = paths.ToArray();
             if (config != root)
             {
-                string rootDir = config.Options.String("rootDir") ?? (config.Options.Boolean("composite") == true
+                string rootDir = config.Options.RootDir ?? (config.Options.Composite == true
                     ? CompilerPath.DirectoryName(config.FileName) : CommonDirectory(
                         config.FileNames.Where(f => !CompilerPath.IsDeclarationFile(f)),
                         fs.CaseSensitive));
@@ -85,7 +85,7 @@ public sealed class ProjectReferences
                     string ext = ModuleResolver.Extension(source);
                     string suffix = ext is ".mts" or ".mjs" ? ".d.mts" : ext is ".cts" or ".cjs" ? ".d.cts" : ".d.ts";
                     string output = source[..^ext.Length] + suffix;
-                    if ((config.Options.String("declarationDir") ?? config.Options.String("outDir")) is { } folder)
+                    if ((config.Options.DeclarationDir ?? config.Options.OutDir) is { } folder)
                         output = CompilerPath.Resolve(folder, CompilerPath.Relative(rootDir, output, fs.CaseSensitive));
                     var redirect = new ProjectFileRedirect(source, output, config);
                     sources[source] = redirect;

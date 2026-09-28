@@ -15,7 +15,7 @@ internal sealed partial class Checker
     private async ValueTask ExternalHelpersAsync(SyntaxNode node, IReadOnlyList<TextSlice> names, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
-        if (program.Symbols.Program.Configuration.Options.Boolean("importHelpers") != true || (node.Flags & NodeFlags.Ambient) != 0)
+        if (program.Symbols.Program.Configuration.Options.ImportHelpers != true || (node.Flags & NodeFlags.Ambient) != 0)
             return;
         var file = SemanticSyntax.Source(node)!;
         if (file.ExternalModuleIndicator is null

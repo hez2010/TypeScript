@@ -328,7 +328,7 @@ internal sealed partial class Checker : ISignatureHost, IStructuredMemberHost, I
         if ((declaration.Flags & NodeFlags.Ambient) != 0 && (SemanticSyntax.HasModifier(declaration, SyntaxKind.PrivateKeyword)
             || (declaration as INamedNode)?.Name is PrivateIdentifierNode))
             return;
-        if (program.Symbols.Program.Configuration.Options.StrictOption("noImplicitAny"))
+        if (program.Symbols.Program.Configuration.Options.StrictNoImplicitAny)
             Error(
                 declaration,
                 declaration is SetAccessorDeclarationNode
@@ -344,7 +344,7 @@ internal sealed partial class Checker : ISignatureHost, IStructuredMemberHost, I
     {
         if (annotation is not null)
             Error(annotation, DiagnosticCode.X0IsReferencedDirectlyOrIndirectlyInItsOwnTypeAnnotation, TypeDisplay.SymbolName(symbol));
-        else if (getter is not null && program.Symbols.Program.Configuration.Options.StrictOption("noImplicitAny"))
+        else if (getter is not null && program.Symbols.Program.Configuration.Options.StrictNoImplicitAny)
             Error(
                 getter,
                 DiagnosticCode.X0ImplicitlyHasReturnTypeAnyBecauseItDoesNotHaveAReturnTypeAnnotationAndIsReferencedDirectlyOrIndirectlyInOneOfItsReturnExpressions,

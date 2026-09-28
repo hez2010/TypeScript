@@ -4,6 +4,8 @@ using TypeScript.Compiler.Configuration;
 using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Hosts;
 using TypeScript.Compiler.Resolution;
+using ModuleOptionKind = TypeScript.Compiler.Configuration.ModuleKind;
+using ModuleResolutionOptionKind = TypeScript.Compiler.Configuration.ModuleResolutionKind;
 using K = TypeScript.Compiler.Syntax.SyntaxKind;
 
 namespace TypeScript.Compiler.Programs;
@@ -29,10 +31,10 @@ public sealed partial class CompilerProgram
             if (extension is ".ts" or ".tsx" or ".mts" or ".cts" or ".d.ts" or ".d.mts" or ".d.cts")
                 return true;
             if (extension is ".js" or ".jsx" or ".mjs" or ".cjs")
-                return project.Options.Boolean("allowJs") ?? project.Options.Boolean("checkJs") == true;
+                return project.Options.AllowJs ?? project.Options.CheckJs == true;
             if (extension == ".json")
-                return project.Options.Boolean("resolveJsonModule") ?? Resolver(project).ResolutionKind == "bundler"
-                || project.Options.String("module") is "node20" or "nodenext";
+                return project.Options.ResolveJsonModule ?? Resolver(project).ResolutionKind == "bundler"
+                || project.Options.Module is ModuleOptionKind.Node20 or ModuleOptionKind.NodeNext;
             return config.ContentMappers.Any(m => m.Extensions.Any(e => path.EndsWith(e, StringComparison.Ordinal)));
         }
 
@@ -41,9 +43,9 @@ public sealed partial class CompilerProgram
             path = CompilerPath.Resolve(cwd, path);
             if (CompilerPath.Extension(path).Length != 0)
                 return path;
-            if (config.Options.Boolean("allowNonTsExtensions") == true && resolutionFs.FileExists(path))
+            if (config.Options.AllowNonTsExtensions == true && resolutionFs.FileExists(path))
                 return path;
-            bool allowJs = config.Options.Boolean("allowJs") ?? config.Options.Boolean("checkJs") == true;
+            bool allowJs = config.Options.AllowJs ?? config.Options.CheckJs == true;
             foreach (string extension in allowJs ? new[] { ".ts", ".tsx", ".d.ts", ".js", ".jsx" } : [".ts", ".tsx", ".d.ts"])
                 if (resolutionFs.FileExists(path + extension))
                     return path + extension;
@@ -52,7 +54,7 @@ public sealed partial class CompilerProgram
 
         private string SupportedExtensionsText(ParsedConfig project)
         {
-            bool allowJs = project.Options.Boolean("allowJs") ?? project.Options.Boolean("checkJs") == true;
+            bool allowJs = project.Options.AllowJs ?? project.Options.CheckJs == true;
             var extensions = new List<string>(allowJs
                 ? [".ts", ".tsx", ".d.ts", ".js", ".jsx", ".cts", ".d.cts", ".cjs", ".mts", ".d.mts", ".mjs"]
                 : [".ts", ".tsx", ".d.ts", ".cts", ".d.cts", ".mts", ".d.mts"]);
@@ -63,12 +65,12 @@ public sealed partial class CompilerProgram
             return string.Join(", ", extensions.Select(extension => "'" + extension + "'"));
         }
 
-        private static string DefaultLibrary(CompilerOptions options) => options.String("target") switch
+        private static string DefaultLibrary(CompilerOptions options) => options.Target switch
         {
-            "esnext" => "lib.esnext.full.d.ts",
-            "es6" or "es2015" => "lib.es6.d.ts",
-            "es5" => "lib.d.ts",
-            { } target => "lib." + target + ".full.d.ts",
+            ScriptTarget.ESNext => "lib.esnext.full.d.ts",
+            ScriptTarget.ES2015 => "lib.es6.d.ts",
+            ScriptTarget.ES5 => "lib.d.ts",
+            >= ScriptTarget.ES2016 and <= ScriptTarget.ES2025 => "lib.es" + options.EmitTargetYear + ".full.d.ts",
             _ => "lib.es2025.full.d.ts"
         };
 
@@ -85,7 +87,7 @@ public sealed partial class CompilerProgram
                 }
                 name = definition.ValueIdentities[index].Trim('"');
             }
-            if (config.Options.Boolean("libReplacement") != true || name == "lib.d.ts")
+            if (config.Options.LibReplacement != true || name == "lib.d.ts")
                 return CompilerPath.Combine(libraryDirectory, name);
             string[] components = name[4..^5].Split('.');
             string package = "@typescript/lib-" + components[0];
@@ -106,18 +108,10 @@ public sealed partial class CompilerProgram
             _ => ""
         };
 
-        private static string ModuleKind(CompilerOptions options) => options.String("module") ?? options.String("target") switch
-        {
-            "esnext" => "esnext",
-            "es5" => "commonjs",
-            "es6" or "es2015" or "es2016" or "es2017" or "es2018" or "es2019" => "es2015",
-            "es2020" or "es2021" => "es2020",
-            _ => "es2022"
-        };
+        private static ModuleOptionKind Module(CompilerOptions options) => options.EmitModule;
 
-        private static bool SyntaxAffectsResolution(CompilerOptions options) => options.String("moduleResolution") is "node16" or "nodenext"
-            || options.String("moduleResolution") is not "bundler" && ModuleKind(options) is "node16" or "node18" or "node20" or "nodenext"
-            || options.Boolean("resolvePackageJsonExports") != false || options.Boolean("resolvePackageJsonImports") != false;
+        private static bool SyntaxAffectsResolution(CompilerOptions options) => options.EmitModuleResolutionKind is ModuleResolutionOptionKind.Node16 or ModuleResolutionOptionKind.NodeNext
+            || options.ResolvePackageJsonExports != false || options.ResolvePackageJsonImports != false;
 
         internal static ReferenceResolutionMode DefaultMode(
             string path,
@@ -132,8 +126,8 @@ public sealed partial class CompilerProgram
             ReferenceResolutionMode implied,
             string packageType)
         {
-            string module = ModuleKind(options);
-            if (module is "node16" or "node18" or "node20" or "nodenext")
+            ModuleOptionKind module = Module(options);
+            if (module is ModuleOptionKind.Node16 or ModuleOptionKind.Node18 or ModuleOptionKind.Node20 or ModuleOptionKind.NodeNext)
                 return implied;
             if (implied == ReferenceResolutionMode.Require
                 && (packageType == "commonjs"
@@ -174,15 +168,15 @@ public sealed partial class CompilerProgram
             if (node?.Parent is ExternalModuleReferenceNode
                 || node?.Parent is CallExpressionNode { Expression: IdentifierNode { Text.Span: "require" } })
                 return ReferenceResolutionMode.Require;
-            string module = ModuleKind(options);
+            ModuleOptionKind module = Module(options);
             ReferenceResolutionMode format = ImpliedMode(path, options, implied, packageType);
             if (node?.Parent is CallExpressionNode call && (call.Expression?.Kind == K.ImportKeyword
                 || call.Expression is MetaPropertyNode { KeywordToken: K.ImportKeyword, Name.Text.Span: "defer" }))
-                return module is "node16" or "node18" or "node20" or "nodenext" or "preserve" ? ReferenceResolutionMode.Import
-                    : format == ReferenceResolutionMode.Require || format == 0 && module is "commonjs" or "amd" or "system" or "umd"
+                return module is ModuleOptionKind.Node16 or ModuleOptionKind.Node18 or ModuleOptionKind.Node20 or ModuleOptionKind.NodeNext or ModuleOptionKind.Preserve ? ReferenceResolutionMode.Import
+                    : format == ReferenceResolutionMode.Require || format == 0 && module is ModuleOptionKind.CommonJS or ModuleOptionKind.AMD or ModuleOptionKind.System or ModuleOptionKind.UMD
                         ? ReferenceResolutionMode.Require
                         : ReferenceResolutionMode.Import;
-            return format != 0 ? format : module == "commonjs" ? ReferenceResolutionMode.Require : ReferenceResolutionMode.Import;
+            return format != 0 ? format : module == ModuleOptionKind.CommonJS ? ReferenceResolutionMode.Require : ReferenceResolutionMode.Import;
         }
     }
 }

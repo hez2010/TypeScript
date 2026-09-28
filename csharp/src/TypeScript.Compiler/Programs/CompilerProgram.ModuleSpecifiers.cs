@@ -57,17 +57,17 @@ public sealed partial class CompilerProgram
     internal bool SourceFileMayBeEmitted(SourceFileNode source)
     {
         var options = Configuration.Options;
-        if (options.Boolean("noEmitForJsFiles") == true && source.ScriptKind is ScriptKind.JS or ScriptKind.JSX
+        if (options.NoEmitForJsFiles == true && source.ScriptKind is ScriptKind.JS or ScriptKind.JSX
             || source.IsDeclarationFile || externalLibraryFiles.Contains(source.FileName)
             || ProjectReferences.Sources.ContainsKey(source.FileName))
             return false;
-        if (GetFile(source.FileName)?.Mapping is not null && options.Boolean("declaration") != true && options.Boolean("composite") != true)
+        if (GetFile(source.FileName)?.Mapping is not null && options.Declaration != true && options.Composite != true)
             return false;
         if (source.ScriptKind != ScriptKind.JSON)
             return true;
-        if (options.String("outDir") is not { Length: > 0 } outputDirectory)
+        if (options.OutDir is not { Length: > 0 } outputDirectory)
             return false;
-        string? root = options.String("rootDir") ?? (Configuration.FileName.Length == 0
+        string? root = options.RootDir ?? (Configuration.FileName.Length == 0
             ? null
             : CompilerPath.DirectoryName(Configuration.FileName));
         if (root is not null)

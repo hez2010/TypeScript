@@ -188,7 +188,7 @@ internal static class ModuleSpecifierTests
             "/project/src/sub", minimal, options, fs, "/project") == "./file");
         using var paths = JsonDocument.Parse("{\"@app/*\":[\"./src/*.ts\"],\"second/*\":[\"./src/*\"]}");
         Check(
-            ModuleSpecifierPaths.FromPaths("src/item.ts", paths.RootElement, minimal, "/project", options, fs, "/project") == "@app/item");
+            ModuleSpecifierPaths.FromPaths("src/item.ts", CompilerOptions.ParsePaths(paths.RootElement)!, minimal, "/project", options, fs, "/project") == "@app/item");
         Check(ModuleSpecifierPaths.RealNonJavaScriptFileName("foo.module.d.css.ts") == "foo.module.css");
         Check(ModuleSpecifierPaths.RealNonJavaScriptFileName("foo.d.ts") == "");
         using var stop = new CancellationTokenSource();
@@ -198,7 +198,7 @@ internal static class ModuleSpecifierTests
             () => ModuleSpecifierPaths.AllowedEndings(options, source, 0, cancellation: stop.Token),
             () => ModuleSpecifierPaths.ProcessEnding("a.ts", minimal, options, cancellation: stop.Token),
             () => ModuleSpecifierPaths.FromRootDirectories([], "a.ts", "/project", minimal, options, fs, "/project", stop.Token),
-            () => ModuleSpecifierPaths.FromPaths("a.ts", paths.RootElement, minimal, "/project", options, fs, "/project", stop.Token)
+            () => ModuleSpecifierPaths.FromPaths("a.ts", CompilerOptions.ParsePaths(paths.RootElement)!, minimal, "/project", options, fs, "/project", stop.Token)
         })
         {
             try
@@ -366,7 +366,7 @@ internal static class ModuleSpecifierTests
                     using var paths = JsonDocument.Parse(pathsStream.ToArray());
                     result = ModuleSpecifierPaths.FromPaths(
                         target,
-                        paths.RootElement,
+                        CompilerOptions.ParsePaths(paths.RootElement)!,
                         endings,
                         Text("baseDirectory"),
                         options,

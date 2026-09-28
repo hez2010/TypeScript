@@ -1,7 +1,9 @@
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Configuration;
 using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
+using ModuleOptionKind = TypeScript.Compiler.Configuration.ModuleKind;
 
 namespace TypeScript.Compiler.Checking;
 
@@ -145,32 +147,18 @@ internal sealed partial class Checker : IFunctionContextHost, IFunctionBodyHost,
         var file = SemanticSyntax.Source(node)!;
         var options = program.Symbols.Program.Configuration.Options;
         bool invalid = program.Symbols.Binding(file)?.IsModule != true
-            && options.String("moduleDetection") != "force"
-            && options.Number("moduleDetection") != 3;
+            && options.EmitModuleDetectionKind != ModuleDetectionKind.Force;
         if (invalid)
             ErrorOnFirstToken(node, moduleRequired);
-        var module = options.String("module") ?? options.Number("module") switch
-        {
-            4 => "system",
-            7 => "es2022",
-            99 => "esnext",
-            100 => "node16",
-            101 => "node18",
-            102 => "node20",
-            199 => "nodenext",
-            200 => "preserve",
-            null or 0 => TargetYear >= 2022 ? "es2022" : "commonjs",
-            _ => "other"
-        };
-        if (module == "none")
-            module = TargetYear >= 2022 ? "es2022" : "commonjs";
-        bool nodeModule = module is "node16" or "node18" or "node20" or "nodenext";
+        ModuleOptionKind module = options.EmitModule;
+        bool nodeModule = module is ModuleOptionKind.Node16 or ModuleOptionKind.Node18 or ModuleOptionKind.Node20 or ModuleOptionKind.NodeNext;
         if (nodeModule && program.Symbols.Program.SourceFiles.First(f => f.Syntax == file).ImpliedFormat == ReferenceResolutionMode.Require)
         {
             ErrorOnFirstToken(node, DiagnosticCode.TheCurrentFileIsACommonJSModuleAndCannotUseAwaitAtTheTopLevel);
             invalid = true;
         }
-        else if (TargetYear < 2017 || !nodeModule && module is not ("es2022" or "esnext" or "preserve" or "system"))
+        else if (TargetYear < 2017 || !nodeModule && module is not (ModuleOptionKind.ES2022 or ModuleOptionKind.ESNext
+            or ModuleOptionKind.Preserve or ModuleOptionKind.System))
         {
             ErrorOnFirstToken(node, invalidMode);
             invalid = true;

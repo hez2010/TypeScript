@@ -99,7 +99,7 @@ internal sealed partial class Checker : IVariableTypeHost
     }
 
     public Type AutoArray => program.Globals.AutoArrayType!;
-    public bool UseUnknownInCatchVariables => program.Symbols.Program.Configuration.Options.StrictOption("useUnknownInCatchVariables");
+    public bool UseUnknownInCatchVariables => program.Symbols.Program.Configuration.Options.EffectiveUseUnknownInCatchVariables;
 
     public ValueTask<Type> DeclarationInitializerAsync(SyntaxNode declaration, CheckMode mode, CancellationToken cancellation) =>
         DeclarationInitializerWithContextAsync(declaration, mode, null, cancellation);
@@ -200,7 +200,7 @@ internal sealed partial class Checker : IVariableTypeHost
     public async ValueTask ReportImplicitAnyAsync(SyntaxNode declaration, Type type, WideningKind kind, CancellationToken cancellation)
     {
         if ((declaration.Flags & NodeFlags.JavaScriptFile) != 0 && SemanticSyntax.Source(declaration)?.CheckJsDirective?.Enabled != true
-            && program.Symbols.Program.Configuration.Options.Boolean("checkJs") != true)
+            && program.Symbols.Program.Configuration.Options.CheckJs != true)
             return;
         TextSlice typeText = await TypeDisplay.GetAsync(await Widening.GetAsync(type, cancellation), cancellation);
         DiagnosticCode code;

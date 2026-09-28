@@ -1,6 +1,7 @@
 using TypeScript.Compiler.Text;
 using TypeScript.Compiler.Ast;
 using TypeScript.Compiler.Binding;
+using TypeScript.Compiler.Configuration;
 using TypeScript.Compiler.Diagnostics;
 using TypeScript.Compiler.Syntax;
 
@@ -15,8 +16,7 @@ internal sealed partial class Checker
     private readonly Dictionary<SyntaxNode, int> jsxReferenceKinds = [];
     private readonly Dictionary<TextSlice, TextSlice?> jsxFactoryNames = [];
 
-    private int JsxMode => (int?)program.Symbols.Program.Configuration.Options.Number("jsx") ?? program.Symbols.Program.Configuration.Options.String("jsx") switch
-    { "preserve" => 1, "react" => 2, "react-native" => 3, "react-jsx" => 4, "react-jsxdev" => 5, _ => 0 };
+    private int JsxMode => (int)program.Symbols.Program.Configuration.Options.Jsx;
 
     private static SyntaxNode? JsxTag(SyntaxNode node) => node switch
     { JsxOpeningElementNode opening => opening.TagName, JsxSelfClosingElementNode self => self.TagName, JsxClosingElementNode closing => closing.TagName, _ => null };
@@ -40,13 +40,13 @@ internal sealed partial class Checker
     {
         var file = SemanticSyntax.Source(node)!;
         var options = program.Symbols.Program.Configuration.Options;
-        if (fragment && ValidJsxFactory(JsxPragma(file, "jsxfrag") ?? TextSlice.FromNullable(options.String("jsxFragmentFactory"))) is { } fragmentFactory)
+        if (fragment && ValidJsxFactory(JsxPragma(file, "jsxfrag") ?? TextSlice.FromNullable(options.JsxFragmentFactory)) is { } fragmentFactory)
             return CacheEmitJsxFactory(fragmentFactory, file, true);
         if (!fragment && ValidJsxFactory(JsxPragma(file, "jsx")) is { } local)
             return CacheEmitJsxFactory(local, file);
         return CacheEmitJsxFactory(
-            options.String("jsxFactory") is { Length: > 0 } configured ? ValidJsxFactory(configured) ?? "React.createElement"
-            : TextSlice.Concat((options.String("reactNamespace") is { Length: > 0 } reactNamespace ? reactNamespace : "React"), ".createElement"));
+            options.JsxFactory is { Length: > 0 } configured ? ValidJsxFactory(configured) ?? "React.createElement"
+            : TextSlice.Concat((options.ReactNamespace is { Length: > 0 } reactNamespace ? reactNamespace : "React"), ".createElement"));
     }
 
     private TextSlice? ValidJsxFactory(TextSlice? text)
@@ -87,10 +87,10 @@ internal sealed partial class Checker
             return cached;
         TextSlice? runtime = JsxPragma(file, "jsxruntime");
         var options = program.Symbols.Program.Configuration.Options;
-        if (runtime == "classic" || JsxMode is not (4 or 5) && options.String("jsxImportSource") is null
+        if (runtime == "classic" || JsxMode is not (4 or 5) && options.JsxImportSource is null
             && JsxPragma(file, "jsximportsource") is null && runtime != "automatic")
             return null;
-        TextSlice source = JsxPragma(file, "jsximportsource") ?? options.String("jsxImportSource") ?? "react";
+        TextSlice source = JsxPragma(file, "jsximportsource") ?? options.JsxImportSource ?? "react";
         TextSlice name = TextSlice.Concat(source, (JsxMode == 5 ? "/jsx-dev-runtime" : "/jsx-runtime"));
         var first = file.DescendantsAndSelf().FirstOrDefault(n => n is JsxElementNode or JsxSelfClosingElementNode or JsxFragmentNode);
         var errorNode = first is JsxFragmentNode fragment ? fragment.OpeningFragment! : first ?? location;

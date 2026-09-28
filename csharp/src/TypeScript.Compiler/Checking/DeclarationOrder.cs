@@ -14,8 +14,8 @@ internal interface IDeclarationOrderHost
 
 internal sealed class DeclarationOrder(CompilerOptions options, IDeclarationOrderHost host)
 {
-    internal bool StandardClassFields => options.Boolean("useDefineForClassFields") != false && options.EmitTargetYear >= 2022;
-    private bool LegacyDecorators => options.Boolean("experimentalDecorators") == true;
+    internal bool StandardClassFields => options.UseDefineForClassFields != false && options.EmitTargetYear >= 2022;
+    private bool LegacyDecorators => options.ExperimentalDecorators == true;
 
     internal async ValueTask<bool> BeforeUseAsync(SyntaxNode declaration, SyntaxNode usage, CancellationToken cancellation = default)
     {

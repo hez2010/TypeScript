@@ -158,19 +158,11 @@ internal static class ModuleSpecifierPaths
         return js ? ModuleSpecifierEnding.JavaScript : ModuleSpecifierEnding.Minimal;
     }
 
-    private static bool NodeResolution(CompilerOptions options)
-    {
-        string? resolution = options.String("moduleResolution");
-        if (resolution is "node16" or "nodenext" || options.Number("moduleResolution") is 3 or 99)
-            return true;
-        if (resolution == "bundler" || options.Number("moduleResolution") == 100)
-            return false;
-        return options.String("module") is "node16" or "node18" or "node20" or "nodenext"
-            || options.Number("module") is >= 100 and <= 199;
-    }
+    private static bool NodeResolution(CompilerOptions options) =>
+        options.EmitModuleResolutionKind is ModuleResolutionKind.Node16 or ModuleResolutionKind.NodeNext;
 
-    private static bool AllowsTypeScript(CompilerOptions options) => options.Boolean("allowImportingTsExtensions") == true
-        || options.Boolean("rewriteRelativeImportExtensions") == true;
+    private static bool AllowsTypeScript(CompilerOptions options) => options.AllowImportingTsExtensions == true
+        || options.RewriteRelativeImportExtensions == true;
 
     private static TextSlice ImportText(SyntaxNode node) => node switch
     { StringLiteralNode text => text.Text, NoSubstitutionTemplateLiteralNode text => text.Text, _ => "" };
@@ -263,7 +255,7 @@ internal static class ModuleSpecifierPaths
     internal static string JavaScriptFileExtension(string path, CompilerOptions options) => Extension(path) switch
     {
         ".ts" or ".d.ts" => ".js",
-        ".tsx" => options.String("jsx") == "preserve" || options.Number("jsx") == 1 ? ".jsx" : ".js",
+        ".tsx" => options.Jsx == JsxEmit.Preserve ? ".jsx" : ".js",
         ".js" => ".js",
         ".jsx" => ".jsx",
         ".json" => ".json",
@@ -322,7 +314,7 @@ internal static class ModuleSpecifierPaths
 
     internal static string FromPaths(
         string relativeToBase,
-        JsonElement paths,
+        IReadOnlyList<KeyValuePair<string, string[]>> paths,
         IReadOnlyList<ModuleSpecifierEnding> endings,
         string baseDirectory,
         CompilerOptions options,
@@ -331,14 +323,12 @@ internal static class ModuleSpecifierPaths
         CancellationToken cancellation = default)
     {
         cancellation.ThrowIfCancellationRequested();
-        if (paths.ValueKind != JsonValueKind.Object)
-            return "";
         var comparison = fileSystem.CaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-        foreach (var mapping in PackageJson.Properties(paths))
-            foreach (var value in mapping.Value.EnumerateArray())
+        foreach (var mapping in paths)
+            foreach (string value in mapping.Value)
             {
                 cancellation.ThrowIfCancellationRequested();
-                string normalized = CompilerPath.Normalize(JsonStrings.GetString(value));
+                string normalized = CompilerPath.Normalize(value);
                 string pattern = RelativeIfSameVolume(normalized, baseDirectory, fileSystem.CaseSensitive);
                 if (pattern.Length == 0)
                     pattern = normalized;
@@ -357,16 +347,16 @@ internal static class ModuleSpecifierPaths
                             string matched = candidate.Value[prefix.Length..(candidate.Value.Length - suffix.Length)];
                             if (!Relative(matched))
                             {
-                                int replacement = mapping.Name.IndexOf('*');
+                                int replacement = mapping.Key.IndexOf('*');
                                 return replacement < 0
-                                    ? mapping.Name
-                                    : mapping.Name[..replacement] + matched + mapping.Name[(replacement + 1)..];
+                                    ? mapping.Key
+                                    : mapping.Key[..replacement] + matched + mapping.Key[(replacement + 1)..];
                             }
                         }
                 }
                 else if (candidates.Any(c => c.Ending != ModuleSpecifierEnding.Minimal && pattern == c.Value)
                     || candidates.Any(c => c.Ending == ModuleSpecifierEnding.Minimal && pattern == c.Value && Valid(c)))
-                    return mapping.Name;
+                    return mapping.Key;
             }
         return "";
         bool Valid((ModuleSpecifierEnding Ending, string Value) candidate) => candidate.Ending != ModuleSpecifierEnding.Minimal
