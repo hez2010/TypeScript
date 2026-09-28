@@ -164,11 +164,10 @@ public sealed partial class Parser
             case K.UndefinedKeyword:
             case K.NeverKeyword:
             case K.ObjectKeyword:
-                if (NextIs(K.DotToken))
+                K keywordKind = Token;
+                if (!Peek(this, static parser => parser.Next() != K.DotToken, commitOnSuccess: true))
                     break;
-                var keyword = factory.NewKeywordTypeNode(Token);
-                Next();
-                return Finish(keyword, start);
+                return Finish(factory.NewKeywordTypeNode(keywordKind), start);
             case K.VoidKeyword:
                 Next();
                 return Finish(factory.NewKeywordTypeNode(K.VoidKeyword), start);

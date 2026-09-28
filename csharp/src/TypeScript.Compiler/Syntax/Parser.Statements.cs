@@ -67,86 +67,90 @@ public sealed partial class Parser
             modifiers[i].Flags |= NodeFlags.Ambient;
     }
 
-    private async ValueTask<SyntaxNode> ParseStatementWorkerCore(bool skipExportDispatch = false)
+    private async ValueTask<SyntaxNode> ParseStatementWorkerCore(NodeList? preparsedModifiers = null, int? originalStart = null)
     {
         await ParseStack;
-        int start = Pos;
-        switch (Token)
+        int start = originalStart ?? Pos;
+        if (preparsedModifiers is null)
         {
-            case K.SemicolonToken:
-                Next();
-                return Finish(factory.NewEmptyStatement(), start);
-            case K.OpenBraceToken:
-                return (await BlockCore().ConfigureAwait(false));
-            case K.IfKeyword:
-                Next();
-                var test = (await ParenthesizedConditionCore().ConfigureAwait(false));
-                var then = (await ParseStatementCore().ConfigureAwait(false));
-                return Finish(
-                    factory.NewIfStatement(test, then, Take(K.ElseKeyword) ? (await ParseStatementCore().ConfigureAwait(false)) : null),
-                    start);
-            case K.DoKeyword:
-                Next();
-                var body = (await ParseStatementCore().ConfigureAwait(false));
-                Expected(K.WhileKeyword);
-                var condition = (await ParenthesizedConditionCore().ConfigureAwait(false));
-                Take(K.SemicolonToken);
-                return Finish(factory.NewDoStatement(body, condition), start);
-            case K.WhileKeyword:
-                Next();
-                return Finish(
-                    factory.NewWhileStatement(
-                        (await ParenthesizedConditionCore().ConfigureAwait(false)),
-                        (await ParseStatementCore().ConfigureAwait(false))),
-                    start);
-            case K.WithKeyword:
-                Next();
-                var withExpression = (await ParenthesizedConditionCore().ConfigureAwait(false));
-                NodeFlags old = context;
-                context |= NodeFlags.InWithStatement;
-                var withBody = (await ParseStatementCore().ConfigureAwait(false));
-                context = old;
-                return Finish(factory.NewWithStatement(withExpression, withBody), start);
-            case K.ForKeyword:
-                return (await ForCore().ConfigureAwait(false));
-            case K.ReturnKeyword:
-                Next();
-                var value = IsSemicolon() ? null : (await ExpressionCore().ConfigureAwait(false));
-                Semicolon();
-                return Finish(factory.NewReturnStatement(value), start);
-            case K.ThrowKeyword:
-                Next();
-                var thrown = LineBreak ? Finish(factory.NewIdentifier(""), Pos, Pos) : (await ExpressionCore().ConfigureAwait(false));
-                Semicolon();
-                return Finish(factory.NewThrowStatement(thrown), start);
-            case K.BreakKeyword:
-            case K.ContinueKeyword:
-                K jump = Token;
-                Next();
-                var label = !IsSemicolon() && IsIdentifier ? Identifier() : null;
-                Semicolon();
-                return jump == K.BreakKeyword
-                    ? Finish(factory.NewBreakStatement(label), start)
-                    : Finish(factory.NewContinueStatement(label), start);
-            case K.DebuggerKeyword:
-                Next();
-                Semicolon();
-                return Finish(factory.NewDebuggerStatement(), start);
-            case K.SwitchKeyword:
-                return (await SwitchCore().ConfigureAwait(false));
-            case K.TryKeyword:
-            case K.CatchKeyword:
-            case K.FinallyKeyword:
-                return (await TryCore().ConfigureAwait(false));
-            case K.ExportKeyword when !skipExportDispatch:
-                return (await ExportCore().ConfigureAwait(false));
-            case K.ImportKeyword:
-                if (!Peek(() => Next() is K.OpenParenToken or K.DotToken or K.LessThanToken))
-                    return (await ImportCore(null, start).ConfigureAwait(false));
-                break;
+            switch (Token)
+            {
+                case K.SemicolonToken:
+                    Next();
+                    return Finish(factory.NewEmptyStatement(), start);
+                case K.OpenBraceToken:
+                    return (await BlockCore().ConfigureAwait(false));
+                case K.IfKeyword:
+                    Next();
+                    var test = (await ParenthesizedConditionCore().ConfigureAwait(false));
+                    var then = (await ParseStatementCore().ConfigureAwait(false));
+                    return Finish(
+                        factory.NewIfStatement(test, then, Take(K.ElseKeyword) ? (await ParseStatementCore().ConfigureAwait(false)) : null),
+                        start);
+                case K.DoKeyword:
+                    Next();
+                    var body = (await ParseStatementCore().ConfigureAwait(false));
+                    Expected(K.WhileKeyword);
+                    var condition = (await ParenthesizedConditionCore().ConfigureAwait(false));
+                    Take(K.SemicolonToken);
+                    return Finish(factory.NewDoStatement(body, condition), start);
+                case K.WhileKeyword:
+                    Next();
+                    return Finish(
+                        factory.NewWhileStatement(
+                            (await ParenthesizedConditionCore().ConfigureAwait(false)),
+                            (await ParseStatementCore().ConfigureAwait(false))),
+                        start);
+                case K.WithKeyword:
+                    Next();
+                    var withExpression = (await ParenthesizedConditionCore().ConfigureAwait(false));
+                    NodeFlags old = context;
+                    context |= NodeFlags.InWithStatement;
+                    var withBody = (await ParseStatementCore().ConfigureAwait(false));
+                    context = old;
+                    return Finish(factory.NewWithStatement(withExpression, withBody), start);
+                case K.ForKeyword:
+                    return (await ForCore().ConfigureAwait(false));
+                case K.ReturnKeyword:
+                    Next();
+                    var value = IsSemicolon() ? null : (await ExpressionCore().ConfigureAwait(false));
+                    Semicolon();
+                    return Finish(factory.NewReturnStatement(value), start);
+                case K.ThrowKeyword:
+                    Next();
+                    var thrown = LineBreak ? Finish(factory.NewIdentifier(""), Pos, Pos) : (await ExpressionCore().ConfigureAwait(false));
+                    Semicolon();
+                    return Finish(factory.NewThrowStatement(thrown), start);
+                case K.BreakKeyword:
+                case K.ContinueKeyword:
+                    K jump = Token;
+                    Next();
+                    var label = !IsSemicolon() && IsIdentifier ? Identifier() : null;
+                    Semicolon();
+                    return jump == K.BreakKeyword
+                        ? Finish(factory.NewBreakStatement(label), start)
+                        : Finish(factory.NewContinueStatement(label), start);
+                case K.DebuggerKeyword:
+                    Next();
+                    Semicolon();
+                    return Finish(factory.NewDebuggerStatement(), start);
+                case K.SwitchKeyword:
+                    return (await SwitchCore().ConfigureAwait(false));
+                case K.TryKeyword:
+                case K.CatchKeyword:
+                case K.FinallyKeyword:
+                    return (await TryCore().ConfigureAwait(false));
+                case K.ExportKeyword:
+                    return (await ExportCore().ConfigureAwait(false));
+                case K.ImportKeyword:
+                    if (!Peek(() => Next() is K.OpenParenToken or K.DotToken or K.LessThanToken))
+                        return (await ImportCore(null, start).ConfigureAwait(false));
+                    break;
+            }
         }
 
-        NodeList? modifiers = Token == K.AtToken || Peek(static parser => parser.StartsDeclaration()) ? (await ModifiersCore().ConfigureAwait(false)) : null;
+        bool startsDeclaration = preparsedModifiers is not null || Token == K.AtToken || Peek(static parser => parser.StartsDeclaration());
+        NodeList? modifiers = preparsedModifiers ?? (startsDeclaration ? await ModifiersCore().ConfigureAwait(false) : null);
         AmbientModifiers(modifiers);
         switch (Token)
         {
@@ -183,19 +187,11 @@ public sealed partial class Parser
             case K.ClassKeyword:
                 return (await ClassCore(false, modifiers, start).ConfigureAwait(false));
             case K.InterfaceKeyword:
-                if (Peek(() =>
-                {
-                    Next();
-                    return IsIdentifier && !LineBreak;
-                }))
+                if (startsDeclaration)
                     return (await InterfaceCore(modifiers, start).ConfigureAwait(false));
                 break;
             case K.TypeKeyword:
-                if (modifiers is not null || Peek(() =>
-                {
-                    Next();
-                    return IsIdentifier && !LineBreak;
-                }))
+                if (modifiers is not null || startsDeclaration)
                 {
                     Next();
                     var name = Identifier();
@@ -1237,7 +1233,9 @@ public sealed partial class Parser
     {
         await ParseStack;
         int start = originalStart ?? Pos;
+        int exportStart = Pos;
         Expected(K.ExportKeyword);
+        int exportEnd = Pos;
         if (Take(K.AsKeyword))
         {
             Expected(K.NamespaceKeyword);
@@ -1266,11 +1264,7 @@ public sealed partial class Parser
                     || Token == K.AbstractKeyword && NextIs(K.ClassKeyword)
                     || Token == K.AsyncKeyword && Peek(() => Next() == K.FunctionKeyword && !LineBreak);
             }))
-            {
-                scanner.ResetPosition(start);
-                Next(false);
-                return (await DeclarationWithExportCore().ConfigureAwait(false));
-            }
+                return await DeclarationWithExportCore(leadingModifiers, start, exportStart, exportEnd).ConfigureAwait(false);
 
             Next();
             NodeFlags saved = context;
@@ -1331,15 +1325,24 @@ public sealed partial class Parser
             return Finish(factory.NewExportDeclaration(leadingModifiers, typeOnly, clause, specifier, attributes), start);
         }
 
-        // Parse a declaration with the export token still part of its modifier list.
-        scanner.ResetPosition(start);
-        Next(false);
-        return (await DeclarationWithExportCore().ConfigureAwait(false));
+        return await DeclarationWithExportCore(leadingModifiers, start, exportStart, exportEnd).ConfigureAwait(false);
     }
 
-    private async ValueTask<SyntaxNode> DeclarationWithExportCore()
+    private async ValueTask<SyntaxNode> DeclarationWithExportCore(NodeList? leadingModifiers, int start, int exportStart, int exportEnd)
     {
         await ParseStack;
-        return (await ParseStatementWorkerCore(true).ConfigureAwait(false));
+        // Continue through the same declaration parser with the export token already consumed.
+        var exportToken = Finish(factory.NewToken(K.ExportKeyword), exportStart, exportEnd);
+        var trailingModifiers = await ModifiersCore().ConfigureAwait(false);
+        var nodes = new SyntaxNode[(leadingModifiers?.Count ?? 0) + 1 + (trailingModifiers?.Count ?? 0)];
+        int index = 0;
+        if (leadingModifiers is not null)
+            foreach (var modifier in leadingModifiers)
+                nodes[index++] = modifier;
+        nodes[index++] = exportToken;
+        if (trailingModifiers is not null)
+            foreach (var modifier in trailingModifiers)
+                nodes[index++] = modifier;
+        return await ParseStatementWorkerCore(new(nodes, start, Pos), start).ConfigureAwait(false);
     }
 }

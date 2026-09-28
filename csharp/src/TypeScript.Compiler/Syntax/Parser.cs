@@ -388,7 +388,8 @@ public sealed partial class Parser
 
     private bool Peek(Func<Parser, bool> action) => Peek(this, action);
 
-    private bool Peek<TState>(TState state, Func<TState, bool> action)
+    // A successful contextual parse can keep the scanned token; failed lookahead restores all parser state.
+    private bool Peek<TState>(TState state, Func<TState, bool> action, bool commitOnSuccess = false)
     {
         var marker = scanner.Mark();
         int count = diagnostics.Count, scanned = scannedDiagnostics;
@@ -396,19 +397,23 @@ public sealed partial class Parser
         NodeFlags flags = context, fileFlags = sourceFlags;
         bool possibleAwait = possibleTopLevelAwait;
         speculationDepth++;
+        bool succeeded = false;
         try
         {
-            return action(state);
+            return succeeded = action(state);
         }
         finally
         {
-            scanner.Rewind(marker);
-            diagnostics.RemoveRange(count, diagnostics.Count - count);
-            scannedDiagnostics = scanned;
-            hasError = error;
-            context = flags;
-            sourceFlags = fileFlags;
-            possibleTopLevelAwait = possibleAwait;
+            if (!commitOnSuccess || !succeeded)
+            {
+                scanner.Rewind(marker);
+                diagnostics.RemoveRange(count, diagnostics.Count - count);
+                scannedDiagnostics = scanned;
+                hasError = error;
+                context = flags;
+                sourceFlags = fileFlags;
+                possibleTopLevelAwait = possibleAwait;
+            }
             speculationDepth--;
         }
     }
@@ -558,36 +563,32 @@ public sealed partial class Parser
                 or K.AccessorKeyword
                 || allowConst && Token is K.ConstKeyword or K.InKeyword or K.OutKeyword
                 || Token == K.ConstKeyword && NextIs(K.EnumKeyword);
-            if (Token == K.ExportKeyword && Peek(static parser =>
-            {
-                parser.Next();
-                if (parser.Token is K.OpenBraceToken or K.AsteriskToken or K.EqualsToken or K.AsKeyword)
-                    return true;
-                if (parser.Token == K.TypeKeyword)
-                    return parser.Next() is K.OpenBraceToken or K.AsteriskToken;
-                if (parser.Token == K.DefaultKeyword)
-                    return parser.Next() is not (K.ClassKeyword or K.FunctionKeyword or K.InterfaceKeyword or K.AbstractKeyword
-                        or K.AsyncKeyword or K.AtToken);
-                return false;
-            }))
-                break;
             if (stopOnStaticBlock && Token == K.StaticKeyword && NextIs(K.OpenBraceToken))
                 break;
             if (Token == K.StaticKeyword && (nodes?.Any(n => n.Kind == K.StaticKeyword)
                 ?? first?.Kind == K.StaticKeyword))
                 break;
             K modifierKind = Token;
+            int modifierStart = Pos;
             if (!modifier || !Peek((Parser: this, Kind: modifierKind), static state =>
             {
                 var parser = state.Parser;
                 parser.Next();
+                if (state.Kind == K.ExportKeyword)
+                {
+                    if (parser.Token is K.OpenBraceToken or K.AsteriskToken or K.EqualsToken or K.AsKeyword
+                        || parser.Token == K.TypeKeyword && parser.Peek(static p => p.Next() is K.OpenBraceToken or K.AsteriskToken)
+                        || parser.Token == K.DefaultKeyword && parser.Peek(static p => p.Next() is not
+                            (K.ClassKeyword or K.FunctionKeyword or K.InterfaceKeyword or K.AbstractKeyword or K.AsyncKeyword or K.AtToken)))
+                        return false;
+                }
                 return (!parser.LineBreak || state.Kind is K.ExportKeyword or K.DefaultKeyword or K.StaticKeyword)
                     && (parser.Token >= K.Identifier
                         || parser.Token is K.PrivateIdentifier or K.StringLiteral or K.NumericLiteral or K.BigIntLiteral or K.OpenBracketToken
                             or K.OpenBraceToken or K.DotDotDotToken or K.AsteriskToken or K.AtToken);
-            }))
+            }, commitOnSuccess: true))
                 break;
-            var token = ParseToken();
+            var token = Finish(factory.NewToken(modifierKind), modifierStart);
             if (first is null)
                 first = token;
             else

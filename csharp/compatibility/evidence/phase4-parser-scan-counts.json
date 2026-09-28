@@ -1,0 +1,188 @@
+{
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "scope": "Isolated scanner-count instrumentation in C# and pinned Go copies; operation counts, not elapsed time",
+  "workloads": [
+    {
+      "name": "compiler/giant.ts",
+      "graphSha256": "2968af4d2ba50f87707305b942f2260d5c87aff992c8621207b488b6b66bd2f7",
+      "diagnosticCount": 231,
+      "before": {
+        "csharp": 204571,
+        "go": 183582
+      },
+      "after": {
+        "csharp": 186697,
+        "go": 183582
+      },
+      "files": [
+        {
+          "file": "/.src/giant.ts",
+          "before": {
+            "csharp": 5005,
+            "go": 4102
+          },
+          "after": {
+            "csharp": 4040,
+            "go": 4102
+          }
+        },
+        {
+          "file": "bundled:///libs/lib.dom.d.ts",
+          "before": {
+            "csharp": 170644,
+            "go": 154305
+          },
+          "after": {
+            "csharp": 156569,
+            "go": 154305
+          }
+        }
+      ]
+    },
+    {
+      "name": "compiler/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+      "graphSha256": "0443235375353e6517ab63c94cb86fd296456ee20ba8e1da2e7d3c234988210d",
+      "diagnosticCount": 0,
+      "before": {
+        "csharp": 231203,
+        "go": 211538
+      },
+      "after": {
+        "csharp": 214283,
+        "go": 211538
+      },
+      "files": [
+        {
+          "file": "/.src/conditionalTypeDiscriminatingLargeUnionRegularTypeFetchingSpeedReasonable.ts",
+          "before": {
+            "csharp": 32123,
+            "go": 32113
+          },
+          "after": {
+            "csharp": 32112,
+            "go": 32113
+          }
+        },
+        {
+          "file": "bundled:///libs/lib.dom.d.ts",
+          "before": {
+            "csharp": 170644,
+            "go": 154305
+          },
+          "after": {
+            "csharp": 156569,
+            "go": 154305
+          }
+        }
+      ]
+    },
+    {
+      "name": "unicode/ascii.ts",
+      "graphSha256": "a49158f090d8ca4c88f23fe1b091800e44f50d1a09e38e3d78f878f7cbdcc2e4",
+      "diagnosticCount": 0,
+      "before": {
+        "csharp": 65129,
+        "go": 45111
+      },
+      "after": {
+        "csharp": 40111,
+        "go": 45111
+      },
+      "files": [
+        {
+          "file": "/work/main.ts",
+          "before": {
+            "csharp": 65002,
+            "go": 45002
+          },
+          "after": {
+            "csharp": 40002,
+            "go": 45002
+          }
+        }
+      ]
+    }
+  ],
+  "patterns": [
+    {
+      "name": "variable",
+      "statements": 1000,
+      "beforeCSharp": 6002,
+      "afterCSharp": 6002,
+      "go": 6002,
+      "diagnosticCount": 10
+    },
+    {
+      "name": "exportVariable",
+      "statements": 1000,
+      "beforeCSharp": 13002,
+      "afterCSharp": 8002,
+      "go": 9002,
+      "diagnosticCount": 10
+    },
+    {
+      "name": "interface",
+      "statements": 1000,
+      "beforeCSharp": 12002,
+      "afterCSharp": 10002,
+      "go": 10002,
+      "diagnosticCount": 10
+    },
+    {
+      "name": "exportInterface",
+      "statements": 1000,
+      "beforeCSharp": 20002,
+      "afterCSharp": 12002,
+      "go": 14002,
+      "diagnosticCount": 10
+    },
+    {
+      "name": "typeAlias",
+      "statements": 1000,
+      "beforeCSharp": 8002,
+      "afterCSharp": 6002,
+      "go": 6002,
+      "diagnosticCount": 10
+    },
+    {
+      "name": "exportTypeAlias",
+      "statements": 1000,
+      "beforeCSharp": 17002,
+      "afterCSharp": 9002,
+      "go": 11002,
+      "diagnosticCount": 10
+    },
+    {
+      "name": "function",
+      "statements": 1000,
+      "beforeCSharp": 6002,
+      "afterCSharp": 6002,
+      "go": 6002,
+      "diagnosticCount": 10
+    },
+    {
+      "name": "exportFunction",
+      "statements": 1000,
+      "beforeCSharp": 13002,
+      "afterCSharp": 8002,
+      "go": 9002,
+      "diagnosticCount": 10
+    },
+    {
+      "name": "class",
+      "statements": 1000,
+      "beforeCSharp": 10002,
+      "afterCSharp": 9002,
+      "go": 9002,
+      "diagnosticCount": 1010
+    },
+    {
+      "name": "exportClass",
+      "statements": 1000,
+      "beforeCSharp": 17002,
+      "afterCSharp": 11002,
+      "go": 12002,
+      "diagnosticCount": 1010
+    }
+  ]
+}

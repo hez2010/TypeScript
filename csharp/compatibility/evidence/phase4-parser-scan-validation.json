@@ -1,0 +1,97 @@
+{
+  "timestamp": "2026-09-28T20:31:52.609Z",
+  "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+  "compilerSourceSha256": "9e380487f1e6ad6b4a12a8a72626f7aaca28220b598c991c5759bf523f719fb5",
+  "compilerSha256": "3331b103cf3dba0eb0091609cd1e30ba4e1cc6548b78080cc68bd430b1bbbb68",
+  "candidateSha256": "28690dd9653f93887f0d8b7d0369621b59f30af5287039b2d89317d43e3eacf1",
+  "parser": {
+    "cases": 12865,
+    "identical": 12865,
+    "baselineCompilerSha256": "c14595a32147d46c7354e38acd43d55415e9f07dcd31f82480f05dda57242e14",
+    "candidateCompilerSha256": "3331b103cf3dba0eb0091609cd1e30ba4e1cc6548b78080cc68bd430b1bbbb68"
+  },
+  "semantic": [
+    {
+      "mode": "single",
+      "readyConfigurations": 13446,
+      "detailedDiagnosticMatches": 13446,
+      "graphMismatches": 0,
+      "diagnosticMismatches": 0,
+      "candidateFailures": 0,
+      "candidateOutputSha256": "8390e6e546cf407bd5030dfabecd2983bd7aee283ae8d0a0678963646c6b31a4",
+      "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+      "inputSha256": "df21bccda8a3bc5da534586c352dae0175cf4bf260c93ee15694afe19353d5bd",
+      "fullSemanticCorpusGateComplete": true
+    },
+    {
+      "mode": "default",
+      "readyConfigurations": 13446,
+      "detailedDiagnosticMatches": 13446,
+      "graphMismatches": 0,
+      "diagnosticMismatches": 0,
+      "candidateFailures": 0,
+      "candidateOutputSha256": "8390e6e546cf407bd5030dfabecd2983bd7aee283ae8d0a0678963646c6b31a4",
+      "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+      "inputSha256": "b51e79a2ebc4428367c89bceb367fd82a86bdd85b43b847bc17f875b51743a77",
+      "fullSemanticCorpusGateComplete": true
+    }
+  ],
+  "api": {
+    "families": 31,
+    "comparedQueries": 1649908,
+    "knownGoFailures": 4,
+    "candidateFailures": 0,
+    "candidateHash": "1fcd720ca24d0700bb579095dacf29b9753b5a4bb06bf39b276308997578f493",
+    "accessibility": {
+      "exact": 156,
+      "configurations": 156
+    }
+  },
+  "apiInitialCrashControl": {
+    "initialFailure": "0xC0000005 in mapped:true:1 on the first API pass",
+    "isolatedRuns": 12,
+    "allSucceededWithIdenticalOutput": true,
+    "outputSha256": "79298aa5966c24609d7075441e6f0e8003fe2c1d5c2741316c70b0276ee893ff",
+    "finalPinnedSdkAccessibilityPass": true
+  },
+  "safety": {
+    "suites": 74,
+    "failures": 0,
+    "candidateHash": "1fcd720ca24d0700bb579095dacf29b9753b5a4bb06bf39b276308997578f493"
+  },
+  "metadata": {
+    "cases": 6778,
+    "failures": 0,
+    "inputSha256": "fdf15bb6a21a0b0874d93fbaf69a65b7591f4af8a19b17e54f4f51e3ccab4c5a",
+    "oracleSha256": "f3dd5a6db7d91c03c5569e55120369e78bfac83f4c2b020fff006a103e8802e6",
+    "candidateSha256": "bf201ad8c4703b84f938e6107de247f263ff92451b0785955bfc24c688d5a5f4"
+  },
+  "hosts": {
+    "assertions": 86,
+    "logSha256": "018d12559eb0448f551164d5e184e794fe760c7a6a404d55d023f99a72a0d986"
+  },
+  "managedPerformance": {
+    "groups": 20,
+    "fasterElapsedMedians": 20,
+    "samplesSha256": "9e85425a3a91035d5383c17a75651c398ae9c22c057066c495aa6aa7dba563e4",
+    "benchmarkCompilerSha256": "3331b103cf3dba0eb0091609cd1e30ba4e1cc6548b78080cc68bd430b1bbbb68",
+    "benchmarkCandidateSha256": "4607d5cfb5a371ea48f7f14ce887bf8741410d40bdce5a027134009b90cb509f",
+    "baselineCompilerSha256": "c14595a32147d46c7354e38acd43d55415e9f07dcd31f82480f05dda57242e14",
+    "goOracleSha256": "3b24ab2a8765063a904a578271c8def1a0f9607104913f99f17f8801533a2d7a",
+    "tieredCompilation": false,
+    "serverGC": true
+  },
+  "scannerCounts": {
+    "workloads": 3,
+    "patterns": 10,
+    "scope": "Isolated scanner-count instrumentation in C# and pinned Go copies; operation counts, not elapsed time"
+  },
+  "normalReleaseBuild": {
+    "passed": true,
+    "warnings": 0,
+    "errors": 0,
+    "logSha256": "424dd4e508943899a3bf69899b14fdac1e91b0ea4a8a815098e718bf28d44b74"
+  },
+  "nativeAot": "Deferred until remaining code work is complete",
+  "passedNoSemanticRegression": true
+}
