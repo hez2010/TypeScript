@@ -69,3 +69,45 @@ The [CPU profile record](../csharp/compatibility/evidence/utf8-cpu-profiles.json
 The final native phase measurements still put most of the original-workload gap in program construction. For the large diagnostic program, UTF-8 construction takes 20.78 ms versus Go's 15.50 ms; checking takes 3.22 ms versus 1.05 ms. The conditional workload has nearly matching checking time, 46.35 ms versus 46.12 ms, but construction takes 23.42 ms versus 15.56 ms. Separate phase medians need not sum exactly to the total median. The C# factory still allocates individual class nodes; Go uses typed arenas. That remains a structural optimization lead, not a measured replacement in this change.
 
 The [earlier measurements](../csharp/compatibility/evidence/utf8-migration-performance.json) preserve excluded desktop-activity batches and the first UTF-8 build's quiet results. Both early quiet runs failed one provisional 16 MiB post-collection heap-growth budget: the native conditional case and managed JSX case. A low first measured sample preceded a stable higher plateau. Those failures remain in their original summaries. Independent 200-request follow-ups passed the budget: growth was 12.6 KiB for native UTF-8 versus 21.2 KiB for its baseline, and 61.5 KiB for managed UTF-8 versus 65.1 KiB for its baseline. Their [native](../csharp/compatibility/evidence/utf8-native-retention-samples.jsonl) and [managed](../csharp/compatibility/evidence/utf8-managed-retention-samples.jsonl) samples show no accumulating retention in those bounded runs. The final builds passed all 20 workload groups in each runtime comparison without changing the budgets.
+
+## Constant-folding follow-up
+
+The next pass starts from the committed UTF-8 implementation, `245c22d700843f12175f4af764034f98a01d8d82`. Fresh CPU profiles identified keyword classification and declaration modifier checks as candidates. Disassembly then exposed two concrete code-generation problems:
+
+- The single generated `TokenFacts.FromText` method retained calls to span constructors and `SequenceEqual` for constant UTF-8 literals. Partitioning it by token length lets the JIT fold those comparisons into constant comparisons in the inspected helpers. The complete NativeAOT classifier, including its dispatcher and all helpers, shrinks from 9,258 to 6,783 bytes.
+- Declaration modifier checks represented token kinds with `UInt128` shifts. Reusing the existing `ModifierFlags` mapping removes those operations and lets combined masks fold. NativeAOT code for `DeclarationModifiers` shrinks from 9,895 to 7,703 bytes. Diagnostic ordering is preserved. The isolated measurements do not establish a separate whole-program speedup for this change; it is retained for the smaller representation and generated code.
+
+The [profile and native code record](../csharp/compatibility/evidence/utf8-optimization-profiles.json) includes before/after CPU profiles and complete NativeAOT method sizes. Profiles use the same Satori CoreCLR with tiering disabled and count samples only inside compilation intervals. They identify costs; they are not NativeAOT elapsed-time measurements.
+
+Additional scanner experiments were rejected. Splitting, inlining, and outlining UTF-8 code-point decoding reduced some code sizes but gave mixed whole-program results. A BCL SIMD search for runs of ASCII whitespace regressed most workloads. The [experiment record](../csharp/compatibility/evidence/utf8-optimization-experiments.json) preserves those results, the identical-binary control, and the original budget outcomes. No scanner change from those experiments is retained.
+
+### Repeated NativeAOT measurements
+
+The [repeated comparison](../csharp/compatibility/evidence/utf8-optimization-replications.json) uses six fresh process pairs per workload, with the original and optimized binaries exchanged between the two process positions in three pairs. Each process receives 30 warmups and 20 measured fresh-program requests in default checker mode. The pinned SDK, Satori runtime libraries, Server GC, native instruction selection, and Go reference are unchanged. All 24 logical processors remain available. All 9,000 requests passed correctness and memory budgets, with no desktop input recorded during measurement.
+
+Times below are medians of the six process medians, in milliseconds. The reduction column is the median of the six paired percentage reductions, so it need not equal the percentage calculated from the aggregate time columns.
+
+| Workload | Committed UTF-8 | Follow-up | Go | Paired reduction |
+| --- | ---: | ---: | ---: | ---: |
+| JSX signatures | 28.13 | 27.65 | 17.73 | 1.8% |
+| Large conditional type | 68.98 | 68.46 | 60.16 | 0.6% |
+| Static members | 24.72 | 24.29 | 17.10 | 2.1% |
+| Node modules with JS | 24.49 | 24.06 | 17.19 | 1.6% |
+| Large diagnostic program | 23.78 | 23.30 | 16.27 | 2.5% |
+| 5,000 ASCII exports | 9.39 | 8.83 | 6.81 | 6.6% |
+| Unicode strings | 9.30 | 8.75 | 6.83 | 5.7% |
+| Unicode identifiers | 9.64 | 9.27 | 7.06 | 4.4% |
+| Malformed-byte run | 9.37 | 8.93 | 6.81 | 4.3% |
+| Sparse malformed bytes | 9.52 | 8.94 | 6.80 | 5.0% |
+
+Program construction improves in 59 of 60 process pairs, with median paired reductions of 1.9–2.5% on the original workloads and 4.5–5.1% on the controls. Total times vary more: JSX and static members improve in all six pairs, while each other original workload improves in four. Identical NativeAOT binaries differed by up to 4.6% in the earlier control, and the tiered CoreCLR control differed by up to 9.8%. These six-pair results provide repeated evidence, not confidence intervals. Allocations are essentially unchanged.
+
+The [full runtime comparisons](../csharp/compatibility/evidence/utf8-optimization-performance.json) also include both checker modes under NativeAOT and CoreCLR with tiering enabled and disabled, using 60 warmups and 30 measured requests. All final workload groups passed their budgets. Managed comparisons have one process pair each and should be read with the observed control variation. The same record contains the isolated modifier comparison and NativeAOT identical-binary control. Compressed request samples accompany the records.
+
+The gap to Go is smaller but remains substantial: NativeAOT takes 1.14–1.56 times Go's elapsed time on the original workloads. For the large diagnostic program, construction takes 20.23 ms versus Go's 15.17 ms and checking takes 3.23 ms versus 1.04 ms. The conditional workload takes 22.84 versus 15.11 ms for construction, while checking is close at 45.63 versus 45.37 ms. Separate phase medians do not necessarily sum to the total median. Per-node allocation and the distributed parser/binder costs remain leads for further work; this pass does not establish an arena-allocation speedup.
+
+### Follow-up validation
+
+The [validation record](../csharp/compatibility/evidence/utf8-optimization-validation.json) ties results to the final source and binaries. Release CoreCLR passed all 13,446 semantic cases with fresh programs in each mode, with the unchanged full output hash, and all 1,649,908 comparisons across 31 API families. The four pre-existing Go API failures remain excluded. Fresh stock and Satori NativeAOT builds completed with zero warnings and errors and passed their runtime checks and 5,019 foundation assertions. Satori passed all 74 safety suites and all 12,895 strict scanner cases; stock also passed the 41-case parser safety suite. Full semantic and API matrices were not repeated under NativeAOT.
+
+One exploratory tiered modifier batch failed the retained-heap growth budget; its failure remains in the experiment record. A separate 200-request follow-up showed bounded alternating heap levels for both versions and passed the budget. That follow-up ran alongside validation, so its elapsed times are excluded from performance conclusions.

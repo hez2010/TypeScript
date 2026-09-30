@@ -5,170 +5,193 @@ public static partial class TokenFacts
 {
     public static SyntaxKind FromText(ReadOnlySpan<byte> text) => text.Length switch
     {
-        1 => text[0] switch
-        {
-            (byte)'{' => SyntaxKind.OpenBraceToken,
-            (byte)'}' => SyntaxKind.CloseBraceToken,
-            (byte)'(' => SyntaxKind.OpenParenToken,
-            (byte)')' => SyntaxKind.CloseParenToken,
-            (byte)'[' => SyntaxKind.OpenBracketToken,
-            (byte)']' => SyntaxKind.CloseBracketToken,
-            (byte)'.' => SyntaxKind.DotToken,
-            (byte)';' => SyntaxKind.SemicolonToken,
-            (byte)',' => SyntaxKind.CommaToken,
-            (byte)'<' => SyntaxKind.LessThanToken,
-            (byte)'>' => SyntaxKind.GreaterThanToken,
-            (byte)'+' => SyntaxKind.PlusToken,
-            (byte)'-' => SyntaxKind.MinusToken,
-            (byte)'*' => SyntaxKind.AsteriskToken,
-            (byte)'/' => SyntaxKind.SlashToken,
-            (byte)'%' => SyntaxKind.PercentToken,
-            (byte)'&' => SyntaxKind.AmpersandToken,
-            (byte)'|' => SyntaxKind.BarToken,
-            (byte)'^' => SyntaxKind.CaretToken,
-            (byte)'!' => SyntaxKind.ExclamationToken,
-            (byte)'~' => SyntaxKind.TildeToken,
-            (byte)'?' => SyntaxKind.QuestionToken,
-            (byte)':' => SyntaxKind.ColonToken,
-            (byte)'=' => SyntaxKind.EqualsToken,
-            (byte)'@' => SyntaxKind.AtToken,
-            (byte)'#' => SyntaxKind.HashToken,
-            (byte)'`' => SyntaxKind.BacktickToken,
-            _ => SyntaxKind.Unknown,
-        },
-        2 => text[0] switch
-        {
-            (byte)'a' => text.SequenceEqual("as"u8) ? SyntaxKind.AsKeyword : SyntaxKind.Unknown,
-            (byte)'d' => text.SequenceEqual("do"u8) ? SyntaxKind.DoKeyword : SyntaxKind.Unknown,
-            (byte)'i' => text.SequenceEqual("if"u8) ? SyntaxKind.IfKeyword : text.SequenceEqual("in"u8) ? SyntaxKind.InKeyword : text.SequenceEqual("is"u8) ? SyntaxKind.IsKeyword : SyntaxKind.Unknown,
-            (byte)'o' => text.SequenceEqual("of"u8) ? SyntaxKind.OfKeyword : SyntaxKind.Unknown,
-            (byte)'<' => text.SequenceEqual("<="u8) ? SyntaxKind.LessThanEqualsToken : text.SequenceEqual("<<"u8) ? SyntaxKind.LessThanLessThanToken : text.SequenceEqual("</"u8) ? SyntaxKind.LessThanSlashToken : SyntaxKind.Unknown,
-            (byte)'>' => text.SequenceEqual(">="u8) ? SyntaxKind.GreaterThanEqualsToken : text.SequenceEqual(">>"u8) ? SyntaxKind.GreaterThanGreaterThanToken : SyntaxKind.Unknown,
-            (byte)'=' => text.SequenceEqual("=="u8) ? SyntaxKind.EqualsEqualsToken : text.SequenceEqual("=>"u8) ? SyntaxKind.EqualsGreaterThanToken : SyntaxKind.Unknown,
-            (byte)'!' => text.SequenceEqual("!="u8) ? SyntaxKind.ExclamationEqualsToken : SyntaxKind.Unknown,
-            (byte)'*' => text.SequenceEqual("**"u8) ? SyntaxKind.AsteriskAsteriskToken : text.SequenceEqual("*="u8) ? SyntaxKind.AsteriskEqualsToken : SyntaxKind.Unknown,
-            (byte)'+' => text.SequenceEqual("++"u8) ? SyntaxKind.PlusPlusToken : text.SequenceEqual("+="u8) ? SyntaxKind.PlusEqualsToken : SyntaxKind.Unknown,
-            (byte)'-' => text.SequenceEqual("--"u8) ? SyntaxKind.MinusMinusToken : text.SequenceEqual("-="u8) ? SyntaxKind.MinusEqualsToken : SyntaxKind.Unknown,
-            (byte)'&' => text.SequenceEqual("&&"u8) ? SyntaxKind.AmpersandAmpersandToken : text.SequenceEqual("&="u8) ? SyntaxKind.AmpersandEqualsToken : SyntaxKind.Unknown,
-            (byte)'|' => text.SequenceEqual("||"u8) ? SyntaxKind.BarBarToken : text.SequenceEqual("|="u8) ? SyntaxKind.BarEqualsToken : SyntaxKind.Unknown,
-            (byte)'?' => text.SequenceEqual("??"u8) ? SyntaxKind.QuestionQuestionToken : text.SequenceEqual("?."u8) ? SyntaxKind.QuestionDotToken : SyntaxKind.Unknown,
-            (byte)'/' => text.SequenceEqual("/="u8) ? SyntaxKind.SlashEqualsToken : SyntaxKind.Unknown,
-            (byte)'%' => text.SequenceEqual("%="u8) ? SyntaxKind.PercentEqualsToken : SyntaxKind.Unknown,
-            (byte)'^' => text.SequenceEqual("^="u8) ? SyntaxKind.CaretEqualsToken : SyntaxKind.Unknown,
-            _ => SyntaxKind.Unknown,
-        },
-        3 => text[0] switch
-        {
-            (byte)'a' => text.SequenceEqual("any"u8) ? SyntaxKind.AnyKeyword : SyntaxKind.Unknown,
-            (byte)'f' => text.SequenceEqual("for"u8) ? SyntaxKind.ForKeyword : SyntaxKind.Unknown,
-            (byte)'g' => text.SequenceEqual("get"u8) ? SyntaxKind.GetKeyword : SyntaxKind.Unknown,
-            (byte)'l' => text.SequenceEqual("let"u8) ? SyntaxKind.LetKeyword : SyntaxKind.Unknown,
-            (byte)'n' => text.SequenceEqual("new"u8) ? SyntaxKind.NewKeyword : SyntaxKind.Unknown,
-            (byte)'o' => text.SequenceEqual("out"u8) ? SyntaxKind.OutKeyword : SyntaxKind.Unknown,
-            (byte)'s' => text.SequenceEqual("set"u8) ? SyntaxKind.SetKeyword : SyntaxKind.Unknown,
-            (byte)'t' => text.SequenceEqual("try"u8) ? SyntaxKind.TryKeyword : SyntaxKind.Unknown,
-            (byte)'v' => text.SequenceEqual("var"u8) ? SyntaxKind.VarKeyword : SyntaxKind.Unknown,
-            (byte)'.' => text.SequenceEqual("..."u8) ? SyntaxKind.DotDotDotToken : SyntaxKind.Unknown,
-            (byte)'=' => text.SequenceEqual("==="u8) ? SyntaxKind.EqualsEqualsEqualsToken : SyntaxKind.Unknown,
-            (byte)'!' => text.SequenceEqual("!=="u8) ? SyntaxKind.ExclamationEqualsEqualsToken : SyntaxKind.Unknown,
-            (byte)'>' => text.SequenceEqual(">>>"u8) ? SyntaxKind.GreaterThanGreaterThanGreaterThanToken : text.SequenceEqual(">>="u8) ? SyntaxKind.GreaterThanGreaterThanEqualsToken : SyntaxKind.Unknown,
-            (byte)'*' => text.SequenceEqual("**="u8) ? SyntaxKind.AsteriskAsteriskEqualsToken : SyntaxKind.Unknown,
-            (byte)'<' => text.SequenceEqual("<<="u8) ? SyntaxKind.LessThanLessThanEqualsToken : SyntaxKind.Unknown,
-            (byte)'|' => text.SequenceEqual("||="u8) ? SyntaxKind.BarBarEqualsToken : SyntaxKind.Unknown,
-            (byte)'&' => text.SequenceEqual("&&="u8) ? SyntaxKind.AmpersandAmpersandEqualsToken : SyntaxKind.Unknown,
-            (byte)'?' => text.SequenceEqual("??="u8) ? SyntaxKind.QuestionQuestionEqualsToken : SyntaxKind.Unknown,
-            _ => SyntaxKind.Unknown,
-        },
-        4 => text[0] switch
-        {
-            (byte)'c' => text.SequenceEqual("case"u8) ? SyntaxKind.CaseKeyword : SyntaxKind.Unknown,
-            (byte)'e' => text.SequenceEqual("else"u8) ? SyntaxKind.ElseKeyword : text.SequenceEqual("enum"u8) ? SyntaxKind.EnumKeyword : SyntaxKind.Unknown,
-            (byte)'f' => text.SequenceEqual("from"u8) ? SyntaxKind.FromKeyword : SyntaxKind.Unknown,
-            (byte)'n' => text.SequenceEqual("null"u8) ? SyntaxKind.NullKeyword : SyntaxKind.Unknown,
-            (byte)'t' => text.SequenceEqual("this"u8) ? SyntaxKind.ThisKeyword : text.SequenceEqual("true"u8) ? SyntaxKind.TrueKeyword : text.SequenceEqual("type"u8) ? SyntaxKind.TypeKeyword : SyntaxKind.Unknown,
-            (byte)'v' => text.SequenceEqual("void"u8) ? SyntaxKind.VoidKeyword : SyntaxKind.Unknown,
-            (byte)'w' => text.SequenceEqual("with"u8) ? SyntaxKind.WithKeyword : SyntaxKind.Unknown,
-            (byte)'>' => text.SequenceEqual(">>>="u8) ? SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken : SyntaxKind.Unknown,
-            _ => SyntaxKind.Unknown,
-        },
-        5 => text[0] switch
-        {
-            (byte)'b' => text.SequenceEqual("break"u8) ? SyntaxKind.BreakKeyword : SyntaxKind.Unknown,
-            (byte)'c' => text.SequenceEqual("catch"u8) ? SyntaxKind.CatchKeyword : text.SequenceEqual("class"u8) ? SyntaxKind.ClassKeyword : text.SequenceEqual("const"u8) ? SyntaxKind.ConstKeyword : SyntaxKind.Unknown,
-            (byte)'d' => text.SequenceEqual("defer"u8) ? SyntaxKind.DeferKeyword : SyntaxKind.Unknown,
-            (byte)'f' => text.SequenceEqual("false"u8) ? SyntaxKind.FalseKeyword : SyntaxKind.Unknown,
-            (byte)'i' => text.SequenceEqual("infer"u8) ? SyntaxKind.InferKeyword : SyntaxKind.Unknown,
-            (byte)'k' => text.SequenceEqual("keyof"u8) ? SyntaxKind.KeyOfKeyword : SyntaxKind.Unknown,
-            (byte)'n' => text.SequenceEqual("never"u8) ? SyntaxKind.NeverKeyword : SyntaxKind.Unknown,
-            (byte)'s' => text.SequenceEqual("super"u8) ? SyntaxKind.SuperKeyword : SyntaxKind.Unknown,
-            (byte)'t' => text.SequenceEqual("throw"u8) ? SyntaxKind.ThrowKeyword : SyntaxKind.Unknown,
-            (byte)'u' => text.SequenceEqual("using"u8) ? SyntaxKind.UsingKeyword : SyntaxKind.Unknown,
-            (byte)'w' => text.SequenceEqual("while"u8) ? SyntaxKind.WhileKeyword : SyntaxKind.Unknown,
-            (byte)'y' => text.SequenceEqual("yield"u8) ? SyntaxKind.YieldKeyword : SyntaxKind.Unknown,
-            (byte)'a' => text.SequenceEqual("async"u8) ? SyntaxKind.AsyncKeyword : text.SequenceEqual("await"u8) ? SyntaxKind.AwaitKeyword : SyntaxKind.Unknown,
-            _ => SyntaxKind.Unknown,
-        },
-        6 => text[0] switch
-        {
-            (byte)'a' => text.SequenceEqual("assert"u8) ? SyntaxKind.AssertKeyword : SyntaxKind.Unknown,
-            (byte)'b' => text.SequenceEqual("bigint"u8) ? SyntaxKind.BigIntKeyword : SyntaxKind.Unknown,
-            (byte)'d' => text.SequenceEqual("delete"u8) ? SyntaxKind.DeleteKeyword : SyntaxKind.Unknown,
-            (byte)'e' => text.SequenceEqual("export"u8) ? SyntaxKind.ExportKeyword : SyntaxKind.Unknown,
-            (byte)'i' => text.SequenceEqual("import"u8) ? SyntaxKind.ImportKeyword : SyntaxKind.Unknown,
-            (byte)'m' => text.SequenceEqual("module"u8) ? SyntaxKind.ModuleKeyword : SyntaxKind.Unknown,
-            (byte)'n' => text.SequenceEqual("number"u8) ? SyntaxKind.NumberKeyword : SyntaxKind.Unknown,
-            (byte)'o' => text.SequenceEqual("object"u8) ? SyntaxKind.ObjectKeyword : SyntaxKind.Unknown,
-            (byte)'p' => text.SequenceEqual("public"u8) ? SyntaxKind.PublicKeyword : SyntaxKind.Unknown,
-            (byte)'g' => text.SequenceEqual("global"u8) ? SyntaxKind.GlobalKeyword : SyntaxKind.Unknown,
-            (byte)'r' => text.SequenceEqual("return"u8) ? SyntaxKind.ReturnKeyword : SyntaxKind.Unknown,
-            (byte)'s' => text.SequenceEqual("static"u8) ? SyntaxKind.StaticKeyword : text.SequenceEqual("string"u8) ? SyntaxKind.StringKeyword : text.SequenceEqual("switch"u8) ? SyntaxKind.SwitchKeyword : text.SequenceEqual("symbol"u8) ? SyntaxKind.SymbolKeyword : SyntaxKind.Unknown,
-            (byte)'t' => text.SequenceEqual("typeof"u8) ? SyntaxKind.TypeOfKeyword : SyntaxKind.Unknown,
-            (byte)'u' => text.SequenceEqual("unique"u8) ? SyntaxKind.UniqueKeyword : SyntaxKind.Unknown,
-            _ => SyntaxKind.Unknown,
-        },
-        7 => text[0] switch
-        {
-            (byte)'a' => text.SequenceEqual("asserts"u8) ? SyntaxKind.AssertsKeyword : SyntaxKind.Unknown,
-            (byte)'b' => text.SequenceEqual("boolean"u8) ? SyntaxKind.BooleanKeyword : SyntaxKind.Unknown,
-            (byte)'d' => text.SequenceEqual("declare"u8) ? SyntaxKind.DeclareKeyword : text.SequenceEqual("default"u8) ? SyntaxKind.DefaultKeyword : SyntaxKind.Unknown,
-            (byte)'e' => text.SequenceEqual("extends"u8) ? SyntaxKind.ExtendsKeyword : SyntaxKind.Unknown,
-            (byte)'f' => text.SequenceEqual("finally"u8) ? SyntaxKind.FinallyKeyword : SyntaxKind.Unknown,
-            (byte)'p' => text.SequenceEqual("package"u8) ? SyntaxKind.PackageKeyword : text.SequenceEqual("private"u8) ? SyntaxKind.PrivateKeyword : SyntaxKind.Unknown,
-            (byte)'r' => text.SequenceEqual("require"u8) ? SyntaxKind.RequireKeyword : SyntaxKind.Unknown,
-            (byte)'u' => text.SequenceEqual("unknown"u8) ? SyntaxKind.UnknownKeyword : SyntaxKind.Unknown,
-            _ => SyntaxKind.Unknown,
-        },
-        8 => text[0] switch
-        {
-            (byte)'a' => text.SequenceEqual("abstract"u8) ? SyntaxKind.AbstractKeyword : text.SequenceEqual("accessor"u8) ? SyntaxKind.AccessorKeyword : SyntaxKind.Unknown,
-            (byte)'c' => text.SequenceEqual("continue"u8) ? SyntaxKind.ContinueKeyword : SyntaxKind.Unknown,
-            (byte)'d' => text.SequenceEqual("debugger"u8) ? SyntaxKind.DebuggerKeyword : SyntaxKind.Unknown,
-            (byte)'f' => text.SequenceEqual("function"u8) ? SyntaxKind.FunctionKeyword : SyntaxKind.Unknown,
-            (byte)'o' => text.SequenceEqual("override"u8) ? SyntaxKind.OverrideKeyword : SyntaxKind.Unknown,
-            (byte)'r' => text.SequenceEqual("readonly"u8) ? SyntaxKind.ReadonlyKeyword : SyntaxKind.Unknown,
-            _ => SyntaxKind.Unknown,
-        },
-        9 => text[0] switch
-        {
-            (byte)'i' => text.SequenceEqual("immediate"u8) ? SyntaxKind.ImmediateKeyword : text.SequenceEqual("interface"u8) ? SyntaxKind.InterfaceKeyword : text.SequenceEqual("intrinsic"u8) ? SyntaxKind.IntrinsicKeyword : SyntaxKind.Unknown,
-            (byte)'n' => text.SequenceEqual("namespace"u8) ? SyntaxKind.NamespaceKeyword : SyntaxKind.Unknown,
-            (byte)'p' => text.SequenceEqual("protected"u8) ? SyntaxKind.ProtectedKeyword : SyntaxKind.Unknown,
-            (byte)'s' => text.SequenceEqual("satisfies"u8) ? SyntaxKind.SatisfiesKeyword : SyntaxKind.Unknown,
-            (byte)'u' => text.SequenceEqual("undefined"u8) ? SyntaxKind.UndefinedKeyword : SyntaxKind.Unknown,
-            _ => SyntaxKind.Unknown,
-        },
-        10 => text[0] switch
-        {
-            (byte)'i' => text.SequenceEqual("implements"u8) ? SyntaxKind.ImplementsKeyword : text.SequenceEqual("instanceof"u8) ? SyntaxKind.InstanceOfKeyword : SyntaxKind.Unknown,
-            _ => SyntaxKind.Unknown,
-        },
-        11 => text[0] switch
-        {
-            (byte)'c' => text.SequenceEqual("constructor"u8) ? SyntaxKind.ConstructorKeyword : SyntaxKind.Unknown,
-            _ => SyntaxKind.Unknown,
-        },
+        1 => FromText1(text),
+        2 => FromText2(text),
+        3 => FromText3(text),
+        4 => FromText4(text),
+        5 => FromText5(text),
+        6 => FromText6(text),
+        7 => FromText7(text),
+        8 => FromText8(text),
+        9 => FromText9(text),
+        10 => FromText10(text),
+        11 => FromText11(text),
         _ => SyntaxKind.Unknown,
     };
+
+    private static SyntaxKind FromText1(ReadOnlySpan<byte> text) => text[0] switch
+    {
+        (byte)'{' => SyntaxKind.OpenBraceToken,
+        (byte)'}' => SyntaxKind.CloseBraceToken,
+        (byte)'(' => SyntaxKind.OpenParenToken,
+        (byte)')' => SyntaxKind.CloseParenToken,
+        (byte)'[' => SyntaxKind.OpenBracketToken,
+        (byte)']' => SyntaxKind.CloseBracketToken,
+        (byte)'.' => SyntaxKind.DotToken,
+        (byte)';' => SyntaxKind.SemicolonToken,
+        (byte)',' => SyntaxKind.CommaToken,
+        (byte)'<' => SyntaxKind.LessThanToken,
+        (byte)'>' => SyntaxKind.GreaterThanToken,
+        (byte)'+' => SyntaxKind.PlusToken,
+        (byte)'-' => SyntaxKind.MinusToken,
+        (byte)'*' => SyntaxKind.AsteriskToken,
+        (byte)'/' => SyntaxKind.SlashToken,
+        (byte)'%' => SyntaxKind.PercentToken,
+        (byte)'&' => SyntaxKind.AmpersandToken,
+        (byte)'|' => SyntaxKind.BarToken,
+        (byte)'^' => SyntaxKind.CaretToken,
+        (byte)'!' => SyntaxKind.ExclamationToken,
+        (byte)'~' => SyntaxKind.TildeToken,
+        (byte)'?' => SyntaxKind.QuestionToken,
+        (byte)':' => SyntaxKind.ColonToken,
+        (byte)'=' => SyntaxKind.EqualsToken,
+        (byte)'@' => SyntaxKind.AtToken,
+        (byte)'#' => SyntaxKind.HashToken,
+        (byte)'`' => SyntaxKind.BacktickToken,
+        _ => SyntaxKind.Unknown,
+    };
+
+    private static SyntaxKind FromText2(ReadOnlySpan<byte> text) => text[0] switch
+    {
+        (byte)'a' => text.SequenceEqual("as"u8) ? SyntaxKind.AsKeyword : SyntaxKind.Unknown,
+        (byte)'d' => text.SequenceEqual("do"u8) ? SyntaxKind.DoKeyword : SyntaxKind.Unknown,
+        (byte)'i' => text.SequenceEqual("if"u8) ? SyntaxKind.IfKeyword : text.SequenceEqual("in"u8) ? SyntaxKind.InKeyword : text.SequenceEqual("is"u8) ? SyntaxKind.IsKeyword : SyntaxKind.Unknown,
+        (byte)'o' => text.SequenceEqual("of"u8) ? SyntaxKind.OfKeyword : SyntaxKind.Unknown,
+        (byte)'<' => text.SequenceEqual("<="u8) ? SyntaxKind.LessThanEqualsToken : text.SequenceEqual("<<"u8) ? SyntaxKind.LessThanLessThanToken : text.SequenceEqual("</"u8) ? SyntaxKind.LessThanSlashToken : SyntaxKind.Unknown,
+        (byte)'>' => text.SequenceEqual(">="u8) ? SyntaxKind.GreaterThanEqualsToken : text.SequenceEqual(">>"u8) ? SyntaxKind.GreaterThanGreaterThanToken : SyntaxKind.Unknown,
+        (byte)'=' => text.SequenceEqual("=="u8) ? SyntaxKind.EqualsEqualsToken : text.SequenceEqual("=>"u8) ? SyntaxKind.EqualsGreaterThanToken : SyntaxKind.Unknown,
+        (byte)'!' => text.SequenceEqual("!="u8) ? SyntaxKind.ExclamationEqualsToken : SyntaxKind.Unknown,
+        (byte)'*' => text.SequenceEqual("**"u8) ? SyntaxKind.AsteriskAsteriskToken : text.SequenceEqual("*="u8) ? SyntaxKind.AsteriskEqualsToken : SyntaxKind.Unknown,
+        (byte)'+' => text.SequenceEqual("++"u8) ? SyntaxKind.PlusPlusToken : text.SequenceEqual("+="u8) ? SyntaxKind.PlusEqualsToken : SyntaxKind.Unknown,
+        (byte)'-' => text.SequenceEqual("--"u8) ? SyntaxKind.MinusMinusToken : text.SequenceEqual("-="u8) ? SyntaxKind.MinusEqualsToken : SyntaxKind.Unknown,
+        (byte)'&' => text.SequenceEqual("&&"u8) ? SyntaxKind.AmpersandAmpersandToken : text.SequenceEqual("&="u8) ? SyntaxKind.AmpersandEqualsToken : SyntaxKind.Unknown,
+        (byte)'|' => text.SequenceEqual("||"u8) ? SyntaxKind.BarBarToken : text.SequenceEqual("|="u8) ? SyntaxKind.BarEqualsToken : SyntaxKind.Unknown,
+        (byte)'?' => text.SequenceEqual("??"u8) ? SyntaxKind.QuestionQuestionToken : text.SequenceEqual("?."u8) ? SyntaxKind.QuestionDotToken : SyntaxKind.Unknown,
+        (byte)'/' => text.SequenceEqual("/="u8) ? SyntaxKind.SlashEqualsToken : SyntaxKind.Unknown,
+        (byte)'%' => text.SequenceEqual("%="u8) ? SyntaxKind.PercentEqualsToken : SyntaxKind.Unknown,
+        (byte)'^' => text.SequenceEqual("^="u8) ? SyntaxKind.CaretEqualsToken : SyntaxKind.Unknown,
+        _ => SyntaxKind.Unknown,
+    };
+
+    private static SyntaxKind FromText3(ReadOnlySpan<byte> text) => text[0] switch
+    {
+        (byte)'a' => text.SequenceEqual("any"u8) ? SyntaxKind.AnyKeyword : SyntaxKind.Unknown,
+        (byte)'f' => text.SequenceEqual("for"u8) ? SyntaxKind.ForKeyword : SyntaxKind.Unknown,
+        (byte)'g' => text.SequenceEqual("get"u8) ? SyntaxKind.GetKeyword : SyntaxKind.Unknown,
+        (byte)'l' => text.SequenceEqual("let"u8) ? SyntaxKind.LetKeyword : SyntaxKind.Unknown,
+        (byte)'n' => text.SequenceEqual("new"u8) ? SyntaxKind.NewKeyword : SyntaxKind.Unknown,
+        (byte)'o' => text.SequenceEqual("out"u8) ? SyntaxKind.OutKeyword : SyntaxKind.Unknown,
+        (byte)'s' => text.SequenceEqual("set"u8) ? SyntaxKind.SetKeyword : SyntaxKind.Unknown,
+        (byte)'t' => text.SequenceEqual("try"u8) ? SyntaxKind.TryKeyword : SyntaxKind.Unknown,
+        (byte)'v' => text.SequenceEqual("var"u8) ? SyntaxKind.VarKeyword : SyntaxKind.Unknown,
+        (byte)'.' => text.SequenceEqual("..."u8) ? SyntaxKind.DotDotDotToken : SyntaxKind.Unknown,
+        (byte)'=' => text.SequenceEqual("==="u8) ? SyntaxKind.EqualsEqualsEqualsToken : SyntaxKind.Unknown,
+        (byte)'!' => text.SequenceEqual("!=="u8) ? SyntaxKind.ExclamationEqualsEqualsToken : SyntaxKind.Unknown,
+        (byte)'>' => text.SequenceEqual(">>>"u8) ? SyntaxKind.GreaterThanGreaterThanGreaterThanToken : text.SequenceEqual(">>="u8) ? SyntaxKind.GreaterThanGreaterThanEqualsToken : SyntaxKind.Unknown,
+        (byte)'*' => text.SequenceEqual("**="u8) ? SyntaxKind.AsteriskAsteriskEqualsToken : SyntaxKind.Unknown,
+        (byte)'<' => text.SequenceEqual("<<="u8) ? SyntaxKind.LessThanLessThanEqualsToken : SyntaxKind.Unknown,
+        (byte)'|' => text.SequenceEqual("||="u8) ? SyntaxKind.BarBarEqualsToken : SyntaxKind.Unknown,
+        (byte)'&' => text.SequenceEqual("&&="u8) ? SyntaxKind.AmpersandAmpersandEqualsToken : SyntaxKind.Unknown,
+        (byte)'?' => text.SequenceEqual("??="u8) ? SyntaxKind.QuestionQuestionEqualsToken : SyntaxKind.Unknown,
+        _ => SyntaxKind.Unknown,
+    };
+
+    private static SyntaxKind FromText4(ReadOnlySpan<byte> text) => text[0] switch
+    {
+        (byte)'c' => text.SequenceEqual("case"u8) ? SyntaxKind.CaseKeyword : SyntaxKind.Unknown,
+        (byte)'e' => text.SequenceEqual("else"u8) ? SyntaxKind.ElseKeyword : text.SequenceEqual("enum"u8) ? SyntaxKind.EnumKeyword : SyntaxKind.Unknown,
+        (byte)'f' => text.SequenceEqual("from"u8) ? SyntaxKind.FromKeyword : SyntaxKind.Unknown,
+        (byte)'n' => text.SequenceEqual("null"u8) ? SyntaxKind.NullKeyword : SyntaxKind.Unknown,
+        (byte)'t' => text.SequenceEqual("this"u8) ? SyntaxKind.ThisKeyword : text.SequenceEqual("true"u8) ? SyntaxKind.TrueKeyword : text.SequenceEqual("type"u8) ? SyntaxKind.TypeKeyword : SyntaxKind.Unknown,
+        (byte)'v' => text.SequenceEqual("void"u8) ? SyntaxKind.VoidKeyword : SyntaxKind.Unknown,
+        (byte)'w' => text.SequenceEqual("with"u8) ? SyntaxKind.WithKeyword : SyntaxKind.Unknown,
+        (byte)'>' => text.SequenceEqual(">>>="u8) ? SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken : SyntaxKind.Unknown,
+        _ => SyntaxKind.Unknown,
+    };
+
+    private static SyntaxKind FromText5(ReadOnlySpan<byte> text) => text[0] switch
+    {
+        (byte)'b' => text.SequenceEqual("break"u8) ? SyntaxKind.BreakKeyword : SyntaxKind.Unknown,
+        (byte)'c' => text.SequenceEqual("catch"u8) ? SyntaxKind.CatchKeyword : text.SequenceEqual("class"u8) ? SyntaxKind.ClassKeyword : text.SequenceEqual("const"u8) ? SyntaxKind.ConstKeyword : SyntaxKind.Unknown,
+        (byte)'d' => text.SequenceEqual("defer"u8) ? SyntaxKind.DeferKeyword : SyntaxKind.Unknown,
+        (byte)'f' => text.SequenceEqual("false"u8) ? SyntaxKind.FalseKeyword : SyntaxKind.Unknown,
+        (byte)'i' => text.SequenceEqual("infer"u8) ? SyntaxKind.InferKeyword : SyntaxKind.Unknown,
+        (byte)'k' => text.SequenceEqual("keyof"u8) ? SyntaxKind.KeyOfKeyword : SyntaxKind.Unknown,
+        (byte)'n' => text.SequenceEqual("never"u8) ? SyntaxKind.NeverKeyword : SyntaxKind.Unknown,
+        (byte)'s' => text.SequenceEqual("super"u8) ? SyntaxKind.SuperKeyword : SyntaxKind.Unknown,
+        (byte)'t' => text.SequenceEqual("throw"u8) ? SyntaxKind.ThrowKeyword : SyntaxKind.Unknown,
+        (byte)'u' => text.SequenceEqual("using"u8) ? SyntaxKind.UsingKeyword : SyntaxKind.Unknown,
+        (byte)'w' => text.SequenceEqual("while"u8) ? SyntaxKind.WhileKeyword : SyntaxKind.Unknown,
+        (byte)'y' => text.SequenceEqual("yield"u8) ? SyntaxKind.YieldKeyword : SyntaxKind.Unknown,
+        (byte)'a' => text.SequenceEqual("async"u8) ? SyntaxKind.AsyncKeyword : text.SequenceEqual("await"u8) ? SyntaxKind.AwaitKeyword : SyntaxKind.Unknown,
+        _ => SyntaxKind.Unknown,
+    };
+
+    private static SyntaxKind FromText6(ReadOnlySpan<byte> text) => text[0] switch
+    {
+        (byte)'a' => text.SequenceEqual("assert"u8) ? SyntaxKind.AssertKeyword : SyntaxKind.Unknown,
+        (byte)'b' => text.SequenceEqual("bigint"u8) ? SyntaxKind.BigIntKeyword : SyntaxKind.Unknown,
+        (byte)'d' => text.SequenceEqual("delete"u8) ? SyntaxKind.DeleteKeyword : SyntaxKind.Unknown,
+        (byte)'e' => text.SequenceEqual("export"u8) ? SyntaxKind.ExportKeyword : SyntaxKind.Unknown,
+        (byte)'i' => text.SequenceEqual("import"u8) ? SyntaxKind.ImportKeyword : SyntaxKind.Unknown,
+        (byte)'m' => text.SequenceEqual("module"u8) ? SyntaxKind.ModuleKeyword : SyntaxKind.Unknown,
+        (byte)'n' => text.SequenceEqual("number"u8) ? SyntaxKind.NumberKeyword : SyntaxKind.Unknown,
+        (byte)'o' => text.SequenceEqual("object"u8) ? SyntaxKind.ObjectKeyword : SyntaxKind.Unknown,
+        (byte)'p' => text.SequenceEqual("public"u8) ? SyntaxKind.PublicKeyword : SyntaxKind.Unknown,
+        (byte)'g' => text.SequenceEqual("global"u8) ? SyntaxKind.GlobalKeyword : SyntaxKind.Unknown,
+        (byte)'r' => text.SequenceEqual("return"u8) ? SyntaxKind.ReturnKeyword : SyntaxKind.Unknown,
+        (byte)'s' => text.SequenceEqual("static"u8) ? SyntaxKind.StaticKeyword : text.SequenceEqual("string"u8) ? SyntaxKind.StringKeyword : text.SequenceEqual("switch"u8) ? SyntaxKind.SwitchKeyword : text.SequenceEqual("symbol"u8) ? SyntaxKind.SymbolKeyword : SyntaxKind.Unknown,
+        (byte)'t' => text.SequenceEqual("typeof"u8) ? SyntaxKind.TypeOfKeyword : SyntaxKind.Unknown,
+        (byte)'u' => text.SequenceEqual("unique"u8) ? SyntaxKind.UniqueKeyword : SyntaxKind.Unknown,
+        _ => SyntaxKind.Unknown,
+    };
+
+    private static SyntaxKind FromText7(ReadOnlySpan<byte> text) => text[0] switch
+    {
+        (byte)'a' => text.SequenceEqual("asserts"u8) ? SyntaxKind.AssertsKeyword : SyntaxKind.Unknown,
+        (byte)'b' => text.SequenceEqual("boolean"u8) ? SyntaxKind.BooleanKeyword : SyntaxKind.Unknown,
+        (byte)'d' => text.SequenceEqual("declare"u8) ? SyntaxKind.DeclareKeyword : text.SequenceEqual("default"u8) ? SyntaxKind.DefaultKeyword : SyntaxKind.Unknown,
+        (byte)'e' => text.SequenceEqual("extends"u8) ? SyntaxKind.ExtendsKeyword : SyntaxKind.Unknown,
+        (byte)'f' => text.SequenceEqual("finally"u8) ? SyntaxKind.FinallyKeyword : SyntaxKind.Unknown,
+        (byte)'p' => text.SequenceEqual("package"u8) ? SyntaxKind.PackageKeyword : text.SequenceEqual("private"u8) ? SyntaxKind.PrivateKeyword : SyntaxKind.Unknown,
+        (byte)'r' => text.SequenceEqual("require"u8) ? SyntaxKind.RequireKeyword : SyntaxKind.Unknown,
+        (byte)'u' => text.SequenceEqual("unknown"u8) ? SyntaxKind.UnknownKeyword : SyntaxKind.Unknown,
+        _ => SyntaxKind.Unknown,
+    };
+
+    private static SyntaxKind FromText8(ReadOnlySpan<byte> text) => text[0] switch
+    {
+        (byte)'a' => text.SequenceEqual("abstract"u8) ? SyntaxKind.AbstractKeyword : text.SequenceEqual("accessor"u8) ? SyntaxKind.AccessorKeyword : SyntaxKind.Unknown,
+        (byte)'c' => text.SequenceEqual("continue"u8) ? SyntaxKind.ContinueKeyword : SyntaxKind.Unknown,
+        (byte)'d' => text.SequenceEqual("debugger"u8) ? SyntaxKind.DebuggerKeyword : SyntaxKind.Unknown,
+        (byte)'f' => text.SequenceEqual("function"u8) ? SyntaxKind.FunctionKeyword : SyntaxKind.Unknown,
+        (byte)'o' => text.SequenceEqual("override"u8) ? SyntaxKind.OverrideKeyword : SyntaxKind.Unknown,
+        (byte)'r' => text.SequenceEqual("readonly"u8) ? SyntaxKind.ReadonlyKeyword : SyntaxKind.Unknown,
+        _ => SyntaxKind.Unknown,
+    };
+
+    private static SyntaxKind FromText9(ReadOnlySpan<byte> text) => text[0] switch
+    {
+        (byte)'i' => text.SequenceEqual("immediate"u8) ? SyntaxKind.ImmediateKeyword : text.SequenceEqual("interface"u8) ? SyntaxKind.InterfaceKeyword : text.SequenceEqual("intrinsic"u8) ? SyntaxKind.IntrinsicKeyword : SyntaxKind.Unknown,
+        (byte)'n' => text.SequenceEqual("namespace"u8) ? SyntaxKind.NamespaceKeyword : SyntaxKind.Unknown,
+        (byte)'p' => text.SequenceEqual("protected"u8) ? SyntaxKind.ProtectedKeyword : SyntaxKind.Unknown,
+        (byte)'s' => text.SequenceEqual("satisfies"u8) ? SyntaxKind.SatisfiesKeyword : SyntaxKind.Unknown,
+        (byte)'u' => text.SequenceEqual("undefined"u8) ? SyntaxKind.UndefinedKeyword : SyntaxKind.Unknown,
+        _ => SyntaxKind.Unknown,
+    };
+
+    private static SyntaxKind FromText10(ReadOnlySpan<byte> text) => text[0] switch
+    {
+        (byte)'i' => text.SequenceEqual("implements"u8) ? SyntaxKind.ImplementsKeyword : text.SequenceEqual("instanceof"u8) ? SyntaxKind.InstanceOfKeyword : SyntaxKind.Unknown,
+        _ => SyntaxKind.Unknown,
+    };
+
+    private static SyntaxKind FromText11(ReadOnlySpan<byte> text) => text[0] switch
+    {
+        (byte)'c' => text.SequenceEqual("constructor"u8) ? SyntaxKind.ConstructorKeyword : SyntaxKind.Unknown,
+        _ => SyntaxKind.Unknown,
+    };
+
     internal static SyntaxKind Punctuation(ReadOnlySpan<byte> text, out int length)
     {
         if (text.IsEmpty) { length = 0; return SyntaxKind.Unknown; }

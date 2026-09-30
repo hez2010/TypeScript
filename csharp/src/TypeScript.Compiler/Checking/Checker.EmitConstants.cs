@@ -66,28 +66,30 @@ internal sealed partial class Checker
         ModifierFlags flags = 0;
         if (node is IModifiedNode { Modifiers: { } modifiers })
             foreach (var modifier in modifiers)
-                flags |= modifier.Kind switch
-                {
-                    K.PublicKeyword => ModifierFlags.Public,
-                    K.PrivateKeyword => ModifierFlags.Private,
-                    K.ProtectedKeyword => ModifierFlags.Protected,
-                    K.ReadonlyKeyword => ModifierFlags.Readonly,
-                    K.OverrideKeyword => ModifierFlags.Override,
-                    K.ExportKeyword => ModifierFlags.Export,
-                    K.AbstractKeyword => ModifierFlags.Abstract,
-                    K.DeclareKeyword => ModifierFlags.Ambient,
-                    K.StaticKeyword => ModifierFlags.Static,
-                    K.AccessorKeyword => ModifierFlags.Accessor,
-                    K.AsyncKeyword => ModifierFlags.Async,
-                    K.DefaultKeyword => ModifierFlags.Default,
-                    K.ConstKeyword => ModifierFlags.Const,
-                    K.InKeyword => ModifierFlags.In,
-                    K.OutKeyword => ModifierFlags.Out,
-                    K.Decorator => ModifierFlags.Decorator,
-                    _ => 0
-                };
+                flags |= ModifierFlag(modifier.Kind);
         return flags;
     }
+
+    private static ModifierFlags ModifierFlag(SyntaxKind kind) => kind switch
+    {
+        K.PublicKeyword => ModifierFlags.Public,
+        K.PrivateKeyword => ModifierFlags.Private,
+        K.ProtectedKeyword => ModifierFlags.Protected,
+        K.ReadonlyKeyword => ModifierFlags.Readonly,
+        K.OverrideKeyword => ModifierFlags.Override,
+        K.ExportKeyword => ModifierFlags.Export,
+        K.AbstractKeyword => ModifierFlags.Abstract,
+        K.DeclareKeyword => ModifierFlags.Ambient,
+        K.StaticKeyword => ModifierFlags.Static,
+        K.AccessorKeyword => ModifierFlags.Accessor,
+        K.AsyncKeyword => ModifierFlags.Async,
+        K.DefaultKeyword => ModifierFlags.Default,
+        K.ConstKeyword => ModifierFlags.Const,
+        K.InKeyword => ModifierFlags.In,
+        K.OutKeyword => ModifierFlags.Out,
+        K.Decorator => ModifierFlags.Decorator,
+        _ => 0
+    };
 
     internal async ValueTask<bool> IsThisPropertyAssignmentRedundantForEmitAsync(SyntaxNode? node, CancellationToken cancellation = default)
     {

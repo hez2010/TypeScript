@@ -1,0 +1,3802 @@
+{
+  "timestamp": "2026-09-30T19:10:26.685Z",
+  "baselineCommit": "245c22d700843f12175f4af764034f98a01d8d82",
+  "source": {
+    "timestamp": "2026-09-30T18:15:47.356Z",
+    "sourceFingerprint": "23bd7a87e8ca7f70dd561846378e646995b1b154c0bcb79db7d1c929d7ebd0e0",
+    "sources": [
+      {
+        "path": "csharp/Directory.Build.props",
+        "sha256": "9897f1c3586092dbd28eeb59068a7f6b7b92428c80c35f3ddf15620a5a378039"
+      },
+      {
+        "path": "csharp/Directory.Build.targets",
+        "sha256": "d1c68b8192cb16a7a23aad8894c4026441cb806f8261246aa31e104a3a2b2abc"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/AssemblyInfo.cs",
+        "sha256": "b36488d243d1f95478cb57695cb00b2e224e38f49939dbd19bc99c7d34c43512"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Ast/Nodes.generated.cs",
+        "sha256": "5c1f42a26d1dae70d7fe3612e87c029b4d4342e626279559afd1c7454f9b4ca0"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Ast/ScalarProperties.generated.cs",
+        "sha256": "c5cc8a2e913cb20618904e8a02cd31d397f97d4c5d327b8f5ef504cbc5ce293e"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Ast/SourceFile.cs",
+        "sha256": "e519541a2a00b20519f55cc60c3fdc3fb1994f03cafa018efca3d73dd62afa48"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Ast/SyntaxNode.cs",
+        "sha256": "b906ece3007522c2dcb9ea7fccfba035f510d9a62600966527c09b230bfabaff"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Binding/Binder.Declarations.cs",
+        "sha256": "9a9b1e87298c2e02464f626d70ce93bf9325f0acd50a2cfdaa9a87e77145a3ac"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Binding/Binder.Flow.cs",
+        "sha256": "3688f7d7edcd9fd423b0a3ef6282da8400ff73b55dfa0c377ee0b44d7537a797"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Binding/Binder.FlowExpressions.cs",
+        "sha256": "78f9984874dc080daa72696a145f6783314847eca7e6c21685df548f10e5aaf4"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Binding/Binder.FlowStatements.cs",
+        "sha256": "388ba719dd721dcfb9eee02b4808c226723b70037c1d27a430c9fefc4104009d"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Binding/Binder.cs",
+        "sha256": "397460c5bf50efe64c0cb98b67589bbfe1e4d6d7e9c96df7d39463ae94aa891b"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Binding/CheckFlags.generated.cs",
+        "sha256": "511096101edbb3346865347853477dcfef4341563dbd0926c52abe442b8f8990"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Binding/FlowFlags.generated.cs",
+        "sha256": "a2e01988c53d3cf67cfe4b613c4425a794c9058e4eb4c7e244369588d4eacb99"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Binding/NameResolver.cs",
+        "sha256": "5960977105747662bb923a4e029d5d54363d851c45d3a6d244586be2dc965504"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Binding/ReferenceResolver.cs",
+        "sha256": "b8294c5e07d2b3790cac3e7d052f0ba88597182e5dc1bca339b894543aff1512"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Binding/SemanticSyntax.cs",
+        "sha256": "c9f9e13c7f5e30a23529b36082d0f2936d9e5432138d33ad13f98554f4b8284f"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Binding/Symbol.cs",
+        "sha256": "94a5e32afa6cf85ca03519763f8dedf7737cfc8b0703a541f947c69c9b968ed3"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Binding/SymbolDeclarations.cs",
+        "sha256": "457987185144857bbda5486e47167a9fc0daa855afa0ca82e073a58ce58b49d3"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Binding/SymbolFlags.generated.cs",
+        "sha256": "87fdbbc595bfbde59482caeced4983ce847f87034c58f098f73c18fd23c42590"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Binding/SymbolTable.cs",
+        "sha256": "99ccadda54545f5c97148baecd4150d6daba2452d137a6e2c5c7ef9207946f24"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/AccessExpressions.cs",
+        "sha256": "be727ccf1315334e3383a8d0500109b39d479016bdabceeea6c4a0f1ce0fa5e7"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/AccessFlow.cs",
+        "sha256": "dbfba49374670a0319474fd1e16dd5ea6867cd633a8a1e9ac61a96a048718bd6"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/AccessNames.cs",
+        "sha256": "57dc4970596caf1c239ee81ec2df1c2fc6a55bd44aae558afe143777edccb988"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/AliasReferences.cs",
+        "sha256": "17ca0fdc9038da1a6649b9197048d8ced72201adfd8585b7f3b18bb8e642aadd"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/AliasResolver.cs",
+        "sha256": "4de5776743a93afba7d0ef3e115eed9bfc52bfa0b6ff6385afd3c7f599f378e3"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/AliasTargets.cs",
+        "sha256": "86d484ab26393820646852a730e0ab341f87e249cf1f489a04670f33be75ec22"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/ArrayLiterals.cs",
+        "sha256": "bc81663330e6aceae9225429ee910cbf7f1ab6b8356ba67a4ba586c770dd2e6a"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/AssignmentChecks.cs",
+        "sha256": "9396e680d4a3746e1be7a4b30375c4a488f08b2454f71589e4137e1a9419cb5b"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/AssignmentMarks.cs",
+        "sha256": "9c9fb362262bd31647dd9552f4135c7702beccd2597121914fb7176ffde585f4"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/AwaitExpressions.cs",
+        "sha256": "9e6f81b870a7493f16b7688b0c707b5b686a5cab0b8bbb4c518dccc2bd006109"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/AwaitedTypes.cs",
+        "sha256": "b3b88bc0843ec756e90bb4ca5b2ba4b1b9f244c12ec520a11d91acd6df53d05d"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/BaseTypes.cs",
+        "sha256": "cf0fcd5fb10f5315dd0d11a67c0d0d54e45a319579c851c2016a33196047e124"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/BestMatchingTypes.cs",
+        "sha256": "9dbee9bc51bc52b9ca6185361d0106b53d5463ad6eda1a4cf12a0307390cbcd3"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/BinaryExpressions.cs",
+        "sha256": "bf099b2b2e5ea5b49da858323a051ec67c5d9af32a17f671f54800a2aa1e354c"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/BindingPatterns.cs",
+        "sha256": "a063b3a7e7936cf90efbad04e721616df986d5099ba3fa5e41d88036bd03c757"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/BindingTypes.cs",
+        "sha256": "854ba55eca15b961c65199b04f880681135999a3150994ec23b82b3958f9d345"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/CallArguments.cs",
+        "sha256": "752f92745cd36a5db1454f7320329df8c068ed1a27a10e92d59b768e201ca2ea"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/CallExpressions.cs",
+        "sha256": "e73c2b41e6b43d5c8f60ad3b06d2d709a921043f9367a4ede670204880ac8d85"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/CallInference.cs",
+        "sha256": "d1c21e67fd2f5de41e5cf1e714b9e39e0762d9fda862d39b37a5df9f1b2bcb86"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/CallResolution.Failure.cs",
+        "sha256": "0a3b24d8773df1855a4d53f662e1f92ffdae086ca31feac138af4d9486afe414"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/CallResolution.cs",
+        "sha256": "402a0ccfc8c9f3ab58aff634ef53e0b170da6a56d2701e985bd16d64216bf6f7"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/CallSignatures.cs",
+        "sha256": "f72de0564d8c2e2cd39bec946b8dd9bab02c0998932d18bebc70cdd3f38dfe62"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Access.cs",
+        "sha256": "e51c68c785f3715bc63f07538838fae12d35c1ef336cb90f091fdb464afd59bc"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.AccessDiagnostics.cs",
+        "sha256": "8deba87dda5ee5c6612943be981837256fa8ffcce5d484287b68f6b1cf44f904"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Algebra.cs",
+        "sha256": "1a374cede47575870447ee8083b500fae8d60b9dcabddcb99cfb418ad43fc216"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Ambient.cs",
+        "sha256": "7ad234fcb7bf66d6988f43deea81ed80d6871b6e48bb1d946da6ea393ba719be"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Binary.cs",
+        "sha256": "fb8604d9bcc3e76d4207a4f6f85328e49493c27c9eef6e3d837611e4ef6d2c67"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Binding.cs",
+        "sha256": "7c4844f6fea2a5328725dbb62642b602c8e52f837afcaa26ccb98c02a01aae0f"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Call.cs",
+        "sha256": "f2c52c7c7dda5136b7efd6f11da05660273b4c72d91e8317faa4d5295c7ddda5"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.CallDiagnostics.cs",
+        "sha256": "e9001780b25b7780c2e7e41535051d97520ee147318d6700283cefd0fbf99502"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.ClassMembers.cs",
+        "sha256": "aea090eea31b2f52ca3cdc826b846dad25f4f4c81a9a2706e821c85946252df0"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Classes.cs",
+        "sha256": "9bfe32b5d074849c69e65c133b45886e66146678f8389fc16fd469654f6fa895"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Conditional.cs",
+        "sha256": "a3ec489fafd62695638a8cd45a08e1f752f84918bf44f9cbd8d5cddea0e62c12"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Conditions.cs",
+        "sha256": "4f397d616bf845927aca62267ba9e925b7ddba47addf7c144953e02d259052d8"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Constant.cs",
+        "sha256": "26e0063d112a298a1d3146afc994068b04d7d046bf7e4f4136e088836bc15ca5"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Context.cs",
+        "sha256": "7f6d0011f7d5f1b979ab85eac1d20a31faa046d626d4db18f84c070258b5149f"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.ContextQueries.cs",
+        "sha256": "99b31e274da6b798c9fe8c5786aa49404965e486417889a6e357de5ff7977e08"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.DeclarationNames.cs",
+        "sha256": "9e2b4ebefdd390bc3652dc5cc4a1794de522d95e783ba000ce92584c9a97502b"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.DeclarationVisibility.cs",
+        "sha256": "e5c6321752e1736f91bef96ba27c569975b56701504aba6ec7f2abb59a320391"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Declarations.cs",
+        "sha256": "e418c7adb2368b029877cff5c6f483ceb1109f624ec7bccd2b76ab2bdd37cb07"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.DecoratorMetadata.cs",
+        "sha256": "5e37092ecc335bd22f10d967b032696f6ce5861f0447fdc92d03600b6d263ce8"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.DecoratorTypes.cs",
+        "sha256": "a47607b77159d53dc07b5d2850f81831c4639b4a1db00b93ad7f5d6eddf8bc0c"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Decorators.cs",
+        "sha256": "0d246c06bbf43be3f2e2bd425f974b2eaf00590c454d88a9fa52e9c334f431f9"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Destructuring.cs",
+        "sha256": "8c707d9d813d4725f92d0ec8b0e74c189087dbd75d6ea2c6aee93312260970d1"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.DiagnosticCodes.cs",
+        "sha256": "11b94063e46f813a57ae9be36b616e7c9cf56e40b18ece4b43060094d6688ccb"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Disposables.cs",
+        "sha256": "71474742b3d193bd84ec12d3daf771782bea18c9cc9ee7953e69e5bacdbaa4cf"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Documentation.cs",
+        "sha256": "0600ad25a577cdde6b6f6b49341905d75164a2f8563c2010508f3015eac1a60c"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.EmitConstants.cs",
+        "sha256": "f1b6c54c051a5f390d0a772f6d99fe2aec16baf4c892615262d04e6d78d3fb96"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.EmitHelpers.cs",
+        "sha256": "d712a35c6d477ed507ec46cc8cc59a1b2acebec4bc138601b6a5f5701af35641"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.EmitIndexes.cs",
+        "sha256": "e48527be5515531deae09b6b7b83401ddbd9aff6b65f6b28a0153783dea0c236"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.EmitJsx.cs",
+        "sha256": "cfbc488d69fe48a1f7c105ff88ecdc7dbe77cb78313a37670080394da13ee233"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.EmitLinks.cs",
+        "sha256": "4ec3690b3c9878b11f75134f9067d2b76f022d40021a964c33cfbfb28cc9f85e"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.EmitQueries.cs",
+        "sha256": "e9400a409e064eda5e231fcd81104472ebf5694595b408c4f46b0ebe86e31126"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.EmitReferences.cs",
+        "sha256": "062cbbb4ed0d4d940d9208ead7dbd4ccc5ff31e95abe5f2bb338d2888aaf6459"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.EmitSerialization.cs",
+        "sha256": "f5fd3d418d46a3f8feb77456f16e225e120b99855a780b6c66019d35b5e6a4be"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.EmitSyntax.cs",
+        "sha256": "37f9325d3453427b87f8d8223e346911b4d2e2af85174be0b212df83e84a7846"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Enums.cs",
+        "sha256": "d43824b664b60978bf25ff8d0ab9acc1ab21ec008b7893dac2717cc07790d56f"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Expandos.cs",
+        "sha256": "6c4350d138cce35d92a173f335cba752226e75deb74f99f6d9ab0b426159da10"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Expression.cs",
+        "sha256": "1c8a580f8c72581f8e1d4e280e9fc38c6ebb98ce95cf10746312de4c34c2eded"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Flow.cs",
+        "sha256": "16049d5bfe0599d5d8a6b96a2ba9b7a160f8f0f3dad3f3eff258444c0db9e66b"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.FlowOperators.cs",
+        "sha256": "91cdac8a0fe1bf995f3b0ca9c896c7df3b34aa3d44dad925ddc381e039cb4dbe"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Function.cs",
+        "sha256": "d6eb4bb2d826ea65e2a3c5fcd3473716d7d1b92566db8632db18beb8f795ce48"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Identifier.cs",
+        "sha256": "49b3958f1899c26e8b468cd982d964584958b9254acc9239a3aaf634fec369bc"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.ImportAttributes.cs",
+        "sha256": "d60173823930021c7b07eb095ac66f6209f896c3d437f396f53a14840f85e9eb"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.ImportExpressions.cs",
+        "sha256": "8ad5581b5fd308b8eed5336c313b73c4f0225ce9634d4cec83dba6c80f2976bc"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.ImportResolution.cs",
+        "sha256": "b8d35e8128dfaff512a654a1c2acbcf649273877f67710e75d3542cd7c19501d"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Index.cs",
+        "sha256": "b03268cb7839aa86976142df2ec6181c72fa6d80642ecc4f00bd29f734c49251"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.IndexDeclarations.cs",
+        "sha256": "e64bd4ca7ab81fb504e8e72f280815f3f2990019907e5e67346961a026218063"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Inference.cs",
+        "sha256": "13c7e17234f43597c10189412a6df9fe33f630a6680cb3d0a9be8e4d4f7987e4"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.InferenceFallback.cs",
+        "sha256": "9f989111675179fd7b5616e641a79b75b39d338499c63b0379704670d088a7d8"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Iteration.cs",
+        "sha256": "6701c46d414a732beef991277ba5f551a33a6e1b1ba2f0e7606addf821593107"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Jsx.cs",
+        "sha256": "734ee3913a6174a4728c6551e884726c1425ce3a2e407fbf7730446292c1e672"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.JsxAttributes.cs",
+        "sha256": "45897d9fcdf289c081c58c2ca6f8333e6b80995b2d7c6afe8f0aab581960a915"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.JsxCalls.cs",
+        "sha256": "a6bed814a8f2d03181f4787674f6e9fd62622737494f891ad1b1c456f04c037d"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.JsxDiagnostics.cs",
+        "sha256": "47e33552b40b15d29786929b9815c5a0460a29e240215762f8bb3dbe60821d2c"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.JsxNamespace.cs",
+        "sha256": "a6efb67a16d907525d0f66553ccc2e6b776602ba5d3a6db5f56f286211324922"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.JsxProps.cs",
+        "sha256": "7b6dbc5b00d27926420da129ab2e02bbc9350a32f629b7cf6146f396742904e6"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Member.cs",
+        "sha256": "f433a12dbcb09edb415602de428b32485ae6e2742875f038245a0488a81c32d6"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.MergedExports.cs",
+        "sha256": "366b65da598a1b3178e18b54a51fc64a7e081bd8ff5f93cf1f680a312d3d9ef5"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.MissingNames.cs",
+        "sha256": "a250afb24b96437abe8518bae807c338bb8fce0028f3a1129d383720242e715d"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.MissingProperties.cs",
+        "sha256": "ef9c9db5569523519bd98538999dd3b154ee112d506284b7469b9f46cfb214ba"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Modifiers.cs",
+        "sha256": "c06758b33a9edf671e12e75f9ec85af584adb3560add1888de9c5fd4265aec30"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.ModuleInterop.cs",
+        "sha256": "61edbe486b23cd4f444e3b0524c328606635360402d9bb88407a4d5736aba9ff"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Modules.cs",
+        "sha256": "bc53f1cffd5f2fe7a274750f37a8b094ccb0b35309a30484a1774691c9a7fc45"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.OrdinaryExpression.cs",
+        "sha256": "c645c8b5d6efad9649fd7681b7e806bf12cb3ff7ce7b7e21c152c3cc721e383e"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Overloads.cs",
+        "sha256": "8468080aee869ce102634834886a54974add3309b8a9918bee21ebf4c72feaf9"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Predicates.cs",
+        "sha256": "6565baec668442e07dc46e666da39c16114efefa365954a0c9bcf366c92048aa"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Property.cs",
+        "sha256": "341cc01c33ca52a1e435c726f6fa953fcc34e0e5874497ba0e3d88af125ecb94"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.QualifiedTypeArguments.cs",
+        "sha256": "09f604eb28980f3d01078d377a21ea06f58badeee271398cacfdd7e8f18477a5"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Queries.cs",
+        "sha256": "46fd8bbdee55d8092ff922c24a710bca618d3866641bc9bd4c1064d892ce552e"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.RegularExpressions.cs",
+        "sha256": "61af562c6630096d14c22305758049113e51a1487814029dc299d9ce1bfc30cb"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Relation.cs",
+        "sha256": "9c765a7b6dc087a832dc5df7cf541dc148b8254f318f877624890f7d18445465"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.RelationMessages.cs",
+        "sha256": "7f8e1a3cb5d5e676aa4c51d4ad5e4bd30b9a218152d5f0f2bf1681478c1e81cd"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.ReturnSyntax.cs",
+        "sha256": "1793200d8858af449817f7548358f387518f7d4b6abeecc1c112a191b4b2cea7"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.ScopeQueries.cs",
+        "sha256": "2d19de21a0c9871b230168b6e2fa9116553420626c7d48ebaa1fb116608bb3fb"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Signature.cs",
+        "sha256": "69c84e1662c0d07190adcf64c6a8710f981736c3fe3d80f5f9dd04016ccb8d39"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.SignatureSyntax.cs",
+        "sha256": "d703a86896c26481a8369018d378688e2e0a4288062a4024cf53f9ff51e43db7"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Source.cs",
+        "sha256": "3c55e71088a7feff737973a60b27758959312a81661f74656f864d16f4444757"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Statements.cs",
+        "sha256": "b5bdf8557e217986a0935de3e55dc0332ce741a5f9ad31869aeb9560cfb1baf7"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Structural.cs",
+        "sha256": "ca777aeb9da9e2a139b6c6e74aaa21f263a1ee7bf2a5a0c2e9c2bffec001141b"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.SymbolAccessibility.cs",
+        "sha256": "7ccb5c235188bf043289881058c10f5715429968f23cf1b5a8b781680ab3e85e"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.SymbolChains.cs",
+        "sha256": "3db7f53514ff3a4bc71a24e63629d522ee6208aca5d0c550a509ba52321b474b"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.SymbolContainers.cs",
+        "sha256": "575fb1c58c55ff4dd4d7a30460c4dad930cdccbd2e5b38652e9582b612968624"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.SymbolDisplay.cs",
+        "sha256": "f16a3b0f90b270372ae018d546348bf5531f68e74a7b16531eb22fe505a2ec82"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.SymbolDisplayArguments.cs",
+        "sha256": "01a20d8f5101b6cef910e432ddd146337eedff7a30cf09a977440bc695869ab4"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.SymbolDisplayModules.cs",
+        "sha256": "960d04addc98b3027495373d559115b078836975a7e8ae96ad476c63328fd252"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.SymbolNodePrinter.cs",
+        "sha256": "af3dcddda5b7950eaed8330988c62a529fd5af7d0a92f5f44e184955051c217e"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.SymbolQueries.cs",
+        "sha256": "f9a47639284e74f79cc85b920bfe461ee8064ae5337dc188cc5d03f5e8893b78"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.SymbolServices.cs",
+        "sha256": "52400a19fbf211e6f1270aaa79f121f47c65c1ba839c3b63f78e8c0abc53ba98"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.SymbolTypeNodes.cs",
+        "sha256": "33d5fabd1d41c72d2c2e5f4f00e11a8d8040082e18c41b77e5c5190cdd7943ee"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.SyntaxRecovery.cs",
+        "sha256": "5da726e67dea605f9ebe02463744fd7c67142ebeeeca2cab91634b0dca79e0ce"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.TypeGrammar.cs",
+        "sha256": "ea2e1f162f864ff761ed41df2a808d36b371cc94d085f8a75a4d1b462c79126f"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.TypeParameters.cs",
+        "sha256": "1207fed2543051440a308202b5efc2feaded60f497156f3ee61f46f128562fc8"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.TypeQueries.cs",
+        "sha256": "fda92103d98b015a1c673f3391aed01891ea9b5b0eb583f0561a39093fcfb862"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.TypeSyntax.cs",
+        "sha256": "e23f963d99d3ea2dcedc651564fadeb99ff692e75e59e162450b280ee9f6759d"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.TypeSyntaxCache.cs",
+        "sha256": "1bec00542719c4fc1f2da02a00ddea30d2f8d06a3bdbbd0aae01665e21f9baa6"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.TypeSyntaxLength.cs",
+        "sha256": "c6254b76b03e5a3f4c2e5ae5c0d4ff8029d5f397b20b1ae7addc6d01747b18de"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.TypeSyntaxNames.cs",
+        "sha256": "b6dcb51c9fd3756726bd85d9202159e7e5b11cb8c90dec2cd50cb4607d5d6898"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Unused.cs",
+        "sha256": "e399ea7ca6ecf732c7278601f5dd561072ccb3d839293c242bf080944a79fe35"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.Variable.cs",
+        "sha256": "ff1e087b225352890d9235ff1338892dbd9dbcc27dce2fb850d1a829998c4847"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.VisibilityAliases.cs",
+        "sha256": "78117958b2e0eb4f4eef039ab93fd54bfc58703eb4d15344e11296692d536a01"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Checker.cs",
+        "sha256": "5d99fb2c99b11b6466f60271b5965c7400b0cc5e873b428808b434e120838843"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/CheckerDiagnostic.cs",
+        "sha256": "004e997e82b3df1253975cc91e9fbfa9e4fcd0935605dbce99ac437ddd67a4a2"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/CheckerEnvironment.Aliases.cs",
+        "sha256": "076969514af0e1fe02220cdc71178dca981dc775135be99e86c697b5deda78fd"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/CheckerEnvironment.cs",
+        "sha256": "9db739709367076de69e0616993e88f51b362d89792026ac3b1b78df5950d46b"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/CheckerPartitions.cs",
+        "sha256": "e9a08c69394fe9aa41f87eb5d9ee1da4c624d97288b54f2c4dec72ceb9a65d54"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/CheckerPool.cs",
+        "sha256": "ca027c43111c97a42884c21782bb17e1841d03f542f25b7f9cec234955e9d75a"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/CheckerSymbols.cs",
+        "sha256": "7c57be95c4d876922bf224edf26be2ce7ecf59058004ad74335cc59f116604a6"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/ClassBases.cs",
+        "sha256": "f6f66dff691a02474d95a557d1e0e744bef842c2141010b3e8ad9fa0658ef262"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/CompositeMembers.cs",
+        "sha256": "8babc254edaa7f2ff4e46b22404d6255ec192879f2f1ec04fd90ccb2b8dead55"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/ConditionalRelations.cs",
+        "sha256": "f675dbee222381967593d400b36f6af6690fafee6157f8808956a1d7b14b4397"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/ConditionalTypes.cs",
+        "sha256": "c93cb58e034d77d7917c4556c1903fa0a685da8cb88cf5d53ff534c7d092da3c"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/ConstructorAccess.cs",
+        "sha256": "3579f29375af72d5a6a8d7dd8e1c275cb31f73547d28eea8e9150aaa032ede26"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/ContextualProperties.cs",
+        "sha256": "727da5ccd778992257947dda02173670ba21e72153480ac8402f8cdf2cfe5eee"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/DeclarationOrder.cs",
+        "sha256": "c74c9889e97e565af3c30b15fd9a5d31286c4c35c79a693cf277b93b144dab5f"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/DeclaredTypes.cs",
+        "sha256": "1da33e25dc057a40a1e9c9dd3b8432d1c205553b061874e2958dea46fa2335df"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Deprecations.cs",
+        "sha256": "11040fd554ad160abea8659be8e9360f17a5d83e0df73ad4e21f4b8d794e7ee4"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/DiscriminantRelations.cs",
+        "sha256": "81143698972767736f7f3b94eb1cb66d10ade8f2d232b8789541a524604a3f13"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/ElementAccessErrors.cs",
+        "sha256": "833ead11001e91d5a3cf3fb4814e850756bfaa14acfaaf596ed3ae257da4ddec"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/EntityNames.cs",
+        "sha256": "cd18db94b08cce42ae152d4e63c58e8c9f3dee32c1111a79a8dcac683e04b674"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/EnumValues.cs",
+        "sha256": "9b7361282720fa3c1dcfbb7e6305c7ffc5dfee0709aad27f8988556a54b1c124"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/ExcessProperties.cs",
+        "sha256": "67c5bfb1d735b49f078a5ba48c952a4b84cef5f1dff64ab6c18bfcf54be561f3"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/ExplicitValueTypes.cs",
+        "sha256": "6366fb84aa3dc14d9548ffa483d63a263bd3cc3abbe40e12c7a31ebf3fb1aebe"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/ExpressionChecks.cs",
+        "sha256": "73e287a61d2d8e14a6038c38b368f278870192e7c45c0e4edf820eca4885e5ef"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/ExpressionContexts.cs",
+        "sha256": "ed2ec5bebb9a6366cb22d2d13a716ccb4f77822f11a193a06aad147eda1d62fa"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/ExpressionTypes.cs",
+        "sha256": "639fc392bd51bc05ccc8acd7c50e4640618434aaae114f680dd2a128260db226"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Flags.generated.cs",
+        "sha256": "ac80431314cfe425681571df732ea90e433e7065bac1c37ece107bf413081ac5"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/FlowEffects.cs",
+        "sha256": "e541c34e2d5fc453c1739426e614801e4ecbccbd3964b03c63b2b8b474dc3fd6"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/FlowNarrowing.Discriminants.cs",
+        "sha256": "253d2de2a8663cb7eeb3ba8d8e01a9f7ddda6f8d9b794305c8548f72c6439cdd"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/FlowNarrowing.Equality.cs",
+        "sha256": "37f82c1b713e641386afcaa803805cb13c4422ea46a5740443dac2af00916df9"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/FlowNarrowing.Predicates.cs",
+        "sha256": "65042c9cbd79a95e7524d2d3c3058c5d471c8f15442a27cf1a86e0a958d05dc1"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/FlowNarrowing.Switches.cs",
+        "sha256": "239fb091fa0c5550fd53912319ce3b9aec963d624845c130b1f75b6fdba1bce5"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/FlowNarrowing.cs",
+        "sha256": "4cbea7c554d5b9707034c4860ebd8a8700232edeefc0235f798ed9d02e56993f"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/FlowReachability.cs",
+        "sha256": "57c4d4ccb48698186760b961c8e9b7ad3a3e0bf38bdfedcf1a43b62b3f6463f0"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/FlowReferences.cs",
+        "sha256": "a7a2a107d746e9e7b8272185cd80e70711e7ceac196da684a578f899c5b9a197"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/FlowTypes.Arrays.cs",
+        "sha256": "71ed842e3a2692a9bec6a264f76e5cb47b6cb8c55afe1de0a28550f989b3c03e"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/FlowTypes.Assignments.cs",
+        "sha256": "9310c6c21e8d16e9424baf798283284a35a0cc22b593495442d9b773c9853547"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/FlowTypes.Junctions.cs",
+        "sha256": "d4cbf0f68dc6f6fe47c5831bc5f71e0930ddad734c8c0946d1b17d640eb6935b"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/FlowTypes.cs",
+        "sha256": "ce7db0bcabf74763fbe5ef9c4422408273ccc44665142338d6d803de5da14d1e"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/FunctionBodies.cs",
+        "sha256": "a50be400db03a81a974d7cb9f360719dc7870c351718a0f86d223de89a7edf04"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/FunctionContexts.cs",
+        "sha256": "19966def9846ba0c1f002049755a82400ce03c2afd2adde2d08a7eeb3a2efd41"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/FunctionDeclarations.cs",
+        "sha256": "48fcf961d158e33c987f5191a7065d1c4c1590f85d76a79256048e9640f8f56e"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/FunctionExpressions.cs",
+        "sha256": "f00e4f999f37e72f4831ab7b112f52c844c782969b8cb0da7eb24beb58fd7be0"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/FunctionSyntax.cs",
+        "sha256": "460f91a095b5eec8e4fa7ddca6a9cf9aa48341210c3ab1e1a512d2a633db896a"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/FunctionThis.cs",
+        "sha256": "8017a295ab1288448349a56f6e5952d2aea97fda68652e7d0a8957a3bcac6e50"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/FunctionWidening.cs",
+        "sha256": "a378e426bce85e92f9db22e46877504db5edb90c48e4f388ada9c4b5301c91bd"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/GeneratorTypes.cs",
+        "sha256": "a4ccfa09212cd10d698500d29afdbec58ec2d8e9e16911ea191cbcccf98b9dcf"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/GenericExpressions.cs",
+        "sha256": "bb394afc0fff17200a81689fd8cadbba56c902fca9c317e7a4bb0c1c09d42faa"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/GenericRelations.cs",
+        "sha256": "e428b8f35b3ec86f1c60f92689391535450f2f244fd1a2b0eebe1b6992e7ff09"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/GlobalTypes.cs",
+        "sha256": "07497c1b41e72dda33966d2b5529fe272e46f31746ae314ba93da3be74fb7ce9"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/IdentifierTypes.cs",
+        "sha256": "cf558d6b3a813f861da68099034abcb351b03a043cdd35e600fd3d179936fffc"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/IndexDeclarationChecks.cs",
+        "sha256": "da76871329f3c578270523bb6261811c0b562fe049aedbe115da6728f3e5c22d"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/IndexSignatures.cs",
+        "sha256": "702bf1ae45432f10f3b71b7fad0bbac35bb1e8bdb1f07c7786f5b45521e1d449"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/IndexedAccessValidation.cs",
+        "sha256": "70b29ffcab37510d37655df21efaa44629b6e58dabf4c2d812bb5da215b43a95"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/IndexedTypes.cs",
+        "sha256": "7ca954762d49e8ef15224b935caaf95c77a98fed096b073e963da2cdd302a77a"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/InferenceContext.cs",
+        "sha256": "c77761cff99e81dc0617e4d67292963485eb38c37f93ce3901a8cefbba21af1a"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/InferredConstraints.cs",
+        "sha256": "8b194e5bef6582039f37d638086b8044ce1a8da6707527e25f73611b147d53bb"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/InstantiationExpressions.cs",
+        "sha256": "083c8c11e7035b348ce075ac2254265f1b8bd915d6cb409cb638000d69541330"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/InstantiationServices.cs",
+        "sha256": "5c2b3a5e8ff045dea92cd277b83220d77fbcaa23778768364699b2d14f450d51"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/IterationElements.cs",
+        "sha256": "43d4ea37c046f61708d0a62436d12cbb63059d76bd555bf8e8853d60f03a017c"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/IteratorProtocols.cs",
+        "sha256": "b791f4bb6604fc7ba2184778f85e3dd228ddf7b01456c2e7e83d26299ea76ef4"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/JavaScriptDiagnostics.generated.cs",
+        "sha256": "ab1cb4a9299950113b147686616dc4d7e447345c9168a340fd5a73f2d5978006"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/LateMembers.cs",
+        "sha256": "27ba2d233a2cbe055b5aa8f151702d987f2a14f1f8bce103a4c49321c6490bec"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/LibraryFeatures.generated.cs",
+        "sha256": "81d90327afe70ae5a82e1f96bf1c32f180f60430ac6f3c898a419be4c16ddeea"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Links.cs",
+        "sha256": "afb5bc4a362c78e9735200b1fe6e0f59dd225b07fb260169f3f73400979c8b13"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/LiteralElaboration.cs",
+        "sha256": "9b3555d9d734bc7456623d614a4215cdd85c1b5ec6386b5fbd5e121db8310472"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/MappedMembers.cs",
+        "sha256": "f4fc4a6dd9982245696bdd35b692d281e0905efde39db13d1266ce1908d689b8"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/MappedTypes.cs",
+        "sha256": "e8e7bc436110132a15c713411c0ee100a0c65a35974a40b96f55f73cfbe8788d"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/MemberAccessRules.cs",
+        "sha256": "b4cc772419f57209a523f1012bd5a97e8bfaf59b9a852d8166922bdd73b6a125"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/MemberAccessibility.cs",
+        "sha256": "f0eec0cf2103395d270518eedf62a75c8209877cf0af88082102c06b73084d22"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/MissingNamePrefixes.cs",
+        "sha256": "2ca4b91cf2277c73522c9d633539fcb079a69c390c69cf9f1f9429b26b0317d7"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/ModuleExports.cs",
+        "sha256": "4c2c88dbc6f9ee10917e0fb6b02090e12600ea842f031db8bd3756d2ace7fc4b"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/ModuleTypes.cs",
+        "sha256": "69a5272226747f5ddc3fc06080dc5427cec4559e2c672f6fe50c58575eff0a40"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/NodeBuilderSymbolTracker.cs",
+        "sha256": "b41e8dbfa32b926fe2c637bcd29c6938f8096788c111a39be3202d607bb62261"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/NodeCoreModules.generated.cs",
+        "sha256": "a8a43af81036bb6244b2ded5e3dbe02d9f8b4a9d4c695c9716daef44daa4434e"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/ObjectInstantiation.cs",
+        "sha256": "94b53e5f67fa2bc6337e3604aaf0fed08024123ea1fb9b2f88ac74dc7c781102"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/ObjectLiterals.cs",
+        "sha256": "8046fc6eed73cb0b31bc4af572ca6ecfa837361e5884eccafb3b6fe5653cfb3e"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/ObjectRelations.cs",
+        "sha256": "1311a37f53ba294f80a0ecfb6ac73cfd31f37d8a3388245d4be503b57e1a1699"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/ObjectSpreads.cs",
+        "sha256": "96017c140435b227f8518ff1b587694e5619ab7a328bec78a252f6906f8cb35c"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/OptionalExpressions.cs",
+        "sha256": "be84cdbe8aedffbc0b0db9034ecccaa27c86de0b4b2cace2e5c378bcd692ec6d"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/PrivateAccess.cs",
+        "sha256": "81a2b2d6461e577c3743b6873d4b21ff4e3ffe80e1b3163c8fd135d77fcaa48a"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/PropertyInitialization.cs",
+        "sha256": "110cbd38a5d598134d0076414b818578cb4caee7c47b709209643d81c49e419a"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/QuerySyntax.cs",
+        "sha256": "663368039d4c2a12dec401040d9add66211b2bdd0aaa5fbecc646e3d505d5af0"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/ReferenceSymbols.cs",
+        "sha256": "129d354269b3cafdb091ff1bf3069621f5fb00fa358f9776633297cabec2b82c"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/ReferenceSyntax.cs",
+        "sha256": "5bda9cf1be64ccd9e83ee672d1b683e38d7efc34758518139d5441b63fccc655"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/ReferenceTypeNarrowing.cs",
+        "sha256": "6a1ece6d2f926f23eeb35c8b857800c927a8eedd3632bf9f71b5acd1a9bb491e"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/RelationDiagnostics.cs",
+        "sha256": "a8c638896bde71b780f852c8990165b073ddecdc8f65d7b3e64fa7eb235df727"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/RelationKeys.cs",
+        "sha256": "f695b5e783bcf100260b25723df527e8a35f217f137e8510576f1131f0451ac4"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/RelationSupport.cs",
+        "sha256": "bef29156354b6e03b8002ec491945b3f4cc7b334db3708ac17e33aa11cfdc386"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Relations.cs",
+        "sha256": "af016fe38f029ea7dff760def0ba3fb35ff570b3fbe0376cc0ea0de8a5775923"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/ReverseMappedInference.cs",
+        "sha256": "64e1a1403d34d94ee5aaf039564bb7ace0ce773b1b31b1265d9b8b77d29e0fba"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/SignatureAssignability.cs",
+        "sha256": "4188334062ca3e0ec1d79cbc4a3fe3d6e6a9997bc5077fd67342763fde3e1af5"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/SignatureComparison.cs",
+        "sha256": "b4c58d84dd1ac94f3bc1908245f971bcdcdd64194b7f143be3987ddcef9b60b9"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/SignatureComposition.cs",
+        "sha256": "124987d3ab1f800fccd7f98163f2b31025e124c924b214e58a2756ab907fd684"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/SignatureInstantiation.cs",
+        "sha256": "9749eead9439d3c2e53e90544660a47323f30743fde5945761d7525a5a4cc268"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/SignatureParameters.cs",
+        "sha256": "fe68303dbedd74ba0ec0422647271a8566fb24a1daf5f783a5ff6502d847688e"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Signatures.cs",
+        "sha256": "808ab4ecd585c35c96bf7dadf30f829c7935d6d6b742e7b15d4d9361e7738e66"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/StructuralRelations.cs",
+        "sha256": "239bc76440b262f71eb7ba5b52598dccce42692eaf7505b981ad2702ef2e9689"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/StructuredMembers.cs",
+        "sha256": "88ddd3666e4a8dd6c57f055f5b9dc462f1cb1acbe1ae5156aa37ae0144a09fc7"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/SymbolMerger.cs",
+        "sha256": "e0443c1ef7a11731f80556a8138e4420aa5e1b5a6c58ec6ccb9fc25319e3c8a2"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/SymbolNarrowing.cs",
+        "sha256": "7ab23c518a24d5b02057f63a051579f3e0304f7d95fec669041d97b754728769"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/SymbolSuggestions.cs",
+        "sha256": "a40ddf898b3f5f781dd4c1085bfedc7ead0d2053b637130c930d5353ef047694"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/SymbolTypes.cs",
+        "sha256": "e60f25e4a4b6164b0aaa8c0c61bd2d9af631d22535f361d615e5512a446d95cc"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TemplateMatching.cs",
+        "sha256": "b4ba99a0b413809add8f1ed3c2387f42fef07eea9a0bbbc86309ab4ade80e9e3"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/ThisExpressions.cs",
+        "sha256": "2dce5f485cfcb4778088763aecb57dc20989ebb85614936392505159818d0617"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TupleTypes.cs",
+        "sha256": "a604f4d68f37ba75035436f5b4e719b37572658bcd0b67259afd41126ec89e1f"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeAlgebra.Intersections.cs",
+        "sha256": "97d26dd267421191d63d36f9f1e3b2f037ef39e439170fde48319e83736e9932"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeAlgebra.Templates.cs",
+        "sha256": "3d0bc6634cc2e243120d1ae3ef85bb22c791f874bdb040344580cf01af15aac6"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeAlgebra.cs",
+        "sha256": "e2082b4b936655f6bfec663060d0237dea1d80db26ea5770a485724c609fa69a"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeAssertions.cs",
+        "sha256": "d8a16d5ab1e0f5e6665457b1991d5180608616b125a9841196d1abc0f525df38"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeConstraints.cs",
+        "sha256": "8667f1fc1495c9b883e29cd0f91c0341689feb1d2d188909a112f51d5f8311ad"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeContext.cs",
+        "sha256": "b2c8b403d90745b6ee33bc0a410ae7d4f00b14232a58dbf48066501c2e5508ea"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeDiscrimination.cs",
+        "sha256": "25facb25448a895df5be239bd9aad740cd520406c1ee67309eaf02f717f3208e"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeDisplay.cs",
+        "sha256": "b63dba4c318d82e34eb849a24daf24fa93565d00ea2720e8e466b396df815d89"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeFactQueries.cs",
+        "sha256": "0c2d9183ea647de49255528194031d1747d7775a084837b841d11352618baf83"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeIdentity.cs",
+        "sha256": "13e046850b75f7d683679971247c4cece20da0d5e0bb335c62b6991b34855f9d"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeInference.Collect.cs",
+        "sha256": "31ba5298e885eaef027c54bc16cb2e81388ae69e459576f5dc96d2eb96585405"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeInference.Composites.cs",
+        "sha256": "33bc191b7ea232b771b1117bd17d8c1d39786a5b55155efa795ec4adece262b2"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeInference.Covariance.cs",
+        "sha256": "d8c32baeccd9a4c07901c1a456a7cacea64a07a705348a0c5b65f6dd0aeca8b1"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeInference.Objects.cs",
+        "sha256": "d235e0a0a08075147ef5e3c2cebd02c171772509539e460575db27109daaa6e3"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeInference.Queries.cs",
+        "sha256": "60a2fecb3c27ffedfebce5abf238c34beb3b4536d10a59e3cc46400a97cfefcd"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeInference.Signatures.cs",
+        "sha256": "96c68be5da1e312b0c36ca59a8ce10f0d2639450db56e625d49ecf1c69422ab5"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeInference.Templates.cs",
+        "sha256": "485d8ce5c5f7ac383fb17e0631e004c29a5246abcb830ce7a64a1099c8097b33"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeInference.cs",
+        "sha256": "07fe8ea2fa23ecc2f76f1d69738af0ee310c6355e728636cf132a8742bc7d245"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeInstantiation.Signatures.cs",
+        "sha256": "e6e55fbd895508dc76be5c554fd895ae9810436e66fd819694ece2e67812c46e"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeInstantiation.cs",
+        "sha256": "a464f5d5be2039310b95fb36331ca43a06c7b7657955f32c0c4778f171172d49"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeKeys.cs",
+        "sha256": "e255c888923fcb790bde3d57715f69831cadf45dda86ea632eb6904c98c62063"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeMapper.cs",
+        "sha256": "4404e2f1c6d075126641be334162804642acd30d3e59cb30c7e23a8745929258"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeNodeFlow.cs",
+        "sha256": "411ffef35b8d1820195bf0d2ff1b5a238ffb446b62728ce25258317fa0efebd6"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeNodes.cs",
+        "sha256": "9bb94b5714b4e5136defc743ccb37c141486e8ef3775224c414f8a8788337be9"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeNormalization.cs",
+        "sha256": "1621640eeb249b2787f23ca3073132e2f049fefa9d5d26afe9ee57332b74a888"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeOrder.cs",
+        "sha256": "0bfd9949c00711e1517db92adf037c0aba143cc8578cdb7a7f9d7799c3cff6e0"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeParameterScopes.cs",
+        "sha256": "03a21eca41d16a2d2ca3ca978e7d26fa0fad7dc7e408ee23305ec8e5f3821c17"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypePredicates.cs",
+        "sha256": "088fbc62c3a3ef952bfcd3f758edd51945779d3eeaa98ccb4715865c3fbad15d"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeProperties.cs",
+        "sha256": "b78a54ac0f03ff0b72bdd16cd01554fde4ad5a9d146703a287ab53adb6b1b660"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeRecursion.cs",
+        "sha256": "e8083f44578ce921ab96aa62efb01a008c279e885728c1ac415a9636a36b334d"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeReferenceChecks.cs",
+        "sha256": "23b91efa0927a54f44d02c777b176cc8e3c651f8b55eb2454f9de71cc7868020"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeReferences.cs",
+        "sha256": "115bb093fab97e4cb9a239690bd5eff0ea0b8ebe544db744fe8b0b572f62a85b"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeRelations.cs",
+        "sha256": "5a9f58de5470a0585bb198991586dff15278529877c0edd307f3e190ba1dbcff"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeVariables.cs",
+        "sha256": "58723abe23cac80ca0199e170917f99e462c1cf93bc0812c227afcbc345bd65a"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeVariance.cs",
+        "sha256": "c77dbaa6827f490abbb4e31b04b339d0f5e53152bbb0970cd0fec43df7661d32"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeViews.cs",
+        "sha256": "e479a64765a50d6a49bd977e5f5d3aae2b25d673e6560e324d23bef7d5c6169d"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/TypeWidening.cs",
+        "sha256": "de6edc1cdbe72fe6ee7ff23577ed4d461cf12e6e3b1c2f84d66e697af1327089"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/Types.cs",
+        "sha256": "59fcd037d1c354ba114f644f6ddc93330615b2c0ed26ef3346237a624b46fd90"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/ValueExpressionChecks.cs",
+        "sha256": "85218cca3351089ac3f0ee3416d5f3643dfd0f47e51242805b0edbb14302cd44"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/ValueUseChecks.cs",
+        "sha256": "a6bfea98fdc3378578ca47421ec7ec278ce78b5de5bd508b5ae422cc4ab4e901"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/VariableTypes.cs",
+        "sha256": "9a68c8ff0e112055e9d65e0ef9f9665e0a174884ad86674c51c7dc2e5d9e986e"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/WideningDiagnostics.cs",
+        "sha256": "8419341ce57c6f6c75fbae5abf9438ce0ef724e0efa72b35ff3ab6a7ced738b3"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Checking/YieldExpressions.cs",
+        "sha256": "011ad57ceeab3f028fda6cac9b53e85080a1771930b562ce3b0ee5426aafb53d"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Configuration/CompilerOptions.Typed.generated.cs",
+        "sha256": "2801eaaad03f5de2d1e7816e27f67e733807420921655657e8e0f2c6f0973996"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Configuration/ConfigContentMappers.cs",
+        "sha256": "100b9a8570aefabd4ff21dfeb19cb52669eb7801bb0aa629aa8bfd9eadbe4e19"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Configuration/ConfigParser.cs",
+        "sha256": "40755953f2c5e7f91cc686644720e1664d7c1507b71938df75141d960c9d5754"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Configuration/ConfigSyntax.cs",
+        "sha256": "cee2a95f6ee66ec8568a26622a36cd9665131986589bfeed4acf6ad97938d7ae"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Configuration/JsonStrings.cs",
+        "sha256": "cf319b8d9d69ac1589df68414ac3e9e8a17ca516960f7cdaf21b9abbdb1fa87c"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Configuration/LocaleIdentifier.cs",
+        "sha256": "2d3e6a66ad83e75a0904c2d9eb1aba945af35fa0d9d9189606bc66db2e82f3e9"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Configuration/LocaleIdentifier.generated.cs",
+        "sha256": "f72ed2278382c2050a087bf304ece04b1093e0a56bcd6157eaa1aa9298ce74e8"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Configuration/Options.cs",
+        "sha256": "1384fea3184b86e9027555f9c0296dbf1eb680bf7b8286ba20111308fd0c9157"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Configuration/Options.generated.cs",
+        "sha256": "b83a513ce3cd7b2d60475c4cdc8c403022d82e8a0cd2d0e2246862cbd747e9ac"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Configuration/TestDirectives.cs",
+        "sha256": "e3938feee97591c589ade9d56f3406a9a995c20b94e46400def18fc90a0f6343"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Diagnostics/Diagnostic.cs",
+        "sha256": "a9a17ecac0e7aa9ce8377f88492a5d6b4a0155557032a83d946677c436359f08"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Diagnostics/DiagnosticCode.generated.cs",
+        "sha256": "eaf65e0a10eab6e94e2306f58f8df85236008dfcfcbf44abea3be0102729b5e3"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Diagnostics/DiagnosticCollection.cs",
+        "sha256": "52b95e0b33b2a31343f05efa799bee8a3ecdd1410ede6dd5768e8c27e6a8a7d7"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Diagnostics/DiagnosticEqualityComparer.cs",
+        "sha256": "53aa4937eb8b30a790b9f48ab64ae540bc488c17db91b420de12576143ec715f"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Diagnostics/Messages.generated.cs",
+        "sha256": "82c935aad00e4f58dea5b1a52c93746d868478658828a530df537a50c593d19f"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Diagnostics/NativeProfile.cs",
+        "sha256": "598d14f329aea93e6d83d0b9ba2c27892dd2f47e381d0c5f39bf8614fb6f502c"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Experiments/SliceProject.cs",
+        "sha256": "1efad2c32fe0cdac930536f0df5ddd778945fc3296701c7e30b07627b5dcb31e"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Experiments/SliceWorkspace.cs",
+        "sha256": "ae3402624b05c6e1ff14aecf48ed60f6ca0c69ca2db2a804e3f22a3820d871a4"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Experiments/TypeRelations.cs",
+        "sha256": "7fb8b269feaa0a521cdc92eb28dc5f9e7df0d7ed166193a642e0aaf11aa5d66c"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/GlobalUsings.cs",
+        "sha256": "5272297717ce5b0c53699af2c2442dbdf92b616a6a751b58e3a0b08037abb289"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Hosts/CompilerPath.cs",
+        "sha256": "38d70360f3d963bf1147212890d103562ae0526fb507940a45a58ea11023f18a"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Hosts/FileMatcher.cs",
+        "sha256": "a360d642e9b232843940e5ceff32d308fda9424f34c18af79a4b4ba193653349"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Hosts/FilePattern.cs",
+        "sha256": "535193c8b8941368d2f8488ccb27f6f19f5282e24c1b02592f2e9eab8d7e2f1d"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Hosts/FileSystem.cs",
+        "sha256": "9431e63cd4a8716ca07b00021a0cbeb2a268fbe0a95a5f928a4935bb5c874694"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Hosts/LibraryFileSystem.cs",
+        "sha256": "d2c07dde09c4d006108e665d0b6e66c7ab288f7953f8d2d0901d65739e64fad7"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Hosts/SourceEncoding.cs",
+        "sha256": "b21713f6da6732e0e86cd17e942add70b258de844cfdc8d9ea3a81931d7257af"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Mapping/ContentMapperHost.cs",
+        "sha256": "3073c9e027e4523e2f62ceac5ca9c29cb1609a405515c9b4113e5949c83dbfdc"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Mapping/MapperOutput.cs",
+        "sha256": "2762f2be3eb65591b39e4f9e52d7355effa88388f52203c9164f997a018ea0a3"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Mapping/MapperProcess.cs",
+        "sha256": "c35ea486920a95bbcc322aebd4ac42c95d10377c786da6933d68238a669c4ef0"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Mapping/SpanMap.cs",
+        "sha256": "a40e731a68df8bcf030ceabbede6eeb8c61234eeeefb971feb17a8ecc90b36a1"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Programs/CompilerProgram.Checking.cs",
+        "sha256": "261b8fba73efa3507a383eb4936256aa215fb6aa7c60102bd12b321237bc0135"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Programs/CompilerProgram.Mapping.cs",
+        "sha256": "baa94f3951b9a9e20573c60b9f42f49e50ed55746416879afc23d06ad59996b1"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Programs/CompilerProgram.ModulePathOptions.cs",
+        "sha256": "48e537143ba047e58bda898eb085ef955fc2c83d7c41a05f48b6e4fa9865ef29"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Programs/CompilerProgram.ModuleSpecifiers.cs",
+        "sha256": "3e44be37319bb7ac76c5c1dc0d80a1fcaa4ffb0d2d0e16759aaec0e0653a8026"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Programs/CompilerProgram.OutputPaths.cs",
+        "sha256": "f3c22447e0050ef1020e7bdd3ee8fe2bff9f4c11305207f61d4c382df5de29f9"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Programs/CompilerProgram.Resolution.cs",
+        "sha256": "0eb7b8e9cb65bf43e3bf4061844758ae5fab05c653614cc301b96171f99bfa7f"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Programs/CompilerProgram.cs",
+        "sha256": "d076b955e35aacdd5aae39385cabcdf445143afe255690511cbfedba3f11e0c3"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Programs/ProjectReferences.cs",
+        "sha256": "c3f7e0653fd2a17e9d77d0812936953066c55dc3a64b93f35f0f24c437cd2334"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Protocol/AstPacket.cs",
+        "sha256": "66a4cfe3325f3c9fb7d49d8ae2d5a097f6568330b2ea6c1f9be417fc97c0d467"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Protocol/SliceEncoder.cs",
+        "sha256": "c89a7d66227b4e431a945bcf83299acbfcae82c36145ea9210c026b7870662d0"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Resolution/ModuleResolver.Exports.cs",
+        "sha256": "98f2b19730652df2f0e52f5a669acde9707940a51ef34e7ee17a703adb1c2088"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Resolution/ModuleResolver.Paths.cs",
+        "sha256": "353629b29bc026aac436dcf4b1487c42e7bd126e68969cd54ec2d538c7d5d1c1"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Resolution/ModuleResolver.cs",
+        "sha256": "223aced332e8950819c90b9a4a07452879830b287e623dfda72881c84d3af710"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Resolution/ModuleSpecifierGenerator.Paths.cs",
+        "sha256": "0a1886a2b7809a20b26ee0f0e79aa8921942e846c8f30c34515b5d431bac4a29"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Resolution/ModuleSpecifierGenerator.cs",
+        "sha256": "d53be7a2147291f4cdae6889a2226b55502bb9d274b921473455df1d794fa259"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Resolution/ModuleSpecifierPackages.NodeModules.cs",
+        "sha256": "4d553781ff143f63af4bbf4c6d91b3b93850b98f7c642b571b91a9fc46c9554f"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Resolution/ModuleSpecifierPackages.cs",
+        "sha256": "e1e359f24eabd6f9123c532ccde15df3375db3f7cf064370d04271ef9016730b"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Resolution/ModuleSpecifierPaths.cs",
+        "sha256": "5ce0cb588a605aa30182d457281906b43af303b66780aae2c0e5c8458328458d"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Resolution/PackageJson.cs",
+        "sha256": "363f9982ab5d0faf6cb9802d81eef5854cc1dbeb567f17d3c54033c0917ebe1c"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Resolution/SemanticVersion.cs",
+        "sha256": "0cd0387be2d9d5c9a86b4a2d19c78453261c6c65c3654ef0b7e34982f30f970c"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Semantics/ConstantEvaluator.cs",
+        "sha256": "60f24ffa2705b2fbfcf33cb08854f8132795bdde558001b25bcd419d3717a633"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Semantics/GoUnicode.cs",
+        "sha256": "acaee81af50936cad110fd889fed7e506d057227b47f1d8565d6c613d6a98005"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Semantics/GoUnicode.generated.cs",
+        "sha256": "099a73f5e0183d2d006d9f4d4b531e33f8479d73c81728667afb6658614ea91e"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Semantics/JsCase.cs",
+        "sha256": "5c5990512365176b0fa11a588ef75ea51a936de1c9b69dbe4c7b10524059f7fe"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Semantics/JsCase.generated.cs",
+        "sha256": "f44b6f9ed5f0db3e3c28e0b9d5eb48cad1c2b08a806b5401f88f9434bb2de7aa"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Semantics/JsNumber.cs",
+        "sha256": "f98fddacdc4c0827158fdf10742041ac46e0d59e00f7a5914c830733abfd94aa"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Semantics/SpellingSuggestions.cs",
+        "sha256": "5fd545be68ea4819d3a733390003fd4c6ada458442b808924d3908711e9280cf"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Storage/Arena.cs",
+        "sha256": "51dd51eb001f3b1e705377c2911a011e731758be1db9e28ddaa671d89259adb6"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Storage/NodeStores.cs",
+        "sha256": "ec2b0660a6fbaca8ce280a2fe1cbed69a61fce7b704acd4e5c4d35ee79189345"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/DocumentationParser.cs",
+        "sha256": "7e106a9a6acc2a7fbdb868820f8e62aca25769c5b9dec97081e4d96837095b3f"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/IdentifierRanges.generated.cs",
+        "sha256": "ae7051d1a3e3dfd6ae376736db4101d3442354b6d68c3e3e59e9e97ac3df99e6"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/NodeFlags.generated.cs",
+        "sha256": "4b0f1d410e10fbd7ee01f2b74d4810b6425b00ee2b6f63fe3bdc72ebf9265427"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/Parser.Continuations.cs",
+        "sha256": "d08d1cc6cac86e3f18eb12afb91e4a7f3d5aab076e50fd54c348cf1b1ace5c61"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/Parser.Documentation.cs",
+        "sha256": "3abc2edbf99c86efa0b81a176cc28ef48ac42d52fe918af2bddc045f8ac3ae1f"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/Parser.Expressions.cs",
+        "sha256": "3577e60281e0f6ec43b1b36ff5436ca0deefa3c1da5922333469093ea3daf238"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/Parser.JavaScript.cs",
+        "sha256": "6838aa63d627c00302a852a011f5311718320a3d3342404fc78bf61bc5f91672"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/Parser.Json.cs",
+        "sha256": "8d21cea6a0c324bc344c340e32fba8a478d857a9a2b2152c08f297994f119f80"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/Parser.Jsx.cs",
+        "sha256": "661fd61157a6263eb5ac02b03a2b55e89de8963c353e27810869bee06bc9079b"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/Parser.Reparse.cs",
+        "sha256": "842e0ca652fb7b16171efd238aecd4d5bdb95c2324cd59af23717f4279160bc7"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/Parser.SourceMetadata.cs",
+        "sha256": "1264ed6bd5074978dad352d3af6ddd4355867a2ba770798d5fe33f88fca539ea"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/Parser.Stack.cs",
+        "sha256": "4cdbaf22d5ceea28ae16fdee74a7900dafd4099dbaa5e68dcad07cc64d9378a1"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/Parser.Statements.cs",
+        "sha256": "e49d16ddf94afa9af595d3d2e502436c08c985f7b9f4f0fc656211844098d3f1"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/Parser.Types.cs",
+        "sha256": "ba8edf3b07f55b3854e915b3c9fa9ba6c6415517717932758f411fee5aaa6194"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/Parser.cs",
+        "sha256": "f0766b477031d59391d8a4fcc273074aad9dd447d3fd39de564f0632a9a68fe8"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/RegularExpressionUnicodeProperties.cs",
+        "sha256": "f6ad7781fd016e4ad23fae9098cc55b73f205e3d78504b8e316cdb903d958720"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/RegularExpressionUnicodeProperties.generated.cs",
+        "sha256": "99bfc61aaca276d92703493d01d45eb5c893e5759fbb37149b6de2c5060a6919"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/Scanner.RegularExpression.cs",
+        "sha256": "afb788a0bc8cbe087874eb7c66921f443c9ec7bf254af0a30055839dd43b9ea1"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/Scanner.RegularExpressionSets.cs",
+        "sha256": "778b5da2740408e1b6a849a6bf53a6b013421f2ed98d4610969e96b4f1c91745"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/Scanner.Rescan.cs",
+        "sha256": "37a09e484d459079782493d28b2b8c887077fb4188a352df82b32a8154adb4a2"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/Scanner.cs",
+        "sha256": "752d14e5236f61f2f7657cba0cb58a814fbdcdc0ddda87c7b75887cb263cd97b"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/SliceLexer.cs",
+        "sha256": "61e723efd15856594b8ccb2c2b347e2c4f88c7e5c36c0bd94e8b14a17d435588"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/SliceParser.cs",
+        "sha256": "486d2f4d254e664df79fbab312eb55431e30dd675186d1acf1560eb85fff794d"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/SlicePrinter.cs",
+        "sha256": "ebb62fa58d372ebae6b5ee213ad8bd08067d59e06765aa15ccd295bc515e1e06"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/SliceSchema.generated.cs",
+        "sha256": "d382a19874f9592b00005f4db52d4d69509c3a70742a82041ddf3e28edf4d0bb"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/SliceTrees.cs",
+        "sha256": "56acf3c26439fea113e5d2aff0c0355402e40284dc7bed1e2ecf7a146c248f1b"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/SyntaxKind.generated.cs",
+        "sha256": "53e09cc084ec635a22ca8a7b2806344177778066926c1ea9608514c17c8bd099"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/SyntaxNameText.cs",
+        "sha256": "f172663d1ee13f07a62db01046edfb8bd42e16cc4b6b83b804f6d49f833c4301"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/TokenFacts.cs",
+        "sha256": "5381af985ac3a24ab884bbf8009da8c8eddd080a7d4e32846109455ed555980e"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/TokenFacts.generated.cs",
+        "sha256": "b389f0f05f4c2ce5a0be6e89649bbbf31afe5e53686c91a6dcc46a0d93336ae6"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Syntax/TokenFlags.generated.cs",
+        "sha256": "e338e1a67b2437887cee83037923d3be4003dbc85d4ff75db5909e3d8a955b32"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Text/SourceText.cs",
+        "sha256": "144ea1fe5bd5fd3d7e56583df3f41d482b1a1fff8ca90cd81c87f33764b76aff"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Text/Utf8Ascii.cs",
+        "sha256": "cd257d3ceb08a51ac17117585bec986c001291fbb1c9f91236640bf76ae2d17c"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Text/Utf8Literals.cs",
+        "sha256": "c2a87e79693eef124be03c5e082fdbe5e81ca97a657890f717a982e268a722d1"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Text/Utf8SpanExtensions.cs",
+        "sha256": "972b61260cc981e9e3d9c60b1ece72d41a110b57edbe1439b4c1a5d78ff691ab"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Text/Utf8String.cs",
+        "sha256": "17553861b682e5f6cfe83147458a00f1496e3d38e7f921e676d1f73688f0b1e3"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Text/Utf8StringBuilder.cs",
+        "sha256": "071c783b9a79dddde81e3cf3c7aa12643cdf5dc21e25f71baf408069c5e6a366"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Text/Utf8StringComparer.cs",
+        "sha256": "5af671f49cde65083467526ab2c350febaf422b36ffb176136d5c52870635c47"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Text/Utf8StringJsonConverter.cs",
+        "sha256": "db9df8a79e9acdd9dad3c4b8b864525d242485b95f1322b8232af5e085bb0bdf"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/Text/Wtf8.cs",
+        "sha256": "90e8643d2bcabf236b95a18ddd637d63e7379a486761c97c95a236b7004a1dbb"
+      },
+      {
+        "path": "csharp/src/TypeScript.Compiler/TypeScript.Compiler.csproj",
+        "sha256": "2ac296aac10f135e1f1b4369eaa8ed269d07a772735f9f94fb29e0aceee9edf7"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/AlgebraFixtureHost.cs",
+        "sha256": "186cafc66572bd3fcbea9f7eb4d24a71c2d3f6da0d97be40920e1f0bfa3c0b89"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/BindingSyntax.generated.cs",
+        "sha256": "32a6b8bcbeb982b0264d489aa858f75e821b01e8ef4426348246b6432525b782"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/BindingTests.cs",
+        "sha256": "f5d1d5324a7a68ccb9de2f36210f258e8919e8303be8fd0022b0aca6952869dd"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerAccessTests.cs",
+        "sha256": "8e4204cbedb1a199068ebeb70809c7cb941d4f662972f5596a21dba2124dbffc"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerAccessibilityTests.cs",
+        "sha256": "3cad424326c368f04cfec2b1502ab064df1cbd2819fe57b0323909a06384442c"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerAlgebraTests.cs",
+        "sha256": "c38c5dec09deda946015a20fbf6f39f51b06cf3bc609d131806c09abca2d6ba9"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerAliasTests.cs",
+        "sha256": "17a5f5cb55a3ea6115cf385fae3364e12cb7166a15fbb1187251abb077dd879b"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerAssignabilityTests.cs",
+        "sha256": "3d64274826c57e58023fed02754fa295616b969ac6f1c5c849587fa5f8ab4298"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerBinaryTests.cs",
+        "sha256": "3b793f4b0db60f562f088599b604d61ff5f59b5ba09a57d8d5d4b16957f1aaa8"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerConditionalTests.cs",
+        "sha256": "796669d10efc7066ce88feec38f3b8549fdf02143a8da7974778c05498970f63"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerConstraintTests.cs",
+        "sha256": "d379a74ca2b6c9c08d8196768c64402062a0fef36865b6492a285d90b8caf0c5"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerContextQueryTests.cs",
+        "sha256": "2b63356519f678719d60de9cf6638792b560ad959f996d535b27fdea972dcca2"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerCorpusTests.cs",
+        "sha256": "0bbda98b664e47ec7b0a66ec5d01167f5d780abc8a17a2c84e03b4fe9346e793"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerDisplayTests.cs",
+        "sha256": "309611c7fb909c14e9df77efce003d1452db2d6f9e9dd1d439b19b869d4df02f"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerEmitQueryTests.cs",
+        "sha256": "373a67e4c14e60d22c6a43d9d3286f88b19b5864dea37251d248b8d20cdf0249"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerEmitSyntaxTests.cs",
+        "sha256": "b734455332d5b0b376656857cb3fc5183bdf809553cfe33eecc71a27595fdb9c"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerExpressionTests.cs",
+        "sha256": "4db5d2c17b151036d4888d6652384c2178bc0ca5887d0a92dbce26a179a8f389"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerFlowTests.cs",
+        "sha256": "3c543b73a4396bfed64f9f854c9d8b8d55b738c6e9f45c2c12a428e8211d8b86"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerGenericRelationTests.cs",
+        "sha256": "900747d6a42eeedb285635baf910093f66a9823b95be1e5e37fa24623527d635"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerIdentifierTests.cs",
+        "sha256": "d4357021a9a7c7b39b2f929d8862cc93f73a7fb28c1790e43b2b05c23a6db89c"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerIndexTests.cs",
+        "sha256": "95a9c5fed2fa10bec8bbba98a8bdb8daa4c5100c5234d951c8da820ee33c2574"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerInferenceTests.cs",
+        "sha256": "22a93af8ca390424dc5979ec87db3cb9d0f4ad6c535c91c7f910281820f7fc77"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerInstantiationTests.cs",
+        "sha256": "a10f8b5752a47937de9d31749e59ee810c3f341ecd0de667742a4c6f54a22773"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerMappedMemberTests.cs",
+        "sha256": "2a7ff64dab55628abbdb8f854d3b409d5877c77233377bb91d6ee5e14fed37ac"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerMappedTests.cs",
+        "sha256": "5d8b7bc8c86aedb2c1acf9298a31f30f0c69924ad6bd2f44bd7378a766aeb61f"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerMemberTests.cs",
+        "sha256": "d07a7eb8531e2b15d405fd7de2ee819a18af8425ec05b5341983d86a1fb19922"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerNameTests.cs",
+        "sha256": "3048858df73972af75db71643f6224659f808331e1767ae256169c466203d82a"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerNodeBuilderTests.cs",
+        "sha256": "41ea28fec30a25665fa8b875555bb7f585f694eb5563720357e9adc640feaf97"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerObjectTests.cs",
+        "sha256": "a8eaa2e3126cdcf9093674c9e9ca4c64870c35afe084de53e23fc45980977303"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerPoolTests.cs",
+        "sha256": "338a5a191e6f876219071dfc92db8a92ea1c2430958f4fcb7b88d9565d0cd32e"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerProgramTests.cs",
+        "sha256": "6185302d274acddecabec9c409c3f9b3a70d54132db8e79616999c821d912ce2"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerPropertyTests.cs",
+        "sha256": "6dfc02ab589de2e4c65800e29391a7a83aff6f6a3a148f83367fd4253b54afaf"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerQueryTests.cs",
+        "sha256": "34347fc77a4cebe9115f06412b46a14aed4af64d7eca53105367cfb489830861"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerReferenceTests.cs",
+        "sha256": "20c6c946fd82c3f430e44445e18fce51a9caa4592f6c3c4595ad9c938c9ffeb6"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerRelationTests.cs",
+        "sha256": "ccc4ef56e54687d25d7137c1aeb509204d4f28ce5b5c9a9da62913f47c327cc8"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerSignatureTests.cs",
+        "sha256": "76a180247f4fdd9961aa5c617c338ff376c1bbf50ec106089f4f81883527e58f"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerStateTests.cs",
+        "sha256": "356b2d39ee6b7c5b321222d6022dbf3609c4f1d63c1d6d592086471a9d779bfb"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerSymbolChainTests.cs",
+        "sha256": "60c88b8eed1f6249cebef0dc9d41df4e4cdee482f54eea1fdbf381dff36608b4"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerSymbolDisplayTests.cs",
+        "sha256": "748401e8fc886c33a6627d6274186cbd3fed14a5515881d9e5ca5a17fff681f4"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerSymbolTests.cs",
+        "sha256": "cbc5383f672e58aafc10f6327e2e7b3865137f41cc5c21cdf128bfee0d879c5a"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerSymbolTypeNodeTests.cs",
+        "sha256": "d5d767239b93fae54bba3ab0f84a689a284ac070bf7e0b559a3af5ebc59283ed"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerSymbolTypeTests.cs",
+        "sha256": "b0e09c8f58eb0ede44fe7698385ce7885872d3df55f776e60f45c310d02668e5"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerTypeNodeTests.cs",
+        "sha256": "c3f921afccdb2a9f9832f837ae994a356bff01b4d5cede75df8569752618b293"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerTypeSyntaxTests.cs",
+        "sha256": "5d3f88f7dd9c7bea241d3bcf96c27721bf9006e75e1c4a67b8d158f0b5c375f7"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerTypeTests.cs",
+        "sha256": "64cffa09824bca766177999693f7173b77ed7232a564aca394ecfd35f697515e"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerVisibilityTests.cs",
+        "sha256": "17ae49dd5f9a38db3939248412133bc4e0bef3b4c252dfce0fc777a083e129ae"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/CheckerWorkloadTests.cs",
+        "sha256": "41e6acf58924ac1478b6cdc8cf984e0a9f26ac639544bfb0681037cc72503f57"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/ConstraintFixtureHost.cs",
+        "sha256": "1515a35889339b99b78413078c8033a7dc1a4315dadf604c902d0bb741d85d3a"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/ContentMapperTests.cs",
+        "sha256": "586280f1fd603dc5fb84f583b155493bb7d6ee1fe4fe90d10947cd56cadcd3df"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/DiagnosticNodePrinterTests.cs",
+        "sha256": "b4c4e975ebad093927d33afb2cd5904da626091e127c6e4b0b000e5d0ccf12d3"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/Experiments.cs",
+        "sha256": "ff2dbe2b74d100f3ce503074bf49fd25d486f7ca086f560dcb6e26eb5a028b8f"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/FoundationTests.cs",
+        "sha256": "7c8048584873554acad222a1d98ba7f5afaf7b0ad7b12de35d2afaeffecb026e"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/GlobalUsings.cs",
+        "sha256": "1cf224d563bc02dd7838950530f83b35a75158e1eec978485be995e683b324a7"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/HostTests.cs",
+        "sha256": "27325d718a9acbbb4b249c1eabd8aa8e5f357e1cf3ecf7aa34de46da648afba7"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/InstantiationFixtureHost.cs",
+        "sha256": "b3a3cd4577eac75ee0d2d886e5c1ac09b75920f25d49cf38016f929e400b3802"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/JavaScriptSyntaxTests.cs",
+        "sha256": "e01928fce8cafd7b4b724fbf814526bf018ede247a0717b58480685da1afa6fd"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/MapperCodecTests.cs",
+        "sha256": "b0dcb347e81ab1605445599c5f09260158dcfb2ff42581fd893de39ea9f0582f"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/MappingTests.cs",
+        "sha256": "4952f5c8dbd170153c85b050e2348d1c2dd90185b0ae6b207ecac56fb77f9c1f"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/ModuleSpecifierGenerationTests.cs",
+        "sha256": "8ab6c99747c2ec0b71fe64def312b6c1d3f5bc5f87c4cf2083c810e1bd6821d3"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/ModuleSpecifierProgramTests.cs",
+        "sha256": "361ac128828190e0ea4406cc879d02c98f686ef22a3884a79215a53830f479b2"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/ModuleSpecifierTests.cs",
+        "sha256": "dc748802ae06992094160dbf1d69c82ee9560af0d1443779f6095a1031ed959e"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/ModuleTests.cs",
+        "sha256": "0fc915ddca37396819a8c8add146866f81cd61a9896d0b86b3b0e3285f84755d"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/NumberOperations.cs",
+        "sha256": "52728c093c9b58057b3f3492b418569eb7b0eedd00894efff3ab6a37b6082b1d"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/ParserSafetyTests.cs",
+        "sha256": "e318b720e0cf5da9d0707e1906041e0f73fea016623e0b57af62b79bfbc6ea24"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/PipelineExperiments.cs",
+        "sha256": "566ba2259349260ff5396d2c045b4bafb14293e2779039d199f146846c6eb61b"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/ProfileExperiments.cs",
+        "sha256": "1b96af7ae822038329557ea17bd815f3ff326d042afb7544703c606cd25e1f0f"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/Program.cs",
+        "sha256": "167a20026b27abe5a85899f2ac24bfd5575cb00e86b63f65dcbe981a4f343d6d"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/ProgramGraphTests.cs",
+        "sha256": "ac855bc2e48dac92fad3673913b1012c13f2bf5bcce437934873767042e4c19e"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/ResolutionTests.cs",
+        "sha256": "230128da63d95c17e069f6661eb1fc99969efc00892c96e37f3608759169be4d"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/SyntaxTests.cs",
+        "sha256": "13ae983715cb4e97705019e18f29b57a4bbe5395cf9b1706e75dd34baccb8ead"
+      },
+      {
+        "path": "csharp/tests/TypeScript.Compatibility/TypeScript.Compatibility.csproj",
+        "sha256": "99ff9b94a8221a1e9eaa33a3003f2dce7e35d59e48e311a9ade1eb8003f8d63c"
+      },
+      {
+        "path": "csharp/tests/TypeScript.RegularExpression/Program.cs",
+        "sha256": "58dede888bb7b1a1cd7b20ae748688e485cf0f953544419912c4a478b4f7141e"
+      },
+      {
+        "path": "csharp/tests/TypeScript.RegularExpression/TypeScript.RegularExpression.csproj",
+        "sha256": "cbd398a238fec191d7ae2214d155bc2caf62af8858e08e662c883f4696982cc1"
+      },
+      {
+        "path": "csharp/tests/TypeScript.SourceMetadata/Program.cs",
+        "sha256": "7813cca5322ea07ee87da12c38f71d1166ee8a01891b88dccdb14358d9eab5c8"
+      },
+      {
+        "path": "csharp/tests/TypeScript.SourceMetadata/TypeScript.SourceMetadata.csproj",
+        "sha256": "cbd398a238fec191d7ae2214d155bc2caf62af8858e08e662c883f4696982cc1"
+      }
+    ],
+    "compilerSha256": "0bb703d716d1f0200c90bcb6fbfcb310a433b84fc2192109b62a7f2a0aed64ca",
+    "candidateSha256": "85747b0e69b01989eac95e42fa139ba78fb4b949441aa065a605d2e49cf8d7b6"
+  },
+  "generatorSha256": "85bf481364db660d8f86290b1b14c315ebc56ad202d5a9424c71fd3860d54bc9",
+  "normalLockfilesUnchanged": true,
+  "nativeBuilds": {
+    "sourceFingerprint": "23bd7a87e8ca7f70dd561846378e646995b1b154c0bcb79db7d1c929d7ebd0e0",
+    "normalLockfilesUnchanged": true,
+    "satoriSdkChanges": [],
+    "builds": {
+      "satori": {
+        "executable": "built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "sha256": "65fced2a72d2c6b34b4c006fcd1a8e820f55da7b1f376c6f524674092759d4a2",
+        "bytes": 28858368,
+        "ilcResponseSha256": "f8303fa156847c4f9e96e4e3a8313d5b3f789ca1d2e3d43d9b4d3925325cbcbc",
+        "linkResponseSha256": "09335c9ea3908c5dc9488d7aa18c0294e4fed6478b8fcba16e1b38ec704d33b9",
+        "runtimeLibrary": "D:/Satori/artifacts/bin/coreclr/windows.x64.Release\\aotsdk\\Runtime.ServerGC.lib",
+        "runtimeLibrarySha256": "e54ddb69ab0020321b8974aa4bb5988529444f5c9fc54a41ab6e6ffdc365d9ef"
+      },
+      "stock": {
+        "executable": "built/utf8-optimization/native-stock-final/TypeScript.Compatibility.exe",
+        "sha256": "ba9f063906f2b4c859119349d7d46e38600940def2212743cac9984ba402ae93",
+        "bytes": 29350400,
+        "ilcResponseSha256": "6cf136793546ee70e7126b273795af88fbce21c6257aa0a4932b4a58c1bc8775",
+        "linkResponseSha256": "f73b645f749916bbee6022f33e69ffc107bc99dc575be75fe9ee7cb37457087f",
+        "runtimeLibrary": "D:\\.nuget\\packages\\microsoft.netcore.app.runtime.nativeaot.win-x64\\11.0.0-rtm.26473.115/runtimes/win-x64/\\native\\Runtime.ServerGC.lib",
+        "runtimeLibrarySha256": "7d5d2b104b34012226cda8d5209eb741cf624347f6656cd1b23a443425a0d7bb"
+      }
+    }
+  },
+  "semantic": {
+    "single": {
+      "timestamp": "2026-09-30T18:30:17.780Z",
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "mode": "single",
+      "filter": "",
+      "managed": true,
+      "reuseSyntax": false,
+      "referenceJobs": 2,
+      "scope": "Original compiler test program graphs and semantic/global diagnostics in the selected checker concurrency mode; checker query APIs are validated separately",
+      "referenceExitCode": 0,
+      "exportedConfigurations": 15208,
+      "readyConfigurations": 13446,
+      "availableConfigurations": 13446,
+      "referenceInventoryFiles": 12730,
+      "plannedConfigurations": 15208,
+      "referenceMissingFiles": [],
+      "referenceMissingConfigurations": [],
+      "referenceSkipped": 1762,
+      "referenceFailed": 0,
+      "candidateFailures": 0,
+      "graphMismatches": 0,
+      "diagnosticMismatches": 0,
+      "graphAndCodeMatches": 13446,
+      "detailedDiagnosticMatches": 13446,
+      "detailedDiagnosticMismatches": 0,
+      "detailedComparison": "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized",
+      "errorGroups": [],
+      "inputSha256": "df21bccda8a3bc5da534586c352dae0175cf4bf260c93ee15694afe19353d5bd",
+      "referenceInputCorrectionsSha256": "796d2ff79dfe5dfb5d35cd192946d4a1da669b6cea211d31b2b4696d84aa0c0c",
+      "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+      "candidateSha256": "85747b0e69b01989eac95e42fa139ba78fb4b949441aa065a605d2e49cf8d7b6",
+      "compilerSha256": "0bb703d716d1f0200c90bcb6fbfcb310a433b84fc2192109b62a7f2a0aed64ca",
+      "mapperFixture": {
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+        "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+        "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+      },
+      "candidateOutputSha256": "8390e6e546cf407bd5030dfabecd2983bd7aee283ae8d0a0678963646c6b31a4",
+      "fullSemanticCorpusGateComplete": true
+    },
+    "default": {
+      "timestamp": "2026-09-30T18:44:24.819Z",
+      "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+      "mode": "default",
+      "filter": "",
+      "managed": true,
+      "reuseSyntax": false,
+      "referenceJobs": 2,
+      "scope": "Original compiler test program graphs and semantic/global diagnostics in the selected checker concurrency mode; checker query APIs are validated separately",
+      "referenceExitCode": 0,
+      "exportedConfigurations": 15208,
+      "readyConfigurations": 13446,
+      "availableConfigurations": 13446,
+      "referenceInventoryFiles": 12730,
+      "plannedConfigurations": 15208,
+      "referenceMissingFiles": [],
+      "referenceMissingConfigurations": [],
+      "referenceSkipped": 1762,
+      "referenceFailed": 0,
+      "candidateFailures": 0,
+      "graphMismatches": 0,
+      "diagnosticMismatches": 0,
+      "graphAndCodeMatches": 13446,
+      "detailedDiagnosticMatches": 13446,
+      "detailedDiagnosticMismatches": 0,
+      "detailedComparison": "Complete diagnostic records, including arguments, ranges, category, message key, chains and related information; top-level collection order normalized",
+      "errorGroups": [],
+      "inputSha256": "b51e79a2ebc4428367c89bceb367fd82a86bdd85b43b847bc17f875b51743a77",
+      "referenceInputCorrectionsSha256": "f0e9fd99f75e8ac0c3db7ef4ccef21980f74b7b1adcfe189a01c8a762e4613a6",
+      "oracleSha256": "392e5d5d395ef24cfb92705e5f3fd27d4e590bf7a36da01fb2f43172c95b96b8",
+      "candidateSha256": "85747b0e69b01989eac95e42fa139ba78fb4b949441aa065a605d2e49cf8d7b6",
+      "compilerSha256": "0bb703d716d1f0200c90bcb6fbfcb310a433b84fc2192109b62a7f2a0aed64ca",
+      "mapperFixture": {
+        "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+        "sourceSha256": "1f27c3e9df5e4f80c508ac08b9fce3172efcebc2099ffc872ff0ec27fb8926c3",
+        "go": "D:/go1.27.1-20260904.9.windows-amd64/go/bin/go.exe",
+        "executableSha256": "17cf03228e7c46d3bdda7dc7d2ecf3ea94b3ea6a3ebc00a43363c0bc17f8b0a3"
+      },
+      "candidateOutputSha256": "8390e6e546cf407bd5030dfabecd2983bd7aee283ae8d0a0678963646c6b31a4",
+      "fullSemanticCorpusGateComplete": true
+    }
+  },
+  "api": {
+    "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+    "records": [
+      {
+        "name": "api-locations",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs"
+        ],
+        "log": "logs/utf8-opt-final-api-locations.log",
+        "exitCode": 1,
+        "summary": {
+          "configurations": 80,
+          "queries": 3956,
+          "comparedQueries": 3812,
+          "exact": 76,
+          "failed": 4,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 4,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "0fd113eea7c38f18959452244fe0c41c1ef8ea5c9891c58ff69e06b3cc6cadb5",
+          "resultHash": "1523b8710cb43e877e57adafa92428c137213ee4bd956528838fd04ab35c3394",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-symbol-locations",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--symbols"
+        ],
+        "log": "logs/utf8-opt-final-api-symbol-locations.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 104,
+          "queries": 5312,
+          "comparedQueries": 5312,
+          "exact": 104,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "68eb6b0ac9f7ef354d82a509fe7dfa06df8b3a3d5c7c9bb70a1021376773d09b",
+          "resultHash": "b6095f3092801a0df026197d97476f053bd5d17e38c89ea33f5fc8296f7a251f",
+          "managed": true,
+          "symbolAnswerMatches": 104,
+          "locationMetadataDifferences": []
+        },
+        "passed": true
+      },
+      {
+        "name": "api-scope-services",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--scopes"
+        ],
+        "log": "logs/utf8-opt-final-api-scope-services.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 104,
+          "queries": 29500,
+          "comparedQueries": 29500,
+          "exact": 104,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "1e81170626ed44a62ddceef58ac1cf0de04bfcdb72d380ab4cdc531521707610",
+          "resultHash": "6dbc664b5fb4ae6b6572518a667d1a3f961f9ebbb118e137522a77d914bf1e51",
+          "managed": true,
+          "services": {
+            "scopes": 27440,
+            "symbolTypesAtLocation": 1904,
+            "symbolTypesWithoutLocation": 1904,
+            "moduleExports": 52,
+            "aliasTargets": 60,
+            "localExportTargets": 16,
+            "shorthandValues": 16,
+            "parameterPropertyPairs": 12
+          }
+        },
+        "passed": true
+      },
+      {
+        "name": "api-context-queries",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--contexts"
+        ],
+        "log": "logs/utf8-opt-final-api-context-queries.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 112,
+          "queries": 7644,
+          "comparedQueries": 7644,
+          "exact": 112,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "c65794a9e5217beddd1f9d63dda5108cbe813f00abaccd4dfcb349ece37e1507",
+          "resultHash": "017ecbd34b2b995f5f210639dc284b5e0355dcfc594185ec89b80a643b062b25",
+          "managed": true,
+          "contextRecords": {
+            "expressionTypes": 6768,
+            "objectElements": 36,
+            "arrayPositions": 108,
+            "jsxAttributes": 16,
+            "resolvedSignaturesAndReturns": 108,
+            "argumentTypes": 240,
+            "signatureHelp": 324,
+            "stringCompletions": 44
+          }
+        },
+        "passed": true
+      },
+      {
+        "name": "api-declaration-visibility",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--visibility"
+        ],
+        "log": "logs/utf8-opt-final-api-declaration-visibility.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 112,
+          "queries": 24832,
+          "comparedQueries": 24832,
+          "exact": 112,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "939873780e0df71241bbf0f9332fcb6a48c303841baa84c1e74f629ea7430cfd",
+          "resultHash": "68148641cb59a3a77c64840b6da23facc9e202c3139e32864d14df3b9bdc2aa6",
+          "managed": true,
+          "visibilityRecords": {
+            "initial": 5628,
+            "afterPrecalculation": 5628,
+            "aliasRetention": 2320,
+            "afterRetention": 5628,
+            "afterRepeatedPrecalculation": 5628
+          }
+        },
+        "passed": true
+      },
+      {
+        "name": "api-symbol-chains",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--chains"
+        ],
+        "log": "logs/utf8-opt-final-api-symbol-chains.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 112,
+          "queries": 60216,
+          "comparedQueries": 60216,
+          "exact": 112,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "179f897a4eb341fc06182bbd343b7fd839685ff1531f5e8bc02b0298feca051a",
+          "resultHash": "8ac6caa2d6184f867ff53659b9869f5eade4fb9a27d93d22771377742ee731d1",
+          "managed": true,
+          "chains": {
+            "found": 17340,
+            "absent": 42876,
+            "longest": 4
+          }
+        },
+        "passed": true
+      },
+      {
+        "name": "api-accessibility",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--accessibility"
+        ],
+        "log": "logs/utf8-opt-final-api-accessibility.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 156,
+          "queries": 125544,
+          "comparedQueries": 125544,
+          "exact": 156,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "877c6c3ffe48dcc29fcd87366800dc2290d7afcef94cb9caba6bbaa56109490f",
+          "resultHash": "b18a73d367feb754d56994b7ad9305480336dea83dc64718bc44205743448912",
+          "managed": true,
+          "accessibilityRecords": {
+            "containers": 19452,
+            "decisions": 77808,
+            "flagQueries": 19452,
+            "typeAndValueQueries": 6484,
+            "entityNames": 2348,
+            "decisionStates": [
+              49616,
+              12808,
+              15384,
+              0
+            ]
+          },
+          "symbolDiagnosticNamesCompared": false,
+          "entityNameVisibilityComparedCompletely": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-symbol-display",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--symbol-display"
+        ],
+        "log": "logs/utf8-opt-final-api-symbol-display.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 172,
+          "queries": 122012,
+          "comparedQueries": 122012,
+          "exact": 172,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "ba123b64cdae9651326bb1ccd33cb16d35a53963a0ae6c98889689c55199b70e",
+          "resultHash": "8593fcf5040b5a988143d2bbb7b826fab3099ca81af77ac59004b263931eb5c4",
+          "managed": true,
+          "symbolDisplayRecords": {
+            "names": 27116,
+            "accessibilityResults": 94896
+          }
+        },
+        "passed": true
+      },
+      {
+        "name": "api-symbol-type-nodes",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--symbol-type-nodes"
+        ],
+        "log": "logs/utf8-opt-final-api-symbol-type-nodes.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 68,
+          "queries": 490752,
+          "comparedQueries": 490752,
+          "exact": 68,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "6fd684bd322350d99d9da928cfbc79dd013d606c5d0928ef6be8d69f506b9479",
+          "resultHash": "18ccdcf3783dc40d823895f1d00550de981e4b864de88f73950bbea00938ece5",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-computed-symbols",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--computed-symbols"
+        ],
+        "log": "logs/utf8-opt-final-api-computed-symbols.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 32,
+          "queries": 62688,
+          "comparedQueries": 62688,
+          "exact": 32,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "da7fa60b82f001f6ee888c9993235719547dda9429caafe36e8a94876a05bc00",
+          "resultHash": "6cf4f6f974b41bc5b9d01c5cf253c6a4008bbda38d7bcccc6481fae08e4d4af2",
+          "managed": true,
+          "symbolFormatFlags": [
+            20,
+            22,
+            28,
+            30,
+            52,
+            54,
+            60,
+            62
+          ]
+        },
+        "passed": true
+      },
+      {
+        "name": "api-symbol-formats",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--symbol-formats"
+        ],
+        "log": "logs/utf8-opt-final-api-symbol-formats.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 72,
+          "queries": 275728,
+          "comparedQueries": 275728,
+          "exact": 72,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "e281739a187c150c5ae4d1827b67645fa25f7dace7094441ffa24de96740fb45",
+          "resultHash": "1d3a1277a7ed857bb69f3fc5f8bf90a6f2ce8afc5f7fdf1b4471e27accb36501",
+          "managed": true,
+          "symbolFormatFlags": [
+            0,
+            1,
+            2,
+            6,
+            8,
+            10,
+            12,
+            14,
+            16,
+            17,
+            32,
+            34,
+            36,
+            38,
+            40,
+            42,
+            44,
+            46,
+            64
+          ]
+        },
+        "passed": true
+      },
+      {
+        "name": "api-type-syntax",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--type-syntax"
+        ],
+        "log": "logs/utf8-opt-final-api-type-syntax.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 32,
+          "queries": 2880,
+          "comparedQueries": 2880,
+          "exact": 32,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "ae3bcf95f95ce4d05a03b702b9758907e5246cecf377d14e9d90fd4b457f9d78",
+          "resultHash": "94f573fc9d1c0e6be202de52d9b76d730b0684e8decfb12cf3fbffb2022ed52f",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-conditional-syntax",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--conditional-syntax"
+        ],
+        "log": "logs/utf8-opt-final-api-conditional-syntax.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 28,
+          "queries": 1344,
+          "comparedQueries": 1344,
+          "exact": 28,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "2d651fa59427b689aa9298f8d6e8d9f7ba2c42261c69412705eba964fabefd8c",
+          "resultHash": "ec6aa1c8272d02ba194e7f9628c5a29d2ca12b2d5d4ce8f17e74ffc1898e49a7",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-mapped-syntax",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--mapped-syntax"
+        ],
+        "log": "logs/utf8-opt-final-api-mapped-syntax.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 24,
+          "queries": 1280,
+          "comparedQueries": 1280,
+          "exact": 24,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "0fb5d40db8653694d30d2122eda123a8123c6465a51f17f2b57710aa12ce3c5e",
+          "resultHash": "71f159275faac2467c93561332efcb2dd7aab7ea9b6fba31459ad2191859670b",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-symbol-type-arguments",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--symbol-type-arguments"
+        ],
+        "log": "logs/utf8-opt-final-api-symbol-type-arguments.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 88,
+          "queries": 347200,
+          "comparedQueries": 347200,
+          "exact": 88,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "30fad4b1c15904d9832c0d59d2bd8e1406038b0624f19337cac6bd5b0abb3b02",
+          "resultHash": "f36a5fac37ae4dedf945348904af5bbb5c3b95b85392a65b9576bac60dc3214b",
+          "managed": true,
+          "symbolFormatFlags": [
+            5,
+            7,
+            13,
+            15,
+            21,
+            23,
+            29,
+            31,
+            37,
+            39,
+            45,
+            47,
+            53,
+            55,
+            61,
+            63
+          ]
+        },
+        "passed": true
+      },
+      {
+        "name": "api-signature-syntax",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--signature-syntax"
+        ],
+        "log": "logs/utf8-opt-final-api-signature-syntax.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 48,
+          "queries": 2496,
+          "comparedQueries": 2496,
+          "exact": 48,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "63ebe3a59fd6479734fa22ac874383b8fc8a1a97358c4dd4cc33099e6bf25a6d",
+          "resultHash": "dca60b6faab5a8b23748371762fb271c281625f3f35bd8842e8556435c7adcd5",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-anonymous-syntax",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--anonymous-syntax"
+        ],
+        "log": "logs/utf8-opt-final-api-anonymous-syntax.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 44,
+          "queries": 2448,
+          "comparedQueries": 2448,
+          "exact": 44,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "09eb7fdf9b133b0453d90bdbb3133251dcae819c635890611ab2ee44cfaf967f",
+          "resultHash": "f8fc52d96f37b61966b748c7bc35be422d2972ef0b7dee606a10ec9ffa2ad6d4",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-syntax-names",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--syntax-names"
+        ],
+        "log": "logs/utf8-opt-final-api-syntax-names.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 24,
+          "queries": 4800,
+          "comparedQueries": 4800,
+          "exact": 24,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "1a740d3915f2332284a94adff85dda665eb284d2c53da10945df4f8818901818",
+          "resultHash": "c8f56b3f3d69a632eb864c88f1d312a4d6321ec3bebb3404384d3a467ed55676",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-syntax-options",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--syntax-options"
+        ],
+        "log": "logs/utf8-opt-final-api-syntax-options.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 45,
+          "queries": 13064,
+          "comparedQueries": 13064,
+          "exact": 45,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "f56128d1ec4d24baf4e7e0c40c9f98c8ca5010e2806218b0b6ba35afe6db1e60",
+          "resultHash": "2992128230c5bee7c72f587ddca36441deee87460ac7096f13d4f58c338d0e7a",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-generated-names",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--generated-names"
+        ],
+        "log": "logs/utf8-opt-final-api-generated-names.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 40,
+          "queries": 3584,
+          "comparedQueries": 3584,
+          "exact": 40,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "fa138e554a4d067694970b0061f66826fe8ef19b7f3c25701e56b39169a3db9b",
+          "resultHash": "05229883ce448f796c1a41f9614e0649d1b278bae456dc6b29f69f30232b1619",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-function-options",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--function-options"
+        ],
+        "log": "logs/utf8-opt-final-api-function-options.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 24,
+          "queries": 12544,
+          "comparedQueries": 12544,
+          "exact": 24,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "ca5bd2098666cc60e999bb39c5ae2f025cf267cc5d03843f04ef509c83ff9909",
+          "resultHash": "39d04a890bb2be58e36236f698f7944e9d7aeb6f177f1310066b8af638a8bbca",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-signature-declarations",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--signature-declarations"
+        ],
+        "log": "logs/utf8-opt-final-api-signature-declarations.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 20,
+          "queries": 13520,
+          "comparedQueries": 13520,
+          "exact": 20,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "a855bfe713fb0c1509318b3a166f46cec79bb86865422d1f87eb152b00aeacc6",
+          "resultHash": "4560fb95bb5394e78394b9927fb064b3f19da1f067d51bcf06f0828db0822378",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-class-options",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--class-options"
+        ],
+        "log": "logs/utf8-opt-final-api-class-options.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 28,
+          "queries": 7776,
+          "comparedQueries": 7776,
+          "exact": 28,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "d11fc4c41a2b2b61a864ee2f245c0504f01ee7c59e62d5e4cbe5f5f1f5a2a415",
+          "resultHash": "93bf1622611c4b8769b1f5eda43992bccc6472cfd4c881df5d166c9b5497ac7c",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-emit-references",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--emit-references"
+        ],
+        "log": "logs/utf8-opt-final-api-emit-references.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 24,
+          "queries": 528,
+          "comparedQueries": 528,
+          "exact": 24,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "b88fd3f42ef00ae34389a8fbb5f8c3ac8613bf1977d6bf65872880334f86b7ed",
+          "resultHash": "587a53ae5877097dcf91f48b33c10f3a70b5d241c1977079f52ebe2b23736ac6",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-emit-queries",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--emit-queries"
+        ],
+        "log": "logs/utf8-opt-final-api-emit-queries.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 44,
+          "queries": 2300,
+          "comparedQueries": 2300,
+          "exact": 44,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "77ef181936807b6744541c8277edb58601c5f050c0b1c0ea858531235c68fa09",
+          "resultHash": "48d53534a15d7b140e0085f0605a917f90c0dcd7224d86373864588005aa4733",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-emit-serialization",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--emit-serialization"
+        ],
+        "log": "logs/utf8-opt-final-api-emit-serialization.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 24,
+          "queries": 600,
+          "comparedQueries": 600,
+          "exact": 24,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "08d11649d6ccac357204b3914e63549fd6f049cfcdf8faa63efcd9c2513660fc",
+          "resultHash": "50963a323ab0e06adc2fffb19b39acee620879b9558ab78baa129401f45c53f5",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-emit-jsx",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--emit-jsx"
+        ],
+        "log": "logs/utf8-opt-final-api-emit-jsx.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 28,
+          "queries": 280,
+          "comparedQueries": 280,
+          "exact": 28,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "7771f1a0bbf5b5ee4dc44eb07a84df40125e9a49d23f5ade6c495c49c0cac4f3",
+          "resultHash": "cd54b64e292238cd33a8f0ec1fa8eb2a1033484973c6de7f71e771f99a9ccf28",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-emit-links",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--emit-links"
+        ],
+        "log": "logs/utf8-opt-final-api-emit-links.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 48,
+          "queries": 420,
+          "comparedQueries": 420,
+          "exact": 48,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "6cf171db0d98e85a795c0d6c8d9645cf73aca03a01086b26862f0a9926a1032a",
+          "resultHash": "6db50e1396765ab9f77ffba4d9c983bb4549776d64284099cdda7c4a415bb882",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-emit-services",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--emit-services"
+        ],
+        "log": "logs/utf8-opt-final-api-emit-services.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 20,
+          "queries": 944,
+          "comparedQueries": 944,
+          "exact": 20,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "f150889aa2f7519da00f8afdc6a098a12797bd7ed45cfe9c04426980b420e543",
+          "resultHash": "4529b00f9be817e8d720d102e2f009e159cb5befe528323c94c3324e679f7a38",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-emit-recovery",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--emit-recovery"
+        ],
+        "log": "logs/utf8-opt-final-api-emit-recovery.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 56,
+          "queries": 3672,
+          "comparedQueries": 3672,
+          "exact": 56,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "d965845ae5589f096acf2209fe60523963047c5501bd5f1ea876c4b9d465dc09",
+          "resultHash": "ee2e25148e4ce8cc05fc896805ce217b6372b2d6a08ecde63b976877d7a19bc4",
+          "managed": true
+        },
+        "passed": true
+      },
+      {
+        "name": "api-emit-syntax",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "csharp/tools/checker-locations.mjs",
+          "--emit-syntax"
+        ],
+        "log": "logs/utf8-opt-final-api-emit-syntax.log",
+        "exitCode": 0,
+        "summary": {
+          "configurations": 136,
+          "queries": 20188,
+          "comparedQueries": 20188,
+          "exact": 136,
+          "failed": 0,
+          "referenceRevision": "f29aeb9f825d96feea27841f3f7342dbf0df68a8",
+          "referenceFailures": 0,
+          "candidateFailures": 0,
+          "oracleHash": "760fd668e0a5e73d2c73cd327f79c55c4a6ee5acfc601e8075d785b2341c1f57",
+          "candidateHash": "fd99af34b7c63f04f4b5195740263ef9d2e4a1711d81e5f4c6fcd1de4832da7e",
+          "inputHash": "435847869a0a2602aadd883b15432cc9629da72b9ac608685449a1605837fa2b",
+          "resultHash": "e225a861451d661eb55d3656d94bb2ab471cc4abaf7a039ef974771bea35df05",
+          "managed": true
+        },
+        "passed": true
+      }
+    ]
+  },
+  "nativeSafety": {
+    "candidateHash": "65fced2a72d2c6b34b4c006fcd1a8e820f55da7b1f376c6f524674092759d4a2",
+    "records": [
+      {
+        "name": "module-specifiers-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--module-specifiers-safety"
+        ],
+        "log": "logs/utf8-opt-native-module-specifiers-safety.log",
+        "exitCode": 0,
+        "output": "20 module naming/path/extension/cancellation assertions\r\n",
+        "passed": true
+      },
+      {
+        "name": "module-program-specifiers-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--module-program-specifiers-safety"
+        ],
+        "log": "logs/utf8-opt-native-module-program-specifiers-safety.log",
+        "exitCode": 0,
+        "output": "Program module specifier safety: 12 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "diagnostic-node-printer-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--diagnostic-node-printer-safety"
+        ],
+        "log": "logs/utf8-opt-native-diagnostic-node-printer-safety.log",
+        "exitCode": 0,
+        "output": "Diagnostic node printer safety: 11 assertions passed; depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "computed-symbols-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--computed-symbols-safety"
+        ],
+        "log": "logs/utf8-opt-native-computed-symbols-safety.log",
+        "exitCode": 0,
+        "output": "Computed symbol safety: 7 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "module-generation-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--module-generation-safety"
+        ],
+        "log": "logs/utf8-opt-native-module-generation-safety.log",
+        "exitCode": 0,
+        "output": "Module generation safety: 12 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "module-node-specifiers-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--module-node-specifiers-safety"
+        ],
+        "log": "logs/utf8-opt-native-module-node-specifiers-safety.log",
+        "exitCode": 0,
+        "output": "Node module specifier safety: 10 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "module-package-specifiers-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--module-package-specifiers-safety"
+        ],
+        "log": "logs/utf8-opt-native-module-package-specifiers-safety.log",
+        "exitCode": 0,
+        "output": "19 package-map/output-path/cancellation assertions; depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-emit-syntax-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-emit-syntax-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-emit-syntax-safety.log",
+        "exitCode": 0,
+        "output": "Emit syntax safety: 13 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-node-builder-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-node-builder-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-node-builder-safety.log",
+        "exitCode": 0,
+        "output": "Node builder tracking safety: 17 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-return-syntax-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-return-syntax-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-return-syntax-safety.log",
+        "exitCode": 0,
+        "output": "Return recovery safety: 14 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-module-grammar-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-module-grammar-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-module-grammar-safety.log",
+        "exitCode": 0,
+        "output": "Module grammar safety: 12 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-program-relations-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-program-relations-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-program-relations-safety.log",
+        "exitCode": 0,
+        "output": "Program relation safety: 14 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-mapped-exports-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-mapped-exports-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-mapped-exports-safety.log",
+        "exitCode": 0,
+        "output": "Mapped/export safety: 17 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-private-declarations-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-private-declarations-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-private-declarations-safety.log",
+        "exitCode": 0,
+        "output": "Private/declaration safety: 16 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-diagnostic-values-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-diagnostic-values-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-diagnostic-values-safety.log",
+        "exitCode": 0,
+        "output": "Diagnostic value safety: 16 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-declaration-grammar-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-declaration-grammar-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-declaration-grammar-safety.log",
+        "exitCode": 0,
+        "output": "Declaration grammar safety: 13 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-relation-context-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-relation-context-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-relation-context-safety.log",
+        "exitCode": 0,
+        "output": "Relation context safety: 14 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-module-context-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-module-context-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-module-context-safety.log",
+        "exitCode": 0,
+        "output": "Module context safety: 11 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-declaration-block-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-declaration-block-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-declaration-block-safety.log",
+        "exitCode": 0,
+        "output": "Declaration block safety: 8 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-pool-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-pool-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-pool-safety.log",
+        "exitCode": 0,
+        "output": "Checker pool safety: 19 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-pool-cancellation",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-pool-cancellation"
+        ],
+        "log": "logs/utf8-opt-native-checker-pool-cancellation.log",
+        "exitCode": 0,
+        "output": "Checker pool cancellation: 6 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-diagnostic-identity-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-diagnostic-identity-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-diagnostic-identity-safety.log",
+        "exitCode": 0,
+        "output": "Diagnostic identity safety: 38 assertions passed; chain depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-recovery-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-recovery-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-recovery-safety.log",
+        "exitCode": 0,
+        "output": "Syntax recovery safety: 10 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-emit-links-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-emit-links-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-emit-links-safety.log",
+        "exitCode": 0,
+        "output": "Emit linking safety: 14 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-emit-queries-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-emit-queries-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-emit-queries-safety.log",
+        "exitCode": 0,
+        "output": "Emit query safety: 18 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-signature-declarations-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-signature-declarations-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-signature-declarations-safety.log",
+        "exitCode": 0,
+        "output": "Signature declaration safety: 10 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-syntax-names-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-syntax-names-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-syntax-names-safety.log",
+        "exitCode": 0,
+        "output": "Type syntax names safety: 10 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-syntax-options-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-syntax-options-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-syntax-options-safety.log",
+        "exitCode": 0,
+        "output": "Type syntax options safety: 10 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-symbol-type-arguments-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-symbol-type-arguments-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-symbol-type-arguments-safety.log",
+        "exitCode": 0,
+        "output": "Symbol type arguments safety: 9 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-signature-syntax-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-signature-syntax-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-signature-syntax-safety.log",
+        "exitCode": 0,
+        "output": "Signature syntax safety: 9 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-conditional-syntax-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-conditional-syntax-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-conditional-syntax-safety.log",
+        "exitCode": 0,
+        "output": "Conditional/property syntax safety: 9 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-type-syntax-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-type-syntax-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-type-syntax-safety.log",
+        "exitCode": 0,
+        "output": "Type syntax core safety: 9 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-type-renderer-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-type-renderer-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-type-renderer-safety.log",
+        "exitCode": 0,
+        "output": "Diagnostic renderer safety: 52 assertions passed; array depth 5000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-display-formats-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-display-formats-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-display-formats-safety.log",
+        "exitCode": 0,
+        "output": "Display format safety: 15 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-symbol-type-nodes-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-symbol-type-nodes-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-symbol-type-nodes-safety.log",
+        "exitCode": 0,
+        "output": "Symbol type node safety: 14 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-symbol-formats-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-symbol-formats-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-symbol-formats-safety.log",
+        "exitCode": 0,
+        "output": "Symbol format mode safety: 9 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-symbol-display-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-symbol-display-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-symbol-display-safety.log",
+        "exitCode": 0,
+        "output": "Symbol display/accessibility safety: 17 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-access-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-access-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-access-safety.log",
+        "exitCode": 0,
+        "output": "83 access/optional/member/class/cancellation/spelling assertions; 20,000-level traversal.\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-identifiers-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-identifiers-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-identifiers-safety.log",
+        "exitCode": 0,
+        "output": "39 identifier/binding/default/alias/cancellation/ownership assertions; 20,000-level reference traversal.\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-flow-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-flow-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-flow-safety.log",
+        "exitCode": 0,
+        "output": "52 flow/cache/reachability/assignment/cancellation assertions; 20,000-node traversal and exact 2,000 recursion limit.\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-references-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-references-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-references-safety.log",
+        "exitCode": 0,
+        "output": "23 reference safety assertions; 20,000-level syntax traversal.\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-binary-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-binary-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-binary-safety.log",
+        "exitCode": 0,
+        "output": "31 binary/awaited/recursion/cancellation assertions; 20000-level binary expressions\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-expressions-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-expressions-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-expressions-safety.log",
+        "exitCode": 0,
+        "output": "81 expression/literal/context/enum/cache/cancellation assertions; 20000-level expression, constant and context traversal\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-inference-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-inference-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-inference-safety.log",
+        "exitCode": 0,
+        "output": "37 inference/priority/fixing/cancellation/widening/reverse-map assertions; 20000-level traversal\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-conditional-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-conditional-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-conditional-safety.log",
+        "exitCode": 0,
+        "output": "24 conditional/cache/cancellation assertions; exact 1000 tail and 10 relation nesting limits\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-generic-relations-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-generic-relations-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-generic-relations-safety.log",
+        "exitCode": 0,
+        "output": "27 generic relation/optionality/key variance/cancellation assertions\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-indexing-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-indexing-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-indexing-safety.log",
+        "exitCode": 0,
+        "output": "Checker indexed type safety: 51 assertions; 20,000-level simplification and key traversal\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-assignability-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-assignability-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-assignability-safety.log",
+        "exitCode": 0,
+        "output": "57 structural relation/variance/facts/cancellation assertions\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-relations-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-relations-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-relations-safety.log",
+        "exitCode": 0,
+        "output": "56 relation key/cache/normalization/cancellation assertions; exact 100-level comparison cutoff; key and base chains depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-relation-diagnostics-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-relation-diagnostics-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-relation-diagnostics-safety.log",
+        "exitCode": 0,
+        "output": "Relation diagnostic safety: 10 assertions passed\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-signatures-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-signatures-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-signatures-safety.log",
+        "exitCode": 0,
+        "output": "148 signature/function/call/iteration/inference/context/cancellation assertions; binding and return traversal depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-properties-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-properties-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-properties-safety.log",
+        "exitCode": 0,
+        "output": "49 property/view/index/cache/cancellation assertions; reduction chain depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-values-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-values-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-values-safety.log",
+        "exitCode": 0,
+        "output": "32 symbol read/write/cache/cancellation assertions; instantiated symbol chain depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-members-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-members-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-members-safety.log",
+        "exitCode": 0,
+        "output": "38 structured member/signature assertions; base and signature chains depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-type-nodes-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-type-nodes-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-type-nodes-safety.log",
+        "exitCode": 0,
+        "output": "25 source-type/cache/cancellation assertions; array and alias ancestry depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-alias-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-alias-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-alias-safety.log",
+        "exitCode": 0,
+        "output": "31 alias/cycle/cancellation/module-export assertions; alias chain depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-query-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-query-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-query-safety.log",
+        "exitCode": 0,
+        "output": "20 type-location query ownership/cancellation assertions; depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-symbol-query-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-symbol-query-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-symbol-query-safety.log",
+        "exitCode": 0,
+        "output": "25 symbol-location query identity/ownership/cancellation assertions\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-scope-query-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-scope-query-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-scope-query-safety.log",
+        "exitCode": 0,
+        "output": "23 scope/symbol-type query identity/cancellation assertions\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-context-query-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-context-query-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-context-query-safety.log",
+        "exitCode": 0,
+        "output": "24 context/signature query cache/cancellation assertions\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-visibility-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-visibility-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-visibility-safety.log",
+        "exitCode": 0,
+        "output": "33 declaration visibility/alias/rollback assertions; depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-symbol-chains-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-symbol-chains-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-symbol-chains-safety.log",
+        "exitCode": 0,
+        "output": "18 accessible-chain identity/qualification/rollback assertions; depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-accessibility-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-accessibility-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-accessibility-safety.log",
+        "exitCode": 0,
+        "output": "24 accessibility/container/entity-visibility/rollback assertions\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-program-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-program-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-program-safety.log",
+        "exitCode": 0,
+        "output": "294 program/checker ownership assertions; interface and scope depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-mapped-members-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-mapped-members-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-mapped-members-safety.log",
+        "exitCode": 0,
+        "output": "30 mapped member assertions; key validity, lower-bound and modifier chains at depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-mapped-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-mapped-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-mapped-safety.log",
+        "exitCode": 0,
+        "output": "37 mapped type assertions; actual-variable, generic-flag, kind and unary-tuple analysis depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-objects-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-objects-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-objects-safety.log",
+        "exitCode": 0,
+        "output": "40 object instantiation assertions; reference, parent and entity-name depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-instantiation-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-instantiation-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-instantiation-safety.log",
+        "exitCode": 0,
+        "output": "26 instantiation/signature/tuple assertions; exact 100-depth, 5,000,000-work and 10,000-tuple limits\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-constraints-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-constraints-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-constraints-safety.log",
+        "exitCode": 0,
+        "output": "21 constraint/default/recursion state assertions; default and indexed identity depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-algebra-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-algebra-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-algebra-safety.log",
+        "exitCode": 0,
+        "output": "15 algebra ownership/limit/cancellation assertions; template, intersection and origin depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-names-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-names-safety"
+        ],
+        "log": "logs/utf8-opt-native-checker-names-safety.log",
+        "exitCode": 0,
+        "output": "30 name/symbol state assertions; scope, initializer and merge depth 20000\r\n",
+        "passed": true
+      },
+      {
+        "name": "checker-state",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--checker-state"
+        ],
+        "log": "logs/utf8-opt-native-checker-state.log",
+        "exitCode": 0,
+        "output": "1493 checker ownership/state assertions; mapper and type-order depth 50000; 16 independent contexts\r\n",
+        "passed": true
+      },
+      {
+        "name": "program-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--program-safety"
+        ],
+        "log": "logs/utf8-opt-native-program-safety.log",
+        "exitCode": 0,
+        "output": "Program reuse, invalidation and stack safety: 28 assertions; 12000 syntax levels; 3000 files\r\n",
+        "passed": true
+      },
+      {
+        "name": "parser-safety",
+        "command": "D:/source/repos/TypeScript/built/utf8-optimization/native-satori-final/TypeScript.Compatibility.exe",
+        "args": [
+          "--parser-safety"
+        ],
+        "log": "logs/utf8-opt-native-parser-safety.log",
+        "exitCode": 0,
+        "output": "Async documentation: default worker pool passed; worker limits unsupported, separate portable-pool single-worker gate required.\r\nparentheses.ts: 17 ms\r\nparenthesis-precedence.ts: 0 ms\r\nawait-spans.ts: 0 ms\r\nawait-overlap.ts: 0 ms\r\nawait-end.ts: 0 ms\r\nindex-signatures.ts: 0 ms\r\ngeneric-function-types.ts: 0 ms\r\nheritage-expressions.ts: 0 ms\r\nprivate-type-query.ts: 0 ms\r\nthis-parameters.ts: 0 ms\r\ntuples.ts: 39 ms\r\ngenerics.ts: 24 ms\r\nindexed-access.ts: 18 ms\r\noperators.ts: 4 ms\r\nfunctions.ts: 15 ms\r\nconditionals.ts: 30 ms\r\nmapped.ts: 32 ms\r\ntype-literals.ts: 26 ms\r\ntemplate-types.ts: 29 ms\r\ncompound-types.ts: 39 ms\r\nblocks.ts: 9 ms\r\nif-statements.ts: 11 ms\r\nexpression-parentheses.ts: 6 ms\r\narray-expressions.ts: 14 ms\r\nobject-expressions.ts: 22 ms\r\nbinary-expressions.ts: 12 ms\r\nfunction-expressions.ts: 47 ms\r\njsx.tsx: 22 ms\r\njsx-qualified.tsx: 11 ms\r\njsx-names.tsx: 0 ms\r\nnested.json: 10 ms\r\ndocumentation.js: 57 ms\r\ndocumentation-array.js: 9 ms\r\ndocumentation-host.js: 9 ms\r\ndocumentation-names.js: 6 ms\r\ndocumentation-heritage.js: 19 ms\r\ndocumentation-properties.js: 25 ms\r\ndocumentation-typedef.js: 0 ms\r\ndocumentation-unicode-lines.js: 0 ms\r\ndocumentation-unicode-lines.js: 0 ms\r\nsynchronization-context.ts: 42 ms\r\nParser safety: 41 cases, 1421851 nodes; depth 21000, source positions, parents and cancellation passed.\r\n",
+        "passed": true
+      }
+    ]
+  },
+  "nativeScanner": {
+    "timestamp": "2026-09-30T18:35:54.482Z",
+    "recordFormat": "kind-fullstart-start-end-tokenflags-value; scanner diagnostics and empty JavaScript diagnostic bucket",
+    "suite": "scanner",
+    "expanded": false,
+    "candidate": "NativeAOT",
+    "sdk": "11.0.100-rtm.26473.115",
+    "runtime": ".NET 11.0.0-dev; Vector128=True; Vector256=True; Vector512=False",
+    "instructionSet": "native",
+    "optimizationPreference": "Speed",
+    "candidateSha256": "65fced2a72d2c6b34b4c006fcd1a8e820f55da7b1f376c6f524674092759d4a2",
+    "inputSha256": "fe7f838adbf84082f28d207c58754c92631a210b0343f2728a4562c62a99b3e0",
+    "cases": 12895,
+    "records": 1828290,
+    "runtimeAsync": true,
+    "comparison": "strict",
+    "independentParserVersion": null,
+    "passed": 12895,
+    "failed": 0,
+    "strictPassed": 12895,
+    "strictFailed": 0,
+    "permittedDifferences": 0,
+    "failures": [],
+    "oracleSha256": "bb4730a4f2e4c557261b9ed2f32d499393bd65e7c268a19936921d85b291c616"
+  },
+  "logs": {
+    "modifiers-build": {
+      "path": "logs/utf8-opt-modifiers-build.log",
+      "sha256": "ba08297488b8f578d5684a34ea975a38afd1c1404f6560f48a0334de2cd70fc2",
+      "output": "D:\\dotnet-sdk-11.0.100-rtm.26473.115-win-x64\\sdk\\11.0.100-rtm.26473.115\\Sdks\\Microsoft.NET.Sdk\\targets\\Microsoft.NET.RuntimeIdentifierInference.targets(385,5): message NETSDK1057: プレビュー版の .NET を使用しています。https://aka.ms/dotnet-support-policy をご覧ください [D:\\source\\repos\\TypeScript\\csharp\\src\\TypeScript.Compiler\\TypeScript.Compiler.csproj]\r\nD:\\dotnet-sdk-11.0.100-rtm.26473.115-win-x64\\sdk\\11.0.100-rtm.26473.115\\Sdks\\Microsoft.NET.Sdk\\targets\\Microsoft.NET.RuntimeIdentifierInference.targets(385,5): message NETSDK1057: プレビュー版の .NET を使用しています。https://aka.ms/dotnet-support-policy をご覧ください [D:\\source\\repos\\TypeScript\\csharp\\tests\\TypeScript.SourceMetadata\\TypeScript.SourceMetadata.csproj]\r\nD:\\dotnet-sdk-11.0.100-rtm.26473.115-win-x64\\sdk\\11.0.100-rtm.26473.115\\Sdks\\Microsoft.NET.Sdk\\targets\\Microsoft.NET.RuntimeIdentifierInference.targets(385,5): message NETSDK1057: プレビュー版の .NET を使用しています。https://aka.ms/dotnet-support-policy をご覧ください [D:\\source\\repos\\TypeScript\\csharp\\tests\\TypeScript.Compatibility\\TypeScript.Compatibility.csproj]\r\nD:\\dotnet-sdk-11.0.100-rtm.26473.115-win-x64\\sdk\\11.0.100-rtm.26473.115\\Sdks\\Microsoft.NET.Sdk\\targets\\Microsoft.NET.RuntimeIdentifierInference.targets(385,5): message NETSDK1057: プレビュー版の .NET を使用しています。https://aka.ms/dotnet-support-policy をご覧ください [D:\\source\\repos\\TypeScript\\csharp\\tests\\TypeScript.RegularExpression\\TypeScript.RegularExpression.csproj]\r\n  TypeScript.Compiler -> D:\\source\\repos\\TypeScript\\csharp\\src\\TypeScript.Compiler\\bin\\Release\\net11.0\\TypeScript.Compiler.dll\r\n  TypeScript.RegularExpression -> D:\\source\\repos\\TypeScript\\csharp\\tests\\TypeScript.RegularExpression\\bin\\Release\\net11.0\\TypeScript.RegularExpression.dll\r\n  TypeScript.SourceMetadata -> D:\\source\\repos\\TypeScript\\csharp\\tests\\TypeScript.SourceMetadata\\bin\\Release\\net11.0\\TypeScript.SourceMetadata.dll\r\n  TypeScript.Compatibility -> D:\\source\\repos\\TypeScript\\csharp\\tests\\TypeScript.Compatibility\\bin\\Release\\net11.0\\TypeScript.Compatibility.dll\r\n\r\nビルドに成功しました。\r\n    0 個の警告\r\n    0 エラー\r\n\r\n経過時間 00:00:26.32\r\n"
+    },
+    "split-scanner-corpus": {
+      "path": "logs/utf8-opt-split-scanner-corpus.log",
+      "sha256": "061982a8c3880d5ab442108ad75585ad73e4aa9fb397dc744e7055dc603f27ce",
+      "output": "Passed 12895 scanner cases and 1828290 records (CoreCLR); 0 documented strict differences\r\n"
+    },
+    "split-foundations": {
+      "path": "logs/utf8-opt-split-foundations.log",
+      "sha256": "288eebffb91692c8055ea5c46d2f2d15933988a00e087b508a85c313401fa9cb",
+      "output": "Foundations: 5019 assertions, 2213 diagnostics, 13 locales, 108 libraries; embedded=True\r\n"
+    },
+    "modifiers-declaration-grammar": {
+      "path": "logs/utf8-opt-modifiers-declaration-grammar.log",
+      "sha256": "f095daa928371526302c18a9c595371fb3d8e93cd4023eff3669a312cdc2fe8a",
+      "output": "Declaration grammar safety: 13 assertions passed\r\n"
+    },
+    "modifiers-module-grammar": {
+      "path": "logs/utf8-opt-modifiers-module-grammar.log",
+      "sha256": "817dcfc600e8adb6028931adfb5d80a527641153169ab148e1db57e9d3718f47",
+      "output": "Module grammar safety: 12 assertions passed\r\n"
+    },
+    "satori-publish": {
+      "path": "logs/utf8-opt-satori-publish.log",
+      "sha256": "7b5388d79095697dc064ec27e9d7a9eb32bfa73e449089ad433ab63ab1db1e83",
+      "output": "  復元対象のプロジェクトを決定しています...\r\n  D:\\source\\repos\\TypeScript\\csharp\\src\\TypeScript.Compiler\\TypeScript.Compiler.csproj を復元しました (1.16 秒)。\r\n  D:\\source\\repos\\TypeScript\\csharp\\tests\\TypeScript.Compatibility\\TypeScript.Compatibility.csproj を復元しました (1.16 秒)。\r\nD:\\dotnet-sdk-11.0.100-rtm.26473.115-win-x64\\sdk\\11.0.100-rtm.26473.115\\Sdks\\Microsoft.NET.Sdk\\targets\\Microsoft.NET.RuntimeIdentifierInference.targets(385,5): message NETSDK1057: プレビュー版の .NET を使用しています。https://aka.ms/dotnet-support-policy をご覧ください [D:\\source\\repos\\TypeScript\\csharp\\src\\TypeScript.Compiler\\TypeScript.Compiler.csproj]\r\n  TypeScript.Compiler -> D:\\source\\repos\\TypeScript\\built\\utf8-optimization\\artifacts-satori-final\\bin\\TypeScript.Compiler\\release\\TypeScript.Compiler.dll\r\n  Generating native code\r\n  TypeScript.Compatibility -> D:\\source\\repos\\TypeScript\\built\\utf8-optimization\\native-satori-final\\\r\n"
+    },
+    "stock-publish": {
+      "path": "logs/utf8-opt-stock-publish.log",
+      "sha256": "182634c6f828913f33b0d00f36fcd88034d912d0c3cb65157f4eeeb69ad55161",
+      "output": "  復元対象のプロジェクトを決定しています...\r\n  D:\\source\\repos\\TypeScript\\csharp\\src\\TypeScript.Compiler\\TypeScript.Compiler.csproj を復元しました (831 ミリ秒)。\r\n  D:\\source\\repos\\TypeScript\\csharp\\tests\\TypeScript.Compatibility\\TypeScript.Compatibility.csproj を復元しました (831 ミリ秒)。\r\nD:\\dotnet-sdk-11.0.100-rtm.26473.115-win-x64\\sdk\\11.0.100-rtm.26473.115\\Sdks\\Microsoft.NET.Sdk\\targets\\Microsoft.NET.RuntimeIdentifierInference.targets(385,5): message NETSDK1057: プレビュー版の .NET を使用しています。https://aka.ms/dotnet-support-policy をご覧ください [D:\\source\\repos\\TypeScript\\csharp\\src\\TypeScript.Compiler\\TypeScript.Compiler.csproj]\r\n  TypeScript.Compiler -> D:\\source\\repos\\TypeScript\\built\\utf8-optimization\\artifacts-stock-final\\bin\\TypeScript.Compiler\\release\\TypeScript.Compiler.dll\r\n  Generating native code\r\n  TypeScript.Compatibility -> D:\\source\\repos\\TypeScript\\built\\utf8-optimization\\native-stock-final\\\r\n"
+    },
+    "satori-native-check": {
+      "path": "logs/utf8-opt-satori-native-check.log",
+      "sha256": "deafe6d83e82ca3140e8817ce8d57c8412e0ca9002c60fb5b93fdf8e22ebdaaf",
+      "output": ".NET 11.0.0-dev; Vector128=True; Vector256=True; Vector512=False\r\n"
+    },
+    "stock-native-check": {
+      "path": "logs/utf8-opt-stock-native-check.log",
+      "sha256": "7d497e3e10741501c6c00fe4f8df83821ec21c95bd16c23fbbbf4fb7bc94519d",
+      "output": ".NET 11.0.0-rtm.26473.115; Vector128=True; Vector256=True; Vector512=False\r\n"
+    },
+    "satori-foundations": {
+      "path": "logs/utf8-opt-satori-foundations.log",
+      "sha256": "288eebffb91692c8055ea5c46d2f2d15933988a00e087b508a85c313401fa9cb",
+      "output": "Foundations: 5019 assertions, 2213 diagnostics, 13 locales, 108 libraries; embedded=True\r\n"
+    },
+    "stock-foundations": {
+      "path": "logs/utf8-opt-stock-foundations.log",
+      "sha256": "288eebffb91692c8055ea5c46d2f2d15933988a00e087b508a85c313401fa9cb",
+      "output": "Foundations: 5019 assertions, 2213 diagnostics, 13 locales, 108 libraries; embedded=True\r\n"
+    },
+    "stock-parser-safety": {
+      "path": "logs/utf8-opt-stock-parser-safety.log",
+      "sha256": "1f7429ac09d32cf65fc8487a4bda4c0604fafacf690f2453290aa91d0dff1833",
+      "output": "Async documentation: default worker pool passed; worker limits unsupported, separate portable-pool single-worker gate required.\r\nparentheses.ts: 25 ms\r\nparenthesis-precedence.ts: 0 ms\r\nawait-spans.ts: 0 ms\r\nawait-overlap.ts: 0 ms\r\nawait-end.ts: 0 ms\r\nindex-signatures.ts: 0 ms\r\ngeneric-function-types.ts: 0 ms\r\nheritage-expressions.ts: 0 ms\r\nprivate-type-query.ts: 0 ms\r\nthis-parameters.ts: 0 ms\r\ntuples.ts: 35 ms\r\ngenerics.ts: 34 ms\r\nindexed-access.ts: 22 ms\r\noperators.ts: 4 ms\r\nfunctions.ts: 14 ms\r\nconditionals.ts: 43 ms\r\nmapped.ts: 40 ms\r\ntype-literals.ts: 30 ms\r\ntemplate-types.ts: 23 ms\r\ncompound-types.ts: 31 ms\r\nblocks.ts: 7 ms\r\nif-statements.ts: 17 ms\r\nexpression-parentheses.ts: 9 ms\r\narray-expressions.ts: 7 ms\r\nobject-expressions.ts: 29 ms\r\nbinary-expressions.ts: 28 ms\r\nfunction-expressions.ts: 46 ms\r\njsx.tsx: 32 ms\r\njsx-qualified.tsx: 18 ms\r\njsx-names.tsx: 0 ms\r\nnested.json: 7 ms\r\ndocumentation.js: 42 ms\r\ndocumentation-array.js: 9 ms\r\ndocumentation-host.js: 14 ms\r\ndocumentation-names.js: 6 ms\r\ndocumentation-heritage.js: 19 ms\r\ndocumentation-properties.js: 44 ms\r\ndocumentation-typedef.js: 0 ms\r\ndocumentation-unicode-lines.js: 0 ms\r\ndocumentation-unicode-lines.js: 0 ms\r\nsynchronization-context.ts: 35 ms\r\nParser safety: 41 cases, 1421851 nodes; depth 21000, source positions, parents and cancellation passed.\r\n"
+    }
+  },
+  "scope": "Full fresh-program semantic corpus in both modes and all 31 checker API families on Release CoreCLR. Both fresh NativeAOT builds pass runtime/foundation checks; Satori runs all 74 safety suites and stock runs parser safety. Full semantic/API matrices were not repeated under NativeAOT."
+}
